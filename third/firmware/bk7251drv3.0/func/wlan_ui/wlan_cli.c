@@ -442,7 +442,7 @@ static void cli_main( uint32_t data )
         int ret;
         char *msg = NULL;
 
-        rtos_get_semaphore(&log_rx_interrupt_sema, BEKEN_NEVER_TIMEOUT);
+        bk_rtos_get_semaphore(&log_rx_interrupt_sema, BEKEN_NEVER_TIMEOUT);
 
         if(get_input(pCli->inbuf, &pCli->bp))
         {
@@ -2731,7 +2731,7 @@ IDLE_CMD_ERR:
 static void cli_rx_callback(int uport, void *param)
 {
 	if(log_rx_interrupt_sema)
-    	rtos_set_semaphore(&log_rx_interrupt_sema);
+    	bk_rtos_set_semaphore(&log_rx_interrupt_sema);
 }
 
 /* ========= CLI input&output APIs ============ */
@@ -2836,7 +2836,7 @@ int cli_init(void)
         return kNoMemoryErr;
 
     os_memset((void *)pCli, 0, sizeof(struct cli_st));
-    rtos_init_semaphore(&log_rx_interrupt_sema, 10);
+    bk_rtos_init_semaphore(&log_rx_interrupt_sema, 10);
 
     if (cli_register_commands(&built_ins[0],
                               sizeof(built_ins) / sizeof(struct cli_command)))
@@ -2846,7 +2846,7 @@ int cli_init(void)
 
     cli_register_commands(user_clis, sizeof(user_clis) / sizeof(struct cli_command));
 
-    ret = rtos_create_thread(&cli_thread_handle,
+    ret = bk_rtos_create_thread(&cli_thread_handle,
                              BEKEN_DEFAULT_WORKER_PRIORITY,
                              "cli",
                              (beken_thread_function_t)cli_main,

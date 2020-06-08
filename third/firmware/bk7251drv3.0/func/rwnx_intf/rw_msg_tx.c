@@ -47,7 +47,7 @@ int rw_msg_send(const void *msg_params, uint16_t reqid, void *cfm)
         tx_msg->reqid = reqid;
         tx_msg->cfm = cfm;
 
-        ret = rtos_init_semaphore(&tx_msg->semaphore, 1);
+        ret = bk_rtos_init_semaphore(&tx_msg->semaphore, 1);
         ASSERT(0 == ret);
 
         GLOBAL_INT_DISABLE();
@@ -89,7 +89,7 @@ int rw_msg_send(const void *msg_params, uint16_t reqid, void *cfm)
 failed_or_timeout:
     if (need_cfm)
     {
-        ret = rtos_deinit_semaphore(&tx_msg->semaphore);
+        ret = bk_rtos_deinit_semaphore(&tx_msg->semaphore);
         ASSERT(0 == ret);
 
         os_free(tx_msg);

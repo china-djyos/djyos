@@ -109,7 +109,7 @@ void app_demo_softap_send_msg(u32 new_msg, u32 new_data)
     {
         msg.dmsg = new_msg;
         
-        ret = rtos_push_to_queue(&g_demo_softap->msg_que, &msg, BEKEN_NO_WAIT);
+        ret = bk_rtos_push_to_queue(&g_demo_softap->msg_que, &msg, BEKEN_NO_WAIT);
         if(kNoErr != ret)
         {
             os_printf("app_demo_softap_send_msg failed\r\n");
@@ -325,7 +325,7 @@ static void app_demo_softap_main( beken_thread_arg_t data )
         DRONE_MSG_T msg;
         status = g_demo_softap->status;
         
-        err = rtos_pop_from_queue(&g_demo_softap->msg_que, &msg, BEKEN_WAIT_FOREVER);
+        err = bk_rtos_pop_from_queue(&g_demo_softap->msg_que, &msg, BEKEN_WAIT_FOREVER);
         if(kNoErr == err)
         {
             switch(msg.dmsg) 
@@ -393,12 +393,12 @@ static void app_demo_softap_main( beken_thread_arg_t data )
 
 app_demo_softap_exit:
 
-    rtos_deinit_queue(&g_demo_softap->msg_que);
+    bk_rtos_deinit_queue(&g_demo_softap->msg_que);
 
     os_free(g_demo_softap);
     g_demo_softap = NULL;
     
-    rtos_delete_thread(NULL);
+    bk_rtos_delete_thread(NULL);
 }
 
 int app_demo_softap_is_ota_doing(void)
@@ -423,7 +423,7 @@ void video_demo( void )
             return;
         }
 
-        ret = rtos_init_queue(&g_demo_softap->msg_que, 
+        ret = bk_rtos_init_queue(&g_demo_softap->msg_que, 
                                 "app_demo_softap_queue",
                                 sizeof(DRONE_MSG_T),
                                 APP_DEMO_SOFTAP_QITEM_COUNT);
@@ -435,7 +435,7 @@ void video_demo( void )
             return;
         }   
         
-        ret = rtos_create_thread(&g_demo_softap->thread_hdl,
+        ret = bk_rtos_create_thread(&g_demo_softap->thread_hdl,
                                       BEKEN_DEFAULT_WORKER_PRIORITY,
                                       "app_demo_softap",
                                       (beken_thread_function_t)app_demo_softap_main,
@@ -445,7 +445,7 @@ void video_demo( void )
         {
             APP_DEMO_SOFTAP_FATAL("Error: Failed to create spidma_intfer: %d\r\n", ret);
 
-            rtos_deinit_queue(&g_demo_softap->msg_que);
+            bk_rtos_deinit_queue(&g_demo_softap->msg_que);
             os_free(g_demo_softap);
             g_demo_softap = NULL;
             return;
@@ -453,7 +453,7 @@ void video_demo( void )
 
     }
 #endif
-    rtos_delete_thread(NULL);
+    bk_rtos_delete_thread(NULL);
 
 }
 #if ((CFG_SUPPORT_RTT)&&(CFG_USE_APP_DEMO_VIDEO_TRANSFER))

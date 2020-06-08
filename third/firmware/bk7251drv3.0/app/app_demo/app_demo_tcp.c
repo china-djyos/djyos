@@ -3,7 +3,7 @@
 #include "app_demo_config.h"
 
 #if (CFG_USE_APP_DEMO_VIDEO_TRANSFER && APP_DEMO_CFG_USE_TCP)
-#include "lwip/tcp.h"
+//#include "lwip/tcp.h"
 #include "app_demo_tcp.h"
 //#include "app_led.h"
 #include "uart_pub.h"
@@ -17,7 +17,7 @@
 
 #include "app_demo_config.h"
 #include "app_demo_softap.h"
-#include "video_transfer.h"
+//#include "video_transfer.h"
 
 #define APP_DEMO_TCP_DEBUG        1
 #if APP_DEMO_TCP_DEBUG
@@ -265,7 +265,7 @@ app_demo_tcp_exit:
     GLOBAL_INT_RESTORE();
 
     app_demo_tcp_hdl = NULL;
-    rtos_delete_thread(NULL);
+    bk_rtos_delete_thread(NULL);
 }
 
 UINT32 app_demo_tcp_init(void)
@@ -275,7 +275,7 @@ UINT32 app_demo_tcp_init(void)
     APP_DEMO_TCP_PRT("app_demo_tcp_init\r\n");
     if(!app_demo_tcp_hdl)
     {
-        ret = rtos_create_thread(&app_demo_tcp_hdl,
+        ret = bk_rtos_create_thread(&app_demo_tcp_hdl,
                                       4,
                                       "app_demo_tcp",
                                       (beken_thread_function_t)app_demo_tcp_main,

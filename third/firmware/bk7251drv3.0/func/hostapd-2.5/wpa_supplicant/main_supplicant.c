@@ -12,6 +12,7 @@
 #include "driver_i.h"
 #include "main_none.h"
 #include "ps.h"
+#include <misc/md5/md5.h>
 #include "sys_rtos.h"
 #include "rtos_pub.h"
 #include "error.h"
@@ -48,6 +49,43 @@ int wpa_get_psk(char *psk)
     conf = wpa_global_ptr->ifaces->conf;
     memcpy(psk, conf->ssid->psk, 32);
 
+    return 0;
+}
+
+static unsigned char gmd5_passphrase[16];
+int wpa_get_passphrase_md5(unsigned char *md5_passphrase, int len)
+{
+    int min = len;
+
+    if (md5_passphrase == 0 || len <= 0) return -1;
+
+    min = min < sizeof(gmd5_passphrase) ? min : sizeof(gmd5_passphrase);
+    memcpy(md5_passphrase, gmd5_passphrase, min);
+
+    //hex_dump("wpa_get_passphrase_md5", md5_passphrase, min);
+
+    return 0;
+}
+
+int wpa_set_passphrase_md5(char *passphrase)
+{
+    unsigned char md5_tmp[16];
+    MD5_CTX ctx;
+    int min = sizeof(gmd5_passphrase);
+
+    if (passphrase == 0) return -1;
+
+    memset(md5_tmp,  0,  sizeof(md5_tmp));
+    MD5Init(&ctx);
+    MD5Update(&ctx, passphrase, strlen(passphrase));
+    MD5Final(md5_tmp, &ctx);
+
+    //printf("==wpa_set_passphrase_md5: %s==\r\n", passphrase);
+
+    min = min < sizeof(md5_tmp) ? min : sizeof(md5_tmp);
+    memcpy(gmd5_passphrase, md5_tmp, min);
+
+    //hex_dump("wpa_set_passphrase_md5", gmd5_passphrase, min);
     return 0;
 }
 
@@ -236,10 +274,10 @@ static void wpas_thread_main( void *arg )
 
 	wpas_thread_handle = NULL;
 	
-    rtos_deinit_queue(&wpah_queue);
+    bk_rtos_deinit_queue(&wpah_queue);
     wpah_queue = NULL;
 	
-	rtos_delete_thread(NULL);
+	bk_rtos_delete_thread(NULL);
 }
 
 void wpas_thread_start(void)
@@ -247,7 +285,7 @@ void wpas_thread_start(void)
     OSStatus ret;
 
     if(wpah_queue == NULL) {
-    	ret = rtos_init_queue(&wpah_queue, 
+    	ret = bk_rtos_init_queue(&wpah_queue, 
     							"wpah_queue",
     							sizeof(WPAH_MSG_ST),
     							64);
@@ -256,7 +294,7 @@ void wpas_thread_start(void)
 
     if(NULL == wpas_thread_handle)
     {
-	    ret = rtos_create_thread(&wpas_thread_handle,
+	    ret = bk_rtos_create_thread(&wpas_thread_handle,
 	                             THD_WPAS_PRIORITY,
 	                             "wpas_thread",
 	                             (beken_thread_function_t)wpas_thread_main,
@@ -271,7 +309,7 @@ void wpas_thread_stop(void)
     wpa_handler_signal((void*)SIGTERM, 0xff);
 
 	while(wpas_thread_handle != NULL) {
-		rtos_delay_milliseconds(10);
+		bk_rtos_delay_milliseconds(10);
 	}
 }
 
@@ -281,7 +319,7 @@ void wpa_supplicant_poll(void *param)
 
 	if(wpas_sema)
 	{
-    	ret = rtos_set_semaphore(&wpas_sema);
+    	ret = bk_rtos_set_semaphore(&wpas_sema);
 	}
 
 	(void)ret;
@@ -294,7 +332,7 @@ int wpa_sem_wait(uint32_t ms)
 		return kTimeoutErr;
 	}
 	
-	return rtos_get_semaphore(&wpas_sema, ms);
+	return bk_rtos_get_semaphore(&wpas_sema, ms);
 }
 
 u8* wpas_get_sta_psk(void)

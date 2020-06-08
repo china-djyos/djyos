@@ -10,7 +10,7 @@
 #include "str_pub.h"
 
 #include "app_video_intf.h"
-#include "video_transfer.h"
+//#include "video_transfer.h"
 #include "spidma_intf_pub.h"
 #include "camera_intf_pub.h"
 

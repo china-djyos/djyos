@@ -6,7 +6,7 @@
 #include "task.h"
 #include "rtos_pub.h"
 #include "error.h"
-#include "lwip/netdb.h"
+//#include "lwip/netdb.h"
 #include "lwip/sockets.h"
 
 #include "app_demo_udp.h"
@@ -17,7 +17,7 @@
 
 #include "app_demo_config.h"
 #include "app_demo_softap.h"
-#include "video_transfer.h"
+//#include "video_transfer.h"
 #include "spidma_intf_pub.h"
 #include "camera_intf_pub.h"
 
@@ -431,7 +431,7 @@ app_udp_exit:
     GLOBAL_INT_RESTORE(); 
 
     app_demo_udp_hdl = NULL;
-    rtos_delete_thread(NULL);
+    bk_rtos_delete_thread(NULL);
 }
 
 UINT32 app_demo_udp_init(void)
@@ -441,7 +441,7 @@ UINT32 app_demo_udp_init(void)
     APP_DEMO_UDP_PRT("app_demo_udp_init\r\n");
     if(!app_demo_udp_hdl)
     {
-        ret = rtos_create_thread(&app_demo_udp_hdl,
+        ret = bk_rtos_create_thread(&app_demo_udp_hdl,
                                       4,
                                       "app_udp",
                                       (beken_thread_function_t)app_demo_udp_main,
@@ -510,7 +510,7 @@ void app_demo_udp_deinit(void)
     GLOBAL_INT_RESTORE();
 
     while(app_demo_udp_hdl)
-        rtos_delay_milliseconds(10);
+        bk_rtos_delay_milliseconds(10);
 }
 
 #endif  // (CFG_USE_APP_DEMO_VIDEO_TRANSFER && APP_DEMO_CFG_USE_UDP)
