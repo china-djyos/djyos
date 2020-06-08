@@ -756,7 +756,7 @@ bool_t ArpInit(void)
     }
     memset((void *)gArpCB.hashtab,0,CFG_ARP_HASHLEN*sizeof(void *));
     //we now register the arp receive function to the linker to deal arp frames
-    LinkPushRegister(EN_LINKPROTO_ARP,__ArpPush);
+    Link_PushRegister(EN_LINKPROTO_ARP,__ArpPush);
     //also need to register the ticker to the netticker queue
     NetTickerIsrInstall("ARPTICKER",__ArpTicker,30*1000); //30 SECOND
 

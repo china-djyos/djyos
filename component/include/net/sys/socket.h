@@ -583,7 +583,7 @@ typedef ptu32_t   ipaddr_t;
 //bool_t RoutDns(enum_ipv_t ver, ipaddr_t ip);
 //bool_t RoutSetDefaultAddr(enum_ipv_t ver,ipaddr_t ip,ipaddr_t mask,ipaddr_t gateway,ipaddr_t dns);
 //this function use to alloc an ip from the dhcp dynamicly
-bool_t DhcpAddClientTask(const char *name);
+bool_t DHCP_AddClientTask(const char *name);
 
 //used for the multicast
 #define MULTICAST_MASK     (htonl(0xf0000000))
@@ -594,8 +594,8 @@ bool_t DhcpAddClientTask(const char *name);
 //ftp client interface
 //upload:put the local file(sfile) to the server(dfile)
 //download:download the sourcefile(sfile)  to the local file(dfile) from the server
-int ftpupload(const char *host,const char *port,const char *user,const char *passwd,const char *sfile,const char *dfile);
-int ftpdownload(const char *host,const char *port,const char *user,const char *passwd,const char *sfile,const char *dfile);
+int FTP_ClientUpload(const char *host,const char *port,const char *user,const char *passwd,const char *sfile,const char *dfile);
+int FTP_ClientDownload(const char *host,const char *port,const char *user,const char *passwd,const char *sfile,const char *dfile);
 
 
 

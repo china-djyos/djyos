@@ -1,7 +1,7 @@
 #ifdef CFG_CK803S
 
 .import CK_Trap0ISR
-.import IAP_SelectLoadProgam
+.import Iboot_IAP_SelectLoadProgam
 .import exp_status_handler
 .import __start_asyn_signal
 .import msp_top
@@ -121,7 +121,7 @@ AppStart:
     lrw      a1, msp_top
     mov      sp, a1
 
-    jbsr     Load_Preload
+    jbsr     Iboot_LoadPreload
 
 .text
    .align  1

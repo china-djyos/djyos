@@ -156,7 +156,7 @@ u32 __AT24_PageProgram(u32 wAddr, u8 *pbyBuf, u32 wBytesNum)
     else
         DelayMs = 6;
 
-    Djy_EventDelay(DelayMs*mS);
+    DJY_EventDelay(DelayMs*mS);
 
     return wBytesNum;
 }
@@ -184,7 +184,7 @@ u32 __AT24_PageRead(u32 wAddr, u8 *pbyBuf, u32 wBytesNum)
     else
         DelayMs = 6;
 
-    Djy_EventDelay(DelayMs*mS);
+    DJY_EventDelay(DelayMs*mS);
 
     return wBytesNum;
 }

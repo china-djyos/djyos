@@ -272,7 +272,7 @@ struct menu_item* SearchSubMenuitemByName(struct menu_item * pParent, const char
 {
    struct menu_item *result=NULL;
 
-   result=(struct menu_item*)obj_search_child((struct Object * )pParent, name);//已经做了参数的检查
+   result=(struct menu_item*)OBJ_SearchChild((struct Object * )pParent, name);//已经做了参数的检查
    return result;
 }
 
@@ -288,7 +288,7 @@ struct menu_item * SearchBroMenuitemByName(struct menu_item * pBrother, const ch
 
     struct menu_item * result=NULL;
 
-    result=(struct menu_item *)obj_search_sibling((struct Object *)pBrother,  name);
+    result=(struct menu_item *)OBJ_SearchSibling((struct Object *)pBrother,  name);
 
     return result;
 }
@@ -375,7 +375,7 @@ struct menu_item* SearchSubTernalMenuitem(struct menu_item * pMenuitem)
 {
 
    struct menu_item* result=NULL;
-   result=(struct menu_item *)obj_twig((struct Object *)pMenuitem);
+   result=(struct menu_item *)OBJ_GetTwig((struct Object *)pMenuitem);
    return result;
 }
 
@@ -400,15 +400,15 @@ bool_t DelMenuBranchCompletely(struct menu_item * pMenuitem)
   while((temp_menuitem=SearchSubTernalMenuitem(pMenuitem))!=NULL)
   {
     printf("begin to delete the menuitem=%s\n",temp_menuitem->node.name);
-    obj_Delete((struct Object *)temp_menuitem);
+    OBJ_Delete((struct Object *)temp_menuitem);
     Mb_Free(pg_menuitem_pool, temp_menuitem);
   }
-  if(obj_parent((struct Object *)pMenuitem)==pg_menuitem_root)
+  if(OBJ_GetParent((struct Object *)pMenuitem)==pg_menuitem_root)
   {
      menuitem_tree_count--;
   }
   printf("begin to delete the menuitem=%s\n",pMenuitem->node.name);
-  obj_Delete((struct Object *)(&(pMenuitem->node)));
+  OBJ_Delete((struct Object *)(&(pMenuitem->node)));
   Mb_Free(pg_menuitem_pool, pMenuitem);
   result=true;
 
@@ -436,7 +436,7 @@ bool_t DelMenuBranch(struct menu_item * pMenuitem)
   while((temp_menuitem=SearchSubTernalMenuitem(pMenuitem))!=NULL)
   {
     printf("begin to delete the menuitem=%s\n",temp_menuitem->node.name);
-    obj_Delete((struct Object *)temp_menuitem);
+    OBJ_Delete((struct Object *)temp_menuitem);
     Mb_Free(pg_menuitem_pool, temp_menuitem);
   }
   result=true;
@@ -456,7 +456,7 @@ struct menu_item *GetNextMenuitem(struct menu_item * pMenuitem)
 {
     struct menu_item * result=NULL;
 
-    result=(struct menu_item *)obj_next((struct Object *)pMenuitem);
+    result=(struct menu_item *)OBJ_GetNext((struct Object *)pMenuitem);
 
     return result;
 
@@ -474,7 +474,7 @@ struct menu_item *GetPreMenuitem(struct menu_item * pMenuitem)
 {
     struct menu_item * result=NULL;
 
-    result=(struct menu_item *)obj_prev((struct Object *)pMenuitem);
+    result=(struct menu_item *)OBJ_GetPrev((struct Object *)pMenuitem);
 
     return result;
 
@@ -491,7 +491,7 @@ struct menu_item *GetPreMenuitem(struct menu_item * pMenuitem)
 struct menu_item *GetSonMenuitem(struct menu_item * pMenuitem)
 {
     struct menu_item * result=NULL;
-    result=(struct menu_item *)obj_child((struct Object *)pMenuitem);
+    result=(struct menu_item *)OBJ_GetChild((struct Object *)pMenuitem);
     return result;
 }
 // =========================================================================
@@ -506,7 +506,7 @@ struct menu_item *GetParMenuitem(struct menu_item * pMenuitem)
 {
     struct menu_item * result=NULL;
 
-    result=(struct menu_item *)obj_parent((struct Object *)pMenuitem);
+    result=(struct menu_item *)OBJ_GetParent((struct Object *)pMenuitem);
 
     return result;
 }
@@ -539,7 +539,7 @@ struct menu_item * GetBBmenuitem(struct menu_item  *menuitem)
 {
     struct menu_item   *result=NULL;
 
-    result=(struct menu_item *)obj_head((struct Object *)menuitem);
+    result=(struct menu_item *)OBJ_GetHead((struct Object *)menuitem);
     return  result;
 }
 // =========================================================================

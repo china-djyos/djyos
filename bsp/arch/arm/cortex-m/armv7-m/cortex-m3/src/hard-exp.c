@@ -74,7 +74,7 @@
 #include "tickless.h"
 #endif
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
-extern void __Djy_ScheduleAsynSignal(void);
+extern void __DJY_ScheduleAsynSignal(void);
 
 //异常向量表的外部声名
 extern void HardExp_SystickHandler(void);

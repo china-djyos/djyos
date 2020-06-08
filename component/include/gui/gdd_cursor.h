@@ -65,13 +65,13 @@
 extern "C" {
 #endif
 
-bool_t Cursor_CheckStatus(HWND hwnd);
-void Cursor_SetShow( void );
-void Cursor_SetHide( void );
-void Cursor_Offset( s32 deltaX , s32 deltaY );
-void Cursor_Move( s32 absX , s32 absY );
-void Cursor_SetHost(HWND HostWin);
-bool_t Cursor_Init(void);
+bool_t GDD_CursorCheckStatus(HWND hwnd);
+void GDD_CursorSetShow( void );
+void GDD_CursorSetHide( void );
+void GDD_CursorOffset( s32 deltaX , s32 deltaY );
+void GDD_CursorMove( s32 absX , s32 absY );
+void GDD_CursorSetHost(HWND HostWin);
+bool_t GDD_CursorInit(void);
 
 #if __cplusplus
 }

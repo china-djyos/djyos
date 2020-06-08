@@ -70,7 +70,7 @@ static tagCpuMsg gCpuMsgItem[CN_CPUMSG_ITEMNUM] DATA_BEFOREPRELOAD; //需要链接到
 //返回：true成功 否则失败
 //备注：该函数可能在CPU的startup阶段就可能调用。因此对于那个分阶段加载的硬件体系下，该代码必须链接在preload之前
 //---------------------------------------------------------------------------
-CODE_BEFOREPRELOAD bool_t LogCpuMsg(const char *msgname, const void *msg,u8 msglen, enCpuMsgType type)
+CODE_BEFOREPRELOAD bool_t Core_LogCpuMsg(const char *msgname, const void *msg,u8 msglen, enCpuMsgType type)
 {
     u8 i =0;
     bool_t ret = false;
@@ -95,7 +95,7 @@ CODE_BEFOREPRELOAD bool_t LogCpuMsg(const char *msgname, const void *msg,u8 msgl
 //参数：无意义
 //返回：无
 //------------------------------------------------------------------------------
-bool_t ShowCpuInfo(char *param)
+bool_t Core_ShowCpuInfo(char *param)
 {
     u8 i =0;
     u8 num = 0;
@@ -182,7 +182,7 @@ bool_t ShowCpuInfo(char *param)
 //参数：无
 //返回：-1 失败，0 存储不足  >0 拷贝指定的CPU信息，存储不足时拷贝部分信息
 //------------------------------------------------------------------------------
-s32  GetCpuInfo(const char *name,void *buf, u8 len)
+s32  Core_GetCpuInfo(const char *name,void *buf, u8 len)
 {
     u8 i =0;
     s32 ret = -1;

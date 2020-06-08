@@ -271,8 +271,8 @@ void __Icmp_TaskEchoActive(u32 ipsrc, u8 type, u8 code,struct NetPkg *pkg)
 }
 // =============================================================================
 // 函数功能：Icmp_EchoRequest
-//          ping request
-// 输入参数： ipdst, the ip of the host we will ping
+//          PING request
+// 输入参数： ipdst, the ip of the host we will PING
 //           data, additionnal data
 //           len, additionnal data len
 // 输出参数：
@@ -310,7 +310,7 @@ bool_t Icmp_EchoRequest(u32 ipdst, u8 *data, int len,int timeout)
             icmppkg->chksum = 0;
             icmppkgecho = (struct IcmpHdrEcho *)(&icmppkg->data[0]);
             icmppkgecho->seqno = htons(seqno);
-            icmppkgecho->taskid = htons(Djy_MyEvttId());
+            icmppkgecho->taskid = htons(DJY_GetMyEvttId());
             memcpy(&icmppkgecho->data[0], data, len);
             //combin the task
             icmptaskecho.ipdst = ipdst;

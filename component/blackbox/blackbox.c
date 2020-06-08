@@ -81,7 +81,7 @@ const char *gBlackBoxActionName[EN_BLACKBOX_DEAL_LENTH] = {
     "DELERR",
 };
 
-const char *BlackBoxActionName(enum EN_BlackBoxAction action)
+const char *BlackBox_ActionName(enum EN_BlackBoxAction action)
 {
     if(action < EN_BLACKBOX_DEAL_LENTH)
     {
@@ -142,11 +142,11 @@ static enum EN_BlackBoxAction  __BlackBox_ResultMerge(enum EN_BlackBoxAction Res
     return result;
 }
 
-//if key is 0XAA55AA55 ,then will not record in the reset reboot and restart
-//else key will do record in the reset reboot or restart
-extern void reset();
-extern void reboot();
-extern void restart_system();
+//if key is 0XAA55AA55 ,then will not record in the CPU_Reset CPU_Reboot and restart
+//else key will do record in the CPU_Reset CPU_Reboot or restart
+extern void CPU_Reset();
+extern void CPU_Reboot();
+extern void CPU_RestartSystem();
 // =============================================================================
 // 函数功能: 处理异常的最终结果
 // 输入参数:blackboxdealresult,异常结果
@@ -168,13 +168,13 @@ static enum EN_BlackBoxDealResult  __BlackBox_ExecAction(u32 FinalAction,\
     {
         //重启是不会返回的，不然必然是出错了
         case EN_BLACKBOX_DEAL_RESET:
-            reset();
+            CPU_Reset();
             break;
         case EN_BLACKBOX_DEAL_REBOOT:
-            reboot();
+            CPU_Reboot();
             break;
         case EN_BLACKBOX_DEAL_RESTART:
-            restart_system();
+            CPU_RestartSystem();
             break;
         case EN_BLACKBOX_DEAL_WAIT:
             while(1);
@@ -317,12 +317,12 @@ bool_t __BlackBox_HeadinfoDecoder(struct BlackBoxHeadInfo *headinfo)
     debug_printf("blackbox","blackbox_headinfo:hookinfo stat :%s\n\r",\
             headinfo->hookvalid==CN_BLACKBOX_PARTIALINFO_VALID?"Valid":"Invalid");
     debug_printf("blackbox","blackbox_headinfo:hookinfolen   :%d Bytes\n\r",headinfo->hookinfolen);
-    debug_printf("blackbox","blackbox_headinfo:HookAction    :%s\n\r",BlackBoxActionName(headinfo->HookAction));
+    debug_printf("blackbox","blackbox_headinfo:HookAction    :%s\n\r",BlackBox_ActionName(headinfo->HookAction));
     debug_printf("blackbox","blackbox_headinfo:throwinfo stat:%s\n\r",\
             headinfo->throwinfovalid==CN_BLACKBOX_PARTIALINFO_VALID?"Valid":"Invalid");
     debug_printf("blackbox","blackbox_headinfo:throwinfolen  :%d Bytes\n\r",headinfo->throwinfolen);
-    debug_printf("blackbox","blackbox_headinfo:ThrowAction   :%s\n\r",BlackBoxActionName(headinfo->ThrowAction));
-    debug_printf("blackbox","blackbox_headinfo:BlackBoxAction     :%s\n\r",BlackBoxActionName(headinfo->BlackBoxAction));
+    debug_printf("blackbox","blackbox_headinfo:ThrowAction   :%s\n\r",BlackBox_ActionName(headinfo->ThrowAction));
+    debug_printf("blackbox","blackbox_headinfo:BlackBoxAction     :%s\n\r",BlackBox_ActionName(headinfo->BlackBoxAction));
     debug_printf("blackbox","blackbox_headinfo:DecoderName   :%s\n\r",headinfo->decodername);
 
     return true;

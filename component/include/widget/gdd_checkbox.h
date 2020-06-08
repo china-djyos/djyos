@@ -74,7 +74,7 @@ extern "C" {
 // 复选框风格，使用struct WINDOW结构Style的低16位，高16位用于窗口公共风格。
 #define CBS_SELECTED        (1<<1)  //复选框选中
 
-HWND CreateCheckBox(  const char *Text,u32 Style,
+HWND Widget_CreateCheckBox(  const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
                     HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink);

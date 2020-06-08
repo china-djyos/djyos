@@ -120,7 +120,7 @@ wctype_t wctype(const char * c)
     }
 
   /* otherwise invalid */
-  Djy_SaveLastError(EINVAL);
+  DJY_SaveLastError(EINVAL);
   return 0;
 }
 

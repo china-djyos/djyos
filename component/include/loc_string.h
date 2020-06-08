@@ -68,7 +68,7 @@
 extern "C" {
 #endif
 
-s32 GetEOC_Size (struct Charset* locale);
+s32 Charset_Get_EOC_Size (struct Charset* locale);
 s32 mbslen  (const char* mbs, s32 n);
 s32 mblen  (const char* s, u32 n);
 s32 mbtowc(u32* pwc, const char* s, u32 n);

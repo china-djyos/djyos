@@ -57,7 +57,7 @@
 
 static u16  gRemoteServerPort = CN_TFTP_SERVERPORT_DEFAULT;
 
-static bool_t __ClientMain(char *mode, char *serverip,char *filename)
+static bool_t __TFTP_ClientMain(char *mode, char *serverip,char *filename)
 {
     bool_t          result = false;
     tagTftpClient  *client = NULL;
@@ -82,16 +82,16 @@ static bool_t __ClientMain(char *mode, char *serverip,char *filename)
     netaddr.sin_family = AF_INET;
     netaddr.sin_addr.s_addr = inet_addr(serverip);
     netaddr.sin_port = htons(gRemoteServerPort);
-    errcode = CreateClient(filename,"octet",reqmod,&netaddr,\
+    errcode = TFTP_CreateClient(filename,"octet",reqmod,&netaddr,\
                CN_TFTP_BLKSIZE_DEFAULT,CN_TFTP_TIMEOUT_DEFAULT,0,false,&client);
     if(NULL != client)
     {
         //OK NOW, DO THE TFTP TRANSACTION
-        TftpTransEngine(client);
+        TFTP_TransEngine(client);
     }
     else
     {
-        debug_printf("tftp","%s:create client err:%s\n\r",__FUNCTION__,TftpErrMsg(errcode));
+        debug_printf("tftp","%s:create client err:%s\n\r",__FUNCTION__,TFTP_ErrMsg(errcode));
     }
 
     return true;
@@ -108,7 +108,7 @@ bool_t tftp(char *param)
     string2arg(&argc,argv,param);
     if(argc == 3)
     {
-        __ClientMain(argv[0],argv[1],argv[2]);
+        __TFTP_ClientMain(argv[0],argv[1],argv[2]);
     }
     else
     {
@@ -117,17 +117,17 @@ bool_t tftp(char *param)
 
     return true;
 }
-extern bool_t TftpServerShell(void);
+extern bool_t TFTP_ServerShell(void);
 
 //THIS IS PING MODULE FUNCTION
-bool_t ServiceTftpInit(void)
+bool_t TFTP_ServiceInit(void)
 {
     bool_t result;
 
-    tftppathset((char *)CFG_TFTP_PATHDEFAULT);
+    TFTP_PathSet((char *)CFG_TFTP_PATHDEFAULT);
 
 
-    result = TftpServerShell();
+    result = TFTP_ServerShell();
 
     return result;
 }

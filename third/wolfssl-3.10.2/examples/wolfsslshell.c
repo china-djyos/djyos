@@ -79,7 +79,7 @@ static ptu32_t clienttask(void)
         arg.argc = 1;
         arg.argv = argv;
         client_test(&arg);
-        Djy_WaitEvttPop(gClientEvttID,NULL,CN_TIMEOUT_FOREVER);
+        DJY_WaitEvttPop(gClientEvttID,NULL,CN_TIMEOUT_FOREVER);
     }
 
     return 0;
@@ -93,7 +93,7 @@ static ptu32_t servertask(void)
         arg.argc = 1;
         arg.argv = argv;
 //      server_test(&arg);
-        Djy_WaitEvttPop(gServerEvttID,NULL,CN_TIMEOUT_FOREVER);
+        DJY_WaitEvttPop(gServerEvttID,NULL,CN_TIMEOUT_FOREVER);
     }
 
     return 0;
@@ -112,7 +112,7 @@ static ptu32_t  crypttask(void)
         arg.argc = 1;
         arg.argv = argv;
         server_test(&arg);
-        Djy_WaitEvttPop(gCryptEvttID,NULL,CN_TIMEOUT_FOREVER);
+        DJY_WaitEvttPop(gCryptEvttID,NULL,CN_TIMEOUT_FOREVER);
     }
 
     return 0;
@@ -123,11 +123,11 @@ static bool_t __ClientStart(char *param)
 {
     if(gClientEvttID == CN_EVTT_ID_INVALID)
     {
-        gClientEvttID = Djy_EvttRegist(EN_CORRELATIVE,200,1,1,clienttask,NULL,0x4000,"sslclient");
+        gClientEvttID = DJY_EvttRegist(EN_CORRELATIVE,200,1,1,clienttask,NULL,0x4000,"sslclient");
     }
     if(gClientEvttID != CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(gClientEvttID,NULL,0,NULL,NULL,0);
+        DJY_EventPop(gClientEvttID,NULL,0,NULL,NULL,0);
     }
     return true;
 }
@@ -136,11 +136,11 @@ static bool_t __ServerStart(char *param)
 {
     if(gServerEvttID == CN_EVTT_ID_INVALID)
     {
-        gServerEvttID = Djy_EvttRegist(EN_CORRELATIVE,200,1,1,servertask,NULL,0x1000,"sslserver");
+        gServerEvttID = DJY_EvttRegist(EN_CORRELATIVE,200,1,1,servertask,NULL,0x1000,"sslserver");
     }
     if(gServerEvttID != CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(gServerEvttID,NULL,0,NULL,NULL,0);
+        DJY_EventPop(gServerEvttID,NULL,0,NULL,NULL,0);
     }
     return true;
 }
@@ -149,11 +149,11 @@ static bool_t __CryptStart(char *param)
 {
     if(gCryptEvttID == CN_EVTT_ID_INVALID)
     {
-        gCryptEvttID = Djy_EvttRegist(EN_CORRELATIVE,200,1,1,crypttask,NULL,0x2000,"sslclient");
+        gCryptEvttID = DJY_EvttRegist(EN_CORRELATIVE,200,1,1,crypttask,NULL,0x2000,"sslclient");
     }
     if(gCryptEvttID != CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(gCryptEvttID,NULL,0,NULL,NULL,0);
+        DJY_EventPop(gCryptEvttID,NULL,0,NULL,NULL,0);
     }
     return true;
 }

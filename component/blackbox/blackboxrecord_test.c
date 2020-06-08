@@ -138,7 +138,7 @@ static void __CounterLeftShow(const char *msg,s32 counter)
     for(i = counter;i>0;i--)
     {
         debug_printf("null","%s:%04d(seconds)",msg,i);
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
     }
     printf("\r\n");
     return;
@@ -509,7 +509,7 @@ ptu32_t __RecordTestTask(void)
     {
         __CounterLeftShow("SYSTEM WILL RESET FOR ANOTHER TEST",10);
         debug_printf("null","RESET THE SYSTEM\n\r");
-        reset(0xaa55aa55);
+        CPU_Reset(0xaa55aa55);
     }
     else
     {
@@ -620,7 +620,7 @@ bool_t ModuleInstall_BlackBoxRecordTest(struct BlackBoxRecordOperate *opt,u32 ma
     if(gTestConfig.autotest)
     {
         u16 evttID;
-        evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0, (ptu32_t(*)(void))__RecordTestTask,\
+        evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0, (ptu32_t(*)(void))__RecordTestTask,\
                                                 NULL, 0x1000, "BLACKBOXRECORDERTEST");
         if(evttID==CN_EVTT_ID_INVALID)
         {
@@ -628,7 +628,7 @@ bool_t ModuleInstall_BlackBoxRecordTest(struct BlackBoxRecordOperate *opt,u32 ma
         }
         else
         {
-            Djy_EventPop(evttID, NULL, 0, 0, 0, 0);
+            DJY_EventPop(evttID, NULL, 0, 0, 0, 0);
         }
     }
     return ret;

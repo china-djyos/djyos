@@ -239,7 +239,7 @@ void redundant_init(struct tsec_info_struct *tsec_info)
         {
             printk("loopback recv packet error!\r\n");
             clrbits_be32(&regs->maccfg1, MACCFG1_RX_EN);
-            Djy_DelayUs(1000);
+            DJY_DelayUs(1000);
             setbits_be32(&regs->maccfg1, MACCFG1_RX_EN);
         }
     }
@@ -298,7 +298,7 @@ static s32 genphy_update_link(struct tsec_private *priv)
             if ((i++ % 500) == 0)
                 printk(".");
 
-            Djy_DelayUs(1000);    /* 1 ms */
+            DJY_DelayUs(1000);    /* 1 ms */
             mii_reg = phy_read(priv->phyaddr, MDIO_DEVAD_NONE, MII_BMSR);
         }
         printk(" done\r\n");
@@ -473,7 +473,7 @@ s32 phy_reset(s32 addr)
             tsec_debug("PHY status read failed\n");
             return -1;
         }
-        Djy_DelayUs(1000);
+        DJY_DelayUs(1000);
     }
 
     if (reg & BMCR_RESET)
@@ -1009,8 +1009,8 @@ static s32 init_phy(struct tsec_info_struct *tsec_info)
     if (priv->interface == PHY_INTERFACE_MODE_SGMII)
         tsec_configure_serdes(priv);
 
-    /* Wait 15ms to make sure the PHY has come out of hard reset */
-    Djy_DelayUs(15000);
+    /* Wait 15ms to make sure the PHY has come out of hard CPU_Reset */
+    DJY_DelayUs(15000);
 
     //config the PHY
     if(priv->interface == PHY_INTERFACE_MODE_GMII)//eTSEC1,RMII
@@ -1071,7 +1071,7 @@ static s32 tsec_initialize(struct tsec_info_struct *tsec_info,
 
     /* Reset the MAC */
     setbits_be32(&priv->regs->maccfg1, MACCFG1_SOFT_RESET);
-    Djy_DelayUs(2);  /* Soft Reset must be asserted for 3 TX clocks */
+    DJY_DelayUs(2);  /* Soft Reset must be asserted for 3 TX clocks */
     clrbits_be32(&priv->regs->maccfg1, MACCFG1_SOFT_RESET);
 
     /* Try to initialize PHY here, and return */

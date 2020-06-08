@@ -77,7 +77,7 @@ wint_t towctrans(wint_t c,wctrans_t w)
     return towupper (c);
   else
     {
-	  Djy_SaveLastError(EINVAL);
+	  DJY_SaveLastError(EINVAL);
       return c;
     }
 }

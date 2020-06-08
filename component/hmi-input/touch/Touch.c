@@ -106,7 +106,7 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-u16 BinSqrt(u32 value)
+u16 Touch_BinSqrt(u32 value)
 {
     u16 root;
     u16 rem;
@@ -142,17 +142,17 @@ ptu32_t Touch_Scan(void)
     struct SingleTouchMsg touch_temp = {0,0,0,0,0,0,0};
     struct DisplayObj *display;
 
-    ob = obj_search_child(obj_root(),"hmi input device");
-    StdinObj = (struct HMI_InputDeviceObj *)obj_GetPrivate(ob);
+    ob = OBJ_SearchChild(OBJ_GetRoot(),"hmi input device");
+    StdinObj = (struct HMI_InputDeviceObj *)OBJ_GetPrivate(ob);
     while(1)
     {
         TouchObj = StdinObj;
         while(1)
         {
-            ob = obj_foreach_scion(StdinObj->HostObj,TouchObj->HostObj);
+            ob = OBJ_ForeachScion(StdinObj->HostObj,TouchObj->HostObj);
             if(ob == NULL)
                 break;
-            TouchObj = (struct HMI_InputDeviceObj*)obj_GetPrivate(ob);
+            TouchObj = (struct HMI_InputDeviceObj*)OBJ_GetPrivate(ob);
 
             if(TouchObj->input_type != EN_HMIIN_SINGLE_TOUCH)
                 continue;
@@ -167,7 +167,7 @@ ptu32_t Touch_Scan(void)
                     touch_pr->touch_loc.x = touch_temp.x;
                     touch_pr->touch_loc.y = touch_temp.y;
                     touch_pr->touch_loc.z = touch_temp.z;
-//                  touch_pr->touch_loc.time = DjyGetSysTime();
+//                  touch_pr->touch_loc.time = DJY_GetSysTime();
                     touch_pr->TouchStatus = CN_TOUCHING;
                 }
                 else   //已经接触，判断是否滑动
@@ -175,10 +175,10 @@ ptu32_t Touch_Scan(void)
                     s32 DeltaX,DeltaY,Distance;
                     DeltaX = touch_temp.x - touch_pr->touch_loc.x;  //计算像素距离
                     DeltaY = touch_pr->touch_loc.y - touch_temp.y;  //计算像素距离，y坐标从上到下，反之。
-                    Distance = BinSqrt(DeltaX*DeltaX + DeltaY*DeltaY);
+                    Distance = Touch_BinSqrt(DeltaX*DeltaX + DeltaY*DeltaY);
                     //计算物理距离，这里假设像素是正方形的，且x和y方向等间距。
                     Distance = Distance * display->width_um / display->width;
-                    touch_temp.time = DjyGetSysTime();
+                    touch_temp.time = DJY_GetSysTime();
                     if(Distance < 1000)     //如果小于1mm，则认为没有移动,发按下消息
                     {
                         if(touch_pr->TouchStatus != CN_GOT_TOUCH)
@@ -205,7 +205,7 @@ ptu32_t Touch_Scan(void)
                         //发包含滑动数据的消息，即滑动消息
                         HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp);
                         //检测到滑动，200mS内不检测，以免连续快速发滑动消息
-                        Djy_EventDelay(200*mS);
+                        DJY_EventDelay(200*mS);
                     }
                 }
             }
@@ -213,7 +213,7 @@ ptu32_t Touch_Scan(void)
             {
                if(touch_pr->TouchStatus != CN_NO_TOUCH)   //刚刚抬起手指
                 {
-                    touch_pr->touch_loc.time = DjyGetSysTime();
+                    touch_pr->touch_loc.time = DJY_GetSysTime();
                     touch_pr->touch_loc.z = 0;
                     touch_pr->touch_loc.MoveX = 0;
                     touch_pr->touch_loc.MoveY = 0;
@@ -224,7 +224,7 @@ ptu32_t Touch_Scan(void)
                 }
             }
         }
-        Djy_EventDelay(20*mS);
+        DJY_EventDelay(20*mS);
     }
 }
 
@@ -247,18 +247,18 @@ s32 Touch_InstallDevice(char *touch_name,struct SingleTouchPrivate *touch_pr)
 bool_t ModuleInstall_Touch(void)
 {
     u16 touch_scan_evtt;
-    if(!obj_search_child(obj_root( ),"hmi input device"))      //标准输入设备未初始化
+    if(!OBJ_SearchChild(OBJ_GetRoot( ),"hmi input device"))      //标准输入设备未初始化
         return false;
-    touch_scan_evtt = Djy_EvttRegist(EN_CORRELATIVE,CFG_GUI_RUN_PRIO,0,0,
+    touch_scan_evtt = DJY_EvttRegist(EN_CORRELATIVE,CFG_GUI_RUN_PRIO,0,0,
                             Touch_Scan,NULL,2048,"touch");
     if(touch_scan_evtt == CN_EVTT_ID_INVALID)
     {
         return false;
     }
-    if(Djy_EventPop(touch_scan_evtt, NULL,0,0,0,0)
+    if(DJY_EventPop(touch_scan_evtt, NULL,0,0,0,0)
                         == (uint16_t)CN_EVENT_ID_INVALID)
     {
-        Djy_EvttUnregist(touch_scan_evtt);
+        DJY_EvttUnregist(touch_scan_evtt);
         return false;
     }
     return true;

@@ -85,7 +85,7 @@ s32 genphy_update_link_88E1512(u32 addr)
         reg = tsec_phy_read(addr, devad, REGISTER(17));
         if(reg & 0x0400)        //是否连接上
             break;              //连接上了
-        Djy_DelayUs(1000);
+        DJY_DelayUs(1000);
     }
     if(reg & 0x0400)
         linked = 1;
@@ -172,7 +172,7 @@ s32 phy_config_88e1512(s32 addr,s32 supported)
     while ((reg & MARVEL_RESET) && timeout--)
     {
         reg = tsec_phy_read(addr, devad, REGISTER(20));
-        Djy_DelayUs(1000);
+        DJY_DelayUs(1000);
     }
     if (reg & MARVEL_RESET)
     {
@@ -242,7 +242,7 @@ void phy_reset_88e1512(s32 addr)
             printf("PHY status read failed\r\n");
             return;
         }
-        Djy_DelayUs(1000);
+        DJY_DelayUs(1000);
     }
 
     if (reg & MARVEL_RESET)

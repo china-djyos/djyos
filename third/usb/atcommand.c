@@ -84,7 +84,7 @@ s32 __GetResponse(s32 handle, char *pCommand, u8 *pResp, u32 dwLimit)
     responsed = 0;
     while(checkCommand)
     {
-        //res = DevRead(pHandle, (u8*)&response, 1, 0, 0);
+        //res = Device_Read(pHandle, (u8*)&response, 1, 0, 0);
         res = read(handle, (u8*)&response, 1);
         if(!res)
         {
@@ -96,7 +96,7 @@ s32 __GetResponse(s32 handle, char *pCommand, u8 *pResp, u32 dwLimit)
                 return (-1);
             }
 
-            Djy_EventDelay(1000);
+            DJY_EventDelay(1000);
             continue;
         }
 
@@ -133,7 +133,7 @@ s32 __GetResponse(s32 handle, char *pCommand, u8 *pResp, u32 dwLimit)
             j = 0;
         }
 
-        //res = DevRead(pHandle, (u8*)&response, 1, 0, 0);
+        //res = Device_Read(pHandle, (u8*)&response, 1, 0, 0);
         res = read(handle, (u8*)&response, 1);
         if(!res)
         {
@@ -145,7 +145,7 @@ s32 __GetResponse(s32 handle, char *pCommand, u8 *pResp, u32 dwLimit)
                 return (-1);
             }
 
-            Djy_EventDelay(1000);
+            DJY_EventDelay(1000);
             continue;
         }
 
@@ -252,7 +252,7 @@ s32 SignalStrength(u8 bArgC, ...)
     if(!name)
         name = (char*)defaultName;
 
-    // handle = (void*)DevOpen(name, O_RDWR, 0);
+    // handle = (void*)Device_Open(name, O_RDWR, 0);
     // if(!handle)
     handle = open(name, O_RDWR);
     if(-1 == handle)
@@ -274,7 +274,7 @@ s32 SignalStrength(u8 bArgC, ...)
         close(handle);
         return (-1);
     }
-    Djy_EventDelay(1000*1000);
+    DJY_EventDelay(1000*1000);
     if(__GetResponse(handle, at_command, response, sizeof(response)))
     {
         // Driver_CloseDevice(handle);
@@ -389,7 +389,7 @@ char *ReadICCID(u8 bArgC, ...)
         close(handle);
         return NULL;
     }
-    Djy_EventDelay(1000*1000);
+    DJY_EventDelay(1000*1000);
     if(__GetResponse(handle, at_command, response, sizeof(response)))
     {
         close(handle);
@@ -490,7 +490,7 @@ u8 *AT_Command(char *at_command,char *name)
         close(handle);
         return NULL;
     }
-    Djy_EventDelay(1000*1000);
+    DJY_EventDelay(1000*1000);
     if(__GetResponse(handle, at_command, AT_Output, sizeof(AT_Output)))
     {
         close(handle);

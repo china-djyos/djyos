@@ -560,7 +560,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
 
             while(ts_is_down())
             {
-                Djy_DelayUs(100*mS);
+                DJY_DelayUs(100*mS);
             }
             pen_down_time=0;
             while(1)
@@ -579,7 +579,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
                 {
                     pen_down_time=0;
                 }
-                Djy_DelayUs(100*mS);
+                DJY_DelayUs(100*mS);
             }
 
             switch(step)
@@ -613,9 +613,9 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
         GK_SyncShow(1000*mS);
         while(ts_is_down())
         {
-            Djy_DelayUs(100*mS);
+            DJY_DelayUs(100*mS);
         }
-        Djy_DelayUs(500*mS);
+        DJY_DelayUs(500*mS);
 
     //    GK_DestroyWin(desktop);
         touch_init = fopen("sys:\\touch_init.dat","w+");

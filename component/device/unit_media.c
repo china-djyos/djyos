@@ -128,7 +128,7 @@ static s32 __um_open(struct objhandle *hdl, u32 mode, u32 timeout)
     struct umedia *media;
 
     timeout = timeout;
-    media = (struct umedia*)dev_GetDrvTag(Handle2fd(hdl));
+    media = (struct umedia*)Device_GetDrvTag(Handle2fd(hdl));
     mc = (struct umcontext*)malloc(sizeof(struct umcontext));
     if(!mc)
         return (-1);
@@ -136,7 +136,7 @@ static s32 __um_open(struct objhandle *hdl, u32 mode, u32 timeout)
     memset(mc, 0x0, sizeof(struct umcontext));
     mc->opt= media->opt;
 
-    handle_SetContext(hdl, (ptu32_t)mc);
+    Handle_SetContext(hdl, (ptu32_t)mc);
     return (0);
 }
 
@@ -148,7 +148,7 @@ static s32 __um_open(struct objhandle *hdl, u32 mode, u32 timeout)
 // ============================================================================
 static s32 __um_close(struct objhandle *hdl)
 {
-    struct umcontext *mc = (struct umcontext*)handle_context(hdl);
+    struct umcontext *mc = (struct umcontext*)Handle_GetContext(hdl);
 
     free(mc);
     return (0);
@@ -169,7 +169,7 @@ static s32 __um_write(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 
     struct umedia *media;
     struct umcontext *mc;
 
-    media = (struct umedia*)dev_GetDrvTag(Handle2fd(hdl));
+    media = (struct umedia*)Device_GetDrvTag(Handle2fd(hdl));
     mc = (struct umcontext*)(hdl);
     dbuf = media->ubuf;
     buf = (u8*)data;
@@ -181,7 +181,7 @@ static s32 __um_write(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 
 
 //    if((pos > media->ustart + media->size) || ((pos+len) > media->start + media->size))
 //    {
-//        error_printf("device","write out of range<%s>.", handle_name(hdl));
+//        error_printf("device","write out of range<%s>.", Handle_GetName(hdl));
 //        debug_printf("device","range from <%l> to <%l>.", media->start, (media->start+media->size));
 //        return (0);
 //    }
@@ -266,7 +266,7 @@ static s32 __um_read(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 t
     struct umedia *media;
     struct umcontext *mc;
 
-    media = (struct umedia*)dev_GetDrvTag(Handle2fd(hdl));
+    media = (struct umedia*)Device_GetDrvTag(Handle2fd(hdl));
     mc = (struct umcontext*)(hdl);
     dbuf = media->ubuf;
     buf = (u8*)data;
@@ -278,7 +278,7 @@ static s32 __um_read(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 t
 
 //    if((pos > media->ustart + media->size) || ((pos+len) > media->ustart + media->size))
 //    {
-//        error_printf("device","read out of range<%s>.", handle_name(hdl));
+//        error_printf("device","read out of range<%s>.", Handle_GetName(hdl));
 //        debug_printf("device","range from <%l> to <%l>.", media->start, (media->start+media->size));
 //        return (0);
 //    }
@@ -391,7 +391,7 @@ s32 um_add(const char *name, struct umedia *media)
 //      return (-1);
 //  }
 
-    if(dev_Create(name, __um_open, __um_close, __um_write,
+    if(Device_Create(name, __um_open, __um_close, __um_write,
                 __um_read, __um_cntl, (ptu32_t)media))
         return (0);
 

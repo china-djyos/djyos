@@ -293,7 +293,7 @@ bool_t canstat(char *param)
    uint32_t data[2];//used to print the s64 type
    uint8_t i;
    uint64_t time;
-   time=DjyGetSysTime();
+   time=DJY_GetSysTime();
    printf("CAN Stat:\r\n");
    for(i=0;i<CN_CAN_NUM;i++)
    {
@@ -1113,7 +1113,7 @@ bool_t __CAN_HardTxOneFrame(uint8_t byChip, uint8_t* txBuf)
       pCan->sTxMailBox[TxMailboxNo].TIR|=CAN_TI0R_TXRQ;
 
     //Wait for 10ms
-    Djy_EventDelay(5*mS);
+    DJY_EventDelay(5*mS);
     //查询是否成功发送出去
     if(__IsCanTxOk(byChip,TxMailboxNo))
     {
@@ -1414,7 +1414,7 @@ ptu32_t __Can_Monitor(void)
          {
               if(s_bBusOffFlag[i])
              {
-                 Djy_EventDelay(CN_CAN_BUS_OFF_RECOVERY_TIME);
+                 DJY_EventDelay(CN_CAN_BUS_OFF_RECOVERY_TIME);
                  s_bBusOffFlag[i]=false;
                  CAN_Hard_Init(i,gs_CANBaudRate[i],&gs_ptagCanFilterPara[i]);
 
@@ -1430,7 +1430,7 @@ ptu32_t __Can_Monitor(void)
               bQiYongFlag[i]=true;  //表示该CAN总线被启动了，没有启动的总线无需监测。
            }
        }
-       Djy_EventDelay(CN_CAN_DEV_MONITOR_TIME);
+       DJY_EventDelay(CN_CAN_DEV_MONITOR_TIME);
        for(i=0;i<CN_CAN_NUM;i++)
        {
            if(bQiYongFlag[i])
@@ -1498,26 +1498,26 @@ bool_t CAN_Main(uint8_t baudrate)
     gs_ptCanSndMsgQ=MsgQ_Create(CN_CAN_MSGQ_NUM,CN_CAN_MSGQ_LEN,CN_MSGQ_TYPE_FIFO);
     if(gs_ptCanSndMsgQ==NULL)
         return false;
-    evtt_id = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,__Can_Monitor,
+    evtt_id = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,__Can_Monitor,
               CAN_MonitorStack,sizeof(CAN_MonitorStack),"CAN Monitor function");
     if(evtt_id!=CN_EVTT_ID_INVALID)
     {
-       event_id=Djy_EventPop(evtt_id,NULL,0,NULL,0,0);
+       event_id=DJY_EventPop(evtt_id,NULL,0,NULL,0,0);
     }
     else
     {
-        Djy_EvttUnregist(evtt_id);
+        DJY_EvttUnregist(evtt_id);
         error_printf("bus", "can bus's monitor event pop failed.");
     }
-    evtt_id = Djy_EvttRegist(EN_CORRELATIVE,100,0,0,__CAN_SndTask,
+    evtt_id = DJY_EvttRegist(EN_CORRELATIVE,100,0,0,__CAN_SndTask,
               CAN_SndStack,sizeof(CAN_SndStack),"CAN Snd Task");
     if(evtt_id!=CN_EVTT_ID_INVALID)
     {
-         event_id=Djy_EventPop(evtt_id,NULL,0,NULL,0,0);
+         event_id=DJY_EventPop(evtt_id,NULL,0,NULL,0,0);
     }
     else
     {
-        Djy_EvttUnregist(evtt_id);
+        DJY_EvttUnregist(evtt_id);
         error_printf("bus", "can bus's monitor event pop failed.");
     }
     info_printf("bus", "can bus installed.");

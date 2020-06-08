@@ -92,25 +92,25 @@ extern void *pHeapList;             //在脚本中定义
 struct HeapCB *tg_pHeapList=NULL;   //堆链指针，系统中所有的堆被链接在一起。
 struct HeapCB *tg_pSysHeap=NULL;   //堆链指针，系统中所有的堆被链接在一起。
 
-void *__M_StaticMallocHeap(ptu32_t size,struct HeapCB *Heap,u32 Timeout);
-void *__M_StaticMalloc(ptu32_t size,u32 timeout);
-void __M_StaticFreeHeap(void *pl_mem,struct HeapCB *Heap);
-void __M_StaticFree(void *pl_mem);
-void *__M_StaticRealloc(void *, ptu32_t NewSize);
-void *__M_StaticMallocStack(struct EventECB *event, u32 size);
+void *__Heap_StaticMallocHeap(ptu32_t size,struct HeapCB *Heap,u32 Timeout);
+void *__Heap_StaticMalloc(ptu32_t size,u32 timeout);
+void __Heap_StaticFreeHeap(void *pl_mem,struct HeapCB *Heap);
+void __Heap_StaticFree(void *pl_mem);
+void *__Heap_StaticRealloc(void *, ptu32_t NewSize);
+void *__Heap_StaticMallocStack(struct EventECB *event, u32 size);
 
 void Heap_StaticModuleInit(void);
 
-ptu32_t __M_StaticFormatSizeHeap(ptu32_t size,struct HeapCB *Heap);
-ptu32_t __M_StaticFormatSize(ptu32_t size);
-ptu32_t __M_StaticGetMaxFreeBlockHeap(struct HeapCB *Heap);
-ptu32_t __M_StaticGetMaxFreeBlock(void);
-ptu32_t M_GetHeapSizeHeap(struct HeapCB *Heap);
-ptu32_t M_GetHeapSize(void);
-struct HeapCB *M_FindHeap(const char *HeapName);       //在heap-dynamic.c中
-ptu32_t __M_StaticGetFreeMem(void);
-ptu32_t __M_StaticGetFreeMemHeap(struct HeapCB *Heap);
-ptu32_t __M_StaticCheckSize(void * mp);
+ptu32_t __Heap_StaticFormatSizeHeap(ptu32_t size,struct HeapCB *Heap);
+ptu32_t __Heap_StaticFormatSize(ptu32_t size);
+ptu32_t __Heap_StaticGetMaxFreeBlockHeap(struct HeapCB *Heap);
+ptu32_t __Heap_StaticGetMaxFreeBlock(void);
+ptu32_t Heap_GetHeapSizeHeap(struct HeapCB *Heap);
+ptu32_t Heap_GetHeapSize(void);
+struct HeapCB *Heap_FindHeap(const char *HeapName);       //在heap-dynamic.c中
+ptu32_t __Heap_StaticGetFreeMem(void);
+ptu32_t __Heap_StaticGetFreeMemHeap(struct HeapCB *Heap);
+ptu32_t __Heap_StaticCheckSize(void * mp);
 
 void *  (*M_Malloc)(ptu32_t size,u32 timeout);
 void *  (*M_Realloc) (void *, ptu32_t NewSize);
@@ -128,7 +128,7 @@ ptu32_t (*M_GetFreeMem)(void);
 ptu32_t (*M_GetFreeMemHeap)(struct HeapCB *Heap);
 ptu32_t (*M_CheckSize)(void * mp);
 
-u32 __memStrLen(char *addr)
+u32 __Heap_MemStrLen(char *addr)
 {
     u32 result = 0;
     while(*addr != '\0')
@@ -139,7 +139,7 @@ u32 __memStrLen(char *addr)
     return result;
 }
 
-void __memHeapScan(void)
+void __Heap_MemHeapScan(void)
 {
     struct HeapCB *HeapTemp;
     struct HeapCession *Cession;
@@ -158,7 +158,7 @@ void __memHeapScan(void)
         Property = *u32Offset++;
         //以下计算公式，参看lds文件格式
         Offset += sizeof(u32)*3*CessionNum + 3*sizeof(u32);
-        NameLen = __memStrLen((char*)Offset);
+        NameLen = __Heap_MemStrLen((char*)Offset);
         //计算heap控制块和session控制块所需要的内存尺寸。
         Ctrlsize = NameLen + 1 + sizeof( struct HeapCB )
                     + CessionNum * sizeof(struct HeapCession);
@@ -254,23 +254,23 @@ void __memHeapScan(void)
 //-----------------------------------------------------------------------------
 void Heap_StaticModuleInit(void)
 {
-    __memHeapScan();
+    __Heap_MemHeapScan();
 
-    M_Malloc = __M_StaticMalloc;
-    M_Realloc = __M_StaticRealloc;
-    M_Free = __M_StaticFree;
-    M_MallocHeap = __M_StaticMallocHeap;
-    M_MallocLc = __M_StaticMalloc;
-    M_MallocLcHeap = __M_StaticMallocHeap;
-    M_FreeHeap = __M_StaticFreeHeap;
-    __MallocStack = __M_StaticMallocStack;
-    M_FormatSizeHeap = __M_StaticFormatSizeHeap;
-    M_FormatSize = __M_StaticFormatSize;
-    M_GetMaxFreeBlockHeap = __M_StaticGetMaxFreeBlockHeap;
-    M_GetMaxFreeBlock = __M_StaticGetMaxFreeBlock;
-    M_GetFreeMem = __M_StaticGetFreeMem;
-    M_GetFreeMemHeap = __M_StaticGetFreeMemHeap;
-    M_CheckSize = __M_StaticCheckSize;
+    M_Malloc = __Heap_StaticMalloc;
+    M_Realloc = __Heap_StaticRealloc;
+    M_Free = __Heap_StaticFree;
+    M_MallocHeap = __Heap_StaticMallocHeap;
+    M_MallocLc = __Heap_StaticMalloc;
+    M_MallocLcHeap = __Heap_StaticMallocHeap;
+    M_FreeHeap = __Heap_StaticFreeHeap;
+    __MallocStack = __Heap_StaticMallocStack;
+    M_FormatSizeHeap = __Heap_StaticFormatSizeHeap;
+    M_FormatSize = __Heap_StaticFormatSize;
+    M_GetMaxFreeBlockHeap = __Heap_StaticGetMaxFreeBlockHeap;
+    M_GetMaxFreeBlock = __Heap_StaticGetMaxFreeBlock;
+    M_GetFreeMem = __Heap_StaticGetFreeMem;
+    M_GetFreeMemHeap = __Heap_StaticGetFreeMemHeap;
+    M_CheckSize = __Heap_StaticCheckSize;
 }
 
 //----准静态内存分配-----------------------------------------------------------
@@ -291,7 +291,7 @@ void Heap_StaticModuleInit(void)
 //   说明: 增加对参数size的零值判断
 //   作者: 季兆林
 //-----------------------------------------------------------------------------
-void *__M_StaticMallocHeapIn(ptu32_t size,struct HeapCB *Heap)
+void *__Heap_StaticMallocHeapIn(ptu32_t size,struct HeapCB *Heap)
 {
     void *temp,*result = NULL;
     list_t *pStaticList;
@@ -350,7 +350,7 @@ void *__M_StaticMallocHeapIn(ptu32_t size,struct HeapCB *Heap)
 //   说明: 增加判断通用堆还是专用堆
 //   作者: 罗侍田
 //-----------------------------------------------------------------------------
-void *__M_StaticMallocHeap(ptu32_t size,struct HeapCB *Heap,u32 Timeout)
+void *__Heap_StaticMallocHeap(ptu32_t size,struct HeapCB *Heap,u32 Timeout)
 {
     struct HeapCB *Work;
     void *result = NULL;
@@ -364,7 +364,7 @@ void *__M_StaticMallocHeap(ptu32_t size,struct HeapCB *Heap,u32 Timeout)
         {
             if((Work->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_GENERAL )
             {
-                result = __M_StaticMallocHeapIn(size,Work);
+                result = __Heap_StaticMallocHeapIn(size,Work);
                 if(result != NULL)
                     break;
             }
@@ -374,7 +374,7 @@ void *__M_StaticMallocHeap(ptu32_t size,struct HeapCB *Heap,u32 Timeout)
     }
     else
     {
-        result = __M_StaticMallocHeapIn(size,Heap);
+        result = __Heap_StaticMallocHeapIn(size,Heap);
     }
     return(result);
 }
@@ -383,7 +383,7 @@ void *__M_StaticMallocHeap(ptu32_t size,struct HeapCB *Heap,u32 Timeout)
 //参数：size,欲分配的内存块尺寸
 //返回：分配的内存指针，NULL表示没有内存可以分配
 //-----------------------------------------------------------------------------
-void *__M_StaticMallocStack(struct EventECB *event, u32 size)
+void *__Heap_StaticMallocStack(struct EventECB *event, u32 size)
 {
     struct HeapCB *Work;
     void *result = NULL;
@@ -392,7 +392,7 @@ void *__M_StaticMallocStack(struct EventECB *event, u32 size)
     {
         if((Work->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_GENERAL )
         {
-            result = __M_StaticMallocHeapIn(size,Work);
+            result = __Heap_StaticMallocHeapIn(size,Work);
             if(result != NULL)
                 break;
         }
@@ -402,9 +402,9 @@ void *__M_StaticMallocStack(struct EventECB *event, u32 size)
     return result;
 }
 
-void *__M_StaticMalloc(ptu32_t size,u32 timeout)
+void *__Heap_StaticMalloc(ptu32_t size,u32 timeout)
 {
-    return __M_StaticMallocHeap(size,tg_pSysHeap,0);
+    return __Heap_StaticMallocHeap(size,tg_pSysHeap,0);
 }
 
 #pragma GCC diagnostic pop
@@ -414,7 +414,7 @@ void *__M_StaticMalloc(ptu32_t size,u32 timeout)
 //      如果扩大,则把原有数据全部copy到新分配的内存中.
 //      如果缩小,则按新尺寸copy原有数据,超出的数据将丢弃.
 //      如果p=NULL,则相当于__M_Malloc
-//      如果NewSize = 0,则相当于 __M_Free
+//      如果NewSize = 0,则相当于 __Heap_Free
 //      如果新内存分配失败,原来的内存也将被释放,返回NULL
 //      本函数分配的内存,可使用free函数释放.
 //参数: p, 待修改尺寸的指针
@@ -426,35 +426,35 @@ void *__M_StaticMalloc(ptu32_t size,u32 timeout)
 //   说明: 优先对参数NewSize的判断逻辑
 //   作者: 季兆林
 //-----------------------------------------------------------------------------
-void *__M_StaticRealloc(void *p, ptu32_t NewSize)
+void *__Heap_StaticRealloc(void *p, ptu32_t NewSize)
 {
     ptu32_t OldSize;
     void *NewP = NULL;
 
     if(NewSize == 0)
     {
-        __M_StaticFree(p);
+        __Heap_StaticFree(p);
         return NULL;
     }
 
     if(p == NULL)
     {
         //若NewSize = 0,返回NULL
-        NewP = __M_StaticMalloc(NewSize,0);
+        NewP = __Heap_StaticMalloc(NewSize,0);
         return NewP;
     }
 
-    OldSize = __M_StaticCheckSize(p);
+    OldSize = __Heap_StaticCheckSize(p);
     if((NewSize > (OldSize - tg_pSysHeap->AlignSize)) && (NewSize <= OldSize))
         return p;
     else
     {
-        NewP = __M_StaticMalloc(NewSize,0);
+        NewP = __Heap_StaticMalloc(NewSize,0);
         if(NewP)
         {
             memcpy(NewP,p,NewSize < OldSize ? NewSize:OldSize);
         }
-        __M_StaticFree(p);
+        __Heap_StaticFree(p);
     }
     return NewP;
 }
@@ -470,7 +470,7 @@ void *__M_StaticRealloc(void *p, ptu32_t NewSize)
 //      均采用准静态分配
 //      2.本函数在初始化完成之前调用,中断尚未开启,无需考虑关闭中断的问题.
 //-----------------------------------------------------------------------------
-void __M_StaticFreeHeap(void * pl_mem,struct HeapCB *Heap)
+void __Heap_StaticFreeHeap(void * pl_mem,struct HeapCB *Heap)
 {
     atom_low_t atom_m;
     struct HeapCession *Cession;
@@ -511,9 +511,9 @@ void __M_StaticFreeHeap(void * pl_mem,struct HeapCB *Heap)
 
     return ;
 }
-void __M_StaticFree(void * pl_mem)
+void __Heap_StaticFree(void * pl_mem)
 {
-    __M_StaticFreeHeap(pl_mem,tg_pSysHeap);
+    __Heap_StaticFreeHeap(pl_mem,tg_pSysHeap);
 }
 
 //----查询堆空间大小---------------------------------------------------------
@@ -521,7 +521,7 @@ void __M_StaticFree(void * pl_mem)
 //参数：无
 //返回：内存堆字节数
 //-----------------------------------------------------------------------------
-ptu32_t  M_GetHeapSizeHeap(struct HeapCB *Heap)
+ptu32_t  Heap_GetHeapSizeHeap(struct HeapCB *Heap)
 {
     struct HeapCession *Cession;
     ptu32_t result=0;
@@ -534,10 +534,10 @@ ptu32_t  M_GetHeapSizeHeap(struct HeapCB *Heap)
     return result;
 }
 
-ptu32_t  M_GetHeapSize(void)
+ptu32_t  Heap_GetHeapSize(void)
 {
     if(tg_pSysHeap != NULL)
-        return M_GetHeapSizeHeap(tg_pSysHeap);
+        return Heap_GetHeapSizeHeap(tg_pSysHeap);
     else
         return 0;
 }
@@ -550,16 +550,16 @@ ptu32_t  M_GetHeapSize(void)
 //参数: size，应用程序欲分配的尺寸
 //返回: 规格化尺寸
 //-----------------------------------------------------------------------------
-ptu32_t __M_StaticFormatSizeHeap(ptu32_t size,struct HeapCB *Heap)
+ptu32_t __Heap_StaticFormatSizeHeap(ptu32_t size,struct HeapCB *Heap)
 {
     return align_up(Heap->AlignSize,size);  //准静态分配，对齐即可
 }
-ptu32_t __M_StaticFormatSize(ptu32_t size)
+ptu32_t __Heap_StaticFormatSize(ptu32_t size)
 {
     return align_up_sys(size);  //准静态分配，对齐即可
 }
 
-ptu32_t __M_StaticGetMaxFreeBlockHeapIn(struct HeapCB *Heap)
+ptu32_t __Heap_StaticGetMaxFreeBlockHeapIn(struct HeapCB *Heap)
 {
     struct HeapCession *Cession;
     ptu32_t result = 0;
@@ -577,7 +577,7 @@ ptu32_t __M_StaticGetMaxFreeBlockHeapIn(struct HeapCB *Heap)
 //参数：Heap,被查询的堆,如果这是个专用堆,则只查询这个堆,否则查询所有通用堆.
 //返回：内存块字节数
 //-----------------------------------------------------------------------------
-ptu32_t  __M_StaticGetMaxFreeBlockHeap(struct HeapCB *Heap)
+ptu32_t  __Heap_StaticGetMaxFreeBlockHeap(struct HeapCB *Heap)
 {
     struct HeapCB *Work;
     ptu32_t result = 0,temp;
@@ -585,7 +585,7 @@ ptu32_t  __M_StaticGetMaxFreeBlockHeap(struct HeapCB *Heap)
         return 0;
     if((Heap->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_PRIVATE)
     {
-        result = __M_StaticGetMaxFreeBlockHeapIn(Heap);
+        result = __Heap_StaticGetMaxFreeBlockHeapIn(Heap);
     }
     else
     {
@@ -594,7 +594,7 @@ ptu32_t  __M_StaticGetMaxFreeBlockHeap(struct HeapCB *Heap)
         {
             if((Work->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_GENERAL )
             {
-                temp = __M_StaticGetMaxFreeBlockHeapIn(Work);
+                temp = __Heap_StaticGetMaxFreeBlockHeapIn(Work);
                 if(result < temp)
                     result = temp;
             }
@@ -610,7 +610,7 @@ ptu32_t  __M_StaticGetMaxFreeBlockHeap(struct HeapCB *Heap)
 //参数：无
 //返回：内存块字节数
 //-----------------------------------------------------------------------------
-ptu32_t  __M_StaticGetMaxFreeBlock(void)
+ptu32_t  __Heap_StaticGetMaxFreeBlock(void)
 {
     struct HeapCB *Work;
     ptu32_t result = 0,temp;
@@ -619,7 +619,7 @@ ptu32_t  __M_StaticGetMaxFreeBlock(void)
     {
         if((Work->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_GENERAL )
         {
-            temp = __M_StaticGetMaxFreeBlockHeapIn(Work);
+            temp = __Heap_StaticGetMaxFreeBlockHeapIn(Work);
             if(result < temp)
                 result = temp;
         }
@@ -634,7 +634,7 @@ ptu32_t  __M_StaticGetMaxFreeBlock(void)
 //参数：Heap,被查询的堆
 //返回：空闲内存字节数
 //-----------------------------------------------------------------------------
-ptu32_t  __M_StaticGetFreeMemHeapIn(struct HeapCB *Heap)
+ptu32_t  __Heap_StaticGetFreeMemHeapIn(struct HeapCB *Heap)
 {
     struct HeapCession *Cession;
     ptu32_t result=0;
@@ -652,7 +652,7 @@ ptu32_t  __M_StaticGetFreeMemHeapIn(struct HeapCB *Heap)
 //参数：Heap,被查询的堆,如果这是个专用堆,则只查询这个堆,否则查询所有通用堆.
 //返回：空闲内存字节数
 //-----------------------------------------------------------------------------
-ptu32_t  __M_StaticGetFreeMemHeap(struct HeapCB *Heap)
+ptu32_t  __Heap_StaticGetFreeMemHeap(struct HeapCB *Heap)
 {
     struct HeapCB *Work;
     ptu32_t result = 0;
@@ -660,7 +660,7 @@ ptu32_t  __M_StaticGetFreeMemHeap(struct HeapCB *Heap)
         return 0;
     if((Heap->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_PRIVATE)
     {
-        result = __M_StaticGetFreeMemHeapIn(Heap);
+        result = __Heap_StaticGetFreeMemHeapIn(Heap);
     }
     {
         Work = Heap;
@@ -668,7 +668,7 @@ ptu32_t  __M_StaticGetFreeMemHeap(struct HeapCB *Heap)
         {
             if((Work->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_GENERAL )
             {
-                result += __M_StaticGetFreeMemHeapIn(Work);
+                result += __Heap_StaticGetFreeMemHeapIn(Work);
             }
             Work = Work->NextHeap;
         }while(Work != Heap);
@@ -681,7 +681,7 @@ ptu32_t  __M_StaticGetFreeMemHeap(struct HeapCB *Heap)
 //参数：无
 //返回：空闲内存字节数
 //-----------------------------------------------------------------------------
-ptu32_t  __M_StaticGetFreeMem(void)
+ptu32_t  __Heap_StaticGetFreeMem(void)
 {
     struct HeapCB *Work;
     ptu32_t result = 0;
@@ -690,7 +690,7 @@ ptu32_t  __M_StaticGetFreeMem(void)
     {
         if((Work->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_GENERAL )
         {
-            result += __M_StaticGetFreeMemHeap(Work);
+            result += __Heap_StaticGetFreeMemHeap(Work);
         }
         Work = Work->NextHeap;
     }while(Work != tg_pHeapList);
@@ -703,7 +703,7 @@ ptu32_t  __M_StaticGetFreeMem(void)
 //参数: mp,动态分配的内存指针.
 //返回: 内存块尺寸,返回0有几种含义:1.非法指针,2.mp是由准静态分配的指针.
 //-----------------------------------------------------------------------------
-ptu32_t __M_StaticCheckSize(void * pl_mem)
+ptu32_t __Heap_StaticCheckSize(void * pl_mem)
 {
     atom_low_t atom_m;
     struct HeapCB *Work;

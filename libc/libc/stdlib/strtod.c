@@ -590,7 +590,7 @@ _DEFUN (_strtod_r, (ptr, s00, se),
             if (e1 > DBL_MAX_10_EXP) {
  ovfl:
 #ifndef NO_ERRNO
-                Djy_SaveLastError(ERANGE);
+                DJY_SaveLastError(ERANGE);
 #endif
                 /* Can't trust HUGE_VAL */
 #ifdef IEEE_Arith
@@ -697,7 +697,7 @@ _DEFUN (_strtod_r, (ptr, s00, se),
  undfl:
                     dval(rv) = 0.;
 #ifndef NO_ERRNO
-                    Djy_SaveLastError(ERANGE);
+                    DJY_SaveLastError(ERANGE);
 #endif
                     if (bd0)
                         goto retfree;
@@ -1235,7 +1235,7 @@ _DEFUN (_strtod_r, (ptr, s00, se),
 #ifndef NO_ERRNO
         /* try to avoid the bug of testing an 8087 register value */
         if (dword0(rv) == 0 && dword1(rv) == 0)
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
 #endif
         }
 #endif /* Avoid_Underflow */

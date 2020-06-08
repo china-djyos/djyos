@@ -403,9 +403,9 @@ bool_t RTC_SetAlarm(u32 timeout_s)
         {
             if(true == RTC_DS3232MZ_GetTime(&dtm))
             {
-                time = (s64)(Tm_MkTime(&dtm) + timeout_s);
+                time = (s64)(Time_MkTime(&dtm) + timeout_s);
 
-                Tm_LocalTime_r(&time,&dtm);
+                Time_LocalTime_r(&time,&dtm);
                 result = RTC_DS3232MZ_SetAlarm1Time(&dtm);
 
                 RTC_DS3232MZ_GetAlarm1Time(&dtm);
@@ -466,7 +466,7 @@ static bool_t RTC_GetTime(s64 *time)
 {
     struct tm dtm;
     RTC_DS3232MZ_GetTime(&dtm);
-    *time = (s64)(1000000 * Tm_MkTime(&dtm));
+    *time = (s64)(1000000 * Time_MkTime(&dtm));
     return true;
 }
 
@@ -492,7 +492,7 @@ static bool_t __Rtc_SetTime(s64 time)
     s64 time_s;
     bool_t ret;
     time_s = time/1000000;
-    Tm_LocalTime_r(&time_s,&dtm);
+    Time_LocalTime_r(&time_s,&dtm);
     ret=RTC_DS3232MZ_UpdateTime(&dtm);
     return ret;
 }
@@ -527,7 +527,7 @@ ptu32_t ModuleInstall_RTCDS3232M(void)
     pRtcSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"RTC_SEMP");
     if(NULL == pRtcSemp)
          return -1;
-    evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
+    evtt = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
                                Rtc_UpdateTime,NULL,800,
                                    "RTC Update Event");
     if(evtt == CN_EVTT_ID_INVALID)
@@ -535,7 +535,7 @@ ptu32_t ModuleInstall_RTCDS3232M(void)
         free(pRtcSemp);
         return false;
     }
-    Djy_EventPop(evtt,NULL,0,NULL,0,0);
+    DJY_EventPop(evtt,NULL,0,NULL,0,0);
 
     RTC_GetTime(&rtc_time);
 

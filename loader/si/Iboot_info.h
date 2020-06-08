@@ -119,7 +119,7 @@ struct IbootAppInfo
         u32 power_on_flag         :2;
         u32 head_wdt_reset        :1;//看门狗复位标志
         u32 soft_reset_flag       :1;//软件引起的内部复位
-        u32 reboot_flag           :1;//reboot 标志
+        u32 reboot_flag           :1;//CPU_Reboot 标志
         u32 restart_system_flag      :1;//restart_system标志
         u32 head_reset_flag       :1;//外部硬件复位标志
         u32 low_power_wakeup      :1;//低功耗深度休眠中断唤醒标志
@@ -194,67 +194,67 @@ struct ProductInfo
 };
 
 //bool_t Set_RunIbootUpdateIboot();
-bool_t Set_RebootFlag();
-bool_t Set_SoftResetFlag();
-bool_t Set_RestartAppFlag();
-bool_t clear_resetflag();
-bool_t Si_IbootAppInfoInit();
-void Get_IbootAppInfo(struct IbootAppInfo *get_info);
+bool_t Iboot_SetRebootFlag();
+bool_t Iboot_SetSoftResetFlag();
+bool_t Iboot_SetRestartAppFlag();
+bool_t Iboot_ClearResetFlag();
+bool_t Iboot_SiIbootAppInfoInit();
+void Iboot_GetAppInfo(struct IbootAppInfo *get_info);
 //bool_t XIP_APPIsDebug(void );
-bool_t Set_AppVerFlag(u8 small, u8 medium, u8 large);
-bool_t Set_AppBulid_Time(u16 pyear,u8 pmon,u8 pday,u8 phour,u8 pmin,u8 psec);
-bool_t Get_PowerOnResentFlag(void);
-bool_t Get_CallFunResent();
-bool_t Get_SoftResetFlag();
-char Get_PowerOnFlag(void);
-bool_t Get_HeadWdtReset(void);
-bool_t Get_RebootFlag();
-bool_t Get_RestartAppFlag();
-bool_t Get_HeadResetFlag();
-bool_t Get_LowPowerWakeup();
+bool_t Iboot_SetAppVerFlag(u8 small, u8 medium, u8 large);
+bool_t Iboot_SetAppBulidTime(u16 pyear,u8 pmon,u8 pday,u8 phour,u8 pmin,u8 psec);
+bool_t Iboot_GetPowerOnResentFlag(void);
+bool_t Iboot_GetCallFunResent();
+bool_t Iboot_GetSoftResetFlag();
+char Iboot_GetPowerOnFlag(void);
+bool_t Iboot_GetHeadWdtReset(void);
+bool_t Iboot_GetRebootFlag();
+bool_t Iboot_GetRestartAppFlag();
+bool_t Iboot_GetHeadResetFlag();
+bool_t Iboot_GetLowPowerWakeup();
 
 #if (CFG_RUNMODE_BAREAPP == 0)
-bool_t Get_ProductInfo(void * ProductInfo);
-bool_t Get_APP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_len);
-bool_t Rewrite_ProductInfo_Num_Time(void * productinfo,const char* time,const char *num);
+bool_t Iboot_GetProductInfo(void * ProductInfo);
+bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_len);
+bool_t Iboot_RewriteProductInfoNumTime(void * productinfo,const char* time,const char *num);
 bool_t Rewrite_AppHead_NumTime(void * apphead,const char* time,char *num);
-bool_t XIP_AppFileCheck_Easy(void * apphead);
+bool_t XIP_AppFileCheckEasy(void * apphead);
 bool_t XIP_AppFileCheck(void * apphead);
-void * XIP_GetAPPStartAddr(void * apphead);
-u32  XIP_GetAPPSize(void * apphead);
-u32 Get_AppSize(void * apphead);
-char*  Get_AppName(void * apphead);
+void * XIP_GetAppStartAddr(void * apphead);
+u32  XIP_GetAppSize(void * apphead);
+u32 Iboot_GetAppSize(void * apphead);
+char*  Iboot_GetAppName(void * apphead);
 bool_t XIP_IsRamIbootFlag();
-bool_t Fill_MutualUpdatePath(char* Path,int len);
+bool_t Iboot_FillMutualUpdatePath(char* Path,int len);
 bool_t Run_Iboot(enum runibootmode mode);
 bool_t Run_App(enum runappmode mode);
-bool_t Update_ToRun();
-bool_t Set_PreviouResetFlag();
+bool_t Iboot_UpdateToRun();
+bool_t Iboot_SetPreviouResetFlag();
 bool_t Set_RunIbootFlag();
 bool_t Set_RunAppFlag();
-bool_t Set_RunIbootUpdateApp();
-bool_t Set_RunAppUpdateIboot();
-bool_t Clear_RunIbootUpdateApp();
-bool_t Clear_RunAppUpdateIboot();
-bool_t Set_UpdateSource(char *param);
-u32 Get_UpdateSource(void);
-bool_t Get_RestartRunApp();
-char Get_RunAppFormFile();
-char Get_RunMode(void);
-char Get_LastRunMode(void);
-bool_t Get_HeardSetRunIboot(void);
-bool_t Get_MutualUpdatePath(char *buf, u32 buf_len);
-bool_t Get_UpdateApp(void);
-bool_t Get_Updateiboot(void);
-bool_t Set_UpdateRunModet(u8 mode);
-char Get_UpdateRunModet(void);
-u32  XIP_GetAPPSize(void * apphead);
-u32  Get_AppHeadSize(void);
-bool_t Get_AppHead(void * apphead);
-bool_t Get_ErrorAppCheck(void);
-bool_t Get_ErrorAppNoFile(void);
-bool_t Get_ErrorAppSize(void);
-bool_t Get_HeardSetRunIboot(void);
+bool_t Iboot_SetRunIbootUpdateApp();
+bool_t Iboot_SetRunAppUpdateIboot();
+bool_t Iboot_ClearRunIbootUpdateApp();
+bool_t Iboot_ClearRunAppUpdateIboot();
+bool_t Iboot_SetUpdateSource(char *param);
+u32 Iboot_GetUpdateSource(void);
+bool_t Iboot_GetRestartRunApp();
+char Iboot_GetRunAppFormFile();
+char Iboot_GetRunMode(void);
+char Iboot_GetLastRunMode(void);
+bool_t Iboot_GetHeardSetRunIboot(void);
+bool_t Iboot_GetMutualUpdatePath(char *buf, u32 buf_len);
+bool_t Iboot_GetUpdateApp(void);
+bool_t Iboot_GetUpdateIboot(void);
+bool_t Iboot_SetUpdateRunModet(u8 mode);
+char Iboot_GetUpdateRunModet(void);
+u32  XIP_GetAppSize(void * apphead);
+u32  Iboot_GetAppHeadSize(void);
+bool_t Iboot_GetAppHead(void * apphead);
+bool_t Iboot_GetErrorAppCheck(void);
+bool_t Iboot_GetErrorAppNoFile(void);
+bool_t Iboot_GetErrorAppSize(void);
+bool_t Iboot_GetHeardSetRunIboot(void);
 //char * Get_ProductSN(void);
 //char * Get_ProductVersion(void * apphead);
 //const char * Get_ManufacturerName(void);

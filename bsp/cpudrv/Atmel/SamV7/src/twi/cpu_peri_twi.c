@@ -497,7 +497,7 @@ static bool_t __TWI_Wait(volatile tagTwiReg *Reg,u8 Flag)
             break;
         }
         timeout--;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
     }
 
 
@@ -786,7 +786,7 @@ static void __TWI_GenerateEnd(volatile tagTwiReg *Reg)
 
     __TWI_IntDisable(Reg, TWIHS_IDR_TXRDY|TWIHS_IDR_RXRDY|
             TWIHS_IDR_TXCOMP);
-    Djy_EventDelay(100);
+    DJY_EventDelay(100);
     __TWI_GenerateStop(Reg);
 
     __TWI_Reset(Reg);

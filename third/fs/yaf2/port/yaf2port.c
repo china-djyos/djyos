@@ -435,7 +435,7 @@ struct objhandle *__yaf2open(struct Object *ob, u32 flags, char *uncached)
     char entirepath[DJYFS_PATH_BUFFER_SIZE];
 
     memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
-    GetEntirePath(ob,uncached,entirepath,DJYFS_PATH_BUFFER_SIZE);
+    File_GetEntirePath(ob,uncached,entirepath,DJYFS_PATH_BUFFER_SIZE);
 
     res = strlen(entirepath) + 1;
     path = malloc(res);
@@ -445,12 +445,12 @@ struct objhandle *__yaf2open(struct Object *ob, u32 flags, char *uncached)
     memcpy(path, entirepath, res);
     do
     {
-        if(test_directory(flags))
+        if(Handle_FlagIsDirectory(flags))
         {
-            if(test_creat(flags)) // 创建或者打开逻辑，则先尝试创建
+            if(Handle_FlagIsCreate(flags)) // 创建或者打开逻辑，则先尝试创建
             {
                 res = yaffs_mkdir(path, (S_IREAD | S_IWRITE));
-                if((res<0)&&(test_onlycreat(flags))) // 只是要创建
+                if((res<0)&&(Handle_FlagIsOnlyCreate(flags))) // 只是要创建
                     break; // 失败
             }
 
@@ -467,9 +467,9 @@ struct objhandle *__yaf2open(struct Object *ob, u32 flags, char *uncached)
             property = S_IFREG;
         }
 
-        hdl = handle_new();
+        hdl = Handle_New();
         if(hdl)
-            handle_init(hdl, NULL, flags, (ptu32_t)yafcx);
+            Handle_Init(hdl, NULL, flags, (ptu32_t)yafcx);
 
     }while(0);
 
@@ -480,13 +480,13 @@ struct objhandle *__yaf2open(struct Object *ob, u32 flags, char *uncached)
         //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
         mode = S_IALLUGO | S_IFDIR;     //建立的路径，属性是目录。
         //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
-        ob = obj_BuildTempPath(ob, YAF2_Ops, mode,uncached);
+        ob = OBJ_BuildTempPath(ob, YAF2_Ops, mode,uncached);
         mode = S_IALLUGO | property;     //最末端的也许是文件
-        if(!obj_isMount(ob))
+        if(!File_ObjIsMount(ob))
         {
-            obj_SetPrivate(ob, mode);
+            OBJ_SetPrivate(ob, mode);
         }
-        obj_LinkHandle(hdl, ob);
+        OBJ_LinkHandle(hdl, ob);
         return (hdl);
     }
     else
@@ -502,9 +502,9 @@ struct objhandle *__yaf2open(struct Object *ob, u32 flags, char *uncached)
 static s32 __yaf2close(struct objhandle *hdl)
 {
     s32 res;
-    ptu32_t yafcx = handle_context(hdl);
+    ptu32_t yafcx = Handle_GetContext(hdl);
 
-    if(test_directory(hdl->flags))
+    if(Handle_FlagIsDirectory(hdl->flags))
     {
         res = yaffs_closedir((yaffs_DIR*)yafcx);
     }
@@ -515,7 +515,7 @@ static s32 __yaf2close(struct objhandle *hdl)
 
     if(!res)
     {
-//      handle_Delete(hdl); // 成功；
+//      Handle_Delete(hdl); // 成功；
         return (0);
     }
 
@@ -532,7 +532,7 @@ static s32 __yaf2close(struct objhandle *hdl)
 // ============================================================================
 static s32 __yaf2write(struct objhandle *hdl, u8 *data, u32 size)
 {
-    s32 res, yafcx = (s32)handle_context(hdl);
+    s32 res, yafcx = (s32)Handle_GetContext(hdl);
 
     res = yaffs_write(yafcx, data, size);
     if(-1 == res)
@@ -551,7 +551,7 @@ static s32 __yaf2write(struct objhandle *hdl, u8 *data, u32 size)
 // ============================================================================
 static s32 __yaf2read(struct objhandle *hdl, u8 *data, u32 size)
 {
-    s32 res, yafcx = (s32)handle_context(hdl);
+    s32 res, yafcx = (s32)Handle_GetContext(hdl);
 
     res = yaffs_read(yafcx, data, size); // 返回实际读到的数据
     if(-1 == res)
@@ -569,9 +569,9 @@ static s32 __yaf2read(struct objhandle *hdl, u8 *data, u32 size)
 static s32 __yaf2fsync(struct objhandle *hdl)
 {
     s32 res;
-    ptu32_t yafcx = handle_context(hdl);
+    ptu32_t yafcx = Handle_GetContext(hdl);
 
-    if(test_directory(hdl->flags))
+    if(Handle_FlagIsDirectory(hdl->flags))
     {
         return (-1);
     }
@@ -625,7 +625,7 @@ static s32 __yaf2readdentry(struct objhandle *hdl, struct dirent *dentry)
     u32 type;
     struct yaffs_dirent *yafDirent;
     struct yaffsfs_DirSearchContext *yafDSC;
-    yaffs_DIR *yafDir = (yaffs_DIR*)handle_context(hdl);
+    yaffs_DIR *yafDir = (yaffs_DIR*)Handle_GetContext(hdl);
 
      yafDSC = (struct yaffsfs_DirSearchContext *)yafDir;
      if(yafDSC->inUse && yafDSC->nextReturn)
@@ -663,7 +663,7 @@ static s32 __yaf2remove(struct Object *ob, char *full)
     char entirepath[DJYFS_PATH_BUFFER_SIZE];
 
     memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
-    GetEntirePath(ob,full,entirepath,DJYFS_PATH_BUFFER_SIZE);
+    File_GetEntirePath(ob,full,entirepath,DJYFS_PATH_BUFFER_SIZE);
 
     res = strlen(entirepath) + 1;
     path = malloc(res);
@@ -686,7 +686,7 @@ static s32 __yaf2remove(struct Object *ob, char *full)
 // ============================================================================
 static off_t __yaf2seek(struct objhandle *hdl, off_t *offset, s32 whence)
 {
-    s32 yafcx = (s32)handle_context(hdl);
+    s32 yafcx = (s32)Handle_GetContext(hdl);
 
     return (yaffs_lseek(yafcx, *offset, whence));
 }
@@ -706,18 +706,18 @@ static s32 __yaf2stat(struct Object *ob, struct stat *data, char *uncached)
     struct objhandle *myhandle;
     s32 res;
 
-    myhandle = obj_ForeachHandle(NULL, ob);     //取该文件其中一个句柄
+    myhandle = OBJ_ForeachHandle(NULL, ob);     //取该文件其中一个句柄
     if((uncached)                   //文件对象未缓存，依靠路径查询文件；
         ||(myhandle == NULL))       //ob（是目录）虽在路径中，但未打开，也依靠路径查询
     {
         char *path, *root;
         char entirepath[DJYFS_PATH_BUFFER_SIZE];
 
-        root = (char*)corefs(ob);
+        root = (char*)File_Core(ob);
         if(!root)
             return (-1);
         memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
-        GetEntirePath(ob,uncached,entirepath,DJYFS_PATH_BUFFER_SIZE);
+        File_GetEntirePath(ob,uncached,entirepath,DJYFS_PATH_BUFFER_SIZE);
 
         res = strlen(entirepath) + 1;
 
@@ -747,7 +747,7 @@ static s32 __yaf2stat(struct Object *ob, struct stat *data, char *uncached)
     }
     else    // 对象已打开，依靠文件上下文查询
     {
-        s32 yafcx = (s32)handle_context(myhandle);
+        s32 yafcx = (s32)Handle_GetContext(myhandle);
 
         if(-1==yaffs_fstat(yafcx, &yafstat)) // TODO:目录是否可以？
             return (-1);
@@ -949,7 +949,7 @@ static s32 __yaf2install(struct FsCore *pSuper, u32 dwOpts, void *data)
 
     memset(yaf2Dev, 0, sizeof(*yaf2Dev));
     params = &yaf2Dev->param;
-    params->name = dev_Name(pSuper->pTarget);
+    params->name = Device_GetName(pSuper->pTarget);
     params->n_reserved_blocks = 6;
     params->is_yaffs2 = 1;
     params->n_caches = 0; // 0 -- 不使用cache逻辑
@@ -1046,26 +1046,26 @@ s32 ModuleInstall_YAF2(const char *target, u32 opt, u32 data)
         typeYAF2->format = __yaf2format;
         typeYAF2->uninstall = NULL;
     }
-    res = regfs(typeYAF2);
+    res = File_RegisterFs(typeYAF2);
     if(-1==res)
     {
         printf("\r\n: dbug : module : cannot register \"YAF2\"<file system type>.");
         return (-1); // 失败;
     }
 
-    mountobj = obj_newchild(obj_root(), __mount_ops, 0, target);
+    mountobj = OBJ_NewChild(OBJ_GetRoot(), __File_MountOps, 0, target);
     if(NULL == mountobj)
     {
         printf("\r\n: dbug : module : mount \"YAF2\" failed, cannot create \"%s\"<mount point>.", target);
         return (-1); // 失败;
     }
-//    obj_DutyUp(mountobj);
+//    OBJ_DutyUp(mountobj);
     opt |= MS_DIRECTMOUNT;              //直接挂载不用备份
-    res = mountfs(NULL, target, "YAF2", opt, (void *)data);
+    res = File_Mount(NULL, target, "YAF2", opt, (void *)data);
    if(res == -1)
    {
        printf("\r\n: dbug : module : mount \"YAF2\" failed, cannot install.");
-       obj_Delete(mountobj);
+       OBJ_Delete(mountobj);
        return (-1);// 失败
    }
    return (0);

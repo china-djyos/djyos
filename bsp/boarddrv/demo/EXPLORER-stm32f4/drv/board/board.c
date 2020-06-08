@@ -218,7 +218,7 @@ bool_t Board_EthGpioInit(void)
     GPIO_AFSet(GPIO_G,14,11);   //PG14,AF11
 
     GPIO_SettoLow(GPIO_D,PIN3);
-    Djy_EventDelay(10*1000);
+    DJY_EventDelay(10*1000);
     GPIO_SettoHigh(GPIO_D,PIN3);
     return true;
 }
@@ -374,9 +374,9 @@ void Board_GpioInit(void)
 bool_t LAN8720_RESET(void)
 {
 //  PCF8574_WriteBit(ETH_RESET_IO,1);
-//  Djy_DelayUs(100*mS);
+//  DJY_DelayUs(100*mS);
 //  PCF8574_WriteBit(ETH_RESET_IO,0);
-//  Djy_DelayUs(100*mS);
+//  DJY_DelayUs(100*mS);
     //PD3上输出一个100mS的高电平脉冲
     return true;
 }

@@ -190,7 +190,7 @@ static bool_t __EMAC_PHY_Init(void)
         {
             regv = __EMAC_PHY_Read (DP83848C_DEF_ADR,PHY_REG_BMSR);
             if(regv & 0x0020)   break;          //Auto negotiation Complete.
-            Djy_DelayUs(1*mS);
+            DJY_DelayUs(1*mS);
         }
     }
     else
@@ -204,7 +204,7 @@ static bool_t __EMAC_PHY_Init(void)
     {
         regv = __EMAC_PHY_Read (DP83848C_DEF_ADR,PHY_REG_STS);
         if (regv & 0x0001)  break;              //Link is on
-        Djy_DelayUs(1*mS);
+        DJY_DelayUs(1*mS);
     }
     if(tout != 0)
     {
@@ -296,7 +296,7 @@ static void  __EMAC_Init(void)
                     | MAC1_RES_MCS_RX | MAC1_SIM_RES | MAC1_SOFT_RES;
     LPC_EMAC->Command = CR_REG_RES | CR_TX_RES | CR_RX_RES | CR_PASS_RUNT_FRM;
 
-    Djy_DelayUs(1*mS);                          //A short delay after reset.
+    DJY_DelayUs(1*mS);                          //A short delay after CPU_Reset.
 
     //Initialize MAC control registers.
     LPC_EMAC->MAC1 = MAC1_PASS_ALL;

@@ -55,14 +55,14 @@
 #include <shell.h>
 
 
-extern bool_t ServiceDhcpcInit(void);
-extern bool_t ServiceDhcpdInit(void);
+extern bool_t DHCP_ServiceDhcpcInit(void);
+extern bool_t DHCP_ServiceDhcpdInit(void);
 extern bool_t ServiceDnsInit(void);
-extern bool_t ServicePingInit(void);
-extern bool_t ServiceSntpInit(void);
-extern bool_t ServiceFtpInit(void);
-extern bool_t ServiceInit_Telnetd(void);
-extern bool_t ServiceTftpInit(void);
+extern bool_t PING_ServicePingInit(void);
+extern bool_t SNTP_ServiceSNTP_Init(void);
+extern bool_t FTP_ServiceInit(void);
+extern bool_t Telnet_ServiceInit(void);
+extern bool_t TFTP_ServiceInit(void);
 
 //bit0 开启DHCP客户端 bit1 开启DHCP server
 //__attribute__((weak))  u32 Get_DhcpInitflag(void)
@@ -72,14 +72,14 @@ extern bool_t ServiceTftpInit(void);
 
 
 // dhcp_mode: 0->dhcp_client; 1->dhcp_server; -1: not use dhcp
-bool_t DhcpModeInit(int dhcp_mode)
+bool_t DHCP_ModeInit(int dhcp_mode)
 {
     bool_t result = true;
 #if  (CFG_MODULE_ENABLE_DHCP == true)
     if(dhcp_mode==0 &&CFG_DHCPC_ENABLE)
     {
         printf("------dhcp client---------\r\n");
-        if((false == ServiceDhcpcInit()))
+        if((false == DHCP_ServiceDhcpcInit()))
         {
             error_printf("tcpip","###err: service dhcpc failed");
             result = false;
@@ -88,7 +88,7 @@ bool_t DhcpModeInit(int dhcp_mode)
     if(dhcp_mode==1&&CFG_DHCPD_ENABLE)
     {
         printf("------dhcp server---------\r\n");
-        if((false == ServiceDhcpdInit()))
+        if((false == DHCP_ServiceDhcpdInit()))
         {
             error_printf("tcpip","###err: service dhcpd failed");
             result = false;
@@ -99,12 +99,12 @@ bool_t DhcpModeInit(int dhcp_mode)
 }
 
 //THIS IS THE TCP IP SERVICE LOAD MODULE
-bool_t ServiceInit(void)
+bool_t DHCP_ServiceInit(void)
 {
     bool_t result = true;
 
 #if (CFG_MODULE_ENABLE_FTP == true)
-    if(false == ServiceFtpInit())
+    if(false == FTP_ServiceInit())
     {
         error_printf("tcpip","###err: service ftp failed");
         result = false;
@@ -112,7 +112,7 @@ bool_t ServiceInit(void)
 #endif
 
 #if  (CFG_MODULE_ENABLE_TELNET == true)
-    if(false == ServiceInit_Telnetd())
+    if(false == Telnet_ServiceInit())
     {
         error_printf("tcpip","###err: service telnet failed\n\r");
         result = false;
@@ -120,12 +120,12 @@ bool_t ServiceInit(void)
 #endif
 
 #if  (CFG_MODULE_ENABLE_TFTP == true)
-    if(false == ServiceTftpInit())
+    if(false == TFTP_ServiceInit())
     {
         error_printf("tcpip","###err: service tftp failed");
         result = false;
     }
 #endif
-    ServicePingInit();
+    PING_ServicePingInit();
     return result;
 }

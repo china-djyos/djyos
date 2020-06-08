@@ -228,7 +228,7 @@ bool_t RTC_SetTime(s64 time)
     struct tm DateTime;
 
     time = time/1000000;
-    Tm_LocalTime_r(&time,&DateTime);
+    Time_LocalTime_r(&time,&DateTime);
 
     __rtc_write (RTC_CMD_SECONDS,     HexToBcd (DateTime.tm_sec));
     __rtc_write (RTC_CMD_MINUTES,     HexToBcd (DateTime.tm_min));

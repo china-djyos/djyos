@@ -110,7 +110,7 @@ static HWND key_hwnd[16];
 //参数：空
 //返回：按下的键值ASCII值.
 //-----------------------------------------------------------------------------
-static u32 __VirKeyBoardRead(void)
+static u32 __Widget_VirKeyBoardRead(void)
 {
       return (u32)gs_CurKeyDown;
 }
@@ -120,7 +120,7 @@ static u32 __VirKeyBoardRead(void)
 //参数：pMsg，窗口消息指针
 //返回：成功返回true,失败则返回false。
 //-----------------------------------------------------------------------------
-static bool_t VirKeyBoard_Create(struct WindowMsg *pMsg)
+static bool_t __Widget_VirKeyBoardCreate(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     VirKeyBoard *pVKB;
@@ -150,10 +150,10 @@ static bool_t VirKeyBoard_Create(struct WindowMsg *pMsg)
        pkbp->key_now=0;
        pkbp->vtime_count=0;
        pkbp->vtime_limit=gs_KeyVtimeLimitDef;
-       pkbp->read_keyboard=__VirKeyBoardRead;
+       pkbp->read_keyboard=__Widget_VirKeyBoardRead;
        pVKB->pKBP=pkbp;
 
-       SetWindowPrivateData(hwnd,(ptu32_t)pVKB);
+       GDD_SetWindowPrivateData(hwnd,(ptu32_t)pVKB);
        itoa(gs_KeyBoardId,buf,10);
        name="vir single touch keyboard";
        Keyboard_InstallDevice(name, pkbp);
@@ -170,7 +170,7 @@ static bool_t VirKeyBoard_Create(struct WindowMsg *pMsg)
 //参数：pMsg，窗口消息指针
 //返回：成功返回true,失败则返回false。
 //-----------------------------------------------------------------------------
-static  bool_t VirKeyBoard_Paint(struct WindowMsg *pMsg)
+static  bool_t __Widget_VirKeyBoardPaint(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     HDC hdc;
@@ -183,7 +183,7 @@ static  bool_t VirKeyBoard_Paint(struct WindowMsg *pMsg)
     hwnd=pMsg->hwnd;
     if(hwnd==NULL)
         return false;
-    hdc =BeginPaint(hwnd);
+    hdc =GDD_BeginPaint(hwnd);
     if(hdc==NULL)
         return false;
     vbk=(VBK)pMsg->Param1;
@@ -200,68 +200,68 @@ static  bool_t VirKeyBoard_Paint(struct WindowMsg *pMsg)
         gs_KeySpace=vbk->keyspace;
     }
 
-    GetClientRect(hwnd,&rc);
-    SetFillColor(hdc,RGB(255,255,255));
-    FillRect(hdc,&rc);
-    width=RectW(&rc);
-    height=RectH(&rc);
+    GDD_GetClientRect(hwnd,&rc);
+    GDD_SetFillColor(hdc,RGB(255,255,255));
+    GDD_FillRect(hdc,&rc);
+    width=GDD_RectW(&rc);
+    height=GDD_RectH(&rc);
     gs_KeyWidth=(width-(gs_KeyBoardCols+1)*gs_KeySpace)/gs_KeyBoardCols;
     gs_KeyHeight=(height-(gs_KeyBoardRows+1)*gs_KeySpace)/gs_KeyBoardRows;
     LeftStart=gs_KeySpace;
     HighStart=gs_KeySpace;
     //
-    key_hwnd[0]=CreateButton("1",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
+    key_hwnd[0]=Widget_CreateButton("1",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
         LeftStart,HighStart,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_0,"1",NULL);
 
-    key_hwnd[1]=CreateButton("2",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
+    key_hwnd[1]=Widget_CreateButton("2",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
         LeftStart+gs_KeyWidth,HighStart,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_1,"2",NULL);
 
-    key_hwnd[2]=CreateButton("3",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
+    key_hwnd[2]=Widget_CreateButton("3",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
         LeftStart+2*gs_KeyWidth,HighStart,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_2,"3",NULL);
 
-    key_hwnd[3]=CreateButton("x",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
+    key_hwnd[3]=Widget_CreateButton("x",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
         LeftStart+3*gs_KeyWidth,HighStart,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_3,"x",NULL);
 
 
 
-    key_hwnd[4]=CreateButton("4",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart,
+    key_hwnd[4]=Widget_CreateButton("4",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart,
         HighStart+gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_4,"4",NULL);
 
-    key_hwnd[5]=CreateButton("5",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+gs_KeyWidth,
+    key_hwnd[5]=Widget_CreateButton("5",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+gs_KeyWidth,
         HighStart+gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_5,"5",NULL);
 
-    key_hwnd[6]=CreateButton("6",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL, LeftStart+2*gs_KeyWidth,
+    key_hwnd[6]=Widget_CreateButton("6",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL, LeftStart+2*gs_KeyWidth,
         HighStart+gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_6,"6",NULL);
 
-    key_hwnd[7]=CreateButton("√",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+3*gs_KeyWidth,
+    key_hwnd[7]=Widget_CreateButton("√",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+3*gs_KeyWidth,
         HighStart+gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_7,"√",NULL);
 
 
 
-    key_hwnd[8]=CreateButton("7",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart,
+    key_hwnd[8]=Widget_CreateButton("7",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart,
                  HighStart+2*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_8,"7",NULL);
 
-    key_hwnd[9]=CreateButton("8",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+gs_KeyWidth,
+    key_hwnd[9]=Widget_CreateButton("8",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+gs_KeyWidth,
                  HighStart+2*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_9,"8",NULL);
 
-    key_hwnd[10]=CreateButton("9",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+2*gs_KeyWidth,
+    key_hwnd[10]=Widget_CreateButton("9",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+2*gs_KeyWidth,
                  HighStart+2*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_10,"9",NULL);
 
-    key_hwnd[11]=CreateButton("↑",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+3*gs_KeyWidth,
+    key_hwnd[11]=Widget_CreateButton("↑",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+3*gs_KeyWidth,
                  HighStart+2*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_11,"↑",NULL);
 
 
 
-    key_hwnd[12]=CreateButton("0",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart,
+    key_hwnd[12]=Widget_CreateButton("0",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart,
                      HighStart+3*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_12,"0",NULL);
 
-    key_hwnd[13]=CreateButton(".",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+gs_KeyWidth,
+    key_hwnd[13]=Widget_CreateButton(".",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+gs_KeyWidth,
                  HighStart+3*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_13,".",NULL);
 
-    key_hwnd[14]=CreateButton("R",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+2*gs_KeyWidth,
+    key_hwnd[14]=Widget_CreateButton("R",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+2*gs_KeyWidth,
                  HighStart+3*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_14,"R",NULL);
 
-    key_hwnd[15]=CreateButton("↓",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+3*gs_KeyWidth,
+    key_hwnd[15]=Widget_CreateButton("↓",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+3*gs_KeyWidth,
                  HighStart+3*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_15,"↓",NULL);
 
     if(key_hwnd[15]==NULL)
@@ -270,7 +270,7 @@ static  bool_t VirKeyBoard_Paint(struct WindowMsg *pMsg)
         return false;
     }
 
-    EndPaint(hwnd,hdc);
+    GDD_EndPaint(hwnd,hdc);
     return true;
 }
 //-----------------------------------------------------------------------------
@@ -279,7 +279,7 @@ static  bool_t VirKeyBoard_Paint(struct WindowMsg *pMsg)
 //参数：hwnd，窗口句柄.
 //返回：是则返回true,否则返回false.
 //-----------------------------------------------------------------------------
-static bool_t __IsKeyBoradInputValidControl(HWND hwnd)
+static bool_t __Widget_IsKeyBoradInputValidControl(HWND hwnd)
 {
       return false;
 }
@@ -288,7 +288,7 @@ static bool_t __IsKeyBoradInputValidControl(HWND hwnd)
 //参数：pMsg，窗口消息指针
 //返回：成功返回true,失败则返回false。
 //-----------------------------------------------------------------------------
-static bool_t VirKeyBoard_KeyDown(struct WindowMsg *pMsg)
+static bool_t __Widget_VirKeyBoardKeyDown(struct WindowMsg *pMsg)
 {
      u8 val;
      bool_t ret;
@@ -302,13 +302,13 @@ static bool_t VirKeyBoard_KeyDown(struct WindowMsg *pMsg)
     //按下的键值
     val=pMsg->Param1;
     //查找当前焦点窗口
-    focus_hwnd=GetFocusWindow();
+    focus_hwnd=GDD_GetFocusWindow();
     if(focus_hwnd==NULL)
         return false;
-    ret=__IsKeyBoradInputValidControl(focus_hwnd);
+    ret=__Widget_IsKeyBoradInputValidControl(focus_hwnd);
     if(ret)
     {
-         SendMessage( focus_hwnd, MSG_KEY_DOWN, val,  0);
+         GDD_SendMessage( focus_hwnd, MSG_KEY_DOWN, val,  0);
          return true;
     }
     else
@@ -320,7 +320,7 @@ static bool_t VirKeyBoard_KeyDown(struct WindowMsg *pMsg)
 //参数：pMsg，窗口消息指针
 //返回：成功返回true,失败则返回false。
 //-----------------------------------------------------------------------------
-static bool_t VirKeyBoard_KeyUp(struct WindowMsg *pMsg)
+static bool_t __Widget_VirKeyBoardKeyUp(struct WindowMsg *pMsg)
 {
     u8 val;
     bool_t ret;
@@ -334,13 +334,13 @@ static bool_t VirKeyBoard_KeyUp(struct WindowMsg *pMsg)
     //按下的键值
     val=pMsg->Param1;
     //查找当前焦点窗口
-    focus_hwnd=GetFocusWindow();
+    focus_hwnd=GDD_GetFocusWindow();
     if(focus_hwnd==NULL)
         return false;
-    ret=__IsKeyBoradInputValidControl(focus_hwnd);
+    ret=__Widget_IsKeyBoradInputValidControl(focus_hwnd);
     if(ret)
     {
-         SendMessage( focus_hwnd, MSG_KEY_UP, val,  0);
+         GDD_SendMessage( focus_hwnd, MSG_KEY_UP, val,  0);
          return true;
     }
     else
@@ -353,7 +353,7 @@ static bool_t VirKeyBoard_KeyUp(struct WindowMsg *pMsg)
 //      y,按下点的y方向坐标;
 //返回：按下的字符.
 //-----------------------------------------------------------------------------
-static char  __GetKeyDownVal(u16 x,u16 y)
+static char  __Widget_GetKeyDownVal(u16 x,u16 y)
 {
     u8 i=0,j=0,idx=0;
     RECT *rect;
@@ -379,7 +379,7 @@ static char  __GetKeyDownVal(u16 x,u16 y)
            rect->top=(i*gs_KeyHeight)+(i+1)*gs_KeySpace;
            rect->right=rect->left+gs_KeyWidth;
            rect->bottom=rect->top+gs_KeyHeight;
-           ret=PtInRect(rect,pt);
+           ret=GDD_PtInRect(rect,pt);
            if(ret==true)
                break;
         }
@@ -389,7 +389,7 @@ static char  __GetKeyDownVal(u16 x,u16 y)
     hwnd=key_hwnd[idx];
     if(hwnd!=NULL)
     {
-        pdata=(char *)GetWindowPrivateData(hwnd);
+        pdata=(char *)GDD_GetWindowPrivateData(hwnd);
         KeyVal=*pdata;
         return KeyVal;
     }
@@ -403,7 +403,7 @@ static char  __GetKeyDownVal(u16 x,u16 y)
 //参数：pMsg，窗口消息指针。
 //返回：成功返回true,失败则返回false。
 //-----------------------------------------------------------------------------
-static bool_t VirKeyBoard_TouchDown(struct WindowMsg *pMsg)
+static bool_t __Widget_VirKeyBoardTouchDown(struct WindowMsg *pMsg)
 {
      HWND hwnd;
      u32 loc;;
@@ -418,7 +418,7 @@ static bool_t VirKeyBoard_TouchDown(struct WindowMsg *pMsg)
      x=loc;
      y=loc>>16;
      //获取到哪个按键被按下
-     keyval=__GetKeyDownVal(x,y);
+     keyval=__Widget_GetKeyDownVal(x,y);
      gs_bKeyDownFlag=true;
      gs_CurKeyDown=keyval;
      return true;
@@ -429,7 +429,7 @@ static bool_t VirKeyBoard_TouchDown(struct WindowMsg *pMsg)
 //参数：pMsg，窗口消息指针。
 //返回：成功返回true,失败则返回false。
 //-----------------------------------------------------------------------------
-static bool_t VirKeyBoard_TouchUp(struct WindowMsg *pMsg)
+static bool_t __Widget_VirKeyBoardTouchUp(struct WindowMsg *pMsg)
 {
      HWND hwnd;
      u32 loc;;
@@ -446,7 +446,7 @@ static bool_t VirKeyBoard_TouchUp(struct WindowMsg *pMsg)
      x=loc;
      y=loc>>16;
      //获取到哪个按键被按下
-     keyval=__GetKeyDownVal(x,y);
+     keyval=__Widget_GetKeyDownVal(x,y);
      gs_bKeyDownFlag=false;
      gs_CurKeyDown=keyval;
      return true;
@@ -457,7 +457,7 @@ static bool_t VirKeyBoard_TouchUp(struct WindowMsg *pMsg)
  //参数：pMsg，窗口消息指针。
  //返回：成功返回true,失败则返回false。
 //-----------------------------------------------------------------------------
-static bool_t VirKeyBoard_NotifyHandle(struct WindowMsg *pMsg)
+static bool_t __Widget_VirKeyBoardNotifyHandle(struct WindowMsg *pMsg)
 {
      HWND hwnd,Hwnd;
      u16 event,id;
@@ -474,7 +474,7 @@ static bool_t VirKeyBoard_NotifyHandle(struct WindowMsg *pMsg)
      id&=0xff;
 
      Hwnd=key_hwnd[id];
-     pdata=(char *)GetWindowPrivateData(Hwnd);
+     pdata=(char *)GDD_GetWindowPrivateData(Hwnd);
 
      keyval=*pdata;
 
@@ -482,11 +482,11 @@ static bool_t VirKeyBoard_NotifyHandle(struct WindowMsg *pMsg)
 
      if(event==MSG_BTN_UP)
      {
-        PostMessage( hwnd, MSG_KEY_UP, (u32) keyval, 0);
+        GDD_PostMessage( hwnd, MSG_KEY_UP, (u32) keyval, 0);
      }
      else if(event==MSG_BTN_DOWN)
      {
-        PostMessage( hwnd, MSG_KEY_DOWN, (u32) keyval, 0);
+        GDD_PostMessage( hwnd, MSG_KEY_DOWN, (u32) keyval, 0);
      }
      else
      {
@@ -500,13 +500,13 @@ static bool_t VirKeyBoard_NotifyHandle(struct WindowMsg *pMsg)
 //默认虚拟键盘消息处理函数表，处理用户函数表中没有处理的消息。
 static struct MsgProcTable s_gVirKeyBoardMsgProcTable[] =
 {
-    {MSG_KEY_DOWN,VirKeyBoard_KeyDown},
-    {MSG_KEY_UP, VirKeyBoard_KeyUp},
-    {MSG_CREATE,VirKeyBoard_Create},
-    {MSG_PAINT,VirKeyBoard_Paint},
-    {MSG_TOUCH_DOWN,VirKeyBoard_TouchDown},
-    {MSG_TOUCH_UP,VirKeyBoard_TouchUp},
-    {MSG_NOTIFY,VirKeyBoard_NotifyHandle}
+    {MSG_KEY_DOWN,__Widget_VirKeyBoardKeyDown},
+    {MSG_KEY_UP, __Widget_VirKeyBoardKeyUp},
+    {MSG_CREATE,__Widget_VirKeyBoardCreate},
+    {MSG_PAINT,__Widget_VirKeyBoardPaint},
+    {MSG_TOUCH_DOWN,__Widget_VirKeyBoardTouchDown},
+    {MSG_TOUCH_UP,__Widget_VirKeyBoardTouchUp},
+    {MSG_NOTIFY,__Widget_VirKeyBoardNotifyHandle}
 };
 
 static struct MsgTableLink  s_gVirKeyBoardMsgLink;
@@ -525,7 +525,7 @@ static struct MsgTableLink  s_gVirKeyBoardMsgLink;
 // 输出参数: 无。
 // 返回值  :成功则返回文本框句柄，失败则返回NULL。
 // =============================================================================
-HWND CreateVirKeyBoard(const char *Text,u32 Style,
+HWND Widget_CreateVirKeyBoard(const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
                     HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink)
@@ -533,9 +533,9 @@ HWND CreateVirKeyBoard(const char *Text,u32 Style,
     HWND pGddWin;
     s_gVirKeyBoardMsgLink.MsgNum = sizeof(s_gVirKeyBoardMsgProcTable) / sizeof(struct MsgProcTable);
     s_gVirKeyBoardMsgLink.myTable = (struct MsgProcTable *)&s_gVirKeyBoardMsgProcTable;
-    pGddWin=CreateWindow(Text,WS_CHILD | WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
+    pGddWin=GDD_CreateWindow(Text,WS_CHILD | WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
                             CN_WINBUF_PARENT,pdata,&s_gVirKeyBoardMsgLink);
     if(UserMsgTableLink != NULL)
-        AddProcFuncTable(pGddWin,UserMsgTableLink);
+        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }

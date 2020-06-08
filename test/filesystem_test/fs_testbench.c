@@ -658,9 +658,9 @@ void FunctionCheck(const char *Root)
         char *TempPath;
         char *TempCurrentWorkPath = "/temp", *Root = "/";
 
-        PathLen = (u8)CurWorkPathLen();
+        PathLen = (u8)OBJ_CurWorkPathLen();
         TempPath = (char*)malloc(PathLen);
-        if(CurWorkPath(TempPath, PathLen))
+        if(OBJ_CurWorkPath(TempPath, PathLen))
         {
             TB_PRINT("current working path is not set!\r\n");
             while(1);
@@ -679,19 +679,19 @@ void FunctionCheck(const char *Root)
             TB_PRINT("cannot open dir\"%s\"\r\n", TempCurrentWorkPath);
             while(1);
         }
-        if(SetPWD(TempCurrentWorkPath))
+        if(OBJ_SetPwd(TempCurrentWorkPath))
         {
             TB_PRINT("cannot set current working path:\"%s\"\r\n", TempCurrentWorkPath);
             while(1);
         }
-        PathLen = (u8)CurWorkPathLen();
+        PathLen = (u8)OBJ_CurWorkPathLen();
         TempPath = (char*)malloc(PathLen);
         if(NULL == TempPath)
         {
             TB_PRINT("memory run out! \"%s\"\r\n", Path);
             while(1);
         }
-        if(CurWorkPath(TempPath, PathLen))
+        if(OBJ_CurWorkPath(TempPath, PathLen))
         {
             TB_PRINT("current working path is not set!\r\n");
             while(1);

@@ -130,7 +130,7 @@ void DhcpStaStartIp(void)
     dhcp_setip_cb(CFG_NETCARD_NAME, cb_ip_set);
 
     DhcpclientDeleteAllTask();
-    if(DhcpAddClientTask(CFG_NETCARD_NAME))
+    if(DHCP_AddClientTask(CFG_NETCARD_NAME))
     {
        printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
     }
@@ -142,7 +142,7 @@ void DhcpStaStartIp(void)
 //timeout: microsecond
 int PendDhcpDone(unsigned int timeout)
 {
-    return WaitDhcpDone(CFG_NETCARD_NAME, timeout);
+    return DHCP_WaitDhcpDone(CFG_NETCARD_NAME, timeout);
 }
 
 void DhcpStaClearIp(void)
@@ -170,7 +170,7 @@ void ModuleInstall_InitNet(void)   //static ip example
         memcpy(gc_NetMac,DEFAULT_MAC_ADDR,sizeof(gc_NetMac));
     }
 #else
-    if(GetNameValueFS(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6) == false)
+    if(File_GetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6) == false)
 //    if(wifi_mac_flash_read(gc_NetMac, 6) == false)
     {
         u32 mac_rand =  trng_get_random();
@@ -178,7 +178,7 @@ void ModuleInstall_InitNet(void)   //static ip example
         gc_NetMac[0] = 0x00;
         gc_NetMac[1] = 0x01;
 //        wifi_mac_flash_write(gc_NetMac, 6);
-        SetNameValueFS(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6);
+        File_SetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6);
     }
     printf("\r\n==WIFI MAC==:%02X-%02X-%02X-%02X-%02X-%02X!\r\n",
         gc_NetMac[0], gc_NetMac[1], gc_NetMac[2], gc_NetMac[3], gc_NetMac[4], gc_NetMac[5]);
@@ -206,7 +206,7 @@ void ModuleInstall_InitNet(void)   //static ip example
         }
     }
 #endif
-//    if(DhcpAddClientTask(CFG_NETCARD_NAME))
+//    if(DHCP_AddClientTask(CFG_NETCARD_NAME))
 //    {
 //       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
 //    }

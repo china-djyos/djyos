@@ -172,7 +172,7 @@ static u16 Get_Adc_Average(u8 ch,u8 times)
     for(i=0;i<times;i++)
     {
         temp_val+=Get_Adc(ch);
-        Djy_DelayUs(5);
+        DJY_DelayUs(5);
     }
     return temp_val/times;
 }

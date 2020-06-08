@@ -146,13 +146,13 @@ struct __ifile *xip_app_decodefilehead(void *head, struct __ifile *file)
     if(!file)
         return (NULL);
 
-    if(false == XIP_AppFileCheck_Easy(head))
+    if(false == XIP_AppFileCheckEasy(head))
     {
         //printf("\r\n: info : xipfs  : Error checking local app file header,检查本地的app时出错，不影响待升级的app。 \r\n");
         printf("\r\nInfo: the fireware was erased, so ready to write new firmware, ok!\r\n");
         return (NULL);
     }
-    file->sz = XIP_GetAPPSize(head);
+    file->sz = XIP_GetAppSize(head);
     file->status = __STATUS_UPDATED;
     return (file);
 }
@@ -196,7 +196,7 @@ static struct __ifile *xip_app_newfile(struct __icore *core)
         return (NULL);
 
     memset(file, 0x0, size);
-    file->cxbase = Get_AppHeadSize();
+    file->cxbase = Iboot_GetAppHeadSize();
     file->status = __STATUS_TEMP;
     return (file);
 }
@@ -209,7 +209,7 @@ static struct __ifile *xip_app_newfile(struct __icore *core)
 // ============================================================================
 static inline u32 xip_app_locatefilehead(struct __ifile *file)
 {
-    return (file->cxbase - Get_AppHeadSize());
+    return (file->cxbase - Iboot_GetAppHeadSize());
 }
 
 // ============================================================================
@@ -226,7 +226,7 @@ s32 xip_app_formatfilehead(struct __icore *core, struct __ifile *file)
     if(file)
         base = xip_app_locatefilehead(file);
 
-   return (core->drv->xip_erase_media(core, Get_AppHeadSize(), base));
+   return (core->drv->xip_erase_media(core, Iboot_GetAppHeadSize(), base));
 }
 
 // ============================================================================
@@ -242,7 +242,7 @@ s32 xip_app_makefilehead(struct __icontext *cx,struct __icore *core, struct __if
     if(file->cxbase != cx->Wappsize)
         return -1;
     file->sz += file->cxbase;
-    Rewrite_AppHead_FileInfo(cx->apphead,name,file->sz);
+    Iboot_RewriteAppHeadFileInfo(cx->apphead,name,file->sz);
     if(-1 == core->drv->xip_write_media(core, cx->apphead, file->cxbase, xip_app_locatefilehead(file)))
         return (-1);
 
@@ -259,7 +259,7 @@ s32 xip_app_makefilehead(struct __icontext *cx,struct __icore *core, struct __if
 static s32 xip_app_scanfiles(struct __icore *core)
 {
     s32 res;
-    u32 size = Get_AppHeadSize();
+    u32 size = Iboot_GetAppHeadSize();
     u8 * structFileHead = malloc(size);
     char *name;
     struct __ifile *file;
@@ -277,9 +277,9 @@ static s32 xip_app_scanfiles(struct __icore *core)
         res = xip_app_formatfilehead(core, file);
         goto Error; // 当前系统已无文件，后续逻辑不执行
     }
-    name = Get_AppName(structFileHead);
+    name = Iboot_GetAppName(structFileHead);
     // 将内容接入文件系统
-    if(!obj_newchild(core->root, xip_app_ops, (ptu32_t)file, name))
+    if(!OBJ_NewChild(core->root, xip_app_ops, (ptu32_t)file, name))
     {
         goto Error;
     }
@@ -319,7 +319,7 @@ static void xip_app_freefile(struct __ifile *file)
 // ============================================================================
 static s32 xip_app_delfile(struct __icore *core, struct __ifile *file)
 {
-    if(core->drv->xip_erase_media(core, Get_AppHeadSize(), xip_app_locatefilehead(file)))
+    if(core->drv->xip_erase_media(core, Iboot_GetAppHeadSize(), xip_app_locatefilehead(file)))
         return (-1);
 
     xip_app_freefile(file);
@@ -335,7 +335,7 @@ static s32 xip_app_delfile(struct __icore *core, struct __ifile *file)
 static struct __icontext *xip_app_newcontext(struct __icore *core)
 {
     struct __icontext *cx;
-    u32 appheadsize = Get_AppHeadSize();
+    u32 appheadsize = Iboot_GetAppHeadSize();
 
     cx = malloc(sizeof(*cx) + core->bufsz+appheadsize);
     if(!cx)
@@ -376,12 +376,12 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
     struct Object *tmp;
     struct __ifile *file = NULL;
     struct __icontext *cx = NULL;
-    struct __icore *core = (struct __icore*)corefs(ob);
+    struct __icore *core = (struct __icore*)File_Core(ob);
 //    mode_t mode;
     xip_app_lock(core);
-    if((!uncached)&&(obj_isMount(ob))) // 根目录
+    if((!uncached)&&(File_ObjIsMount(ob))) // 根目录
     {
-        if(!test_directory(flags))
+        if(!Handle_FlagIsDirectory(flags))
         {
             xip_app_unlock(core);
             return (NULL);
@@ -393,12 +393,12 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
         xip_app_scanfiles(core);//扫描文件
         do
         {
-            if(strcmp(uncached,obj_name(ob)) == 0)
+            if(strcmp(uncached,OBJ_GetName(ob)) == 0)
             {
                 uncached = NULL;
                 break;
             }
-            tmp = obj_child(ob);
+            tmp = OBJ_GetChild(ob);
             if(tmp == NULL)
             {
                 break;
@@ -406,7 +406,7 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
             ob = tmp;
         }while(1);
     }
-    if(test_directory(flags)) // 目录逻辑
+    if(Handle_FlagIsDirectory(flags)) // 目录逻辑
     {
         xip_app_scanfiles(core);//扫描文件
         if(uncached)// 不支持新建目录
@@ -420,26 +420,26 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
     {
         if(uncached) // 文件不存在，需要新建。（文件都是已缓存的）
         {
-            if(!test_creat(flags))
+            if(!Handle_FlagIsCreate(flags))
             {
                 xip_app_unlock(core);
                 return (NULL); // 打开操作中无新建要求，则返回不存在；
             }
 
             // 判断xip文件系统是不是已经有文件了，如果存在是否正在使用；
-            tmp = obj_child(core->root);
+            tmp = OBJ_GetChild(core->root);
             if(tmp)
             {
-                if(test_writeable(flags))
+                if(Handle_FlagIsWriteable(flags))
                 {
-                    if(obj_isonduty(tmp))
+                    if(OBJ_IsOnDuty(tmp))
                     {
                         printf("\r\n: info : xipfs  : cannot create new for old are using.");
                         xip_app_unlock(core);
                         return (NULL);
                     }
-                    ob = obj_parent(tmp);
-                    if(obj_Delete(tmp))        //xip文件系统，只要存在写一个不存在文件的操作，则直接覆盖里面原来的文件
+                    ob = OBJ_GetParent(tmp);
+                    if(OBJ_Delete(tmp))        //xip文件系统，只要存在写一个不存在文件的操作，则直接覆盖里面原来的文件
                     {
                         printf("\r\n: info : xipfs  : cannot create new for old cannot delete.");
                         xip_app_unlock(core);
@@ -465,7 +465,7 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
             if(of_virtualize(ob, &file->basic, uncached)) // xip文件，链入文件系统
                 return (NULL);
 //#else
-//            if(!obj_newchild(core->root, xip_app_ops, (ptu32_t)file, uncached))
+//            if(!OBJ_NewChild(core->root, xip_app_ops, (ptu32_t)file, uncached))
 //            {
 //                xip_app_unlock(core);
 //                return (NULL);
@@ -474,14 +474,14 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
         }
         else // 文件已存在
         {
-            if(test_onlycreat(flags))
+            if(Handle_FlagIsOnlyCreate(flags))
             {
                 xip_app_unlock(core);
                 return (NULL); // 必须新建逻辑，但文件已存在
             }
 
-            file = (struct __ifile*)obj_GetPrivate(ob);
-            if(test_trunc(flags))
+            file = (struct __ifile*)OBJ_GetPrivate(ob);
+            if(Handle_FlagIsTrunc(flags))
             {
                 if(-1 == xip_app_formatfilehead(core, file))
                 {
@@ -514,7 +514,7 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
             size = core->inhead;
         }
 
-        if(test_append(flags))
+        if(Handle_FlagIsAppend(flags))
         {
             cx->pos = file->sz;
             if(file->sz<core->inhead)
@@ -542,7 +542,7 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
         }
     }
 
-    hdl = handle_new();
+    hdl = Handle_New();
     if(!hdl)
     {
         xip_app_freecontext(cx);
@@ -550,15 +550,15 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
             xip_app_freefile(file); // 释放掉上面创建的
     }
 
-    handle_init(hdl, NULL, flags, (ptu32_t)cx);
+    Handle_Init(hdl, NULL, flags, (ptu32_t)cx);
 
     if(hdl)
     {
         //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
 //        mode = S_IALLUGO | S_IFREG;     //建立的路径，属性是目录。
         //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
-        ob = obj_BuildTempPath(ob, xip_app_ops, (ptu32_t)file,uncached);
-        obj_LinkHandle(hdl, ob);
+        ob = OBJ_BuildTempPath(ob, xip_app_ops, (ptu32_t)file,uncached);
+        OBJ_LinkHandle(hdl, ob);
     }
     xip_app_unlock(core);
     return (hdl);
@@ -575,11 +575,11 @@ static s32 xip_app_close(struct objhandle *hdl)
     s32 size;
     struct __icore *core;
     struct __ifile *file;
-    struct __icontext *cx = (struct __icontext*)handle_context(hdl);
+    struct __icontext *cx = (struct __icontext*)Handle_GetContext(hdl);
 
     if(cx) // NULL时表示目录
     {
-        core = (struct __icore*)corefs(handle_GetHostObj(hdl));
+        core = (struct __icore*)File_Core(Handle_GetHostObj(hdl));
         file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
         xip_app_lock(core);
         if(__STATUS_UPDATED != file->status) // 数据存在写入操作或者文件是新建的
@@ -600,7 +600,7 @@ static s32 xip_app_close(struct objhandle *hdl)
 
             if(!iscontender(hdl)) // 最后一个文件使用者关闭文件时，才会设置文件头
             {
-                if(xip_app_makefilehead(cx,core, file, handle_name(hdl)))
+                if(xip_app_makefilehead(cx,core, file, Handle_GetName(hdl)))
                 {
                     xip_app_unlock(core);
                     return (-1);
@@ -612,7 +612,7 @@ static s32 xip_app_close(struct objhandle *hdl)
     }
 
     xip_app_freecontext(cx);
-//  handle_Delete(hdl);
+//  Handle_Delete(hdl);
     return (0);
 }
 
@@ -628,8 +628,8 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
 {
     s32 pos, once, free, res;
     u32 left;
-    struct __icontext *cx = (struct __icontext *)handle_context(hdl);
-    struct __icore *core = (struct __icore*)corefs(handle_GetHostObj(hdl));
+    struct __icontext *cx = (struct __icontext *)Handle_GetContext(hdl);
+    struct __icore *core = (struct __icore*)File_Core(Handle_GetHostObj(hdl));
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
     u32 wsize = 0;
 
@@ -711,8 +711,8 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
 static s32 xip_app_sync(struct objhandle *hdl)
 {
     s32 size;
-    struct __icontext *cx = (struct __icontext *)handle_context(hdl);
-    struct __icore *core = (struct __icore*)corefs(handle_GetHostObj(hdl));
+    struct __icontext *cx = (struct __icontext *)Handle_GetContext(hdl);
+    struct __icore *core = (struct __icore*)File_Core(Handle_GetHostObj(hdl));
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
     xip_app_lock(core);
     if(__STATUS_UPDATED != file->status) // 数据存在写入操作或者文件是新建的
@@ -747,8 +747,8 @@ static s32 xip_app_sync(struct objhandle *hdl)
 static s32 xip_app_read(struct objhandle *hdl, u8 *data, u32 size)
 {
     s32 once, left = size;
-    struct __icontext *cx = (struct __icontext*)handle_context(hdl);
-    struct __icore *core = (struct __icore*)corefs(handle_GetHostObj(hdl));
+    struct __icontext *cx = (struct __icontext*)Handle_GetContext(hdl);
+    struct __icore *core = (struct __icore*)File_Core(Handle_GetHostObj(hdl));
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
 
     xip_app_lock(core);
@@ -825,15 +825,15 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
     s32  npos, movs, pos;
     off_t position = *offset;
 #if 0 // 应该由上级逻辑判断
-    if(isDirectory(hdl))
+    if(File_IsDirectory(hdl))
     {
         printf("\r\n: dbug : xipfs  : cannot seek directory.");
         return (-1);
     }
 #endif
 
-    core = corefs(handle_GetHostObj(hdl));
-    cx = (struct __icontext*)handle_context(hdl);
+    core = File_Core(Handle_GetHostObj(hdl));
+    cx = (struct __icontext*)Handle_GetContext(hdl);
     //file = dListEntry(of_basic(hdl), struct __ifile, basic);
     file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
     xip_app_lock(core);
@@ -958,8 +958,8 @@ static s32 xip_app_remove(struct Object *ob)
     struct __ifile *file;
     struct __icore *core;
 
-    core = (struct __icore *)corefs(ob);
-    file = (struct __ifile*)obj_GetPrivate(ob);
+    core = (struct __icore *)File_Core(ob);
+    file = (struct __ifile*)OBJ_GetPrivate(ob);
     return (xip_app_delfile(core, file));
 }
 
@@ -973,14 +973,14 @@ static s32 xip_app_stat(struct Object *ob, struct stat *data)
 {
     struct __ifile *file;
 
-    if(obj_isMount(ob))
+    if(File_ObjIsMount(ob))
     {
         data->st_size = 0;
         data->st_mode = S_IFDIR;
     }
     else
     {
-        file = (struct __ifile*)obj_GetPrivate(ob);
+        file = (struct __ifile*)OBJ_GetPrivate(ob);
         data->st_size = file->sz;
         data->st_mode = S_IFREG|S_IRWXUGO;
     }
@@ -997,13 +997,13 @@ static s32 xip_app_stat(struct Object *ob, struct stat *data)
 // ============================================================================
 static s32 xip_app_readdentry(struct objhandle *hdl, struct dirent *dentry)
 {
-    struct Object *ob = handle_GetHostObj(hdl);
+    struct Object *ob = Handle_GetHostObj(hdl);
 
-    ob = obj_child(ob);
+    ob = OBJ_GetChild(ob);
     if((ob)&&(dentry->d_ino!=(long)ob))
     {
         dentry->d_ino = (long)ob;
-        strcpy(dentry->d_name, obj_name(ob));
+        strcpy(dentry->d_name, OBJ_GetName(ob));
         dentry->d_type = DIRENT_IS_REG;
         return (0);
     }
@@ -1063,13 +1063,13 @@ static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
     core->MStart = super->MediaStart;
     core->vol = (void*)um;
     core->bufsz = (s16)512; // xip文件系统文件的缓存大小依据unit的尺寸；
-    if(core->bufsz<(s16)Get_AppHeadSize())
+    if(core->bufsz<(s16)Iboot_GetAppHeadSize())
     {
         free(core);
         return (-1);
     }
 
-    core->inhead = core->bufsz - Get_AppHeadSize();
+    core->inhead = core->bufsz - Iboot_GetAppHeadSize();
     core->root = super->pTarget;
     xip_app_scanfiles(core); // 扫描已存在文件
     core->lock = Lock_MutexCreate("xip-app fs");
@@ -1221,26 +1221,26 @@ s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)
         typeXIPAPP->format = xip_fs_format;
         typeXIPAPP->uninstall = NULL;
     }
-    res = regfs(typeXIPAPP);
+    res = File_RegisterFs(typeXIPAPP);
     if(-1==res)
     {
         printf("\r\n: dbug : module : cannot register \"XIP-APP\"(file system type).");
         return (-1); // 失败;
     }
 
-    mountobj = obj_newchild(obj_root(), __mount_ops, 0, EN_XIP_APP_TARGET);
+    mountobj = OBJ_NewChild(OBJ_GetRoot(), __File_MountOps, 0, EN_XIP_APP_TARGET);
     if(NULL == mountobj)
     {
         printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", EN_XIP_APP_TARGET);
         return (-1);
     }
-//    obj_DutyUp(mountobj);
+//    OBJ_DutyUp(mountobj);
     opt |= MS_DIRECTMOUNT;      //直接挂载不用备份
-    res = mountfs(NULL, EN_XIP_APP_TARGET, "XIP-APP", opt, data);
+    res = File_Mount(NULL, EN_XIP_APP_TARGET, "XIP-APP", opt, data);
     if(res == -1)
     {
         printf("\r\n: dbug : module : mount \"XIP-APP\" failed, cannot install.");
-        obj_Delete(mountobj);
+        OBJ_Delete(mountobj);
         return (-1);
     }
 

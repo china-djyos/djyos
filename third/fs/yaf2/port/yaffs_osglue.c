@@ -150,8 +150,8 @@ void yaffsfs_free(void *ptr)
 void yaffsfs_OSInitialisation(void)
 {
     yaffsfs_LockInit(); // 初始化文件互斥锁
-    extern struct HeapCB *M_FindHeap(const char *HeapName);
-    pHeapFirst = M_FindHeap("extram"); // 优先使用extram上的heap
+    extern struct HeapCB *Heap_FindHeap(const char *HeapName);
+    pHeapFirst = Heap_FindHeap("extram"); // 优先使用extram上的heap
 }
 
 /*

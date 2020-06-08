@@ -248,29 +248,29 @@ extern void *pHeapList;             //在脚本中定义
 extern struct HeapCB *tg_pHeapList;   //堆链指针，系统中所有的堆被链接在一起。
 extern struct HeapCB *tg_pSysHeap;   //堆链指针，系统中所有的堆被链接在一起。
 
-void *__M_Malloc(ptu32_t size,u32 timeout);
-void  __M_Free(void * pl_mem);
-void *__M_Realloc(void *, ptu32_t NewSize);
-void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout);
-void *__M_MallocLc(ptu32_t size,u32 timeout);
-void *__M_MallocLcHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout);
-void  __M_FreeHeap(void * pl_mem,struct HeapCB *Heap);
-void *__M_MallocStack(struct EventECB *event, u32 size);
+void *__Heap_Malloc(ptu32_t size,u32 timeout);
+void  __Heap_Free(void * pl_mem);
+void *__Heap_Realloc(void *, ptu32_t NewSize);
+void *__Heap_MallocHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout);
+void *__Heap_MallocLc(ptu32_t size,u32 timeout);
+void *__Heap_MallocLcHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout);
+void  __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap);
+void *__Heap_MallocStack(struct EventECB *event, u32 size);
 
 //void __M_ShowHeap(void);
 //void __M_ShowHeapSpy(void);
 
-ptu32_t __M_FormatSizeHeap(ptu32_t size,struct HeapCB *Heap);
-ptu32_t __M_FormatSize(ptu32_t size);
-ptu32_t __M_GetMaxFreeBlockHeap(struct HeapCB *Heap);
-ptu32_t __M_GetMaxFreeBlock(void);
-ptu32_t M_GetHeapSizeHeap(struct HeapCB *Heap);  //在heap-static.c中
-ptu32_t M_GetHeapSize(void);  //在heap-static.c中
-struct HeapCB *M_FindHeap(const char *HeapName);
-ptu32_t __M_GetFreeMem(void);
-ptu32_t __M_GetFreeMemHeap(struct HeapCB *Heap);
-ptu32_t __M_CheckSize(void * mp);
-void __M_CheckSTackSync(void);
+ptu32_t __Heap_FormatSizeHeap(ptu32_t size,struct HeapCB *Heap);
+ptu32_t __Heap_FormatSize(ptu32_t size);
+ptu32_t __Heap_GetMaxFreeBlockHeap(struct HeapCB *Heap);
+ptu32_t __Heap_GetMaxFreeBlock(void);
+ptu32_t Heap_GetHeapSizeHeap(struct HeapCB *Heap);  //在heap-static.c中
+ptu32_t Heap_GetHeapSize(void);  //在heap-static.c中
+struct HeapCB *Heap_FindHeap(const char *HeapName);
+ptu32_t __Heap_GetFreeMem(void);
+ptu32_t __Heap_GetFreeMemHeap(struct HeapCB *Heap);
+ptu32_t __Heap_CheckSize(void * mp);
+void __Heap_CheckSTackSync(void);
 
 extern void *  (*M_Malloc)(ptu32_t size,u32 timeout);
 extern void *  (*M_Realloc) (void *, ptu32_t NewSize);
@@ -290,12 +290,12 @@ extern ptu32_t (*M_CheckSize)(void * mp);
 
 
 //内部函数申明
-void *__M_MallocBlock(ufast_t grade,struct HeapCession *Cession);
+void *__Heap_MallocBlock(ufast_t grade,struct HeapCession *Cession);
 
-extern void __Djy_EventReady(struct EventECB *event_ready);
-extern void __Djy_CutReadyEvent(struct EventECB *event);
-extern void __Djy_ResumeDelay(struct EventECB *delay_event);
-extern void __Djy_AddToDelay(u32 u32l_uS);
+extern void __DJY_EventReady(struct EventECB *event_ready);
+extern void __DJY_CutReadyEvent(struct EventECB *event);
+extern void __DJY_ResumeDelay(struct EventECB *delay_event);
+extern void __DJY_AddToDelay(u32 u32l_uS);
 //extern void __Djy_CutEventFromEvttMarked(struct EventECB *event);
 
 //----查找堆-------------------------------------------------------------------
@@ -303,7 +303,7 @@ extern void __Djy_AddToDelay(u32 u32l_uS);
 //参数: HeapName，堆的名字
 //返回: 堆指针，找不到或其他原因返回NULL
 //-----------------------------------------------------------------------------
-struct HeapCB *M_FindHeap(const char *HeapName)
+struct HeapCB *Heap_FindHeap(const char *HeapName)
 {
     struct HeapCB *Heap = NULL,*Work;
     if((tg_pHeapList == NULL) || (HeapName == NULL))
@@ -505,8 +505,8 @@ bool_t heap_spy(void)
 //参数: mp,动态分配的内存指针.
 //返回: 内存块尺寸,返回0有几种含义:1.非法指针,2.mp是由准静态分配的指针.
 //-----------------------------------------------------------------------------
-ptu32_t __M_StaticCheckSize(void * mp);
-ptu32_t __M_CheckSize(void * mp)
+ptu32_t __Heap_StaticCheckSize(void * mp);
+ptu32_t __Heap_CheckSize(void * mp)
 {
     struct HeapCB *Heap;
     struct HeapCession *Cession;
@@ -529,7 +529,7 @@ ptu32_t __M_CheckSize(void * mp)
             {
                 if((u8*)mp < Cession->heap_bottom)    //该指针在静态分配区
                 {
-                    return __M_StaticCheckSize(mp);
+                    return __Heap_StaticCheckSize(mp);
                 }else                   //该指针在块相联动态分配区
                 {
                 #if ((CFG_DYNAMIC_MEM == true))
@@ -577,7 +577,7 @@ ptu32_t __M_CheckSize(void * mp)
 //                              uf_free_grade_th = 0;       //单页局部分配:id,
 //                          else
 //                          {
-//                              Djy_SaveLastError(EN_MEM_ERROR);
+//                              DJY_SaveLastError(EN_MEM_ERROR);
 //                              return 0;
 //                          }
                         }break;
@@ -604,7 +604,7 @@ ptu32_t __M_CheckSize(void * mp)
 //      len,数组的大小
 //返回：前导0的个数
 //------------------------------------------------------------------------------
-ucpu_t __M_LeadingZero(u8 *data,u8 len)
+ucpu_t __Heap_LeadingZero(u8 *data,u8 len)
 {
     u8 u8_i;
     ucpu_t  uc_j=0;
@@ -643,14 +643,14 @@ ucpu_t __M_LeadingZero(u8 *data,u8 len)
 //      本函数能满足绝大部分cpu的对齐要求,但不排除有例外.所以在移植时你最好读懂
 //      本函数，然后考虑是否需要修改
 //-----------------------------------------------------------------------------
-u32 __M_CalculateExpense(ptu32_t ua_pages)
+u32 __Heap_CalculateExpense(ptu32_t ua_pages)
 {
     ptu32_t ua_bits,u32_return;
     ufast_t uf_grades,uf_grade_th;
 
     //计算阶数，即一共有多少种页尺寸,方法:地址长度减去ua_pages中前导0的数量就是
     //阶数,例如,ua_pages=5,最高位位置是bit2,有29个前导0，页尺寸有1,2,4页3种,阶数=3
-    uf_grades=CN_PTR_BITS-__M_LeadingZero((u8 *)&ua_pages,sizeof(ptu32_t));
+    uf_grades=CN_PTR_BITS-__Heap_LeadingZero((u8 *)&ua_pages,sizeof(ptu32_t));
 
     //每页分配一个16位字记录拥有本页内存的事件的ID。
     //当分配高阶内存块时，只记录首页，free时并不清除。设置本字是为了防止在
@@ -687,9 +687,9 @@ u32 __M_CalculateExpense(ptu32_t ua_pages)
 //参数：data,输入数
 //返回：前导0的个数
 //-----------------------------------------------------------------------------
-ucpu_t __M_LeadingUcpuZero(ucpu_t data)
+ucpu_t __Heap_LeadingUcpuZero(ucpu_t data)
 {
-    return(__M_LeadingZero((u8*)&data,sizeof(ucpu_t)));
+    return(__Heap_LeadingZero((u8*)&data,sizeof(ucpu_t)));
 }
 
 //----返回规格化阶-------------------------------------------------------------
@@ -698,13 +698,13 @@ ucpu_t __M_LeadingUcpuZero(ucpu_t data)
 //      Heap，目标堆。
 //返回：阶号。
 //-----------------------------------------------------------------------------
-ufast_t __M_GetGrade(ptu32_t size,struct HeapCession *Cession)
+ufast_t __Heap_GetGrade(ptu32_t size,struct HeapCession *Cession)
 {
     ucpu_t  grade;
     u32 pages;
 
     pages = (size + Cession->PageSize -1)/Cession->PageSize;
-    grade = __M_LeadingZero((u8 *)&pages,sizeof(u32));
+    grade = __Heap_LeadingZero((u8 *)&pages,sizeof(u32));
     if((CN_HIGH_1BIT_1>>grade) != pages)
     //如果grade不是规格化的数,调整到比它大的最小允许块大小
     //否则维持size的大小,不做调整
@@ -724,7 +724,7 @@ ufast_t __M_GetGrade(ptu32_t size,struct HeapCession *Cession)
 //      result，包含合适的空闲内存块的Cession。
 //返回：阶号。
 //-----------------------------------------------------------------------------
-ufast_t __M_GetFreeGrade(ptu32_t size,struct HeapCB *Heap,
+ufast_t __Heap_GetFreeGrade(ptu32_t size,struct HeapCB *Heap,
                          struct HeapCession **result)
 {
     ucpu_t  grade,result_grade = 0;
@@ -741,7 +741,7 @@ ufast_t __M_GetFreeGrade(ptu32_t size,struct HeapCB *Heap,
             if(Cession->ua_free_block_max >= size)
             {
                 pages = (size + Cession->PageSize -1)/Cession->PageSize;
-                grade = __M_LeadingZero((u8 *)&pages,sizeof(u32));
+                grade = __Heap_LeadingZero((u8 *)&pages,sizeof(u32));
                 if((CN_HIGH_1BIT_1>>grade) != pages)
                 //如果grade不是规格化的数,调整到比它大的最小允许块大小
                 //否则维持size的大小,不做调整
@@ -771,7 +771,7 @@ ufast_t __M_GetFreeGrade(ptu32_t size,struct HeapCB *Heap,
                     if(Cession->ua_free_block_max >= size)
                     {
                         pages = (size + Cession->PageSize -1)/Cession->PageSize;
-                        grade = __M_LeadingZero((u8 *)&pages,sizeof(u32));
+                        grade = __Heap_LeadingZero((u8 *)&pages,sizeof(u32));
                         if((CN_HIGH_1BIT_1>>grade) != pages)
                         //如果grade不是规格化的数,调整到比它大的最小允许块大小
                         //否则维持size的大小,不做调整
@@ -812,7 +812,7 @@ ufast_t __M_GetFreeGrade(ptu32_t size,struct HeapCB *Heap,
 //   说明: 增加判断通用堆还是专用堆
 //   作者: 罗侍田
 //------------------------------------------------------------------------------
-bool_t __M_CheckMemory(ptu32_t size,struct HeapCB *Heap,u32 timeout)
+bool_t __Heap_CheckMemory(ptu32_t size,struct HeapCB *Heap,u32 timeout)
 {
     struct EventECB *event;
     struct EventECB **MemSyncHead;
@@ -820,7 +820,7 @@ bool_t __M_CheckMemory(ptu32_t size,struct HeapCB *Heap,u32 timeout)
     bool_t   wait;
     ptu32_t FreeSize;
 
-    u32l_start_time = (u32)DjyGetSysTime();
+    u32l_start_time = (u32)DJY_GetSysTime();
     if( (Heap->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_PRIVATE)
         MemSyncHead = &Heap->mem_sync;      //使用专用堆的同步指针
     else
@@ -830,13 +830,13 @@ bool_t __M_CheckMemory(ptu32_t size,struct HeapCB *Heap,u32 timeout)
     {
         wait=false;
 
-        FreeSize = __M_GetMaxFreeBlockHeap(Heap );
+        FreeSize = __Heap_GetMaxFreeBlockHeap(Heap );
         if(FreeSize < size)
         {//最大的可分配块尺寸小于请求的内存,没有内存可以分配
             Int_SaveAsynSignal();
             wait=true;  //如果是经过了阻塞后重新执行,while循环需要再次判断
                         //是否有足够的内存分配.
-            __Djy_CutReadyEvent(g_ptEventRunning);
+            __DJY_CutReadyEvent(g_ptEventRunning);
 
             g_ptEventRunning->next = NULL;
             g_ptEventRunning->previous = NULL;
@@ -874,8 +874,8 @@ bool_t __M_CheckMemory(ptu32_t size,struct HeapCB *Heap,u32 timeout)
             {
                 g_ptEventRunning->event_status= CN_STS_WAIT_MEMORY
                                                 + CN_STS_SYNC_TIMEOUT;
-                u32l_rest_time = timeout-((u32)(u32)DjyGetSysTime() - u32l_start_time);
-                __Djy_AddToDelay(timeout-u32l_rest_time);
+                u32l_rest_time = timeout-((u32)(u32)DJY_GetSysTime() - u32l_start_time);
+                __DJY_AddToDelay(timeout-u32l_rest_time);
             }else
             {
                 g_ptEventRunning->event_status = CN_STS_WAIT_MEMORY;
@@ -900,14 +900,14 @@ bool_t __M_CheckMemory(ptu32_t size,struct HeapCB *Heap,u32 timeout)
 //参数: event_id，目标事件id
 //返回: 无
 //-----------------------------------------------------------------------------
-void __M_CleanUp(uint16_t event_id)
+void __Heap_CleanUp(uint16_t event_id)
 {
     struct HeapCB *Heap;
     struct HeapCession *Cession;
     uint16_t *pl_id;
     u32 n;
 
-    if(M_Malloc != __M_Malloc)
+    if(M_Malloc != __Heap_Malloc)
         return;             //动态内存分配未初始化。
     Heap = tg_pHeapList;
     do
@@ -923,19 +923,19 @@ void __M_CleanUp(uint16_t event_id)
             //阅读以下条件句请结合struct HeapCession中index_event_id的注释.
                 if(pl_id[n] == event_id)
                 {
-                    __M_Free(Cession->PageSize * n + Cession->heap_bottom);
+                    __Heap_Free(Cession->PageSize * n + Cession->heap_bottom);
                     n++;
                 }
                 else if( (pl_id[n] == CN_MEM_DOUBLE_PAGE_LOCAL)
                           && (pl_id[n+1] == event_id))
                 {
-                    __M_Free(Cession->PageSize * n + Cession->heap_bottom);
+                    __Heap_Free(Cession->PageSize * n + Cession->heap_bottom);
                     n += 2;
                 }
                 else if( (pl_id[n] == CN_MEM_MANY_PAGE_LOCAL)
                           && (pl_id[n+1] == event_id))
                 {
-                    __M_Free(Cession->PageSize * n + Cession->heap_bottom);
+                    __Heap_Free(Cession->PageSize * n + Cession->heap_bottom);
                     n += 1<<pl_id[n+1];
                 }
             }
@@ -949,7 +949,7 @@ void __M_CleanUp(uint16_t event_id)
 }
 
 
-bool_t __M_InitCession(struct HeapCession *Cession)
+bool_t __Heap_InitCession(struct HeapCession *Cession)
 {
     ptu32_t ua_temp,ua_temp1=0,ua_temp2,ua_temp3 = 0,ua_faction;
     ptu32_t ua_pages,ua_table_size=0;
@@ -975,7 +975,7 @@ bool_t __M_InitCession(struct HeapCession *Cession)
         return false;
     }
 
-    ua_temp = __M_CalculateExpense(ua_pages); //初估控制结构需要的字节数
+    ua_temp = __Heap_CalculateExpense(ua_pages); //初估控制结构需要的字节数
     if(ua_faction < ua_temp)
     {
         //初估控制结构除ua_faction外还需要的页数
@@ -985,7 +985,7 @@ bool_t __M_InitCession(struct HeapCession *Cession)
         {//初估的页数肯定大于或等于实际需要的页数,尤其是内存页数较多时.
          //估计值从初估的页数开始逐一减小,直到合适为止.
             //重估控制结构字节数
-            ua_temp2 = __M_CalculateExpense(ua_pages-ua_temp1);
+            ua_temp2 = __Heap_CalculateExpense(ua_pages-ua_temp1);
             ua_temp3 = (ua_temp2-ua_faction+Cession->PageSize-1)
                     /Cession->PageSize;         //重新计算控制结构页数
             if(ua_temp3 >= ua_temp1)
@@ -1004,7 +1004,7 @@ bool_t __M_InitCession(struct HeapCession *Cession)
     //计算总阶数，即一共有多少种页尺寸,方法:地址长度减去ua_pages中前导0
     //的数量例如,ua_pages=5,最高位位置是bit2,有29个前导0，页尺寸有1,2,4
     //页3种,阶数=3
-    uf_grades=CN_PTR_BITS-__M_LeadingZero((u8 *)&ua_pages,sizeof(ptu32_t));
+    uf_grades=CN_PTR_BITS-__Heap_LeadingZero((u8 *)&ua_pages,sizeof(ptu32_t));
 
     Cession->uf_grades = uf_grades;    //总阶数
     Cession->ua_block_max=Cession->PageSize<<(uf_grades-1);//最高阶块尺寸
@@ -1143,7 +1143,7 @@ struct HeapCB *Heap_Add(void* bottom, u32 size, u32 PageSize,u32 AlignSize,
     Cession->PageSize = PageSize;
 #endif
     Cession->Next = NULL;
-    if(__M_InitCession(Cession))
+    if(__Heap_InitCession(Cession))
     {
         Lock_MutexCreate_s(&(HeapTemp->HeapMutex),(const char*)(HeapTemp->HeapName));
         return(HeapTemp);
@@ -1177,27 +1177,27 @@ bool_t Heap_DynamicModuleInit(void)
 
         while(Cession != NULL)
         {
-            __M_InitCession(Cession);
+            __Heap_InitCession(Cession);
             Cession = Cession->Next;
         }       //for while(Cession != NULL)
         Heap = Heap->NextHeap;
     }while(Heap != tg_pHeapList);
 
-    M_Malloc = __M_Malloc;
-    M_Realloc = __M_Realloc;
-    M_Free = __M_Free;
-    M_MallocHeap = __M_MallocHeap;
-    M_MallocLc = __M_MallocLc;
-    M_MallocLcHeap = __M_MallocLcHeap;
-    M_FreeHeap = __M_FreeHeap;
-    __MallocStack = __M_MallocStack;
-    M_FormatSizeHeap = __M_FormatSizeHeap;
-    M_FormatSize = __M_FormatSize;
-    M_GetMaxFreeBlockHeap = __M_GetMaxFreeBlockHeap;
-    M_GetMaxFreeBlock = __M_GetMaxFreeBlock;
-    M_GetFreeMem = __M_GetFreeMem;
-    M_GetFreeMemHeap = __M_GetFreeMemHeap;
-    M_CheckSize = __M_CheckSize;
+    M_Malloc = __Heap_Malloc;
+    M_Realloc = __Heap_Realloc;
+    M_Free = __Heap_Free;
+    M_MallocHeap = __Heap_MallocHeap;
+    M_MallocLc = __Heap_MallocLc;
+    M_MallocLcHeap = __Heap_MallocLcHeap;
+    M_FreeHeap = __Heap_FreeHeap;
+    __MallocStack = __Heap_MallocStack;
+    M_FormatSizeHeap = __Heap_FormatSizeHeap;
+    M_FormatSize = __Heap_FormatSize;
+    M_GetMaxFreeBlockHeap = __Heap_GetMaxFreeBlockHeap;
+    M_GetMaxFreeBlock = __Heap_GetMaxFreeBlock;
+    M_GetFreeMem = __Heap_GetFreeMem;
+    M_GetFreeMemHeap = __Heap_GetFreeMemHeap;
+    M_CheckSize = __Heap_CheckSize;
 
     return true;
 }
@@ -1216,7 +1216,7 @@ bool_t Heap_DynamicModuleInit(void)
 //备注: 如果在多事件调度启动前调用本函数，记录拥有者时全部算在系统服务事件中。
 //      系统服务事件永不结束，故等同于全局分配。
 //-----------------------------------------------------------------------------
-void *__M_MallocLcHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout)
+void *__Heap_MallocLcHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout)
 {
     struct HeapCession *Cession;
     void *ua_address;
@@ -1232,21 +1232,21 @@ void *__M_MallocLcHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout)
     //不能在此直接判断size是否满足,因为取得互斥量前可能重入而判断无效.
     if(Lock_MutexPend(&Heap->HeapMutex, CN_TIMEOUT_FOREVER) == false)
         return NULL;
-    en_scheduler = Djy_QuerySch( );
+    en_scheduler = DJY_QuerySch( );
     //禁止调度条件下，如果当前没有足够的空闲内存，乖乖的走吧。
-    if((__M_GetMaxFreeBlockHeap(Heap) < size)
+    if((__Heap_GetMaxFreeBlockHeap(Heap) < size)
                 && ((timeout == 0) || !en_scheduler))
     {
         result = NULL;
     }else
     {
-        if( !__M_CheckMemory(size,Heap,timeout) )
+        if( !__Heap_CheckMemory(size,Heap,timeout) )
         {
             result = NULL;        //没有合适的空闲内存块
         }else
         {    //有合适的空闲内存块
-            uf_grade_th=__M_GetFreeGrade(size,Heap,&Cession);    //取阶号
-            ua_address=__M_MallocBlock(uf_grade_th,Cession);     //申请内存
+            uf_grade_th=__Heap_GetFreeGrade(size,Heap,&Cession);    //取阶号
+            ua_address=__Heap_MallocBlock(uf_grade_th,Cession);     //申请内存
             g_ptEventRunning->local_memory++;
             g_ptEventRunning->HeapSize += Cession->PageSize * (1<<uf_grade_th);
             if(g_ptEventRunning->HeapSize > g_ptEventRunning->HeapSizeMax)
@@ -1273,13 +1273,13 @@ void *__M_MallocLcHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout)
         }
     }
     Lock_MutexPost(&Heap->HeapMutex);
-    __M_CheckSTackSync( );
+    __Heap_CheckSTackSync( );
     return result;
 }
 
-void *__M_MallocLc(ptu32_t size,u32 timeout)
+void *__Heap_MallocLc(ptu32_t size,u32 timeout)
 {
-    return ( __M_MallocLcHeap(size,tg_pSysHeap,timeout) );
+    return ( __Heap_MallocLcHeap(size,tg_pSysHeap,timeout) );
 }
 
 //----分配全局内存-------------------------------------------------------------
@@ -1294,7 +1294,7 @@ void *__M_MallocLc(ptu32_t size,u32 timeout)
 //返回：分配的内存指针，NULL表示没有内存可以分配
 //备注: 用此函数分配的内存,并不会在事件完成时被收回.
 //-----------------------------------------------------------------------------
-void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
+void *__Heap_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
 {
     struct HeapCession *Cession;
     void *ua_address;
@@ -1308,21 +1308,21 @@ void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
     //不能在此直接判断size是否满足,因为关取得互斥量前可能发生切换而判断无效.
     if(Lock_MutexPend(&Heap->HeapMutex,CN_TIMEOUT_FOREVER) == false)
         return NULL;
-    en_scheduler = Djy_QuerySch();
+    en_scheduler = DJY_QuerySch();
     //禁止调度条件下，如果当前没有足够的空闲内存，乖乖的走吧。
-    if((__M_GetMaxFreeBlockHeap(Heap) < size)
+    if((__Heap_GetMaxFreeBlockHeap(Heap) < size)
                 && ((timeout == 0) || !en_scheduler))
     {
         result = NULL;
     }else
     {
-        if( ! __M_CheckMemory(size,Heap,timeout))
+        if( ! __Heap_CheckMemory(size,Heap,timeout))
         {
             result = NULL;
         }else
         {
-            uf_grade_th=__M_GetFreeGrade(size,Heap,&Cession);    //取阶号
-            ua_address=__M_MallocBlock(uf_grade_th,Cession);     //申请内存
+            uf_grade_th=__Heap_GetFreeGrade(size,Heap,&Cession);    //取阶号
+            ua_address=__Heap_MallocBlock(uf_grade_th,Cession);     //申请内存
             g_ptEventRunning->HeapSize += Cession->PageSize * (1<<uf_grade_th);
             if(g_ptEventRunning->HeapSize > g_ptEventRunning->HeapSizeMax)
                 g_ptEventRunning->HeapSizeMax = g_ptEventRunning->HeapSize;
@@ -1359,12 +1359,12 @@ void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
         }
     }
     Lock_MutexPost(&Heap->HeapMutex);
-    __M_CheckSTackSync( );
+    __Heap_CheckSTackSync( );
     return result;
 }
-void *__M_Malloc(ptu32_t size,u32 timeout)
+void *__Heap_Malloc(ptu32_t size,u32 timeout)
 {
-    return (__M_MallocHeap(size,tg_pSysHeap,timeout));
+    return (__Heap_MallocHeap(size,tg_pSysHeap,timeout));
 }
 
 //----检查stack等待队列--------------------------------------------------------
@@ -1373,7 +1373,7 @@ void *__M_Malloc(ptu32_t size,u32 timeout)
 //参数：无
 //返回：无
 //-----------------------------------------------------------------------------
-void __M_CheckSTackSync(void)
+void __Heap_CheckSTackSync(void)
 {
     struct EventECB *event = s_ptStackSync,*next_sync;
     atom_low_t atom_low;
@@ -1386,7 +1386,7 @@ void __M_CheckSTackSync(void)
             next_sync = event->multi_next;
             event->wakeup_from = CN_STS_WAIT_MEMORY + CN_STS_EVENT_NORUN;
             event->event_status = CN_STS_EVENT_READY;
-            __Djy_EventReady(event);
+            __DJY_EventReady(event);
             event = next_sync;
         }while(next_sync != s_ptStackSync);
         s_ptStackSync = NULL;
@@ -1408,7 +1408,7 @@ void __M_CheckSTackSync(void)
 //   说明: 改为把事件放进通用堆等待队列中
 //   作者: 罗侍田
 //-----------------------------------------------------------------------------
-void __M_WaitMemoryStack(struct EventECB *event,u32 size)
+void __Heap_WaitMemoryStack(struct EventECB *event,u32 size)
 {
     struct EventECB *pl_event;
 
@@ -1416,7 +1416,7 @@ void __M_WaitMemoryStack(struct EventECB *event,u32 size)
     event->wait_mem_size = size;
     pl_event = s_ptGenMemSync;     //获取内存等待表指针
     event->sync_head = &s_ptGenMemSync;
-    __Djy_CutReadyEvent(event);
+    __DJY_CutReadyEvent(event);
     if(pl_event == NULL)            //等待队列空
     {
         event->next = NULL;
@@ -1458,10 +1458,10 @@ void __M_WaitMemoryStack(struct EventECB *event,u32 size)
 //   说明: 改从tg_pSysHeap堆中分配为从所有通用堆中分配,优先从tg_pSysHeap中分配。
 //   作者: 罗侍田
 //-----------------------------------------------------------------------------
-extern void __M_WaitMemoryStack(struct EventECB *event,u32 size);
-bool_t __Djy_RaiseTempPrioForStack(u16 event_id);
-void __Djy_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status);
-void *__M_MallocStack(struct EventECB *event, u32 size)
+extern void __Heap_WaitMemoryStack(struct EventECB *event,u32 size);
+bool_t __DJY_RaiseTempPrioForStack(u16 event_id);
+void __DJY_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status);
+void *__Heap_MallocStack(struct EventECB *event, u32 size)
 {
     struct HeapCession *Cession;
     void *ua_address;
@@ -1473,23 +1473,23 @@ void *__M_MallocStack(struct EventECB *event, u32 size)
         return NULL;
 
     //此处已经关了调度，不会被抢占。
-    if(__M_GetMaxFreeBlockHeap(tg_pSysHeap) < size)
+    if(__Heap_GetMaxFreeBlockHeap(tg_pSysHeap) < size)
     {
-        __M_WaitMemoryStack(event,size);
+        __Heap_WaitMemoryStack(event,size);
         result = NULL;
     }
     else
     {
         if(Lock_MutexQuery(&tg_pSysHeap->HeapMutex) == false)
         {
-            __Djy_RaiseTempPrioForStack(tg_pSysHeap->HeapMutex.owner->event_id);
-            __Djy_AddToBlockForStack(&s_ptStackSync,CN_BLOCK_PRIO,CN_STS_WAIT_MUTEX);
+            __DJY_RaiseTempPrioForStack(tg_pSysHeap->HeapMutex.owner->event_id);
+            __DJY_AddToBlockForStack(&s_ptStackSync,CN_BLOCK_PRIO,CN_STS_WAIT_MUTEX);
             result = NULL;
         }
         else
         {
-            uf_grade_th=__M_GetFreeGrade(size,tg_pSysHeap,&Cession);    //取阶号
-            ua_address=__M_MallocBlock(uf_grade_th,Cession);     //申请内存
+            uf_grade_th=__Heap_GetFreeGrade(size,tg_pSysHeap,&Cession);    //取阶号
+            ua_address=__Heap_MallocBlock(uf_grade_th,Cession);     //申请内存
             event->HeapSize += Cession->PageSize * (1<<uf_grade_th);
             if(event->HeapSize > event->HeapSizeMax)
                 event->HeapSizeMax = event->HeapSize;
@@ -1532,7 +1532,7 @@ void *__M_MallocStack(struct EventECB *event, u32 size)
 //      Cession，从Cession段中分配
 //返回: 获得的内存块指针,如果不能分配则返回NULL
 //-----------------------------------------------------------------------------
-void *__M_MallocBlock(ufast_t grade,struct HeapCession *Cession)
+void *__Heap_MallocBlock(ufast_t grade,struct HeapCession *Cession)
 {
     ptu32_t ua_temp1;
     ptu32_t ua_pages_number;
@@ -1562,7 +1562,7 @@ void *__M_MallocBlock(ufast_t grade,struct HeapCession *Cession)
         pl_bitmap=ppl_bitmap[uf_classes];   //读取各级位图的指针
 
         //ua_pages_number是上一级的位偏移,ua_temp1是本级最后一字的字内位偏移
-        ua_temp1=CN_CPU_BITS-1-__M_LeadingUcpuZero(~pl_bitmap[ua_pages_number]);
+        ua_temp1=CN_CPU_BITS-1-__Heap_LeadingUcpuZero(~pl_bitmap[ua_pages_number]);
 
         //上一级的字偏移×字长+本级字内位偏移得到本级总位偏移
         ua_pages_number =(ua_pages_number<<CN_CPU_BITS_SUFFIX_ZERO)+ua_temp1;
@@ -1668,7 +1668,7 @@ void *__M_MallocBlock(ufast_t grade,struct HeapCession *Cession)
 //      如果扩大,则把原有数据全部copy到新分配的内存中.
 //      如果缩小,则按新尺寸copy原有数据,超出的数据将丢弃.
 //      如果p=NULL,则相当于__M_Malloc
-//      如果NewSize = 0,则相当于 __M_Free
+//      如果NewSize = 0,则相当于 __Heap_Free
 //      如果新内存分配失败,原来的内存也将被释放,返回NULL
 //      本函数分配的内存,可使用free函数释放.
 //参数: p, 待修改尺寸的指针
@@ -1680,35 +1680,35 @@ void *__M_MallocBlock(ufast_t grade,struct HeapCession *Cession)
 //   说明: 优先对参数NewSize的判断逻辑
 //   作者: 季兆林
 //-----------------------------------------------------------------------------
-void *__M_Realloc(void *p, ptu32_t NewSize)
+void *__Heap_Realloc(void *p, ptu32_t NewSize)
 {
     ptu32_t OldSize;
     void *NewP = NULL;
 
     if(NewSize == 0)
     {
-        __M_Free(p);
+        __Heap_Free(p);
         return NULL;
     }
 
     if(p == NULL)
     {
         //若NewSize = 0,返回NULL
-        NewP = __M_Malloc(NewSize,CN_TIMEOUT_FOREVER);
+        NewP = __Heap_Malloc(NewSize,CN_TIMEOUT_FOREVER);
         return NewP;
     }
 
-    OldSize = __M_CheckSize(p);
+    OldSize = __Heap_CheckSize(p);
     if((NewSize > (OldSize>>1)) && (NewSize <= OldSize))
         return p;
     else
     {
-        NewP = __M_Malloc(NewSize,CN_TIMEOUT_FOREVER);
+        NewP = __Heap_Malloc(NewSize,CN_TIMEOUT_FOREVER);
         if(NewP)
         {
             memcpy(NewP,p,NewSize < OldSize ? NewSize:OldSize);
         }
-        __M_Free(p);
+        __Heap_Free(p);
     }
     return NewP;
 }
@@ -1727,7 +1727,7 @@ void *__M_Realloc(void *p, ptu32_t NewSize)
 //   说明: 增加对参数size的零值判断
 //   作者: 季兆林
 //-----------------------------------------------------------------------------
-ptu32_t __M_FormatSizeHeapIn(ptu32_t size,struct HeapCB *Heap)
+ptu32_t __Heap_FormatSizeHeapIn(ptu32_t size,struct HeapCB *Heap)
 {
     ucpu_t  grade;
     struct HeapCession *Cession;
@@ -1738,7 +1738,7 @@ ptu32_t __M_FormatSizeHeapIn(ptu32_t size,struct HeapCB *Heap)
     while(Cession != NULL)
     {
         pages = (size + Cession->PageSize -1)/Cession->PageSize;
-        grade = __M_LeadingZero((u8 *)&pages,sizeof(u32));
+        grade = __Heap_LeadingZero((u8 *)&pages,sizeof(u32));
         if((CN_HIGH_1BIT_1>>grade) != pages)
         //如果grade不是规格化的数,调整到比它大的最小允许块大小
         //否则维持size的大小,不做调整
@@ -1753,7 +1753,7 @@ ptu32_t __M_FormatSizeHeapIn(ptu32_t size,struct HeapCB *Heap)
     }
     return fsize;
 }
-ptu32_t __M_FormatSizeHeap(ptu32_t size,struct HeapCB *Heap)
+ptu32_t __Heap_FormatSizeHeap(ptu32_t size,struct HeapCB *Heap)
 {
     struct HeapCB *Work;
     ptu32_t result;
@@ -1767,7 +1767,7 @@ ptu32_t __M_FormatSizeHeap(ptu32_t size,struct HeapCB *Heap)
         {
             if((Work->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_GENERAL )
             {
-                result = __M_FormatSizeHeapIn(size,Work);
+                result = __Heap_FormatSizeHeapIn(size,Work);
                 if(result != 0)
                     break;
             }
@@ -1777,14 +1777,14 @@ ptu32_t __M_FormatSizeHeap(ptu32_t size,struct HeapCB *Heap)
     }
     else
     {
-        result = __M_FormatSizeHeapIn(size,Heap);
+        result = __Heap_FormatSizeHeapIn(size,Heap);
     }
     return result;
 }
-ptu32_t __M_FormatSize(ptu32_t size)
+ptu32_t __Heap_FormatSize(ptu32_t size)
 {
     if(tg_pSysHeap != NULL)
-        return __M_FormatSizeHeapIn(size,tg_pSysHeap);
+        return __Heap_FormatSizeHeapIn(size,tg_pSysHeap);
     else
         return 0;
 }
@@ -1798,7 +1798,7 @@ ptu32_t __M_FormatSize(ptu32_t size)
 //           如果是通用堆,则从这个堆开始在所有通用堆中查找pl_mem所在的堆
 //返回：错误返回flase,正确时返回true
 //-----------------------------------------------------------------------------
-void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
+void __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap)
 {
     struct HeapCession *Cession;
     struct HeapCB *CurHeap;
@@ -1864,7 +1864,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
 
     if(Cession == NULL)
     {
-        Djy_SaveLastError(EN_MEM_ERROR);  //欲释放的内存不在内存堆中,直接退出.
+        DJY_SaveLastError(EN_MEM_ERROR);  //欲释放的内存不在内存堆中,直接退出.
         return;
     }
 
@@ -1872,7 +1872,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     //检查被释放内存是否页边界对齐
     if(ua_temp1 % Cession->PageSize != 0)
     {
-        Djy_SaveLastError(EN_MEM_ERROR);  //欲释放的内存非页边界对齐,直接退出.
+        DJY_SaveLastError(EN_MEM_ERROR);  //欲释放的内存非页边界对齐,直接退出.
         return;
     }
     //计算释放的内存块的首页页号
@@ -1925,9 +1925,9 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
             if((pl_id[0] & (~CN_EVTT_ID_MASK)) >= CFG_EVENT_LIMIT)
             {
 //              pl_id[0] = CN_MEM_FREE_PAGE;
-                Djy_SaveLastError(EN_MEM_ERROR);   //指针有错,直接退出
+                DJY_SaveLastError(EN_MEM_ERROR);   //指针有错,直接退出
                 Lock_MutexPost(&(CurHeap->HeapMutex) );
-                __M_CheckSTackSync( );
+                __Heap_CheckSTackSync( );
                 return;
             }
             if(pl_id[0] & CN_EVTT_ID_MASK)      //检查是局部内存还是全局内存
@@ -2048,7 +2048,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     }while(uf_grade_th-- >0);   //从最高阶(最大块)扫描到0阶
 
     Lock_MutexPost( &(CurHeap->HeapMutex) );
-    __M_CheckSTackSync( );
+    __Heap_CheckSTackSync( );
     if((g_ptEventRunning->local_memory > 0) && (Lc))
     {
         g_ptEventRunning->local_memory--;
@@ -2071,7 +2071,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
             //因此应该至少有下面一句：
             event = *MemSyncHead;   //取等待队列头
             //ua_word_offset在此权当临时变量使用,规格化当前事件需要的内存.
-            event_mem_stage = __M_GetGrade(event->wait_mem_size,Cession);
+            event_mem_stage = __Heap_GetGrade(event->wait_mem_size,Cession);
             ua_word_offset = Cession->PageSize<<(event_mem_stage);
             if(ua_word_offset <= ua_temp1)
             {//事件等待的内存量小于最大空闲内存块,把事件放到就绪队列
@@ -2079,7 +2079,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
                 ua_temp1 -= ua_word_offset;
                 event->sync_head = NULL;
                 if(event->event_status & CN_STS_SYNC_TIMEOUT)
-                    __Djy_ResumeDelay(event);
+                    __DJY_ResumeDelay(event);
                 event->event_status = CN_STS_EVENT_READY;
                 event->wakeup_from = CN_STS_WAIT_MEMORY;
 //                if(event->multi_next == event->multi_previous)
@@ -2108,7 +2108,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
 //                {
 //                    //目前而言什么都不用做
 //                }
-                __Djy_EventReady(event);
+                __DJY_EventReady(event);
             }else
                 break;
         }
@@ -2117,15 +2117,15 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     return;
 }
 
-void __M_Free(void * pl_mem)
+void __Heap_Free(void * pl_mem)
 {
     if( tg_pSysHeap == NULL)
         return;
-    __M_FreeHeap(pl_mem,tg_pSysHeap);
+    __Heap_FreeHeap(pl_mem,tg_pSysHeap);
     return;
 }
 
-ptu32_t __M_GetMaxFreeBlockHeapIn(struct HeapCB *Heap)
+ptu32_t __Heap_GetMaxFreeBlockHeapIn(struct HeapCB *Heap)
 {
     struct HeapCession *Cession;
     ptu32_t result = 0;
@@ -2143,7 +2143,7 @@ ptu32_t __M_GetMaxFreeBlockHeapIn(struct HeapCB *Heap)
 //参数：Heap,被查询的堆,如果这是个专用堆,则只查询这个堆,否则查询所有通用堆.
 //返回：内存块字节数
 //-----------------------------------------------------------------------------
-ptu32_t __M_GetMaxFreeBlockHeap(struct HeapCB *Heap)
+ptu32_t __Heap_GetMaxFreeBlockHeap(struct HeapCB *Heap)
 {
     struct HeapCB *Work;
     ptu32_t result = 0,temp;
@@ -2165,7 +2165,7 @@ bool_t init_jtag(char *param);      //lst test
 #endif
     if((Heap->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_PRIVATE)
     {
-        result = __M_GetMaxFreeBlockHeapIn(Heap);
+        result = __Heap_GetMaxFreeBlockHeapIn(Heap);
     }
     else
     {
@@ -2174,7 +2174,7 @@ bool_t init_jtag(char *param);      //lst test
         {
             if((Work->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_GENERAL )
             {
-                temp = __M_GetMaxFreeBlockHeapIn(Work);
+                temp = __Heap_GetMaxFreeBlockHeapIn(Work);
                 if(result < temp)
                     result = temp;
             }
@@ -2191,7 +2191,7 @@ bool_t init_jtag(char *param);      //lst test
 //参数：无
 //返回：内存块字节数
 //-----------------------------------------------------------------------------
-ptu32_t  __M_GetMaxFreeBlock(void)
+ptu32_t  __Heap_GetMaxFreeBlock(void)
 {
     struct HeapCB *Work;
     ptu32_t result = 0,temp;
@@ -2200,7 +2200,7 @@ ptu32_t  __M_GetMaxFreeBlock(void)
     {
         if((Work->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_GENERAL )
         {
-            temp = __M_GetMaxFreeBlockHeapIn(Work);
+            temp = __Heap_GetMaxFreeBlockHeapIn(Work);
             if(result < temp)
                 result = temp;
         }
@@ -2210,7 +2210,7 @@ ptu32_t  __M_GetMaxFreeBlock(void)
     return result;
 }
 
-ptu32_t  __M_GetFreeMemHeapIn(struct HeapCB *Heap)
+ptu32_t  __Heap_GetFreeMemHeapIn(struct HeapCB *Heap)
 {
     struct HeapCession *Cession;
     ptu32_t result=0;
@@ -2228,7 +2228,7 @@ ptu32_t  __M_GetFreeMemHeapIn(struct HeapCB *Heap)
 //参数：Heap,被查询的堆,如果这是个专用堆,则只查询这个堆,否则查询所有通用堆.
 //返回：空闲内存字节数
 //-----------------------------------------------------------------------------
-ptu32_t  __M_GetFreeMemHeap(struct HeapCB *Heap)
+ptu32_t  __Heap_GetFreeMemHeap(struct HeapCB *Heap)
 {
     struct HeapCB *Work;
     ptu32_t result = 0;
@@ -2236,7 +2236,7 @@ ptu32_t  __M_GetFreeMemHeap(struct HeapCB *Heap)
         return 0;
     if((Heap->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_PRIVATE)
     {
-        result = __M_GetMaxFreeBlockHeapIn(Heap);
+        result = __Heap_GetMaxFreeBlockHeapIn(Heap);
     }
     else
     {
@@ -2245,7 +2245,7 @@ ptu32_t  __M_GetFreeMemHeap(struct HeapCB *Heap)
         {
             if((Work->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_GENERAL )
             {
-                result += __M_GetFreeMemHeapIn(Heap);
+                result += __Heap_GetFreeMemHeapIn(Heap);
             }
             Work = Work->NextHeap;
         }while(Work != Heap);
@@ -2259,7 +2259,7 @@ ptu32_t  __M_GetFreeMemHeap(struct HeapCB *Heap)
 //参数：无
 //返回：空闲内存字节数
 //-----------------------------------------------------------------------------
-ptu32_t  __M_GetFreeMem(void)
+ptu32_t  __Heap_GetFreeMem(void)
 {
     struct HeapCB *Work;
     ptu32_t result = 0;
@@ -2268,7 +2268,7 @@ ptu32_t  __M_GetFreeMem(void)
     {
         if((Work->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_GENERAL )
         {
-            result += __M_GetFreeMemHeapIn(Work);
+            result += __Heap_GetFreeMemHeapIn(Work);
         }
         Work = Work->NextHeap;
     }while(Work != tg_pHeapList);

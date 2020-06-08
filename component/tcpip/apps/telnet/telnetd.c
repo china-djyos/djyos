@@ -204,7 +204,7 @@ typedef struct
 #define CN_NVT_OPT_STATUS  5
 
 
-static void __telnetclientengine(int sock)
+static void __Telnet_ClientEngine(int sock)
 {
     char ch;
     int  len;
@@ -278,7 +278,7 @@ static void __telnetclientengine(int sock)
 // 返回值  ：
 // 说明    :
 // =============================================================================
-static ptu32_t __telnetdmain(void)
+static ptu32_t __Telnet_DomainMain(void)
 {
     struct sockaddr_in sa_server;
     int sockserver = -1;
@@ -286,7 +286,7 @@ static ptu32_t __telnetdmain(void)
     int sockopt = 1;
 
     //安装我们自己的 设备, TODO,这套接口作的有问题
-    if(NULL==dev_Create(CN_TELNET_DEVNAME,__Telnet_open,__Telnet_close,__Telnet_write,__Telnet_read,NULL,0))
+    if(NULL==Device_Create(CN_TELNET_DEVNAME,__Telnet_open,__Telnet_close,__Telnet_write,__Telnet_read,NULL,0))
     {
         printf("\r\n: info : net    : create dev %s failed.",CN_TELNET_DEVNAME);
         return 0;
@@ -335,7 +335,7 @@ ACCEPT_AGAIN:
             closesocket(sockclient);
             goto   ACCEPT_AGAIN;
         }
-        __telnetclientengine(sockclient);
+        __Telnet_ClientEngine(sockclient);
         closesocket(sockclient);
     }
     //anyway, could never reach here
@@ -343,7 +343,7 @@ ACCEPT_AGAIN:
     return 0;//never reach here
 }
 //THIS IS TELNET SERVER MODULE FUNCTION
-bool_t ServiceInit_Telnetd(void)
+bool_t Telnet_ServiceInit(void)
 {
     bool_t ret = false;
     memset(&gDevTelnetd,0,sizeof(gDevTelnetd));
@@ -360,7 +360,7 @@ bool_t ServiceInit_Telnetd(void)
         debug_printf("telnet","TELNETD RING CREATE FAILED\n\r");
         goto EXIT_SEMP;
     }
-    ret = taskcreate("telnet",0x800,CN_PRIO_RRS,__telnetdmain,NULL);
+    ret = taskcreate("telnet",0x800,CN_PRIO_RRS,__Telnet_DomainMain,NULL);
     if (ret == false) {
         debug_printf("telnet","TFTPD:TASK CREATE ERR\n\r");
         goto EXIT_TASK;

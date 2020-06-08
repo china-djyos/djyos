@@ -122,7 +122,7 @@ void InitUC1698(void)
     PatchF7Bug_ClearA0;
     ContrastLevel = CN_TONTRAST_LEVEL_DEFAULT;
     *CmdPort = 0xE2;                    // 设置温度补偿系数-0.05%/C
-    Djy_EventDelay(100*mS);
+    DJY_EventDelay(100*mS);
     *CmdPort=0x31;                     //set advanced program control
     *CmdPort=0x08;
     *CmdPort=0x2b;                     //internal power control  (13nF<LCD<=22nF)
@@ -197,7 +197,7 @@ void InitUC1698(void)
 //    *CmdPort = 0x00; *CmdPort = 0x10;           // 设置起始列地址
 //    *CmdPort = 0x60; *CmdPort = 0x70;           // 设置起始行地址
 
-    Djy_EventDelay(50*mS);
+    DJY_EventDelay(50*mS);
 }
 
 
@@ -240,9 +240,9 @@ void LCD_BackLight(bool_t OnOff)
 void LCD_Reset(void)
 {
      PIO_Clear(LCD_RST);
-     Djy_EventDelay(100*mS);
+     DJY_EventDelay(100*mS);
      PIO_Set(LCD_RST);
-     Djy_EventDelay(500*mS);
+     DJY_EventDelay(500*mS);
 }
 
 
@@ -471,7 +471,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     if(realxsrc%2 == 0)
     {
         offset = ysrc * src_bitmap->linebytes + realxsrc/2;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
         PatchF7Bug_SetA0;
         for(loopy = 0; loopy < dst_rect->bottom - dst_rect->top; loopy++)
         {
@@ -509,7 +509,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
 
 
             *CmdPort = 0xE2;                    // 设置温度补偿系数-0.05%/C
-            Djy_EventDelay(100*mS);
+            DJY_EventDelay(100*mS);
             *CmdPort=0x31;                     //set advanced program control
             *CmdPort=0x08;
             *CmdPort=0x2b;  //ok                   //internal power control  (13nF<LCD<=22nF)
@@ -583,7 +583,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
 
 
             offset = ysrc * src_bitmap->linebytes + realxsrc/2;
-            Djy_DelayUs(1);
+            DJY_DelayUs(1);
             PatchF7Bug_SetA0;
             for(loopy = 0; loopy < dst_rect->bottom - dst_rect->top; loopy++)
             {
@@ -641,7 +641,7 @@ ptu32_t ModuleInstall_UC1698(void)
     static struct GkWinObj frame_win;
     static struct RectBitmap FrameBitmap;
 
-    Djy_EventDelay(10*mS);
+    DJY_EventDelay(10*mS);
     LCD_BackLight(1);
     LCD_Reset();
     InitUC1698( );

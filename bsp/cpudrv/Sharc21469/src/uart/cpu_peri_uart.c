@@ -295,7 +295,7 @@ u32 __Uart_SendDirectly(djy_handle_t uart_dev,
             && (timecount > 0))//超时或者发送缓冲为空时退出
         {
             timecount--;
-            Djy_DelayUs(1);
+            DJY_DelayUs(1);
         }
         if(timecount == 0)
             break;
@@ -307,7 +307,7 @@ u32 __Uart_SendDirectly(djy_handle_t uart_dev,
             && (timecount > 0))//超时或者发送缓冲为空时退出
         {
             timecount--;
-            Djy_DelayUs(1);
+            DJY_DelayUs(1);
         }
         if(timecount == 0)
             break;

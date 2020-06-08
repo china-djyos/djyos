@@ -434,7 +434,7 @@ __big_return(hashp, bufp, ndx, val, set_current)
         return (-1);
     if (save_p->addr != save_addr) {
         /* We are pretty short on buffers. */
-        Djy_SaveLastError(EINVAL);         /* OUT OF BUFFERS */
+        DJY_SaveLastError(EINVAL);         /* OUT OF BUFFERS */
         return (-1);
     }
     memmove(hashp->tmp_buf, (save_p->page) + off, len);
@@ -491,7 +491,7 @@ collect_data(hashp, bufp, len, set)
             return (-1);
     }
     if (bufp->addr != save_addr) {
-        Djy_SaveLastError(EINVAL);         /* Out of buffers. */
+        DJY_SaveLastError(EINVAL);         /* Out of buffers. */
         return (-1);
     }
     memmove(&hashp->tmp_buf[len], (bufp->page) + bp[1], mylen);
@@ -552,7 +552,7 @@ collect_key(hashp, bufp, len, val, set)
             return (-1);
     }
     if (bufp->addr != save_addr) {
-        Djy_SaveLastError(EINVAL);     /* MIS -- OUT OF BUFFERS */
+        DJY_SaveLastError(EINVAL);     /* MIS -- OUT OF BUFFERS */
         return (-1);
     }
     memmove(&hashp->tmp_key[len], (bufp->page) + bp[1], mylen);

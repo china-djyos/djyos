@@ -156,10 +156,10 @@ static inline void xip_iboot_unlock(struct __icore *core)
 static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *uncached)
 {
     struct objhandle *hdl = NULL;
-    struct __icore *core = (struct __icore*)corefs(ob);
+    struct __icore *core = (struct __icore*)File_Core(ob);
 //    mode_t mode;
 
-    if((test_writeable(flags) == 0) || (test_directory(flags) == 1))
+    if((Handle_FlagIsWriteable(flags) == 0) || (Handle_FlagIsDirectory(flags) == 1))
     {
         printf("\r\n: error :cannot open the xip-iboot directory and the files in it only support write mode.");
         return (NULL);    //xip-iboot只支持写模式
@@ -167,31 +167,31 @@ static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *unca
 
     xip_iboot_lock(core);
 
-//    if(strcmp(obj_name(ob),EN_XIP_IBOOT_TARGET) == 0)      //判断访问的路径是不是xip-iboot，如果不是则直接返回NULL
+//    if(strcmp(OBJ_GetName(ob),EN_XIP_IBOOT_TARGET) == 0)      //判断访问的路径是不是xip-iboot，如果不是则直接返回NULL
 //    {
         xip_fs_format(core);        //擦除iboot所在的flash区域
 
-//        if(!obj_newchild(core->root, xip_iboot_ops, (ptu32_t)0, uncached))
+//        if(!OBJ_NewChild(core->root, xip_iboot_ops, (ptu32_t)0, uncached))
 //        {
 //            xip_iboot_unlock(core);
 //            return (NULL);
 //        }
 
-        hdl = handle_new();
+        hdl = Handle_New();
         if(!hdl)
         {
             return (NULL);
         }
 
-        handle_init(hdl, NULL, flags, 0);
+        Handle_Init(hdl, NULL, flags, 0);
 
         if(hdl)
         {
             //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
 //            mode = S_IALLUGO | S_IFREG;     //建立的路径，属性是目录。
             //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
-            ob = obj_BuildTempPath(ob, xip_iboot_ops, (ptu32_t)0,uncached);
-            obj_LinkHandle(hdl, ob);
+            ob = OBJ_BuildTempPath(ob, xip_iboot_ops, (ptu32_t)0,uncached);
+            OBJ_LinkHandle(hdl, ob);
         }
 //    }
     xip_iboot_unlock(core);
@@ -207,7 +207,7 @@ static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *unca
 static s32 xip_iboot_close(struct objhandle *hdl)
 {
     FileNowPos = 0;
-//  handle_Delete(hdl);
+//  Handle_Delete(hdl);
     return (0);
 }
 
@@ -222,7 +222,7 @@ static s32 xip_iboot_close(struct objhandle *hdl)
 static s32 xip_iboot_write(struct objhandle *hdl, u8 *data, u32 size)
 {
     s32 res;
-    struct __icore *core = (struct __icore*)corefs(handle_GetHostObj(hdl));
+    struct __icore *core = (struct __icore*)File_Core(Handle_GetHostObj(hdl));
     xip_iboot_lock(core);
     res = core->drv->xip_write_media(core,data,size,FileNowPos);
     if(-1 == res)
@@ -404,26 +404,26 @@ s32 ModuleInstall_XIP_FS(u32 opt, void *data,char * xip_target)
         typeXIPIBOOT->format = xip_fs_format;
         typeXIPIBOOT->uninstall = NULL;
     }
-    res = regfs(typeXIPIBOOT);
+    res = File_RegisterFs(typeXIPIBOOT);
     if(-1==res)
     {
         printf("\r\n: dbug : module : cannot register \"xip-iboot\"(file system type).");
         return (-1); // 失败;
     }
 
-    mountobj = obj_newchild(obj_root(), __mount_ops, 0, xip_target);
+    mountobj = OBJ_NewChild(OBJ_GetRoot(), __File_MountOps, 0, xip_target);
     if(NULL == mountobj)
     {
         printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", xip_target);
         return (-1);
     }
-//    obj_DutyUp(mountobj);
+//    OBJ_DutyUp(mountobj);
     opt |= MS_DIRECTMOUNT;      //直接挂载不用备份
-    res = mountfs(NULL, xip_target, "XIP-IBOOT", opt, data);
+    res = File_Mount(NULL, xip_target, "XIP-IBOOT", opt, data);
     if(res == -1)
     {
         printf("\r\n: dbug : module : mount \"XIP-IBOOT\" failed, cannot install.");
-        obj_Delete(mountobj);
+        OBJ_Delete(mountobj);
         return (-1);
     }
     return (0);

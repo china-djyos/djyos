@@ -357,7 +357,7 @@ static bool_t __MSRst(tagPPP *ppp) {
     v16 = htons(v16);
     __OptItemInit(&opts->tab[EN_LCP_OPT_MRU], LCP_OPT_MRU, (u8 *) &v16,
             sizeof(v16),CN_OPT_EN | CN_OPT_W);
-    v32 = (u32) DjyGetSysTime();
+    v32 = (u32) DJY_GetSysTime();
     ppp->magichost = v32;
     v32 = htonl(v32);
     __OptItemInit(&opts->tab[EN_LCP_OPT_MAGIC], LCP_OPT_MAGIC, (u8 *) &v32,
@@ -374,7 +374,7 @@ static bool_t __MSRst(tagPPP *ppp) {
     v16 = htons(v16);
     __OptItemInit(&opts->tab[EN_LCP_OPT_MRU], LCP_OPT_MRU, (u8 *) &v16,
             sizeof(v16), CN_OPT_EN | CN_OPT_W);
-    v32 = (u32) DjyGetSysTime();
+    v32 = (u32) DJY_GetSysTime();
     v32 = htonl(v32);
     __OptItemInit(&opts->tab[EN_LCP_OPT_MAGIC], LCP_OPT_MAGIC, (u8 *) &v32,
             sizeof(v32), CN_OPT_EN | CN_OPT_W);
@@ -613,7 +613,7 @@ static bool_t __IpDeal(tagPPP *ppp, tagCH *ch, u8 *data, int len) {
         memcpy(dst, (void *) ch, lenframe);
         PkgSetDataLen(pkg, lenframe);
 //      pkg->datalen = lenframe;
-        NetDevPush(ppp->fdnet, pkg);
+        Link_NetDevPush(ppp->fdnet, pkg);
         PkgTryFreePart(pkg);
     }
     return true;
@@ -965,7 +965,7 @@ static bool_t __NcpDeal(tagPPP *ppp, tagCH *ch, u8 *data, u16 len) {
             routpara.net = &addr.net;
             routpara.broad = &addr.broad;
             ppp->routwan = RouterCreate(&routpara);
-            DnsSet(EN_IPV_4,&ppp->dnsaddr,NULL);
+            DNS_Set(EN_IPV_4,&ppp->dnsaddr,NULL);
             __ChangeMS(ppp, EN_PPP_NETWORK);
             //here we call the uplayer that the ip get here
             NetDevPostEvent(ppp->fdnet, EN_NETDEVEVENT_IPGET);
@@ -1047,7 +1047,7 @@ static void __TimeoutCheck(tagPPP *ppp) {
     s64 timenow;
     u32 v32;
     //maybe timeout, we should check if any ppp to do the timeout resend
-    timenow = DjyGetSysTime();
+    timenow = DJY_GetSysTime();
     switch (ppp->ms.stat) {
         case EN_PPP_DEAD:
             break;
@@ -1275,9 +1275,9 @@ static void __PppDevDel(tagPPP *ppp) {
     net_free((void *) ppp);
 }
 //use this function to deal with the ppp dial here
-ptu32_t __ClientMain(void) {
+ptu32_t __TFTP_ClientMain(void) {
     tagPPP *ppp;
-    Djy_GetEventPara((ptu32_t *) &ppp, NULL);
+    DJY_GetEventPara((ptu32_t *) &ppp, NULL);
     if (NULL == ppp) {
         debug_printf("PPP","%s:para invalid\n\r", __FUNCTION__);
         return 0;
@@ -1293,7 +1293,7 @@ ptu32_t __ClientMain(void) {
     while (1) {
         //here we're waiting for the at reg start command,which means
         while (ppp->start == false ) {
-            Djy_EventDelay(1000*mS);
+            DJY_EventDelay(1000*mS);
         }
         //first should do the reset here
         __MSRst(ppp);
@@ -1323,7 +1323,7 @@ ptu32_t __ClientMain(void) {
                 __DataDecode(ppp, ppp->rcvbuf.cache, ppp->rcvbuf.lencache);
             }
             else {
-                Djy_EventDelay(10 * mS); //do some wait here
+                DJY_EventDelay(10 * mS); //do some wait here
             }
             __TimeoutCheck(ppp);      //check the machine state
         }
@@ -1444,8 +1444,8 @@ bool_t PppInit(void) {
 //    PppIoInit(0);
 //    extern bool_t PppAtInit(ptu32_t para);
 //    PppAtInit(0);
-    gPppEvttID = Djy_EvttRegist(EN_INDEPENDENCE, CN_PPP_TASKPRIOR, 0, CN_PPP_DEVLIMIT,
-            __ClientMain, NULL, CN_PPP_TASKSTACKSIZE, "PPPCLIENT");
+    gPppEvttID = DJY_EvttRegist(EN_INDEPENDENCE, CN_PPP_TASKPRIOR, 0, CN_PPP_DEVLIMIT,
+            __TFTP_ClientMain, NULL, CN_PPP_TASKSTACKSIZE, "PPPCLIENT");
     if (gPppEvttID == CN_EVENT_ID_INVALID) {
         return result;
     }
@@ -1461,7 +1461,7 @@ static bool_t __PppAddTask(tagPPP *ppp) {
     u16 eventID;
 
     if ((NULL != ppp) && (CN_EVTT_ID_INVALID != gPppEvttID)) {
-        eventID = Djy_EventPop(gPppEvttID, NULL, 0, (ptu32_t) ppp, 0, 0);
+        eventID = DJY_EventPop(gPppEvttID, NULL, 0, (ptu32_t) ppp, 0, 0);
         if (CN_EVENT_ID_INVALID != eventID) {
             pPPPClient = ppp;
             result = true;

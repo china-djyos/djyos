@@ -912,7 +912,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;

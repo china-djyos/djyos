@@ -118,15 +118,15 @@ enDHCPStatus DHCP_ConnetStatus(enDHCPCmd cmd,enDHCPStatus status)
     }
     return temp_flag;
 }
-//WaitDhcpDone
+//DHCP_WaitDhcpDone
 //ifname: interface name of net card
 //timeout: microsecond
-int WaitDhcpDone(char *ifname, unsigned int timeout)
+int DHCP_WaitDhcpDone(char *ifname, unsigned int timeout)
 {
     int ret = 0;
     tagTaskItem     *tmp;
 
-    s64 timemark = DjyGetSysTime(); //microsecond
+    s64 timemark = DJY_GetSysTime(); //microsecond
     unsigned int spend=0;
     while (mutex_lock(gClientCB.lock))
     {
@@ -144,12 +144,12 @@ int WaitDhcpDone(char *ifname, unsigned int timeout)
             }
         }
         mutex_unlock(gClientCB.lock);
-        spend = DjyGetSysTime()-timemark;
+        spend = DJY_GetSysTime()-timemark;
         if (spend > timeout) {
             break;
         }
         else {
-            Djy_EventDelay(300*1000); //re-schedule
+            DJY_EventDelay(300*1000); //re-schedule
         }
     }
 
@@ -157,7 +157,7 @@ int WaitDhcpDone(char *ifname, unsigned int timeout)
 }
 int net_set_dhcp_ip(struct NetDev *pNetDev, u32 ip_temp);
 //do the reply message deal
-static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
+static bool_t __DHCP_CpyReplyMsg(tagDhcpMsg *msg)
 {
     u32              renew_counter;
     u32              txid;
@@ -171,7 +171,7 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
         return result;
     }
     memset(&reply,0,sizeof(reply));
-    pasteDhcpReplyMsg(&reply,msg);
+    DHCP_PasteDhcpReplyMsg(&reply,msg);
 
     txid = ntohl(msg->xid);
     tmp = gClientCB.lst;
@@ -234,7 +234,7 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
                 routpara.hop = NULL;
                 routpara.prior = CN_ROUT_PRIOR_UNI;
                 tmp->routlan = RouterCreate(&routpara);
-                DnsSet(EN_IPV_4,&reply.dns1,&reply.dns2);
+                DNS_Set(EN_IPV_4,&reply.dns1,&reply.dns2);
                 NetDevPostEvent(NetDevGet(tmp->ifname),EN_NETDEVEVENT_IPGET);
                 DHCP_ConnetStatus(EN_DHCP_SET_STATUS_CMD,EN_DHCP_CONNET_STATUS);
                 if(tmp->sem) {
@@ -260,7 +260,7 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
     return result;
 }
 
-static void __dealTask(void)
+static void __DHCP_DealTask(void)
 {
     tagTaskItem      *task;
 
@@ -279,7 +279,7 @@ static void __dealTask(void)
                 reqpara.transaction = task->transID;
                 reqpara.reqip = INADDR_ANY;
 
-                makeDhcpRequestMsg(&gClientCB.msg,&reqpara);
+                DHCP_MakeDhcpRequestMsg(&gClientCB.msg,&reqpara);
                 send(gClientCB.sockfd,(void *)&gClientCB.msg,sizeof(gClientCB.msg),0);
                 task->timeout = CN_DHCP_TIMEOUT;
             }
@@ -297,7 +297,7 @@ static void __dealTask(void)
                     reqpara.dhcpserver = task->offerserver;
                 }
 
-                makeDhcpRequestMsg(&gClientCB.msg,&reqpara);
+                DHCP_MakeDhcpRequestMsg(&gClientCB.msg,&reqpara);
                 send(gClientCB.sockfd,(void *)&gClientCB.msg,sizeof(gClientCB.msg),0);
                 task->timeout = CN_DHCP_TIMEOUT;
                 if(task->try_cnts++ > 8) {//超时复位从头申请,8秒没回应,就重来，这过程基本都很快才合理。
@@ -329,7 +329,7 @@ static void __dealTask(void)
 }
 
 //dhcpclient ticker
-static void __DhcpclientTicker(void)
+static void __DHCP_ClientTicker(void)
 {
     int               recvlen =0;
     if(mutex_lock(gClientCB.lock))
@@ -338,10 +338,10 @@ static void __DhcpclientTicker(void)
             recvlen = recv(gClientCB.sockfd, (void *)&gClientCB.msg, sizeof(gClientCB.msg), 0);
             if(recvlen >0) //if any message here
             {
-                __cpyReplyMsg(&gClientCB.msg);
+                __DHCP_CpyReplyMsg(&gClientCB.msg);
             }
         }while(recvlen > 0);
-        __dealTask();//check all the task,if any work need to do
+        __DHCP_DealTask();//check all the task,if any work need to do
         mutex_unlock(gClientCB.lock);
     }
 
@@ -386,7 +386,7 @@ int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(unsigned int ip));
 int net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp);
 //if you want to use the interface to get a ipv4 dynamic, then call this function
 
-bool_t DhcpAddClientTask(const char *ifname)
+bool_t DHCP_AddClientTask(const char *ifname)
 {
     bool_t ret = false;
     tagTaskItem *task;
@@ -476,7 +476,7 @@ EXIT_MEM:
 //do the client socket int ,after this ,we could read and write the client socket,
 //which means we could do the client socket communicate; this func returns the
 //socket of the client
-static int __sockfdinit(void)
+static int __DHCP_SockFdInit(void)
 {
     int ret = -1;
     struct sockaddr_in ipportaddr;
@@ -524,7 +524,7 @@ ERR_SOCKET:
     return ret;
 }
 //this is main dhcp client module
-static bool_t  DhcpClientInit(void)
+static bool_t  DHCP_ClientInit(void)
 {
     bool_t  ret = false;
 
@@ -536,14 +536,14 @@ static bool_t  DhcpClientInit(void)
         error_printf("dhcp","%s:LOCL CREATE FAILED\n\r",__FUNCTION__);
         goto EXIT_LOCK;
     }
-    gClientCB.ticker = NetTickerIsrInstall("DHCPCLIENT",__DhcpclientTicker,\
+    gClientCB.ticker = NetTickerIsrInstall("DHCPCLIENT",__DHCP_ClientTicker,\
                                             CN_DHCP_TICKER_CYCLE);
     if(NULL == gClientCB.ticker)
     {
         error_printf("dhcp","%s:TICKER CREATE FAILED\n\r",__FUNCTION__);
         goto EXIT_TICKER;
     }
-    gClientCB.sockfd = __sockfdinit();
+    gClientCB.sockfd = __DHCP_SockFdInit();
     if(-1 == gClientCB.sockfd)
     {
         error_printf("dhcp","SOCKFD INITIALIZE FAILED");
@@ -562,10 +562,10 @@ EXIT_LOCK:
 }
 
 //this is the dhcp entry
-bool_t ServiceDhcpcInit(void)
+bool_t DHCP_ServiceDhcpcInit(void)
 {
     bool_t result;
-    result = DhcpClientInit();
+    result = DHCP_ClientInit();
     return result;
 }
 

@@ -163,7 +163,7 @@ typedef struct
 // =============================================================================
 bool_t __Timer_Get64Time(s64 *time)
 {
-    *time = DjyGetSysTime();
+    *time = DJY_GetSysTime();
     return true;
 }
 // =============================================================================
@@ -328,7 +328,7 @@ u32 __Timer_DealTimeout(void)
     {
         if(timer->stat &CN_TIMER_ENCOUNT)
         {
-            timenow = DjyGetSysTime();     //使用系统64位不停表的定时器，可消除
+            timenow = DJY_GetSysTime();     //使用系统64位不停表的定时器，可消除
                                         //定时器中断启停之间产生的积累误差
             if(__Timer_ChkTimeout(timer, timenow))
             {
@@ -630,7 +630,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
                     if(0 ==(CN_TIMER_ENCOUNT & timer->stat))    //本来未使能
                     {
                         timer->stat |= CN_TIMER_ENCOUNT;
-                        timenow = DjyGetSysTime(); //使用系统64位不停表的定时器，可消除
+                        timenow = DJY_GetSysTime(); //使用系统64位不停表的定时器，可消除
                                                 //定时器中断启停之间产生的积累误差
                         timer->deadline = timenow + timer->cycle;
                         __Timer_Remove(timer);
@@ -650,7 +650,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
                     timer->cycle = para;
                     if(CN_TIMER_ENCOUNT&timer->stat)
                     {
-                        timenow = DjyGetSysTime(); //使用系统64位不停表的定时器，可消除
+                        timenow = DJY_GetSysTime(); //使用系统64位不停表的定时器，可消除
                                                 //定时器中断启停之间产生的积累误差
                         timer->deadline = timenow + timer->cycle;
                         __Timer_Remove(timer);
@@ -728,7 +728,7 @@ ptu32_t  Timer_VMTask(void)
                     if(0 ==(CN_TIMER_ENCOUNT & timer->stat))    //本来未使能
                     {
                         timer->stat |= CN_TIMER_ENCOUNT;
-                        timenow = DjyGetSysTime(); //使用系统64位不停表的定时器，可消除
+                        timenow = DJY_GetSysTime(); //使用系统64位不停表的定时器，可消除
                                                 //错过tick中断产生的积累误差
                         timer->deadline = timenow + timer->cycle;
                         __Timer_Remove(timer);
@@ -748,7 +748,7 @@ ptu32_t  Timer_VMTask(void)
                     timer->cycle = para;
                     if(CN_TIMER_ENCOUNT&timer->stat)
                     {
-                        timenow = DjyGetSysTime(); //使用系统64位不停表的定时器，可消除
+                        timenow = DJY_GetSysTime(); //使用系统64位不停表的定时器，可消除
                                                 //错过tick中断产生的积累误差
                         timer->deadline = timenow + timer->cycle;
                         __Timer_Remove(timer);
@@ -879,7 +879,7 @@ bool_t ModuleInstall_Timer(void)
         }
         else
         {
-            u16EvttId = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS-2,0,0,
+            u16EvttId = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS-2,0,0,
                                    Timer_VMTask,NULL,0x1000,NULL);
             if(CN_EVTT_ID_INVALID == u16EvttId)
             {
@@ -890,12 +890,12 @@ bool_t ModuleInstall_Timer(void)
             else
             {
                 s_u32TimerPrecision = CN_CFG_TICK_US;   //精度=1个tick
-                u16EventId = Djy_EventPop(u16EvttId,NULL,0,0,0,0);
+                u16EventId = DJY_EventPop(u16EvttId,NULL,0,0,0,0);
                 if(CN_EVENT_ID_INVALID == u16EventId)
                 {
                     MsgQ_Delete(ptTimerMsgQ);
                     ptTimerMsgQ = NULL;
-                    Djy_EvttUnregist(u16EventId);
+                    DJY_EvttUnregist(u16EventId);
                     goto EXIT_TIMERFAILED;
                 }
             }

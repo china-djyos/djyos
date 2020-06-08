@@ -65,11 +65,11 @@
 
 u32 Git_SysTickCnt();
 void Set_SysTickEnd(u32 value);
-void  Djy_ScheduleIsr(u32 inc_ticks);
+void  DJY_ScheduleIsr(u32 inc_ticks);
 
 
 extern struct IntMasterCtrl  tg_int_global;
-extern void __Djy_ScheduleAsynSignal(void);
+extern void __DJY_ScheduleAsynSignal(void);
 
 #define CFG_TICKMODE_DYNAMIC        true
 #define CFG_REAL_CRITICAL           100     //若距离当前tick中断时间小于此数，则不修改tick中断时间
@@ -125,7 +125,7 @@ void Exp_SystickTickHandler(void)
     g_s64OsTicks += s_gCurrentTicks;
     s_gCurrentTicks = 1;
 
-    Djy_ScheduleIsr(s_gCurrentTicks);
+    DJY_ScheduleIsr(s_gCurrentTicks);
     tg_int_global.nest_asyn_signal--;
     g_bScheduleEnable = true;
 }

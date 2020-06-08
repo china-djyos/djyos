@@ -130,8 +130,8 @@ int IeTask(void)
 
     while(1)
     {
-        Djy_WaitEvttPop(gIeEvttID,NULL,CN_TIMEOUT_FOREVER);
-        Djy_GetEventPara(&url,NULL);
+        DJY_WaitEvttPop(gIeEvttID,NULL,CN_TIMEOUT_FOREVER);
+        DJY_GetEventPara(&url,NULL);
         if(NULL == url)
         {
             goto ONECE_MORE;
@@ -193,9 +193,9 @@ bool_t IeShell(char *param)
 {
     if(NULL != param)
     {
-        Djy_EventPop(gIeEvttID, NULL, 0, param, 0, 0);
+        DJY_EventPop(gIeEvttID, NULL, 0, param, 0, 0);
 
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
     }
     return true;
 }
@@ -207,7 +207,7 @@ bool_t IeShell(char *param)
 //usage:use this function to add the url debug to the kernel
 int Ghttp_main(int argc, char *argv[])
 {
-    gIeEvttID = Djy_EvttRegist(EN_CORRELATIVE, 200, 0, 1,IeTask,NULL, 0X2000,"ie");
+    gIeEvttID = DJY_EvttRegist(EN_CORRELATIVE, 200, 0, 1,IeTask,NULL, 0X2000,"ie");
     if(gIeEvttID == CN_EVTT_ID_INVALID)
     {
         return -1;

@@ -93,7 +93,7 @@ u16 __AT24_PageProgram(u16 wAddr, u8 *pbyBuf, u16 wBytesNum)
     IIC_Write(s_ptAT24_Dev,wAddr,pbyBuf,wBytesNum,true,s_AT24_Timeout);
 
     //AT24内部写时间，最大为10mS
-    Djy_DelayUs(10*mS);
+    DJY_DelayUs(10*mS);
 
     return wBytesNum;
 }
@@ -113,7 +113,7 @@ u32 __AT24_PageRead(u16 wAddr, u8 *pbyBuf, u16 wBytesNum)
     IIC_Read(s_ptAT24_Dev,wAddr,pbyBuf,wBytesNum,s_AT24_Timeout);
 
     //AT24内部写时间，最大为10mS
-    Djy_DelayUs(10*mS);
+    DJY_DelayUs(10*mS);
 
     return wBytesNum;
 }

@@ -176,7 +176,7 @@ int AtCmd(const char *devname,char *cmd,u8 *buf,int buflen,int argc,char *argv[]
         goto EXIT_WRITEFAILED;
     }
 
-    Djy_EventDelay(1000*mS);//just wait for the echo back
+    DJY_EventDelay(1000*mS);//just wait for the echo back
     //if need the result,then we will wait for the timeout
     if((NULL != buf)&&(buflen>0))
     {
@@ -203,7 +203,7 @@ int AtCmd(const char *devname,char *cmd,u8 *buf,int buflen,int argc,char *argv[]
                 {
                     //do nothing
                 }
-                Djy_EventDelay(10*mS);//just wait for another package
+                DJY_EventDelay(10*mS);//just wait for another package
             }
             else
             {

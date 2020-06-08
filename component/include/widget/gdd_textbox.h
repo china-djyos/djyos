@@ -122,7 +122,7 @@ typedef struct
 // 输出参数: 无。
 // 返回值  :成功则返回文本框句柄，失败则返回NULL。
 // =============================================================================
-HWND CreateTextBox(const char *Text,u32 Style,
+HWND Widget_CreateTextBox(const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
                     HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink);
@@ -136,7 +136,7 @@ HWND CreateTextBox(const char *Text,u32 Style,
 //          输入字符串指针.
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-bool_t TextBox_TextCtrl(HWND hwnd,u8 ctrlcmd,ptu32_t para1);
+bool_t Widget_TextBoxTextCtrl(HWND hwnd,u8 ctrlcmd,ptu32_t para1);
 
 
 #if __cplusplus

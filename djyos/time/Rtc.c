@@ -97,7 +97,7 @@ s64 __Rtc_Time(s64 *rtctime)
     s64 systime;
     atom_low_t atom;
 
-    systime = DjyGetSysTime();
+    systime = DJY_GetSysTime();
 
     if((sgRtcUpdateTime2SysTime/CN_RTC_UNIT_SECOND) ==(systime/CN_RTC_UNIT_SECOND))
     {
@@ -183,7 +183,7 @@ s64 __Rtc_TimeUs(s64 *rtctime)
     s64 systime;
     atom_low_t atom;
 
-    systime = DjyGetSysTime();
+    systime = DJY_GetSysTime();
     //we'd better to get the RTC time now
     if(NULL == fnRtcGetTime)
     {
@@ -253,7 +253,7 @@ bool_t __Rtc_SetTime(s64 rtctime)
 
     s64 systime;
 
-    systime = DjyGetSysTime();
+    systime = DJY_GetSysTime();
 
     if(NULL == fnRtcSetTime)
     {

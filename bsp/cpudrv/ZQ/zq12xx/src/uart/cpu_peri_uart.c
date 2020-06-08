@@ -491,7 +491,7 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd,va_list *arg0)
             while(__UART_TxFIFO_Empty(Reg) && (timeout > 10))
             {
                 timeout -=10;
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
             }
             Board_UartHalfDuplexRecv(port);
             break;
@@ -679,8 +679,8 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         }
         else
         {
-//          Djy_EventDelay(1000);
-            Djy_DelayUs(1000);
+//          DJY_EventDelay(1000);
+            DJY_DelayUs(1000);
         }
     }
 
@@ -706,7 +706,7 @@ char Uart_GetCharDirect(void)
             break;
         }
         printk("bsp uart\r\n");
-        Djy_EventDelay(500);
+        DJY_EventDelay(500);
     }
 
 //  Reg->IMSC &= ~((1<<4)|(1<<6));

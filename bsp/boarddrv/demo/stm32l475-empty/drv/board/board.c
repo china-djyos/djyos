@@ -283,7 +283,7 @@ void Wdt_FeedDog(void)
 #include "cpu_peri_lptimer.h"
 #include "tickless.h"
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
-extern void __Djy_ScheduleAsynSignal(void);
+extern void __DJY_ScheduleAsynSignal(void);
 static uint32_t DjyBsp_UserTimerIsrHandle(uint32_t param);
 #define TIME_GLUE           CN_CFG_FINE_US
 #define FAST_TIME_GLUE      CN_CFG_FINE_HZ
@@ -449,7 +449,7 @@ static uint32_t DjyBsp_UserTimerIsrHandle(uint32_t param)
     tg_int_global.nest_asyn_signal = 0;
     tg_int_global.en_asyn_signal_counter = 0;
     if(g_ptEventReady != g_ptEventRunning)
-        __Djy_ScheduleAsynSignal();       //执行中断内调度
+        __DJY_ScheduleAsynSignal();       //执行中断内调度
     g_bScheduleEnable = true;
     return 0;
 }

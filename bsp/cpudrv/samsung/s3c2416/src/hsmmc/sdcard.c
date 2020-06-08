@@ -177,7 +177,7 @@ s32  ModuleInstall_SD(const char *targetfs,u8 doformat)
     Ret = S3c2416_HsmmcInit(1);
     if(0 == Ret)
     {
-        if(dev_Create(ChipName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)ChipName)))
+        if(Device_Create(ChipName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)ChipName)))
         {
             if((false == doformat) || ((doformat) &&
               (0 != S3c2416_BlkErase(0, ((Card.CapacityInBytes >> Card.BlkLenSettings)-1)))))
@@ -188,13 +188,13 @@ s32  ModuleInstall_SD(const char *targetfs,u8 doformat)
 
             if(targetfs != NULL)
             {
-                targetobj = obj_matchpath(targetfs, &notfind);
+                targetobj = OBJ_MatchPath(targetfs, &notfind);
                 if(notfind)
                 {
                     error_printf("SDCARD"," not found need to install file system.");
                     return -1;
                 }
-                super = (struct FsCore *)obj_GetPrivate(targetobj);
+                super = (struct FsCore *)OBJ_GetPrivate(targetobj);
                 super->MediaInfo = ChipName;
                 if(strcmp(super->pFsType->pType, "FAT") == 0)      //这里的"FAT"为文件系统的类型名，在文件系统的filesystem结构中
                 {
@@ -209,7 +209,7 @@ s32  ModuleInstall_SD(const char *targetfs,u8 doformat)
 
                 FullPath = malloc(strlen(ChipName)+strlen(s_ptDeviceRoot->name));  //获取msc的完整路径
                 sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,ChipName);
-                FsBeMedia(FullPath,targetfs);     //在msc上挂载文件系统
+                File_BeMedia(FullPath,targetfs);     //在msc上挂载文件系统
                 free(FullPath);
             }
             else

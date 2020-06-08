@@ -116,7 +116,7 @@ uint16_t wlan_standard_chksum(const void *dataptr, int len)
 //
 //    memset(data, 0, sizeof(struct wlan_fast_connect));
 //
-//    GetNameValueFS(CFG_FAST_DATA_FILE_NAME,data,sizeof(data));
+//    File_GetNameValueFs(CFG_FAST_DATA_FILE_NAME,data,sizeof(data));
 //    crc1 = data[(sizeof(struct wlan_fast_connect) + 4 - 1 ) / 4];
 //    crc2 = wlan_standard_chksum(data, sizeof(struct wlan_fast_connect));
 //    if ((data[0] != ~0x0)   && (crc1 == crc2)) // 0xFFFFFFFF
@@ -162,7 +162,7 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
     memset(md5_tmp, 0, sizeof(md5_tmp));
     memset(new_buf, 0, BLOCK_SIZE);
 
-    ret = GetNameValueFS(CFG_FAST_DATA_FILE_NAME, new_buf, BLOCK_SIZE);
+    ret = File_GetNameValueFs(CFG_FAST_DATA_FILE_NAME, new_buf, BLOCK_SIZE);
     if(ret <= 0) {
         goto FUN_RET;
     }
@@ -173,9 +173,9 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
         //printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
         if (strcmp(p[cnt-1].ssid, ssid) == 0 ){
             if (passwd) {
-                MD5Init(&ctx);
-                MD5Update(&ctx, passwd, strlen(passwd));
-                MD5Final(md5_tmp, &ctx);
+                MD5_Init(&ctx);
+                MD5_Update(&ctx, passwd, strlen(passwd));
+                MD5_Final(md5_tmp, &ctx);
                 if(memcmp(p[cnt-1].md5_passphrase, md5_tmp, sizeof(md5_tmp)) != 0){//密码不匹配
                     cnt--;
                     continue;
@@ -266,7 +266,7 @@ int wlan_fast_connect_info_write(wlan_fast_connect_t *data_info)
 
     memset(new_buf, 0, BLOCK_SIZE);
 
-    ret = GetNameValueFS(CFG_FAST_DATA_FILE_NAME, new_buf, BLOCK_SIZE);
+    ret = File_GetNameValueFs(CFG_FAST_DATA_FILE_NAME, new_buf, BLOCK_SIZE);
     if(ret < 0) {
         goto FUN_RET;
     }
@@ -286,7 +286,7 @@ int wlan_fast_connect_info_write(wlan_fast_connect_t *data_info)
     }
     if(cnt<=0) {//找不到，重新写入
         printf("info: %s, New Item Will Be Writed!\r\n", __FUNCTION__);
-        SetNameValueFS(CFG_FAST_DATA_FILE_NAME, data_info, sizeof(struct wlan_fast_connect));
+        File_SetNameValueFs(CFG_FAST_DATA_FILE_NAME, data_info, sizeof(struct wlan_fast_connect));
         ret = 1;
     }
 

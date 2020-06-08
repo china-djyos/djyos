@@ -296,13 +296,13 @@ static USBH_StatusTypeDef __AcquirePipe(void *pPipe, uint32_t *pTimeout)
 {
     s64 log;
 
-    log = DjyGetSysTime();
+    log = DJY_GetSysTime();
     if(FALSE == Lock_MutexPend(pPipe, *pTimeout))
         return (USBH_BUSY); // timeout
 
     if(CN_TIMEOUT_FOREVER != *pTimeout)
     {
-        log = DjyGetSysTime() - log;
+        log = DJY_GetSysTime() - log;
 
         if(log >= 0 && log < *pTimeout)
             *pTimeout -= log; // time consumed
@@ -793,7 +793,7 @@ static USBH_StatusTypeDef USBH_CUSTOM_Process (USBH_HandleTypeDef *pHost)
         break;
 
     case CUSTOM_IDLE:
-        Djy_EventDelay(1000000); // 1s跑一次
+        DJY_EventDelay(1000000); // 1s跑一次
         break;
     default:
         break;
@@ -876,13 +876,13 @@ USBH_StatusTypeDef  USBH_CUSTOM_AT_Transmit (USBH_HandleTypeDef *pHost, uint8_t 
         if(0 < dwTimeout)
         {
             chandle->eAT_TxState = CUSTOM_SEND_DATA;
-            log = DjyGetSysTime();
+            log = DJY_GetSysTime();
             while(1)
             {
                 status = __AT_ProcessTransmission(pHost, &pBuff, pLength);
                 if(USBH_OK == status)
                     break; // done
-                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DjyGetSysTime() - log) > dwTimeout))
+                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DJY_GetSysTime() - log) > dwTimeout))
                     break; // timeout
             }
         }
@@ -918,14 +918,14 @@ USBH_StatusTypeDef  USBH_CUSTOM_AT_Receive (USBH_HandleTypeDef *pHost, uint8_t *
         if(0 < dwTimeout)
         {
             chandle->eAT_RxState = CUSTOM_RECEIVE_DATA;
-            log = DjyGetSysTime();
+            log = DJY_GetSysTime();
             while(1)
             {
                 status = __AT_ProcessReception(pHost, &pBuff, pLength, dwTimeout);
                 if(USBH_OK == status)
                     break; // done
 
-                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DjyGetSysTime() - log) > dwTimeout))
+                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DJY_GetSysTime() - log) > dwTimeout))
                     break; // timeout
 
             }
@@ -962,13 +962,13 @@ USBH_StatusTypeDef  USBH_CUSTOM_AT_Int (USBH_HandleTypeDef *pHost, uint8_t *pBuf
         if(0 < dwTimeout)
         {
             chandle->eAT_IntState = CUSTOM_RECEIVE_DATA;
-            log = DjyGetSysTime();
+            log = DJY_GetSysTime();
             while(1)
             {
                 status = __AT_ProcessInt(pHost, pBuff, pLength);
                 if(USBH_OK == status)
                     break; // done
-                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DjyGetSysTime() - log) > dwTimeout))
+                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DJY_GetSysTime() - log) > dwTimeout))
                     break; // timeout
             }
         }
@@ -1004,13 +1004,13 @@ USBH_StatusTypeDef  USBH_CUSTOM_MODEM_Transmit (USBH_HandleTypeDef *pHost, uint8
         if(0 < dwTimeout)
         {
             chandle->eMODEM_TxState = CUSTOM_SEND_DATA;
-            log = DjyGetSysTime();
+            log = DJY_GetSysTime();
             while(1)
             {
                 status = __MODEM_ProcessTransmission(pHost, &pBuff, pLength);
                 if(USBH_OK == status)
                     break; // done
-                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DjyGetSysTime() - log) > dwTimeout))
+                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DJY_GetSysTime() - log) > dwTimeout))
                     break; // timeout
             }
         }
@@ -1046,14 +1046,14 @@ USBH_StatusTypeDef  USBH_CUSTOM_MODEM_Receive (USBH_HandleTypeDef *pHost, uint8_
         if(0 < dwTimeout)
         {
             chandle->eMODEM_RxState = CUSTOM_RECEIVE_DATA;
-            log = DjyGetSysTime();
+            log = DJY_GetSysTime();
             while(1)
             {
                 status = __MODEM_ProcessReception(pHost, &pBuff, pLength, dwTimeout);
                 if(USBH_OK == status)
                     break; // done
 
-                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DjyGetSysTime() - log) > dwTimeout))
+                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DJY_GetSysTime() - log) > dwTimeout))
                     break; // timeout
             }
         }
@@ -1089,13 +1089,13 @@ USBH_StatusTypeDef  USBH_CUSTOM_MODEM_Int (USBH_HandleTypeDef *pHost, uint8_t *p
         if(0 < dwTimeout)
         {
             chandle->eMODEM_IntState = CUSTOM_RECEIVE_DATA;
-            log = DjyGetSysTime();
+            log = DJY_GetSysTime();
             while(1)
             {
                 status = __MODEM_ProcessInt(pHost, pBuff, pLength);
                 if(USBH_OK == status)
                     break; // done
-                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DjyGetSysTime() - log) > dwTimeout))
+                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DJY_GetSysTime() - log) > dwTimeout))
                     break; // timeout
             }
         }
@@ -1131,13 +1131,13 @@ USBH_StatusTypeDef  USBH_CUSTOM_DEBUG_Transmit (USBH_HandleTypeDef *pHost, uint8
         if(0 < dwTimeout)
         {
             chandle->eDEBUG_TxState = CUSTOM_SEND_DATA;
-            log = DjyGetSysTime();
+            log = DJY_GetSysTime();
             while(1)
             {
                 status = __DEBUG_ProcessTransmission(pHost, &pBuff, pLength);
                 if(USBH_OK == status)
                     break; // done
-                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DjyGetSysTime() - log) > dwTimeout))
+                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DJY_GetSysTime() - log) > dwTimeout))
                     break; // timeout
             }
         }
@@ -1173,14 +1173,14 @@ USBH_StatusTypeDef  USBH_CUSTOM_DEBUG_Receive (USBH_HandleTypeDef *pHost, uint8_
         if(0 < dwTimeout)
         {
             chandle->eDEBUG_RxState = CUSTOM_RECEIVE_DATA;
-            log = DjyGetSysTime();
+            log = DJY_GetSysTime();
             while(1)
             {
                 status = __DEBUG_ProcessReception(pHost, &pBuff, pLength, dwTimeout);
                 if(USBH_OK == status)
                     break; // done
 
-                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DjyGetSysTime() - log) > dwTimeout))
+                if((CN_TIMEOUT_FOREVER != dwTimeout) && ((uint32_t)(DJY_GetSysTime() - log) > dwTimeout))
                     break; // timeout
 
             }

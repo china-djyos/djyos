@@ -120,7 +120,7 @@ bool_t UdpServer_Snd(void)
     {
         while(1)
         {
-            Djy_EventDelay(1000*mS);
+            DJY_EventDelay(1000*mS);
         }
     }
     closesocket(server);
@@ -131,11 +131,11 @@ bool_t UdpServer_Snd(void)
 bool_t UdpServer_SndTask(char *param)
 {
    u16   evtt_id = CN_EVTT_ID_INVALID;
-   evtt_id = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1,
+   evtt_id = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1,
         (ptu32_t (*)(void))UdpServer_Snd,NULL, 0x1000, "UdpServer_Snd");
     if (evtt_id != CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(evtt_id, NULL, 0, NULL, 0, 0);
+        DJY_EventPop(evtt_id, NULL, 0, NULL, 0, 0);
     }
     return true;
 }

@@ -865,10 +865,10 @@ static bool_t Set_IIC_DMA_USED(ptu32_t port)
         return false;
     if(pStm32Icb[port].Dmabuf == NULL)
     {
-        heap =M_FindHeap("nocache");
+        heap =Heap_FindHeap("nocache");
         if(heap==NULL)
         {
-            heap =M_FindHeap("sys"); //如果没有“nocache”堆就使用系统堆
+            heap =Heap_FindHeap("sys"); //如果没有“nocache”堆就使用系统堆
             printf("警告UART%d:设置DMA 模式没有找到 nocache Heap",port+1);;
         }
         DmaBufLen =config[port].DmaBufLen;
@@ -1019,7 +1019,7 @@ static bool_t IIC_wait_flags(I2CType *reg,u32 flags,u32 *status)
     while ((!(*status & flags))&&timeout)
     {
         timeout--;
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         *status = reg->ISR;
     }
     if(timeout == 0)
@@ -1456,10 +1456,10 @@ bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
      {
           timeout++;
           GPIO_SettoLow(port,sck_pin);
-          Djy_DelayUs(10);
+          DJY_DelayUs(10);
 
           GPIO_SettoHigh(port,sck_pin);
-          Djy_DelayUs(10);
+          DJY_DelayUs(10);
 
           if(timeout>=100)
               return false;
@@ -1470,9 +1470,9 @@ bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
                          GPIO_OTYPE_OD,GPIO_SPEED_VH,GPIO_PUPD_PU);
     //产生停止信号 iic总线释放
     GPIO_SettoLow(port,sda_pin);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
     GPIO_SettoHigh(port,sda_pin);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
 
     return true;
 }

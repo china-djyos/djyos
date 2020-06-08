@@ -94,7 +94,7 @@ static u32 s_u32BakCounter = 0;         //计数值的备份
 // 返回值  ：
 // 说明：该函数务必在系统初始化的时候调用，务必不能在系统启动后再调用
 // =============================================================================
-void SysTimeConnect(fnSysTimeHard32 GetSysTime32,fnSysTimeHard64 GetSysTime64,
+void DJY_SysTimeConnect(fnSysTimeHard32 GetSysTime32,fnSysTimeHard64 GetSysTime64,
                     u32 Freq,u32 Cycle)
 {
     //不要判GetSysTime32和GetSysTime64是否为NULL，NULL也是一个正确选项。
@@ -110,7 +110,7 @@ void SysTimeConnect(fnSysTimeHard32 GetSysTime32,fnSysTimeHard64 GetSysTime64,
 // 输出参数：
 // 返回值  ：获取的系统运行时间，uS
 // =============================================================================
-s64 DjyGetSysTime(void)
+s64 DJY_GetSysTime(void)
 {
     u32 CurrentTime;
     s64 s64sysTimeMajorBak;
@@ -148,7 +148,7 @@ s64 DjyGetSysTime(void)
 // 输出参数：
 // 返回值  ：获取的系统运行时间，周期数
 // =============================================================================
-s64 DjyGetSysTimeCycle(void)
+s64 DJY_GetSysTimeCycle(void)
 {
     u32 CurrentTime;
     s64 s64sysTimeMajorBak;
@@ -180,7 +180,7 @@ s64 DjyGetSysTimeCycle(void)
 // 输出参数：
 // 返回值  ：获取的系统运行时间，周期数
 // =============================================================================
-void __DjyMaintainSysTime(void)
+void __DJY_MaintainSysTime(void)
 {
     u32 CurrentTime;
     if(s_fnSysTimeHard32 != NULL)
@@ -199,7 +199,7 @@ void __DjyMaintainSysTime(void)
 // 输出参数：
 // 返回值  ：时钟频率，如果用ticks，则固定返回1Mhz
 // =============================================================================
-u32 DjyGetSysTimeFreq(void)
+u32 DJY_GetSysTimeFreq(void)
 {
     return s_u32SysTimeFreq;
 }
@@ -210,7 +210,7 @@ u32 DjyGetSysTimeFreq(void)
 //参数：无
 //返回：当前时钟
 //-----------------------------------------------------------------------------
-s64 __DjyGetSysTick(void)
+s64 __DJY_GetSysTick(void)
 {
     s64 time;
 #if (64 > CN_CPU_BITS)

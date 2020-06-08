@@ -78,9 +78,9 @@ extern "C" {
 #define HAMMING_ERROR_MULTIPLE_BITS      3
 
 
-void hamming_compute_256x(const uint8_t *puc_data, uint32_t dw_size,
+void ECC_HammingCompute256x(const uint8_t *puc_data, uint32_t dw_size,
         uint8_t *puc_code);
-uint32_t hamming_verify_256x(uint8_t *puc_data, uint32_t dw_size,
+uint32_t ECC_HammingVerify256x(uint8_t *puc_data, uint32_t dw_size,
         const uint8_t *puc_code);
 
 #ifdef __cplusplus

@@ -117,7 +117,7 @@ void LP_BSP_ResigerGpioToWakeUpL4(u32 gpio_index_map,u32 gpio_edge_map)
 void __LP_BSP_EntrySleepL4(void)
 {
 //    bk_enter_deep_sleep(gGpioToWakeUpL4.index_map,gGpioToWakeUpL4.edge_map,0);
-    Djy_DelayUs(100000);
+    DJY_DelayUs(100000);
     deep_sleep_wakeup_with_gpio(gGpioToWakeUpL4.index_map,gGpioToWakeUpL4.edge_map);
 }
 
@@ -145,7 +145,7 @@ void LP_DeepSleep(void)
 {
     LP_SetHook(BekenEntrySleepReCall,BekenExitSleepReCall);
     LP_SetSleepLevel(CN_SLEEP_L4);
-    Djy_EventDelay(1000*1000);
+    DJY_EventDelay(1000*1000);
 }
 
 

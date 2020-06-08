@@ -122,7 +122,7 @@ typedef struct VirKeyBoardPara *VBK;
 // 输出参数: 无。
 // 返回值  :成功则返回文本框句柄，失败则返回NULL。
 // =============================================================================
-HWND CreateVirKeyBoard(const char *Text,u32 Style,
+HWND Widget_CreateVirKeyBoard(const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
                     HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink);

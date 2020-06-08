@@ -147,14 +147,14 @@ bool_t PHY_Init(void)
     int32_t PHYLinkState;
     ETH_MACConfigTypeDef MACConf;
     /* Set PHY IO functions */
-//    Djy_DelayUs(500*1000);
+//    DJY_DelayUs(500*1000);
 //    PCF8574_Init();                         //初始化PCF8574
     LAN8720_RegisterBusIO(&LAN8720_IOCtx);
-    Djy_DelayUs(1000);
+    DJY_DelayUs(1000);
     PCF8574_WriteBit(ETH_RESET_IO,1);       //硬件复位
-    Djy_DelayUs(50*1000);
+    DJY_DelayUs(50*1000);
     PCF8574_WriteBit(ETH_RESET_IO,0);       //复位结束
-    Djy_DelayUs(50*1000);
+    DJY_DelayUs(50*1000);
     LAN8720_ResetInit();
     PHYLinkState = LAN8720_GetLinkState();
     switch(PHYLinkState)
@@ -246,7 +246,7 @@ void ModuleInstall_InitNet(void)   //static ip example
     }
 
 #else
-    if(DhcpAddClientTask(CFG_SELECT_NETCARD))
+    if(DHCP_AddClientTask(CFG_SELECT_NETCARD))
     {
        printk("%s:Add %s success\r\n",__FUNCTION__,CFG_SELECT_NETCARD);
     }

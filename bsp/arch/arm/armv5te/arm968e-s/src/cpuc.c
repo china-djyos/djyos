@@ -98,25 +98,25 @@ __attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
 #if 0
 #include <Iboot_Info.h>
 
-extern void Load_Preload(void);
-//void reboot(u32 key)
+extern void Iboot_LoadPreload(void);
+//void CPU_Reboot(u32 key)
 //{
 //
 //}
 
-void reset(u32 key)
+void CPU_Reset(u32 key)
 {
-    Set_SoftResetFlag();
+    Iboot_SetSoftResetFlag();
 #if (CFG_RUNMODE_BAREAPP == 0)
-    Set_PreviouResetFlag();
+    Iboot_SetPreviouResetFlag();
 #endif
     void (*fn_start)();
     fn_start = 0x0;
     fn_start();
 //  _start();
 }
-void restart_system(u32 key)
+void CPU_RestartSystem(u32 key)
 {
-    Load_Preload();
+    Iboot_LoadPreload();
 }
 #endif

@@ -67,7 +67,7 @@
 //注，本函数只能防止线程或普通中断(异步信号)共享冲突，如果你在实时中断中访问base
 //    导致共享冲突，神仙也救不了你
 //-----------------------------------------------------------------------------
-void atom_set32(u32 *base, u32 value)
+void Atom_Set32(u32 *base, u32 value)
 {
     atom_low_t atom;
     atom = Int_LowAtomStart();
@@ -83,7 +83,7 @@ void atom_set32(u32 *base, u32 value)
 //注，本函数只能防止线程或普通中断(异步信号)共享冲突，如果你在实时中断中访问base
 //    导致共享冲突，神仙也救不了你
 //-----------------------------------------------------------------------------
-void atom_set64(u64 *base, u64 value)
+void Atom_Set64(u64 *base, u64 value)
 {
     atom_low_t atom;
     atom = Int_LowAtomStart();
@@ -99,7 +99,7 @@ void atom_set64(u64 *base, u64 value)
 //注，本函数只能防止线程或普通中断(异步信号)共享冲突，如果你在实时中断中访问base
 //    导致共享冲突，神仙也救不了你
 //-----------------------------------------------------------------------------
-void atom_uadd32(u32 *base, u32 inc)
+void Atom_UADD32(u32 *base, u32 inc)
 {
     atom_low_t atom;
     atom = Int_LowAtomStart();
@@ -115,7 +115,7 @@ void atom_uadd32(u32 *base, u32 inc)
 //注，本函数只能防止线程或普通中断(异步信号)共享冲突，如果你在实时中断中访问base
 //    导致共享冲突，神仙也救不了你
 //-----------------------------------------------------------------------------
-void atom_usub32(u32 *base, u32 sub)
+void Atom_USUBb2(u32 *base, u32 sub)
 {
     atom_low_t atom;
     atom = Int_LowAtomStart();
@@ -131,7 +131,7 @@ void atom_usub32(u32 *base, u32 sub)
 //注，本函数只能防止线程或普通中断(异步信号)共享冲突，如果你在实时中断中访问base
 //    导致共享冲突，神仙也救不了你
 //-----------------------------------------------------------------------------
-void atom_sadd32(s32 *base, s32 inc)
+void Atom_SADD32(s32 *base, s32 inc)
 {
     atom_low_t atom;
     atom = Int_LowAtomStart();
@@ -147,7 +147,7 @@ void atom_sadd32(s32 *base, s32 inc)
 //注，本函数只能防止线程或普通中断(异步信号)共享冲突，如果你在实时中断中访问base
 //    导致共享冲突，神仙也救不了你
 //-----------------------------------------------------------------------------
-void atom_ssub32(s32 *base, s32 sub)
+void Atom_SSUB32(s32 *base, s32 sub)
 {
     atom_low_t atom;
     atom = Int_LowAtomStart();
@@ -163,7 +163,7 @@ void atom_ssub32(s32 *base, s32 sub)
 //注，本函数只能防止线程或普通中断(异步信号)共享冲突，如果你在实时中断中访问base
 //    导致共享冲突，神仙也救不了你
 //-----------------------------------------------------------------------------
-void atom_uadd64(u64 *base, u64 inc)
+void Atom_UADD64(u64 *base, u64 inc)
 {
     atom_low_t atom;
     atom = Int_LowAtomStart();
@@ -179,7 +179,7 @@ void atom_uadd64(u64 *base, u64 inc)
 //注，本函数只能防止线程或普通中断(异步信号)共享冲突，如果你在实时中断中访问base
 //    导致共享冲突，神仙也救不了你
 //-----------------------------------------------------------------------------
-void atom_usub64(u64 *base, u64 sub)
+void Atom_USUB64(u64 *base, u64 sub)
 {
     atom_low_t atom;
     atom = Int_LowAtomStart();
@@ -195,7 +195,7 @@ void atom_usub64(u64 *base, u64 sub)
 //注，本函数只能防止线程或普通中断(异步信号)共享冲突，如果你在实时中断中访问base
 //    导致共享冲突，神仙也救不了你
 //-----------------------------------------------------------------------------
-void atom_sadd64(s64 *base, s64 inc)
+void Atom_SADD64(s64 *base, s64 inc)
 {
     atom_low_t atom;
     atom = Int_LowAtomStart();
@@ -211,7 +211,7 @@ void atom_sadd64(s64 *base, s64 inc)
 //注，本函数只能防止线程或普通中断(异步信号)共享冲突，如果你在实时中断中访问base
 //    导致共享冲突，神仙也救不了你
 //-----------------------------------------------------------------------------
-void atom_ssub64(s64 *base, s64 sub)
+void Atom_SSUB64(s64 *base, s64 sub)
 {
     atom_low_t atom;
     atom = Int_LowAtomStart();

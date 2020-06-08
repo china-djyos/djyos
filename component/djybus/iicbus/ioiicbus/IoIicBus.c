@@ -117,9 +117,9 @@ static void IO_IIC_Start(struct IIC_Io_CB * ICB)
 {
     ICB->IOCtrl(sda_set_out,ICB->tag);//sda线输出
     ICB->IOCtrl(scl_set_High,ICB->tag);//时钟设置高电平
-    Djy_DelayUs(ICB->delay_us);
+    DJY_DelayUs(ICB->delay_us);
     ICB->IOCtrl(sda_set_Low,ICB->tag);//START:when CLK is high,DATA change form high to low
-    Djy_DelayUs(ICB->delay_us);
+    DJY_DelayUs(ICB->delay_us);
 }
 
 // =============================================================================
@@ -132,9 +132,9 @@ static void IO_IIC_Stop(struct IIC_Io_CB * ICB)
     ICB->IOCtrl(sda_set_out,ICB->tag);//sda线输出
     ICB->IOCtrl(scl_set_Low,ICB->tag);
     ICB->IOCtrl(sda_set_Low,ICB->tag);//STOP:when CLK is high DATA change form low to high
-    Djy_DelayUs(ICB->delay_us);
+    DJY_DelayUs(ICB->delay_us);
     ICB->IOCtrl(scl_set_High,ICB->tag);
-    Djy_DelayUs(ICB->delay_us);
+    DJY_DelayUs(ICB->delay_us);
     ICB->IOCtrl(sda_set_High,ICB->tag);//发送I2C总线结束信号
 }
 
@@ -144,13 +144,13 @@ static void IO_IIC_Stop(struct IIC_Io_CB * ICB)
 // 返回值：false，接收应答失败
 //      true，接收应答成功
 // =============================================================================
-static bool_t IO_IIC_Wait_Ack(struct IIC_Io_CB * ICB)
+static bool_t IO_IIC_WaitAck(struct IIC_Io_CB * ICB)
 {
     u8 ucErrTime=0;
     ICB->IOCtrl(sda_set_in,ICB->tag);      //SDA设置为输入
     ICB->IOCtrl(sda_set_Low,ICB->tag);      //SDA设置为输入
     ICB->IOCtrl(scl_set_High,ICB->tag);
-    Djy_DelayUs(ICB->delay_us);
+    DJY_DelayUs(ICB->delay_us);
     while(ICB->IOCtrl(sda_get,ICB->tag))
     {
         ucErrTime++;
@@ -174,9 +174,9 @@ static void IO_IIC_Ack(struct IIC_Io_CB * ICB)
     ICB->IOCtrl(scl_set_Low,ICB->tag);
     ICB->IOCtrl(sda_set_out,ICB->tag);
     ICB->IOCtrl(sda_set_Low,ICB->tag);
-    Djy_DelayUs(ICB->delay_us);
+    DJY_DelayUs(ICB->delay_us);
     ICB->IOCtrl(scl_set_High,ICB->tag);
-    Djy_DelayUs(ICB->delay_us);
+    DJY_DelayUs(ICB->delay_us);
     ICB->IOCtrl(scl_set_Low,ICB->tag);
 }
 
@@ -190,13 +190,13 @@ static void IO_IIC_NAck(struct IIC_Io_CB * ICB)
     ICB->IOCtrl(scl_set_Low,ICB->tag);
     ICB->IOCtrl(sda_set_out,ICB->tag);
     ICB->IOCtrl(sda_set_Low,ICB->tag);
-    Djy_DelayUs(ICB->delay_us);
+    DJY_DelayUs(ICB->delay_us);
     ICB->IOCtrl(sda_set_High,ICB->tag);
-    Djy_DelayUs(ICB->delay_us);
+    DJY_DelayUs(ICB->delay_us);
     ICB->IOCtrl(scl_set_High,ICB->tag);
-    Djy_DelayUs(ICB->delay_us);
+    DJY_DelayUs(ICB->delay_us);
     ICB->IOCtrl(scl_set_Low,ICB->tag);
-    Djy_DelayUs(ICB->delay_us);
+    DJY_DelayUs(ICB->delay_us);
     ICB->IOCtrl(sda_set_Low,ICB->tag);
 }
 
@@ -205,7 +205,7 @@ static void IO_IIC_NAck(struct IIC_Io_CB * ICB)
 // 参数：IO模拟的IIC控制块结构体指针
 // 返回：
 // =============================================================================
-static void IO_IIC_Send_Byte(struct IIC_Io_CB * ICB,u8 txd)
+static void IO_IIC_SendByte(struct IIC_Io_CB * ICB,u8 txd)
 {
     u8 t;
     ICB->IOCtrl(sda_set_out,ICB->tag);
@@ -217,9 +217,9 @@ static void IO_IIC_Send_Byte(struct IIC_Io_CB * ICB,u8 txd)
         else
             ICB->IOCtrl(sda_set_Low,ICB->tag);
         txd<<=1;
-        Djy_DelayUs(ICB->delay_us);
+        DJY_DelayUs(ICB->delay_us);
         ICB->IOCtrl(scl_set_High,ICB->tag);
-        Djy_DelayUs(ICB->delay_us);
+        DJY_DelayUs(ICB->delay_us);
         ICB->IOCtrl(scl_set_Low,ICB->tag);
     }
 }
@@ -230,19 +230,19 @@ static void IO_IIC_Send_Byte(struct IIC_Io_CB * ICB,u8 txd)
 //     ack，ack=0，发送nACK 其他值发送ACK
 // 返回：读取的字节
 // =============================================================================
-static u8 IO_IIC_Read_Byte(struct IIC_Io_CB * ICB,u8 ack)
+static u8 IO_IIC_ReadByte(struct IIC_Io_CB * ICB,u8 ack)
 {
     unsigned char i,receive=0;
     ICB->IOCtrl(sda_set_in,ICB->tag);//SDA设置为输入
     for(i=0;i<8;i++ )
     {
         ICB->IOCtrl(scl_set_Low,ICB->tag);
-        Djy_DelayUs(ICB->delay_us);
+        DJY_DelayUs(ICB->delay_us);
         ICB->IOCtrl(scl_set_High,ICB->tag);
         receive<<=1;
         if(ICB->IOCtrl(sda_get,ICB->tag))
             receive++;
-        Djy_DelayUs(ICB->delay_us);
+        DJY_DelayUs(ICB->delay_us);
     }
     if (!ack)
         IO_IIC_NAck(ICB);//发送nACK
@@ -302,25 +302,25 @@ static s32 IO_IIC_ReadPoll(struct IIC_Io_CB * ICB,u8 devaddr,u32 memaddr,
 
     IO_IIC_Start( ICB);//发送起始位
 
-    IO_IIC_Send_Byte(ICB, ((devaddr<<1))); // 发送写器件地址
-    if(false ==IO_IIC_Wait_Ack( ICB))
+    IO_IIC_SendByte(ICB, ((devaddr<<1))); // 发送写器件地址
+    if(false ==IO_IIC_WaitAck( ICB))
         return (-1);
 
     for(i=0;i<maddrlen;i++)//发送器件内部地址
     {
-      IO_IIC_Send_Byte(ICB, mem_addr_buf[i]);
-      if(false ==IO_IIC_Wait_Ack( ICB))
+      IO_IIC_SendByte(ICB, mem_addr_buf[i]);
+      if(false ==IO_IIC_WaitAck( ICB))
           return (-1);
     }
     IO_IIC_Stop( ICB); //发送起始位
     IO_IIC_Start( ICB); //发送起始位
-    IO_IIC_Send_Byte(ICB, ((devaddr<<1)|0x01));//发送器件地址读
-    if(false ==IO_IIC_Wait_Ack( ICB))
+    IO_IIC_SendByte(ICB, ((devaddr<<1)|0x01));//发送器件地址读
+    if(false ==IO_IIC_WaitAck( ICB))
         return (-1);
 
     for(i=0;i<len;i++)
     {
-        buf[i]=IO_IIC_Read_Byte(ICB,i==(len-1)?0:1); //发数据
+        buf[i]=IO_IIC_ReadByte(ICB,i==(len-1)?0:1); //发数据
     }
     IO_IIC_Stop(ICB);
 
@@ -349,21 +349,21 @@ static s32 IO_IIC_WritePoll(struct IIC_Io_CB * ICB,u8 devaddr,u32 memaddr,
 
     IO_IIC_Start(ICB);
 
-    IO_IIC_Send_Byte(ICB,(devaddr<<1));    //发送器件地址
-    if(false ==IO_IIC_Wait_Ack( ICB))
+    IO_IIC_SendByte(ICB,(devaddr<<1));    //发送器件地址
+    if(false ==IO_IIC_WaitAck( ICB))
              return 0;
 
     for(i=0;i<maddrlen;i++)
     {
-        IO_IIC_Send_Byte(ICB,mem_addr_buf[i]);    //发送器件内部地址
-        if(false ==IO_IIC_Wait_Ack( ICB))
+        IO_IIC_SendByte(ICB,mem_addr_buf[i]);    //发送器件内部地址
+        if(false ==IO_IIC_WaitAck( ICB))
                  return 0;
     }
 
     for(i=0;i<len;i++)
     {
-        IO_IIC_Send_Byte(ICB,buf[i]);   //发数据
-        if(false == IO_IIC_Wait_Ack(ICB))
+        IO_IIC_SendByte(ICB,buf[i]);   //发数据
+        if(false == IO_IIC_WaitAck(ICB))
             break;
     }
     IO_IIC_Stop(ICB);                  //产生一个停止条件

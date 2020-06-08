@@ -388,9 +388,9 @@ bool_t winfs_create_item(char *name,struct FileRsc *parent,
                     NULL
                     );
     }
-    s64Time = Tm_Time(NULL);
+    s64Time = Time_Time(NULL);
 #if 0
-    file_time = Tm_LocalTime(&s64Time);      //取系统时间
+    file_time = Time_LocalTime(&s64Time);      //取系统时间
     result->second_create = (u8)file_time->tm_sec;
     result->second_modify = (u8)file_time->tm_sec;
     result->minute_create = (u8)file_time->tm_min;
@@ -1051,7 +1051,7 @@ ptu32_t ModuleInstall_WinFs(ptu32_t para)
                 PTT_device_tag[dbx_num].rename_item = winfs_rename_item;
                 PTT_device_tag[dbx_num].item_traversal_son = winfs_item_traversal_son;
                 PTT_device_tag[dbx_num].check_fdt_size = winfs_check_FDT_size;
-                PTT_device_tag[dbx_num].read_fdt = (void (*)(struct PTTDevice *,u8 *))NULL_func;
+                PTT_device_tag[dbx_num].read_fdt = (void (*)(struct PTTDevice *,u8 *))DJY_NullFunc;
                 PTT_device_tag[dbx_num].check_folder = winfs_check_folder;
                 PTT_device_tag[dbx_num].opened_sum = 0;
 

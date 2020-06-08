@@ -70,13 +70,13 @@
 #include <board-config.h>
 
 extern void Init_Cpu(void);
-extern void Load_Preload(void);
+extern void Iboot_LoadPreload(void);
 // =============================================================================
 // 功能：运行到选择系统运行方式前，对于M3/M4的CPU，即PC跳转到Init_CPU()
 // 参数：无
 // 返回：无
 // =============================================================================
-void reboot(void)
+void CPU_Reboot(void)
 {
     u32 InitCpu_Addr;
     InitCpu_Addr = *(u32*)0x00000004;
@@ -87,7 +87,7 @@ void reboot(void)
 // 参数：无
 // 返回：无
 // =============================================================================
-void reset(void)
+void CPU_Reset(void)
 {
     pg_scb_reg->AIRCR = (0x05FA << 16)|(0x01 << bo_scb_aircr_sysresetreq);
 }
@@ -96,8 +96,8 @@ void reset(void)
 // 参数：无
 // 返回：无
 // =============================================================================
-void restart_system(void)
+void CPU_RestartSystem(void)
 {
-    Load_Preload();
+    Iboot_LoadPreload();
 }
 

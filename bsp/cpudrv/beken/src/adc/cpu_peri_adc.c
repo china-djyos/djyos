@@ -158,8 +158,8 @@ void djy_adc_fill_buffer(DD_HANDLE handle, saradc_desc_t *adcDescOpened, uint32_
     run_stop = 1;
     ddev_control(handle, cmd, &run_stop);
 
-//    startTimeUs = DjyGetSysTime();
-//    while ((DjyGetSysTime()-startTimeUs) < tmpDelayUs)
+//    startTimeUs = DJY_GetSysTime();
+//    while ((DJY_GetSysTime()-startTimeUs) < tmpDelayUs)
 //    {
 //        if (adcDescOpened->current_sample_data_cnt == adcDescOpened->data_buff_size)
 //        {
@@ -231,7 +231,7 @@ int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
 
     while (tryTimes--)
     {
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         if (tmp_single_desc.current_sample_data_cnt == tmp_single_desc.data_buff_size)
         {
             ddev_close(tmp_single_hdl);

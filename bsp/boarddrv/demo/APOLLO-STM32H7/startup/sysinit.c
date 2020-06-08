@@ -224,7 +224,7 @@ void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram)
     u32 temp=0;
 
     SDRAM_Send_Cmd(0,FMC_SDRAM_CMD_CLK_ENABLE,1,0,hsdram); //时钟配置使能
-    Djy_DelayUs(500);                                  //至少延时200us
+    DJY_DelayUs(500);                                  //至少延时200us
     SDRAM_Send_Cmd(0,FMC_SDRAM_CMD_PALL,1,0,hsdram);       //对所有存储区预充电
     SDRAM_Send_Cmd(0,FMC_SDRAM_CMD_AUTOREFRESH_MODE,8,0,hsdram);//设置自刷新次数
     //配置模式寄存器,SDRAM的bit0~bit2为指定突发访问的长度，

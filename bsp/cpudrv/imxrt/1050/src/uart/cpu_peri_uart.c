@@ -798,7 +798,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;
@@ -808,7 +808,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
     while(!__UART_TxTranComplete(PutStrDirectReg))
     {
         timeout -=10;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
         if(timeout < 10)
            break;
     }
@@ -832,7 +832,7 @@ char Uart_GetCharDirect(void)
             (kLPUART_TxDataRegEmptyInterruptEnable|kLPUART_TransmissionCompleteInterruptEnable));//disable send INT
     while(__UART_RxHadChar(GetCharDirectReg) == false)
     {
-        Djy_EventDelay(5*mS);
+        DJY_EventDelay(5*mS);
     }
     result=LPUART_ReadByte(GetCharDirectReg);
     LPUART_EnableInterrupts(GetCharDirectReg,CR_Bak); //restore send INT

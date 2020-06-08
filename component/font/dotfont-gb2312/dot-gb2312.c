@@ -380,7 +380,7 @@ bool_t ModuleInstall_FontGb2312_12_Song(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 12点阵宋体安装失败\n\r");
         return 0;
     }
@@ -578,7 +578,7 @@ bool_t ModuleInstall_FontGb2312_16_Song(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 16点阵宋体安装失败\n\r");
         return 0;
     }
@@ -771,7 +771,7 @@ bool_t ModuleInstall_FontGb2312_16_Yahei(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 16点阵宋体安装失败\n\r");
         return 0;
     }
@@ -964,7 +964,7 @@ bool_t ModuleInstall_FontGb2312_16_Fang(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 16点阵仿宋体安装失败\n\r");
         return 0;
     }
@@ -1156,7 +1156,7 @@ bool_t ModuleInstall_FontGb2312_16_Hei(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 16点阵黑体安装失败\n\r");
         return 0;
     }
@@ -1349,7 +1349,7 @@ bool_t ModuleInstall_FontGb2312_16_Kai(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 16点阵楷体安装失败\n\r");
         return 0;
     }
@@ -1542,7 +1542,7 @@ bool_t ModuleInstall_FontGb2312_16_Yuan(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 16点阵圆体安装失败\n\r");
         return 0;
     }
@@ -1741,7 +1741,7 @@ bool_t ModuleInstall_FontGb2312_24_Song(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 24点阵宋体安装失败\n\r");
         return 0;
     }
@@ -1934,7 +1934,7 @@ bool_t ModuleInstall_FontGb2312_24_Yahei(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 24点阵宋体安装失败\n\r");
         return 0;
     }
@@ -2128,7 +2128,7 @@ bool_t ModuleInstall_FontGb2312_24_Fang(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 24点阵仿宋体安装失败\n\r");
         return 0;
     }
@@ -2320,7 +2320,7 @@ bool_t ModuleInstall_FontGb2312_24_Hei(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 24点阵黑体安装失败\n\r");
         return 0;
     }
@@ -2513,7 +2513,7 @@ bool_t ModuleInstall_FontGb2312_24_Kai(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 24点阵楷体安装失败\n\r");
         return 0;
     }
@@ -2706,7 +2706,7 @@ bool_t ModuleInstall_FontGb2312_24_Yuan(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 24点阵圆体安装失败\n\r");
         return 0;
     }
@@ -2905,7 +2905,7 @@ bool_t ModuleInstall_FontGb2312_32_Song(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 32点阵宋体安装失败\n\r");
         return 0;
     }
@@ -3099,7 +3099,7 @@ bool_t ModuleInstall_FontGb2312_32_Fang(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 32点阵仿宋体安装失败\n\r");
         return 0;
     }
@@ -3291,7 +3291,7 @@ bool_t ModuleInstall_FontGb2312_32_Hei(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 32点阵黑体安装失败\n\r");
         return 0;
     }
@@ -3484,7 +3484,7 @@ bool_t ModuleInstall_FontGb2312_32_Kai(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 32点阵楷体安装失败\n\r");
         return 0;
     }
@@ -3677,7 +3677,7 @@ bool_t ModuleInstall_FontGb2312_32_Yuan(void)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-gb2312","gb2312 32点阵圆体安装失败\n\r");
         return 0;
     }

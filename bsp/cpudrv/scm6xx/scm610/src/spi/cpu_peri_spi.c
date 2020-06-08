@@ -455,7 +455,7 @@ static s32 __SPI_Read( tagSpiReg * Reg )
     while (((Reg->SPSR & 0xF) == 0 ) && (time > 0))
     {
         time --;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
 
     if(time == 0)
@@ -483,7 +483,7 @@ static s32 __SPI_Write( tagSpiReg * Reg,u8 wData )
     while ((((Reg->SPSR & 0xf0)>>4) == 8 ) && (time > 0) )
     {
         time --;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
 
     if(time == 0)

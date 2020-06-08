@@ -88,8 +88,8 @@ struct IntLine *tg_pIntLineTable[CN_INT_LINE_LAST+1];
 struct IntMasterCtrl  tg_int_global;
 atom_low_t tg_IntAsynStatus;
 
-extern void __Djy_CutReadyEvent(struct EventECB *event);
-extern bool_t __Djy_Schedule(void);
+extern void __DJY_CutReadyEvent(struct EventECB *event);
+extern bool_t __DJY_Schedule(void);
 
 //----保存当前状态并禁止异步信号------------------------------------------------
 //功能：本函数是int_restore_asyn_signal()的姊妹函数，调用本函数使禁止次数增加，
@@ -173,7 +173,7 @@ void Int_RestoreAsynSignal(void)
 #endif
         if(g_ptEventRunning !=  g_ptEventReady)
         {
-            __Djy_Schedule();
+            __DJY_Schedule();
 //                Int_ContactAsynSignal();    //汇编中已经打开，无须再调用
         }else
             Int_LowAtomEnd(tg_IntAsynStatus);
@@ -540,9 +540,9 @@ bool_t Int_AsynSignalSync(ufast_t ufl_line)
     ptIntLine =tg_pIntLineTable[ufl_line];
     if( (ufl_line > CN_INT_LINE_LAST) || (ptIntLine == NULL) )
         return false;
-    if( !Djy_QuerySch())
+    if( !DJY_QuerySch())
     {   //禁止调度，不能进入异步信号同步状态。
-        Djy_SaveLastError(EN_KNL_CANT_SCHED);
+        DJY_SaveLastError(EN_KNL_CANT_SCHED);
         return false;
     }
     Int_SaveAsynSignal();   //在操作就绪队列期间不能发生中断
@@ -563,7 +563,7 @@ bool_t Int_AsynSignalSync(ufast_t ufl_line)
             return true;
         }
         //以下三行从就绪链表中取出running事件
-        __Djy_CutReadyEvent(g_ptEventRunning);
+        __DJY_CutReadyEvent(g_ptEventRunning);
         g_ptEventRunning->next = NULL;
         g_ptEventRunning->previous = NULL;
         g_ptEventRunning->event_status = CN_STS_WAIT_ASYN_SIGNAL;
@@ -604,7 +604,7 @@ bool_t Int_Register(ufast_t ufl_line)
     pIntLine->int_type = CN_ASYN_SIGNAL;    //设为异步信号
     pIntLine->clear_type = CN_INT_CLEAR_AUTO;//设为调用ISR前应答
     //所有中断函数指针指向空函数
-    pIntLine->ISR = (u32 (*)(ufast_t))NULL_func;
+    pIntLine->ISR = (u32 (*)(ufast_t))DJY_NullFunc;
     pIntLine->sync_event = NULL;                //同步事件空
     pIntLine->my_evtt_id = CN_EVTT_ID_INVALID;  //不弹出事件
 

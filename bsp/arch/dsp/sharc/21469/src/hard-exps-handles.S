@@ -3462,7 +3462,7 @@ nop;
 
 /*
 @----------------------------------------------------
-@功能: 软件复位(software reset)
+@功能: 软件复位(software CPU_Reset)
 @参数:
 @返回:  无
 @函数原型:void ___asm_software_reset(void)
@@ -3484,7 +3484,7 @@ ___asm_software_reset:
 
 /*
 @----------------------------------------------------
-@功能: 运行复位(Running reset)
+@功能: 运行复位(Running CPU_Reset)
 @参数:  无
 @返回:  无
 @函数原型:void ___asm_running_reset(void)

@@ -84,7 +84,7 @@ void Board_GpioInit(void)
 #include "cpu_peri_lptimer.h"
 #include "tickless.h"
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
-extern void __Djy_ScheduleAsynSignal(void);
+extern void __DJY_ScheduleAsynSignal(void);
 static uint32_t DjyBsp_UserTimerIsrHandle(uint32_t param);
 #define TIME_GLUE           CN_CFG_FINE_US
 #define FAST_TIME_GLUE      CN_CFG_FINE_HZ
@@ -201,19 +201,19 @@ static uint32_t DjyBsp_UserTimerIsrHandle(uint32_t param)
                 djybsp_user_timer.cnt_before = djybsp_user_timer.total_cnt + cnt + CN_LIMIT_UINT16;
             else
                 djybsp_user_timer.cnt_before = djybsp_user_timer.total_cnt + cnt;
-            Djy_ScheduleIsr(djybsp_user_timer.cnt_before - djybsp_user_timer.total_cnt);
+            DJY_ScheduleIsr(djybsp_user_timer.cnt_before - djybsp_user_timer.total_cnt);
             break;
         case CN_LPTIMER_RELOAD_AND_CMP:
             djybsp_user_timer.total_cnt += CN_LIMIT_UINT16;
             djybsp_user_timer.cnt_before = djybsp_user_timer.total_cnt;
-            Djy_ScheduleIsr(0);
+            DJY_ScheduleIsr(0);
             break;
     }
 
     tg_int_global.nest_asyn_signal = 0;
     tg_int_global.en_asyn_signal_counter = 0;
     if(g_ptEventReady != g_ptEventRunning)
-        __Djy_ScheduleAsynSignal();       //执行中断内调度
+        __DJY_ScheduleAsynSignal();       //执行中断内调度
     g_bScheduleEnable = true;
     return 0;
 }

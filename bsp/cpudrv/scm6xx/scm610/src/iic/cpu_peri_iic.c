@@ -435,7 +435,7 @@ static bool_t __IIC_Write(tagI2CReg *reg,u8 devaddr, u32 memaddr, u32 addr_len,u
 //        while(!(reg->SR & (1<<9)));
 //      delay(10);
 //        delay_ms(3);
-        Djy_DelayUs(3000);
+        DJY_DelayUs(3000);
     }
     return true;
 }

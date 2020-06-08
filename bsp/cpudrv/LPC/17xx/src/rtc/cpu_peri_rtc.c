@@ -117,7 +117,7 @@ bool_t RTC_SetTime(s64 time)
     bool_t result = false;
     struct tm *DateTime;
 
-    DateTime = Tm_GmTime(&time);
+    DateTime = Time_GmTime(&time);
     if(DateTime != NULL)
     {
         LPC_RTC->SEC = DateTime->tm_sec;
@@ -149,7 +149,7 @@ bool_t RTC_GetTime(s64 *time)
     DateTime.tm_mon  = LPC_RTC->MONTH;
     DateTime.tm_year = LPC_RTC->YEAR;
 
-    *time = 1000000 * Tm_MkTime(&DateTime);
+    *time = 1000000 * Time_MkTime(&DateTime);
     return true;
 }
 

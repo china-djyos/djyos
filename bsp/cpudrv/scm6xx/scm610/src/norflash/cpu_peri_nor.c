@@ -487,13 +487,13 @@ s32 __Flash_FsInstallInit(const char *fs, u32 bstart, u32 bend, void *mediadrv)
     s32 res;
     if(mediadrv == NULL)
         return -1;
-    targetobj = obj_matchpath(fs, &notfind);
+    targetobj = OBJ_MatchPath(fs, &notfind);
     if(notfind)
     {
         error_printf("embed"," not found need to install file system.");
         return -1;
     }
-    super = (struct FsCore *)obj_GetPrivate(targetobj);
+    super = (struct FsCore *)OBJ_GetPrivate(targetobj);
     super->MediaInfo = emflash_um;
     super->MediaDrv = mediadrv;
 
@@ -531,7 +531,7 @@ s32 __Flash_FsInstallInit(const char *fs, u32 bstart, u32 bend, void *mediadrv)
     FullPath = malloc(res);
     memset(FullPath, 0, res);
     sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,flashName);   //获取该设备的全路径
-    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
+    File_BeMedia(FullPath,fs); //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);
@@ -575,7 +575,7 @@ s32 ModuleInstall_NorFlash(u32 doformat)
     emflash_um->type = embed;
     emflash_um->ubuf = (u8*)emflash_um + sizeof(struct umedia);
 
-    if(!dev_Create((const char*)flashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)emflash_um)))
+    if(!Device_Create((const char*)flashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)emflash_um)))
     {
         printf("\r\n: erro : device : %s addition failed.", flashName);
         free(emflash_um);

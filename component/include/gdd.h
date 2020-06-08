@@ -165,7 +165,7 @@ struct MsgTableLink
 
 
 /*============================================================================*/
-//// DrawText flag
+//// GDD_DrawText flag
 #define DT_VCENTER      (0<<0)  //正文垂直居中.
 #define DT_TOP          (1<<0)  //正文顶端对齐.
 #define DT_BOTTOM       (2<<0)  //正文底部对齐.
@@ -330,132 +330,132 @@ typedef enum{
 #define CN_WINDOW_ZPRIO_CURSOR      (-100)
 
 HDC     CreateDC(struct GkWinObj *gk_win,const RECT *prc);
-bool_t    DeleteDC(HDC hdc);
+bool_t    GDD_DeleteDC(HDC hdc);
 
-struct RopGroup SetRopCode(HDC hdc,struct RopGroup RopCode);
-struct RopGroup GetRopCode(HDC hdc);
-void   MoveTo(HDC hdc,s32 x,s32 y,POINT *old_pt);
+struct RopGroup GDD_SetRopCode(HDC hdc,struct RopGroup RopCode);
+struct RopGroup GDD_GetRopCode(HDC hdc);
+void   GDD_MoveTo(HDC hdc,s32 x,s32 y,POINT *old_pt);
 
-u32 SetDrawColor(HDC hdc,u32 color);
-u32 GetDrawColor(HDC hdc);
-u32 SetFillColor(HDC hdc,u32 color);
-u32 GetFillColor(HDC hdc);
-u32 SetTextColor(HDC hdc,u32 color);
-u32 GetTextColor(HDC hdc);
-u32 SetSyncTime(HDC hdc,u32 sync_time);
-u32 GetSyncTime(HDC hdc);
+u32 GDD_SetDrawColor(HDC hdc,u32 color);
+u32 GDD_GetDrawColor(HDC hdc);
+u32 GDD_SetFillColor(HDC hdc,u32 color);
+u32 GDD_GetFillColor(HDC hdc);
+u32 GDD_SetTextColor(HDC hdc,u32 color);
+u32 GDD_GetTextColor(HDC hdc);
+u32 GDD_SetSyncTime(HDC hdc,u32 sync_time);
+u32 GDD_GetSyncTime(HDC hdc);
 
-s32  GetStrLineCount(struct Charset *myCharset, const char *str);
-void AdjustTextRect(HDC hdc,const char *text,int count, RECT *prc,u32 flag);
+s32  GDD_GetStrLineCount(struct Charset *myCharset, const char *str);
+void GDD_AdjustTextRect(HDC hdc,const char *text,int count, RECT *prc,u32 flag);
 
-struct FontObj *SetFont(HDC hdc,HFONT hFont);
-struct FontObj *GetFont(HDC hdc);
-struct Charset *SetCharset(HDC hdc,struct Charset *pCharset);
-struct Charset *GetCharset(HDC hdc);
+struct FontObj *GDD_SetFont(HDC hdc,HFONT hFont);
+struct FontObj *GDD_GetFont(HDC hdc);
+struct Charset *GDD_SetCharset(HDC hdc,struct Charset *pCharset);
+struct Charset *GDD_GetCharset(HDC hdc);
 
 
-void    SetPixel(HDC hdc,s32 x,s32 y,u32 color);
-void    DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1);
-void    DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1);
-void    DrawLineEx(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,u32 color);
-void    DrawLineTo(HDC hdc,s32 x,s32 y);
-bool_t  TextOut(HDC hdc,s32 x,s32 y,const char *text,s32 count);
-bool_t  DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 flag);
-void    DrawRect(HDC hdc,const RECT *prc);;
-void    FillRect(HDC hdc,const RECT *prc);
-void    FillRectEx(HDC hdc,const RECT *prc,u32 color);
-void    GradientFillRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2,u32 mode);
-void    Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2);
+void    GDD_SetPixel(HDC hdc,s32 x,s32 y,u32 color);
+void    GDD_DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1);
+void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1);
+void    GDD_DrawLineEx(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,u32 color);
+void    GDD_DrawLineTo(HDC hdc,s32 x,s32 y);
+bool_t  GDD_TextOut(HDC hdc,s32 x,s32 y,const char *text,s32 count);
+bool_t  GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 flag);
+void    GDD_DrawRect(HDC hdc,const RECT *prc);;
+void    GDD_FillRect(HDC hdc,const RECT *prc);
+void    GDD_FillRectEx(HDC hdc,const RECT *prc,u32 color);
+void    GDD_GradientFillRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2,u32 mode);
+void    GDD_Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2);
 
-void    DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r);
-void    FillCircle(HDC hdc,s32 cx,s32 cy,s32 r);
-void    DrawEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry);
-void    FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry);
-void    DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
-void    FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
-void    DrawBezier3(HDC hdc,const POINT *pt,s32 cnt);
+void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r);
+void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r);
+void    GDD_DrawEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry);
+void    GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry);
+void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
+void    GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
+void    GDD_DrawBezier3(HDC hdc,const POINT *pt,s32 cnt);
 
-void    DrawPolyLine(HDC hdc,const POINT *pt,s32 count);
-void    DrawGroupBox(HDC hdc,const RECT *prc,const char *Text);
-bool_t  DrawBitmap(HDC hdc,s32 x,s32 y,struct RectBitmap *bitmap,u32 key_color,
+void    GDD_DrawPolyLine(HDC hdc,const POINT *pt,s32 count);
+void    GDD_DrawGroupBox(HDC hdc,const RECT *prc,const char *Text);
+bool_t  GDD_DrawBitmap(HDC hdc,s32 x,s32 y,struct RectBitmap *bitmap,u32 key_color,
                         struct RopGroup RopCode);
 
-bool_t  GetBMPInfo(tagBMP_INFO *bm_info,tagBMP_HEADER *pBmpHdr);
-bool_t  DrawBMP(HDC hdc,s32 x,s32 y,const void *bmp_data);
+bool_t  GDD_GetBitmapInfo(tagBMP_INFO *bm_info,tagBMP_HEADER *pBmpHdr);
+bool_t  GDD_DrawBMP(HDC hdc,s32 x,s32 y,const void *bmp_data);
 
 //消息相关函数
-u32     DispatchMessage(struct WindowMsg *pMsg);
-u32     SendMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
-bool_t  PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
-bool_t  GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg);
+u32     GDD_DispatchMessage(struct WindowMsg *pMsg);
+u32     GDD_SendMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
+bool_t  GDD_PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
+bool_t  GDD_GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg);
 
 
-HWND    GetDesktopWindow(void);
-u32     GetWindowStyle(HWND hwnd);
-ptu32_t   GetWindowPrivateData(HWND hwnd);
-void    SetWindowPrivateData(HWND hwnd,ptu32_t data);
-HWND    InitGddDesktop(struct GkWinObj *desktop);
+HWND    GDD_GetDesktopWindow(void);
+u32     GDD_GetWindowStyle(HWND hwnd);
+ptu32_t   GDD_GetWindowPrivateData(HWND hwnd);
+void    GDD_SetWindowPrivateData(HWND hwnd,ptu32_t data);
+HWND    GDD_InitGddDesktop(struct GkWinObj *desktop);
 
 //DC操作函数
-HDC     GetWindowDC(HWND hwnd);
-HDC     GetDC(HWND hwnd);
-bool_t    ReleaseDC(HWND hwnd,HDC hdc);
-HDC     BeginPaint(HWND hwnd);
-bool_t    EndPaint(HWND hwnd,HDC hdc);
+HDC     GDD_GetWindowDC(HWND hwnd);
+HDC     GDD_GetDC(HWND hwnd);
+bool_t    GDD_ReleaseDC(HWND hwnd,HDC hdc);
+HDC     GDD_BeginPaint(HWND hwnd);
+bool_t    GDD_EndPaint(HWND hwnd,HDC hdc);
 
 //窗口操作函数
-void AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink);
-HWND    CreateWindow(const char *Text,u32 Style,
+void GDD_AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink);
+HWND    GDD_CreateWindow(const char *Text,u32 Style,
                      s32 x,s32 y,s32 w,s32 h,
                      HWND hParent,u32 WinId,
                      u32 BufProperty, ptu32_t pdata,
                      struct MsgTableLink *pUserMsgTableLink);
-void    DestroyWindow(HWND hwnd);
-void    DestroyAllChild(HWND hwnd);
-bool_t    MoveWindow(HWND hwnd,s32 x,s32 y);
-bool_t    OffsetWindow(HWND hwnd,s32 dx,s32 dy);
-bool_t    IsWindowVisible(HWND hwnd);
-bool_t    InvalidateWindow(HWND hwnd,bool_t bErase);
-bool_t    SetWindowShow(HWND hwnd);
-bool_t    SetWindowHide(HWND hwnd);
+void    GDD_DestroyWindow(HWND hwnd);
+void    GDD_DestroyAllChild(HWND hwnd);
+bool_t    GDD_MoveWindow(HWND hwnd,s32 x,s32 y);
+bool_t    GDD_OffsetWindow(HWND hwnd,s32 dx,s32 dy);
+bool_t    GDD_IsWindowVisible(HWND hwnd);
+bool_t    GDD_InvalidateWindow(HWND hwnd,bool_t bErase);
+bool_t    GDD_SetWindowShow(HWND hwnd);
+bool_t    GDD_SetWindowHide(HWND hwnd);
 bool_t    EnableWindow(HWND hwnd,bool_t bEnable);
-HWND    Gdd_GetWindowParent(HWND hwnd);
-HWND GetWindowChild(HWND hwnd);
-HWND GetWindowPrevious(HWND hwnd);
-HWND __GetWindowTwig(HWND hwnd);
-HWND GetWindowNext(HWND hwnd);
-HWND GetWindowFirst(HWND hwnd);
-HWND GetWindowLast(HWND hwnd);
-char    *GetWindowText(HWND hwnd);
-HWND    GetDlgItem(HWND hwnd,u16 id);
+HWND    GDD_GetWindowParent(HWND hwnd);
+HWND GDD_GetWindowChild(HWND hwnd);
+HWND GDD_GetWindowPrevious(HWND hwnd);
+HWND __GDD_GetWindowTwig(HWND hwnd);
+HWND GDD_GetWindowNext(HWND hwnd);
+HWND GDD_GetWindowFirst(HWND hwnd);
+HWND GDD_GetWindowLast(HWND hwnd);
+char    *GDD_GetWindowText(HWND hwnd);
+HWND    GDD_GetDlgItem(HWND hwnd,u16 id);
 void    SetWindowText(HWND hwnd,const char *text,s32 max_len);
-HWND    GetWindowFromPoint(struct GkWinObj *desktop, POINT *pt);
+HWND    GDD_GetWindowFromPoint(struct GkWinObj *desktop, POINT *pt);
 
 //矩形和坐标操作函数
-bool_t    GetWindowRect(HWND hwnd,RECT *prc);
-bool_t    GetClientRect(HWND hwnd,RECT *prc);
-bool_t    GetClientRectToScreen(HWND hwnd,RECT *prc);
-s32     RectW(const RECT *prc);
-s32     RectH(const RECT *prc);
-void    SetRect(RECT *prc,s32 x,s32 y,s32 w,s32 h);
-void    SetRectEmpty(RECT *prc);
-bool_t    CopyRect(RECT *dst,const RECT *src);
-bool_t    IsRectEmpty(const RECT *prc);
-bool_t    OffsetRect(RECT *prc,s32 dx,s32 dy);
-bool_t    MoveRect(RECT *prc,s32 x,s32 y);
-bool_t    InflateRect(RECT *prc,s32 dx,s32 dy);
-bool_t    InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b);
-bool_t    PtInRect(const RECT *prc,const POINT *pt);
-bool_t    ScreenToClient(HWND hwnd,POINT *pt,s32 count);
-bool_t    ClientToScreen(HWND hwnd,POINT *pt,s32 count);
-bool_t    ScreenToWindow(HWND hwnd,POINT *pt,s32 count);
-bool_t    WindowToScreen(HWND hwnd,POINT *pt,s32 count);
+bool_t    GDD_GetWindowRect(HWND hwnd,RECT *prc);
+bool_t    GDD_GetClientRect(HWND hwnd,RECT *prc);
+bool_t    GDD_GetClientRectToScreen(HWND hwnd,RECT *prc);
+s32     GDD_RectW(const RECT *prc);
+s32     GDD_RectH(const RECT *prc);
+void    GDD_SetRect(RECT *prc,s32 x,s32 y,s32 w,s32 h);
+void    GDD_SetRectEmpty(RECT *prc);
+bool_t    GDD_CopyRect(RECT *dst,const RECT *src);
+bool_t    GDD_IsRectEmpty(const RECT *prc);
+bool_t    GDD_OffsetRect(RECT *prc,s32 dx,s32 dy);
+bool_t    GDD_MoveRect(RECT *prc,s32 x,s32 y);
+bool_t    GDD_InflateRect(RECT *prc,s32 dx,s32 dy);
+bool_t    GDD_InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b);
+bool_t    GDD_PtInRect(const RECT *prc,const POINT *pt);
+bool_t    GDD_ScreenToClient(HWND hwnd,POINT *pt,s32 count);
+bool_t    GDD_ClientToScreen(HWND hwnd,POINT *pt,s32 count);
+bool_t    GDD_ScreenToWindow(HWND hwnd,POINT *pt,s32 count);
+bool_t    GDD_WindowToScreen(HWND hwnd,POINT *pt,s32 count);
 
 /*===========================================================================*/
 void    ModuleInstall_GDD(struct GkWinObj *desktop);
 
-u32     AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha);
-void    UpdateDisplay(HWND hwnd);
+u32     GDD_AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha);
+void    GDD_UpdateDisplay(HWND hwnd);
 void GDD_WaitGuiAppExit(char *AppName);
 HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
                       u32 MemSize, u32 WinBuf,u32 Style);

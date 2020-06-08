@@ -71,7 +71,7 @@
 //-----------------------------------------------------------------------------
 int usleep(useconds_t useconds)
 {
-    Djy_EventDelay(useconds);
+    DJY_EventDelay(useconds);
     return 0;
 }
 

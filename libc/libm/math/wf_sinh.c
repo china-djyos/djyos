@@ -51,12 +51,12 @@
         else
            exc.retval = ( (x>0.0) ? HUGE_VAL : -HUGE_VAL);
         if (_LIB_VERSION == _POSIX_)
-           Djy_SaveLastError(ERANGE);
+           DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-           Djy_SaveLastError(ERANGE);
+           DJY_SaveLastError(ERANGE);
         }
         if (exc.err != 0)
-           Djy_SaveLastError(exc.err);
+           DJY_SaveLastError(exc.err);
             return (float)exc.retval;
     } else
         return z;

@@ -66,6 +66,6 @@
 
 clock_t clock (void)
 {
-    return DjyGetSysTimeCycle( );
+    return DJY_GetSysTimeCycle( );
 }
 

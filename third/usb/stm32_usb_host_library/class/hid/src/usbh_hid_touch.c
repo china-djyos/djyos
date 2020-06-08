@@ -199,7 +199,7 @@ s32 USBH_HID_TouchManualSync(USBH_HandleTypeDef *pHost)
     HID_HandleTypeDef *handle =  (HID_HandleTypeDef *) pHost->pActiveClass->pData;
 
 
-    time = DjyGetSysTime();
+    time = DJY_GetSysTime();
     handle->timer = pHost->Timer;
 
     while(1)
@@ -220,7 +220,7 @@ s32 USBH_HID_TouchManualSync(USBH_HandleTypeDef *pHost)
                 {
                     u8 k;
 
-                    time = DjyGetSysTime() - time;
+                    time = DJY_GetSysTime() - time;
                     printf("touch original:");
                     printf("<%dus> <%d> ", (u32)time, retrys);
 
@@ -250,7 +250,7 @@ s32 USBH_HID_TouchManualSync(USBH_HandleTypeDef *pHost)
         {
             if((pHost->Timer - handle->timer) > handle->poll) // 校验逻辑，防止第一次读时间过长
             {
-                time = DjyGetSysTime() - time;
+                time = DJY_GetSysTime() - time;
 //                printf("\r\n: erro : usbs%02x : HID touch sync out of time(%d.us).", pHost->id, (u32)time);
                 retrys = 10; // 再多尝试一次
             }
@@ -260,7 +260,7 @@ s32 USBH_HID_TouchManualSync(USBH_HandleTypeDef *pHost)
         }
         else
         {
-            time = DjyGetSysTime() - time;
+            time = DJY_GetSysTime() - time;
             // USBH_UsrLog ("USB #%04x stack service : debug : HID touch sync retry %d times <%dus>, but no data.", pHost->id, retrys, (u32)time);
             break;
         }

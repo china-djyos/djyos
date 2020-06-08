@@ -101,7 +101,7 @@ void DhryStoneTest(void)
     /***************/
     printf("\r\n ****************** DHRYSTONE TEST START ******************\r\n ");
 
-    begin_time = DjyGetSysTime();
+    begin_time = DJY_GetSysTime();
     do
     {
       for (Run_Index = 1; Run_Index <= Number_Of_Runs; ++Run_Index)
@@ -153,7 +153,7 @@ void DhryStoneTest(void)
       /**************/
       /* Stop timer */
       /**************/
-      end_time = DjyGetSysTime();
+      end_time = DJY_GetSysTime();
       User_Time = (end_time - begin_time);
       NumberOfRuns += Number_Of_Runs;
     }while(User_Time < TestTime);

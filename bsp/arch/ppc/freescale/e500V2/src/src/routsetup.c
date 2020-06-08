@@ -26,7 +26,7 @@ void TlbSetUp()
 	}
 }
 
-extern void DdrcInit(void);
+extern void CPU_DdrcInit(void);
 /*
 @-------------------------------------------------------------------------------
 @function:RoutSetUp
@@ -39,7 +39,7 @@ void RoutSetUp()
 	//LAW SETUP
 	LAW_Setup();
 	//DDR INIT
-	DdrcInit();
+	CPU_DdrcInit();
 	//TLB SETUP
 	TlbSetUp();
 	

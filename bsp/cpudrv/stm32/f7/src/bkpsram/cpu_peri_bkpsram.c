@@ -145,7 +145,7 @@ bool_t BkpSramInit(void)
     while((!(__HAL_PWR_GET_FLAG(PWR_FLAG_BRR)))&&(timeout > 0))
     {
         timeout--;
-        Djy_DelayUs(1*mS);
+        DJY_DelayUs(1*mS);
     }
     if(timeout <=0)
     {

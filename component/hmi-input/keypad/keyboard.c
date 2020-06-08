@@ -125,18 +125,18 @@ ptu32_t KeyBoard_Scan(void);
 bool_t ModuleInstall_KeyBoard(void)
 {
     s16 evtt_key;
-    if(!obj_search_child(obj_root(),"hmi input device"))   //标准输入设备未初始化
+    if(!OBJ_SearchChild(OBJ_GetRoot(),"hmi input device"))   //标准输入设备未初始化
         return false;
-    evtt_key = Djy_EvttRegist(EN_CORRELATIVE,130,0,0,
+    evtt_key = DJY_EvttRegist(EN_CORRELATIVE,130,0,0,
                                     KeyBoard_Scan,NULL,1024,"keyboard");
     if(evtt_key == CN_EVTT_ID_INVALID)
     {
         return false;
     }
-    if(Djy_EventPop(evtt_key,NULL,0,0,0,0)
+    if(DJY_EventPop(evtt_key,NULL,0,0,0,0)
                         == (uint16_t)CN_EVENT_ID_INVALID)
     {
-        Djy_EvttUnregist(evtt_key);
+        DJY_EvttUnregist(evtt_key);
         return false;
     }
     return true;
@@ -173,17 +173,17 @@ ptu32_t KeyBoard_Scan(void)
     struct Object *ob;
     struct KeyBoardMsg key_msg;
     u32 keyvalue;
-    ob = obj_search_child(obj_root(),"hmi input device");
-    StdinObj = (struct HMI_InputDeviceObj *)obj_GetPrivate(ob);
+    ob = OBJ_SearchChild(OBJ_GetRoot(),"hmi input device");
+    StdinObj = (struct HMI_InputDeviceObj *)OBJ_GetPrivate(ob);
     while(1)
     {
         KeyboardObj = StdinObj;
         while(1)
         {
-            ob = obj_foreach_scion(StdinObj->HostObj,KeyboardObj->HostObj);
+            ob = OBJ_ForeachScion(StdinObj->HostObj,KeyboardObj->HostObj);
             if(ob == NULL)
                 break;
-            KeyboardObj = (struct HMI_InputDeviceObj*)obj_GetPrivate(ob);
+            KeyboardObj = (struct HMI_InputDeviceObj*)OBJ_GetPrivate(ob);
             if(KeyboardObj->input_type != EN_HMIIN_KEYBOARD)
                 continue;
             keyboard_pr = (struct KeyBoardPrivate*)KeyboardObj->stdin_private;
@@ -220,7 +220,7 @@ ptu32_t KeyBoard_Scan(void)
                         && (key_byte[2] != key)
                         && (key_byte[3] != key) )
                     {
-                        key_msg.time = DjyGetSysTime();
+                        key_msg.time = DJY_GetSysTime();
                         key_msg.key_value[1] = 0;
                         key_msg.key_value[0] = key;
                         HmiIn_InputMsg(KeyboardObj->device_id,(u8*)&key_msg);
@@ -244,7 +244,7 @@ ptu32_t KeyBoard_Scan(void)
                         && (key_byte[3] != key) )
                     {
 
-                        key_msg.time = DjyGetSysTime();
+                        key_msg.time = DJY_GetSysTime();
                         key_msg.key_value[1] = CN_BREAK_CODE;
                         key_msg.key_value[0] = key;
                         HmiIn_InputMsg(KeyboardObj->device_id,(u8*)&key_msg);
@@ -253,7 +253,7 @@ ptu32_t KeyBoard_Scan(void)
                 keyboard_pr->key_bak = keyboard_pr->key_now;
             }
         }
-        Djy_EventDelay(50*mS);
+        DJY_EventDelay(50*mS);
     }
 }
 

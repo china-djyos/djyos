@@ -76,12 +76,12 @@ PORTABILITY
         exc.arg2 = y;
             exc.retval = 0.0/0.0;
             if (_LIB_VERSION == _POSIX_)
-               Djy_SaveLastError(EDOM);
+               DJY_SaveLastError(EDOM);
             else if (!matherr(&exc)) {
-               Djy_SaveLastError(EDOM);
+               DJY_SaveLastError(EDOM);
             }
         if (exc.err != 0)
-           Djy_SaveLastError(exc.err);
+           DJY_SaveLastError(exc.err);
             return exc.retval;
     } else
         return z;

@@ -112,7 +112,7 @@ static struct Object *s_ptDjybusDir;                //定义静态变量DjyBus的根结点
 bool_t ModuleInstall_DjyBus (void)
 {
     //在资源链表中建立一个根结点，所有建立的总线结点都挂在该结点上。
-    s_ptDjybusDir = obj_newchild(obj_root(), (fnObjOps)-1, 0,"DjyBus");
+    s_ptDjybusDir = OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)-1, 0,"DjyBus");
     if(s_ptDjybusDir)
     {
         info_printf("module","bus installed.");
@@ -134,10 +134,10 @@ struct Object * DjyBus_BusTypeAdd (const char* NewBusTypeName)
     struct Object * NewBusType;
 
     //避免重复创建同名的总线类型
-    if(NULL != obj_search_child(s_ptDjybusDir, NewBusTypeName))
+    if(NULL != OBJ_SearchChild(s_ptDjybusDir, NewBusTypeName))
         return NULL;
 
-    NewBusType = obj_newchild(s_ptDjybusDir, (fnObjOps)-1, 0, NewBusTypeName);
+    NewBusType = OBJ_NewChild(s_ptDjybusDir, (fnObjOps)-1, 0, NewBusTypeName);
 
     return NewBusType;
 }
@@ -152,7 +152,7 @@ bool_t DjyBus_BusTypeDelete(struct Object * DelBusType)
 {
     bool_t result;
 
-    if(obj_Delete(DelBusType))
+    if(OBJ_Delete(DelBusType))
     {
         result = false;
     }
@@ -170,6 +170,6 @@ bool_t DjyBus_BusTypeDelete(struct Object * DelBusType)
 // =============================================================================
 struct Object * DjyBus_BusTypeFind(const char * BusTypeName)
 {
-    return obj_search_child(s_ptDjybusDir,BusTypeName);
+    return OBJ_SearchChild(s_ptDjybusDir,BusTypeName);
 }
 

@@ -298,7 +298,7 @@ bool_t __wait_ready_nand(void)
 {
     u32 timestart,timeend;
 
-    timestart = (u32)DjyGetSysTime( );
+    timestart = (u32)DJY_GetSysTime( );
     timeend = timestart;
 
 
@@ -308,7 +308,7 @@ bool_t __wait_ready_nand(void)
        {
           break;
        }
-      timeend = (u32)DjyGetSysTime( );
+      timeend = (u32)DJY_GetSysTime( );
     }
 
     if( (timeend - timestart) >= 100)
@@ -343,7 +343,7 @@ bool_t __wait_ready_nand_slow(u16 wait_time)
 
     u32 timestart,timeend;
 
-    timestart = (u32)DjyGetSysTime( );
+    timestart = (u32)DJY_GetSysTime( );
     timeend = timestart;
 
     while ( (timeend - timestart) < wait_time)
@@ -352,7 +352,7 @@ bool_t __wait_ready_nand_slow(u16 wait_time)
        {
           break;
        }
-      timeend = (u32)DjyGetSysTime( );
+      timeend = (u32)DJY_GetSysTime( );
     }
 
     if( (timeend - timestart) >= wait_time)
@@ -1284,7 +1284,7 @@ ptu32_t module_init_fs_k9f1208xxx(void)
     if( __parse_chip(myid,&name) == false)
         return 0;
 
-    MyHeap = M_FindHeap(CFG_K9F1208_HEAP_NAME);
+    MyHeap = Heap_FindHeap(CFG_K9F1208_HEAP_NAME);
     if(MyHeap == NULL)
         return 0;
     tg_samsung_nand.ChipHeap = MyHeap;

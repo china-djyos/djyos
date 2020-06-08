@@ -10,7 +10,7 @@ __asm_reset_thread:
     psrclr   ie, fe
     ldw      r2, (r1, 4)
     subi     r2, 4
-    lrw      r3, __Djy_VmEngine
+    lrw      r3, __DJY_VmEngine
     stw      r3, (r2, 0)
     lrw      r3, 0xe0000140
     subi     r2, 4
@@ -30,7 +30,7 @@ __asm_reset_switch:
     psrclr   ie, fe
     ldw      sp, (r2, 4)
     subi     sp, 4
-    lrw      r3, __Djy_VmEngine
+    lrw      r3, __DJY_VmEngine
     stw      r3, (sp, 0)
     lrw      r3, 0xe0000140
     subi     sp, 4

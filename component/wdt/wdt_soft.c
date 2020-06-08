@@ -230,7 +230,7 @@ bool_t __Wdt_WdtExpInfoDecoder(struct BlackBoxThrowPara  *WdtinfoHead,u32 endian
     __Wdt_SwapWdtInfoByEndian(wdt, endian);
     debug_printf("wdtinfo","name               :%s\n\r",    wdtinfo->wdtname);
     debug_printf("wdtinfo","Owner              :0x%04x\n\r",wdt->WdtOnwer);
-    debug_printf("wdtinfo","Action             :%s\n\r",BlackBoxActionName(wdt->action));
+    debug_printf("wdtinfo","Action             :%s\n\r",BlackBox_ActionName(wdt->action));
     debug_printf("wdtinfo","Cycle              :%d(us)\n\r",wdt->cycle);
     debug_printf("wdtinfo","Reason             :%s\n\r",WdtYipReasonName(wdt->timeoutreason));
     debug_printf("wdtinfo","OwnerTimeLevel     :0x%08x(us)\n\r",wdt->ExhaustLevelSet);
@@ -376,7 +376,7 @@ static void __Wdt_DealMsg(tagWdtMsg *msg)
         //更新WDT线程拥有者最后一次操作WDT时间
         if(CN_EVENT_ID_INVALID != wdt->WdtOnwer)
         {
-            if(Djy_GetEventInfo(wdt->WdtOnwer, &eventinfo))
+            if(DJY_GetEventInfo(wdt->WdtOnwer, &eventinfo))
             {
 #if (CN_USE_TICKLESS_MODE)
                 wdt->runtime = eventinfo.consumed_cnt;
@@ -389,7 +389,7 @@ static void __Wdt_DealMsg(tagWdtMsg *msg)
         wdt->shyiptimes = 0;
         wdt->timeoutreason = EN_WDT_NOYIP;
 
-        ostime = DjyGetSysTime();
+        ostime = DJY_GetSysTime();
         switch (opcode)
         {
             case EN_WDTCMD_ADD:
@@ -537,7 +537,7 @@ static void __Wdt_AnalyzeYipReason(tagWdt *wdt)
     u32    Tm_TimeRun;
     struct EventInfo wdt_event_info;
 
-    if( Djy_GetEventInfo((u16)wdt->WdtOnwer, &wdt_event_info))
+    if( DJY_GetEventInfo((u16)wdt->WdtOnwer, &wdt_event_info))
     {
 #if (CN_USE_TICKLESS_MODE)
         Tm_TimeRun = (u32)(wdt_event_info.consumed_cnt - wdt->runtime);
@@ -582,7 +582,7 @@ static void __Wdt_ScanWdtQueque(void)
     wdt = ptWdtHead;
     while(NULL != wdt)//处理所有在叫的狗
     {
-        timenow = DjyGetSysTime();//实时更新时间
+        timenow = DJY_GetSysTime();//实时更新时间
 
         if((timenow + CN_WDT_YIP_PRECISION)>= wdt->deadtime) // the wdt has been timeout
         {
@@ -638,7 +638,7 @@ static ptu32_t Wdt_Service(void)
     //将硬件狗从裸狗中接管过来
 //  WdtHal_BootEnd();
     // deal all the msg cached in the msgbox
-    timenow = DjyGetSysTime();
+    timenow = DJY_GetSysTime();
     while(MsgQ_Receive(ptWdtMsgBox,(u8 *)&wdtmsg,sizeof(tagWdtMsg),0))
     {
         __Wdt_DealMsg(&wdtmsg); //all the wdt will be queued in the wdt queue
@@ -655,7 +655,7 @@ static ptu32_t Wdt_Service(void)
         }
         else
         {
-            timenow = DjyGetSysTime();
+            timenow = DJY_GetSysTime();
             waittime = (u32)(wdt->deadtime - timenow);
         }
         //ok, now we wait the msg box during the expect time
@@ -722,14 +722,14 @@ bool_t ModuleInstall_Wdt(void)
     ptWdtMsgBox = MsgQ_Create(CN_WDTMSG_LIMIT,sizeof(tagWdtMsg),CN_MSGQ_TYPE_FIFO);
 
     //create the main service
-    evttid = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_WDT,0,0,Wdt_Service,
+    evttid = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_WDT,0,0,Wdt_Service,
                                 NULL,0x400,"wdt service");
     if(evttid == CN_EVTT_ID_INVALID)
         return false;
-    if( Djy_EventPop(evttid,NULL,0,0,0,0) == CN_EVENT_ID_INVALID)
+    if( DJY_EventPop(evttid,NULL,0,0,0,0) == CN_EVENT_ID_INVALID)
     {
         debug_printf("WDT","POP SERVICE FAILED!\n\r");
-        Djy_EvttUnregist(evttid);
+        DJY_EvttUnregist(evttid);
         return false;
     }
 
@@ -824,7 +824,7 @@ tagWdt *Wdt_Create_s(tagWdt *wdt, char *dogname,u32 yip_cycle,
         wdt->action = yip_action;
         wdt->ExhaustLevelSet = ExhaustLevelSet;
         wdt->ExhaustLimit = ExhaustLimit;
-        wdt->WdtOnwer = Djy_MyEventId( );
+        wdt->WdtOnwer = DJY_GetMyEventId( );
 
         //snd the msg to the service task
         wdtmsg.pwdt = wdt;
@@ -909,7 +909,7 @@ bool_t Wdt_Clean(tagWdt *wdt)
         if(ptWdtHead != wdt)
         {
             //可以直接修改wdtqueue
-            ostime = DjyGetSysTime();
+            ostime = DJY_GetSysTime();
             __Wdt_RemovefQueue(wdt);
             wdt->deadtime = wdt->cycle + ostime;
             wdt->shyiptimes = 0;

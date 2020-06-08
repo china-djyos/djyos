@@ -126,27 +126,27 @@ enum __EN_TFTPERR
     EN_TFTPERR_SOCKET,
     EN_TFTPERR_LAST,
 };
-char *TftpErrMsg(u16 errcode);
-int MakeRequestMsg(u8 *buf, int buflen,u16 opcode,char *filename,char *mode,\
+char *TFTP_ErrMsg(u16 errcode);
+int TFTP_MakeRequestMsg(u8 *buf, int buflen,u16 opcode,char *filename,char *mode,\
                    int blksize,int timeout,int tsize);
-int DecodeRequestMsg(u8 *buf, int buflen, char **filename, char **mode,\
+int TFTP_DecodeRequestMsg(u8 *buf, int buflen, char **filename, char **mode,\
                      int *blksize,int *timeout, int *tsize);
-int MakeOAckMsg(u8 *buf, int buflen,int blksize,int timeout,int tsize);
-int DecodeOAckMsg(u8 *buf, int buflen,int *blksize,int *timeout, int *tsize);
-int MakeAckMsg(u8 *buf, int buflen,u16 block);
-int DecodeAckMsg(u8 *buf, int buflen,u16 *block);
-int MakeErrMsg(u8 *buf,int buflen,u16 errcode,char *msg);
-int DecodeErrMsg(u8 *buf, int buflen,tagTftpClient *client);
-int MakeDataMsg(tagTftpClient  *client);
-int DecodeDataMsg(u8 *buf,int buflen,u16 *block);
-bool_t ClientShow(tagTftpClient *client);
-int CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netaddr,\
+int TFTP_MakeOptAckMsg(u8 *buf, int buflen,int blksize,int timeout,int tsize);
+int TFTP_DecodeOptAckMsg(u8 *buf, int buflen,int *blksize,int *timeout, int *tsize);
+int TFTP_MakeAckMsg(u8 *buf, int buflen,u16 block);
+int TFTP_DecodeAckMsg(u8 *buf, int buflen,u16 *block);
+int TFTP_MakeErrMsg(u8 *buf,int buflen,u16 errcode,char *msg);
+int TFTP_DecodeErrMsg(u8 *buf, int buflen,tagTftpClient *client);
+int TFTP_MakeDataMsg(tagTftpClient  *client);
+int TFTP_DecodeDataMsg(u8 *buf,int buflen,u16 *block);
+bool_t TFTP_ClientShow(tagTftpClient *client);
+int TFTP_CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netaddr,\
                  int oblksize,int otimeout,int otsize,bool_t server,tagTftpClient **tftpclient);
-bool_t DeleteClient(tagTftpClient *client);
-int TftpTransEngine(tagTftpClient *client);
+bool_t TFTP_DeleteClient(tagTftpClient *client);
+int TFTP_TransEngine(tagTftpClient *client);
 
-bool_t tftppath(char *param);
-bool_t tftppathset(char *path);
+bool_t TFTP_Path(char *param);
+bool_t TFTP_PathSet(char *path);
 
 
 

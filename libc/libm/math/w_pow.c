@@ -97,10 +97,10 @@ PORTABILITY
         if (_LIB_VERSION == _IEEE_ ||
             _LIB_VERSION == _POSIX_) exc.retval = 1.0;
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(EDOM);
+            DJY_SaveLastError(EDOM);
         }
             if (exc.err != 0)
-               Djy_SaveLastError(exc.err);
+               DJY_SaveLastError(exc.err);
                 return exc.retval;
         } else
         return z;
@@ -117,10 +117,10 @@ PORTABILITY
         exc.retval = 0.0;
         if (_LIB_VERSION != _SVID_) exc.retval = 1.0;
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(EDOM);
+            DJY_SaveLastError(EDOM);
         }
             if (exc.err != 0)
-               Djy_SaveLastError(exc.err);
+               DJY_SaveLastError(exc.err);
                 return exc.retval;
         }
             if(finite(y)&&y<0.0) {
@@ -135,12 +135,12 @@ PORTABILITY
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
             if (exc.err != 0)
-               Djy_SaveLastError(exc.err);
+               DJY_SaveLastError(exc.err);
                 return exc.retval;
             }
         return z;
@@ -159,12 +159,12 @@ PORTABILITY
             else
                 exc.retval = 0.0/0.0;   /* X/Open allow NaN */
             if (_LIB_VERSION == _POSIX_)
-                Djy_SaveLastError(EDOM);
+                DJY_SaveLastError(EDOM);
             else if (!matherr(&exc)) {
-                Djy_SaveLastError(EDOM);
+                DJY_SaveLastError(EDOM);
             }
                 if (exc.err != 0)
-                    Djy_SaveLastError(exc.err);
+                    DJY_SaveLastError(exc.err);
                     return exc.retval;
             } else {
             /* pow(x,y) overflow */
@@ -183,12 +183,12 @@ PORTABILITY
                if(x<0.0&&rint(y)!=y) exc.retval = -HUGE_VAL;
             }
             if (_LIB_VERSION == _POSIX_)
-                Djy_SaveLastError(ERANGE);
+                DJY_SaveLastError(ERANGE);
             else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
             }
                 if (exc.err != 0)
-                    Djy_SaveLastError(exc.err);
+                    DJY_SaveLastError(exc.err);
                     return exc.retval;
                 }
         }
@@ -202,12 +202,12 @@ PORTABILITY
         exc.arg2 = y;
         exc.retval =  0.0;
         if (_LIB_VERSION == _POSIX_)
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
         if (exc.err != 0)
-            Djy_SaveLastError(exc.err);
+            DJY_SaveLastError(exc.err);
             return exc.retval;
         }
     return z;

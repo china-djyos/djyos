@@ -196,11 +196,11 @@ bool_t TcpServer_Snd(void)
 bool_t TcpServer_SndTask(char *param)
 {
    u16   evtt_id = CN_EVTT_ID_INVALID;
-   evtt_id = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS-1, 0, 1,
+   evtt_id = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS-1, 0, 1,
         (ptu32_t (*)(void))TcpServer_Snd,NULL, 0x1000, "TcpServer_Snd");
     if (evtt_id != CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(evtt_id, NULL, 0, 0, 0, 0);
+        DJY_EventPop(evtt_id, NULL, 0, 0, 0, 0);
     }
     return true;
 }

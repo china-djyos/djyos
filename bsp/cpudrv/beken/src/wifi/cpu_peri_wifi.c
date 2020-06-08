@@ -362,7 +362,7 @@ void MacRcv(void *p)
         }
         else
         {
-            NetDevPush(pDrive->devhandle,pkg);
+            Link_NetDevPush(pDrive->devhandle,pkg);
         }
         PkgTryFreePart(pkg);
     }
@@ -376,7 +376,7 @@ void DjyWifi_StaConnect(char *ssid,char *connect_key)
 void DjyWifi_StaDisConnect(void)
 {
     bk_wlan_stop(STATION);
-    Djy_EventDelay(300*mS);//加个延时，如果断开立即快连，有时发不出去数据。
+    DJY_EventDelay(300*mS);//加个延时，如果断开立即快连，有时发不出去数据。
 }
 
 void DjyWifi_ApOpen(char *ap_ssid, char *ap_key)

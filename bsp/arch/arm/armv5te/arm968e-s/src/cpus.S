@@ -29,7 +29,7 @@
 .global __asm_reset_thread
 __asm_reset_thread:
     LDR     R2,[R1,#4]          @取虚拟机栈顶指针
-    LDR     R3,=__Djy_VmEngine  @取虚拟机引擎指针
+    LDR     R3,=__DJY_VmEngine  @取虚拟机引擎指针
     STMFD   R2!,{R3}            @存pc，
     SUB     R2,R2,#13*4         @后退13个寄存器,初始状态r1-r12随意，__vm_engine
                                 @函数不返回，lr也无意义

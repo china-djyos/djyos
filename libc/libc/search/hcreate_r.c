@@ -85,7 +85,7 @@ hcreate_r(size_t nel, struct hsearch_data *htab)
 
     /* Make sure this this isn't called when a table already exists. */
     if (htab->htable != NULL) {
-        Djy_SaveLastError(EINVAL);
+        DJY_SaveLastError(EINVAL);
         return 0;
     }
 
@@ -108,7 +108,7 @@ hcreate_r(size_t nel, struct hsearch_data *htab)
     htab->htablesize = nel;
     htab->htable = malloc(htab->htablesize * sizeof htab->htable[0]);
     if (htab->htable == NULL) {
-        Djy_SaveLastError(ENOMEM);
+        DJY_SaveLastError(ENOMEM);
         return 0;
     }
 

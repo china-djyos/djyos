@@ -190,7 +190,7 @@ static struct NetDev* __NetDevGet(const char *name)
 //    return ret;
 //}
 //use this function to receive a package from the net device layer
-//bool_t NetDevPush(void *iface,struct NetPkg *pkg)
+//bool_t Link_NetDevPush(void *iface,struct NetPkg *pkg)
 //{
 //    bool_t ret = false;
 //    if(NULL != iface)
@@ -540,7 +540,7 @@ struct NetDev* NetDevInstall(struct NetDevPara *para)
     {
         return iface;
     }
-    linkops = LinkFindOps(para->iftype);
+    linkops = Link_FindOps(para->iftype);
     if(NULL == linkops)
     {
         return iface;
@@ -795,7 +795,7 @@ bool_t NetDevFlowSet(struct NetDev* handle,enum EthFramType type,\
             filter->fulimit =ulimit;
             filter->fllimit =llimit;
             filter->fcounter = 0;
-            filter->deadtime = DjyGetSysTime() + period;
+            filter->deadtime = DJY_GetSysTime() + period;
             filter->en = enable?1:0;
             result = true;
         }
@@ -897,7 +897,7 @@ bool_t NetDevFlowCtrl(struct NetDev* handle,enum EthFramType type)
             }
         }
         //check all the filter
-        timenow = DjyGetSysTime();
+        timenow = DJY_GetSysTime();
         for(looptype =0;looptype < EN_NETDEV_FRAME_LAST;looptype++)
         {
             filter = &handle->rfilter[looptype];
@@ -1020,7 +1020,7 @@ bool_t ifconfig(char *param)
             {
                 i++;
                 debug_printf("netdev","%-2d %-10s %-10s %-8x %-8x %-8x %-8x %-8x %-8x %-s\n\r",\
-                        i,iface->name,LinkTypeName(iface->iftype),iface->devfunc,iface->mtu,\
+                        i,iface->name,Link_TypeName(iface->iftype),iface->devfunc,iface->mtu,\
                         iface->pkgsnd,iface->pkgsnderr,iface->pkgrcv,iface->pkgrcverr,mac2string(iface->mac));
                 iface = iface->NextDev;
             }while(g_ptDefaultNetDev != iface);

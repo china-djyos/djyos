@@ -309,15 +309,15 @@ void __lcd_ssd2119_init(void)
 
     spi_flash_enable_voltage();
     spi_init_extral_gpio();
-    Djy_DelayUs(300);
+    DJY_DelayUs(300);
     bk_spi_master_init(30*1000*1000, SPI_DEF_MODE);
     spi_init_extral_gpio();
     SPI_RST(1);
-    Djy_DelayUs(100);
+    DJY_DelayUs(100);
     SPI_RST(0);
-    Djy_DelayUs(500);
+    DJY_DelayUs(500);
     SPI_RST(1);
-    Djy_DelayUs(300);
+    DJY_DelayUs(300);
 
     WriteComm(0x28);
     date = 0x0006;
@@ -452,7 +452,7 @@ void __lcd_ssd2119_init(void)
     date = 0x0018;
     WriteDataBytes((u8 *)&date,2);
 
-    Djy_DelayUs(10000);
+    DJY_DelayUs(10000);
 
     WriteComm(0x22);
 }
@@ -932,7 +932,7 @@ ptu32_t ModuleInstall_ssd2119(const char *DisplayName,const char* HeapName)
     __lcd_ssd2119_init( );
 
 #if 0
-    heap =M_FindHeap(HeapName);
+    heap =Heap_FindHeap(HeapName);
     if(heap==NULL){
         printf("M_FindHeapd  ERROR!\r\n");
         return NULL;
@@ -947,7 +947,7 @@ ptu32_t ModuleInstall_ssd2119(const char *DisplayName,const char* HeapName)
     FrameBitmap.bm_bits = (u8 *)pLTDCBufferFG1;
 #else
     FrameBitmap.bm_bits = u8g_frame_buffer;
-//  heap =M_FindHeap("PSRAM");
+//  heap =Heap_FindHeap("PSRAM");
 //  FrameBitmap.bm_bits = M_MallocHeap(cn_frame_buffer_size,heap,0);;
 #endif
     FrameBitmap.width = CFG_LCD_XSIZE;

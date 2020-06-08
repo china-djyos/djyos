@@ -676,7 +676,7 @@ static ptu32_t __MacRcvTask(void)
 
 //  u32 value;
 
-    Djy_GetEventPara((ptu32_t *)&handle,NULL);
+    DJY_GetEventPara((ptu32_t *)&handle,NULL);
     //没发现H7有统计CRC错误的功能
 //    value = pDrive->EthHandle->Instance->MMCRFCECR;
 ////  addr = (u32 *)((u32)ETH + 0x194);
@@ -687,7 +687,7 @@ static ptu32_t __MacRcvTask(void)
 //        printf("[MACRESET:%s Num:0x%08x] CRCERRORCONTER:0x%08x start\n\r",\
 //                ctime(&printtime),resettimes++,value);
 //        MacReset(NULL);
-//        Djy_EventDelay(10*mS);
+//        DJY_EventDelay(10*mS);
 //    }
 
     while(1)
@@ -719,7 +719,7 @@ static ptu32_t __MacRcvTask(void)
                 }
                 else
                 {
-                    NetDevPush(handle,pkg);
+                    Link_NetDevPush(handle,pkg);
                 }
                 PkgTryFreePart(pkg);
                 pDrive->debuginfo.rcvPkgTimes++;
@@ -743,7 +743,7 @@ static ptu32_t __MacRcvTask(void)
 //            printf("[MACRESET:%s Num:0x%08x] CRCERRORCONTER:0x%08x running\n\r",\
 //                    ctime(&printtime),resettimes++,value);
 //            MacReset(NULL);
-//            Djy_EventDelay(10*mS);
+//            DJY_EventDelay(10*mS);
 //        }
 
     }
@@ -756,18 +756,18 @@ static bool_t __CreateRcvTask(struct NetDev * handle)
     u16 evttID;
     u16 eventID;
 
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_REAL, 0, 1,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_REAL, 0, 1,
         (ptu32_t (*)(void))__MacRcvTask,NULL, 0x800, "GMACRcvTask");
     if (evttID != CN_EVTT_ID_INVALID)
     {
-        eventID=Djy_EventPop(evttID, NULL,  0,(ptu32_t)handle, 0, 0);
+        eventID=DJY_EventPop(evttID, NULL,  0,(ptu32_t)handle, 0, 0);
         if(eventID != CN_EVENT_ID_INVALID)
         {
             result = true;
         }
         else
         {
-            Djy_EvttUnregist(evttID);
+            DJY_EvttUnregist(evttID);
         }
     }
     return result;
@@ -785,7 +785,7 @@ bool_t mac(char *param)
     tagMacDriver      *pDrive;
     pDrive = &gMacDriver;
 
-    time = DjyGetSysTime();
+    time = DJY_GetSysTime();
     timeS = time/(1000*1000);
     if(timeS == 0)
     {

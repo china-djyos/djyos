@@ -601,7 +601,7 @@ uint8_t MCP2515_ReadByte(uint8_t Addr)
         MCP2515_TxRx(temp+i,1,Data+i,1,0);
     }
 
-//    Djy_DelayUs(10);
+//    DJY_DelayUs(10);
     MCP2515_CsInActive();
     return Data[2];
 }
@@ -622,7 +622,7 @@ bool_t MCP2515_Reset(void)
     u8 temp,Data;
     temp=Mcp2515_SPI_RESET;
     MCP2515_CsActive();
-    Djy_DelayUs(100);
+    DJY_DelayUs(100);
     MCP2515_TxRx(&temp,1,&Data,1,0);
     MCP2515_CsInActive();
     return true;
@@ -838,7 +838,7 @@ void MCP2515_SendData(uint8_t *CAN_TX_Buf,Frame_TypeDef *Frame )
     SPI_Send(tx_cmd);
     MCP2515_CsInActive();
 
-    Djy_EventDelay(5*mS);
+    DJY_EventDelay(5*mS);
     tempdata=SPI_CMD_MCP2515(Mcp2515_SPI_READ_STATUS);
     if(0==(tempdata & 0x54))
     {
@@ -906,7 +906,7 @@ void MCP2515_ReceiveData(void)
         if(DLC!=8)
         {
             DLC=MCP2515_ReadByte(Mcp2515_RXB0DLC);
-            Djy_EventDelay(10*mS);
+            DJY_EventDelay(10*mS);
 //          Mcp2515_gs_u64RcvPkgBadCnt++;
             MCP2515_BitModify(Mcp2515_CANINTF,Mcp2515_RX0IF_SET,0x00);
             return;
@@ -951,12 +951,12 @@ void MCP2515_ReceiveData(void)
 
 
         Frame.ID=CAN_ID;//收到的ID给结构体
-        Djy_EventDelay(1*mS);
+        DJY_EventDelay(1*mS);
         DLC=MCP2515_ReadByte(Mcp2515_RXB1DLC);
         DLC=(DLC & 0x0F);
         if(DLC!=8)
         {
-            Djy_EventDelay(10*mS);
+            DJY_EventDelay(10*mS);
 //          Mcp2515_gs_u64RcvPkgBadCnt++;
             MCP2515_BitModify(Mcp2515_CANINTF,Mcp2515_RX0IF_SET,0x00);
             return;
@@ -1196,15 +1196,15 @@ void MCP2515_Init(void)
     ????*/
     extern const Pin CAN_RstPin[];
     PIO_Set(&CAN_RstPin[0]);
-    Djy_EventDelay(1*mS);
+    DJY_EventDelay(1*mS);
     PIO_Clear(&CAN_RstPin[0]);
-    Djy_EventDelay(1*mS);
+    DJY_EventDelay(1*mS);
     PIO_Set(&CAN_RstPin[0]);
-    Djy_EventDelay(1*mS);//硬件复位
+    DJY_EventDelay(1*mS);//硬件复位
 
     /*翻到配置模式*/
     MCP2515_Reset();//软件复位
-    Djy_EventDelay(10*mS);
+    DJY_EventDelay(10*mS);
     dummy=MCP2515_ReadByte(Mcp2515_CANSTAT);
 
     if(4!=(dummy>>5))
@@ -1212,7 +1212,7 @@ void MCP2515_Init(void)
         printf("未进入配置状态.\r\n");
         return;
     }
-    Djy_EventDelay(1*mS);
+    DJY_EventDelay(1*mS);
 
     MCP2515__SetBaudRate(Mcp2515_baudrate);
     /*

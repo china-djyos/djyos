@@ -102,7 +102,7 @@ static ptu32_t __LoopTask(void)
             }
             if(NULL!= pkg) //PUSH IT
             {
-                NetDevPush(gLoopCB.iface,pkg);
+                Link_NetDevPush(gLoopCB.iface,pkg);
                 PkgTryFreePart(pkg);
             }
         }

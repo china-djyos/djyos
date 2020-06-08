@@ -292,7 +292,7 @@ static bool_t Touch_ReadXY(s16 *X, s16 *Y)
     //读4个采样点的值
     PIO_Clear(SpiCs);
     SPI_Transfer(s_ptTouch_Dev, &data, true, CN_TIMEOUT_FOREVER);
-    Djy_EventDelay(1000);
+    DJY_EventDelay(1000);
     PIO_Set(SpiCs);
 
 #else
@@ -401,7 +401,7 @@ static ptu32_t ScanTouch(void)
         {
             if(count++ > 2)
             {
-                Djy_EventDelay(1000);
+                DJY_EventDelay(1000);
 
                 trans = Touch_ReadXY(&x,&y);
 
@@ -445,7 +445,7 @@ static ptu32_t ScanTouch(void)
                 z = 0;
             }
         }
-        Djy_EventDelay(10*mS);
+        DJY_EventDelay(10*mS);
     }
     return 0;
 }
@@ -541,7 +541,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
             if(Touch_Touched() == false)
             {
                 printf(".");
-                Djy_EventDelay(1000*mS);
+                DJY_EventDelay(1000*mS);
             }
             else
             {
@@ -554,14 +554,14 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
             return;
         }
 
-        Djy_EventDelay(100*mS);
+        DJY_EventDelay(100*mS);
 
         for(loop = 0;loop < 50; )
         {
             if(Touch_Touched())
             {
                 loop++;
-                Djy_DelayUs(30000);
+                DJY_DelayUs(30000);
             }
         }
         for(loop = 0;loop < 7; )
@@ -585,7 +585,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
                         loop++;
                     }
                 }
-                Djy_DelayUs(30000);
+                DJY_DelayUs(30000);
             }
         }
         tempx -= maxx + minx;
@@ -597,13 +597,13 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
         //    s_s16gXAdjustLeft = 0;
         //    s_s16gYAdjustTop = 0;
         //    maxx=0,minx=65535,maxy=0,miny=65535,tempx=0,tempy=0;
-        //    Djy_DelayUs(300*mS);
+        //    DJY_DelayUs(300*mS);
         //    }
         clr_cursor(desktop, 20, 20);
         draw_cursor(desktop, 220, 108);
 
 //        while(Touch_Touched() == true);
-//        Djy_EventDelay(300*mS);
+//        DJY_EventDelay(300*mS);
 
 //        while(Touch_Touched() == false);
         for(j=0;j<20;j++)
@@ -611,7 +611,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
             if(Touch_Touched() == false)
             {
                 printf(".");
-                Djy_EventDelay(1000*mS);
+                DJY_EventDelay(1000*mS);
             }
             else
             {
@@ -623,7 +623,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
             printf("\r\nLCM240128C TOUCH TIMEOUT,Adjust failed.\r\n!!!\r\n");
             return;
         }
-        Djy_EventDelay(100*mS);
+        DJY_EventDelay(100*mS);
         maxx=0;
         minx=65535;
         maxy=0;
@@ -635,7 +635,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
             if(Touch_Touched())
             {
                 loop++;
-                Djy_DelayUs(30000);
+                DJY_DelayUs(30000);
             }
         }
         for(loop = 0;loop < 7; )
@@ -659,7 +659,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
                         loop++;
                     }
                 }
-                Djy_DelayUs(30000);
+                DJY_DelayUs(30000);
             }
         }
         tempx -= maxx +minx;
@@ -691,7 +691,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
             gs_XadjustRight=s_s16gXAdjustRight;
             gs_YadjustBottom=s_s16gYAdjustBottom;
             gs_YadjustTop=s_s16gYAdjustTop;
-            Djy_EventDelay(200*mS);
+            DJY_EventDelay(200*mS);
         }
 
         else
@@ -714,9 +714,9 @@ bool_t ModuleInstall_LCM240128Touch(void)
     u16 evtt_id;
     s16 tmp_x=0,tmp_y=0;
     PIO_Clear(SpiCs);
-    Djy_EventDelay(100*mS);
+    DJY_EventDelay(100*mS);
     PIO_Set(SpiCs);
-    Djy_EventDelay(100*mS);
+    DJY_EventDelay(100*mS);
 
     //修改byzhb20170325   原来是1M改为500k，触摸点在边缘时不准。
     s_ptTouch_Dev = SPI_DevAdd(SPI_BUS_NAME,CFG_LCM240128_TOUCH_NAME,0,8,SPI_MODE_0,
@@ -739,11 +739,11 @@ bool_t ModuleInstall_LCM240128Touch(void)
     touch_dev.touch_loc.display = GK_GetDisplay(CFG_DISPLAY_NAME);
     Touch_InstallDevice(CFG_LCM240128_TOUCH_NAME,&touch_dev);
 
-    evtt_id = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
+    evtt_id = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
                                 ScanTouch,NULL,1024,
                                 "touch scaning");
     //事件的两个参数暂设为0?如果用shell启动?可用来采集shell命令行参数
-    Djy_EventPop(evtt_id,NULL,0,0,0,0);
+    DJY_EventPop(evtt_id,NULL,0,0,0,0);
 
     return true;
 }

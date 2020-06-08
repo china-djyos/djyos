@@ -317,7 +317,7 @@ bool_t __wait_ready_nand_slow(uint16_t wait_time)
 
     u32 timestart,timeend;
 
-    timestart = (u32)DjyGetSysTime( );
+    timestart = (u32)DJY_GetSysTime( );
     timeend = timestart;
 
     while ( (timeend - timestart) < wait_time)
@@ -326,7 +326,7 @@ bool_t __wait_ready_nand_slow(uint16_t wait_time)
        {
           break;
        }
-      timeend = (u32)DjyGetSysTime( );
+      timeend = (u32)DJY_GetSysTime( );
     }
 
     if( (timeend - timestart) >= wait_time)
@@ -1140,7 +1140,7 @@ ptu32_t ModuleInstall_FsNandFlash(void)
     chip_id = __read_chip_id();
     if( __parse_chip(chip_id,&name) == false)
         return 0;
-    MyHeap = M_FindHeap(CFG_NAND_USE_HEAP_NAME);
+    MyHeap = Heap_FindHeap(CFG_NAND_USE_HEAP_NAME);
     if(MyHeap == NULL)
         return 0;
     tg_micron_nand.ChipHeap = MyHeap;

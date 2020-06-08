@@ -87,7 +87,7 @@ static bool_t Max31865_Ready(u32 WaitTime)
     u32 timecnt = 0;
     while(timecnt < WaitTime)
     {
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
 //      if(!PIO_Get(&Max3_pin[4]))
         if(!Max31865_DataReady())
             return true;
@@ -141,7 +141,7 @@ static bool_t Max31865_TrigSingleSample(void)
         cfgData[1] = 0xA0;
         Max31865_CsActive();
         Max31865_TxRx(cfgData,2,NULL,0,0);
-        Djy_EventDelay(15*1000);
+        DJY_EventDelay(15*1000);
         Max31865_CsInActive();
 
         cfgData[0] = 0x00;
@@ -158,7 +158,7 @@ static bool_t Max31865_TrigSingleSample(void)
         {
             break;
         }
-        Djy_EventDelay(1*mS);
+        DJY_EventDelay(1*mS);
     }while(1);
 
     return ret;
@@ -182,7 +182,7 @@ static bool_t Max31865_ContinousModeCfg(void)
         cfgData[1] = 0xC1;
         Max31865_CsActive();
         Max31865_TxRx(cfgData,2,NULL,0,0);
-        Djy_EventDelay(15*mS);
+        DJY_EventDelay(15*mS);
         Max31865_CsInActive();
 
         cfgData[0] = 0x00;
@@ -199,7 +199,7 @@ static bool_t Max31865_ContinousModeCfg(void)
         {
             break;
         }
-        Djy_EventDelay(10*mS);
+        DJY_EventDelay(10*mS);
     }while(1);
 
     return ret;

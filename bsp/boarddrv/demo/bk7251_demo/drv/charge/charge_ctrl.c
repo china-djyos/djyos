@@ -459,7 +459,7 @@ char vol_to_percentage(int assign)
         if(vol >= 2700)     //防止一些异常电压导致休眠
         {
             printf("电量不足，准备关机\r\n");
-            Djy_EventDelay(3000*1000);
+            DJY_EventDelay(3000*1000);
             deep_sleep();
         }
         else

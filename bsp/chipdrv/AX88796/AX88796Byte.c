@@ -212,7 +212,7 @@ void SetRegMAC(tagAx88796Pri  *pri,u8 iReg,u8 iValue)
 void Net_ChipRST(tagAx88796Pri  *pri)
 {
     Net_GetNetReg(pri,0x1f);
-    Djy_DelayUs(5000);
+    DJY_DelayUs(5000);
 }
 //****************************************************************************/
 // 清网卡中断
@@ -473,7 +473,7 @@ bool_t Net_PCToNIC(tagAx88796Pri *pri,u16 length,u8 *Buffer)
             else
             {
                 timeout++;
-                Djy_DelayUs(1); //每次延时1us
+                DJY_DelayUs(1); //每次延时1us
             }
 
         }
@@ -611,7 +611,7 @@ static ptu32_t __DevRcvMain(void)
     u8              *dst;
     struct NetPkg       *pkg;
     tagAx88796Pri   *pri = NULL;
-    Djy_GetEventPara((ptu32_t *)&pri,NULL);
+    DJY_GetEventPara((ptu32_t *)&pri,NULL);
     if(NULL != pri)
     {
         fnHook = pri->fnRcvDealer;
@@ -655,7 +655,7 @@ static ptu32_t __DevRcvMonitor(void)
     tagAx88796Pri  *pri = NULL;
     u32             chippacks;
 
-    Djy_GetEventPara((ptu32_t *)&pri,NULL);
+    DJY_GetEventPara((ptu32_t *)&pri,NULL);
     if(NULL == pri)
     {
         goto MONITOR_EXIT;
@@ -663,7 +663,7 @@ static ptu32_t __DevRcvMonitor(void)
     while(1)
     {
         chippacks = pri->monitorRcv;
-        Djy_EventDelay(CN_DEV_MONITOR_CYCLE);
+        DJY_EventDelay(CN_DEV_MONITOR_CYCLE);
         if(Lock_MutexPend(pri->devsync,CN_TIMEOUT_FOREVER))
         {
             if(chippacks == pri->monitorRcv) //no pack rcved any more, reset the dev
@@ -683,15 +683,15 @@ static u16 __taskCreate(char *name,u32 prior,void *routine,u32 stacksize,ptu32_t
 
     u16 evttID;
     u16 eventID = CN_EVENT_ID_INVALID;
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, prior, 0, 1,\
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, prior, 0, 1,\
                             (ptu32_t (*)(void))routine,NULL, stacksize, name);
 
     if (evttID != CN_EVTT_ID_INVALID)
     {
-        eventID=Djy_EventPop(evttID, NULL, 0, (ptu32_t)para, 0, 0);
+        eventID=DJY_EventPop(evttID, NULL, 0, (ptu32_t)para, 0, 0);
         if(eventID == CN_EVENT_ID_INVALID)
         {
-            Djy_EvttUnregist(evttID);
+            DJY_EvttUnregist(evttID);
         }
     }
     return eventID;

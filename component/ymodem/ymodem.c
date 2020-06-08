@@ -265,7 +265,7 @@ static u32 __Ymodem_Gets(u8 *buf,u32 len)
     u32 res, bytesToGet = len;
     s64 end, log;
 
-    log = DjyGetSysTime();
+    log = DJY_GetSysTime();
     end = log + (s64)CFG_YMODEM_PKG_TIMEOUT;
 
     while(1)
@@ -275,7 +275,7 @@ static u32 __Ymodem_Gets(u8 *buf,u32 len)
         if(!bytesToGet)
             break;
 
-        if(DjyGetSysTime() > end)
+        if(DJY_GetSysTime() > end)
             break;
 
         buf += res;
@@ -384,7 +384,7 @@ static bool_t __Ymodem_PackCheck(u8* buf, u32 pack_len)
         write_char(CN_YMODEM_NAK, s_s32gYmodemDevOut);     //应答nak，请求重发
         return false;
     }
-    checksum = crc16(buf+3, pack_len);
+    checksum = CRC_16(buf+3, pack_len);
     if(CN_CFG_BYTE_ORDER == CN_CFG_LITTLE_ENDIAN)
     {
         check = (buf[pack_len+3]<<8) + buf[pack_len+4];
@@ -406,7 +406,7 @@ static void __Ymodem_WriteCrc16(u8 *package, u32 pack_len)
 {
     u16 checksum;
 
-    checksum = crc16(package+3, pack_len);
+    checksum = CRC_16(package+3, pack_len);
     if(CN_CFG_BYTE_ORDER == CN_CFG_LITTLE_ENDIAN)
     {
         package[3+pack_len] = (checksum >> 8) & 0xFF;
@@ -612,7 +612,7 @@ static YMRESULT __Ymodem_ReceiveProcess(tagYmodem *ym)
             __Ymodem_CancelTrans();
             break;
         }
-        CurrentTime = DjyGetSysTime();                  //总超时处理
+        CurrentTime = DJY_GetSysTime();                  //总超时处理
         if(CurrentTime - ym->StartTime >= ym->TimeOut)
         {
             Ret = YMODEM_TIMEOUT;
@@ -765,7 +765,7 @@ bool_t downloadym(char *Param)
     }
     pYmodem->PkgBuf[0] = (u8)res;
     pYmodem->PkgBufCnt = 1;
-    pYmodem->StartTime = DjyGetSysTime();
+    pYmodem->StartTime = DJY_GetSysTime();
     fcntl(s_s32gYmodemDevIn, F_SETTIMEOUT, CFG_YMODEM_PKG_TIMEOUT);
     Ret = __Ymodem_ReceiveProcess(pYmodem);
 
@@ -837,7 +837,7 @@ static YMRESULT __Ymodem_SendProcess(tagYmodem *ym)
             break;
         }
         Cmd[0] = (u8)res;
-        CurrentTime = DjyGetSysTime();              //总超时处理
+        CurrentTime = DJY_GetSysTime();              //总超时处理
         if(CurrentTime - ym->StartTime >= ym->TimeOut)
         {
             Ret = YMODEM_TIMEOUT;
@@ -1024,7 +1024,7 @@ bool_t uploadym(char *Param)
     pYmodem->PkgBuf[0] = (u8)res;
 
     pYmodem->PkgBufCnt = 1;
-    pYmodem->StartTime = DjyGetSysTime();
+    pYmodem->StartTime = DJY_GetSysTime();
     fcntl(s_s32gYmodemDevIn, F_SETTIMEOUT, CFG_YMODEM_PKG_TIMEOUT);
     Ret = __Ymodem_SendProcess(pYmodem);
 

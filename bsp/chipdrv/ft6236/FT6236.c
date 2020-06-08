@@ -174,19 +174,19 @@ static bool_t FT6236_Init( )
     FT6236_Pin_Init();
 
     FT_RST(0);    //复位
-    Djy_DelayUs(50*mS);
+    DJY_DelayUs(50*mS);
     FT_RST(1);   //释放复位
-    Djy_DelayUs(100*mS);
+    DJY_DelayUs(100*mS);
 
     CT_IIC_SCL(1);
     CT_IIC_SDA(1);
-    Djy_DelayUs(10*mS);
+    DJY_DelayUs(10*mS);
 
 //    chipid = 0;
 //    do{
 //        FT6236_RD_Reg(0xa3,&chipid,2);
 //         i++;
-//         Djy_DelayUs(50*mS);
+//         DJY_DelayUs(50*mS);
 //         if((chipid==0x06)||(chipid==0x36)||(chipid==0x64))
 //            break;
 //      } while(i<20);
@@ -278,7 +278,7 @@ static bool_t touch_check(void)
     struct SingleTouchMsg touch_xyz0;
     for(i=0;i<5;i++)
     {
-        Djy_DelayUs(50*mS);
+        DJY_DelayUs(50*mS);
         if(FT6236_Scan(&touch_xyz0))//判断松手
             i=0;
     }

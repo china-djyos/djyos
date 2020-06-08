@@ -420,10 +420,10 @@ __asm_reset_thread:
     lis     r6, CN_MSR_THREAD@h
     ori     r6, r6, CN_MSR_THREAD@l
     stw     r6, MSR_OFFSET(r5)   //reset the msr
-    lis     r6, __Djy_VmEngine@h
-    ori     r6, r6, __Djy_VmEngine@l
+    lis     r6, __DJY_VmEngine@h
+    ori     r6, r6, __DJY_VmEngine@l
     stw     r6, PC_OFFSET(r5)    //set the pc
-    evstdd  r3, R3_OFFSET(r5)    //set the r3(thread_routine) for the parameter of __Djy_VmEngine
+    evstdd  r3, R3_OFFSET(r5)    //set the r3(thread_routine) for the parameter of __DJY_VmEngine
     stw     r5, 0(r4)            //save the sp in the member top of vm
     msync
     //recover for the current thread
@@ -462,10 +462,10 @@ __asm_reset_switch:
     lis     r6, CN_MSR_THREAD@h
     ori     r6, r6, CN_MSR_THREAD@l
     stw     r6, MSR_OFFSET(r7)   //reset the msr
-    lis     r6, __Djy_VmEngine@h
-    ori     r6, r6, __Djy_VmEngine@l
+    lis     r6, __DJY_VmEngine@h
+    ori     r6, r6, __DJY_VmEngine@l
     stw     r6, PC_OFFSET(r7)    //set the pc
-    evstdd  r3, R3_OFFSET(r7)    //set the r3(thread_routine) for the parameter of __Djy_VmEngine
+    evstdd  r3, R3_OFFSET(r7)    //set the r3(thread_routine) for the parameter of __DJY_VmEngine
     stw     r7, 0(r5)            //save the sp in the member top of vm
     msync
     //ok, now we'd better to recover the new vm stack to the registers.

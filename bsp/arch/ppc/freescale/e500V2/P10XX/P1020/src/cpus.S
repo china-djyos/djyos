@@ -244,7 +244,7 @@ __asm_get_mc_registers:
 @      这就是跳到哪一个选择哪一个系统启动的地方，这么说你明白了吧
 @-------------------------------------------------------------------------------
 */
-.global reboot
+.global CPU_Reboot
 reboot:
     isync
     msync
@@ -270,7 +270,7 @@ reboot:
 @说明：那个我们按下我们的power键，那个什么这个就是那个效果，我想你懂得
 @-------------------------------------------------------------------------------
 */
-.global reset
+.global CPU_Reset
 reset:
     isync
     msync
@@ -297,7 +297,7 @@ reset:
 @说明：那个我们按下我们的power键，那个什么这个就是那个效果，我想你懂得
 @-------------------------------------------------------------------------------
 */
-.global restart_system
+.global CPU_RestartSystem
 restart_system:
     isync
     msync

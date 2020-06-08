@@ -56,7 +56,7 @@
 // 返回： 0 -- 失败； 1 -- 成功
 // 备注：
 // ============================================================================
-bool_t SetNameValueFS(char *name, char *val, int len)
+bool_t File_SetNameValueFs(char *name, char *val, int len)
 {
     FILE *fd = NULL;
     struct stat file_state;
@@ -125,7 +125,7 @@ bool_t SetNameValueFS(char *name, char *val, int len)
 // 返回： 0 -- 失败； > 0 -- 成功,实际读取的有效数据长度
 // 备注：
 // ============================================================================
-int GetNameValueFS(char *name, char *val, int len)
+int File_GetNameValueFs(char *name, char *val, int len)
 {
     FILE *fd = NULL;
     int res = 0;
@@ -169,7 +169,7 @@ int GetNameValueFS(char *name, char *val, int len)
 // 返回： 0 -- 失败； 1 -- 成功
 // 备注：
 // ============================================================================
-bool_t RmNameValueFS(char *name)
+bool_t File_RmNameValueFs(char *name)
 {
     bool_t res = false;
 //    flash_protection_op(0,FLASH_PROTECT_NONE);

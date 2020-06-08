@@ -108,13 +108,13 @@
 //%$#@end configue  ****²ÎÊýÅäÖÃ½áÊø
 //@#$%component end configure
 
-s32 AsciiMbToUcs4(u32* pwc, const char* s, s32 n);
-s32 AsciiMbsToUcs4s(u32* pwcs, const char* mbs, s32 n);
-s32 AsciiUcs4ToMb(char* s, u32 wc);
-s32 AsciiUcs4sToMbs(char* mbs, const u32* pwcs, s32 n);
+s32 ASCII_MbToUcs4(u32* pwc, const char* s, s32 n);
+s32 ASCII_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n);
+s32 ASCII_Ucs4ToMb(char* s, u32 wc);
+s32 ASCII_Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n);
 
 // ×¢ÊÍ²ÎÕÕ charset.h-> struct Charset -> GetOneMb
-s32 AsciiGetOneMb(const char* mbs,s32 n)
+s32 ASCII_GetOneMb(const char* mbs,s32 n)
 {
     if (mbs == NULL)
     {
@@ -129,7 +129,7 @@ s32 AsciiGetOneMb(const char* mbs,s32 n)
 }
 
 // ×¢ÊÍ²ÎÕÕ charset.h-> struct Charset -> MbToUcs4
-s32 AsciiMbToUcs4(u32* pwc, const char* mbs,s32 n)
+s32 ASCII_MbToUcs4(u32* pwc, const char* mbs,s32 n)
 {
     u8 c;
     s32 result;
@@ -155,7 +155,7 @@ s32 AsciiMbToUcs4(u32* pwc, const char* mbs,s32 n)
 
 // ×¢ÊÍ²ÎÕÕ charset.h-> struct Charset -> MbsToUcs4s
 //todo£ºÀ©Õ¹asciiÂëÔõÃ´Ëã?
-s32 AsciiMbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
+s32 ASCII_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
 {
     s32 wcn,len;
     if(mbs == NULL)
@@ -182,7 +182,7 @@ s32 AsciiMbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
 }
 
 // ×¢ÊÍ²ÎÕÕ charset.h-> struct Charset -> Ucs4ToMb
-s32 AsciiUcs4ToMb(char* mbs, u32 wc)
+s32 ASCII_Ucs4ToMb(char* mbs, u32 wc)
 {
 
     if(wc < 0x80){
@@ -195,7 +195,7 @@ s32 AsciiUcs4ToMb(char* mbs, u32 wc)
 }
 
 // ×¢ÊÍ²ÎÕÕ charset.h-> struct Charset -> Ucs4sToMbs
-s32 AsciiUcs4sToMbs(char* mbs, const u32* pwcs, s32 n)
+s32 ASCII_Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n)
 {
     s32 asciin,len;
     if(pwcs == NULL)
@@ -235,18 +235,18 @@ bool_t ModuleInstall_CharsetAscii(void)
 
     encoding.max_len = 1;
     encoding.EOC_Size = 1;
-    encoding.GetOneMb = AsciiGetOneMb;
-    encoding.MbToUcs4 = AsciiMbToUcs4;
-    encoding.Ucs4ToMb = AsciiUcs4ToMb;
-    encoding.MbsToUcs4s = AsciiMbsToUcs4s;
-    encoding.Ucs4sToMbs = AsciiUcs4sToMbs;
+    encoding.GetOneMb = ASCII_GetOneMb;
+    encoding.MbToUcs4 = ASCII_MbToUcs4;
+    encoding.Ucs4ToMb = ASCII_Ucs4ToMb;
+    encoding.MbsToUcs4s = ASCII_MbsToUcs4s;
+    encoding.Ucs4sToMbs = ASCII_Ucs4sToMbs;
     if( Charset_NlsInstallCharset(&encoding, CN_NLS_CHARSET_ASCII))
     {
         debug_printf("ascii","ASCII encoding install sucess\r\n");
         return true;
     }else
     {
-        Djy_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
         debug_printf("ascii","ASCII encoding install fail\n\r");
         return false;
     }

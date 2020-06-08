@@ -145,7 +145,7 @@ static int __iic_wait(volatile tagI2CReg *dev, int write)
 
     do
     {
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
 
         csr = readb(dev->I2CSR);
         if (!(csr & I2C_SR_MIF))
@@ -194,7 +194,7 @@ static int __iic_wait4bus(volatile tagI2CReg *dev)
     {
 //      writeb(dev->cr, I2C_CR_MEN | I2C_CR_MSTA | I2C_CR_MTX);
 //      readb(dev->dr);
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
         writeb(dev->I2CCR, I2C_CR_MEN);
         if ( timeout++ > CONFIG_I2C_MBB_TIMEOUT)    /*еп╤ойг╥Я╣х╢ЩBBЁ╛й╠*/
             return -1;

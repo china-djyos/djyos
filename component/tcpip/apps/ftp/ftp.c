@@ -58,9 +58,9 @@
 
 
 extern bool_t ServiceFtpdInit(void);
-extern bool_t ServiceFtpcInit(void);
+extern bool_t FTP_ClientServiceInit(void);
 
-bool_t ServiceFtpInit(void)
+bool_t FTP_ServiceInit(void)
 {
     bool_t ret = true;
     if((CFG_FTPD_ENABLE)&&(false == ServiceFtpdInit()))
@@ -69,7 +69,7 @@ bool_t ServiceFtpInit(void)
         ret = false;
     }
 
-    if((CFG_FTPC_ENABLE)&&(false == ServiceFtpcInit()))
+    if((CFG_FTPC_ENABLE)&&(false == FTP_ClientServiceInit()))
     {
         error_printf("ftp","###err:FTPC ERR");
         ret = false;
@@ -81,7 +81,7 @@ bool_t ServiceFtpInit(void)
 
 //some common function tools here used by the server or client
 //this function used to display the ftp connection stat
-void FtpShowClient(tagFtpClient *client)
+void FTP_ShowClient(tagFtpClient *client)
 {
     info_printf("ftp","Client:user       :%s\r\n",client->user);
     info_printf("ftp","Client:passwd     :%s\r\n",client->passwd);
@@ -106,7 +106,7 @@ void FtpShowClient(tagFtpClient *client)
 
 //use this function to receive the specified line message here,if more message here
 //we will only storage the first few strings,len must be more than one
-int FtpRcvLine(int sock,u8 *buf,int len)
+int FTP_RcvLine(int sock,u8 *buf,int len)
 {
     int timeout = 0;
     int rcv = 0;
@@ -147,7 +147,7 @@ int FtpRcvLine(int sock,u8 *buf,int len)
 }
 
 //create a socket and connect to the server,return the connected socket handle
-int FtpConnect(struct in_addr *addr,u16 port)
+int FTP_Connect(struct in_addr *addr,u16 port)
 {
     struct sockaddr_in address;
     int s = -1;
@@ -177,7 +177,7 @@ int FtpConnect(struct in_addr *addr,u16 port)
     return s;
 }
 //accept a connect and do the set
-int FtpAccept(int s,struct in_addr *ipaddr,u16 *port)
+int FTP_Accept(int s,struct in_addr *ipaddr,u16 *port)
 {
     struct sockaddr_in address;
     int addrlen;

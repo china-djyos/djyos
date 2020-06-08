@@ -169,9 +169,9 @@ extern ptu32_t (*M_FormatSizeHeap)(ptu32_t size,pHeap_t Heap);
 extern ptu32_t (*M_FormatSize)(ptu32_t size);
 extern ptu32_t (*M_GetMaxFreeBlockHeap)(pHeap_t Heap);
 extern ptu32_t (*M_GetMaxFreeBlock)(void);
-extern ptu32_t M_GetHeapSizeHeap(pHeap_t Heap);
-extern ptu32_t M_GetHeapSize(void);
-pHeap_t M_FindHeap(const char *HeapName);
+extern ptu32_t Heap_GetHeapSizeHeap(pHeap_t Heap);
+extern ptu32_t Heap_GetHeapSize(void);
+pHeap_t Heap_FindHeap(const char *HeapName);
 pHeap_t Heap_Add(void* bottom, u32 size, u32 PageSize,u32 AlignSize,
                         bool_t proper,char *name);
 extern ptu32_t (*M_GetFreeMem)(void);

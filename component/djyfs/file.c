@@ -66,7 +66,7 @@
 // 返回：是（1）；不是（0）；
 // 备注：
 // ============================================================================
-s32 isvalid(FILE* stream)
+s32 File_IsValid(FILE* stream)
 {
     if((!stream) // 非法参数
        ||(-1==stream->fd)) // 未初始化的STDIO文件流
@@ -81,7 +81,7 @@ s32 isvalid(FILE* stream)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 __filebuf_new(FILE *stream)
+s32 __File_BufNew(FILE *stream)
 {
     u8 *buf;
     if(stream->buf)
@@ -105,7 +105,7 @@ s32 __filebuf_new(FILE *stream)
 // 返回：
 // 备注：
 // ============================================================================
-void __filebuf_del(FILE *stream)
+void __File_BufDel(FILE *stream)
 {
     if((stream->buf != NULL))
     {
@@ -122,7 +122,7 @@ void __filebuf_del(FILE *stream)
 // 返回：缓冲空闲量；
 // 备注：
 // ============================================================================
-s32 __filebuf_frees(FILE *stream)
+s32 __File_BufFrees(FILE *stream)
 {
     return (stream->bufsize - (s32)(stream->current - stream->buf));
 }
@@ -133,7 +133,7 @@ s32 __filebuf_frees(FILE *stream)
 // 返回：
 // 备注：
 // ============================================================================
-s32 __filebuf_fetched(FILE *stream)
+s32 __File_BufFetched(FILE *stream)
 {
     return (stream->count);
 }
@@ -155,7 +155,7 @@ s32 __filebuf_mark(FILE *stream)
 // 返回：已缓存的量；
 // 备注：
 // ============================================================================
-s32 __filebuf_used(FILE*stream)
+s32 __File_BufUsed(FILE*stream)
 {
     return (stream->current - stream->buf);
 }
@@ -166,7 +166,7 @@ s32 __filebuf_used(FILE*stream)
 // 返回：不存在缓冲（NULL）；存在缓冲（缓冲空间）；
 // 备注：
 // ============================================================================
-s32 __isfilebufed(FILE*stream)
+s32 __File_IsFileBufed(FILE*stream)
 {
     if((s32)stream->bufsize != CFG_CLIB_BUFFERSIZE)
     {
@@ -196,7 +196,7 @@ s32 __isfilebufed(FILE*stream)
 // 返回：成功（0）； 失败（-1）;
 // 备注：
 // ============================================================================
-s32 __transform(const char *pMode, s32 *pFlags, s32 *pCFlags)
+s32 __File_Transform(const char *pMode, s32 *pFlags, s32 *pCFlags)
 {
     bool_t WhileContinue = true;
 
@@ -326,7 +326,7 @@ FILE *fopen(const char *filename, const char *mode)
     if((!filename) || (!mode) || ('\0' == *filename))
         return (NULL);
 
-    res = __transform(mode, &flags, &cflags);
+    res = __File_Transform(mode, &flags, &cflags);
     if(res)
     {
         debug_printf("clib","\"fopen\" (%s) failed<bad \"mode\" = %s>", filename, mode);
@@ -361,13 +361,13 @@ FILE *fopen(const char *filename, const char *mode)
     memset(stream, 0, sizeof(FILE) );
     //单进程模式下，不存在内核态用户态间切换，c库不做buf，也不怎么影响效率。
     //流式数据文件不能写缓冲，如果不能读，亦不需要buf。
-    if((Djy_GetRunMode( ) < CN_RUNMODE_MP ) || (!(cflags & FP_IOREAD) && (S_ISFLOW(info.st_mode))))
+    if((DJY_GetRunMode( ) < CN_RUNMODE_MP ) || (!(cflags & FP_IOREAD) && (S_ISFLOW(info.st_mode))))
     {
 
     }
     else
     {
-        res = __filebuf_new(stream);
+        res = __File_BufNew(stream);
         if(res)
         {
             debug_printf("clib","\"fopen\" (%s) failed<memory out", filename);
@@ -422,7 +422,7 @@ int fclose(FILE *stream)
     {
         remove(stream->tmpfname);
     }
-    __filebuf_del(stream);
+    __File_BufDel(stream);
 
     free(stream);
 
@@ -513,7 +513,7 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         i = 1;
     }
 
-    if(!isvalid(stream)) // 文件流是未初始化的STDIO
+    if(!File_IsValid(stream)) // 文件流是未初始化的STDIO
     {
         if(GetCharDirect) // 函数已注册；（TODO:这个逻辑不应该防止这里实现）
         {
@@ -537,7 +537,7 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         }
     }
 
-    if(__isfilebufed(stream) == 0)          //无buf，注意，不能用 stream->buf == NULL 判定，参考freopen
+    if(__File_IsFileBufed(stream) == 0)          //无buf，注意，不能用 stream->buf == NULL 判定，参考freopen
     {
         res = read(stream->fd, buf, read_size);
         if(-1 != (s32)res)
@@ -647,7 +647,7 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
     if(EOF != stream->ungetbuf)
         stream->ungetbuf = EOF; // 抛弃掉ungetc的内容
 
-    if(!isvalid(stream)) // TODO
+    if(!File_IsValid(stream)) // TODO
     {
         if(PutStrDirect) // 函数已注册；
         {
@@ -657,7 +657,7 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
         return (count);
     }
     //注意，不能用 stream->buf == NULL 判定有没有buf，参考freopen
-    if(__isfilebufed(stream) == 0)
+    if(__File_IsFileBufed(stream) == 0)
     {
         res = write(stream->fd, buf, WriteSize);
         if(-1!=res)
@@ -669,7 +669,7 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
     {
         if(stream->wrt_start == -1)
             stream->wrt_start = 0;
-        BufRest = __filebuf_frees(stream);
+        BufRest = __File_BufFrees(stream);
         if(WriteSize <= BufRest)
         {
             //欲写入的数据未超出 buf，只更新 buffer 参数，不写入文件。
@@ -878,7 +878,7 @@ int fseeko(FILE *stream, off_t offset, int whence)
 //        return (EOF);
 //    }
 
-    if(!__isfilebufed(stream))
+    if(!__File_IsFileBufed(stream))
     {
         offset = lseek(stream->fd, offset, whence);
         if(-1 == offset)
@@ -900,8 +900,8 @@ int fseeko(FILE *stream, off_t offset, int whence)
         }
         case SEEK_CUR:
         {
-            if(((offset < 0) && ((__filebuf_used(stream) + offset) >= 0)) ||
-               ((offset > 0) && (__filebuf_fetched(stream) - offset >= 0)))
+            if(((offset < 0) && ((__File_BufUsed(stream) + offset) >= 0)) ||
+               ((offset > 0) && (__File_BufFetched(stream) - offset >= 0)))
             {
                 // 偏置量在缓存内部移动；
                 stream->current += offset;
@@ -1024,7 +1024,7 @@ int rename(const char *oldpath, const char *newpath)
     struct Object *ob;
     s32 result;
     char *uncached;
-    ob = obj_matchpath(oldpath, &uncached);
+    ob = OBJ_MatchPath(oldpath, &uncached);
     ob->ops((void *)ob, CN_OBJ_RENAME,
                                 (ptu32_t)&result,(ptu32_t)oldpath,(ptu32_t)newpath);
 
@@ -1049,7 +1049,7 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
     if((!filename) || (!mode) || ('\0' == *filename))
         return (NULL);
 
-    res = __transform(mode, &flags, &cflags);
+    res = __File_Transform(mode, &flags, &cflags);
     if(res)
     {
         debug_printf("clib","\"freopen\" (%s) failed<bad \"mode\" = %s>", filename, mode);
@@ -1080,10 +1080,10 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
     close(stream->fd);
     //单进程模式下，不存在内核态用户态间切换，c库不做buf，也不怎么影响效率。
     //流式数据文件不能写缓冲，如果不能读，亦不需要buf。
-    if((Djy_GetRunMode( ) < CN_RUNMODE_MP ) || (!(cflags & FP_IOREAD) && (S_ISFLOW(info.st_mode))))
+    if((DJY_GetRunMode( ) < CN_RUNMODE_MP ) || (!(cflags & FP_IOREAD) && (S_ISFLOW(info.st_mode))))
     {
 
-        __filebuf_del(stream);
+        __File_BufDel(stream);
         memset(stream, 0, sizeof(FILE));
     }
     else
@@ -1131,7 +1131,7 @@ const char *s_cREG = "file";
 const char *s_cLINK = "link";
 const char *s_cDIR = "directory";
 const char *s_cUNKNOW = "unknown";
-static char *PropertyToStr(u32 Mode)
+static char *__File_PropertyToStr(u32 Mode)
 {
     char *res;
 
@@ -1158,16 +1158,16 @@ static char *PropertyToStr(u32 Mode)
 //返回:
 //备注: todo: 逻辑待完善
 //-----------------------------------------------------------------------------
-static bool_t FSformat(char *Param)
+static bool_t __File_FS_Format(char *Param)
 {
-    extern s32 Format(const char *MountPath);
+    extern s32 File_Format(const char *MountPath);
 
     if(NULL == Param)
         return (FALSE);
 
     printf("文件系统格式化 ----");
 
-    if(Format(Param))
+    if(File_Format(Param))
         printf("失败!");
     else
         printf("成功!");
@@ -1182,7 +1182,7 @@ static bool_t FSformat(char *Param)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static bool_t ChangeDir(char *Param)
+static bool_t __File_ChangeDir(char *Param)
 {
     s32 Ret;
     char *Path = (char *)Param;
@@ -1193,7 +1193,7 @@ static bool_t ChangeDir(char *Param)
     while(*Path == ' ')
         Path = Path + 1; // 去除多余的空格符
 
-    Ret = SetPWD(Path);
+    Ret = OBJ_SetPwd(Path);
     if(Ret)
     {
         printf("错误：当前工作路径变更失败");
@@ -1213,7 +1213,7 @@ static bool_t ChangeDir(char *Param)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static bool_t MkDir(char *Param)
+static bool_t __File_Mk_Dir(char *Param)
 {
     char *Temp, *SlashPos, *Path, *FullPath;
     int res;
@@ -1278,7 +1278,7 @@ static bool_t MkDir(char *Param)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static bool_t FS_List(char *Param)
+static bool_t __File_List(char *Param)
 {
     DIR *Dir;
     s32 Len;
@@ -1292,7 +1292,7 @@ static bool_t FS_List(char *Param)
     if(Param && strstr(Param, "-l"))
         Flags = 1; // 显示完整信息
 
-    Len = CurWorkPathLen();
+    Len = OBJ_CurWorkPathLen();
     CWP = malloc(257);
     if(NULL == CWP)
     {
@@ -1300,7 +1300,7 @@ static bool_t FS_List(char *Param)
         return (TRUE);
     }
     memset(CWP, 0, 257);
-    if(0 == CurWorkPath(CWP, Len))
+    if(0 == OBJ_CurWorkPath(CWP, Len))
     {
         Dir = opendir(CWP);
         if(Dir)
@@ -1324,7 +1324,7 @@ static bool_t FS_List(char *Param)
                     }
                     else
                     {
-                        temp = PropertyToStr(DirentStat.st_mode);
+                        temp = __File_PropertyToStr(DirentStat.st_mode);
                         printf("%s", temp);
                         len = strlen(temp);
                         for(i = len; i < 10; i++)
@@ -1372,7 +1372,7 @@ static bool_t FS_List(char *Param)
 bool_t PrintWorkPath(void)
 {
     char WokingPath[257];
-    CurWorkPath(WokingPath, 257);
+    OBJ_CurWorkPath(WokingPath, 257);
     printf("用户当前工作路径：\"%s\"", WokingPath);
     return (TRUE);
 }
@@ -1383,7 +1383,7 @@ bool_t PrintWorkPath(void)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static bool_t Remove(char *Param)
+static bool_t File_Remove(char *Param)
 {
 
     u16 Offset;
@@ -1467,7 +1467,7 @@ static bool_t Remove(char *Param)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static bool_t ReaFile(char *Param)
+static bool_t File_ReadFile(char *Param)
 {
     char *Path = (char *)Param;
     int FH;
@@ -1508,7 +1508,7 @@ static bool_t ReaFile(char *Param)
 //备注:
 //-----------------------------------------------------------------------------
 #define RW_SIZE  256
-static bool_t CopyFile(char *Param)
+static bool_t File_CopyFile(char *Param)
 {
 
     char *PathTemp;
@@ -1587,11 +1587,11 @@ static bool_t CopyFile(char *Param)
     return (TRUE);
 }
 
-ADD_TO_ROUTINE_SHELL(format,FSformat,"格式化文件系统，COMMAND:format+文件系统mount点名+enter.");
-ADD_TO_ROUTINE_SHELL(cd,ChangeDir,"更改当前工作路径，COMMAND:cd+新工作路径+enter.");
+ADD_TO_ROUTINE_SHELL(format,__File_FS_Format,"格式化文件系统，COMMAND:format+文件系统mount点名+enter.");
+ADD_TO_ROUTINE_SHELL(cd,__File_ChangeDir,"更改当前工作路径，COMMAND:cd+新工作路径+enter.");
 ADD_TO_ROUTINE_SHELL(pwd,PrintWorkPath,"显示用户当前工作路径，COMMAND:pwd+enter.");
-ADD_TO_ROUTINE_SHELL(mkdir,MkDir,"创建目录，COMMAND:mkdir+enter.");
-ADD_TO_ROUTINE_SHELL(ls,FS_List,"显示目录项，COMMAND:format+(-l 显示文件所有信息)+enter.");
-ADD_TO_ROUTINE_SHELL(rm,Remove,"删除文件或者目录，COMMAND:rm + (-r 递归删除)路径 + enter.");
-ADD_TO_ROUTINE_SHELL(cat,ReaFile,"读文件并打印，COMMAND:cat + 文件路径 + enter.");
-ADD_TO_ROUTINE_SHELL(cp,CopyFile,"拷贝文件，COMMAND:cp + /fat/abc + /yaffs/abc + enter.");
+ADD_TO_ROUTINE_SHELL(mkdir,__File_Mk_Dir,"创建目录，COMMAND:mkdir+enter.");
+ADD_TO_ROUTINE_SHELL(ls,__File_List,"显示目录项，COMMAND:format+(-l 显示文件所有信息)+enter.");
+ADD_TO_ROUTINE_SHELL(rm,File_Remove,"删除文件或者目录，COMMAND:rm + (-r 递归删除)路径 + enter.");
+ADD_TO_ROUTINE_SHELL(cat,File_ReadFile,"读文件并打印，COMMAND:cat + 文件路径 + enter.");
+ADD_TO_ROUTINE_SHELL(cp,File_CopyFile,"拷贝文件，COMMAND:cp + /fat/abc + /yaffs/abc + enter.");

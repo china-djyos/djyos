@@ -62,7 +62,7 @@
 //#include <core_cm3.h>
 
 extern struct IntMasterCtrl  tg_int_global;
-extern void __Djy_ScheduleAsynSignal(void);
+extern void __DJY_ScheduleAsynSignal(void);
 
 #define CFG_TICKMODE_DYNAMIC        true
 #define CFG_REAL_CRITICAL           100     //若距离当前tick中断时间小于此数，则不修改tick中断时间
@@ -75,7 +75,7 @@ extern s64  g_s64OsTicks;
 
 __attribute__((weak)) void __DjyInitTick(void)
 {
-//  HardExp_ConnectSystick(Djy_ScheduleIsr);
+//  HardExp_ConnectSystick(DJY_ScheduleIsr);
     pg_systick_reg->reload = CN_CFG_FCLK/CN_CFG_TICK_HZ;
     pg_systick_reg->current =CN_CFG_FCLK/CN_CFG_TICK_HZ;
     s_gTicksLimit = (s32)((s64)0xffffff*CN_CFG_TICK_HZ/CN_CFG_FCLK);
@@ -123,11 +123,11 @@ void Exp_SystickTickHandler(void)
     g_s64OsTicks += s_gCurrentTicks;
     s_gCurrentTicks = 1;
     pg_systick_reg->ctrl;   //清零，与 __DjyGetSysTime 函数配合使用
-    Djy_ScheduleIsr(0);
+    DJY_ScheduleIsr(0);
     tg_int_global.nest_asyn_signal--;
 //  tg_int_global.en_asyn_signal_counter--;
     if(g_ptEventReady != g_ptEventRunning)
-        __Djy_ScheduleAsynSignal();       //执行中断内调度
+        __DJY_ScheduleAsynSignal();       //执行中断内调度
     g_bScheduleEnable = true;
 }
 

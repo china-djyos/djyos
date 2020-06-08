@@ -161,7 +161,7 @@ void RTC_Configuration(void)
     if(HAL_RTCEx_BKUPRead(&RTC_Handler,BAK_Reg)!=LSE_Flag_Reg)
     {
         RCC->BDCR=RCC_BDCR_BDRST;            //复位BDCR
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
         RCC->BDCR=0;                //结束复位
 
         RCC->CSR|=RCC_CSR_LSION;                //LSI总是使能
@@ -174,7 +174,7 @@ void RTC_Configuration(void)
            if(RCC->BDCR|RCC_BDCR_LSERDY)
                break;
            timeout++;
-           Djy_DelayUs(1000);
+           DJY_DelayUs(1000);
         }
         if(timeout==1000)//外部时钟启动超时选择内部时钟LSI
         {

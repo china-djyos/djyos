@@ -228,10 +228,10 @@ bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
      {
           timeout++;
           GPIO_SettoLow(port,sck_pin);
-          Djy_DelayUs(10);
+          DJY_DelayUs(10);
 
           GPIO_SettoHigh(port,sck_pin);
-          Djy_DelayUs(10);
+          DJY_DelayUs(10);
 
           if(timeout>=CONFIG_I2C_TIMEOUT)
               return false;
@@ -242,9 +242,9 @@ bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
                          GPIO_OTYPE_OD,GPIO_SPEED_100M,GPIO_PUPD_PU);
     //产生停止信号 iic总线释放
     GPIO_SettoLow(port,sda_pin);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
     GPIO_SettoHigh(port,sda_pin);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
 
     return true;
 }
@@ -363,7 +363,7 @@ static bool_t __IIC_Write(tagI2CReg *reg,u8 devaddr, u8 *adder_nuf, u32 addr_len
                 if(_IIC_Chek(reg)==false)
                     return false;
                 timeout++;
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
             }
 
             if(reg->ISR&I2C_ISR_TCR)//255字节传输完成
@@ -419,7 +419,7 @@ static bool_t __IIC_Write(tagI2CReg *reg,u8 devaddr, u8 *adder_nuf, u32 addr_len
                 if(_IIC_Chek(reg)==false)
                     return false;
                 timeout++;
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
             }
             //判断是否传输完成
             if((reg->ISR&I2C_ISR_TC)||(reg->ISR&I2C_ISR_STOPF))//传输完成
@@ -473,7 +473,7 @@ static bool_t __IIC_WriteAddr(tagI2CReg *reg,u8 devaddr, u8 *mem_addr, u32 maddr
             if(_IIC_Chek(reg)==false)
                 return false;
             timeout++;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         //判断是否传输完成
         if((reg->ISR&I2C_ISR_TC)||(reg->ISR&I2C_ISR_STOPF))//传输完成
@@ -524,7 +524,7 @@ static bool_t __IIC_Read(tagI2CReg *reg,u8 devaddr,u8 *buf, u32 len)
                 if(_IIC_Chek(reg)==false)
                     return false;
                 timeout++;
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
             }
 
             if(reg->ISR&I2C_ISR_TCR)//255字节传输完成
@@ -575,7 +575,7 @@ static bool_t __IIC_Read(tagI2CReg *reg,u8 devaddr,u8 *buf, u32 len)
                 if(_IIC_Chek(reg)==false)
                     return false;
                 timeout++;
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
             }
             //判断是否传输完成传输完成或者已经产生停止位
             if((!(reg->ISR&I2C_ISR_RXNE))&&    //最后一位读取完成

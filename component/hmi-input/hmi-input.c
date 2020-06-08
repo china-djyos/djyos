@@ -132,7 +132,7 @@ bool_t ModuleInstall_HmiIn(void)
     tg_pHmiInputMsgQ = HmiIn_CreatInputMsgQ(10);
     if(tg_pHmiInputMsgQ == NULL)
         goto ExitMsgQ;
-    s_ptHmiInDeviceDir = obj_newchild(obj_root(), (fnObjOps)-1, (ptu32_t)&root, "hmi input device");
+    s_ptHmiInDeviceDir = OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)-1, (ptu32_t)&root, "hmi input device");
     if(s_ptHmiInDeviceDir == NULL)
     {
         goto ExitDir;
@@ -157,7 +157,7 @@ bool_t ModuleInstall_HmiIn(void)
     return true;
 
 ExitPool:
-    obj_Delete(s_ptHmiInDeviceDir);
+    OBJ_Delete(s_ptHmiInDeviceDir);
 ExitDir:
     free(StdinDeviceMem);
 ExitMem:
@@ -176,7 +176,7 @@ s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_ty
 {
     struct HMI_InputDeviceObj *Djy_HmiIn;
 
-    if(obj_search_child(s_ptHmiInDeviceDir,device_name))
+    if(OBJ_SearchChild(s_ptHmiInDeviceDir,device_name))
     {
         return -1;
     }
@@ -186,7 +186,7 @@ s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_ty
         Djy_HmiIn = M_Malloc(sizeof(struct HMI_InputDeviceObj),0);
         if(Djy_HmiIn != NULL)
         {
-            Djy_HmiIn->HostObj = obj_newchild(s_ptHmiInDeviceDir, (fnObjOps)-1, (ptu32_t)Djy_HmiIn, device_name);
+            Djy_HmiIn->HostObj = OBJ_NewChild(s_ptHmiInDeviceDir, (fnObjOps)-1, (ptu32_t)Djy_HmiIn, device_name);
             if(!Djy_HmiIn->HostObj)
             {
                 Mb_Free(g_ptHmiInDevicePool, Djy_HmiIn);
@@ -202,7 +202,7 @@ s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_ty
         }
         else
         {
-            Djy_SaveLastError(EN_MEM_TRIED);
+            DJY_SaveLastError(EN_MEM_TRIED);
             debug_printf("hmi-input","function %s 内存不足\n\r", __FUNCTION__);
             return -1;
         }
@@ -246,10 +246,10 @@ bool_t HmiIn_SetFocus(const char *device_name, tpInputMsgQ FocusMsgQ)
     struct HMI_InputDeviceObj *result;
     struct Object *focus;
 
-    focus = obj_search_child(s_ptHmiInDeviceDir,device_name);
+    focus = OBJ_SearchChild(s_ptHmiInDeviceDir,device_name);
     if(focus != NULL)
     {
-        result = (struct HMI_InputDeviceObj *)obj_GetPrivate(focus);
+        result = (struct HMI_InputDeviceObj *)OBJ_GetPrivate(focus);
         result->FocusMsgQ = FocusMsgQ;
         return true;
     }
@@ -269,10 +269,10 @@ enum _STDIN_INPUT_TYPE_ HmiIn_CheckDevType(const char *device_name)
     struct HMI_InputDeviceObj *InputDev;
     struct Object *input;
 
-    input = obj_search_child(s_ptHmiInDeviceDir,device_name);
+    input = OBJ_SearchChild(s_ptHmiInDeviceDir,device_name);
     if(input != NULL)
     {
-        InputDev = (struct HMI_InputDeviceObj *)obj_GetPrivate(input);
+        InputDev = (struct HMI_InputDeviceObj *)OBJ_GetPrivate(input);
         return InputDev->input_type;
     }
     else
@@ -316,7 +316,7 @@ tpInputMsgQ HmiIn_GetFocusDefault(void)
 //    start = &(s_ptHmiInDeviceDir->stdin_device_node);
 //    current = start;
 //    while((target =
-//        obj_foreach_scion(start,current))!=NULL)
+//        OBJ_ForeachScion(start,current))!=NULL)
 //    {
 //        ((struct StdinDeviceRsc *)target)->focus_evtt = focus_evtt;
 //        current = target;
@@ -342,9 +342,9 @@ bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data)
 
     current = s_ptHmiInDeviceDir;
     //在资源队列中查找stdin_id对应的输入设备
-    while((current = obj_foreach_child(s_ptHmiInDeviceDir, current)) != NULL)
+    while((current = OBJ_ForeachChild(s_ptHmiInDeviceDir, current)) != NULL)
     {
-        InputDevice = (struct HMI_InputDeviceObj *)obj_GetPrivate(current);
+        InputDevice = (struct HMI_InputDeviceObj *)OBJ_GetPrivate(current);
         if(InputDevice->device_id == stdin_id)
             break;
     }
@@ -404,12 +404,12 @@ bool_t HmiIn_UnInstallDevice(const char *device_name)
 {
     struct Object  *current;
     struct HMI_InputDeviceObj *Djy_HmiIn;
-    current = obj_search_child(s_ptHmiInDeviceDir,device_name);
+    current = OBJ_SearchChild(s_ptHmiInDeviceDir,device_name);
     if(current == NULL)
         return false;
 
-    Djy_HmiIn = (struct HMI_InputDeviceObj *)obj_GetPrivate(current);
-    if(!obj_Delete(current))
+    Djy_HmiIn = (struct HMI_InputDeviceObj *)OBJ_GetPrivate(current);
+    if(!OBJ_Delete(current))
     {
         Mb_Free(g_ptHmiInDevicePool,Djy_HmiIn);
         return true;

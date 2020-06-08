@@ -92,7 +92,7 @@ s32 skip_atoi(const char **s);
 // 返回：是（1）；不是（0）；
 // 备注：
 // ============================================================================
-extern s32 isvalid(FILE* stream);
+extern s32 File_IsValid(FILE* stream);
 
 //----输出一个字符到stdout-----------------------------------------------------
 //功能：输出一个字符到stdout，stdout可以是设备，也可以是文件
@@ -719,7 +719,7 @@ static s32 __vsnprintf(char *TempBuf,ptu32_t Target, s32 Size,
                         // 'z' changed to 'Z' --davidm 1/25/99
                         // 't' added for ptrdiff_t
     position = 0;
-    if(Djy_IsMultiEventStarted() == false)//如果调度并未开始,采用直接发送方式
+    if(DJY_IsMultiEventStarted() == false)//如果调度并未开始,采用直接发送方式
     {
         if (Method == PRINT_TO_FILE_OR_DEV)
             Method = PRINT_TO_DIRECT;
@@ -973,7 +973,7 @@ s32 vprintf (const char *fmt, va_list args)
     char TempBuf[CN_BUF_LENGTH];
 
     // if (stdout == StdNotInit)
-    if(!isvalid(stdout))
+    if(!File_IsValid(stdout))
         i = __vsnprintf (TempBuf, (ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
     else
         i =  __vsnprintf (TempBuf, (ptu32_t)stdout, 0, PRINT_TO_FILE_OR_DEV, fmt, args);
@@ -998,7 +998,7 @@ s32 printf(const char *fmt, ...)
     va_start (args, fmt);
 
     // if (stdout == StdNotInit)
-    if(!isvalid(stdout))
+    if(!File_IsValid(stdout))
         i = __vsnprintf (TempBuf,(ptu32_t)NULL,0,PRINT_TO_DIRECT, fmt, args);
     else
         i =  __vsnprintf (TempBuf,(ptu32_t)stdout, 0,PRINT_TO_FILE_OR_DEV, fmt, args);
@@ -1048,12 +1048,12 @@ s32 fprintf(FILE *fp, const char *fmt, ...)
     char TempBuf[CN_BUF_LENGTH];
     if (fp == NULL)
     {
-        Djy_SaveLastError(EN_FS_READFILE_EOF);
+        DJY_SaveLastError(EN_FS_READFILE_EOF);
         return -1;
     }
     va_start (args, fmt);
     // if (fp == StdNotInit)
-    if(!isvalid(fp))
+    if(!File_IsValid(fp))
         i = __vsnprintf (TempBuf,(ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
     else
         i = __vsnprintf (TempBuf,(ptu32_t)fp, 0, PRINT_TO_FILE_OR_DEV, fmt, args);

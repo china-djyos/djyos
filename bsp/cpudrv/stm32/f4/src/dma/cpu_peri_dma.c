@@ -144,7 +144,7 @@ u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,u32 mar,
     {
         if(WaitTime > 50)
         {
-            Djy_DelayUs(50);
+            DJY_DelayUs(50);
             WaitTime = WaitTime - 50;
         }
         else

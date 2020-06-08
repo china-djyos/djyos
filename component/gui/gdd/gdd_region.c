@@ -61,12 +61,12 @@
 //------------------------------------------------------
 #include    <gui/gdd/gdd_private.h>
 
-s32 RectW(const RECT *prc)
+s32 GDD_RectW(const RECT *prc)
 {
     return (prc->right - prc->left);
 }
 
-s32 RectH(const RECT *prc)
+s32 GDD_RectH(const RECT *prc)
 {
     return (prc->bottom - prc->top);
 }
@@ -76,7 +76,7 @@ s32 RectH(const RECT *prc)
 //参数：略
 //返回：窗口对象内存内存指针
 //------------------------------------------------------------------------------
-void    SetRect(RECT *prc,s32 x,s32 y,s32 w,s32 h)
+void    GDD_SetRect(RECT *prc,s32 x,s32 y,s32 w,s32 h)
 {
     if(prc!=NULL)
     {
@@ -92,7 +92,7 @@ void    SetRect(RECT *prc,s32 x,s32 y,s32 w,s32 h)
 //参数：略
 //返回：窗口对象内存内存指针
 //------------------------------------------------------------------------------
-void    SetRectEmpty(RECT *prc)
+void    GDD_SetRectEmpty(RECT *prc)
 {
     if(prc!=NULL)
     {
@@ -103,7 +103,7 @@ void    SetRectEmpty(RECT *prc)
     }
 }
 
-bool_t    IsRectEmpty(const RECT *prc)
+bool_t    GDD_IsRectEmpty(const RECT *prc)
 {
     if(prc!=NULL)
     {
@@ -116,7 +116,7 @@ bool_t    IsRectEmpty(const RECT *prc)
     return FALSE;
 }
 
-bool_t    CopyRect(RECT *dst,const RECT *src)
+bool_t    GDD_CopyRect(RECT *dst,const RECT *src)
 {
     if((NULL!=dst) && (NULL!=src))
     {
@@ -131,7 +131,7 @@ bool_t    CopyRect(RECT *dst,const RECT *src)
 
 /*============================================================================*/
 
-void    __OffsetRect(RECT *prc,s32 dx,s32 dy)
+void    __GDD_OffsetRect(RECT *prc,s32 dx,s32 dy)
 {
     prc->left += dx;
     prc->top  += dy;
@@ -139,17 +139,17 @@ void    __OffsetRect(RECT *prc,s32 dx,s32 dy)
     prc->bottom  += dy;
 }
 
-bool_t    OffsetRect(RECT *prc,s32 dx,s32 dy)
+bool_t    GDD_OffsetRect(RECT *prc,s32 dx,s32 dy)
 {
     if(NULL!=prc)
     {
-        __OffsetRect(prc,dx,dy);
+        __GDD_OffsetRect(prc,dx,dy);
         return TRUE;
     }
     return FALSE;
 }
 
-bool_t    MoveRect(RECT *prc,s32 x,s32 y)
+bool_t    GDD_MoveRect(RECT *prc,s32 x,s32 y)
 {
     if(NULL!=prc)
     {
@@ -164,7 +164,7 @@ bool_t    MoveRect(RECT *prc,s32 x,s32 y)
 
 /*============================================================================*/
 
-void    __InflateRect(RECT *prc,s32 dx,s32 dy)
+void    __GDD_InflateRect(RECT *prc,s32 dx,s32 dy)
 {
     prc->left   -= dx;
     prc->top    -= dy;
@@ -172,11 +172,11 @@ void    __InflateRect(RECT *prc,s32 dx,s32 dy)
     prc->bottom += dy;
 }
 
-bool_t    InflateRect(RECT *prc,s32 dx,s32 dy)
+bool_t    GDD_InflateRect(RECT *prc,s32 dx,s32 dy)
 {
     if(NULL!=prc)
     {
-        __InflateRect(prc,dx,dy);
+        __GDD_InflateRect(prc,dx,dy);
         return TRUE;
     }
     return FALSE;
@@ -184,7 +184,7 @@ bool_t    InflateRect(RECT *prc,s32 dx,s32 dy)
 
 /*============================================================================*/
 
-void    __InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b)
+void    __GDD_InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b)
 {
     prc->left   -= l;
     prc->top    -= t;
@@ -192,11 +192,11 @@ void    __InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b)
     prc->bottom += b;
 }
 
-bool_t InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b)
+bool_t GDD_InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b)
 {
     if(NULL!=prc)
     {
-        __InflateRectEx(prc,l,t,r,b);
+        __GDD_InflateRectEx(prc,l,t,r,b);
         return TRUE;
     }
     return FALSE;
@@ -215,7 +215,7 @@ bool_t InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b)
 //
 //}
 
-bool_t    PtInRect(const RECT *prc,const POINT *pt)
+bool_t    GDD_PtInRect(const RECT *prc,const POINT *pt)
 {
     if((NULL==prc) || (NULL==pt))
         return FALSE;

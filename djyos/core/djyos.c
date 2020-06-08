@@ -99,7 +99,7 @@
 //   6、int_restore_asyn_signal函数中，先执行__int_contact_asyn_signal打开中断，
 //      然后再执行：
 //            if(g_ptEventRunning != g_ptEventReady)
-//                __Djy_Schedule();
+//                __DJY_Schedule();
 //      在打开中断与__djy_schedule函数重新关闭中断之间，如果有中断抢占的话，可能
 //      导致严重错误，int_restore_trunk函数也有同样的问题。
 //      新版本中，__djy_schedule函数调用__asm_switch_context时才打开中断，杜绝了
@@ -142,8 +142,8 @@
 #include "component_config_core.h"
 #include "../heap/component_config_heap.h"
 #include <stdlib.h>
-ptu32_t __Djy_Service(void);
-s64 __DjyGetSysTick(void);
+ptu32_t __DJY_Service(void);
+s64 __DJY_GetSysTick(void);
 
 struct ProcessVm *  g_ptMyProcess;
 //为cn_events_limit条事件控制块分配内存
@@ -176,11 +176,11 @@ bool_t g_bMultiEventStarted = false;    //多事件(线程)调度是否已经开始
 u32 g_u32OsRunMode;     //运行模式，参看 CN_RUNMODE_SI 系列定义
 
 u32 (*g_fnEntryLowPower)(struct ThreadVm *vm,u32 PendTicks) = NULL;  //进入低功耗状态的函数指针。
-void __Djy_SelectEventToRun(void);
-void __Djy_EventReady(struct EventECB *event_ready);
-void __Djy_ResumeDelay(struct EventECB *delay_event);
+void __DJY_SelectEventToRun(void);
+void __DJY_EventReady(struct EventECB *event_ready);
+void __DJY_ResumeDelay(struct EventECB *delay_event);
 extern void __DjyInitTick(void);
-extern void __M_CleanUp(uint16_t event_id);
+extern void __Heap_CleanUp(uint16_t event_id);
 extern void __asm_reset_switch(ptu32_t (*thread_routine)(void),
                                struct ThreadVm *new_vm,struct ThreadVm *old_vm);
 extern void __asm_turnto_context(struct ThreadVm  *new_vm);
@@ -189,15 +189,15 @@ extern void __asm_switch_context_int(struct ThreadVm *new_vm,struct ThreadVm *ol
 extern void __asm_switch_context(struct ThreadVm *new_vm,struct ThreadVm *old_vm);
 extern void __Int_ResetAsynSignal(void);
 extern void __asm_delay_cycle(u64 timeCoreClock);
-void __Djy_ChangeBlockQueue(struct EventECB *Event);
+void __DJY_ChangeBlockQueue(struct EventECB *Event);
 
 //----微秒级延时-------------------------------------------------------------
 //功能：利用循环实现的微秒分辨率延时，__asm_delay_cycle函数由汇编实现，参数是时钟周期数
 //参数：time，延时时间，单位为微秒
 //返回：无
-//注意：不建议使用此函数做太长延时，长延时请使用函数 Djy_EventDelay,
+//注意：不建议使用此函数做太长延时，长延时请使用函数 DJY_EventDelay,
 //-----------------------------------------------------------------------------
-void Djy_DelayUs(u32 time)
+void DJY_DelayUs(u32 time)
 {
 //  if(time > 0)
     __asm_delay_cycle((u64)(time*((CN_CFG_MCLK)/1000000)));
@@ -207,9 +207,9 @@ void Djy_DelayUs(u32 time)
 //功能：利用循环实现的纳秒分辨率延时，__asm_delay_cycle函数由汇编实现，参数是时钟周期数
 //参数：time，延时时间，单位为纳秒
 //返回：无
-//注意：不建议使用此函数做太长延时，长延时请使用函数 Djy_EventDelay,
+//注意：不建议使用此函数做太长延时，长延时请使用函数 DJY_EventDelay,
 //-----------------------------------------------------------------------------
-void Djy_DelayNano(u32 time)
+void DJY_DelayNano(u32 time)
 {
 //  if(time > 0)
     __asm_delay_cycle((u64)(time*((CN_CFG_MCLK)/1000000)/1000));
@@ -223,7 +223,7 @@ void Djy_DelayNano(u32 time)
 //参数：Level，扫描范围，0~50
 //返回： 无
 //-----------------------------------------------------------------------------
-void Djy_SetStackCheckLevel(u32 Level)
+void DJY_SetStackCheckLevel(u32 Level)
 {
     if(Level >50)
         s_u32StackCheckLevel = 50;
@@ -238,7 +238,7 @@ void Djy_SetStackCheckLevel(u32 Level)
 //参数: event_id,被检查的事件id
 //返回: true=no overflow,false = overflow
 //-----------------------------------------------------------------------------
-bool_t __Djy_CheckStack(s16 event_id)
+bool_t __DJY_CheckStack(s16 event_id)
 {
     struct BlackBoxThrowPara  parahead;
     struct ThreadVm *Vm;
@@ -308,14 +308,14 @@ bool_t __Djy_CheckStack(s16 event_id)
 //参数：inc_ticks，ticks中断的中断线号，实际上不用。
 //返回：无
 //-----------------------------------------------------------------------------
-void __DjyMaintainSysTime(void);
-void  Djy_ScheduleIsr(u32 inc_ticks)
+void __DJY_MaintainSysTime(void);
+void  DJY_ScheduleIsr(u32 inc_ticks)
 {
     struct EventECB *pl_ecb,*pl_ecbp,*pl_ecbn;
     s64 now_tick;
-    now_tick = __DjyGetSysTick();
+    now_tick = __DJY_GetSysTick();
     //用于维护系统时钟运转，使读系统时间的间隔，小于硬件定时器循环周期。
-    __DjyMaintainSysTime( );
+    __DJY_MaintainSysTime( );
     if(g_ptEventDelay != NULL)
     {
         pl_ecb = g_ptEventDelay;
@@ -358,7 +358,7 @@ void  Djy_ScheduleIsr(u32 inc_ticks)
                 if(pl_ecb->next == pl_ecb)      //这是闹钟同步队列最后一个结点.
                 {
                     g_ptEventDelay = NULL;
-                    __Djy_EventReady(pl_ecb);
+                    __DJY_EventReady(pl_ecb);
 //                  gSchduleTick.DelayTick = CN_LIMIT_UINT64;
                     break;
                 }else
@@ -366,7 +366,7 @@ void  Djy_ScheduleIsr(u32 inc_ticks)
                     g_ptEventDelay = pl_ecb->next;
                     pl_ecb->next->previous = pl_ecb->previous;
                     pl_ecb->previous->next = pl_ecb->next;
-                    __Djy_EventReady(pl_ecb);
+                    __DJY_EventReady(pl_ecb);
                     pl_ecb = g_ptEventDelay;
 //                  gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
                 }
@@ -420,7 +420,7 @@ void  Djy_ScheduleIsr(u32 inc_ticks)
     return;
 }
 
-void Djy_SaveLastError(u32 ErrorCode)
+void DJY_SaveLastError(u32 ErrorCode)
 {
     g_ptEventRunning->error_no = ErrorCode;
 }
@@ -431,11 +431,27 @@ void Djy_SaveLastError(u32 ErrorCode)
 //返回：错误号
 //还需添加文本串和时间的功能，时间使用ticks数---db
 //-----------------------------------------------------------------------------
-u32 Djy_GetLastError(void)
+u32 DJY_GetLastError(void)
 {
     return g_ptEventRunning->error_no;
 }
 
+u32 *DJY_CurrentErrnoAddr(void)
+{
+    static u32 err;
+    if(NULL == g_ptEventRunning)
+    {
+        return &err;
+    }
+    else
+    {
+        return &g_ptEventRunning->error_no;
+    }
+}
+
+/**
+ * 修改成DJY_CurrentErrnoAddr函数后和C库有冲突，copy了一份，改了C库之后删掉
+ */
 u32 *DjyCurrentErrnoAddr(void)
 {
     static u32 err;
@@ -456,7 +472,7 @@ u32 *DjyCurrentErrnoAddr(void)
 //返回: 无
 //注: 调用者请保证在异步信号(调度)被禁止的情况下调用本函数
 //-----------------------------------------------------------------------------
-void __Djy_CutReadyEvent(struct EventECB *event)
+void __DJY_CutReadyEvent(struct EventECB *event)
 {
     struct EventECB *pl_ecb;
     if(event != g_ptEventReady)         //event不是ready队列头
@@ -510,7 +526,7 @@ void __Djy_CutReadyEvent(struct EventECB *event)
 //参数: slices，新的轮转调度时间片，微秒数，将被向上取整为整数个ticks时间
 //返回: 无
 //-----------------------------------------------------------------------------
-void Djy_SetRRS_Slice(u32 slices)
+void DJY_SetRRS_Slice(u32 slices)
 {
 #if (64 > CN_CPU_BITS)
     atom_low_t atom_low;
@@ -530,7 +546,7 @@ void Djy_SetRRS_Slice(u32 slices)
 //参数: 无
 //返回: 当前时间片长度，微秒数。
 //-----------------------------------------------------------------------------
-u32 Djy_GetRRS_Slice(void)
+u32 DJY_GetRRS_Slice(void)
 {
     u32 temp;
 #if (64 > CN_CPU_BITS)
@@ -553,7 +569,7 @@ u32 Djy_GetRRS_Slice(void)
 //注: 移植敏感函数
 //-----------------------------------------------------------------------------
 extern void *(*__MallocStack)(struct EventECB *pl_ecb,u32 size);
-struct ThreadVm *__CreateThread(struct EventType *evtt,u32 *stack_size)
+struct ThreadVm *__DJY_CreateThread(struct EventType *evtt,u32 *stack_size)
 {
     struct ThreadVm  *result;
     ptu32_t  len;
@@ -566,7 +582,7 @@ struct ThreadVm *__CreateThread(struct EventType *evtt,u32 *stack_size)
     *stack_size = len;
     if(result==NULL)
     {
-        Djy_SaveLastError(EN_MEM_TRIED);   //内存不足，返回错误
+        DJY_SaveLastError(EN_MEM_TRIED);   //内存不足，返回错误
         return result;
     }
     len = M_CheckSize(result);
@@ -593,7 +609,7 @@ struct ThreadVm *__CreateThread(struct EventType *evtt,u32 *stack_size)
 //返回：新创建的线程指针
 //注: 移植敏感函数
 //-----------------------------------------------------------------------------
-struct ThreadVm *__CreateStaticThread(struct EventType *evtt,void *Stack,
+struct ThreadVm *__DJY_CreateStaticThread(struct EventType *evtt,void *Stack,
                                     u32 StackSize)
 {
     struct ThreadVm  *result;
@@ -627,7 +643,7 @@ struct ThreadVm *__CreateStaticThread(struct EventType *evtt,void *Stack,
 //备注: 本函数由操作系统调用,调用前保证关异步信号。
 //      由于系统服务事件总是ready,所以总是能找到可以运行的线程.
 //----------------------------------------------------------------------------
-void __Djy_SelectEventToRun(void)
+void __DJY_SelectEventToRun(void)
 {
     struct ThreadVm *vm;
     // struct EventType *pl_evtt;  //被操作的事件的类型指针
@@ -641,12 +657,12 @@ void __Djy_SelectEventToRun(void)
             pl_evtt->my_free_vm = pl_evtt->my_free_vm->next;
         }else       //该事件类型没有空闲的线程,试图创建之
         {
-            //创建线程，若不成功，在 __CreateThread 函数内，g_ptEventReady 将指
+            //创建线程，若不成功，在 __DJY_CreateThread 函数内，g_ptEventReady 将指
             //向就绪队列的下一个。
-            vm = __CreateThread(pl_evtt,&(g_ptEventReady->wait_mem_size));
+            vm = __DJY_CreateThread(pl_evtt,&(g_ptEventReady->wait_mem_size));
             if(vm == NULL)                  //创建线程失败
             {
-//                __Djy_CutReadyEvent(g_ptEventReady);          //从ready队列取出
+//                __DJY_CutReadyEvent(g_ptEventReady);          //从ready队列取出
             }else                                           //成功创建线程
             {
                 g_ptEventReady->vm = vm;
@@ -661,7 +677,7 @@ void __Djy_SelectEventToRun(void)
 //          && (g_ptEventReady != g_ptEventReady->next))
 //    {
 ////        gSchduleTick.RRSTicks = g_s64OsTicks + s_u32RRS_Slice;
-//        gSchduleTick.RRSTicks = __DjyGetSysTick() + s_u32RRS_Slice;
+//        gSchduleTick.RRSTicks = __DJY_GetSysTick() + s_u32RRS_Slice;
 //    }
 //    else
 //    {
@@ -675,7 +691,7 @@ void __Djy_SelectEventToRun(void)
 //返回: 无
 //备注: 这只是占一个位而已，在mp模式才有实用价值
 //-----------------------------------------------------------------------------
-void Djy_CreateProcessVm(void)
+void DJY_CreateProcessVm(void)
 {
     static struct ProcessVm my_process;
     g_ptMyProcess = &my_process;
@@ -698,20 +714,20 @@ void Djy_CreateProcessVm(void)
 //-----------------------------------------------------------------------------
 u16 evrecord[150] = {0};
 u16 evoffset = 0;
-bool_t __Djy_Schedule(void)
+bool_t __DJY_Schedule(void)
 {
     struct EventECB *event;
     u32 time;
 
-//    if(!Djy_QuerySch())
+//    if(!DJY_QuerySch())
 //        return false;
 //    Int_CutAsynSignal();
-    __Djy_SelectEventToRun();
+    __DJY_SelectEventToRun();
     if(g_ptEventReady != g_ptEventRunning)
     {//当running事件仍在ready队列中,且内存不足以建立新线程时,可能会出现优先
      //级高于running的事件全部进入内存等待队列的可能.此时执行else子句.
         event = g_ptEventRunning;
-        time = (u32)DjyGetSysTime();
+        time = (u32)DJY_GetSysTime();
 #if CFG_OS_TINY == false
         event->consumed_time += time - g_s64RunningStartTime;
         g_s64RunningStartTime = time;
@@ -763,17 +779,17 @@ bool_t init_jtag(char *param);      //lst test
 //备注：本函数由操作系统在异步信号引擎返回前调用
 //      由于最低优先级的 IDLE 事件总是ready,因此总是能够找到调度对象的.
 //-----------------------------------------------------------------------------
-void __Djy_ScheduleAsynSignal(void)
+void __DJY_ScheduleAsynSignal(void)
 {
     struct EventECB *event;
     u32 time;
 
-    __Djy_SelectEventToRun();
+    __DJY_SelectEventToRun();
     if(g_ptEventReady != g_ptEventRunning)
     {//当running事件仍在ready队列中,且内存不足以建立新线程时,可能会出现优先
      //级高于running的事件全部进入内存等待队列的可能.此时执行else子句.
          event=g_ptEventRunning;
-         time = (u32)DjyGetSysTime();
+         time = (u32)DJY_GetSysTime();
 #if CFG_OS_TINY == false
          event->consumed_time += time - g_s64RunningStartTime;
          g_s64RunningStartTime = time;
@@ -830,7 +846,7 @@ bool_t init_jtag(char *param);      //lst test
 //          名字不超过31个单字节字符
 //返回：新事件类型的类型号
 //------------------------------------------------------------------------------
-u16 Djy_EvttRegist(enum enEventRelation relation,
+u16 DJY_EvttRegist(enum enEventRelation relation,
                        ufast_t default_prio,
                        u16 vpus_res,
                        u16 vpus_limit,
@@ -846,7 +862,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
 
     if((default_prio >= CN_PRIO_SYS_SERVICE) || (default_prio == 0))
     {
-        Djy_SaveLastError(EN_KNL_INVALID_PRIO);
+        DJY_SaveLastError(EN_KNL_INVALID_PRIO);
         info_printf("djyos","事件类型优先级非法\n\r");
         return CN_EVTT_ID_INVALID;
     }
@@ -864,7 +880,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
         parahead.BlackBoxInfoLen = sizeof(ExpStr);
         parahead.BlackBoxType = CN_BLACKBOX_TYPE_ETCB_EXHAUSTED;
         BlackBox_ThrowExp(&parahead);
-        Djy_SaveLastError(EN_KNL_ETCB_EXHAUSTED);
+        DJY_SaveLastError(EN_KNL_ETCB_EXHAUSTED);
         info_printf("djyos","没有空闲事件控制块: %s\n\r",evtt_name);
         Int_RestoreAsynSignal();
         return CN_EVTT_ID_INVALID;
@@ -877,7 +893,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
             {
                 if(strncmp(g_tEvttTable[i].evtt_name,evtt_name,31) == 0)
                 {
-                    Djy_SaveLastError(EN_KNL_EVTT_HOMONYMY);
+                    DJY_SaveLastError(EN_KNL_EVTT_HOMONYMY);
                     info_printf("djyos","事件类型重名: %s\n\r",evtt_name);
                     Int_RestoreAsynSignal();
                     return CN_EVTT_ID_INVALID;
@@ -915,7 +931,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
     {
         g_tEvttTable[evtt_offset].vpus_res = 0;    //关联型事件，vpus_res无效
     }
-    g_tEvttTable[evtt_offset].SchHook = (SchHookFunc)NULL_func;
+    g_tEvttTable[evtt_offset].SchHook = (SchHookFunc)DJY_NullFunc;
     g_tEvttTable[evtt_offset].thread_routine = thread_routine;
     g_tEvttTable[evtt_offset].stack_size = StackSize;
 //  g_tEvttTable[evtt_offset].mark_event = NULL;
@@ -927,7 +943,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
 //        if((default_prio<0x80) ||(CFG_DYNAMIC_MEM == false))
 //        {//运行模式为si或dlsp，或该事件类型拥有紧急优先级，需预先创建一个线程
 //            g_tEvttTable[evtt_offset].my_free_vm =
-//                                __CreateThread(&g_tEvttTable[evtt_offset],&temp);
+//                                __DJY_CreateThread(&g_tEvttTable[evtt_offset],&temp);
 //            if(g_tEvttTable[evtt_offset].my_free_vm == NULL)
 //            {//内存不足，不能创建线程
 //                parahead.DecoderName = NULL;
@@ -939,7 +955,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
 //                parahead.BlackBoxInfoLen = sizeof(ExpStr);
 //                parahead.BlackBoxType = CN_BLACKBOX_TYPE_MEM_EVTT;
 //                BlackBox_ThrowExp(&parahead);
-//                Djy_SaveLastError(EN_MEM_TRIED);
+//                DJY_SaveLastError(EN_MEM_TRIED);
 //                info_printf("djyos","%s\n\r",evtt_name);
 //                Int_RestoreAsynSignal();
 //                return CN_EVTT_ID_INVALID;
@@ -957,7 +973,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
     {
         g_tEvttTable[evtt_offset].vpus = 1;
         g_tEvttTable[evtt_offset].my_free_vm =
-               __CreateStaticThread(&g_tEvttTable[evtt_offset],Stack,StackSize);
+               __DJY_CreateStaticThread(&g_tEvttTable[evtt_offset],Stack,StackSize);
     }
     g_tEvttTable[evtt_offset].property.correlative = relation;
     g_tEvttTable[evtt_offset].property.registered = 1;
@@ -975,7 +991,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
 //      HookFunc, hook函数指针
 //返回：true = 成功注册, false = 失败。
 //----------------------------------------------------------------------------
-bool_t Djy_RegisterHook(u16 EvttID,SchHookFunc HookFunc)
+bool_t DJY_RegisterHook(u16 EvttID,SchHookFunc HookFunc)
 {
     if(EvttID-CN_EVTT_ID_BASE  >= CFG_EVENT_TYPE_LIMIT)
     {
@@ -995,7 +1011,7 @@ bool_t Djy_RegisterHook(u16 EvttID,SchHookFunc HookFunc)
 //返回：事件类型id号，如果没有找到则返回cn_invalid_id。
 //备注：只能找到有名字的事件类型，没名字的事件类型又叫隐身事件类型。
 //----------------------------------------------------------------------------
-u16 Djy_GetEvttId(char *evtt_name)
+u16 DJY_GetEvttId(char *evtt_name)
 {
 #if CFG_OS_TINY == false
     u16 loop;
@@ -1020,7 +1036,7 @@ u16 Djy_GetEvttId(char *evtt_name)
 //参数: evtt_id,待删除的事件类型号
 //返回: true = 成功，包括成功标记；false = 失败
 //-----------------------------------------------------------------------------
-bool_t Djy_EvttUnregist(u16 evtt_id)
+bool_t DJY_EvttUnregist(u16 evtt_id)
 {
     struct ThreadVm *next_vm,*temp;
     struct EventType *pl_evtt;
@@ -1041,7 +1057,7 @@ bool_t Djy_EvttUnregist(u16 evtt_id)
 //      {
 //          if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT)  //是否在超时队列中
 //          {
-//              __Djy_ResumeDelay(pl_ecb);    //结束超时等待
+//              __DJY_ResumeDelay(pl_ecb);    //结束超时等待
 //          }
 //          pl_ecb->wakeup_from = CN_STS_EVTTSYNC_DELETED;   //设置唤醒原因
 //          pl_ecb->event_status = CN_STS_EVENT_READY;
@@ -1054,7 +1070,7 @@ bool_t Djy_EvttUnregist(u16 evtt_id)
 //          {
 //              pl_ecb = pl_ecb->multi_next;
 //          }
-//          __Djy_EventReady(pl_ecb_temp);           //把事件加入到就绪队列中
+//          __DJY_EventReady(pl_ecb_temp);           //把事件加入到就绪队列中
 //      }
 //  }
     if(pl_evtt->pop_sync != NULL)     //若弹出同步队列中有事件，取出到就绪队列
@@ -1064,7 +1080,7 @@ bool_t Djy_EvttUnregist(u16 evtt_id)
         {
             if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT)  //是否在超时队列中
             {
-                __Djy_ResumeDelay(pl_ecb);    //结束超时等待
+                __DJY_ResumeDelay(pl_ecb);    //结束超时等待
             }
             pl_ecb->wakeup_from = CN_STS_EVTTSYNC_DELETED;    //设置唤醒原因
             pl_ecb->event_status = CN_STS_EVENT_READY;
@@ -1077,7 +1093,7 @@ bool_t Djy_EvttUnregist(u16 evtt_id)
             {
                 pl_ecb = pl_ecb->multi_next;      //取队列中下一个事件
             }
-            __Djy_EventReady(pl_ecb_temp);       //把事件加入到就绪队列中
+            __DJY_EventReady(pl_ecb_temp);       //把事件加入到就绪队列中
         }
     }
     if(pl_evtt->property.inuse)
@@ -1139,7 +1155,7 @@ const struct EventECB cn_sys_event = {
 //参数：无
 //返回：无
 //-----------------------------------------------------------------------------
-void __InitSys(void)
+void __DJY_InitSys(void)
 {
     u16 i;
     u8 *IdleStack;
@@ -1179,7 +1195,7 @@ void __InitSys(void)
     g_tEvttTable[0].property.inuse = 1;
     g_tEvttTable[0].property.deleting = 0;
     g_tEvttTable[0].my_free_vm = NULL;
-    g_tEvttTable[0].SchHook = (SchHookFunc)NULL_func;
+    g_tEvttTable[0].SchHook = (SchHookFunc)DJY_NullFunc;
    // g_tEvttTable[0].evtt_name[0] = '\0';
 
 #if CFG_OS_TINY == false
@@ -1192,17 +1208,17 @@ void __InitSys(void)
     g_tEvttTable[0].vpus_res =0;
     g_tEvttTable[0].vpus_limit =1;
     g_tEvttTable[0].vpus = 1;
-    g_tEvttTable[0].thread_routine = __Djy_Service;
+    g_tEvttTable[0].thread_routine = __DJY_Service;
     g_tEvttTable[0].stack_size = CFG_IDLESTACK_LIMIT;
 //  g_tEvttTable[0].mark_event = g_tECB_Table;
     g_tEvttTable[0].done_sync = NULL;
     g_tEvttTable[0].pop_sync = NULL;
 
-    vm = __CreateStaticThread(&g_tEvttTable[0],IdleStack,CFG_IDLESTACK_LIMIT);
+    vm = __DJY_CreateStaticThread(&g_tEvttTable[0],IdleStack,CFG_IDLESTACK_LIMIT);
     if(vm == NULL)      //内存不足，不能创建常驻线程
     {
         //此时g_ptEventRunning尚未赋值，无法调用Djy_SaveLastError
-//        Djy_SaveLastError(EN_MEM_TRIED);
+//        DJY_SaveLastError(EN_MEM_TRIED);
 //        info_printf("djyos","创建线程时内存不足\n\r");
         g_tEvttTable[0].vpus = 0;
         return ;
@@ -1224,7 +1240,7 @@ void __InitSys(void)
 //参数: 无
 //返回: 允许调度返回true,否则返回false
 //-----------------------------------------------------------------------------
-bool_t Djy_QuerySch(void)
+bool_t DJY_QuerySch(void)
 {
     return g_bScheduleEnable;
 }
@@ -1235,7 +1251,7 @@ bool_t Djy_QuerySch(void)
 //参数: 无
 //返回: true = 调度已经开始,不管是否允许切换.false = 调度尚未开始
 //-----------------------------------------------------------------------------
-bool_t Djy_IsMultiEventStarted(void)
+bool_t DJY_IsMultiEventStarted(void)
 {
     return g_bMultiEventStarted;
 }
@@ -1245,7 +1261,7 @@ bool_t Djy_IsMultiEventStarted(void)
 //参数: 无
 //返回: g_u32OsRunMode的值，参看 CN_RUNMODE_SI 族宏定义
 //-----------------------------------------------------------------------------
-u32 Djy_GetRunMode(void)
+u32 DJY_GetRunMode(void)
 {
     return g_u32OsRunMode;
 }
@@ -1256,7 +1272,7 @@ u32 Djy_GetRunMode(void)
 //参数：event_ready,待插入的事件,该事件原来不在就绪队列中
 //返回：无
 //------------------------------------------------------------------------------
-void __Djy_EventReady(struct EventECB *event_ready)
+void __DJY_EventReady(struct EventECB *event_ready)
 {
     struct EventECB *event;
     atom_low_t atom_low;
@@ -1302,7 +1318,7 @@ void __Djy_EventReady(struct EventECB *event_ready)
 //      2.本函数应该在关闭调度条件下调用,调用者保证,函数内部不检查中断状态.
 //      3.本函数只把事件从闹钟同步链表中取出，并不放到就绪队列中。
 //-----------------------------------------------------------------------------
-void __Djy_ResumeDelay(struct EventECB *delay_event)
+void __DJY_ResumeDelay(struct EventECB *delay_event)
 {
     if(g_ptEventDelay->next == g_ptEventDelay)  //队列中只有一个事件
     {
@@ -1321,7 +1337,7 @@ void __Djy_ResumeDelay(struct EventECB *delay_event)
     }
     delay_event->next = NULL;
     delay_event->previous = NULL;
-    delay_event->delay_end_tick = __DjyGetSysTick();
+    delay_event->delay_end_tick = __DJY_GetSysTick();
 }
 
 //----加入延时队列------------------------------------------------------------
@@ -1335,11 +1351,11 @@ void __Djy_ResumeDelay(struct EventECB *delay_event)
 //      3、与其他内部函数一样，由调用方保证参数合理性，即u32l_uS>0.
 //-----------------------------------------------------------------------------
 //change by lst in 20130922,ticks改为64bit后，删掉处理32位数溢出回绕的代码
-void __Djy_AddToDelay(u32 u32l_uS)
+void __DJY_AddToDelay(u32 u32l_uS)
 {
     struct EventECB * event;
     u64 temp = 0;
-    g_ptEventRunning->delay_start_tick = __DjyGetSysTick(); //事件延时开始时间
+    g_ptEventRunning->delay_start_tick = __DJY_GetSysTick(); //事件延时开始时间
     g_ptEventRunning->delay_end_tick = g_ptEventRunning->delay_start_tick
                   + ((s64)u32l_uS + CN_CFG_TICK_US -(u32)1)/CN_CFG_TICK_US; //闹铃时间
     if(g_ptEventDelay==NULL)    //延时队列空
@@ -1379,7 +1395,7 @@ void __Djy_AddToDelay(u32 u32l_uS)
 }
 
 //----添加事件进阻塞队列-------------------------------------------------
-//功能：功能类似 __Djy_AddRunningToBlock，把 Ready 队列头部事件加入阻塞队列，且
+//功能：功能类似 __DJY_AddRunningToBlock，把 Ready 队列头部事件加入阻塞队列，且
 //      不能设置超时函数。设计本函数是为了解决调度过程中创建线程时，需要从堆中分
 //      配栈，但此时堆的互斥量被占用，导致不能分配，进而导致的一系列问题。
 //      只支持FIFO方式或者优先级排序，其他排序方式不能使用本函数
@@ -1389,12 +1405,12 @@ void __Djy_AddToDelay(u32 u32l_uS)
 //      Status，阻塞状态，参看CN_STS_EVENT_READY系列定义
 //返回：无
 //-----------------------------------------------------------------------------
-void __Djy_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status)
+void __DJY_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status)
 {
     struct EventECB *current;
     struct EventECB *event = g_ptEventReady;
 
-    __Djy_CutReadyEvent(event);
+    __DJY_CutReadyEvent(event);
     event->previous = NULL;
     event->next = NULL;
 
@@ -1436,24 +1452,24 @@ void __Djy_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status)
     event->event_status |= Status;
 }
 
-void testprio(void)
+void DJY_Testprio(void)
 {
     if(g_tECB_Table[0].prio != 250)
     {
-        printk("--------prio error_no %d\r\n",Djy_MyEventId());
+        printk("--------prio error_no %d\r\n",DJY_GetMyEventId());
         while(g_tECB_Table[0].prio != 250);
     }
 }
 //----从ready事件继承优先级-----------------------------------------------------
 //功能: 如果 src_id 的优先级较高，event_id临时以 src_id 的优先级，运行，直到调用
-//      Djy_RestorePrio，否则不改变优先级。本函数专用在创建线程时，从堆中分配栈的
+//      DJY_RestorePrio，否则不改变优先级。本函数专用在创建线程时，从堆中分配栈的
 //      过程中，因为阻塞而需要优先级继承的情况。此时不是从 running 中继承优先级，
 //      而是从 ready 中继承。
 //参数: event_id，被操作的事件id
 //返回: true = 成功设置，false=失败，一般是优先级不合法
 //注：本函数是分配 stack 的函数专用，在禁止调度条件下使用。
 //-----------------------------------------------------------------------------
-bool_t __Djy_RaiseTempPrioForStack(u16 event_id)
+bool_t __DJY_RaiseTempPrioForStack(u16 event_id)
 {
     struct EventECB * pl_ecb;
 
@@ -1469,17 +1485,17 @@ bool_t __Djy_RaiseTempPrioForStack(u16 event_id)
         {
             //注：此三句的顺序不能变，因为prio的值对__Djy_CutReadyEvent函数执行
             //    结果有影响
-            __Djy_CutReadyEvent(pl_ecb);
+            __DJY_CutReadyEvent(pl_ecb);
             pl_ecb->prio = g_ptEventReady->prio;
-            __Djy_EventReady(pl_ecb);
+            __DJY_EventReady(pl_ecb);
         }
         else if(pl_ecb->event_status & CN_BLOCK_PRIO_SORT)
         {
             pl_ecb->prio = g_ptEventReady->prio;
-            __Djy_ChangeBlockQueue(pl_ecb);
+            __DJY_ChangeBlockQueue(pl_ecb);
         }
     }
-//    testprio();
+//    DJY_Testprio();
     return true;
 }
 
@@ -1495,10 +1511,10 @@ bool_t __Djy_RaiseTempPrioForStack(u16 event_id)
 //      Status，阻塞状态，参看CN_STS_EVENT_READY系列定义
 //返回：无
 //-----------------------------------------------------------------------------
-void __Djy_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32 Status)
+void __DJY_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32 Status)
 {
     struct EventECB *event;
-    __Djy_CutReadyEvent(g_ptEventRunning);
+    __DJY_CutReadyEvent(g_ptEventRunning);
     g_ptEventRunning->previous = NULL;
     g_ptEventRunning->next = NULL;
 
@@ -1541,7 +1557,7 @@ void __Djy_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32
     {
         //事件状态设为等待信号量 +  超时
         g_ptEventRunning->event_status |= Status + CN_STS_SYNC_TIMEOUT;
-        __Djy_AddToDelay(timeout);
+        __DJY_AddToDelay(timeout);
     }else
     {
         g_ptEventRunning->event_status |= Status;  //事件状态设为等待信号量
@@ -1555,7 +1571,7 @@ void __Djy_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32
 //参数：Event，被操作的事件
 //返回：无
 //-----------------------------------------------------------------------------
-void __Djy_ChangeBlockQueue(struct EventECB *Event)
+void __DJY_ChangeBlockQueue(struct EventECB *Event)
 {
     struct EventECB *pl_ecb;
     struct EventECB *Head;
@@ -1599,6 +1615,50 @@ void __Djy_ChangeBlockQueue(struct EventECB *Event)
 //      new_prio,设置的新优先级
 //返回: true = 成功设置，false=失败，一般是优先级不合法
 //-----------------------------------------------------------------------------
+bool_t DJY_SetEventPrio(u16 event_id,ufast_t new_prio)
+{
+    struct EventECB * pl_ecb;
+
+    if((new_prio >= CN_PRIO_SYS_SERVICE) || (new_prio == 0)
+       || (event_id >= CFG_EVENT_LIMIT))
+        return false;
+
+    Int_SaveAsynSignal();
+    pl_ecb = &g_tECB_Table[event_id];
+    pl_ecb->prio_base = new_prio;
+    if(new_prio != pl_ecb->prio)
+    {
+        //事件原来的状态，可能：1、处于就绪态，2、处于某种阻塞态。
+        //如果处于某种阻塞态，假如队列是按优先级排序的，则要修改该队列。
+        if(pl_ecb->event_status == CN_STS_EVENT_READY)
+        {
+            //注：此三句的顺序不能变，因为prio的值对__Djy_CutReadyEvent函数执行
+            //    结果有影响
+            __DJY_CutReadyEvent(pl_ecb);
+            pl_ecb->prio = new_prio;
+            __DJY_EventReady(pl_ecb);
+        }
+        else if(pl_ecb->event_status & CN_BLOCK_PRIO_SORT)
+        {
+            pl_ecb->prio = new_prio;
+            __DJY_ChangeBlockQueue(pl_ecb);
+        }
+        else
+            pl_ecb->prio = new_prio;
+    }
+    Int_RestoreAsynSignal();
+//    DJY_Testprio();
+    return true;
+}
+
+//----设置事件优先级-----------------------------------------------------------
+//功能: 改变事件优先级，如果改变自身的优先级，并把优先级被改低了，可能立即调度，
+//      阻塞本事件运行。
+//参数: event_id，被操作的事件id
+//      new_prio,设置的新优先级
+//返回: true = 成功设置，false=失败，一般是优先级不合法
+//注意：修改成DJY_SetEventPrio函数后和C库有冲突，copy了一份，改了C库之后删掉
+//-----------------------------------------------------------------------------
 bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio)
 {
     struct EventECB * pl_ecb;
@@ -1618,20 +1678,20 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio)
         {
             //注：此三句的顺序不能变，因为prio的值对__Djy_CutReadyEvent函数执行
             //    结果有影响
-            __Djy_CutReadyEvent(pl_ecb);
+            __DJY_CutReadyEvent(pl_ecb);
             pl_ecb->prio = new_prio;
-            __Djy_EventReady(pl_ecb);
+            __DJY_EventReady(pl_ecb);
         }
         else if(pl_ecb->event_status & CN_BLOCK_PRIO_SORT)
         {
             pl_ecb->prio = new_prio;
-            __Djy_ChangeBlockQueue(pl_ecb);
+            __DJY_ChangeBlockQueue(pl_ecb);
         }
         else
             pl_ecb->prio = new_prio;
     }
     Int_RestoreAsynSignal();
-//    testprio();
+//    DJY_Testprio();
     return true;
 }
 
@@ -1641,7 +1701,7 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio)
 //参数: event_id，被操作的事件id
 //返回: true = 成功设置，false=失败，一般是优先级不合法
 //-----------------------------------------------------------------------------
-bool_t Djy_RaiseTempPrio(u16 event_id)
+bool_t DJY_RaiseTempPrio(u16 event_id)
 {
     struct EventECB * pl_ecb;
 
@@ -1658,20 +1718,20 @@ bool_t Djy_RaiseTempPrio(u16 event_id)
         {
             //注：此三句的顺序不能变，因为prio的值对__Djy_CutReadyEvent函数执行
             //    结果有影响
-            __Djy_CutReadyEvent(pl_ecb);
+            __DJY_CutReadyEvent(pl_ecb);
             pl_ecb->prio = g_ptEventRunning->prio;
-            __Djy_EventReady(pl_ecb);
+            __DJY_EventReady(pl_ecb);
         }
         else if(pl_ecb->event_status & CN_BLOCK_PRIO_SORT)
         {
             pl_ecb->prio = g_ptEventRunning->prio;
-            __Djy_ChangeBlockQueue(pl_ecb);
+            __DJY_ChangeBlockQueue(pl_ecb);
         }
         else
             pl_ecb->prio = g_ptEventRunning->prio;
     }
     Int_RestoreAsynSignal();
-//    testprio();
+//    DJY_Testprio();
     return true;
 }
 
@@ -1680,7 +1740,7 @@ bool_t Djy_RaiseTempPrio(u16 event_id)
 //参数: 无，
 //返回: true = 成功设置，false=失败，一般是优先级不合法
 //-----------------------------------------------------------------------------
-bool_t Djy_RestorePrio(void)
+bool_t DJY_RestorePrio(void)
 {
 
     Int_SaveAsynSignal();
@@ -1688,12 +1748,12 @@ bool_t Djy_RestorePrio(void)
     {
         //注：此三句的顺序不能变，因为prio的值对__Djy_CutReadyEvent函数执行
         //    结果有影响
-        __Djy_CutReadyEvent(g_ptEventRunning);
+        __DJY_CutReadyEvent(g_ptEventRunning);
         g_ptEventRunning->prio = g_ptEventRunning->prio_base;
-        __Djy_EventReady(g_ptEventRunning);
+        __DJY_EventReady(g_ptEventRunning);
     }
     Int_RestoreAsynSignal();
-//    testprio();
+//    DJY_Testprio();
     return true;
 }
 
@@ -1705,15 +1765,15 @@ bool_t Djy_RestorePrio(void)
 //备注：延时队列为双向循环链表
 //change by lst in 20130922,ticks改为64bit后，删掉处理32位数溢出回绕的代码
 //-----------------------------------------------------------------------------
-u32 Djy_EventDelay(u32 u32l_uS)
+u32 DJY_EventDelay(u32 u32l_uS)
 {
     struct EventECB * event;
     u32 us_return=0;
 
-    if( !Djy_QuerySch())
+    if( !DJY_QuerySch())
     {
-//        Djy_SaveLastError(EN_KNL_CANT_SCHED);
-        Djy_DelayUs(u32l_uS);
+//        DJY_SaveLastError(EN_KNL_CANT_SCHED);
+        DJY_DelayUs(u32l_uS);
         return u32l_uS;
     }
     Int_SaveAsynSignal();
@@ -1724,9 +1784,9 @@ u32 Djy_EventDelay(u32 u32l_uS)
         if((g_ptEventRunning->prio == g_ptEventRunning->next->prio)
                     && (g_ptEventRunning != g_ptEventRunning->next)   )
         {
-            g_ptEventRunning->delay_start_tick = __DjyGetSysTick();//闹铃时间
-            __Djy_CutReadyEvent(g_ptEventRunning);          //从ready队列取出
-            __Djy_EventReady(g_ptEventRunning);             //放回同步队列尾部
+            g_ptEventRunning->delay_start_tick = __DJY_GetSysTick();//闹铃时间
+            __DJY_CutReadyEvent(g_ptEventRunning);          //从ready队列取出
+            __DJY_EventReady(g_ptEventRunning);             //放回同步队列尾部
         }else
         {
             Int_RestoreAsynSignal();
@@ -1734,11 +1794,11 @@ u32 Djy_EventDelay(u32 u32l_uS)
         }
     }else
     {
-        g_ptEventRunning->delay_start_tick =__DjyGetSysTick();//设定闹铃的时间
+        g_ptEventRunning->delay_start_tick =__DJY_GetSysTick();//设定闹铃的时间
         g_ptEventRunning->delay_end_tick = g_ptEventRunning->delay_start_tick
                   + ((s64)u32l_uS + CN_CFG_TICK_US -(u32)1)/CN_CFG_TICK_US; //闹铃时间
 
-        __Djy_CutReadyEvent(g_ptEventRunning);
+        __DJY_CutReadyEvent(g_ptEventRunning);
 
         g_ptEventRunning->event_status = CN_STS_EVENT_DELAY;
         if(g_ptEventDelay==NULL)    //闹钟同步队列空
@@ -1774,7 +1834,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
         }
     }
     Int_RestoreAsynSignal();
-    us_return = (__DjyGetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
+    us_return = (__DJY_GetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
     return us_return;
 }
 
@@ -1785,18 +1845,18 @@ u32 Djy_EventDelay(u32 u32l_uS)
 //备注：延时队列为双向循环链表
 //add by lst in 20130922
 //-----------------------------------------------------------------------------
-s64 Djy_EventDelayTo(s64 s64l_uS)
+s64 DJY_EventDelayTo(s64 s64l_uS)
 {
     struct EventECB * event;
 
-    if( !Djy_QuerySch())
+    if( !DJY_QuerySch())
     {
-//      Djy_SaveLastError(EN_KNL_CANT_SCHED);
-        Djy_DelayUs((u32)(s64l_uS - DjyGetSysTime()));
+//      DJY_SaveLastError(EN_KNL_CANT_SCHED);
+        DJY_DelayUs((u32)(s64l_uS - DJY_GetSysTime()));
         return 0;
     }
     Int_SaveAsynSignal();
-    g_ptEventRunning->delay_start_tick =__DjyGetSysTick();//设定闹铃的时间
+    g_ptEventRunning->delay_start_tick =__DJY_GetSysTick();//设定闹铃的时间
     g_ptEventRunning->delay_end_tick =(s64l_uS +CN_CFG_TICK_US -1)/CN_CFG_TICK_US;
     if(g_ptEventRunning->delay_end_tick <= g_ptEventRunning->delay_start_tick)
     {
@@ -1804,7 +1864,7 @@ s64 Djy_EventDelayTo(s64 s64l_uS)
         return 0;
     }
 
-    __Djy_CutReadyEvent(g_ptEventRunning);
+    __DJY_CutReadyEvent(g_ptEventRunning);
 
     g_ptEventRunning->event_status = CN_STS_EVENT_DELAY;
     if(g_ptEventDelay==NULL)    //闹钟同步队列空
@@ -1839,7 +1899,7 @@ s64 Djy_EventDelayTo(s64 s64l_uS)
         }
     }
     Int_RestoreAsynSignal();
-    return (__DjyGetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
+    return (__DJY_GetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
 }
 
 //----同步事件----------------------------------------------------------------
@@ -1855,14 +1915,14 @@ s64 Djy_EventDelayTo(s64 s64l_uS)
 //特注: 本函数不像semp_pend一样，会追溯历史的semp_post。如果调用本函数时，
 //      completed已经发生，则只能等到下一次completed才会唤醒。
 //----------------------------------------------------------------------------
-u32 Djy_WaitEventCompleted(u16 event_id,u32 timeout)
+u32 DJY_WaitEventCompleted(u16 event_id,u32 timeout)
 {
     struct EventECB * pl_ecb;
     pl_ecb = &g_tECB_Table[event_id];
 
     if (event_id == g_ptEventRunning->event_id)
         return CN_EVENT_ID_INVALID;
-    if(Djy_QuerySch() == false)  //不能在禁止调度的情况下执行同步操作
+    if(DJY_QuerySch() == false)  //不能在禁止调度的情况下执行同步操作
         return (u32)EN_KNL_CANT_SCHED;
     if(timeout == 0)
         return (u32)CN_SYNC_TIMEOUT;
@@ -1872,7 +1932,7 @@ u32 Djy_WaitEventCompleted(u16 event_id,u32 timeout)
         Int_RestoreAsynSignal();
         return (u32)EN_KNL_EVENT_FREE;
     }
-    __Djy_CutReadyEvent(g_ptEventRunning);
+    __DJY_CutReadyEvent(g_ptEventRunning);
     g_ptEventRunning->next = NULL;
     g_ptEventRunning->previous = NULL;
 
@@ -1896,7 +1956,7 @@ u32 Djy_WaitEventCompleted(u16 event_id,u32 timeout)
     {
         g_ptEventRunning->event_status = CN_STS_WAIT_EVENT_DONE
                                         +CN_STS_SYNC_TIMEOUT;
-        __Djy_AddToDelay(timeout);
+        __DJY_AddToDelay(timeout);
     }
     else
     {
@@ -1932,7 +1992,7 @@ u32 Djy_WaitEventCompleted(u16 event_id,u32 timeout)
 //特注: 本函数不像semp_pend一样，会追溯历史的semp_post。如果调用本函数时，
 //      completed已经发生，则只能等到下一次completed才会唤醒。
 //----------------------------------------------------------------------------
-u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout)
+u32 DJY_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout)
 {
     struct EventType *pl_evtt;
     struct EventECB *pl_ecb;
@@ -1941,7 +2001,7 @@ u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout)
     if(evttoffset >= CFG_EVENT_TYPE_LIMIT)
         return EN_KNL_EVTTID_LIMIT;
     pl_evtt = &g_tEvttTable[evttoffset];
-    if(Djy_QuerySch() == false)  //不能在禁止调度的情况下执行同步操作
+    if(DJY_QuerySch() == false)  //不能在禁止调度的情况下执行同步操作
         return (u32)EN_KNL_CANT_SCHED;
     if(timeout == 0)
         return (u32)CN_SYNC_TIMEOUT;
@@ -1952,7 +2012,7 @@ u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout)
         Int_RestoreAsynSignal();
         return (u32)EN_KNL_EVTT_FREE;
     }
-    __Djy_CutReadyEvent(g_ptEventRunning);
+    __DJY_CutReadyEvent(g_ptEventRunning);
     g_ptEventRunning->next = NULL;
     g_ptEventRunning->previous = NULL;
     g_ptEventRunning->sync_counter = done_times;
@@ -1987,7 +2047,7 @@ u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout)
     {
         g_ptEventRunning->event_status = CN_STS_WAIT_EVTT_DONE
                                          +CN_STS_SYNC_TIMEOUT;
-        __Djy_AddToDelay(timeout);
+        __DJY_AddToDelay(timeout);
     }else
     {
         g_ptEventRunning->event_status = CN_STS_WAIT_EVTT_DONE;
@@ -2023,7 +2083,7 @@ u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout)
 //      CN_SYNC_ERROR=出错，
 //      本函数必须联系共享文档的相关章节才容易读懂，注释难于解释那么清楚的。
 //----------------------------------------------------------------------------
-u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout)
+u32 DJY_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout)
 {
     struct EventType *pl_evtt;
     struct EventECB *pl_ecb;
@@ -2040,7 +2100,7 @@ u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout)
         return CN_SYNC_ERROR;
     pl_evtt = &g_tEvttTable[evttoffset];
     //不能在禁止调度的情况下执行同步操作
-    if(Djy_QuerySch() == false)
+    if(DJY_QuerySch() == false)
         return CN_SYNC_ERROR;
     if(timeout == 0)
         return CN_SYNC_TIMEOUT;
@@ -2065,7 +2125,7 @@ u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout)
         Int_RestoreAsynSignal();
         return CN_SYNC_SUCCESS;
     }
-    __Djy_CutReadyEvent(g_ptEventRunning);
+    __DJY_CutReadyEvent(g_ptEventRunning);
     g_ptEventRunning->next = NULL;
     g_ptEventRunning->previous = NULL;
     g_ptEventRunning->sync_counter = popt;
@@ -2098,7 +2158,7 @@ u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout)
     {
         g_ptEventRunning->event_status = CN_STS_WAIT_EVTT_POP
                                          + CN_STS_SYNC_TIMEOUT;
-        __Djy_AddToDelay(timeout);
+        __DJY_AddToDelay(timeout);
     }else
     {
         g_ptEventRunning->event_status = CN_STS_WAIT_EVTT_POP;
@@ -2154,7 +2214,7 @@ u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout)
 //返回：若不能获取事件控制块，返回cn_invalid_event_id，否则返回事件id。
 //注: 不会因不能获得事件控制块而阻塞。
 //-----------------------------------------------------------------------------
-u16 Djy_EventPop(   u16  hybrid_id,
+u16 DJY_EventPop(   u16  hybrid_id,
                     u32 *pop_result,
                     u32 timeout,    //如果阻塞，定义超时时间，
                     ptu32_t PopPrarm1,
@@ -2174,7 +2234,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
         evtt_offset = hybrid_id & (~CN_EVTT_ID_MASK);
         if(evtt_offset >= CFG_EVENT_TYPE_LIMIT)
         {
-            Djy_SaveLastError(EN_KNL_EVTTID_LIMIT);
+            DJY_SaveLastError(EN_KNL_EVTTID_LIMIT);
             if(pop_result != NULL)
                 *pop_result = (ptu32_t)EN_KNL_EVTTID_LIMIT;
             return CN_EVENT_ID_INVALID;
@@ -2184,7 +2244,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
     {
         if(hybrid_id >= CFG_EVENT_LIMIT)
         {
-            Djy_SaveLastError(EN_KNL_EVENTID_LIMIT);
+            DJY_SaveLastError(EN_KNL_EVENTID_LIMIT);
             if(pop_result != NULL)
                 *pop_result = (ptu32_t)EN_KNL_EVENTID_LIMIT;
             return CN_EVENT_ID_INVALID;
@@ -2194,10 +2254,10 @@ u16 Djy_EventPop(   u16  hybrid_id,
             evtt_offset = g_tECB_Table[hybrid_id].evtt_id & (~CN_EVTT_ID_MASK);
         }
     }
-    schbak = Djy_QuerySch( );
+    schbak = DJY_QuerySch( );
     if((timeout != 0) && (!schbak))
     {   //要求事件处理完才返回，但因不允许调度而无法执行
-        Djy_SaveLastError(EN_KNL_CANT_SCHED);
+        DJY_SaveLastError(EN_KNL_CANT_SCHED);
         if(pop_result != NULL)
             *pop_result = (ptu32_t)EN_KNL_CANT_SCHED;
         return CN_EVENT_ID_INVALID;
@@ -2206,13 +2266,13 @@ u16 Djy_EventPop(   u16  hybrid_id,
     if((pl_evtt->property.registered == 0)      //类型未登记
         ||(pl_evtt->property.deleting == 1))    //事件类型正在等待注销
     {
-        Djy_SaveLastError(EN_KNL_EVTT_UNREGISTER);
+        DJY_SaveLastError(EN_KNL_EVTT_UNREGISTER);
         if(pop_result != NULL)
             *pop_result = (u32)EN_KNL_EVTT_UNREGISTER;
         return CN_EVENT_ID_INVALID;
     }else if(prio >= CN_PRIO_SYS_SERVICE)       //非法优先级
     {
-        Djy_SaveLastError(EN_KNL_INVALID_PRIO);
+        DJY_SaveLastError(EN_KNL_INVALID_PRIO);
         if(pop_result != NULL)
             *pop_result = (u32)EN_KNL_INVALID_PRIO;
         return CN_EVENT_ID_INVALID;
@@ -2244,7 +2304,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
                 //指定的超时未到
                 if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT)
                 {
-                    __Djy_ResumeDelay(pl_ecb);     //从闹钟队列中移除事件
+                    __DJY_ResumeDelay(pl_ecb);     //从闹钟队列中移除事件
                 }
                 pl_ecb->wakeup_from = CN_STS_WAIT_EVTT_POP;
                 pl_ecb->event_status = CN_STS_EVENT_READY;
@@ -2274,7 +2334,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
                         //continue to loop,do nothing here
                     }
                 }
-                __Djy_EventReady(pl_ecb_temp);
+                __DJY_EventReady(pl_ecb_temp);
             }else
             {
                 pl_ecb->sync_counter--;
@@ -2311,7 +2371,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
             parahead.BlackBoxInfoLen = sizeof(ExpStr);
             parahead.BlackBoxType = CN_BLACKBOX_TYPE_ECB_EXHAUSTED;
             BlackBox_ThrowExp(&parahead);
-            Djy_SaveLastError(EN_KNL_ECB_EXHAUSTED);
+            DJY_SaveLastError(EN_KNL_ECB_EXHAUSTED);
             if(pop_result != NULL)
                 *pop_result = (u32)EN_KNL_ECB_EXHAUSTED;
             return_result = CN_EVENT_ID_INVALID;
@@ -2319,7 +2379,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
 //      }else if((pl_evtt->property.correlative == EN_INDEPENDENCE)
 //              && ((pl_evtt->vpus)> pl_evtt->vpus_limit))
 //      {
-//          Djy_SaveLastError(EN_KNL_VPU_OVER);
+//          DJY_SaveLastError(EN_KNL_VPU_OVER);
 //          return_result = CN_EVENT_ID_INVALID;
 //          if(pop_result != NULL)
 //              *pop_result = (u32)EN_KNL_VPU_OVER;
@@ -2342,7 +2402,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
             pl_ecb->sync_head = NULL;
 
 #if CFG_OS_TINY == false
-            pl_ecb->EventStartTime = DjyGetSysTime();   //事件发生时间
+            pl_ecb->EventStartTime = DJY_GetSysTime();   //事件发生时间
             pl_ecb->consumed_time = 0;
             pl_ecb->consumed_time_second = 0;
             pl_ecb->consumed_time_record = 0;
@@ -2377,7 +2437,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
                 pl_ecb->prio =pl_evtt->default_prio;    //从事件类型中继承优先级
                 pl_ecb->prio_base = pl_ecb->prio;       //设置事件优先级,
             }
-            __Djy_EventReady(pl_ecb);
+            __DJY_EventReady(pl_ecb);
             return_result = pl_ecb->event_id;
         }
     }
@@ -2401,7 +2461,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
     pl_evtt->pop_times++;
     if(timeout != 0)
     {
-        __Djy_AddRunningToBlock(&pl_ecb->sync, CN_BLOCK_FIFO, timeout, CN_STS_WAIT_EVENT_DONE);
+        __DJY_AddRunningToBlock(&pl_ecb->sync, CN_BLOCK_FIFO, timeout, CN_STS_WAIT_EVENT_DONE);
         Int_RestoreAsynSignal();  //恢复中断会引发重新调度
 
         //注:事件处理结果在djy_task_completed函数中给event_result赋值
@@ -2430,20 +2490,20 @@ end_pop:
 //参数: evtt_id，事件类型id
 //返回: 事件处理结果。
 //-----------------------------------------------------------------------------
-u32 Djy_GetEvttPopTimes(u16 evtt_id)
+u32 DJY_GetEvttPopTimes(u16 evtt_id)
 {
     return g_tEvttTable[evtt_id &(~CN_EVTT_ID_MASK)].pop_times;
 }
 
 //----取事件处理结果-----------------------------------------------------------
 //功能: 一个事件在处理过程中，如果弹出了新事件，并且等待事件处理结果(调用
-//      Djy_EventPop 函数时 timeout != 0)。如果调用 Djy_EventPop 时返回了合法的事件
+//      DJY_EventPop 函数时 timeout != 0)。如果调用 DJY_EventPop 时返回了合法的事件
 //      id，且不是超时返回，则可以用本函数获取新事件的处理结果。只能取最后一次
 //      成功处理的事件结果。
 //参数: 无
 //返回: 事件处理结果。
 //-----------------------------------------------------------------------------
-ptu32_t Djy_GetEventResult(void)
+ptu32_t DJY_GetEventResult(void)
 {
     return g_ptEventRunning->event_result;
 }
@@ -2456,7 +2516,7 @@ ptu32_t Djy_GetEventResult(void)
 //返回: 事件参数指针
 //注: 本函数只能取正在处理中的事件自己的参数
 //-----------------------------------------------------------------------------
-void Djy_GetEventPara(ptu32_t *Param1,ptu32_t *Param2)
+void DJY_GetEventPara(ptu32_t *Param1,ptu32_t *Param2)
 {
     if(Param1 != NULL)
         *Param1 = g_ptEventRunning->param1;
@@ -2469,7 +2529,7 @@ void Djy_GetEventPara(ptu32_t *Param1,ptu32_t *Param2)
 //参数: 无
 //返回: 事件类型id，如果当前运行在异步信号中断中，则返回 CN_EVTT_ID_ASYN
 //-----------------------------------------------------------------------------
-u16 Djy_MyEvttId(void)
+u16 DJY_GetMyEvttId(void)
 {
     if(Int_GetRunLevel() >0)
     {
@@ -2485,6 +2545,24 @@ u16 Djy_MyEvttId(void)
 //功能: 由应用程序调用，取正在处理的事件的事件id
 //参数: 无
 //返回: 事件id，如果当前运行在异步信号中断中，则返回 CN_EVENT_ID_ASYN
+//-----------------------------------------------------------------------------
+u16 DJY_GetMyEventId(void)
+{
+    if(Int_GetRunLevel() >0)
+    {
+        return CN_EVENT_ID_ASYN;
+    }
+    else
+    {
+        return g_ptEventRunning->event_id;
+    }
+}
+
+//----取自身的事件id-------------------------------------------------------
+//功能: 由应用程序调用，取正在处理的事件的事件id
+//参数: 无
+//返回: 事件id，如果当前运行在异步信号中断中，则返回 CN_EVENT_ID_ASYN
+//注意：修改成DJY_GetMyEventId函数后和C库有冲突，copy了一份，改了C库之后删掉
 //-----------------------------------------------------------------------------
 u16 Djy_MyEventId(void)
 {
@@ -2504,11 +2582,11 @@ u16 Djy_MyEventId(void)
 //参数: 无
 //返回: 无
 //_____________________________________________________________________________
-void __StartOs(void)
+void __DJY_StartOs(void)
 {
     //本句为容错性质，以防用户模块初始化过程中没有成对调用异步信号使能与禁止函数
     __Int_ResetAsynSignal();
-    __Djy_SelectEventToRun();
+    __DJY_SelectEventToRun();
     g_ptEventRunning = g_ptEventReady;
     g_bScheduleEnable = true;
     g_bMultiEventStarted = true;
@@ -2527,7 +2605,7 @@ void __StartOs(void)
 //参数: para，参数队列的队列头，参数构成一个双向链表。
 //返回: 无
 //-----------------------------------------------------------------------------
-void __Djy_ActiveEventSyncExp(struct EventECB *sync)
+void __DJY_ActiveEventSyncExp(struct EventECB *sync)
 {
     struct EventECB *event_temp;
     if(sync == NULL)
@@ -2540,12 +2618,12 @@ void __Djy_ActiveEventSyncExp(struct EventECB *sync)
         //是否在超时队列中
         if(sync->event_status & CN_STS_SYNC_TIMEOUT)
         {
-            __Djy_ResumeDelay(sync);                   //结束超时等待
+            __DJY_ResumeDelay(sync);                   //结束超时等待
         }
         sync->event_status = CN_STS_EVENT_READY;        //取消"同步中"状态
         sync->wakeup_from = CN_STS_EVENT_EXP_EXIT;      //置位异常结束标志
         event_temp = sync->multi_next;
-        __Djy_EventReady(sync);           //把事件加入到就绪队列中
+        __DJY_EventReady(sync);           //把事件加入到就绪队列中
         sync = event_temp;
     }while(sync != NULL);
     return;
@@ -2576,12 +2654,12 @@ void __Djy_ActiveEventSyncExp(struct EventECB *sync)
 //                //是否在超时队列中
 //                if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT)
 //                {
-//                    __Djy_ResumeDelay(pl_ecb);               //结束超时等待
+//                    __DJY_ResumeDelay(pl_ecb);               //结束超时等待
 //                }
 //                pl_ecb->event_status = CN_STS_EVENT_READY;    //取消"同步中"状态
 //                pl_ecb->wakeup_from = CN_STS_EVENT_EXP_EXIT;  //置位异常结束标志
 //                event_temp = pl_ecb->multi_next;
-//                __Djy_EventReady(pl_ecb);           //把事件加入到就绪队列中
+//                __DJY_EventReady(pl_ecb);           //把事件加入到就绪队列中
 //                pl_ecb = event_temp;
 //            }while(pl_ecb != NULL);
 //        }
@@ -2604,7 +2682,7 @@ void __Djy_ActiveEventSyncExp(struct EventECB *sync)
 //返回: 无
 //      该同步队列是多功能指针的双向循环队列
 //-----------------------------------------------------------------------------
-void __Djy_CutEcbFromSync(struct EventECB  *event)
+void __DJY_CutEcbFromSync(struct EventECB  *event)
 {
     struct EventECB  **syn_head;
 
@@ -2663,7 +2741,7 @@ void __Djy_CutEcbFromSync(struct EventECB  *event)
 //返回: 本函数不返回
 //todo: 未完成
 //-----------------------------------------------------------------------------
-void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
+void __DJY_EventExit(struct EventECB *event, u32 exit_code,u32 action)
 {
     struct ThreadVm *next_vm,*temp;
     struct EventECB *pl_ecb;
@@ -2686,10 +2764,10 @@ void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
     __Int_ResetAsynSignal();  //直到__vm_engine函数才再次打开.
 
     //激活事件同步队列中的所有事件
-    __Djy_ActiveEventSyncExp(g_ptEventRunning->sync);
+    __DJY_ActiveEventSyncExp(g_ptEventRunning->sync);
 
 //    if(g_ptEventRunning->para_current != NULL)
-//        __Djy_ActiveEventSyncExp(g_ptEventRunning->para_current->sync);
+//        __DJY_ActiveEventSyncExp(g_ptEventRunning->para_current->sync);
     //以下激活参数的同步队列中的事件,并释放参数队列中的全部参数
 //  __Djy_ActiveEventParaSyncExp(g_ptEventRunning->para_high_prio);
 //  __Djy_ActiveEventParaSyncExp(g_ptEventRunning->para_low_prio);
@@ -2697,10 +2775,10 @@ void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
 #if (CFG_DYNAMIC_MEM == true)
     if(g_ptEventRunning->local_memory != 0)
     {
-        __M_CleanUp(g_ptEventRunning->event_id);    //
+        __Heap_CleanUp(g_ptEventRunning->event_id);    //
     }
 #endif
-    __Djy_CutReadyEvent(g_ptEventRunning);
+    __DJY_CutReadyEvent(g_ptEventRunning);
     g_ptEventRunning->previous
                     = (struct EventECB*)&s_ptEventFree;//表示本控制块空闲
     g_ptEventRunning->next = s_ptEventFree;     //pg_event_free是单向非循环队列
@@ -2725,7 +2803,7 @@ void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
             pl_ecb->sync_head = NULL;
             if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT) //指定的超时未到
             {
-                __Djy_ResumeDelay(pl_ecb);       //从闹钟队列中移除事件
+                __DJY_ResumeDelay(pl_ecb);       //从闹钟队列中移除事件
             }
             pl_ecb->event_status = CN_STS_EVENT_READY;
             pl_ecb->wakeup_from = CN_STS_WAIT_EVTT_DONE;
@@ -2755,7 +2833,7 @@ void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
                 }
 
             }
-            __Djy_EventReady(pl_ecb_temp);
+            __DJY_EventReady(pl_ecb_temp);
         }else
         {
             if(pl_ecb->sync_counter != 0)
@@ -2836,14 +2914,14 @@ void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
         vm_final = CN_DELETED;          //线程已经被删除
     }
 
-    __Djy_SelectEventToRun();
+    __DJY_SelectEventToRun();
     if(vm_final == CN_DELETE)                   //删除线程
     {
         free((void*)g_ptEventRunning->vm);    //删除线程
         pl_evtt->vpus--;
         g_ptEventRunning = g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-        g_s64RunningStartTime = DjyGetSysTime();
+        g_s64RunningStartTime = DJY_GetSysTime();
         Int_HalfEnableAsynSignal( );
         __asm_turnto_context(g_ptEventRunning->vm);
     }else if(vm_final == CN_KEEP)    //保留线程
@@ -2856,7 +2934,7 @@ void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
 
             g_ptEventRunning=g_ptEventReady;
             g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-            g_s64RunningStartTime = DjyGetSysTime();
+            g_s64RunningStartTime = DJY_GetSysTime();
             pl_ecb->vm->stack_used = pl_ecb->vm->stack_top;//复原已用指针
             Int_HalfEnableAsynSignal( );
             __asm_reset_switch(pl_evtt->thread_routine,
@@ -2867,7 +2945,7 @@ void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
 //        pl_ecb = g_ptEventRunning;
         g_ptEventRunning = g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-        g_s64RunningStartTime = DjyGetSysTime();
+        g_s64RunningStartTime = DJY_GetSysTime();
         Int_HalfEnableAsynSignal( );
         __asm_turnto_context(g_ptEventRunning->vm);
     }
@@ -2883,7 +2961,7 @@ void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
 //参数：result，事件处理结果，这个结果将返回给弹出该事件的事件(如果设定了同步)
 //返回：无
 //-----------------------------------------------------------------------------
-void Djy_EventComplete(ptu32_t result)
+void DJY_EventComplete(ptu32_t result)
 {
     struct EventECB *pl_ecb,*event_temp;
     Int_SaveAsynSignal();
@@ -2896,12 +2974,12 @@ void Djy_EventComplete(ptu32_t result)
             pl_ecb->event_result = result;
             if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT)  //是否在超时队列中
             {
-                __Djy_ResumeDelay(pl_ecb);                 //结束超时等待
+                __DJY_ResumeDelay(pl_ecb);                 //结束超时等待
             }
             pl_ecb->event_status = CN_STS_EVENT_READY;
             pl_ecb->wakeup_from = CN_STS_WAIT_EVENT_DONE;
             event_temp = pl_ecb->multi_next;
-            __Djy_EventReady(pl_ecb);           //把事件加入到就绪队列中
+            __DJY_EventReady(pl_ecb);           //把事件加入到就绪队列中
             pl_ecb = event_temp;
         }while(pl_ecb != NULL);
     }
@@ -2927,7 +3005,7 @@ void Djy_EventComplete(ptu32_t result)
 //备注: 调用本函数的必定是running事件,在running事件上下文中执行，不可以调用
 //      __asm_reset_thread函数。
 //-----------------------------------------------------------------------------
-void __Djy_EventFinal(ptu32_t result)
+void __DJY_EventFinal(ptu32_t result)
 {
     struct ThreadVm *next_vm,*temp;
     struct EventECB *pl_ecb,*event_temp;
@@ -2948,12 +3026,12 @@ void __Djy_EventFinal(ptu32_t result)
             pl_ecb->event_result = result;
             if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT)  //是否在超时队列中
             {
-                __Djy_ResumeDelay(pl_ecb);                 //结束超时等待
+                __DJY_ResumeDelay(pl_ecb);                 //结束超时等待
             }
             pl_ecb->event_status = CN_STS_EVENT_READY;
             pl_ecb->wakeup_from = CN_STS_WAIT_EVENT_DONE;
             event_temp = pl_ecb->multi_next;
-            __Djy_EventReady(pl_ecb);           //把事件加入到就绪队列中
+            __DJY_EventReady(pl_ecb);           //把事件加入到就绪队列中
             pl_ecb = event_temp;
         }while(pl_ecb != NULL);
     }
@@ -2973,7 +3051,7 @@ void __Djy_EventFinal(ptu32_t result)
             pl_ecb->sync_head = NULL;
             if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT) //指定的超时未到
             {
-                __Djy_ResumeDelay(pl_ecb);       //从闹钟队列中移除事件
+                __DJY_ResumeDelay(pl_ecb);       //从闹钟队列中移除事件
             }
             pl_ecb->event_status = CN_STS_EVENT_READY;
             pl_ecb->wakeup_from = CN_STS_WAIT_EVTT_DONE;
@@ -3003,7 +3081,7 @@ void __Djy_EventFinal(ptu32_t result)
                 }
 
             }
-            __Djy_EventReady(pl_ecb_temp);
+            __DJY_EventReady(pl_ecb_temp);
         }else
         {
             if(pl_ecb->sync_counter != 0)
@@ -3019,10 +3097,10 @@ void __Djy_EventFinal(ptu32_t result)
 #if (CFG_DYNAMIC_MEM == true)
     if(g_ptEventRunning->local_memory != 0)
     {
-        __M_CleanUp(g_ptEventRunning->event_id);//强行清除事件运行中申请的内存
+        __Heap_CleanUp(g_ptEventRunning->event_id);//强行清除事件运行中申请的内存
     }
 #endif
-    __Djy_CutReadyEvent(g_ptEventRunning);
+    __DJY_CutReadyEvent(g_ptEventRunning);
     g_ptEventRunning->previous
                     = (struct EventECB*)&s_ptEventFree;//表示本控制块空闲
     g_ptEventRunning->next = s_ptEventFree;     //pg_event_free是单向非循环队列
@@ -3093,14 +3171,14 @@ void __Djy_EventFinal(ptu32_t result)
         vm_final = CN_DELETED;
     }
 
-    __Djy_SelectEventToRun();
+    __DJY_SelectEventToRun();
     if(vm_final == CN_DELETE)      //删除线程
     {
         free((void*)g_ptEventRunning->vm);    //删除线程
         pl_evtt->vpus--;
         g_ptEventRunning = g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-        g_s64RunningStartTime = DjyGetSysTime();
+        g_s64RunningStartTime = DJY_GetSysTime();
         Int_HalfEnableAsynSignal( );
         __asm_turnto_context(g_ptEventRunning->vm);
     }else if(vm_final == CN_KEEP)    //保留线程,和exit一样
@@ -3112,7 +3190,7 @@ void __Djy_EventFinal(ptu32_t result)
             pl_evtt->SchHook(EN_SWITCH_OUT);
             g_ptEventRunning = g_ptEventReady;
             g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-            g_s64RunningStartTime = DjyGetSysTime();
+            g_s64RunningStartTime = DJY_GetSysTime();
             pl_ecb->vm->stack_used = pl_ecb->vm->stack_top;//复原已用指针
             Int_HalfEnableAsynSignal( );
             __asm_reset_switch(pl_evtt->thread_routine,
@@ -3123,7 +3201,7 @@ void __Djy_EventFinal(ptu32_t result)
 //        pl_ecb = g_ptEventRunning;
         g_ptEventRunning = g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-        g_s64RunningStartTime = DjyGetSysTime();
+        g_s64RunningStartTime = DJY_GetSysTime();
         Int_HalfEnableAsynSignal( );
         __asm_turnto_context(g_ptEventRunning->vm);
     }
@@ -3134,7 +3212,7 @@ void __Djy_EventFinal(ptu32_t result)
 //参数: 无
 //返回: 唤醒原因,见头文件union event_status定义处注释.
 //-----------------------------------------------------------------------------
-u32 Djy_WakeUpFrom(void)
+u32 DJY_WakeUpFrom(void)
 {
     return g_ptEventRunning->wakeup_from;
 }
@@ -3144,7 +3222,7 @@ u32 Djy_WakeUpFrom(void)
 //参数: id,事件id; struct EventInfo *info,存储事件信息，输出参数
 //返回: true成功，false失败
 //-----------------------------------------------------------------------------
-bool_t Djy_GetEventInfo(u16 id, struct EventInfo *info)
+bool_t DJY_GetEventInfo(u16 id, struct EventInfo *info)
 {
     struct EventECB *event;
     if(id >=CFG_EVENT_LIMIT)
@@ -3167,7 +3245,7 @@ bool_t Djy_GetEventInfo(u16 id, struct EventInfo *info)
 //参数: evtt_id,事件类型ID,dest,存储空间，len,最大存储长度
 //返回: true成功，false失败
 //-----------------------------------------------------------------------------
-bool_t Djy_GetEvttName(u16 evtt_id, char *dest, u32 len)
+bool_t DJY_GetEvttName(u16 evtt_id, char *dest, u32 len)
 {
 #if CFG_OS_TINY == false
     struct EventType *pl_evtt;
@@ -3201,9 +3279,9 @@ bool_t Djy_GetEvttName(u16 evtt_id, char *dest, u32 len)
 //参数: thread_routine 处理该事件类型的函数指针.
 //返回: 无
 //-----------------------------------------------------------------------------
-void __Djy_VmEngine(ptu32_t (*thread_routine)(void))
+void __DJY_VmEngine(ptu32_t (*thread_routine)(void))
 {
-    __Djy_EventFinal( thread_routine() );
+    __DJY_EventFinal( thread_routine() );
 }
 
 //----取IDLE事件控制块---------------------------------------------------------
@@ -3211,7 +3289,7 @@ void __Djy_VmEngine(ptu32_t (*thread_routine)(void))
 //参数：无
 //返回：IDLE事件控制块指针。
 //-----------------------------------------------------------------------------
-struct EventECB *__Djy_GetIdle(void)
+struct EventECB *__DJY_GetIdle(void)
 {
     return &g_tECB_Table[0];
 }
@@ -3223,7 +3301,7 @@ struct EventECB *__Djy_GetIdle(void)
 //-----------------------------------------------------------------------------
 void CleanWakeupEvent(void);
 u64 buff[256] = {0};
-ptu32_t __Djy_Service(void)
+ptu32_t __DJY_Service(void)
 {
     u32 loop;
     u8 i = 0;
@@ -3240,14 +3318,14 @@ ptu32_t __Djy_Service(void)
         {
           for(loop = 0; loop<CFG_EVENT_LIMIT; loop++)
           {
-                __Djy_CheckStack(loop);
+                __DJY_CheckStack(loop);
           }
         }
         if(g_fnEntryLowPower != NULL)
         {
             CleanWakeupEvent();
             atom_bak = Int_LowAtomStart();
-            now_tick = __DjyGetSysTick();
+            now_tick = __DJY_GetSysTick();
             if(g_ptEventDelay != NULL)
                 int_tick = g_ptEventDelay->delay_end_tick;
             else
@@ -3274,7 +3352,7 @@ ptu32_t __Djy_Service(void)
 //参数: api_no,api号
 //返回: mp模式才用，暂且放在这里
 //-----------------------------------------------------------------------------
-void Djy_ApiStart(u32 api_no)
+void DJY_ApiStart(u32 api_no)
 {
     switch(api_no)
     {
@@ -3283,7 +3361,7 @@ void Djy_ApiStart(u32 api_no)
     return;
 }
 //空函数,未初始化的函数指针指向.
-void NULL_func(void)
+void DJY_NullFunc(void)
 {
 }
 

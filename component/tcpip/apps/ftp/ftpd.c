@@ -93,7 +93,7 @@ bool_t ftpd(char *para)
             client = pFtpClient;
             while(NULL != client)
             {
-                FtpShowClient(client);
+                FTP_ShowClient(client);
                 client = client->nxt;
             }
         }
@@ -126,7 +126,7 @@ bool_t ftpd(char *para)
 }
 
 //we use this function to get the file size
-static int __FileSize(char * file_name)
+static int __FTP_DomainFileSize(char * file_name)
 {
     struct stat s;
     int len = 0;
@@ -142,7 +142,7 @@ static int __FileSize(char * file_name)
 }
 
 //we use the curdir and the file name to get the absolute path
-static int __MkPath(tagFtpClient* client, char* path, char* new_path, size_t size)
+static int __FTP_DomainMkPath(tagFtpClient* client, char* path, char* new_path, size_t size)
 {
     int curdirlen;
     if(path[0] == '/')
@@ -169,7 +169,7 @@ static int __MkPath(tagFtpClient* client, char* path, char* new_path, size_t siz
 
 //we use this function to send the message to the ftp client
 //usually this is the response message
-static bool_t  __SndResponse(tagFtpClient *client,int responsecode,const char *msg)
+static bool_t  __FTP_DomainSndResponse(tagFtpClient *client,int responsecode,const char *msg)
 {
     bool_t ret = false;
     memset(client->buf,0,client->buflen);
@@ -188,7 +188,7 @@ static bool_t  __SndResponse(tagFtpClient *client,int responsecode,const char *m
 }
 
 //use this function to match the command, the return value is 0 match others not match
-static bool_t __MatchCmd(char* src, char* match)
+static bool_t __FTP_DomainMatchCmd(char* src, char* match)
 {
     bool_t ret = false;
     if(0 == strcmp(src,match))
@@ -199,14 +199,14 @@ static bool_t __MatchCmd(char* src, char* match)
 }
 
 //we use this function to check if the user and password is legal login
-static bool_t __CheckUser(tagFtpClient* client)
+static bool_t __FTP_DomainCheckUser(tagFtpClient* client)
 {
     return true;
 }
 
 
 //close the data channel
-static void __CloseDataChannel(tagFtpClient *client)
+static void __FTP_DomainCloseDataChannel(tagFtpClient *client)
 {
     if(client->dchannel.saccept > 0)
     {
@@ -227,12 +227,12 @@ static void __CloseDataChannel(tagFtpClient *client)
 }
 
 //this function used to deal with the user name
-static int __CmdUserDeal(tagFtpClient* client,char *user)
+static int __FTP_DomainCmdUserDeal(tagFtpClient* client,char *user)
 {
     char *paras;
     strncpy(client->user,user,CN_FTP_NAMELEN-1);
     paras = "Need Passwd";
-    __SndResponse(client,CN_NEEDPASS,paras);
+    __FTP_DomainSndResponse(client,CN_NEEDPASS,paras);
     return 0;
 }
 //this function used to deal with the user pass word
@@ -241,48 +241,48 @@ static int __CmdPassDeal(tagFtpClient* client,char *passwd)
     int result = 0;
     char *paras;
     strncpy(client->passwd,passwd,CN_FTP_NAMELEN-1);
-    if(__CheckUser(client))
+    if(__FTP_DomainCheckUser(client))
     {
         paras = "LOGIN OK";
-        __SndResponse(client,CN_LOGIN,paras);
+        __FTP_DomainSndResponse(client,CN_LOGIN,paras);
         result = 0;
     }
     else
     {
         paras = "LOGIN FAILED:user or passwd not matched";
-        __SndResponse(client,CN_LOGOUT,paras);
+        __FTP_DomainSndResponse(client,CN_LOGOUT,paras);
         result= -1;
     }
     return result;
 }
 
 //this function for the path build
-static int __CmdPwdDeal(tagFtpClient *client,char *para)
+static int __FTP_DomainCmdPwdDeal(tagFtpClient *client,char *para)
 {
     char newpath[CN_PATH_LENGTH];
 
     client->datalen = snprintf(newpath,CN_PATH_LENGTH,\
             "\"%s\" is current directory.",client->curdir);
-    __SndResponse(client,CN_PATHBUILD,newpath);
+    __FTP_DomainSndResponse(client,CN_PATHBUILD,newpath);
     return 0;
 }
 //this function for the type message
-static int __CmdTypeDeal(tagFtpClient *client,char *para)
+static int __FTP_DomainCmdTypeDeal(tagFtpClient *client,char *para)
 {
     if(strcmp(para, "I")==0)
     {
-        __SndResponse(client,CN_CMDSUCCESS,"TYPE BINARY SELECTED");
+        __FTP_DomainSndResponse(client,CN_CMDSUCCESS,"TYPE BINARY SELECTED");
         client->dchannel.type='I';
     }
     else
     {
-        __SndResponse(client,CN_CMDSUCCESS,"TYPE A SELECTED");
+        __FTP_DomainSndResponse(client,CN_CMDSUCCESS,"TYPE A SELECTED");
         client->dchannel.type='A';
     }
     return 0;
 }
 //this function is for the port message
-static int __CmdPortDeal(tagFtpClient *client,char *para)
+static int __FTP_DomainCmdPortDeal(tagFtpClient *client,char *para)
 {
     int i;
     int portcom[6];
@@ -295,12 +295,12 @@ static int __CmdPortDeal(tagFtpClient *client,char *para)
     client->dchannel.ipaddr.s_addr = inet_addr(tmpip);
     client->dchannel.port = htons(portcom[4] * 256 + portcom[5]);
     client->dchannel.ispasv = false;
-    __SndResponse(client,CN_CMDSUCCESS,"port command success");
+    __FTP_DomainSndResponse(client,CN_CMDSUCCESS,"port command success");
     return 0;
 }
 
 //this function for the type message
-static int __CmdPasvDeal(tagFtpClient *client,char *para)
+static int __FTP_DomainCmdPasvDeal(tagFtpClient *client,char *para)
 {
     bool_t  ret = false;
     int     lsn_sock;
@@ -356,7 +356,7 @@ static int __CmdPasvDeal(tagFtpClient *client,char *para)
             (hostip>>24)&0x000000FF,
             (port>>0)&0xff,
             (port>>8)&0xff);
-    __SndResponse(client,CN_ENTERPASSIVE,paras);
+    __FTP_DomainSndResponse(client,CN_ENTERPASSIVE,paras);
     client->dchannel.ispasv = true;
     client->dchannel.slisten = lsn_sock;
     client->dchannel.ipaddr.s_addr =hostip;
@@ -365,7 +365,7 @@ static int __CmdPasvDeal(tagFtpClient *client,char *para)
 }
 
 //this function used to deal with list message
-static int __CmdListDeal(tagFtpClient* client,char *details)
+static int __FTP_DomainCmdListDeal(tagFtpClient* client,char *details)
 {
     DIR* dirp;
     struct dirent* entry;
@@ -373,27 +373,27 @@ static int __CmdListDeal(tagFtpClient* client,char *details)
     int sock;
     if(client->dchannel.ispasv== false) //PORT MODE
     {
-        sock = FtpConnect(&client->dchannel.ipaddr,client->dchannel.port);
+        sock = FTP_Connect(&client->dchannel.ipaddr,client->dchannel.port);
         if(sock == -1)
         {
-            __SndResponse(client,CN_OPENDATACONNECTIONFAILED,"open the data connection failed");
+            __FTP_DomainSndResponse(client,CN_OPENDATACONNECTIONFAILED,"open the data connection failed");
         }
         else
         {
             client->dchannel.sconnect = sock;
-            __SndResponse(client,CN_OPENCONNECTION,"open ASCII mode data connection for directory list");
+            __FTP_DomainSndResponse(client,CN_OPENCONNECTION,"open ASCII mode data connection for directory list");
         }
     }
     else
     {
-        sock = FtpAccept(client->dchannel.slisten,&client->dchannel.ipaddr,&client->dchannel.port);
+        sock = FTP_Accept(client->dchannel.slisten,&client->dchannel.ipaddr,&client->dchannel.port);
         if(sock == -1)
         {
-            __SndResponse(client,CN_OPENDATACONNECTIONFAILED,"open the data connection failed");
+            __FTP_DomainSndResponse(client,CN_OPENDATACONNECTIONFAILED,"open the data connection failed");
         }
         else
         {
-            __SndResponse(client,CN_OPENCONNECTION,"open ASCII mode data connection for directory list");
+            __FTP_DomainSndResponse(client,CN_OPENCONNECTION,"open ASCII mode data connection for directory list");
             client->dchannel.saccept = sock;
         }
     }
@@ -402,7 +402,7 @@ static int __CmdListDeal(tagFtpClient* client,char *details)
         dirp = opendir(client->curdir);
         if (dirp == NULL)
         {
-            __SndResponse(client,CN_LOCALERR,"open dir err");
+            __FTP_DomainSndResponse(client,CN_LOCALERR,"open dir err");
         }
         else
         {
@@ -413,7 +413,7 @@ static int __CmdListDeal(tagFtpClient* client,char *details)
                     break;
                 if(details)
                 {
-                    __MkPath(client,entry->d_name,(char *)client->buf,client->buflen);
+                    __FTP_DomainMkPath(client,entry->d_name,(char *)client->buf,client->buflen);
                     if (stat((const char *)client->buf, &s) == 0)
                     {
                         if (s.st_mode & S_IFDIR)
@@ -440,13 +440,13 @@ static int __CmdListDeal(tagFtpClient* client,char *details)
             }
             closedir(dirp);
         }
-        __SndResponse(client,CN_CLOSEDATACONNECTION,"CLOSE DATA CONNECTION");
+        __FTP_DomainSndResponse(client,CN_CLOSEDATACONNECTION,"CLOSE DATA CONNECTION");
     }
-    __CloseDataChannel(client);
+    __FTP_DomainCloseDataChannel(client);
     return 0;
 }
 //this function used for the retr message
-static int __CmdRetrDeal(tagFtpClient *client,char *para)
+static int __FTP_DomainCmdRetrDeal(tagFtpClient *client,char *para)
 {
     char file_name[CN_PATH_LENGTH];
     int sock;
@@ -460,36 +460,36 @@ static int __CmdRetrDeal(tagFtpClient *client,char *para)
     u32  time_fs = 0;
     u32  file_len = 0;
 
-    __MkPath(client, para, file_name, CN_PATH_LENGTH);
+    __FTP_DomainMkPath(client, para, file_name, CN_PATH_LENGTH);
     fd = open(file_name, O_RDONLY, 0);
     if (fd < 0)
     {
-        __SndResponse(client,CN_FILEINVALID,"file unavailable");
+        __FTP_DomainSndResponse(client,CN_FILEINVALID,"file unavailable");
         return 0;
     }
     if(client->dchannel.ispasv== false) //PORT MODE
     {
-        sock = FtpConnect(&client->dchannel.ipaddr,client->dchannel.port);
+        sock = FTP_Connect(&client->dchannel.ipaddr,client->dchannel.port);
         if(sock == -1)
         {
-            __SndResponse(client,CN_OPENDATACONNECTIONFAILED,"open the data connection failed");
+            __FTP_DomainSndResponse(client,CN_OPENDATACONNECTIONFAILED,"open the data connection failed");
         }
         else
         {
             client->dchannel.sconnect = sock;
-            __SndResponse(client,CN_OPENCONNECTION,"open ASCII mode data connection for directory list");
+            __FTP_DomainSndResponse(client,CN_OPENCONNECTION,"open ASCII mode data connection for directory list");
         }
     }
     else
     {
-        sock = FtpAccept(client->dchannel.slisten,&client->dchannel.ipaddr,&client->dchannel.port);
+        sock = FTP_Accept(client->dchannel.slisten,&client->dchannel.ipaddr,&client->dchannel.port);
         if(sock == -1)
         {
-            __SndResponse(client,CN_OPENDATACONNECTIONFAILED,"open the data connection failed");
+            __FTP_DomainSndResponse(client,CN_OPENDATACONNECTIONFAILED,"open the data connection failed");
         }
         else
         {
-            __SndResponse(client,CN_OPENCONNECTION,"open ASCII mode data connection for directory list");
+            __FTP_DomainSndResponse(client,CN_OPENCONNECTION,"open ASCII mode data connection for directory list");
             client->dchannel.saccept = sock;
         }
     }
@@ -498,9 +498,9 @@ static int __CmdRetrDeal(tagFtpClient *client,char *para)
     {
         while(1)
         {
-            time1 = DjyGetSysTime();
+            time1 = DJY_GetSysTime();
             client->datalen = read(fd, client->buf, client->buflen);
-            time2 = DjyGetSysTime();
+            time2 = DJY_GetSysTime();
 
             if(client->datalen > 0)
             {
@@ -508,7 +508,7 @@ static int __CmdRetrDeal(tagFtpClient *client,char *para)
                 {
                     break; //maybe any send err happend
                 }
-                time3 = DjyGetSysTime();
+                time3 = DJY_GetSysTime();
                 time_fs += (u32)(time2-time1);
                 time_net+=(u32)(time3-time2);
                 file_len += client->datalen;
@@ -519,17 +519,17 @@ static int __CmdRetrDeal(tagFtpClient *client,char *para)
             }
         }
         time_all = time_net + time_fs;
-        __SndResponse(client,CN_CLOSEDATACONNECTION,"close data connection");
+        __FTP_DomainSndResponse(client,CN_CLOSEDATACONNECTION,"close data connection");
         info_printf("ftpd","DOWNLOAD:%s:size:%d nettime:%d(ms) fstime:%d(ms) totaltime:%d(ms)",\
                 file_name,file_len,time_net/1000,time_fs/1000,time_all/1000);
     }
     close(fd);
-    __CloseDataChannel(client);
+    __FTP_DomainCloseDataChannel(client);
     return 0;
 }
 
 //this function used for the stor message
-static int __CmdStorDeal(tagFtpClient *client,char *para)
+static int __FTP_DomainCmdStorDeal(tagFtpClient *client,char *para)
 {
     char file_name[CN_PATH_LENGTH];
     int sock;
@@ -544,36 +544,36 @@ static int __CmdStorDeal(tagFtpClient *client,char *para)
     u32  time_fs = 0;
     u32  file_len = 0;
 
-    __MkPath(client, para, file_name, CN_PATH_LENGTH);
+    __FTP_DomainMkPath(client, para, file_name, CN_PATH_LENGTH);
     fd = open(file_name, O_WRONLY | O_CREAT | O_TRUNC, 0);
     if (fd < 0)
     {
-        __SndResponse(client,CN_FILEINVALID,"file unavailable");
+        __FTP_DomainSndResponse(client,CN_FILEINVALID,"file unavailable");
         return 0;
     }
     if(client->dchannel.ispasv== false) //PORT MODE
     {
-        sock = FtpConnect(&client->dchannel.ipaddr,client->dchannel.port);
+        sock = FTP_Connect(&client->dchannel.ipaddr,client->dchannel.port);
         if(sock == -1)
         {
-            __SndResponse(client,CN_OPENDATACONNECTIONFAILED,"open the data connection failed");
+            __FTP_DomainSndResponse(client,CN_OPENDATACONNECTIONFAILED,"open the data connection failed");
         }
         else
         {
             client->dchannel.sconnect = sock;
-            __SndResponse(client,CN_OPENCONNECTION,"open ASCII mode data connection for directory list");
+            __FTP_DomainSndResponse(client,CN_OPENCONNECTION,"open ASCII mode data connection for directory list");
         }
     }
     else
     {
-        sock = FtpAccept(client->dchannel.slisten,&client->dchannel.ipaddr,&client->dchannel.port);
+        sock = FTP_Accept(client->dchannel.slisten,&client->dchannel.ipaddr,&client->dchannel.port);
         if(sock == -1)
         {
-            __SndResponse(client,CN_OPENDATACONNECTIONFAILED,"open the data connection failed");
+            __FTP_DomainSndResponse(client,CN_OPENDATACONNECTIONFAILED,"open the data connection failed");
         }
         else
         {
-            __SndResponse(client,CN_OPENCONNECTION,"open ASCII mode data connection for directory list");
+            __FTP_DomainSndResponse(client,CN_OPENCONNECTION,"open ASCII mode data connection for directory list");
             client->dchannel.saccept = sock;
         }
     }
@@ -582,9 +582,9 @@ static int __CmdStorDeal(tagFtpClient *client,char *para)
     {
         while(1)
         {
-            time1 = DjyGetSysTime();
+            time1 = DJY_GetSysTime();
             client->datalen=recv(sock, client->buf, client->buflen, 0);
-            time2 = DjyGetSysTime();
+            time2 = DJY_GetSysTime();
             if(client->datalen > 0)
             {
                 wlen = write(fd, client->buf, client->datalen);
@@ -603,31 +603,31 @@ static int __CmdStorDeal(tagFtpClient *client,char *para)
                 //this is closed
                 break;
             }
-            time3 = DjyGetSysTime();
+            time3 = DJY_GetSysTime();
             time_net += (u32)(time2-time1);
             time_fs +=(u32)(time3-time2);
             file_len += client->datalen;
         }
         time_all = time_net + time_fs;
-        __SndResponse(client,CN_CLOSEDATACONNECTION,"close data connection");
+        __FTP_DomainSndResponse(client,CN_CLOSEDATACONNECTION,"close data connection");
         info_printf("ftpd","UPLOAD:%s:size:%d nettime:%d(ms) fstime:%d(ms) totaltime:%d(ms)",\
                 file_name,file_len,time_net/1000,time_fs/1000,time_all/1000);
     }
     close(fd);
-    __CloseDataChannel(client);
+    __FTP_DomainCloseDataChannel(client);
     return 0;
 }
 
 
 //use this function to send the file size
-static int __CmdSizeDeal(tagFtpClient* client,char *para)
+static int __FTP_DomainCmdSizeDeal(tagFtpClient* client,char *para)
 {
     char file_name[CN_PATH_LENGTH];
     int file_size;
     char paras[32];
 
-    __MkPath(client, para, file_name, CN_PATH_LENGTH);
-    file_size = __FileSize((char *)file_name);
+    __FTP_DomainMkPath(client, para, file_name, CN_PATH_LENGTH);
+    file_size = __FTP_DomainFileSize((char *)file_name);
     if( file_size == -1)
     {
         snprintf(paras,32,"%s","file invalid");
@@ -636,24 +636,24 @@ static int __CmdSizeDeal(tagFtpClient* client,char *para)
     {
         snprintf(paras,32,"%d",file_size);
     }
-    __SndResponse(client,CN_FILENOTVALID,paras);
+    __FTP_DomainSndResponse(client,CN_FILENOTVALID,paras);
     return 0;
 }
 
 //use this function cwd
-static int __CmdCwdDeal(tagFtpClient* client,char *para)
+static int __FTP_DomainCmdCwdDeal(tagFtpClient* client,char *para)
 {
     char file_name[CN_PATH_LENGTH];
     char paras[CN_PATH_LENGTH];
-    __MkPath(client, para, file_name, CN_PATH_LENGTH);
+    __FTP_DomainMkPath(client, para, file_name, CN_PATH_LENGTH);
     strncpy(client->curdir,file_name,CN_PATH_LENGTH);
     snprintf(paras,CN_PATH_LENGTH,"Changed to directory \"%s\"",client->curdir);
-    __SndResponse(client,CN_FILECOMPLETE,paras);
+    __FTP_DomainSndResponse(client,CN_FILECOMPLETE,paras);
     return 0;
 }
 
 //use this function cdup
-static int __CmdCdupDeal(tagFtpClient* client,char *para)
+static int __FTP_DomainCmdCdupDeal(tagFtpClient* client,char *para)
 {
     int i = 0;
     char paras[CN_PATH_LENGTH];
@@ -674,73 +674,73 @@ static int __CmdCdupDeal(tagFtpClient* client,char *para)
         }
     }
     snprintf(paras,CN_PATH_LENGTH,"Changed to directory \"%s\"",client->curdir);
-    __SndResponse(client,CN_PATHBUILD,paras);
+    __FTP_DomainSndResponse(client,CN_PATHBUILD,paras);
     return 0;
 }
 //use this function rest
-static int __CmdRestDeal(tagFtpClient* client,char *para)
+static int __FTP_DomainCmdRestDeal(tagFtpClient* client,char *para)
 {
-    __SndResponse(client,CN_CMDFAILED,"rest cmd execute failed");
+    __FTP_DomainSndResponse(client,CN_CMDFAILED,"rest cmd execute failed");
     return 0;
 }
 #pragma GCC diagnostic pop
 
 //use this function mkd
-static int __CmdMkdDeal(tagFtpClient* client,char *para)
+static int __FTP_DomainCmdMkdDeal(tagFtpClient* client,char *para)
 {
     char file_name[CN_PATH_LENGTH];
 
-    __MkPath(client, para, file_name, CN_PATH_LENGTH);
+    __FTP_DomainMkPath(client, para, file_name, CN_PATH_LENGTH);
     if(mkdir((char *)file_name, 0) == -1)
     {
-        __SndResponse(client,CN_FILEINVALID,"Mkd fail");
+        __FTP_DomainSndResponse(client,CN_FILEINVALID,"Mkd fail");
 
     }
     else
     {
-        __SndResponse(client,CN_PATHBUILD,"Mkd success");
+        __FTP_DomainSndResponse(client,CN_PATHBUILD,"Mkd success");
     }
 
     return 0;
 }
 //use this function delete
-static int __CmdDeleDeal(tagFtpClient* client,char *para)
+static int __FTP_DomainCmdDeleDeal(tagFtpClient* client,char *para)
 {
     char file_name[CN_PATH_LENGTH];
 
-    __MkPath(client, para, file_name, CN_PATH_LENGTH);
+    __FTP_DomainMkPath(client, para, file_name, CN_PATH_LENGTH);
     if(unlink((char *)file_name) == -1)
     {
-        __SndResponse(client,CN_FILEINVALID,"Delete fail");
+        __FTP_DomainSndResponse(client,CN_FILEINVALID,"Delete fail");
     }
     else
     {
-        __SndResponse(client,CN_FILECOMPLETE,"Delete success");
+        __FTP_DomainSndResponse(client,CN_FILECOMPLETE,"Delete success");
     }
 
     return 0;
 }
 
 //use this function rmd
-static int __CmdRmdDeal(tagFtpClient* client,char *para)
+static int __FTP_DomainCmdRmdDeal(tagFtpClient* client,char *para)
 {
     char file_name[CN_PATH_LENGTH];
 
-    __MkPath(client, para, file_name, CN_PATH_LENGTH);
+    __FTP_DomainMkPath(client, para, file_name, CN_PATH_LENGTH);
     if(unlink((char *)file_name) == -1)
     {
-        __SndResponse(client,550,"Rmd fail");
+        __FTP_DomainSndResponse(client,550,"Rmd fail");
     }
     else
     {
-        __SndResponse(client,257,"Rmd success");
+        __FTP_DomainSndResponse(client,257,"Rmd success");
     }
 
     return 0;
 }
 
 
-static int __msgdeal(tagFtpClient* client, char *buf)
+static int __FTP_DomainMsgDeal(tagFtpClient* client, char *buf)
 {
     int  result;
     char *parameter_ptr, *ptr;
@@ -760,106 +760,106 @@ static int __msgdeal(tagFtpClient* client, char *buf)
     }
     result = 0;
     // debug:
-    if(__MatchCmd(buf, "USER"))
+    if(__FTP_DomainMatchCmd(buf, "USER"))
     {
         // login correct
-        result = __CmdUserDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdUserDeal(client,parameter_ptr);
     }
-    else if(__MatchCmd(buf, "PASS"))
+    else if(__FTP_DomainMatchCmd(buf, "PASS"))
     {
         result = __CmdPassDeal(client,parameter_ptr);
     }
-    else if(__MatchCmd(buf, "LIST"))
+    else if(__FTP_DomainMatchCmd(buf, "LIST"))
     {
-        result = __CmdListDeal(client,"detail");
+        result = __FTP_DomainCmdListDeal(client,"detail");
     }
-    else if(__MatchCmd(buf, "NLST"))
+    else if(__FTP_DomainMatchCmd(buf, "NLST"))
     {
-        result = __CmdListDeal(client,"simple");
+        result = __FTP_DomainCmdListDeal(client,"simple");
     }
-    else if(__MatchCmd(buf, "PWD")|| __MatchCmd(buf, "XPWD"))
+    else if(__FTP_DomainMatchCmd(buf, "PWD")|| __FTP_DomainMatchCmd(buf, "XPWD"))
     {
-        result = __CmdPwdDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdPwdDeal(client,parameter_ptr);
     }
-    else if(__MatchCmd(buf, "TYPE"))
+    else if(__FTP_DomainMatchCmd(buf, "TYPE"))
     {
-        result = __CmdTypeDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdTypeDeal(client,parameter_ptr);
     }
-    else if(__MatchCmd(buf, "PASV"))
+    else if(__FTP_DomainMatchCmd(buf, "PASV"))
     {
-        result = __CmdPasvDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdPasvDeal(client,parameter_ptr);
     }
-    else if(__MatchCmd(buf, "PORT"))
+    else if(__FTP_DomainMatchCmd(buf, "PORT"))
     {
-        result = __CmdPortDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdPortDeal(client,parameter_ptr);
     }
-    else if (__MatchCmd(buf, "RETR"))
+    else if (__FTP_DomainMatchCmd(buf, "RETR"))
     {
-        result = __CmdRetrDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdRetrDeal(client,parameter_ptr);
     }
-    else if (__MatchCmd(buf, "STOR"))
+    else if (__FTP_DomainMatchCmd(buf, "STOR"))
     {
-        result = __CmdStorDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdStorDeal(client,parameter_ptr);
     }
-    else if(__MatchCmd(buf, "SIZE"))
+    else if(__FTP_DomainMatchCmd(buf, "SIZE"))
     {
-        result = __CmdSizeDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdSizeDeal(client,parameter_ptr);
     }
-    else if(__MatchCmd(buf, "SYST"))
+    else if(__FTP_DomainMatchCmd(buf, "SYST"))
     {
-        __SndResponse(client,CN_SYSTYPE,"DJYOS");
+        __FTP_DomainSndResponse(client,CN_SYSTYPE,"DJYOS");
         result = 0;
     }
-    else if(__MatchCmd(buf, "CWD"))
+    else if(__FTP_DomainMatchCmd(buf, "CWD"))
     {
-        result = __CmdCwdDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdCwdDeal(client,parameter_ptr);
     }
-    else if(__MatchCmd(buf, "CDUP"))
+    else if(__FTP_DomainMatchCmd(buf, "CDUP"))
     {
-        result = __CmdCdupDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdCdupDeal(client,parameter_ptr);
     }
-    else if(__MatchCmd(buf, "REST"))
+    else if(__FTP_DomainMatchCmd(buf, "REST"))
     {
-        result = __CmdRestDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdRestDeal(client,parameter_ptr);
     }
-    else if(__MatchCmd(buf, "MKD"))
+    else if(__FTP_DomainMatchCmd(buf, "MKD"))
     {
-        result = __CmdMkdDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdMkdDeal(client,parameter_ptr);
     }
-    else if(__MatchCmd(buf, "DELE"))
+    else if(__FTP_DomainMatchCmd(buf, "DELE"))
     {
-        result = __CmdDeleDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdDeleDeal(client,parameter_ptr);
     }
-    else if(__MatchCmd(buf, "RMD"))
+    else if(__FTP_DomainMatchCmd(buf, "RMD"))
     {
-        result = __CmdRmdDeal(client,parameter_ptr);
+        result = __FTP_DomainCmdRmdDeal(client,parameter_ptr);
     }
 
-    else if(__MatchCmd(buf, "QUIT"))
+    else if(__FTP_DomainMatchCmd(buf, "QUIT"))
     {
-        __SndResponse(client,CN_LOGOUT,"QUIT CMD,bye");
+        __FTP_DomainSndResponse(client,CN_LOGOUT,"QUIT CMD,bye");
         result = -1;
     }
     else
     {
-        __SndResponse(client,CN_CMDINVALID,"this cmd is not supported yet");
+        __FTP_DomainSndResponse(client,CN_CMDINVALID,"this cmd is not supported yet");
         result = 0;
     }
     return result;
 }
 
 //use this function to deal the connection
-static bool_t __ClientEngine(tagFtpClient *client)
+static bool_t __FTP_DomainClientEngine(tagFtpClient *client)
 {
     time_t indextime;
     //ok, now use  the client processor to deal it
     //first we send the welcome message
-    __SndResponse(client,CN_SERVERREADY,CN_FTP_WELCOMMSG);
+    __FTP_DomainSndResponse(client,CN_SERVERREADY,CN_FTP_WELCOMMSG);
     //then do the while loop to do the interactive
     while(1)
     {
         //receive messages from the command sock
-        client->datalen = FtpRcvLine(client->cchannel.s,client->buf,client->buflen);
+        client->datalen = FTP_RcvLine(client->cchannel.s,client->buf,client->buflen);
         if(client->datalen > 0)
         {
             if(gFtpdDebugSwitch)
@@ -867,7 +867,7 @@ static bool_t __ClientEngine(tagFtpClient *client)
                 indextime = time(NULL);
                 info_printf("ftpd","%s[%s]R:%s",CN_FTPD_INDEX,ctime(&indextime),(char *)client->buf);
             }
-            if(__msgdeal(client,(char *)client->buf)==-1)
+            if(__FTP_DomainMsgDeal(client,(char *)client->buf)==-1)
             {
                 break;
             }
@@ -882,13 +882,13 @@ static bool_t __ClientEngine(tagFtpClient *client)
         }
     }
     //now its time to exit
-    __CloseDataChannel(client);
+    __FTP_DomainCloseDataChannel(client);
     closesocket(client->cchannel.s);
     return true;
 }
 
 //this is the ftp server main,always accept here
-static ptu32_t ServerMain()
+static ptu32_t __FTP_DomainServerMain()
 {
     int sockserver;
     struct sockaddr_in local;
@@ -929,7 +929,7 @@ static ptu32_t ServerMain()
     pFtpClient = client;
     while(1) //always do the loop
     {
-        client->cchannel.s = FtpAccept(sockserver, &client->cchannel.ipaddr,
+        client->cchannel.s = FTP_Accept(sockserver, &client->cchannel.ipaddr,
                                         &client->cchannel.port);
         if(client->cchannel.s >0)
         {
@@ -945,7 +945,7 @@ static ptu32_t ServerMain()
             info_printf("ftpd","NewClient:IP:%s PORT:%d Time:%s",
                         inet_ntoa(client->cchannel.ipaddr),
                         ntohs(client->cchannel.port),ctime(&timeindex));
-            __ClientEngine(client);
+            __FTP_DomainClientEngine(client);
         }
     }
     timeindex = time(NULL);
@@ -961,7 +961,7 @@ SERVER_EXIT:
 bool_t ServiceFtpdInit(void)
 {
     bool_t ret;
-    ret = taskcreate("FTPD",0x1000,CN_PRIO_RRS,ServerMain,NULL);
+    ret = taskcreate("FTPD",0x1000,CN_PRIO_RRS,__FTP_DomainServerMain,NULL);
     if (ret == false) {
         error_printf("ftpd","FTPD:TASK CREATE ERR");
     }

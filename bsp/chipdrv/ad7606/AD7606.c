@@ -171,14 +171,14 @@ static bool_t _AD7606_ConvFinished(void)
     u32 timeout = 500;
     u32 data;
 
-    Djy_DelayUs(4);         //过采样的最大采样时间是315uS
+    DJY_DelayUs(4);         //过采样的最大采样时间是315uS
 
     while(1)
     {
         data = GPIO_DataGet(ADBUSY_PORT);
         if( (!(data & (1 << ADBUSY_PIN))) || (timeout == 0) )
             break;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
         timeout--;
     }
     if(timeout)

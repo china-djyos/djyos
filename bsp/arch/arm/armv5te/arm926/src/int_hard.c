@@ -66,8 +66,8 @@ extern void (* engine_irq)(ufast_t ufl_line);
 
 extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
-extern void __Djy_ScheduleAsynSignal(void);
-void __Djy_EventReady(struct EventECB *event_ready);
+extern void __DJY_ScheduleAsynSignal(void);
+void __DJY_EventReady(struct EventECB *event_ready);
 
 //定义中断向量表段，一般而言，异常向量表或异常向量跳转表会和该段一同放在首地址
 u32 u32g_vect_table[CN_INT_LINE_LAST+1] __attribute__((section(".table.vectors")));
@@ -593,12 +593,12 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
     if(event != NULL)   //看同步指针中有没有事件(注：单个事件，不是队列)
     {
         event->event_result = isr_result;
-        __Djy_EventReady(event);   //把该事件放到ready队列
+        __DJY_EventReady(event);   //把该事件放到ready队列
         ptIntLine->sync_event = NULL;   //解除同步
     }
     if(ptIntLine->my_evtt_id != CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(ptIntLine->my_evtt_id,
+        DJY_EventPop(ptIntLine->my_evtt_id,
                         NULL,0,(ptu32_t)isr_result, (ptu32_t)ufl_line,0);
     }
     tg_int_global.nest_asyn_signal--;
@@ -607,7 +607,7 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
 //        tg_int_global.en_asyn_signal = true;
         tg_int_global.en_asyn_signal_counter = 0; //无独立异步信号开关的，需这句
         if(g_ptEventReady != g_ptEventRunning)
-            __Djy_ScheduleAsynSignal();       //执行中断内调度
+            __DJY_ScheduleAsynSignal();       //执行中断内调度
         g_bScheduleEnable = true;
     }
     Int_CutTrunk();

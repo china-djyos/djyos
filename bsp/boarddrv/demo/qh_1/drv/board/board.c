@@ -100,7 +100,7 @@
 void __lcd_reset(void)
 {
     GPIO_SettoLow(CN_GPIO_G,0x100);
-    Djy_DelayUs(5000);
+    DJY_DelayUs(5000);
     GPIO_SettoHigh(CN_GPIO_G,0x100);
 }
 

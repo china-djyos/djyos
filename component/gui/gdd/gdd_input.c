@@ -121,7 +121,7 @@ bool_t GDD_DeleteInputDev(const char *InputDevName)
 //-----------------------------------------------------------------------------
 bool_t GDD_InputDevInit(void)
 {
-    GDD_StartTimer(GDD_CreateTimer(GetDesktopWindow( ), CN_HMIINPUT_TIMER_ID, 30));
+    GDD_StartTimer(GDD_CreateTimer(GDD_GetDesktopWindow( ), CN_HMIINPUT_TIMER_ID, 30));
 
     sg_ptGddMsgQ = HmiIn_CreatInputMsgQ(20);
 
@@ -158,15 +158,15 @@ void GDD_HmiInput(void)
             __GDD_Lock();
             //TouchDownËùÔÚ´°¿Ú.
             if(TouchMsg->display != NULL)
-                hwnd = GetWindowFromPoint(TouchMsg->display->desktop, &pt);
+                hwnd = GDD_GetWindowFromPoint(TouchMsg->display->desktop, &pt);
             else
-                hwnd = GetWindowFromPoint(GetDesktopWindow()->pGkWin, &pt);
-            //MoveWindow(sg_pMouseHwnd, pt.x-4, pt.y-4);
-//          UpdateDisplay(CN_TIMEOUT_FOREVER);
+                hwnd = GDD_GetWindowFromPoint(GDD_GetDesktopWindow()->pGkWin, &pt);
+            //GDD_MoveWindow(sg_pMouseHwnd, pt.x-4, pt.y-4);
+//          GDD_UpdateDisplay(CN_TIMEOUT_FOREVER);
             if(hwnd != NULL)
             {
-                GetClientRectToScreen(hwnd,&rc);
-                if(PtInRect(&rc, &pt))
+                GDD_GetClientRectToScreen(hwnd,&rc);
+                if(GDD_PtInRect(&rc, &pt))
                     NC = false;
                 else
                     NC = true;
@@ -196,7 +196,7 @@ void GDD_HmiInput(void)
                     else
                         Touch_Msg = MSG_TOUCH_UP;
                 }
-                PostMessage(hwnd, Touch_Msg,
+                GDD_PostMessage(hwnd, Touch_Msg,
                             ((u16)(TouchMsg->MoveY) << 16) | (u16)(TouchMsg->MoveX),
                             ((u16)(pt.y) << 16) | (u16)(pt.x));
 
@@ -210,7 +210,7 @@ void GDD_HmiInput(void)
             u8 val,event;
             u32 KeyTime;
 
-            hwnd = GetFocusWindow();
+            hwnd = GDD_GetFocusWindow();
             if(NULL != hwnd)
             {
                 key  = msg.input_data.key_board.key_value;
@@ -221,12 +221,12 @@ void GDD_HmiInput(void)
 
                 if(event==0x00)
                 {
-                    PostMessage(hwnd, MSG_KEY_DOWN, val, KeyTime);
+                    GDD_PostMessage(hwnd, MSG_KEY_DOWN, val, KeyTime);
                 }
 
                 if(event==0xF0)
                 {
-                    PostMessage(hwnd, MSG_KEY_UP, val, KeyTime);
+                    GDD_PostMessage(hwnd, MSG_KEY_UP, val, KeyTime);
                 }
             }
         }

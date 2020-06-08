@@ -808,7 +808,7 @@ ptu32_t LCD_ModuleInit(ptu32_t para)
     tg_lcd_display.draw.GetPixelFromScreen = __lcd_get_pixel_screen;
     tg_lcd_display.draw.GetRectFromScreen = __lcd_get_rect_screen;
 
-    tg_lcd_display.DisplayHeap = (struct HeapCB *)M_FindHeap("sys");
+    tg_lcd_display.DisplayHeap = (struct HeapCB *)Heap_FindHeap("sys");
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
     GK_InstallDisplay(&tg_lcd_display,(char*)para);

@@ -135,7 +135,7 @@ int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
         {
         	if(waittime > 0)//do the delay
         	{
-        		Djy_EventDelay(1*mS);
+        		DJY_EventDelay(1*mS);
         		waittime--;
         	}
         	else
@@ -145,7 +145,7 @@ int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
         }
         else
         {
-            Djy_EventDelay(1*mS);
+            DJY_EventDelay(1*mS);
         }
 
 	}

@@ -123,17 +123,17 @@ struct FsCore
 };
 
 
-s32 regfs(struct filesystem *type);
-bool_t GetEntirePath(struct Object *BaseObject, char * PathTail, char * EntirePath,
+s32 File_RegisterFs(struct filesystem *type);
+bool_t File_GetEntirePath(struct Object *BaseObject, char * PathTail, char * EntirePath,
                      u32 BufSize);
-bool_t obj_isMount(struct Object *obj);
-s32 mountfs(const char *source, const char *target, const char *type, u32 flags, void *data);
-s32 unmountfs(const char *target, const char *type);
-void *corefs(struct Object *ob);
-s32 Format(const char *MountPath);
-s32 __mount_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
+bool_t File_ObjIsMount(struct Object *obj);
+s32 File_Mount(const char *source, const char *target, const char *type, u32 flags, void *data);
+s32 File_UnMount(const char *target, const char *type);
+void *File_Core(struct Object *ob);
+s32 File_Format(const char *MountPath);
+s32 __File_MountOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                        ptu32_t OpsArgs2, ptu32_t OpsArgs3);
-void FsBeMedia(const char *source, const char *target);
+void File_BeMedia(const char *source, const char *target);
 #ifdef __cplusplus
 }
 #endif

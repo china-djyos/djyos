@@ -1042,7 +1042,7 @@ static bool_t GmacSnd(ptu32_t handle,struct NetPkg * pkg,u32 netdevtask)
             pSndBD = q->sndbdtab + curbd;
             while(pSndBD->status.bm.bUsed == 0)
             {
-                Djy_DelayUs(1);
+                DJY_DelayUs(1);
                 delay++;
                 if(delay >= CN_MAC_MAXDELAY)
                 {
@@ -1096,7 +1096,7 @@ static ptu32_t __GmacRcvTask(void)
     tagMacDriver      *pDrive;
     pDrive = &gMacDriver;
 
-    Djy_GetEventPara(&handle,NULL);
+    DJY_GetEventPara(&handle,NULL);
     while(1)
     {
         Lock_SempPend(pDrive->rcvsync,pDrive->loopcycle);
@@ -1121,7 +1121,7 @@ static ptu32_t __GmacRcvTask(void)
                 }
                 else
                 {
-                    NetDevPush(handle,pkg);
+                    Link_NetDevPush(handle,pkg);
                 }
                 PkgTryFreePart(pkg);
                 pDrive->debuginfo.rcvTimes++;
@@ -1145,18 +1145,18 @@ static bool_t __CreateRcvTask(struct NetDev * handle)
     u16 evttID;
     u16 eventID;
 
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_REAL, 0, 1,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_REAL, 0, 1,
         (ptu32_t (*)(void))__GmacRcvTask,NULL, 0x800, "GMACRcvTask");
     if (evttID != CN_EVTT_ID_INVALID)
     {
-        eventID=Djy_EventPop(evttID, NULL,  0,(ptu32_t)handle, 0, 0);
+        eventID=DJY_EventPop(evttID, NULL,  0,(ptu32_t)handle, 0, 0);
         if(eventID != CN_EVENT_ID_INVALID)
         {
             result = true;
         }
         else
         {
-            Djy_EvttUnregist(evttID);
+            DJY_EvttUnregist(evttID);
         }
     }
     return result;
@@ -1182,7 +1182,7 @@ bool_t mac(char *param)
     tagMacDriver      *pDrive;
     pDrive = &gMacDriver;
 
-    time = DjyGetSysTime();
+    time = DJY_GetSysTime();
     timeS = time/(1000*1000);
     if(timeS == 0)
     {
@@ -1276,7 +1276,7 @@ bool_t macrcvbd(char *param)
         if(NULL != mem)
         {
             debug_printf("gmac","Rcvbd:total:%08d CurID:%08d Time:0x%08llx\n\r",\
-                    que->rcvbdlen,que->rcvbdcur,DjyGetSysTime());
+                    que->rcvbdlen,que->rcvbdcur,DJY_GetSysTime());
             debug_printf("gmac","%-10s%-10s%-10s%-10s%-10s%-10s\n\r",\
                     "RcvBdNum","Addr(hex)","BAddr(hex)","State","Last","BValue");
             for(i =0; i < que->rcvbdlen;i++)
@@ -1327,7 +1327,7 @@ bool_t macsndbd(char *param)
         {
             pSndBD = (tagSndBD *)mem;
             debug_printf("gmac","Sndbd:total:%08d CurID:%08d  LastID:%08d Time:0x%08x\n\r",\
-                    que->sndbdlen,que->sndbdcur,que->sndbdlast,DjyGetSysTime());
+                    que->sndbdlen,que->sndbdcur,que->sndbdlast,DJY_GetSysTime());
             debug_printf("gmac","%-10s%-10s%-10s%-10s%-10s%-10s%-10s%-10s%-10s%-10s%-10s\n\r",\
                     "SndBdNum","State","Addr(hex)","BAddr(hex)","Len(hex)","NoCrc","Exhausted","Error","UnderRun","Last","Wrap");
             for(i =0; i < que->sndbdlen;i++)

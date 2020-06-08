@@ -350,11 +350,11 @@ struct EventType
 extern struct EventECB  *g_ptEventReady;
 extern struct EventECB  *g_ptEventRunning;   //当前正在执行的事件
 extern bool_t g_bScheduleEnable;
-void Djy_ScheduleIsr(u32 inc_ticks);
-void Djy_SetRRS_Slice(u32 slices);
-u32 Djy_GetRRS_Slice(void);
-void Djy_CreateProcessVm(void);
-u16 Djy_EvttRegist(enum enEventRelation relation,
+void DJY_ScheduleIsr(u32 inc_ticks);
+void DJY_SetRRS_Slice(u32 slices);
+u32 DJY_GetRRS_Slice(void);
+void DJY_CreateProcessVm(void);
+u16 DJY_EvttRegist(enum enEventRelation relation,
                         ufast_t default_prio,
                         u16 vpu_res,
                         u16 vpus_limit,
@@ -363,40 +363,42 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
                         void *Stack,
                         u32 stack_size,
                         char *evtt_name);
-u32 Djy_GetRunMode(void);
-u16 Djy_GetEvttId(char *evtt_name);
-bool_t Djy_EvttUnregist(u16 evtt_id);
-bool_t Djy_QuerySch(void);
-bool_t Djy_IsMultiEventStarted(void);
-bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio);
-bool_t Djy_RaiseTempPrio(u16 event_id);
-bool_t Djy_RestorePrio(void);
-u32 Djy_EventDelay(u32 u32l_uS);
-s64 Djy_EventDelayTo(s64 s64l_uS);
-u32 Djy_WaitEventCompleted(u16 event_id,u32 timeout);
-u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout);
-u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout);
-u16 Djy_EventPop(  u16  hybrid_id,
+u32 DJY_GetRunMode(void);
+u16 DJY_GetEvttId(char *evtt_name);
+bool_t DJY_EvttUnregist(u16 evtt_id);
+bool_t DJY_QuerySch(void);
+bool_t DJY_IsMultiEventStarted(void);
+bool_t DJY_SetEventPrio(u16 event_id,ufast_t new_prio);
+bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio);//修改成DJY_SetEventPrio函数后和C库有冲突，copy了一份，改了C库之后删掉
+bool_t DJY_RaiseTempPrio(u16 event_id);
+bool_t DJY_RestorePrio(void);
+u32 DJY_EventDelay(u32 u32l_uS);
+s64 DJY_EventDelayTo(s64 s64l_uS);
+u32 DJY_WaitEventCompleted(u16 event_id,u32 timeout);
+u32 DJY_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout);
+u32 DJY_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout);
+u16 DJY_EventPop(  u16  hybrid_id,
                     u32 *pop_result,
                     u32 timeout,
                     ptu32_t PopPrarm1,
                     ptu32_t PopPrarm2,
                     ufast_t prio);
-u32 Djy_GetEvttPopTimes(u16 evtt_id);
-ptu32_t Djy_GetEventResult(void);
-void Djy_GetEventPara(ptu32_t *Param1,ptu32_t *Param2);
-void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action);
-void Djy_EventComplete(ptu32_t result);
-u32 Djy_WakeUpFrom(void);
-u16 Djy_MyEvttId(void);
-u16 Djy_MyEventId(void);
-void Djy_ApiStart(u32 api_no);
-void Djy_DelayUs(u32 time);
-void Djy_DelayNano(u32 time);
+u32 DJY_GetEvttPopTimes(u16 evtt_id);
+ptu32_t DJY_GetEventResult(void);
+void DJY_GetEventPara(ptu32_t *Param1,ptu32_t *Param2);
+void __DJY_EventExit(struct EventECB *event, u32 exit_code,u32 action);
+void DJY_EventComplete(ptu32_t result);
+u32 DJY_WakeUpFrom(void);
+u16 DJY_GetMyEvttId(void);
+u16 DJY_GetMyEventId(void);
+u16 Djy_MyEventId(void); //修改成DJY_GetMyEventId函数后和C库有冲突，copy了一份，改了C库之后删掉
+void DJY_ApiStart(u32 api_no);
+void DJY_DelayUs(u32 time);
+void DJY_DelayNano(u32 time);
 
-bool_t Djy_GetEventInfo(u16 id, struct EventInfo *info);
-bool_t Djy_GetEvttName(u16 evtt_id, char *dest, u32 len);
-bool_t Djy_RegisterHook(u16 EvttID,SchHookFunc HookFunc);
+bool_t DJY_GetEventInfo(u16 id, struct EventInfo *info);
+bool_t DJY_GetEvttName(u16 evtt_id, char *dest, u32 len);
+bool_t DJY_RegisterHook(u16 EvttID,SchHookFunc HookFunc);
 
 #ifdef __cplusplus
 }

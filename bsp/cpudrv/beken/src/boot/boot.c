@@ -42,7 +42,7 @@
 //%$#@end exclude   ****×é¼þÃèÊö½áÊø
 //@#$%component end configure
 
-extern void Load_Preload(void);
+extern void Iboot_LoadPreload(void);
 //void WrResetToReg(void);
 
 static void bk_reboot(void)
@@ -66,28 +66,28 @@ static void bk_reboot(void)
     sddev_control(WDT_DEV_NAME, WCMD_SET_PERIOD, &wdt_val);
 //    WrResetToReg();
     sddev_control(WDT_DEV_NAME, WCMD_POWER_UP, NULL);
-//    Djy_DelayUs(100000);
+//    DJY_DelayUs(100000);
 #if CFG_USE_STA_PS
     }
     GLOBAL_INT_RESTORE();
 #endif
 }
 
-void reboot(u32 key)
+void CPU_Reboot(u32 key)
 {
-    Set_RebootFlag();
+    Iboot_SetRebootFlag();
 #if (CFG_RUNMODE_BAREAPP == 0)
-    Set_PreviouResetFlag();
+    Iboot_SetPreviouResetFlag();
 #endif
     bk_reboot();
 }
 
 
-void reset(u32 key)
+void CPU_Reset(u32 key)
 {
-    Set_SoftResetFlag();
+    Iboot_SetSoftResetFlag();
 #if (CFG_RUNMODE_BAREAPP == 0)
-    Set_PreviouResetFlag();
+    Iboot_SetPreviouResetFlag();
 #endif
 //    void (*fn_start)();
 //    fn_start = 0x0;
@@ -96,13 +96,13 @@ void reset(u32 key)
     bk_reboot();
 }
 
-void restart_system(u32 key)
+void CPU_RestartSystem(u32 key)
 {
-    Set_RestartAppFlag();
+    Iboot_SetRestartAppFlag();
 #if (CFG_RUNMODE_BAREAPP == 0)
-    Set_PreviouResetFlag();
+    Iboot_SetPreviouResetFlag();
 #endif
-//    Load_Preload();
+//    Iboot_LoadPreload();
     void (*fn_start)();
     fn_start = 0x0;
     fn_start();

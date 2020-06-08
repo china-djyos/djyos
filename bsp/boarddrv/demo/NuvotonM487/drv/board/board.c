@@ -213,7 +213,7 @@ bool_t Board_EthGpioInit(void)
     GPIO_AFSet(GPIO_G,14,11);   //PG14,AF11
 
     GPIO_SettoLow(GPIO_D,PIN3);
-    Djy_EventDelay(10*1000);
+    DJY_EventDelay(10*1000);
     GPIO_SettoHigh(GPIO_D,PIN3);
     return true;
 #endif

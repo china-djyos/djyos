@@ -82,7 +82,7 @@ extern   void HardExp_NmiHandler(void);
 
 extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
-extern void __Djy_ScheduleAsynSignal(void);
+extern void __DJY_ScheduleAsynSignal(void);
 void (*user_systick)(u32 inc_ticks);
 
 struct SystickReg volatile * const pg_systick_reg

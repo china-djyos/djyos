@@ -154,7 +154,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
     struct objhandle *hdl = (struct objhandle *)core->root->child->handles.next;
     struct __icontext *cx = (struct __icontext *)hdl->context;
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
-    u32 j, more, page_size, offset = Get_AppHeadSize();
+    u32 j, more, page_size, offset = Iboot_GetAppHeadSize();
     u32 unit;
     s32 check_len = (s32)bytes;
 
@@ -202,7 +202,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                 if(addition_crc_data == true)
                 {
                     offset = (offset * 34 / 32) - offset;   //存在crc的bin文件，app的文件头要在这里先保留下来
-                    app_head = malloc(offset + Get_AppHeadSize());
+                    app_head = malloc(offset + Iboot_GetAppHeadSize());
                     if(app_head == NULL)
                     {
                         djy_flash_req(unlock, 0);
@@ -242,7 +242,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                     }
                     u8 *name = (u8 *)core->root->child->name;
                     u8 flag = 1;
-                    u32 app_head_size = offset + Get_AppHeadSize();
+                    u32 app_head_size = offset + Iboot_GetAppHeadSize();
 
 //                    file->sz += file->cxbase;
                     fill_little_32bit(app_head + 4, 0, file->sz);
@@ -269,7 +269,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                         memset(app_head + j, 0xff, 2);
                         j += 2;
                     }
-                    calc_crc((u32 *)app_head, Get_AppHeadSize() / 32);
+                    calc_crc((u32 *)app_head, Iboot_GetAppHeadSize() / 32);
                     djy_flash_write(unit, app_head, app_head_size);
                     free(app_head);
                 }
@@ -442,13 +442,13 @@ bool_t ModuleInstall_FlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, 
                 }
                 flash_protection_op(0,FLASH_PROTECT_ALL);
             }
-            targetobj = obj_matchpath(TargetFs, &notfind);
+            targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
                 error_printf("EmFlash"," not found need to install file system.\r\n");
                 return false;
             }
-            super = (struct FsCore *)obj_GetPrivate(targetobj);
+            super = (struct FsCore *)OBJ_GetPrivate(targetobj);
             if((strcmp(super->pFsType->pType, "XIP-APP") == 0) || (strcmp(super->pFsType->pType, "XIP-IBOOT") == 0))
             {
                 if(EmbFsInstallInit(TargetFs,bstart,bend,&XIP_FLASH_DRV) == 0)

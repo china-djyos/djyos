@@ -227,7 +227,7 @@ s16 gd25q16c_WriteEnableWait(void)
         gd25q16c_TxRx(sndbuf,1,rcvbuf,1,1);
 
         gd25q16c_CsInActive();
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         wait --;
         if(wait == 0)
         {
@@ -259,7 +259,7 @@ s16 gd25q16c_WriteDisableWait(void)
         gd25q16c_TxRx(sndbuf,1,rcvbuf,1,1);
 
         gd25q16c_CsInActive();
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         wait --;
         if(wait == 0)
         {
@@ -344,7 +344,7 @@ bool_t gd25q16c_WaitReady(void)
     {
         sr1 = gd25q16c_ReadSR(StatusReg1);
 
-        Djy_EventDelay(100);
+        DJY_EventDelay(100);
         timeoutcnt++;
         if(timeoutcnt == 200000)
         {
@@ -450,7 +450,7 @@ s32 gd25q16c_Erase_Chip(void)
     do
     {
         status = gd25q16c_ReadSR(StatusReg1);
-        Djy_EventDelay(100);
+        DJY_EventDelay(100);
         if(time++ > 1000)
         {
             printf(".");
@@ -509,7 +509,7 @@ s32 gd25q16c_WritePage(u8* pBuffer,u32 PageNum)
 
     gd25q16c_CsInActive();
 
-    Djy_EventDelay(4000);// 延时切出. 4ms。不能去除
+    DJY_EventDelay(4000);// 延时切出. 4ms。不能去除
 
     Lock_MutexPost(pgd25q16c_Lock);
     return 0;
@@ -562,7 +562,7 @@ s32 gd25q16c_WriteMemory(u8* pBuffer,u32 WriteAddr,u32 NumByteToWrite)
     }
     gd25q16c_CsInActive();
 
-    Djy_EventDelay(4000);// 延时切出. 4ms。不能去除
+    DJY_EventDelay(4000);// 延时切出. 4ms。不能去除
 
     Lock_MutexPost(pgd25q16c_Lock);
     free(SendBuf);
@@ -932,7 +932,7 @@ s32 ModuleInstall_gd25q16c(void)
     gd25_umedia->type = nor;
     gd25_umedia->ubuf = (u8*)gd25_umedia + sizeof(struct umedia);
 
-    if(!dev_Create((const char*)flash_name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)gd25_umedia)))
+    if(!Device_Create((const char*)flash_name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)gd25_umedia)))
     {
         printf("\r\n: erro : device : %s addition failed.", flash_name);
         free(gd25_umedia);
@@ -973,13 +973,13 @@ s32 __GD25_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd, void *mediadrv)
     if(mediadrv == NULL)
         return -1;
 
-    targetobj = obj_matchpath(fs, &notfind);    //根据mount点名字找mount点的obj
+    targetobj = OBJ_MatchPath(fs, &notfind);    //根据mount点名字找mount点的obj
     if(notfind)
     {
         error_printf("at45"," not found need to install file system.");
         return -1;
     }
-    super = (struct FsCore *)obj_GetPrivate(targetobj); //获取obj的私有数据
+    super = (struct FsCore *)OBJ_GetPrivate(targetobj); //获取obj的私有数据
     super->MediaInfo = gd25_umedia;
     super->MediaDrv = mediadrv;
 
@@ -999,7 +999,7 @@ s32 __GD25_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd, void *mediadrv)
     FullPath = malloc(res);
     memset(FullPath, 0, res);
     sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,flash_name);      //获取设备的全路径
-    FsBeMedia(FullPath,fs);     //往该设备挂载文件系统
+    File_BeMedia(FullPath,fs);     //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, dwStart, dwEnd);

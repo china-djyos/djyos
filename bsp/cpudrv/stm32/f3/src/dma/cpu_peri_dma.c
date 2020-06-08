@@ -139,7 +139,7 @@ u32 DMA_Config(DMA_Channel_TypeDef *DMA_Channelx,u32 par,u32 mar,    //OK
     {
         if(WaitTime > 50)
         {
-            Djy_DelayUs(50);
+            DJY_DelayUs(50);
             WaitTime = WaitTime - 50;
         }
         else

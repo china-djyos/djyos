@@ -220,7 +220,7 @@ void LP_SetHook(u32 (*EntrySleepReCall)(u32 SleepLevel),
         g_tLowPower.ExitSleepReCall = ExitSleepReCall;
 }
 
-u32 EmptyReCall(u32 SleepLevel)
+u32 LP_EmptyReCall(u32 SleepLevel)
 {
     return 1;
 }
@@ -233,8 +233,8 @@ u32 EmptyReCall(u32 SleepLevel)
 extern u32 (*g_fnEntryLowPower)(struct ThreadVm *vm,u32 pend_ticks);  //进入低功耗状态的函数指针。
 void ModuleInstall_LowPower (void)
 {
-    g_tLowPower.EntrySleepReCall = EmptyReCall;
-    g_tLowPower.ExitSleepReCall = EmptyReCall;
+    g_tLowPower.EntrySleepReCall = LP_EmptyReCall;
+    g_tLowPower.ExitSleepReCall = LP_EmptyReCall;
     g_tLowPower.SleepLevel = CN_SLEEP_L0;
 //    g_tLowPower.TriggerTick = CN_LIMIT_UINT32;
     g_tLowPower.DisableCounter = 0;

@@ -47,10 +47,10 @@
         if (_LIB_VERSION == _IEEE_ ||
             _LIB_VERSION == _POSIX_) exc.retval = 1.0;
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(EDOM);
+            DJY_SaveLastError(EDOM);
         }
             if (exc.err != 0)
-               Djy_SaveLastError(exc.err);
+               DJY_SaveLastError(exc.err);
                 return (float)exc.retval;
         } else
         return z;
@@ -67,10 +67,10 @@
         exc.retval = 0.0;
         if (_LIB_VERSION != _SVID_) exc.retval = 1.0;
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(EDOM);
+            DJY_SaveLastError(EDOM);
         }
             if (exc.err != 0)
-               Djy_SaveLastError(exc.err);
+               DJY_SaveLastError(exc.err);
                 return (float)exc.retval;
         }
         if(finitef(y)&&y<(float)0.0) {
@@ -85,12 +85,12 @@
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
             if (exc.err != 0)
-               Djy_SaveLastError(exc.err);
+               DJY_SaveLastError(exc.err);
                 return (float)exc.retval;
             }
         return z;
@@ -109,12 +109,12 @@
             else
                 exc.retval = 0.0/0.0;   /* X/Open allow NaN */
             if (_LIB_VERSION == _POSIX_)
-                Djy_SaveLastError(EDOM);
+                DJY_SaveLastError(EDOM);
             else if (!matherr(&exc)) {
-                Djy_SaveLastError(EDOM);
+                DJY_SaveLastError(EDOM);
             }
                 if (exc.err != 0)
-                    Djy_SaveLastError(exc.err);
+                    DJY_SaveLastError(exc.err);
                     return (float)exc.retval;
             } else {
             /* powf(x,y) overflow */
@@ -133,12 +133,12 @@
                if(x<0.0&&rint(y)!=y) exc.retval = -HUGE_VAL;
             }
             if (_LIB_VERSION == _POSIX_)
-                Djy_SaveLastError(ERANGE);
+                DJY_SaveLastError(ERANGE);
             else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
             }
                 if (exc.err != 0)
-                    Djy_SaveLastError(exc.err);
+                    DJY_SaveLastError(exc.err);
                     return (float)exc.retval;
                 }
         }
@@ -152,12 +152,12 @@
         exc.arg2 = (double)y;
         exc.retval =  0.0;
         if (_LIB_VERSION == _POSIX_)
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
         if (exc.err != 0)
-            Djy_SaveLastError(exc.err);
+            DJY_SaveLastError(exc.err);
             return (float)exc.retval;
         }
     return z;

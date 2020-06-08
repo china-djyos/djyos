@@ -47,9 +47,9 @@ float gammaf(float x)
                 else
                   exc.retval = HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
             } else {
         /* gammaf(finite) overflow */
@@ -62,13 +62,13 @@ float gammaf(float x)
                 else
                   exc.retval = HUGE_VAL;
                 if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
                 else if (!matherr(&exc)) {
-                  Djy_SaveLastError(ERANGE);
+                  DJY_SaveLastError(ERANGE);
                 }
             }
         if (exc.err != 0)
-           Djy_SaveLastError(exc.err);
+           DJY_SaveLastError(exc.err);
         return (float)exc.retval;
         } else
             return y;

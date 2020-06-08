@@ -74,7 +74,7 @@ extern void __asm_start_thread(struct ThreadVm  *new_vm);
 extern void __asm_switch_context_int(struct ThreadVm *new_vm,struct ThreadVm *old_vm);
 extern void __asm_switch_context(struct ThreadVm *new_vm,struct ThreadVm *old_vm);
 
-#define Djy_GetFineTime DjyGetSysTime
+#define Djy_GetFineTime DJY_GetSysTime
 
 #ifdef __cplusplus
 }

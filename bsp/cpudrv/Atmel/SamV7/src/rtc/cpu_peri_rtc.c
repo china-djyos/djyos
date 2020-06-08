@@ -89,7 +89,7 @@ bool_t RTC_GetTime(s64 *time)
     dtm.tm_min  = BcdToHex(min);
     dtm.tm_sec  = BcdToHex(sec);
 
-    *time = 1000000 * Tm_MkTime(&dtm);
+    *time = 1000000 * Time_MkTime(&dtm);
     return true;
 }
 
@@ -117,7 +117,7 @@ static bool_t __Rtc_SetTime(s64 time)
     u32 dtime,timout = 1500*mS;
 
     time_s = time/1000000;
-    Tm_LocalTime_r(&time_s,&dtm);
+    Time_LocalTime_r(&time_s,&dtm);
 
     if((dtm.tm_year > 2000) && (dtm.tm_year < 2099))
     {
@@ -125,7 +125,7 @@ static bool_t __Rtc_SetTime(s64 time)
 
         while((RTC->RTC_SR & RTC_SR_ACKUPD) != RTC_SR_ACKUPD)
         {
-            Djy_EventDelay(100*mS);
+            DJY_EventDelay(100*mS);
             timout -= 100*mS;
             if(timout <= 0)
             {
@@ -198,7 +198,7 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
     if(NULL == pRtcSemp)
         return false;
 
-    evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
+    evtt = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
                             Rtc_UpdateTime,NULL,800,
                                 "RTC Update Event");
 
@@ -207,7 +207,7 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
         free(pRtcSemp);
         return false;
     }
-    Djy_EventPop(evtt,NULL,0,NULL,0,0);
+    DJY_EventPop(evtt,NULL,0,NULL,0,0);
     RTC_GetTime(&rtc_time);
 
     tv.tv_sec = rtc_time/1000000;//us ---> s

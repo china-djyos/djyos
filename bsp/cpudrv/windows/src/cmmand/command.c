@@ -93,7 +93,7 @@ ptu32_t ModuleInstall_Cmd(ptu32_t para)
                 cmd_buf_len);
     s_ptRecvRingBufSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
     //以下建立windows 终端输入设备
-    sg_ptCmdDev = dev_Create("windows_cmd",
+    sg_ptCmdDev = Device_Create("windows_cmd",
                                 NULL,NULL,cmd_Open,NULL,
                                (fnDevWrite) cmd_DriverWrite,
                                (fnDevRead ) cmd_DriverRead,
@@ -102,7 +102,7 @@ ptu32_t ModuleInstall_Cmd(ptu32_t para)
                                );
     if((sg_ptCmdDev == NULL) || (s_ptRecvRingBufSemp == NULL))
         goto exit_from_add_device;
-//    pg_cmd_hdl = DevOpen("windows_cmd",O_RDWR,0);      //打开右手句柄
+//    pg_cmd_hdl = Device_Open("windows_cmd",O_RDWR,0);      //打开右手句柄
     Int_Register(cn_int_line_cmd);
     Int_IsrConnect(cn_int_line_cmd,cmd_int);
     Int_SettoAsynSignal(cn_int_line_cmd);
@@ -172,7 +172,7 @@ ptu32_t cmd_DriverRead(tagOFile *Kfp,u8 *dst_buf,u32 len,u32 timeout)
 
 //    Fd = ofno( Kfp );
 
-    base_time = (u32)DjyGetSysTime();
+    base_time = (u32)DJY_GetSysTime();
     completed = Ring_Read(&s_tRecvRingBuf,(uint8_t*)dst_buf,len);
     if(completed < len)    //缓冲区中数据不够，则等待接收
     {
@@ -186,7 +186,7 @@ ptu32_t cmd_DriverRead(tagOFile *Kfp,u8 *dst_buf,u32 len,u32 timeout)
             if(completed < len)
             {
                 //每次pend的时间要递减
-                rel_timeout = (u32)DjyGetSysTime() - base_time;
+                rel_timeout = (u32)DJY_GetSysTime() - base_time;
                 if(rel_timeout > timeout)
                     break;
                 else

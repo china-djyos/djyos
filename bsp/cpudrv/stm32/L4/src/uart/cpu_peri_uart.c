@@ -591,7 +591,7 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
                     && (timeout > 10))
             {
                 timeout -=10;
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
             }
             Board_UartHalfDuplexRecv(port);
             break;
@@ -834,7 +834,7 @@ char Uart_GetCharDirect(void)
     u8 result;
     while(HAL_OK != HAL_UART_Receive(GetCharDirectH,&result,1,0))
     {
-        Djy_EventDelay(500);
+        DJY_EventDelay(500);
     }
     return result;
 }

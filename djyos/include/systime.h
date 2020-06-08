@@ -67,11 +67,11 @@ typedef u64 (*fnSysTimeHard64)(void);
 #define CN_TIMEOUT_FOREVER  0xffffffff  //无限延时
 #define mS      1000    //系统时间单位是微秒，想用ms就得*1000
 
-void SysTimeConnect(fnSysTimeHard32 GetSysTime32,fnSysTimeHard64 GetSysTime64,
+void DJY_SysTimeConnect(fnSysTimeHard32 GetSysTime32,fnSysTimeHard64 GetSysTime64,
                     u32 Freq,u32 Cycle);
-s64 DjyGetSysTime(void);
-s64 DjyGetSysTimeCycle(void);
-u32 DjyGetSysTimeFreq(void);
+s64 DJY_GetSysTime(void);
+s64 DJY_GetSysTimeCycle(void);
+u32 DJY_GetSysTimeFreq(void);
 
 #ifdef __cplusplus
 }

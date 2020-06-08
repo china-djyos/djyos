@@ -75,8 +75,8 @@ unsigned sleep(unsigned seconds)
     us = (seconds % 3600) * 1000000;
     //注：不能直接用Djy_EventDelay，它只支持32位参数，只能sleep 1.19小时
     for(loop = 0; loop < hour; loop++)
-        Djy_EventDelay(3600*1000000);
-    Djy_EventDelay(us);
+        DJY_EventDelay(3600*1000000);
+    DJY_EventDelay(us);
     return 0;
 }
 

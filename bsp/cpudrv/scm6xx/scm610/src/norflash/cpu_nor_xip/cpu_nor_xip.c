@@ -368,13 +368,13 @@ bool_t ModuleInstall_NorFlashInstallXIP(const char *TargetFs,s32 bstart, s32 ben
                     warning_printf("xip"," Format failure.");
                 }
             }
-            targetobj = obj_matchpath(TargetFs, &notfind);
+            targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
                 error_printf("EmFlash"," not found need to install file system.");
                 return false;
             }
-            super = (struct FsCore *)obj_GetPrivate(targetobj);
+            super = (struct FsCore *)OBJ_GetPrivate(targetobj);
             if((strcmp(super->pFsType->pType, "XIP-APP") == 0) || (strcmp(super->pFsType->pType, "XIP-IBOOT") == 0))
             {
                 if(__Flash_FsInstallInit(TargetFs,bstart,bend,&NOR_FLASH_DRV) == 0)

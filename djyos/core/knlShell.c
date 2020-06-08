@@ -340,7 +340,7 @@ ptu32_t kernel_spy(void)
     u32 pl_ecb;
     u32 cycle;
     struct Wdt *wdt;
-    Djy_GetEventPara((ptu32_t*)(&cycle), NULL);
+    DJY_GetEventPara((ptu32_t*)(&cycle), NULL);
     cycle *=mS;
 #if(CFG_IDLE_MONITOR_CYCLE > 0)
 #if(DEBUG == 1)
@@ -367,7 +367,7 @@ ptu32_t kernel_spy(void)
             Wdt_Clean(wdt);
         }
 #endif  //for (CFG_IDLE_MONITOR_CYCLE > 0)
-        Djy_EventDelay(cycle); // 延时1秒；
+        DJY_EventDelay(cycle); // 延时1秒；
     }
 #endif
 }
@@ -385,12 +385,12 @@ s32 kernel_command(void)
     u32 cycle = 1000; // 1s时间，监测周期
 
 
-    res = Djy_EvttRegist(EN_CORRELATIVE, 1, 0, 0,
+    res = DJY_EvttRegist(EN_CORRELATIVE, 1, 0, 0,
                         kernel_spy, NULL, 1024, "kernel spy");
     if(res==CN_EVTT_ID_INVALID)
         return(-1);
 
-    Djy_EventPop(res, NULL, 0, (ptu32_t)cycle, 0, 0);
+    DJY_EventPop(res, NULL, 0, (ptu32_t)cycle, 0, 0);
     return (0);
 }
 

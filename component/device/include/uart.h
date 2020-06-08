@@ -89,9 +89,9 @@ u32 UART_PortWrite(struct UartGeneralCB *pUGCB, u8 *pBuf, u32 dwLen);
 u32 UART_PortRead(struct UartGeneralCB *pUGCB, u8 *pBuf, u32 dwLen);
 u32 UART_ErrHandle(struct UartGeneralCB *pUGCB, u32 dwErrNo);
 
-u32 UART_Poll_PortWrite(struct UartPollCB *pUPCB, u32 dwLen);
-u32 UART_Poll_PortRead(struct UartPollCB *pUPCB);
-u32 UART_Poll_ErrHandle(struct UartPollCB *pUPCB, u32 dwErrNo);
+u32 UART_PollPortWrite(struct UartPollCB *pUPCB, u32 dwLen);
+u32 UART_PollPortRead(struct UartPollCB *pUPCB);
+u32 UART_PollErrHandle(struct UartPollCB *pUPCB, u32 dwErrNo);
 
 
 #ifdef __cplusplus

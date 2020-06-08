@@ -318,13 +318,13 @@ bool_t ModuleInstall_Gd25InstallEfs(const char *TargetFs, s32 bstart, s32 bend, 
                     warning_printf("efs"," Format failure.");
                 }
             }
-            targetobj = obj_matchpath(TargetFs, &notfind);
+            targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
                 error_printf("at45"," not found need to install file system.");
                 return false;
             }
-            super = (struct FsCore *)obj_GetPrivate(targetobj);
+            super = (struct FsCore *)OBJ_GetPrivate(targetobj);
             if(strcmp(super->pFsType->pType, "EFS") == 0)
             {
                 if(__GD25_FsInstallInit(TargetFs,bstart,bend,&EFS_GD25_DRV) == 0)

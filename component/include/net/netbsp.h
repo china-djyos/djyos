@@ -220,7 +220,7 @@ const u8 *NetDevGetMac(struct NetDev *iface);
 const char *NetDevName(struct NetDev *iface);
 struct NetDev *NetDevGet(const char *ifname);
 bool_t NetDevSend(struct NetDev *iface,struct NetPkg *pkg,u32 devtask);
-bool_t NetDevPush(struct NetDev *iface,struct NetPkg *pkg);//if you get a package,you could call this function
+bool_t Link_NetDevPush(struct NetDev *iface,struct NetPkg *pkg);//if you get a package,you could call this function
 //handle :the netdevice you install (returned by NetDevInstall)
 //devname:if the netdevice is NULL,then we use the devname to search the device
 //hook   :which used to deal the device message has been triggled
@@ -246,8 +246,8 @@ void   *NetDevPrivate(struct NetDev *iface);
 //event :the message we has get
 //the user could use the following api to listen on more protocol or send specified frames
 typedef bool_t (*fnLinkProtoDealer)(struct NetDev *iface,struct NetPkg *pkg);
-bool_t LinkRegisterRcvHook(fnLinkProtoDealer hook, const char *ifname,u16 proto,const char *hookname);
-bool_t LinkUnRegisterRcvHook(const char *hookname);
+bool_t Link_RegisterRcvHook(fnLinkProtoDealer hook, const char *ifname,u16 proto,const char *hookname);
+bool_t Link_UnRegisterRcvHook(const char *hookname);
 
 //////////////////////USED FOR THE ROUTER//////////////////////////////////
 //if you need to add a rout to the host,then the following will be used
@@ -312,8 +312,8 @@ typedef struct
 #define CN_ROUT_NONE    (0)
 //usage:is ver is EN_IPV_4, then the netaddr is tagHostAddrV4,else  tagHostAddrV6
 bool_t RoutCreate(const char *ifname,enum_ipv_t ver,void *netaddr,u32 pro); //the parameter pro is abandoned
-bool_t DnsGet(enum_ipv_t ver,void *addr,void *addrbak);
-bool_t DnsSet(enum_ipv_t ver,void *addr,void *addrbak);
+bool_t DNS_Get(enum_ipv_t ver,void *addr,void *addrbak);
+bool_t DNS_Set(enum_ipv_t ver,void *addr,void *addrbak);
 
 
 #endif /* TCPIP_NETINCLUDE_NETBSP_H_ */

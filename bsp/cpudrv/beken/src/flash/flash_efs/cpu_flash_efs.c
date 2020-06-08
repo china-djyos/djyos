@@ -266,13 +266,13 @@ bool_t ModuleInstall_EmbFlashInstallEfs(const char *TargetFs, s32 bstart, s32 be
                 }
                 flash_protection_op(0,FLASH_PROTECT_ALL);
             }
-            targetobj = obj_matchpath(TargetFs, &notfind);
+            targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
                 error_printf("efs"," not found need to install file system.");
                 return false;
             }
-            super = (struct FsCore *)obj_GetPrivate(targetobj);
+            super = (struct FsCore *)OBJ_GetPrivate(targetobj);
             if(strcmp(super->pFsType->pType, "EFS") == 0)
             {
                 flash_protection_op(0,FLASH_PROTECT_NONE);

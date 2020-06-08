@@ -286,7 +286,7 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
 //          ippkg->partnext = pkg;
 //          framlen = PkgGetDataLen(ippkg) + translen;
 //          framlen = ippkg->datalen + translen;
-            ret = LinkSend(rout.DevFace,ippkg,devtask,EN_LINKPROTO_IPV4,EN_IPV_4,iphop,ipsrc);
+            ret = Link_Send(rout.DevFace,ippkg,devtask,EN_LINKPROTO_IPV4,EN_IPV_4,iphop,ipsrc);
             PkgTryFreePart(ippkg);
         }
     }

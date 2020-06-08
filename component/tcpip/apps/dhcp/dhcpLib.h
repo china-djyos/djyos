@@ -212,12 +212,12 @@ typedef struct
 }tagDhcpReplyPara;
 
 
-void makeDhcpRequestMsg(tagDhcpMsg *msg,tagDhcpRequestPara *para);
-void showDhcpRequestMsg(tagDhcpRequestPara *para);
-void showDhcpReplyMsg(tagDhcpReplyPara *para);
-bool_t pasteDhcpReplyMsg(tagDhcpReplyPara *para,tagDhcpMsg *msg);
-void makeDhcpReplyMsg(tagDhcpMsg *msg,tagDhcpReplyPara *para);
-bool_t pasteDhcpRequestMsg(tagDhcpRequestPara *para,tagDhcpMsg *msg);
+void DHCP_MakeDhcpRequestMsg(tagDhcpMsg *msg,tagDhcpRequestPara *para);
+void DHCP_ShowDhcpRequestMsg(tagDhcpRequestPara *para);
+void DHCP_ShowDhcpReplyMsg(tagDhcpReplyPara *para);
+bool_t DHCP_PasteDhcpReplyMsg(tagDhcpReplyPara *para,tagDhcpMsg *msg);
+void DHCP_MakeDhcpReplyMsg(tagDhcpMsg *msg,tagDhcpReplyPara *para);
+bool_t DHCP_PasteDhcpRequestMsg(tagDhcpRequestPara *para,tagDhcpMsg *msg);
 
 
 

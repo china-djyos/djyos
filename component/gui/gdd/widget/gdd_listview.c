@@ -139,7 +139,7 @@ typedef struct  __LVINFO{
 
 /*==================================================================*/
 
-list_t* find_index_node(list_t *list,s32 idx)
+list_t* Widget_FindIndexNode(list_t *list,s32 idx)
 {
     s32 i;
     list_t *n;
@@ -157,7 +157,7 @@ list_t* find_index_node(list_t *list,s32 idx)
     return n;
 }
 
-static  void ListView_Reset(listview_t *pLV)
+static  void __Widget_ListViewReset(listview_t *pLV)
 {
 
     pLV->col_num =0;
@@ -172,7 +172,7 @@ static  void ListView_Reset(listview_t *pLV)
 }
 
 
-static bool_t ListView_Create(struct WindowMsg *pMsg)
+static bool_t __Widget_ListViewCreate(struct WindowMsg *pMsg)
 {
     listview_t *pLV;
     HWND hwnd;
@@ -183,13 +183,13 @@ static bool_t ListView_Create(struct WindowMsg *pMsg)
         return false;
     }
     memset(pLV, 0, sizeof(listview_t));
-    ListView_Reset(pLV);
-    SetWindowPrivateData(hwnd,(ptu32_t)pLV);
+    __Widget_ListViewReset(pLV);
+    GDD_SetWindowPrivateData(hwnd,(ptu32_t)pLV);
     return true;
 }
 
 
-static bool_t ListView_AddCol(struct WindowMsg *pMsg)
+static bool_t __Widget_ListViewAddCol(struct WindowMsg *pMsg)
 {
     listview_t *pLV;
     HWND hwnd;
@@ -198,7 +198,7 @@ static bool_t ListView_AddCol(struct WindowMsg *pMsg)
     list_t *n;
     list_col_cel_t *col;
     hwnd =pMsg->hwnd;
-    pLV =(listview_t*)GetWindowPrivateData(hwnd);
+    pLV =(listview_t*)GDD_GetWindowPrivateData(hwnd);
     idx=(u16)pMsg->Param1;
     lv_col=(LVCOLUM*)pMsg->Param2;
     col =(list_col_cel_t*)malloc(sizeof(list_col_cel_t));
@@ -209,7 +209,7 @@ static bool_t ListView_AddCol(struct WindowMsg *pMsg)
         col->Text =lv_col->pszText;
         col->Width =lv_col->Width;
 
-        n =find_index_node(&pLV->list_col_hdr,idx);
+        n =Widget_FindIndexNode(&pLV->list_col_hdr,idx);
         dListInsertBefore(n,&col->node);
 
         pLV->col_num++;
@@ -220,7 +220,7 @@ static bool_t ListView_AddCol(struct WindowMsg *pMsg)
 
 
 
-static bool_t ListView_AddRow(struct WindowMsg *pMsg)
+static bool_t __Widget_ListViewAddRow(struct WindowMsg *pMsg)
 {
     listview_t *pLV;
     HWND hwnd;
@@ -230,7 +230,7 @@ static bool_t ListView_AddRow(struct WindowMsg *pMsg)
     list_row_cel_t *row;
     s32 i;
     hwnd =pMsg->hwnd;
-    pLV =(listview_t*)GetWindowPrivateData(hwnd);
+    pLV =(listview_t*)GDD_GetWindowPrivateData(hwnd);
     idx=(u16)pMsg->Param1;
     lv_row=(LVROW*)pMsg->Param2;
     row =(list_row_cel_t*)malloc(sizeof(list_row_cel_t));
@@ -241,7 +241,7 @@ static bool_t ListView_AddRow(struct WindowMsg *pMsg)
         row->Text =lv_row->pszText;
         row->Height =lv_row->Height;
 
-        n =find_index_node(&pLV->list_row_hdr,idx);
+        n =Widget_FindIndexNode(&pLV->list_row_hdr,idx);
         dListInsertBefore(n,&row->node);
         pLV->row_num++;
         ////
@@ -265,42 +265,42 @@ static bool_t ListView_AddRow(struct WindowMsg *pMsg)
 }
 
 
-static bool_t ListView_SetFirstColIdx(struct WindowMsg *pMsg)
+static bool_t __Widget_ListViewSetFirstColIdx(struct WindowMsg *pMsg)
 {
     listview_t *pLV;
     HWND hwnd;
     u16 idx;
     hwnd =pMsg->hwnd;
-    pLV =(listview_t*)GetWindowPrivateData(hwnd);
+    pLV =(listview_t*)GDD_GetWindowPrivateData(hwnd);
     idx=(u16)pMsg->Param1;
     if(idx>pLV->col_num)
     {
         idx =pLV->col_num-1;
     }
     pLV->first_col_idx =idx;
-    InvalidateWindow(hwnd,false);
+    GDD_InvalidateWindow(hwnd,false);
     return true;
 }
 
 
-static bool_t ListView_SetFirstRowIdx(struct WindowMsg *pMsg)
+static bool_t Widget_ListViewSetFirstRowIdx(struct WindowMsg *pMsg)
 {
     listview_t *pLV;
     HWND hwnd;
     u16 idx;
     hwnd =pMsg->hwnd;
-    pLV =(listview_t*)GetWindowPrivateData(hwnd);
+    pLV =(listview_t*)GDD_GetWindowPrivateData(hwnd);
     idx=(u16)pMsg->Param1;
     if(idx>pLV->row_num)
     {
         idx =pLV->row_num-1;
     }
     pLV->first_row_idx =idx;
-    InvalidateWindow(hwnd,false);
+    GDD_InvalidateWindow(hwnd,false);
     return true;
 }
 
-static void __ListView_SetFirstRowIdx(listview_t *pLV,u32 idx)
+static void __Widget_ListViewSetFirstRowIdx(listview_t *pLV,u32 idx)
 {
     if(idx>pLV->row_num)
     {
@@ -308,24 +308,24 @@ static void __ListView_SetFirstRowIdx(listview_t *pLV,u32 idx)
     }
     pLV->first_row_idx =idx;
 }
-static bool_t ListView_DeleteRow(struct WindowMsg *pMsg)
+static bool_t __Widget_ListViewDeleteRow(struct WindowMsg *pMsg)
 {
     listview_t *pLV;
     HWND hwnd;
     u16 idx;
     hwnd =pMsg->hwnd;
-    pLV =(listview_t*)GetWindowPrivateData(hwnd);
+    pLV =(listview_t*)GDD_GetWindowPrivateData(hwnd);
     idx=(u16)pMsg->Param1;
 
     list_t *n;
     list_row_cel_t *row;
 
-    n =find_index_node(&pLV->list_row_hdr,idx);
+    n =Widget_FindIndexNode(&pLV->list_row_hdr,idx);
     if(n!=&pLV->list_row_hdr)
     {
         row =(list_row_cel_t*)dListEntry(n,list_row_cel_t,node);
 
-        __ListView_SetFirstRowIdx(pLV,idx+1);
+        __Widget_ListViewSetFirstRowIdx(pLV,idx+1);
         dListRemove(&row->node);
         free(row->cell_item);
         free(row);
@@ -336,12 +336,12 @@ static bool_t ListView_DeleteRow(struct WindowMsg *pMsg)
 }
 
 
-static bool_t ListView_DeleteAllRows(struct WindowMsg *pMsg)
+static bool_t Widget_ListViewDeleteAllRows(struct WindowMsg *pMsg)
 {
     listview_t *pLV;
     HWND hwnd;
     hwnd =pMsg->hwnd;
-    pLV =(listview_t*)GetWindowPrivateData(hwnd);
+    pLV =(listview_t*)GDD_GetWindowPrivateData(hwnd);
     list_t *lst,*n;
     lst =&pLV->list_row_hdr;
     n = lst->next;
@@ -350,7 +350,7 @@ static bool_t ListView_DeleteAllRows(struct WindowMsg *pMsg)
         list_row_cel_t *row;
         row =(list_row_cel_t*)dListEntry(n,list_row_cel_t,node);
         n =n->next;
-        __ListView_SetFirstRowIdx(pLV,0);
+        __Widget_ListViewSetFirstRowIdx(pLV,0);
         dListRemove(&row->node);
         free(row->cell_item);
         free(row);
@@ -360,7 +360,7 @@ static bool_t ListView_DeleteAllRows(struct WindowMsg *pMsg)
 }
 
 
-static void __ListView_DeleteAllRows(listview_t *pLV)
+static void __Widget_ListViewDeleteAllRows(listview_t *pLV)
 {
     list_t *lst,*n;
     lst =&pLV->list_row_hdr;
@@ -371,7 +371,7 @@ static void __ListView_DeleteAllRows(listview_t *pLV)
         list_row_cel_t *row;
         row =(list_row_cel_t*)dListEntry(n,list_row_cel_t,node);
         n =n->next;
-        __ListView_SetFirstRowIdx(pLV,0);
+        __Widget_ListViewSetFirstRowIdx(pLV,0);
         dListRemove(&row->node);
         free(row->cell_item);
         free(row);
@@ -380,7 +380,7 @@ static void __ListView_DeleteAllRows(listview_t *pLV)
 }
 
 
-static  bool_t ListView_Close(struct WindowMsg *pMsg)
+static  bool_t __Widget_ListViewClose(struct WindowMsg *pMsg)
 {
     listview_t *pLV;
     //注：这里不能从pMsg->hwnd中取PrivateData指针，因为系统执行close后，hwnd已经
@@ -388,7 +388,7 @@ static  bool_t ListView_Close(struct WindowMsg *pMsg)
     pLV = (listview_t *)pMsg->Param2;
     list_t *lst,*n;
     //destroy row
-    __ListView_DeleteAllRows(pLV);
+    __Widget_ListViewDeleteAllRows(pLV);
 
     //destroy col
     lst =&pLV->list_col_hdr;
@@ -406,7 +406,7 @@ static  bool_t ListView_Close(struct WindowMsg *pMsg)
     return true;
 }
 
-static bool_t ListView_SetCell(struct WindowMsg *pMsg)
+static bool_t __Widget_ListViewSetCell(struct WindowMsg *pMsg)
 {
 
     listview_t *pLV;
@@ -418,13 +418,13 @@ static bool_t ListView_SetCell(struct WindowMsg *pMsg)
     list_cell_t *cell;
     u16 col_idx,row_idx;
     hwnd =pMsg->hwnd;
-    pLV =(listview_t*)GetWindowPrivateData(hwnd);
+    pLV =(listview_t*)GDD_GetWindowPrivateData(hwnd);
     idx=(u16)pMsg->Param1;
     new=(LVCELL*)pMsg->Param2;
     row_idx =(idx>>16)&0xFFFF;
     col_idx =idx&0xFFFF;
 
-    n =find_index_node(&pLV->list_row_hdr,row_idx);
+    n =Widget_FindIndexNode(&pLV->list_row_hdr,row_idx);
     if(n==&pLV->list_row_hdr)
     {
         return false;
@@ -468,7 +468,7 @@ static bool_t ListView_SetCell(struct WindowMsg *pMsg)
 }
 
 
-static bool_t ListView_GetCell(struct WindowMsg *pMsg)
+static bool_t __Widget_ListViewGetCell(struct WindowMsg *pMsg)
 {
     listview_t *pLV;
     HWND hwnd;
@@ -479,7 +479,7 @@ static bool_t ListView_GetCell(struct WindowMsg *pMsg)
     list_cell_t *cell;
     u16 col_idx,row_idx;
     hwnd =pMsg->hwnd;
-    pLV =(listview_t*)GetWindowPrivateData(hwnd);
+    pLV =(listview_t*)GDD_GetWindowPrivateData(hwnd);
 
     idx=(u16)pMsg->Param1;
     out=(LVCELL*)pMsg->Param2;
@@ -487,7 +487,7 @@ static bool_t ListView_GetCell(struct WindowMsg *pMsg)
     row_idx =(idx>>16)&0xFFFF;
     col_idx =idx&0xFFFF;
 
-    n =find_index_node(&pLV->list_row_hdr,row_idx);
+    n =Widget_FindIndexNode(&pLV->list_row_hdr,row_idx);
 
     row =(list_row_cel_t*)dListEntry(n,list_row_cel_t,node);
 
@@ -528,13 +528,13 @@ static bool_t ListView_GetCell(struct WindowMsg *pMsg)
 
 
 
-static bool_t  ListView_LbuttonDown(struct WindowMsg *pMsg)
+static bool_t  __Widget_ListViewLbuttonDown(struct WindowMsg *pMsg)
 {
     listview_t *pLV;
     HWND hwnd;
     s32 pos_x,pos_y;
     hwnd =pMsg->hwnd;
-    pLV =(listview_t*)GetWindowPrivateData(hwnd);
+    pLV =(listview_t*)GDD_GetWindowPrivateData(hwnd);
     pos_x=LO16(pMsg->Param2);
     pos_y=HI16(pMsg->Param2);
 
@@ -553,7 +553,7 @@ static bool_t  ListView_LbuttonDown(struct WindowMsg *pMsg)
     y =pLV->col_height;
 
     lst_row =&pLV->list_row_hdr;
-    n_row =find_index_node(lst_row,idx_row);
+    n_row =Widget_FindIndexNode(lst_row,idx_row);
     while(n_row!=lst_row)
     {
 
@@ -562,25 +562,25 @@ static bool_t  ListView_LbuttonDown(struct WindowMsg *pMsg)
         i =pLV->first_col_idx;
 
         lst_col =&pLV->list_col_hdr;
-        n_col =find_index_node(lst_col,i);
+        n_col =Widget_FindIndexNode(lst_col,i);
         while(n_col!=lst_col)
         {
             col =(list_col_cel_t*)dListEntry(n_col,list_col_cel_t,node);
 
-            SetRect(&rc,pLV->row_width,y,col->Width,row->Height);
-            if(PtInRect(&rc,&pt))
+            GDD_SetRect(&rc,pLV->row_width,y,col->Width,row->Height);
+            if(GDD_PtInRect(&rc,&pt))
             {
                 list_cell_t *cell;
 
                 cell =&row->cell_item[i];
                 pLV->sel_cell =cell;
-                PostMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,(LVN_CLICK<<16)|(hwnd->WinId),(ptu32_t)hwnd);
+                GDD_PostMessage(GDD_GetWindowParent(hwnd),MSG_NOTIFY,(LVN_CLICK<<16)|(hwnd->WinId),(ptu32_t)hwnd);
 
             }
 
             //下一个cell
             n_col =n_col->next;
-            rc.left += RectW(&rc);
+            rc.left += GDD_RectW(&rc);
             i++;
 
         }
@@ -590,21 +590,21 @@ static bool_t  ListView_LbuttonDown(struct WindowMsg *pMsg)
         y += row->Height;
         idx_row++;
 
-        InvalidateWindow(hwnd,false);
+        GDD_InvalidateWindow(hwnd,false);
     }
 
     return false;
 }
 
 
-static bool_t ListView_Paint(struct WindowMsg *pMsg)
+static bool_t __Widget_ListViewPaint(struct WindowMsg *pMsg)
 {
     listview_t *pLV;
     HWND hwnd;
     HDC hdc;
     hwnd =pMsg->hwnd;
-    pLV =(listview_t*)GetWindowPrivateData(hwnd);
-    hdc =BeginPaint(hwnd);
+    pLV =(listview_t*)GDD_GetWindowPrivateData(hwnd);
+    hdc =GDD_BeginPaint(hwnd);
     if(hdc == NULL)
         return false;
     RECT rc,rc0;
@@ -614,34 +614,34 @@ static bool_t ListView_Paint(struct WindowMsg *pMsg)
     s32 x,y;
     ////
 
-    SetTextColor(hdc,RGB(0,0,0));
-    SetFillColor(hdc,RGB(220,220,220));
-    SetDrawColor(hdc,RGB(160,160,200));
+    GDD_SetTextColor(hdc,RGB(0,0,0));
+    GDD_SetFillColor(hdc,RGB(220,220,220));
+    GDD_SetDrawColor(hdc,RGB(160,160,200));
 
     //draw org hdr
-    SetRect(&rc,0,0,pLV->row_width,pLV->col_height);
+    GDD_SetRect(&rc,0,0,pLV->row_width,pLV->col_height);
     rc0 =rc;
 
-    DrawRect(hdc,&rc0);
-    InflateRect(&rc0,-1,-1);
-    Fill3DRect(hdc,&rc0,RGB(220,220,220),RGB(130,130,130));
+    GDD_DrawRect(hdc,&rc0);
+    GDD_InflateRect(&rc0,-1,-1);
+    GDD_Fill3DRect(hdc,&rc0,RGB(220,220,220),RGB(130,130,130));
 
-    //GradientFillRect(hdc,&rc,MapRGB(hdc,240,240,240),MapRGB(hdc,160,160,180),TRUE);
-    //DrawText(hdc," ",0,&rc,DT_SINGLELINE|DT_VCENTER|DT_CENTER|DT_BORDER);
+    //GDD_GradientFillRect(hdc,&rc,MapRGB(hdc,240,240,240),MapRGB(hdc,160,160,180),TRUE);
+    //GDD_DrawText(hdc," ",0,&rc,DT_SINGLELINE|DT_VCENTER|DT_CENTER|DT_BORDER);
 
     //// 绘制列标签
-    OffsetRect(&rc,RectW(&rc)-1,0);
+    GDD_OffsetRect(&rc,GDD_RectW(&rc)-1,0);
 
     lst =&pLV->list_col_hdr;
-    n =find_index_node(lst,pLV->first_col_idx);
+    n =Widget_FindIndexNode(lst,pLV->first_col_idx);
     while(n!=lst)
     {
         col =(list_col_cel_t*)dListEntry(n,list_col_cel_t,node);
         rc.right =rc.left+col->Width;
 
-        GradientFillRect(hdc,&rc,RGB(240,240,240),RGB(160,160,180),CN_FILLRECT_MODE_UD);
-        DrawText(hdc,col->Text,-1,&rc,DT_VCENTER|DT_CENTER|DT_BORDER);
-        OffsetRect(&rc,RectW(&rc)-1,0);
+        GDD_GradientFillRect(hdc,&rc,RGB(240,240,240),RGB(160,160,180),CN_FILLRECT_MODE_UD);
+        GDD_DrawText(hdc,col->Text,-1,&rc,DT_VCENTER|DT_CENTER|DT_BORDER);
+        GDD_OffsetRect(&rc,GDD_RectW(&rc)-1,0);
 
         n =n->next;
 
@@ -652,7 +652,7 @@ static bool_t ListView_Paint(struct WindowMsg *pMsg)
     y =pLV->col_height-1;
 
     lst =&pLV->list_row_hdr;
-    n =find_index_node(lst,pLV->first_row_idx);
+    n =Widget_FindIndexNode(lst,pLV->first_row_idx);
     while(n!=lst)
     {
         RECT rc0;
@@ -660,15 +660,15 @@ static bool_t ListView_Paint(struct WindowMsg *pMsg)
         row =(list_row_cel_t*)dListEntry(n,list_row_cel_t,node);
 
         //绘制行标签
-        SetRect(&rc,x,y,pLV->row_width,row->Height);
-        SetTextColor(hdc,RGB(0,0,0));
-        SetFillColor(hdc,RGB(160,160,160));
-        SetDrawColor(hdc,RGB(160,160,200));
+        GDD_SetRect(&rc,x,y,pLV->row_width,row->Height);
+        GDD_SetTextColor(hdc,RGB(0,0,0));
+        GDD_SetFillColor(hdc,RGB(160,160,160));
+        GDD_SetDrawColor(hdc,RGB(160,160,200));
 
         rc0 =rc;
-        InflateRect(&rc0,-1,-1);
-        Fill3DRect(hdc,&rc0,RGB(220,220,220),RGB(130,130,130));
-        DrawText(hdc,row->Text,-1,&rc,DT_VCENTER|DT_CENTER|DT_BORDER);
+        GDD_InflateRect(&rc0,-1,-1);
+        GDD_Fill3DRect(hdc,&rc0,RGB(220,220,220),RGB(130,130,130));
+        GDD_DrawText(hdc,row->Text,-1,&rc,DT_VCENTER|DT_CENTER|DT_BORDER);
 
         //绘制行所有的成员组
         if(1)
@@ -681,11 +681,11 @@ static bool_t ListView_Paint(struct WindowMsg *pMsg)
             list_cell_t *cell;
 
 
-            OffsetRect(&rc0,RectW(&rc)-1,0);
+            GDD_OffsetRect(&rc0,GDD_RectW(&rc)-1,0);
 
             i =pLV->first_col_idx;
             lst =&pLV->list_col_hdr;
-            n =find_index_node(lst,i);
+            n =Widget_FindIndexNode(lst,i);
             while(n!=lst)
             {
                 col =(list_col_cel_t*)dListEntry(n,list_col_cel_t,node);
@@ -694,9 +694,9 @@ static bool_t ListView_Paint(struct WindowMsg *pMsg)
 
                 cell =&row->cell_item[i];
 
-                SetTextColor(hdc,cell->TextColor);
-                SetFillColor(hdc,cell->BackColor);
-                SetDrawColor(hdc,RGB(160,160,200));
+                GDD_SetTextColor(hdc,cell->TextColor);
+                GDD_SetFillColor(hdc,cell->BackColor);
+                GDD_SetDrawColor(hdc,RGB(160,160,200));
 
                 dt =DT_BKGND|DT_BORDER;
 
@@ -732,23 +732,23 @@ static bool_t ListView_Paint(struct WindowMsg *pMsg)
 
                 if(cell->pszText!=NULL)
                 {
-                    DrawText(hdc,cell->pszText,-1,&rc0,dt);
+                    GDD_DrawText(hdc,cell->pszText,-1,&rc0,dt);
                 }
                 else
                 {
-                    //DrawText(hdc,L" ",0,&rc0,dt);
+                    //GDD_DrawText(hdc,L" ",0,&rc0,dt);
                 }
 
                 if(cell==pLV->sel_cell)
                 {
                     RECT rc;
-                    CopyRect(&rc,&rc0);
-                    InflateRect(&rc,-1,-1);
-                    SetDrawColor(hdc,RGB(0,0,0));
-                    DrawRect(hdc,&rc);
+                    GDD_CopyRect(&rc,&rc0);
+                    GDD_InflateRect(&rc,-1,-1);
+                    GDD_SetDrawColor(hdc,RGB(0,0,0));
+                    GDD_DrawRect(hdc,&rc);
                 }
 
-                OffsetRect(&rc0,RectW(&rc0)-1,0);
+                GDD_OffsetRect(&rc0,GDD_RectW(&rc0)-1,0);
 
                 //Next row item;
                 n =n->next;
@@ -758,12 +758,12 @@ static bool_t ListView_Paint(struct WindowMsg *pMsg)
         }
 
         //下一行
-        //OffsetRect(&rc,0,rc.h-1);
-        y += RectH(&rc)-1;
+        //GDD_OffsetRect(&rc,0,rc.h-1);
+        y += GDD_RectH(&rc)-1;
         n =n->next;
 
     }
-    EndPaint(hwnd,hdc);
+    GDD_EndPaint(hwnd,hdc);
 
     return true;
 }
@@ -772,23 +772,23 @@ static bool_t ListView_Paint(struct WindowMsg *pMsg)
 //默认复选框消息处理函数表，处理用户函数表中没有处理的消息。
 static struct MsgProcTable s_gListViewMsgProcTable[] =
 {
-    {MSG_CREATE,ListView_Create},
-    {LVM_INSERTCOLUMN,ListView_AddCol},
-    {LVM_INSERTROW,ListView_AddRow},
-    {LVM_SETCELL,ListView_SetCell},
-    {LVM_GETCELL,ListView_GetCell},
-    {LVM_DELETEROW,ListView_DeleteRow},
-    {LVM_DELETEALLROWS,ListView_DeleteAllRows},
-    {LVM_SETFIRSTCOLUMN,ListView_SetFirstColIdx},
-    {LVM_SETFIRSTROW,ListView_SetFirstRowIdx},
-    {MSG_LBUTTON_DOWN,ListView_LbuttonDown},
-    {MSG_PAINT,ListView_Paint},
-    {MSG_CLOSE, ListView_Close},
+    {MSG_CREATE,__Widget_ListViewCreate},
+    {LVM_INSERTCOLUMN,__Widget_ListViewAddCol},
+    {LVM_INSERTROW,__Widget_ListViewAddRow},
+    {LVM_SETCELL,__Widget_ListViewSetCell},
+    {LVM_GETCELL,__Widget_ListViewGetCell},
+    {LVM_DELETEROW,__Widget_ListViewDeleteRow},
+    {LVM_DELETEALLROWS,Widget_ListViewDeleteAllRows},
+    {LVM_SETFIRSTCOLUMN,__Widget_ListViewSetFirstColIdx},
+    {LVM_SETFIRSTROW,Widget_ListViewSetFirstRowIdx},
+    {MSG_LBUTTON_DOWN,__Widget_ListViewLbuttonDown},
+    {MSG_PAINT,__Widget_ListViewPaint},
+    {MSG_CLOSE, __Widget_ListViewClose},
 };
 
 static struct MsgTableLink  s_gListViewMsgLink;
 
-HWND CreateListView(  const char *Text,u32 Style,
+HWND Widget_CreateListView(  const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
                     HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink)
@@ -796,10 +796,10 @@ HWND CreateListView(  const char *Text,u32 Style,
     HWND pGddWin;
     s_gListViewMsgLink.MsgNum = sizeof(s_gListViewMsgProcTable) / sizeof(struct MsgProcTable);
     s_gListViewMsgLink.myTable = (struct MsgProcTable *)&s_gListViewMsgProcTable;
-    pGddWin=CreateWindow(Text,WS_CHILD | WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
+    pGddWin=GDD_CreateWindow(Text,WS_CHILD | WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
                             CN_WINBUF_PARENT,pdata,&s_gListViewMsgLink);
     if(UserMsgTableLink != NULL)
-        AddProcFuncTable(pGddWin,UserMsgTableLink);
+        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }
 

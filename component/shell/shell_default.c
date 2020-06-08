@@ -80,9 +80,9 @@ bool_t date(char *param)
     char buf[12];
     int res;
 
-    nowtime = Tm_Time(NULL);
-    Tm_LocalTime_r(&nowtime,&dtm);
-    Tm_AscTime(&dtm,command);
+    nowtime = Time_Time(NULL);
+    Time_LocalTime_r(&nowtime,&dtm);
+    Time_AscTime(&dtm,command);
 
     printf("\r\n当前时间：%10.10s %s",command, g_cTmWdays[dtm.tm_wday]);
     printf("\r\n输入新日期：");
@@ -91,7 +91,7 @@ bool_t date(char *param)
     if(strlen(buf) != 0)
     {
         memcpy(command,buf,10);
-        res = Tm_SetDateTimeStr(command);
+        res = Time_SetDateTimeStr(command);
         switch (res)
         {
         case EN_CLOCK_YEAR_ERROR:
@@ -128,9 +128,9 @@ bool_t __time(char *param)
     char command[20];
     int res;
 
-    nowtime = Tm_Time(NULL);
-    Tm_LocalTime_r(&nowtime,&dtm);
-    Tm_AscTime(&dtm,command);
+    nowtime = Time_Time(NULL);
+    Time_LocalTime_r(&nowtime,&dtm);
+    Time_AscTime(&dtm,command);
 
     printf("\r\n当前时间：%s",command+11);
     printf("\r\n输入新时间：");
@@ -138,7 +138,7 @@ bool_t __time(char *param)
     fgets(command+11,9,stdin);
     if(strlen(command+11) != 0)
     {
-        res = Tm_SetDateTimeStr(command);
+        res = Time_SetDateTimeStr(command);
         switch (res)
         {
         case EN_CLOCK_HOUR_ERROR:

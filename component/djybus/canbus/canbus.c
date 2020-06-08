@@ -143,15 +143,15 @@ struct Object * ModuleInstall_CANBus()
         return NULL;
     }
     //create a Task to SEND can frame asynchronously.
-    evtt_id = Djy_EvttRegist(EN_CORRELATIVE,100,0,0,__CANBus_SndTask,
+    evtt_id = DJY_EvttRegist(EN_CORRELATIVE,100,0,0,__CANBus_SndTask,
             CAN_BusSndStack,sizeof(CAN_BusSndStack),"CAN Bus Send Task");
     if(evtt_id!=CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(evtt_id,NULL,0,0,0,0);
+        DJY_EventPop(evtt_id,NULL,0,0,0,0);
     }
     else
     {
-        Djy_EvttUnregist(evtt_id);
+        DJY_EvttUnregist(evtt_id);
         debug_printf("CANBUS","send task evtt pop failed.\r\n");
         free(CANBusType);
         debug_printf("CANBUS","Type Added Failed!\r\n");
@@ -174,14 +174,14 @@ struct CANBusCB *CAN_BusAdd(struct CanDev *pNewCanDev)
     if(NULL == pNewCanDev)
         goto exit_from_param;
     //避免重复建立同名的CAN总线
-    if(NULL != obj_search_child(s_ptCANBusType,pNewCanDev->ChipName))
+    if(NULL != OBJ_SearchChild(s_ptCANBusType,pNewCanDev->ChipName))
         goto exit_from_readd;
     NewCAN = (struct CANBusCB *)M_Malloc(sizeof(struct CANBusCB),0);
     if(NewCAN == NULL)
         goto exit_from_malloc;
     //将总线结点挂接到总线类型结点的子结点
     //OBJ_AddChild(s_ptCANBusType,NULL,(ptu32_t)NewCAN,pNewCanDev->ChipName);
-    NewCAN = obj_newchild(s_ptCANBusType, (fnObjOps)-1, (ptu32_t)NewCAN,
+    NewCAN = OBJ_NewChild(s_ptCANBusType, (fnObjOps)-1, (ptu32_t)NewCAN,
                                     (const char*)(pNewCanDev->ChipName));
     if(&NewCAN->CAN_BusNode == NULL)
         goto exit_from_add_node;
@@ -217,7 +217,7 @@ exit_from_can_bus_ring_buf:
 exit_from_can_bus_ring:
     free(&NewCAN->CAN_BusSemp);
 exit_from_can_bus_semp:
-    obj_Delete(&NewCAN->CAN_BusNode);
+    OBJ_Delete(&NewCAN->CAN_BusNode);
 exit_from_add_node:
     free(NewCAN);
 exit_from_malloc:
@@ -295,7 +295,7 @@ bool_t CAN_BusDelete(struct CANBusCB *DelCAN)
     bool_t result;
     if(NULL == DelCAN)
          return false;
-    if(obj_Delete(&DelCAN->CAN_BusNode))
+    if(OBJ_Delete(&DelCAN->CAN_BusNode))
         result = false;
     else
     {
@@ -315,7 +315,7 @@ bool_t CAN_BusDelete_s(struct CANBusCB *DelCAN)
     bool_t result;
     if(NULL == DelCAN)
         return false;
-    if(obj_Delete(&DelCAN->CAN_BusNode))
+    if(OBJ_Delete(&DelCAN->CAN_BusNode))
         result = false;
     else
     {
@@ -333,7 +333,7 @@ struct CANBusCB* CAN_BusFind(char *BusName)
 {
     if(BusName==NULL)
         return NULL;
-    return (struct CANBusCB*)obj_search_child(s_ptCANBusType,BusName);
+    return (struct CANBusCB*)OBJ_SearchChild(s_ptCANBusType,BusName);
 }
 
 
@@ -639,7 +639,7 @@ bool_t cbstat(char *param)
 {
     struct Object *Object=NULL;
     struct CANBusCB * CANBus;
-    Object=obj_foreach_child(s_ptCANBusType,s_ptCANBusType);
+    Object=OBJ_ForeachChild(s_ptCANBusType,s_ptCANBusType);
     if(Object==NULL)
     {
         debug_printf("CANBUS","NO CANBUS Added.\r\n");
@@ -649,7 +649,7 @@ bool_t cbstat(char *param)
     {
         CANBus=(struct CANBusCB *)Object;
         __CAN_BusPrintfStat(CANBus);
-        Object=obj_foreach_child(s_ptCANBusType,Object);
+        Object=OBJ_ForeachChild(s_ptCANBusType,Object);
     }while(Object!=NULL);
    return true;
 }

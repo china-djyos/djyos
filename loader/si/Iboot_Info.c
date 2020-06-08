@@ -62,8 +62,8 @@
 
 extern void AppStart(void);
 extern void Init_Cpu(void);
-extern void reboot();
-extern void Load_Preload(void);
+extern void CPU_Reboot();
+extern void Iboot_LoadPreload(void);
 extern void * gc_pAppOffset;
 extern void __asm_bl_fun(void * fun_addr);
 //版本号
@@ -268,22 +268,22 @@ typedef struct {
   u32_t i[2];               /* number of _bits_ handled mod 2^64 */
   u32_t buf[4];             /* scratch buffer */
   unsigned char in[64];     /* input buffer */
-  unsigned char digest[16]; /* actual digest after MD5Final call */
+  unsigned char digest[16]; /* actual digest after MD5_Final call */
 } MD5_CTX;
 
 /*
  ***********************************************************************
  **  Message-digest routines:                                         **
  **  To form the message digest for a message M                       **
- **    (1) Initialize a context buffer mdContext using MD5Init        **
- **    (2) Call MD5Update on mdContext and M                          **
- **    (3) Call MD5Final on mdContext                                 **
+ **    (1) Initialize a context buffer mdContext using MD5_Init        **
+ **    (2) Call MD5_Update on mdContext and M                          **
+ **    (3) Call MD5_Final on mdContext                                 **
  **  The message digest is now in mdContext->digest[0...15]           **
  ***********************************************************************
  */
 
 /* forward declaration */
-static void Transform (u32_t *buf, u32_t *in);
+static void MD5_Transform (u32_t *buf, u32_t *in);
 
 static unsigned char PADDING[64];
 static const unsigned char PADDINGbak[64] = {
@@ -339,10 +339,10 @@ static const unsigned char PADDINGbak[64] = {
 #endif
 #endif
 
-/* The routine MD5Init initializes the message-digest context
+/* The routine MD5_Init initializes the message-digest context
    mdContext. All fields are set to zero.
  */
-static void MD5Init (MD5_CTX *mdContext)
+static void MD5_Init (MD5_CTX *mdContext)
 {
     for(int i=0;i<(int)(sizeof(PADDINGbak)/sizeof(unsigned char));i++ )
         PADDING[i] = PADDINGbak[i];
@@ -355,11 +355,11 @@ static void MD5Init (MD5_CTX *mdContext)
   mdContext->buf[3] = (u32_t)0x10325476UL;
 }
 
-/* The routine MD5Update updates the message-digest context to
+/* The routine MD5_Update updates the message-digest context to
    account for the presence of each of the characters inBuf[0..inLen-1]
    in the message whose digest is being computed.
  */
-static void MD5Update(MD5_CTX *mdContext, unsigned char *inBuf, unsigned int inLen)
+static void MD5_Update(MD5_CTX *mdContext, unsigned char *inBuf, unsigned int inLen)
 {
   u32_t in[16];
   int mdi;
@@ -392,16 +392,16 @@ static void MD5Update(MD5_CTX *mdContext, unsigned char *inBuf, unsigned int inL
                 (((u32_t)mdContext->in[ii+1]) << 8)  |
                 ((u32_t)mdContext->in[ii]);
       }
-      Transform (mdContext->buf, in);
+      MD5_Transform (mdContext->buf, in);
       mdi = 0;
     }
   }
 }
 
-/* The routine MD5Final terminates the message-digest computation and
+/* The routine MD5_Final terminates the message-digest computation and
    ends with the desired message digest in mdContext->digest[0...15].
  */
-static void MD5Final (unsigned char hash[], MD5_CTX *mdContext)
+static void MD5_Final (unsigned char hash[], MD5_CTX *mdContext)
 {
   u32_t in[16];
   int mdi;
@@ -417,7 +417,7 @@ static void MD5Final (unsigned char hash[], MD5_CTX *mdContext)
 
   /* pad out to 56 mod 64 */
   padLen = (mdi < 56) ? (56 - mdi) : (120 - mdi);
-  MD5Update (mdContext, PADDING, padLen);
+  MD5_Update (mdContext, PADDING, padLen);
 
   /* append length in bits and transform */
   for (i = 0, ii = 0; i < 14; i++, ii += 4) {
@@ -426,7 +426,7 @@ static void MD5Final (unsigned char hash[], MD5_CTX *mdContext)
             (((u32_t)mdContext->in[ii+1]) << 8)  |
             ((u32_t)mdContext->in[ii]);
   }
-  Transform (mdContext->buf, in);
+  MD5_Transform (mdContext->buf, in);
 
   /* store buffer in digest */
   for (i = 0, ii = 0; i < 4; i++, ii += 4) {
@@ -443,7 +443,7 @@ static void MD5Final (unsigned char hash[], MD5_CTX *mdContext)
 
 /* Basic MD5 step. Transforms buf based on in.
  */
-static void Transform (u32_t *buf, u32_t *in)
+static void MD5_Transform (u32_t *buf, u32_t *in)
 {
   u32_t a = buf[0], b = buf[1], c = buf[2], d = buf[3];
 
@@ -550,7 +550,7 @@ static void Transform (u32_t *buf, u32_t *in)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #if (CFG_RUNMODE_BAREAPP == 0)
-static bool_t Verification_AppExit(void * apphead)
+static bool_t Iboot_VerificationAppExit(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
 #if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
@@ -559,7 +559,7 @@ static bool_t Verification_AppExit(void * apphead)
     unsigned char hash[16];
     u32 i;
 
-    MD5Final(hash, (MD5_CTX*)p_apphead->VerifBuf);
+    MD5_Final(hash, (MD5_CTX*)p_apphead->VerifBuf);
     for(i =0;i<sizeof(MD5_CTX);i++)
         p_apphead->VerifBuf[i]=0xff;
     for(i =0;i<16;i++)
@@ -573,13 +573,13 @@ static bool_t Verification_AppExit(void * apphead)
     return true;
 }
 
-static bool_t Verification_AppRun(void * apphead, u8 * buf, u32 len)
+static bool_t Iboot_VerificationAppRun(void * apphead, u8 * buf, u32 len)
 {
     struct AppHead*  p_apphead = apphead;
 #if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
     iboot_Crc32run((u32*)p_apphead->VerifBuf,buf,len);
 #elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
-    MD5Update((MD5_CTX*)p_apphead->VerifBuf, buf,len);
+    MD5_Update((MD5_CTX*)p_apphead->VerifBuf, buf,len);
 #elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
 
 #elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
@@ -590,7 +590,7 @@ static bool_t Verification_AppRun(void * apphead, u8 * buf, u32 len)
 
 #pragma GCC diagnostic pop
 
-static bool_t Verification_AppInit(void *data)
+static bool_t Iboot_VerificationAppInit(void *data)
 {
     struct AppHead*  p_apphead = data;
     struct ProductInfo* p_productinfo = data + sizeof(struct AppHead);
@@ -624,8 +624,8 @@ static bool_t Verification_AppInit(void *data)
 #elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
     MD5_CTX md5tmp;
     char *buf = (char *)&md5tmp;
-    MD5Init(&md5tmp);
-    MD5Update(&md5tmp, data, sizeof(struct AppHead) + sizeof(struct ProductInfo));
+    MD5_Init(&md5tmp);
+    MD5_Update(&md5tmp, data, sizeof(struct AppHead) + sizeof(struct ProductInfo));
     for(u32 i =0;i< sizeof(MD5_CTX);i++)
         p_apphead->VerifBuf[i]=buf[i];
 #elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
@@ -637,7 +637,7 @@ static bool_t Verification_AppInit(void *data)
 
     return true;
 }
-static bool_t  Verification_compare(void *apphead,void *appheadcmp)
+static bool_t  Iboot_VerificationCompare(void *apphead,void *appheadcmp)
 {
     struct AppHead*  p_apphead = apphead;
     struct AppHead*  p_appheadcmp = appheadcmp;
@@ -655,7 +655,7 @@ static bool_t  Verification_compare(void *apphead,void *appheadcmp)
 //参数：apphead：App信息块地址；name：新的名字；filesize：新的文件大小
 //返回：true：成功；false：失败。
 //==============================================================================
-bool_t Rewrite_AppHead_FileInfo(void * apphead,const char*name,u32 filesize)
+bool_t Iboot_RewriteAppHeadFileInfo(void * apphead,const char*name,u32 filesize)
 {
     struct AppHead*  p_apphead = apphead;
     u8 flag = 1;
@@ -679,7 +679,7 @@ bool_t Rewrite_AppHead_FileInfo(void * apphead,const char*name,u32 filesize)
 //参数：productinfo：APP产品信息地址；num：产品序号；time：生产时间
 //返回：true：成功；false：失败。
 //==============================================================================
-bool_t Rewrite_ProductInfo_Num_Time(void * productinfo,const char* time,const char *num)
+bool_t Iboot_RewriteProductInfoNumTime(void * productinfo,const char* time,const char *num)
 {
     struct ProductInfo* p_productinfo = productinfo;
 
@@ -695,7 +695,7 @@ bool_t Rewrite_ProductInfo_Num_Time(void * productinfo,const char* time,const ch
 //参数：apphead：存App信息块的地址；
 //返回：true：成功；false：失败。
 //==============================================================================
-bool_t Get_AppHead(void * apphead)
+bool_t Iboot_GetAppHead(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
 
@@ -709,7 +709,7 @@ bool_t Get_AppHead(void * apphead)
 //参数：ProductInfo：存App信息块的地址；
 //返回：true：成功；false：失败。
 //==============================================================================
-bool_t Get_ProductInfo(void * ProductInfo)
+bool_t Iboot_GetProductInfo(void * ProductInfo)
 {
     struct ProductInfo* p_productinfo = ProductInfo;
 
@@ -724,11 +724,11 @@ bool_t Get_ProductInfo(void * ProductInfo)
 //参数：type：app文件头中信息的类型,date_buf：存获取到数据的缓存,buf_len：date_buf的长度
 //返回：true：成功；false：失败。
 //==============================================================================
-bool_t Get_APP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_len)
+bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_len)
 {
     u32 len;
     struct ProductInfo p_productinfo;
-    Get_ProductInfo(&p_productinfo);
+    Iboot_GetProductInfo(&p_productinfo);
 
     switch(type)
     {
@@ -888,7 +888,7 @@ len_error:
 //    time_len = sizeof(p_productinfo->ProductionTime);
 //    number_len = sizeof(p_productinfo->ProductionNumber);
 //
-//    Get_ProductInfo(&p_productinfo);
+//    Iboot_GetProductInfo(&p_productinfo);
 //    memset(ProductSN, 0, DjyAppHead_SN_Len);
 //
 //    memcpy(ProductSN, p_productinfo->TypeCode, type_code_len);
@@ -910,7 +910,7 @@ len_error:
 //{
 //    struct ProductInfo p_productinfo;
 //    if(productinfo == NULL)
-//        Get_ProductInfo(&p_productinfo);
+//        Iboot_GetProductInfo(&p_productinfo);
 //    else
 //        memcpy(&p_productinfo, productinfo,  sizeof(struct ProductInfo));
 //
@@ -930,7 +930,7 @@ len_error:
 //const char * Get_ManufacturerName(void)
 //{
 //    struct ProductInfo p_productinfo;
-//    Get_ProductInfo(&p_productinfo);
+//    Iboot_GetProductInfo(&p_productinfo);
 //
 //    return (const char *)p_productinfo.ManufacturerNameAddr;
 //}
@@ -940,7 +940,7 @@ len_error:
 //参数：无
 //返回：APP信息头的大小。
 //==============================================================================
-u32 Get_AppHeadSize(void)
+u32 Iboot_GetAppHeadSize(void)
 {
    return (u32)sizeof(struct AppHead);
 }
@@ -951,13 +951,13 @@ u32 Get_AppHeadSize(void)
 //参数：apphead：App信息块地址
 //返回：true：成功；false：失败。
 //==============================================================================
-bool_t XIP_AppFileCheck_Easy(void * apphead)
+bool_t XIP_AppFileCheckEasy(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     if(p_apphead->djyflag[0]!='d' || \
        p_apphead->djyflag[1]!='j' || \
        p_apphead->djyflag[2]!='y' ||\
-       p_apphead->appheadsize !=Get_AppHeadSize())
+       p_apphead->appheadsize !=Iboot_GetAppHeadSize())
     {
         return false;
     }
@@ -979,10 +979,10 @@ bool_t XIP_AppFileCheck(void * apphead)
     if(p_apphead->Verification != VERIFICATION_NULL)
     {
         memcpy(apphead_and_productinfo, apphead, sizeof(apphead_and_productinfo));
-        Verification_AppInit(apphead_and_productinfo);
-        Verification_AppRun(apphead_and_productinfo, apphead+AppHead_Len+ProductInfo_Len, p_apphead->appbinsize-AppHead_Len-ProductInfo_Len);
-        Verification_AppExit(apphead_and_productinfo);
-        if(false == Verification_compare(apphead,apphead_and_productinfo))
+        Iboot_VerificationAppInit(apphead_and_productinfo);
+        Iboot_VerificationAppRun(apphead_and_productinfo, apphead+AppHead_Len+ProductInfo_Len, p_apphead->appbinsize-AppHead_Len-ProductInfo_Len);
+        Iboot_VerificationAppExit(apphead_and_productinfo);
+        if(false == Iboot_VerificationCompare(apphead,apphead_and_productinfo))
         {
             Iboot_App_Info.runflag.error_app_check = 1;
             return false;
@@ -997,7 +997,7 @@ bool_t XIP_AppFileCheck(void * apphead)
 //参数：apphead：App信息块地址
 //返回：APP的运行地址。
 //==============================================================================
-void * XIP_GetAPPStartAddr(void * apphead)
+void * XIP_GetAppStartAddr(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     return  (void *)p_apphead->VirtAddr;
@@ -1007,7 +1007,7 @@ void * XIP_GetAPPStartAddr(void * apphead)
 //参数：apphead：App信息块地址
 //返回：APP信息头的大小，该大小是升级时文件系统读到的大小。
 //==============================================================================
-u32 XIP_GetAPPSize(void * apphead)
+u32 XIP_GetAppSize(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     return  p_apphead->filesize;
@@ -1026,7 +1026,7 @@ u32 XIP_GetAPPSize(void * apphead)
 //参数：apphead：App信息块地址
 //返回：APP信息头的大小，该大小是app.bin文件的大小，由外部工具填充。
 //==============================================================================
-u32 Get_AppSize(void * apphead)
+u32 Iboot_GetAppSize(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     return  p_apphead->appbinsize;
@@ -1036,7 +1036,7 @@ u32 Get_AppSize(void * apphead)
 //参数：apphead：App信息块地址
 //返回：APP的文件名。
 //==============================================================================
-char* Get_AppName(void * apphead)
+char* Iboot_GetAppName(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     return  p_apphead->appname;
@@ -1080,7 +1080,7 @@ bool_t XIP_IsRamIbootFlag()
 //返回： true/false
 //备注：因为要放到启动代码段所以尽量不用外部文件的函数实现
 //==============================================================================
-static bool_t Get_IbootBulid_Time(u16 *pyear,u8 *pmon,u8 *pday,u8 *phour,u8 *pmin,u8 *psec)
+static bool_t Iboot_GetIbootBulidTime(u16 *pyear,u8 *pmon,u8 *pday,u8 *phour,u8 *pmin,u8 *psec)
 {
 
     char *time = __TIME__;/*11:35:09*/
@@ -1148,7 +1148,7 @@ static bool_t Get_IbootBulid_Time(u16 *pyear,u8 *pmon,u8 *pday,u8 *phour,u8 *pmi
 //返回： true/false
 //备注：
 //==============================================================================
-bool_t Set_AppBulid_Time(u16 pyear,u8 pmon,u8 pday,u8 phour,u8 pmin,u8 psec)
+bool_t Iboot_SetAppBulidTime(u16 pyear,u8 pmon,u8 pday,u8 phour,u8 pmin,u8 psec)
 {
     if((pyear == 0) || ((pmon <= 0)||(pmon >12)) || ((pday <= 0)||(pday >31))
             || ((phour <= 0)||(phour > 24)) || ((pmin <= 0)||(pmin >60)) || ((psec <= 0)||(psec >60)))
@@ -1170,7 +1170,7 @@ bool_t Set_AppBulid_Time(u16 pyear,u8 pmon,u8 pday,u8 phour,u8 pmin,u8 psec)
 //参数：boardname：板件名称；buf：待写入的地址；maxlen：板件名称最大长度。
 //返回： true/false
 //==============================================================================
-static bool_t Fill_boardname(char* boardname,char* buf,u8 maxlen)
+static bool_t Iboot_FillBoardName(char* boardname,char* buf,u8 maxlen)
 {
     u8 i;
     for(i=0;i<maxlen;i++)
@@ -1197,7 +1197,7 @@ static bool_t Fill_boardname(char* boardname,char* buf,u8 maxlen)
  * 参数    ：NULL
  * 返回值：true/false
 ==============================================================================*/
-bool_t Si_IbootAppInfoInit()
+bool_t Iboot_SiIbootAppInfoInit()
 {
     bool_t PowerUp = false;
     u8 hardflag = Get_Hardflag(POWER_ON_FLAG);
@@ -1219,13 +1219,13 @@ bool_t Si_IbootAppInfoInit()
             break;
     }
 #if (CFG_RUNMODE_BAREAPP == 0)
-    Get_IbootBulid_Time(&Iboot_App_Info.iboot_buildyear,&Iboot_App_Info.iboot_buildmon,&Iboot_App_Info.iboot_buildmday,\
+    Iboot_GetIbootBulidTime(&Iboot_App_Info.iboot_buildyear,&Iboot_App_Info.iboot_buildmon,&Iboot_App_Info.iboot_buildmday,\
     &Iboot_App_Info.iboot_buildhour,&Iboot_App_Info.iboot_buildmin,&Iboot_App_Info.iboot_buildsec);
     Iboot_App_Info.ibootVer_small = CFG_IBOOT_VERSION_SMALL;         //iboot 版本
     Iboot_App_Info.ibootVer_medium = CFG_IBOOT_VERSION_MEDIUM;         //iboot 版本
     Iboot_App_Info.ibootVer_large = CFG_IBOOT_VERSION_LARGE;         //iboot 版本
 #endif
-    Fill_boardname(PRODUCT_BOARD_TYPE,Iboot_App_Info.boardname,sizeof(Iboot_App_Info.boardname));
+    Iboot_FillBoardName(PRODUCT_BOARD_TYPE,Iboot_App_Info.boardname,sizeof(Iboot_App_Info.boardname));
     if(PowerUp == true)                        //上电复位初始化
     {
         Iboot_App_Info.PreviouReset = 0;//复位前运行模式
@@ -1251,7 +1251,7 @@ bool_t Si_IbootAppInfoInit()
         Iboot_App_Info.runflag.power_on_flag         = hardflag;//上电复位硬件标志0=无此硬件；1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
         Iboot_App_Info.runflag.head_wdt_reset        = 0;//看门狗复位标志
         Iboot_App_Info.runflag.soft_reset_flag       = 0;//软件引起的内部复位
-        Iboot_App_Info.runflag.reboot_flag           = 0;//reboot 标志
+        Iboot_App_Info.runflag.reboot_flag           = 0;//CPU_Reboot 标志
         Iboot_App_Info.runflag.head_reset_flag       = 0;//外部硬件复位标志
         Iboot_App_Info.runflag.restart_system_flag      = 0;//restart_system复位标志
         Iboot_App_Info.runflag.low_power_wakeup      = 0;//低功耗深度休眠中断唤醒标志
@@ -1304,7 +1304,7 @@ bool_t Si_IbootAppInfoInit()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t clear_resetflag()
+bool_t Iboot_ClearResetFlag()
 {
     Iboot_App_Info.runflag.soft_reset_flag = 0;
     Iboot_App_Info.runflag.call_fun_resent = 0;//指令引起的复位
@@ -1316,7 +1316,7 @@ bool_t clear_resetflag()
 //参数：small -- xx.xx.__; medium -- xx.__.xx; large -- __.xx.xx
 //返回值：true
 //==============================================================================
-bool_t Set_AppVerFlag(u8 small, u8 medium, u8 large)
+bool_t Iboot_SetAppVerFlag(u8 small, u8 medium, u8 large)
 
 {
     Iboot_App_Info.appVer_small = small;         //app 版本
@@ -1331,7 +1331,7 @@ bool_t Set_AppVerFlag(u8 small, u8 medium, u8 large)
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Set_SoftResetFlag()
+bool_t Iboot_SetSoftResetFlag()
 {
     Iboot_App_Info.runflag.call_fun_resent = 1;
     Iboot_App_Info.runflag.soft_reset_flag = 1;
@@ -1344,7 +1344,7 @@ bool_t Set_SoftResetFlag()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Set_RebootFlag()
+bool_t Iboot_SetRebootFlag()
 {
     Iboot_App_Info.runflag.call_fun_resent = 1;
     Iboot_App_Info.runflag.reboot_flag = 1;
@@ -1356,7 +1356,7 @@ bool_t Set_RebootFlag()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Set_RestartAppFlag()
+bool_t Iboot_SetRestartAppFlag()
 {
     Iboot_App_Info.runflag.call_fun_resent = 1;
     Iboot_App_Info.runflag.restart_system_flag = 1;
@@ -1368,7 +1368,7 @@ bool_t Set_RestartAppFlag()
 //参数：无
 //返回值：true -- 是；false -- 否
 //==============================================================================
-bool_t Get_CallFunResent()
+bool_t Iboot_GetCallFunResent()
 {
     if(Iboot_App_Info.runflag.call_fun_resent == 0)
         return true;
@@ -1381,7 +1381,7 @@ bool_t Get_CallFunResent()
 //参数：无
 //返回值：true -- 是；false -- 否
 //==============================================================================
-bool_t Get_SoftResetFlag()
+bool_t Iboot_GetSoftResetFlag()
 {
     if(Iboot_App_Info.runflag.soft_reset_flag == 1)
         return true;
@@ -1393,7 +1393,7 @@ bool_t Get_SoftResetFlag()
 //参数：无
 //返回值：true -- 有；false -- 无
 //==============================================================================
-bool_t Get_RebootFlag()
+bool_t Iboot_GetRebootFlag()
 {
     if(Iboot_App_Info.runflag.reboot_flag == 1)
         return true;
@@ -1405,7 +1405,7 @@ bool_t Get_RebootFlag()
 //参数：无
 //返回值：true -- 有；false -- 无
 //==============================================================================
-bool_t Get_RestartAppFlag()
+bool_t Iboot_GetRestartAppFlag()
 {
     if(Iboot_App_Info.runflag.restart_system_flag == 1)
         return true;
@@ -1417,7 +1417,7 @@ bool_t Get_RestartAppFlag()
 //参数：无
 //返回值：true -- 是；false -- 否
 //==============================================================================
-bool_t Get_HeadResetFlag()
+bool_t Iboot_GetHeadResetFlag()
 {
     if(Iboot_App_Info.runflag.head_reset_flag == 1)
         return true;
@@ -1429,7 +1429,7 @@ bool_t Get_HeadResetFlag()
 //参数：无
 //返回值：true -- 是；false -- 否
 //==============================================================================
-bool_t Get_LowPowerWakeup()
+bool_t Iboot_GetLowPowerWakeup()
 {
     if(Iboot_App_Info.runflag.low_power_wakeup == 1)
         return true;
@@ -1442,7 +1442,7 @@ bool_t Get_LowPowerWakeup()
 //参数：无
 //返回值：0=无此硬件 1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
 //==============================================================================
-char Get_PowerOnFlag(void)
+char Iboot_GetPowerOnFlag(void)
 {
     return Iboot_App_Info.runflag.power_on_flag;
 }
@@ -1452,7 +1452,7 @@ char Get_PowerOnFlag(void)
 //参数：无
 //返回值：true -- 是；false -- 否
 //==============================================================================
-bool_t Get_HeadWdtReset(void)
+bool_t Iboot_GetHeadWdtReset(void)
 {
     if(Iboot_App_Info.runflag.head_wdt_reset == 1)
         return true;
@@ -1466,7 +1466,7 @@ bool_t Get_HeadWdtReset(void)
 //参数：AppPath -- 待升级的app路径；
 //返回： true/false
 //==============================================================================
-bool_t Fill_MutualUpdatePath(char* Path, int len)
+bool_t Iboot_FillMutualUpdatePath(char* Path, int len)
 {
 //    u8 i;
 
@@ -1523,7 +1523,7 @@ bool_t Run_Iboot(enum runibootmode mode)
             break;
         default : break;
     }
-    Load_Preload();
+    Iboot_LoadPreload();
     return true;
 }
 
@@ -1583,7 +1583,7 @@ bool_t Run_App(enum runappmode mode)
         case RUN_APP_FROM_FILE   :
             Iboot_App_Info.runflag.runmode_iboot        = 0;
             Iboot_App_Info.runflag.runmode_app          = 1;
-            Load_Preload();
+            Iboot_LoadPreload();
             return true;
         case RUN_APP_FROM_DIRECT :
             return __RunApp((void * )gc_pAppOffset);
@@ -1598,7 +1598,7 @@ bool_t Run_App(enum runappmode mode)
 //参数：无
 //返回：true/false
 //=============================================================================
-bool_t Update_ToRun()
+bool_t Iboot_UpdateToRun()
 {
 
     if(Iboot_App_Info.runflag.update_runmode ==0)//iboot
@@ -1611,8 +1611,8 @@ bool_t Update_ToRun()
         info_printf("IAP","Run app in 3 seconds.\r\n");
         Iboot_App_Info.runflag.restart_run_app = 1;
     }
-    Djy_EventDelay(3000*1000);      //延时一下，让升级过程中的信息能打印出来
-    reset();
+    DJY_EventDelay(3000*1000);      //延时一下，让升级过程中的信息能打印出来
+    CPU_Reset();
     return true;
 }
 //==============================================================================
@@ -1620,7 +1620,7 @@ bool_t Update_ToRun()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Set_PreviouResetFlag()
+bool_t Iboot_SetPreviouResetFlag()
 {
     if(Iboot_App_Info.runflag.runmode_app == 1)
         Iboot_App_Info.PreviouReset = PREVIOURESET_APP;
@@ -1656,7 +1656,7 @@ bool_t Set_RunAppFlag()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Set_RunIbootUpdateApp()
+bool_t Iboot_SetRunIbootUpdateApp()
 {
     Iboot_App_Info.runflag.run_iboot_update_app =1;
     return true;
@@ -1667,7 +1667,7 @@ bool_t Set_RunIbootUpdateApp()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Clear_RunIbootUpdateApp()
+bool_t Iboot_ClearRunIbootUpdateApp()
 {
     Iboot_App_Info.runflag.run_iboot_update_app =0;
     return true;
@@ -1678,7 +1678,7 @@ bool_t Clear_RunIbootUpdateApp()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Set_RunAppUpdateIboot()
+bool_t Iboot_SetRunAppUpdateIboot()
 {
     Iboot_App_Info.runflag.run_app_update_iboot =1;
     return true;
@@ -1689,7 +1689,7 @@ bool_t Set_RunAppUpdateIboot()
 //参数：升级程序来源0文件 1——3待定义
 //返回值：true
 //==============================================================================
-bool_t Set_UpdateSource(char *param)
+bool_t Iboot_SetUpdateSource(char *param)
 {
     int source;
     source = atoi(param);
@@ -1702,7 +1702,7 @@ bool_t Set_UpdateSource(char *param)
 //参数：无
 //返回值：升级程序来源0文件 1——3待定义
 //==============================================================================
-u32 Get_UpdateSource(void)
+u32 Iboot_GetUpdateSource(void)
 {
      return Iboot_App_Info.runflag.update_from;
 }
@@ -1711,7 +1711,7 @@ u32 Get_UpdateSource(void)
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Clear_RunAppUpdateIboot()
+bool_t Iboot_ClearRunAppUpdateIboot()
 {
     Iboot_App_Info.runflag.run_app_update_iboot =0;
     return true;
@@ -1722,7 +1722,7 @@ bool_t Clear_RunAppUpdateIboot()
 //参数：无
 //返回值：true -- 是；false -- 否
 //==============================================================================
-bool_t Get_RestartRunApp()
+bool_t Iboot_GetRestartRunApp()
 {
     if(Iboot_App_Info.runflag.restart_run_app == 1)
         return true;
@@ -1735,7 +1735,7 @@ bool_t Get_RestartRunApp()
 //参数：无
 //返回值：0 -- 直接运行；1 -- 从文件中加载
 //==============================================================================
-char Get_RunAppFormFile()
+char Iboot_GetRunAppFormFile()
 {
     return Iboot_App_Info.runflag.run_app_form_file;
 }
@@ -1745,7 +1745,7 @@ char Get_RunAppFormFile()
 //参数：无
 //返回值：0 -- 运行iboot；1 -- 运行app；-1 -- 错误
 //==============================================================================
-char Get_RunMode(void)
+char Iboot_GetRunMode(void)
 {
     if(Iboot_App_Info.runflag.runmode_iboot == 1)
         return 0;
@@ -1761,7 +1761,7 @@ char Get_RunMode(void)
 //参数：无
 //返回值：0 -- 运行iboot；1 -- 运行app；-1 -- 错误
 //==============================================================================
-char Get_LastRunMode(void)
+char Iboot_GetLastRunMode(void)
 {
     if(Iboot_App_Info.runflag.Before_run_iboot == 1)
         return 0;
@@ -1776,7 +1776,7 @@ char Get_LastRunMode(void)
 //参数：无
 //返回值：true -- 不是硬件决定的；false -- 是硬件决定的；
 //==============================================================================
-bool_t Get_HeardSetRunIboot(void)
+bool_t Iboot_GetHeardSetRunIboot(void)
 {
     if(Iboot_App_Info.runflag.heard_set_run_iboot == 1)
         return true;
@@ -1788,7 +1788,7 @@ bool_t Get_HeardSetRunIboot(void)
 //参数：buf:存APP路径的缓存，buf_len：缓存长度
 //返回值：待升级app路径
 //==============================================================================
-bool_t Get_MutualUpdatePath(char *buf, u32 buf_len)
+bool_t Iboot_GetMutualUpdatePath(char *buf, u32 buf_len)
 {
     u32 len;
     len = sizeof(Iboot_App_Info.update_path);
@@ -1808,7 +1808,7 @@ bool_t Get_MutualUpdatePath(char *buf, u32 buf_len)
 //参数：无
 //返回值：true -- 需要升级app；false -- 不需要升级app
 //==============================================================================
-bool_t Get_UpdateApp(void)
+bool_t Iboot_GetUpdateApp(void)
 {
     if(Iboot_App_Info.runflag.run_iboot_update_app == 1)
         return true;
@@ -1821,7 +1821,7 @@ bool_t Get_UpdateApp(void)
 //参数：无
 //返回值：true -- 需要升级iboot；false -- 不需要升级iboot
 //==============================================================================
-bool_t Get_Updateiboot(void)
+bool_t Iboot_GetUpdateIboot(void)
 {
     if(Iboot_App_Info.runflag.run_app_update_iboot == 1)
         return true;
@@ -1833,7 +1833,7 @@ bool_t Get_Updateiboot(void)
 //参数：无
 //返回值：true -- app校验出错；false -- app检验正确
 //==============================================================================
-bool_t Get_ErrorAppCheck(void)
+bool_t Iboot_GetErrorAppCheck(void)
 {
     if(Iboot_App_Info.runflag.error_app_check == 1)
         return true;
@@ -1845,7 +1845,7 @@ bool_t Get_ErrorAppCheck(void)
 //参数：无
 //返回值：true -- app不存在或者文件格式错误；false -- app存在且正常
 //==============================================================================
-bool_t Get_ErrorAppNoFile(void)
+bool_t Iboot_GetErrorAppNoFile(void)
 {
     if(Iboot_App_Info.runflag.error_app_no_file == 1)
         return true;
@@ -1857,7 +1857,7 @@ bool_t Get_ErrorAppNoFile(void)
 //参数：无
 //返回值：true -- app文件大小错误；false -- app文件大小正确
 //==============================================================================
-bool_t Get_ErrorAppSize(void)
+bool_t Iboot_GetErrorAppSize(void)
 {
     if(Iboot_App_Info.runflag.error_app_size == 1)
         return true;
@@ -1904,7 +1904,7 @@ static bool_t appinfo( )
 //参数：0 -- 运行iboot；1 -- 运行app
 //返回值：true
 //==============================================================================
-bool_t Set_UpdateRunModet(u8 mode)
+bool_t Iboot_SetUpdateRunModet(u8 mode)
 {
     Iboot_App_Info.runflag.update_runmode = mode;
 
@@ -1915,7 +1915,7 @@ bool_t Set_UpdateRunModet(u8 mode)
 //参数：无
 //返回值：0 -- 运行iboot；1 -- 运行app
 //==============================================================================
-char Get_UpdateRunModet(void)
+char Iboot_GetUpdateRunModet(void)
 {
     return Iboot_App_Info.runflag.update_runmode;
 }
@@ -1925,7 +1925,7 @@ char Get_UpdateRunModet(void)
 //参数：共享信息结构体地址
 //返回值：无
 //==============================================================================
-void Get_IbootAppInfo(struct IbootAppInfo *get_info)
+void Iboot_GetAppInfo(struct IbootAppInfo *get_info)
 {
     struct IbootAppInfo *info = get_info;
 
@@ -1936,7 +1936,7 @@ void Get_IbootAppInfo(struct IbootAppInfo *get_info)
 //参数：无
 //返回值：true -- 上电复位；false -- 非上电复位
 //==============================================================================
-bool_t Get_PowerOnResentFlag(void)
+bool_t Iboot_GetPowerOnResentFlag(void)
 {
     if(Iboot_App_Info.runflag.power_on_resent_flag == 1)
         return true;
@@ -1944,7 +1944,7 @@ bool_t Get_PowerOnResentFlag(void)
         return false;
 }
 
-static bool_t iapmode( )
+static bool_t Iboot_IAP_Mode( )
 {
 #if (CFG_RUNMODE_BAREAPP == 0)
     if(Iboot_App_Info.runflag.heard_set_run_iboot)
@@ -2003,7 +2003,7 @@ static bool_t iapmode( )
 #if (CFG_RUNMODE_BAREAPP == 0)
 ADD_TO_ROUTINE_SHELL(ibootinfo,ibootinfo,NULL);
 ADD_TO_ROUTINE_SHELL(appinfo,appinfo,NULL);
-ADD_TO_ROUTINE_SHELL(filesource,Set_UpdateSource,NULL);
+ADD_TO_ROUTINE_SHELL(filesource,Iboot_SetUpdateSource,NULL);
 #endif      //for (CFG_RUNMODE_BAREAPP == 0)
-ADD_TO_ROUTINE_SHELL(iapmode,iapmode,NULL);
+ADD_TO_ROUTINE_SHELL(iapmode,Iboot_IAP_Mode,NULL);
 

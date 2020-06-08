@@ -867,7 +867,7 @@ static ptu32_t Sh_Service(void)
          res = getc(stdin);
          if(EOF == res)
          {
-             Djy_EventDelay(1000); // 获取数据错误或者end of file，延时1ms再继续（防止出现死循环现象，导致其他线程卡死）。
+             DJY_EventDelay(1000); // 获取数据错误或者end of file，延时1ms再继续（防止出现死循环现象，导致其他线程卡死）。
              continue;
          }
 
@@ -1118,7 +1118,7 @@ s32 ModuleInstall_Shell(ptu32_t para)
     if(NULL == __shell_mutex)
         return (-1);
 
-    shell_evtt = Djy_EvttRegist(EN_CORRELATIVE, // 关联型事件
+    shell_evtt = DJY_EvttRegist(EN_CORRELATIVE, // 关联型事件
                                 2, // 默认优先级
                                 0, // 线程保留数，关联型无效
                                 0, // 线程上限，关联型无效
@@ -1134,9 +1134,9 @@ s32 ModuleInstall_Shell(ptu32_t para)
         return (-1);
     }
 
-    if(Djy_EventPop(shell_evtt, NULL, 0, 0, 0, 0) == CN_EVENT_ID_INVALID)
+    if(DJY_EventPop(shell_evtt, NULL, 0, 0, 0, 0) == CN_EVENT_ID_INVALID)
     {
-        Djy_EvttUnregist(shell_evtt);
+        DJY_EvttUnregist(shell_evtt);
         return (-1);
     }
 

@@ -105,12 +105,12 @@ u_threshold= -7.45133219101941108420e+02;  /* 0xc0874910, 0xD52D3051 */
         else
           exc.retval = HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
             if (exc.err != 0)
-               Djy_SaveLastError(exc.err);
+               DJY_SaveLastError(exc.err);
             return exc.retval;
         } else if(x<u_threshold) {
         /* exp(finite) underflow */
@@ -120,12 +120,12 @@ u_threshold= -7.45133219101941108420e+02;  /* 0xc0874910, 0xD52D3051 */
         exc.arg1 = exc.arg2 = x;
         exc.retval = 0.0;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
             if (exc.err != 0)
-               Djy_SaveLastError(exc.err);
+               DJY_SaveLastError(exc.err);
             return exc.retval;
         }
     }

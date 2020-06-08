@@ -180,7 +180,7 @@ struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam)
         goto exit_from_param;
 
     //避免重复建立同名的IIC总线
-    if(NULL != obj_search_child(s_ptIICBusType,(const char*)(NewIICParam->BusName)))
+    if(NULL != OBJ_SearchChild(s_ptIICBusType,(const char*)(NewIICParam->BusName)))
         goto exit_from_readd;
 
     NewIIC = (struct IIC_CB *)M_Malloc(sizeof(struct IIC_CB),0);
@@ -188,7 +188,7 @@ struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam)
         goto exit_from_malloc;
 
     //将总线结点挂接到总线类型结点的子结点
-    IICDev = obj_newchild(s_ptIICBusType, (fnObjOps)-1, (ptu32_t)NewIIC,
+    IICDev = OBJ_NewChild(s_ptIICBusType, (fnObjOps)-1, (ptu32_t)NewIIC,
                                     (const char*)(NewIICParam->BusName));
     if(IICDev == NULL)
         goto exit_from_add_node;
@@ -225,7 +225,7 @@ struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam)
 exit_from_iic_buf_semp:
     Lock_SempDelete(NewIIC->IIC_BusSemp);
 exit_from_iic_bus_semp:
-    obj_Delete(NewIIC->HostObj);
+    OBJ_Delete(NewIIC->HostObj);
 exit_from_add_node:
     free(NewIIC);
 exit_from_malloc:
@@ -246,7 +246,7 @@ bool_t IIC_BusDelete(struct IIC_CB *DelIIC)
     bool_t result;
     if(NULL == DelIIC)
         return false;
-    if(obj_Delete(DelIIC->HostObj))
+    if(OBJ_Delete(DelIIC->HostObj))
     {
         result = false;
     }
@@ -266,9 +266,9 @@ bool_t IIC_BusDelete(struct IIC_CB *DelIIC)
 struct IIC_CB *IIC_BusFind(const char *BusName)
 {
     struct Object *IIC_Obj;
-    IIC_Obj = obj_search_child(s_ptIICBusType,BusName);
+    IIC_Obj = OBJ_SearchChild(s_ptIICBusType,BusName);
     if(IIC_Obj)
-        return (struct IIC_CB *)obj_GetPrivate(IIC_Obj);
+        return (struct IIC_CB *)OBJ_GetPrivate(IIC_Obj);
     else
         return NULL;
 }
@@ -294,7 +294,7 @@ struct IIC_Device *IIC_DevAdd(const char *BusName ,const char *DevName, u8 DevAd
         return NULL;
 
     //避免建立同名的IIC器件
-    if(NULL != obj_search_child(IIC->HostObj, DevName))
+    if(NULL != OBJ_SearchChild(IIC->HostObj, DevName))
         return NULL;
 
     //为新的器件结点动态分配内存
@@ -306,7 +306,7 @@ struct IIC_Device *IIC_DevAdd(const char *BusName ,const char *DevName, u8 DevAd
     NewDev->DevAddr              = DevAddr;
     NewDev->BitOfMemAddrInDevAddr = BitOfMaddrInDaddr;
     NewDev->BitOfMemAddr          = BitOfMaddr;
-    NewDev->HostObj = obj_newchild(IIC->HostObj, (fnObjOps)-1, (ptu32_t)NewDev, DevName);
+    NewDev->HostObj = OBJ_NewChild(IIC->HostObj, (fnObjOps)-1, (ptu32_t)NewDev, DevName);
     if(NewDev->HostObj == NULL)
     {
         free(NewDev);
@@ -328,7 +328,7 @@ bool_t IIC_DevDelete(struct IIC_Device *DelDev)
     if(NULL == DelDev)
         return false;
 
-    if(obj_Delete(DelDev->HostObj))
+    if(OBJ_Delete(DelDev->HostObj))
     {
         result = false;
     }
@@ -356,9 +356,9 @@ struct IIC_Device *IIC_DevFind(const char *BusName ,const char *DevName)
         return NULL;
 
     //通过IIC类型结点，向下搜索后代结点
-    IIC_DevObj = obj_search_child(IIC_Bus->HostObj, DevName);
+    IIC_DevObj = OBJ_SearchChild(IIC_Bus->HostObj, DevName);
     if(IIC_DevObj)
-        return (struct IIC_Device *)obj_GetPrivate(IIC_DevObj);
+        return (struct IIC_Device *)OBJ_GetPrivate(IIC_DevObj);
     else
         return NULL;
 }
@@ -387,16 +387,16 @@ s32  IIC_Write(struct IIC_Device *Dev, u32 addr,u8 *buf,u32 len,
     if(NULL == Dev)
         return CN_IIC_EXIT_PARAM_ERR;
 
-    base_time = (u32)DjyGetSysTime();
+    base_time = (u32)DJY_GetSysTime();
     //查找该器件属于哪条总线
-    IIC = (struct IIC_CB*)obj_GetPrivate(obj_parent(Dev->HostObj));
+    IIC = (struct IIC_CB*)OBJ_GetPrivate(OBJ_GetParent(Dev->HostObj));
     if(NULL == IIC)
         return CN_IIC_EXIT_PARAM_ERR;
     //需要等待总线空闲
     if(false == Lock_SempPend(IIC->IIC_BusSemp,timeout))
         return CN_IIC_EXIT_TIMEOUT;
 
-    rel_timeout = timeout - ((u32)DjyGetSysTime() - base_time);
+    rel_timeout = timeout - ((u32)DJY_GetSysTime() - base_time);
     //DevAddr = Dev->DevAddr |
     //        ((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
     //        & ~(0xFF<<Dev->BitOfMemAddrInDevAddr));
@@ -410,7 +410,7 @@ s32  IIC_Write(struct IIC_Device *Dev, u32 addr,u8 *buf,u32 len,
     MemAddrLen = (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr +7)/8;
     IIC->Flag &= ~CN_IIC_FLAG_R;
     //判断是否用轮询方式
-    if((Djy_QuerySch() == false) || (IIC->pGenerateWriteStart == NULL)
+    if((DJY_QuerySch() == false) || (IIC->pGenerateWriteStart == NULL)
             || (IIC->Flag & CN_IIC_FLAG_POLL))
     {
         if(IIC->pWriteReadPoll != NULL)
@@ -449,7 +449,7 @@ s32  IIC_Write(struct IIC_Device *Dev, u32 addr,u8 *buf,u32 len,
     if(true == IIC->pGenerateWriteStart(IIC->SpecificFlag,DevAddr,
                                         addr,MemAddrLen,len,IIC->IIC_BusSemp))
     {
-        rel_timeout = (u32)DjyGetSysTime();
+        rel_timeout = (u32)DJY_GetSysTime();
         if(rel_timeout - base_time < timeout)
             rel_timeout = timeout - (rel_timeout - base_time);
         else
@@ -520,9 +520,9 @@ s32  IIC_Read(struct IIC_Device *Dev,u32 addr,u8 *buf,u32 len,u32 timeout)
     if(NULL == Dev)
         return CN_IIC_EXIT_PARAM_ERR;
 
-    base_time = (u32)DjyGetSysTime();
+    base_time = (u32)DJY_GetSysTime();
     //查找该器件属于哪条总线
-    IIC = (struct IIC_CB *)obj_GetPrivate(obj_parent(Dev->HostObj));
+    IIC = (struct IIC_CB *)OBJ_GetPrivate(OBJ_GetParent(Dev->HostObj));
     if(NULL == IIC)
         return CN_IIC_EXIT_PARAM_ERR;
 
@@ -531,7 +531,7 @@ s32  IIC_Read(struct IIC_Device *Dev,u32 addr,u8 *buf,u32 len,u32 timeout)
 
     Lock_SempPend(IIC->IIC_BufSemp,0);                          //相当于清二值信号量
 
-    rel_timeout = timeout - ((u32)DjyGetSysTime() - base_time);
+    rel_timeout = timeout - ((u32)DJY_GetSysTime() - base_time);
     //DevAddr = Dev->DevAddr |
     //        ((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
     //        & ~(0xFF<<Dev->BitOfMemAddrInDevAddr));
@@ -546,7 +546,7 @@ s32  IIC_Read(struct IIC_Device *Dev,u32 addr,u8 *buf,u32 len,u32 timeout)
 
     IIC->Flag |= CN_IIC_FLAG_R;
     //判断是否用轮询方式
-    if((Djy_QuerySch() == false) || (IIC->pGenerateReadStart == NULL)
+    if((DJY_QuerySch() == false) || (IIC->pGenerateReadStart == NULL)
             || (IIC->Flag & CN_IIC_FLAG_POLL))
     {
         if(IIC->pWriteReadPoll != NULL)
@@ -572,7 +572,7 @@ s32  IIC_Read(struct IIC_Device *Dev,u32 addr,u8 *buf,u32 len,u32 timeout)
     if(IIC->pGenerateReadStart(IIC->SpecificFlag,DevAddr,addr,MemAddrLen,
                                 len,IIC->IIC_BufSemp))
     {
-        rel_timeout = (u32)DjyGetSysTime();
+        rel_timeout = (u32)DJY_GetSysTime();
         if(rel_timeout - base_time < timeout)           //未超时
         {
             rel_timeout = timeout - (rel_timeout - base_time);
@@ -682,7 +682,7 @@ s32 IIC_BusCtrl(struct IIC_Device *Dev,u32 cmd,ptu32_t data1,ptu32_t data2)
     if(NULL == Dev)
         return -1;
 
-    IIC = (struct IIC_CB *)obj_GetPrivate(obj_parent(Dev->HostObj));
+    IIC = (struct IIC_CB *)OBJ_GetPrivate(OBJ_GetParent(Dev->HostObj));
     if(NULL == IIC)
         return -1;
 
@@ -723,7 +723,7 @@ s32 IIC_ErrPop(struct IIC_CB *IIC, u32 ErrNo)
         return CN_IIC_EXIT_PARAM_ERR;
 
     //弹出错误处理事件，并将错误号以参数形式传递
-    Djy_EventPop(IIC->ErrorPopEvtt,NULL,0,ErrNo,0,0);
+    DJY_EventPop(IIC->ErrorPopEvtt,NULL,0,ErrNo,0,0);
 
     return 0;
 }

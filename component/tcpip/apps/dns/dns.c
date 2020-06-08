@@ -121,7 +121,7 @@ typedef struct
 }tagDnsAType;
 
 
-static void __DnsClearResult()
+static void __DNS_ClearResult()
 {
     memset((void *)gDnsCNameAddr,0,sizeof(gDnsCNameAddr));
     memset((void *)gDnsINameAddrV4,0,sizeof(gDnsINameAddrV4));
@@ -142,7 +142,7 @@ enum __DNS_DECODE_STAT
 };
 
 //must add the len parameter to avoid the memory overrride
-static  void __decodeName(unsigned  char *name,int len)
+static  void __DNS_DecodeName(unsigned  char *name,int len)
 {
     unsigned char *s;
     unsigned char num;
@@ -158,7 +158,7 @@ static  void __decodeName(unsigned  char *name,int len)
     return;
 }
 
-static void __encodeName(unsigned char *name)
+static void __DNS_EncodeName(unsigned char *name)
 {
     char *s,*tmp;
     char *pos;
@@ -188,7 +188,7 @@ static void __encodeName(unsigned char *name)
     return;
 }
 
-static void __DnsPackageData(const char *resolvename,unsigned char *buf, int *len)
+static void __DNS_PackageData(const char *resolvename,unsigned char *buf, int *len)
 {
     tagDnsHeader *header;
     int name_len, datalen;
@@ -212,7 +212,7 @@ static void __DnsPackageData(const char *resolvename,unsigned char *buf, int *le
     p++;
     name_len = strlen(resolvename) +1;
     memcpy((void *)p, (void *)resolvename,name_len);
-    __encodeName(p);
+    __DNS_EncodeName(p);
     p += name_len;
 
     memcpy((void *)p,(void *)&qtype,sizeof(qtype));
@@ -228,7 +228,7 @@ static void __DnsPackageData(const char *resolvename,unsigned char *buf, int *le
 }
 
 
-static void  __DnsUnpackageData(unsigned char *data, unsigned int datalen)
+static void  __DNS_UnpackageData(unsigned char *data, unsigned int datalen)
 {
     u32 stat;
     int len;
@@ -268,7 +268,7 @@ static void  __DnsUnpackageData(unsigned char *data, unsigned int datalen)
                 len = strlen((const char *)p) +1;
                 gDnsCNameAddr[gDnsCNameOffset] = p+1;
                 gDnsCNameOffset++;
-                __decodeName(p,len);
+                __DNS_DecodeName(p,len);
                 p+=len;
 
                 memcpy((void *)&qtype,p,sizeof(qtype));
@@ -290,7 +290,7 @@ static void  __DnsUnpackageData(unsigned char *data, unsigned int datalen)
                     len = strlen((const char *)p) +1;
                     gDnsCNameAddr[gDnsCNameOffset] = p+1;
                     gDnsCNameOffset++;
-                    __decodeName(p,len);
+                    __DNS_DecodeName(p,len);
                     p+=len;
                 }
 
@@ -317,7 +317,7 @@ static void  __DnsUnpackageData(unsigned char *data, unsigned int datalen)
                         len = strlen((const char *)p) +1;
                         gDnsCNameAddr[gDnsCNameOffset] = p+1;
                         gDnsCNameOffset++;
-                        __decodeName(p,len);
+                        __DNS_DecodeName(p,len);
                     }
                 }
                 else
@@ -337,7 +337,7 @@ static void  __DnsUnpackageData(unsigned char *data, unsigned int datalen)
 }
 
 
-void  __DnsUnpackageDataExt(unsigned char *data, unsigned int datalen, struct StDnsResult *pOutDnsRes)
+void  DNS_UnpackageDataExt(unsigned char *data, unsigned int datalen, struct StDnsResult *pOutDnsRes)
 {
     u32 stat;
     int len;
@@ -382,7 +382,7 @@ void  __DnsUnpackageDataExt(unsigned char *data, unsigned int datalen, struct St
                 min = (min < strlen(p+1)) ? min : strlen(p+1);
                 memcpy(pOutDnsRes->arrDnsCNameAddr[nDnsCNameOffset], p+1,  min);
                 nDnsCNameOffset++;
-                __decodeName(p,len);
+                __DNS_DecodeName(p,len);
                 p+=len;
 
                 memcpy((void *)&qtype,p,sizeof(qtype));
@@ -407,7 +407,7 @@ void  __DnsUnpackageDataExt(unsigned char *data, unsigned int datalen, struct St
                     memcpy(pOutDnsRes->arrDnsCNameAddr[nDnsCNameOffset], p+1,  min);
                     //gDnsCNameAddr[nDnsCNameOffset] = p+1;
                     nDnsCNameOffset++;
-                    __decodeName(p,len);
+                    __DNS_DecodeName(p,len);
                     p+=len;
                 }
 
@@ -436,7 +436,7 @@ void  __DnsUnpackageDataExt(unsigned char *data, unsigned int datalen, struct St
                         min = (min < strlen(p+1)) ? min : strlen(p+1);
                         memcpy(pOutDnsRes->arrDnsCNameAddr[nDnsCNameOffset], p+1,  min);
                         nDnsCNameOffset++;
-                        __decodeName(p,len);
+                        __DNS_DecodeName(p,len);
                     }
                 }
                 else
@@ -458,7 +458,7 @@ void  __DnsUnpackageDataExt(unsigned char *data, unsigned int datalen, struct St
 #define CN_DNS_MSGBUF_LEN   0x100
 static struct hostent       gHostEnt;
 static unsigned char        gDnsBuf[CN_DNS_MSGBUF_LEN];
-struct hostent  *DnsNameResolve(const char *name)
+struct hostent  *DNS_NameResolve(const char *name)
 {
     struct hostent *result = NULL;
     struct sockaddr_in addr;
@@ -475,7 +475,7 @@ struct hostent  *DnsNameResolve(const char *name)
         goto EXIT_DNSMAIN;
     }
 
-    if(false == DnsGet(EN_IPV_4,&dnsip,NULL))
+    if(false == DNS_Get(EN_IPV_4,&dnsip,NULL))
     {
         goto EXIT_DNSMAIN;
     }
@@ -491,8 +491,8 @@ struct hostent  *DnsNameResolve(const char *name)
     addr.sin_port = htons(CN_DNS_SERVER_PORT);
     addr.sin_addr.s_addr = dnsip;
 
-    __DnsPackageData(name,gDnsBuf,&datalen);
-    __DnsClearResult();
+    __DNS_PackageData(name,gDnsBuf,&datalen);
+    __DNS_ClearResult();
 
     msglen = sendto(sock,gDnsBuf,datalen,0,(struct sockaddr*)&addr,sizeof(addr));
 
@@ -505,7 +505,7 @@ struct hostent  *DnsNameResolve(const char *name)
     if((msglen > 0)&&(addr.sin_addr.s_addr == dnsip))
     {
         //this is the msg we need
-        __DnsUnpackageData(gDnsBuf,msglen);
+        __DNS_UnpackageData(gDnsBuf,msglen);
         gHostEnt.h_name = (char *)name;
         gHostEnt.h_addrtype = AF_INET;
         gHostEnt.h_length = 4;
@@ -524,7 +524,7 @@ EXIT_DNSMAIN:
     return result;
 }
 
-int DnsNameResolveExt(const char *name, struct hostent_ext *phostent_ext)
+int DNS_NameResolveExt(const char *name, struct hostent_ext *phostent_ext)
 {
     //struct hostent *result = NULL;
     int ret = -1;
@@ -546,7 +546,7 @@ int DnsNameResolveExt(const char *name, struct hostent_ext *phostent_ext)
         goto EXIT_DNSMAIN;
     }
 
-    if(false == DnsGet(EN_IPV_4,&dnsip,NULL))
+    if(false == DNS_Get(EN_IPV_4,&dnsip,NULL))
     {
         goto EXIT_DNSMAIN;
     }
@@ -563,8 +563,8 @@ int DnsNameResolveExt(const char *name, struct hostent_ext *phostent_ext)
     addr.sin_addr.s_addr = dnsip;
 
 
-    __DnsPackageData(name,pnew,&datalen);
-    //__DnsClearResult();
+    __DNS_PackageData(name,pnew,&datalen);
+    //__DNS_ClearResult();
 
     msglen = sendto(sock,pnew,datalen,0,(struct sockaddr*)&addr,sizeof(addr));
 
@@ -578,7 +578,7 @@ int DnsNameResolveExt(const char *name, struct hostent_ext *phostent_ext)
     {
         //this is the msg we need
         struct StDnsResult *ptmp = &phostent_ext->dns_res;
-        __DnsUnpackageDataExt(pnew,msglen, ptmp);
+        DNS_UnpackageDataExt(pnew,msglen, ptmp);
 
         int len = sizeof(phostent_ext->arr_name)-1;
         len = (len<strlen(name))?len:strlen(name);
@@ -612,7 +612,7 @@ EXIT_DNSMAIN:
 
 
 //bool_t DnsNameResolveShell(char *param)
-bool_t netgethostbyname(char *param)
+bool_t DNS_NetGetHostByName(char *param)
 {
     bool_t result = true;
     char *name;
@@ -623,7 +623,7 @@ bool_t netgethostbyname(char *param)
 
     name = param;
     debug_printf("dns","%s:Resolve Name:%s\n\r",__FUNCTION__,name);
-    host = DnsNameResolve(name);
+    host = DNS_NameResolve(name);
 
     if(NULL != host)
     {
@@ -655,5 +655,5 @@ bool_t netgethostbyname(char *param)
 }
 
 
-ADD_TO_ROUTINE_SHELL(netgethostbyname,netgethostbyname,"usage:netgethostbyname hostname");
+ADD_TO_ROUTINE_SHELL(netgethostbyname,DNS_NetGetHostByName,"usage:netgethostbyname hostname");
 

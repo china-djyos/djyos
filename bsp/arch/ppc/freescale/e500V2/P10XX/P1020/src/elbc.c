@@ -14,14 +14,14 @@
 extern const tagElbcCfg  tgP1020RDB_ElbcCfg[];
 extern const int gElbcCfgItem;
 // =============================================================================
-// 函数功能:P1020ElbcInit
+// 函数功能:CPU_P1020ElbcInit
 //          elbc的初始化
 // 输入参数:
 // 输出参数:无
 // 返回值  :
 // 说明    :
 // =============================================================================
-void P1020ElbcInit()
+void CPU_P1020ElbcInit()
 {
     int i;
     //elbc总线空间分配

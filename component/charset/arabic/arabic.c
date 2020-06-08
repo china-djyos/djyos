@@ -248,7 +248,7 @@ void module_init_encode_arabic(ptu32_t para)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
         debug_printf("arabic","arabic encoding install fail\n\r");
         return 0;
     }
@@ -369,7 +369,7 @@ ptu32_t module_init_font_arabic(ptu32_t para)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("arabic","arabic font install fail\n\r");
         return 0;
     }

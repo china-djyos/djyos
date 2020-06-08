@@ -116,7 +116,7 @@ bool_t RTC_GetTime(s64 *time)
     dtm.tm_min  = BcdToHex(min & 0x7F);
     dtm.tm_sec  = BcdToHex(sec & 0x7F);
 
-    *time = (s64)(1000000 * Tm_MkTime(&dtm));
+    *time = (s64)(1000000 * Time_MkTime(&dtm));
     return true;
 }
 
@@ -130,7 +130,7 @@ static bool_t RTC_SetTime(s64 time)
     struct tm dtm;
     u8 rtccs0,year;
     time = time/1000000;
-    Tm_LocalTime_r(&time,&dtm);
+    Time_LocalTime_r(&time,&dtm);
 
     rtccs0 = silan_rtc_reg_get(0x13c);
     silan_rtc_reg_set(0x13C,rtccs0 | (1<<5));//ÔÝÊ±¹Ø±ÕÊ±ÖÓ

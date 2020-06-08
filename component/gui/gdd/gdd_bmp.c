@@ -192,7 +192,7 @@ typedef    struct{
 
 /*============================================================================*/
 
-static s32  __ReadDataFromMemory(u8 *buf,u32 offset,u32 size,const void *pdata)
+static s32  __GDD_ReadDataFromMemory(u8 *buf,u32 offset,u32 size,const void *pdata)
 {
     memcpy(buf,(u8*)pdata+offset,size);
     return size;
@@ -200,7 +200,7 @@ static s32  __ReadDataFromMemory(u8 *buf,u32 offset,u32 size,const void *pdata)
 
 /*============================================================================*/
 
-bool_t GetBMPInfo(tagBMP_INFO *bm_info,tagBMP_HEADER *pBmpHdr)
+bool_t GDD_GetBitmapInfo(tagBMP_INFO *bm_info,tagBMP_HEADER *pBmpHdr)
 {
     s32 line_bytes;
 
@@ -289,7 +289,7 @@ bool_t GetBMPInfo(tagBMP_INFO *bm_info,tagBMP_HEADER *pBmpHdr)
 
 /*============================================================================*/
 
-bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
+bool_t __GDD_DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
 {
     u32 buf[64 / 4];
     BITMAPHEADER_V4 *pBmp;
@@ -369,7 +369,7 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
             for (i = 0; i < h; i++)
             {
                 rd->pfReadData((u8*)bm->bm_bits, offset, line_bytes, rd->pData);
-                DrawBitmap(hdc, x, y + i, bm, 0,RopCode);
+                GDD_DrawBitmap(hdc, x, y + i, bm, 0,RopCode);
                 offset -= line_bytes;
             }
 
@@ -414,7 +414,7 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
             for (i = 0; i < h; i++)
             {
                 rd->pfReadData((u8*)bm->bm_bits, offset, line_bytes, rd->pData);
-                DrawBitmap(hdc, x, y + i, bm, 0,RopCode);
+                GDD_DrawBitmap(hdc, x, y + i, bm, 0,RopCode);
                 offset -= line_bytes;
             }
 
@@ -460,7 +460,7 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
             for (i = 0; i < h; i++)
             {
                 rd->pfReadData((u8*)bm->bm_bits, offset, line_bytes, rd->pData);
-                DrawBitmap(hdc, x, y + i, bm,0,RopCode);
+                GDD_DrawBitmap(hdc, x, y + i, bm,0,RopCode);
                 offset -= line_bytes;
             }
 
@@ -493,14 +493,14 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
         bm->ExColor =(ptu32_t)0;
 //      bm->bm_bits =malloc(line_bytes);
         bm->bm_bits =(u8*)rd->pData + bfOffsetBits;
-        DrawBitmap(hdc,x,y,bm,0,RopCode);
+        GDD_DrawBitmap(hdc,x,y,bm,0,RopCode);
 
 //      if(bm->bm_bits!=NULL)
 //      {
 //          for (i = 0; i < h; i++)
 //          {
 //              rd->pfReadData((u8*)bm->bm_bits,offset,line_bytes,rd->pData);
-//              DrawBitmap(hdc,x,y+i,bm,0,RopCode);
+//              GDD_DrawBitmap(hdc,x,y+i,bm,0,RopCode);
 //              offset -= line_bytes;
 //          }
 //
@@ -532,7 +532,7 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
         bm->linebytes =line_bytes;
         bm->ExColor =(ptu32_t)0;
         bm->bm_bits = rd->pData + bfOffsetBits;
-        DrawBitmap(hdc,x,y,bm,0,RopCode);
+        GDD_DrawBitmap(hdc,x,y,bm,0,RopCode);
 
 #if 0
         bm->bm_bits =malloc(line_bytes);
@@ -543,8 +543,8 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
             {
 
                 rd->pfReadData((u8*)bm->bm_bits,offset,line_bytes,rd->pData);
-                DrawBitmap(hdc,x,y+i,bm,0,RopCode);
-//                Djy_EventDelay(10*mS);//todo:
+                GDD_DrawBitmap(hdc,x,y+i,bm,0,RopCode);
+//                DJY_EventDelay(10*mS);//todo:
                 offset -= line_bytes;
             }
 
@@ -558,7 +558,7 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
 //          {
 //              bm->bm_bits = addr+(line_bytes*i);
 //              rd->pfReadData((u8*)bm->bm_bits,offset,line_bytes,rd->pData);
-//              DrawBitmap(hdc,x,y+i,bm,0,RopCode);
+//              GDD_DrawBitmap(hdc,x,y+i,bm,0,RopCode);
 //              offset -= line_bytes;
 //          }
 //          free(addr);
@@ -578,12 +578,12 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
 
 /*============================================================================*/
 
-bool_t DrawBMP(HDC hdc,s32 x,s32 y,const void *bmp_data)
+bool_t GDD_DrawBMP(HDC hdc,s32 x,s32 y,const void *bmp_data)
 {
     GUI_GET_DATA rd_data;
     rd_data.pData =bmp_data;
-    rd_data.pfReadData =__ReadDataFromMemory;
-    return __DrawBMP(hdc,x,y,&rd_data);
+    rd_data.pfReadData =__GDD_ReadDataFromMemory;
+    return __GDD_DrawBMP(hdc,x,y,&rd_data);
 }
 
 

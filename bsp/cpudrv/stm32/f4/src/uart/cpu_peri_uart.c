@@ -498,7 +498,7 @@ bool_t __uart_dma_timeout(bool_t sending)
     while((sending == true)&& (timeout > 0))//³¬Ê±
     {
         timeout--;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
     if(timeout == 0)
         return true;
@@ -574,7 +574,7 @@ u32 __UART_DMA_SendStart(u32 port)
 //        while((false == __UART_TxTranEmpty(Reg))&& (timeout > 0))
 //        {
 //            timeout--;
-//            Djy_DelayUs(1);
+//            DJY_DelayUs(1);
 //        }
 //        if(timeout == 0)
 //            break;
@@ -1072,7 +1072,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;
@@ -1082,7 +1082,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
     while((PutStrDirectReg->SR &(1<<6))!=(1<<6))
     {
         timeout -=10;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
         if(timeout < 10)
            break;
     }

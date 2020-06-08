@@ -477,7 +477,7 @@ static struct tagSocket * __udpsocket(int family, int type, int protocal)
             if((NULL != sock)&&(NULL != ucb))
             {
                 sock->ProtocolOps = &gUdpProto;
-                handle_SetMultiplexEvent(fd2Handle(sock->sockfd), CN_SOCKET_IOWRITE);
+                Handle_SetMultiplexEvent(fd2Handle(sock->sockfd), CN_SOCKET_IOWRITE);
 //              memset(sock, 0, sizeof(struct tagSocket));
 //              sock->SockSync = mutex_init(NULL);
                 //ok, now we got an port here
@@ -786,12 +786,12 @@ static int __udprecv(struct tagSocket *sock, void *buf,int len, unsigned int fla
             //if any data or could receive again
             if((ucb->rbuf.buflen > ucb->rbuf.triglevel)||(0 == (ucb->channelstat & CN_UDP_CHANNEL_STATARCV)))
             {
-                handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
                 semp_post(ucb->rbuf.bufsync);
             }
             else
             {
-                handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
             }
             mutex_unlock(sock->SockSync);
         }
@@ -879,12 +879,12 @@ static int __udprecvform(struct tagSocket *sock,void *buf, int len, unsigned int
             //if any data or could receive again
             if((ucb->rbuf.buflen > ucb->rbuf.triglevel)||(0 == (ucb->channelstat & CN_UDP_CHANNEL_STATARCV)))
             {
-                handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
                 semp_post(ucb->rbuf.bufsync);
             }
             else
             {
-                handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
             }
             mutex_unlock(sock->SockSync);
         }
@@ -1284,7 +1284,7 @@ static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, struct NetPkg *pkg, u32 devfunc)
                 __addpkg2rbuf(ucb,pkg);
                 if(ucb->rbuf.buflen > ucb->rbuf.triglevel)
                 {
-                    handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                    Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
                     semp_post(ucb->rbuf.bufsync);
                 }
             }

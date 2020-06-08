@@ -164,7 +164,7 @@ static void __IIC_GenerateStop(volatile tagI2CReg *reg)
 
     while((reg->IICSTAT & IICSTAT_BSY_MASK) && (timeout > 0))
     {
-        Djy_EventDelay(100);
+        DJY_EventDelay(100);
         timeout -= 100;
     }
 }
@@ -253,7 +253,7 @@ static bool_t __IIC_AckReceived(volatile tagI2CReg *Reg)
 
     while((!(Reg->IICCON & IICCON_INTPENDINGFLAG_MASK)) && (timeout > 0))
     {
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
         timeout -=1;
     }
     if(timeout == 0)
@@ -304,7 +304,7 @@ static bool_t __IIC_GenerateWriteStart(volatile tagI2CReg *Reg,
 
     while((Reg->IICSTAT & IICSTAT_BSY_MASK) &&(timeout > 0))    //check if busy
     {
-        Djy_EventDelay(100);
+        DJY_EventDelay(100);
         timeout -= 100;
     }
     if(timeout == 0)
@@ -377,7 +377,7 @@ static bool_t __IIC_GenerateReadStart( volatile tagI2CReg *Reg,
 
     while((Reg->IICSTAT & IICSTAT_BSY_MASK) &&(timeout > 0))    //check if busy
     {
-        Djy_EventDelay(100);
+        DJY_EventDelay(100);
         timeout -= 100;
     }
     if(timeout == 0)
@@ -439,7 +439,7 @@ static void __IIC_GenerateEnd(volatile tagI2CReg *Reg)
         return;
 
     __IIC_IntDisable(Reg);
-    Djy_EventDelay(100);
+    DJY_EventDelay(100);
     __IIC_GenerateStop(Reg);
 }
 

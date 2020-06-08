@@ -374,7 +374,7 @@ bool_t IpInit(void)
     bool_t ret = false;
 //    Ipv4Init();
     memset((void *)&gIpCtrl,0,sizeof(gIpCtrl));
-    ret= LinkPushRegister(EN_LINKPROTO_IPV4,__IpPushNew);
+    ret= Link_PushRegister(EN_LINKPROTO_IPV4,__IpPushNew);
     return ret;
 }
 

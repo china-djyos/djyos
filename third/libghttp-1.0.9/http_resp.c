@@ -106,7 +106,7 @@ http_resp_read_headers(http_resp *a_resp, http_trans_conn *a_conn)
     }
 
     /* start reading headers */
-    s64 startST = DjyGetSysTime();
+    s64 startST = DJY_GetSysTime();
     do
     {
         a_resp->header_state = http_resp_reading_header;
@@ -142,7 +142,7 @@ http_resp_reading_header_jump:
             a_conn->errstr = "Short read while reading http response headers";
             return HTTP_TRANS_ERR;
         }
-    } while ((l_done == 0) && ((DjyGetSysTime()-startST) < 5*1000*1000));
+    } while ((l_done == 0) && ((DJY_GetSysTime()-startST) < 5*1000*1000));
 
     /* parse out the response header */
     /* check to make sure that there's enough that came back */

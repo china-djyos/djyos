@@ -71,7 +71,7 @@ struct filesystem *pFileSystemTypes;
 // 返回：文件系统类型；未找到（NULL）；
 // 备注：
 // ============================================================================
-static struct filesystem *__findtype(const char *pType)
+static struct filesystem *File_FindType(const char *pType)
 {
     list_t *cur;
     struct filesystem *fs;
@@ -101,9 +101,9 @@ static struct filesystem *__findtype(const char *pType)
 // 返回：成功（0）；失败（-1）。已注册（1）；
 // 备注：
 // ============================================================================
-s32 regfs(struct filesystem *type)
+s32 File_RegisterFs(struct filesystem *type)
 {
-    if(__findtype(type->pType))
+    if(File_FindType(type->pType))
         return (1);
 
     if(!pFileSystemTypes)
@@ -129,7 +129,7 @@ s32 regfs(struct filesystem *type)
 // 返回：标准逻辑，查看接口说明；
 // 备注:
 // ============================================================================
-s32 __mount_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
+s32 __File_MountOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                        ptu32_t OpsArgs2, ptu32_t OpsArgs3)
 {
     struct FsCore *super;
@@ -141,7 +141,7 @@ s32 __mount_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     if((objcmd & CN_TARGET_IS_OBJ) && ((((u32)(*(u64*)OpsArgs2) & O_DIRECTORY) || (char*)OpsArgs3 != NULL)))
     {
         me = (struct Object *)opsTarget;
-        super = (struct FsCore *)obj_GetPrivate(me);
+        super = (struct FsCore *)OBJ_GetPrivate(me);
         MyOps = super->pFsType->fileOps;
         result = MyOps(opsTarget, objcmd, OpsArgs1, OpsArgs2, OpsArgs3);
     }
@@ -159,7 +159,7 @@ s32 __mount_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             {
                 hdl = (struct objhandle *)opsTarget;
                 me = hdl->HostObj;
-                super = (struct FsCore *)obj_GetPrivate(me);
+                super = (struct FsCore *)OBJ_GetPrivate(me);
                 MyOps = super->pFsType->fileOps;
                 result = MyOps(opsTarget, objcmd, OpsArgs1, OpsArgs2, OpsArgs3);
                 break;
@@ -182,7 +182,7 @@ s32 __mount_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 //      EntirePath，返回完整路径的buffer
 //返回：false = 失败，true = 成功
 //-----------------------------------------------------------------------------
-bool_t GetEntirePath(struct Object *BaseObject, char * PathTail, char * EntirePath,
+bool_t File_GetEntirePath(struct Object *BaseObject, char * PathTail, char * EntirePath,
                      u32 BufSize)
 {
     struct Object *current;
@@ -192,14 +192,14 @@ bool_t GetEntirePath(struct Object *BaseObject, char * PathTail, char * EntirePa
     s32 offset = BufSize;
     //这个循环，沿 BaseObject->parent 一直查到挂载点，并把各级 object->name指针保存
     //在 EntirePath 中，从 EntirePath 的后面往前存。
-    for(current = BaseObject; current != obj_root(); current = obj_parent(current))
+    for(current = BaseObject; current != OBJ_GetRoot(); current = OBJ_GetParent(current))
     {
         offset -= sizeof(void*);
         if(offset < 0)
             return false;
         objnum++;
         memcpy(EntirePath + offset, &current->name, sizeof(void*));
-        if(obj_GetOps(current) == __mount_ops)
+        if(OBJ_GetOps(current) == __File_MountOps)
             break;
     }
     //从 EntirePath 取出指针，把名字依序copy到 EntirePath 中。
@@ -236,12 +236,12 @@ bool_t GetEntirePath(struct Object *BaseObject, char * PathTail, char * EntirePa
 // 参数：hdl -- 对象句柄；
 // 返回：目录（1）；非目录（0）；
 // ============================================================================
-bool_t isDirectory(struct objhandle *hdl)
+bool_t File_IsDirectory(struct objhandle *hdl)
 {
 //    mode_t mymode;
 //    mymode = handle_GetHostObjectPrivate(hdl);
 //    return S_ISDIR(mymode);
-    return test_directory(hdl->flags);
+    return Handle_FlagIsDirectory(hdl->flags);
 }
 
 
@@ -250,9 +250,9 @@ bool_t isDirectory(struct objhandle *hdl)
 // 参数：obj，对象；
 // 返回：true = 是 mount 点，false = 不是
 // ============================================================================
-bool_t obj_isMount(struct Object *obj)
+bool_t File_ObjIsMount(struct Object *obj)
 {
-    if(obj_GetOps(obj) == __mount_ops)
+    if(OBJ_GetOps(obj) == __File_MountOps)
         return true;
     else
         return false;
@@ -267,26 +267,26 @@ bool_t obj_isMount(struct Object *obj)
 // 返回：成功（0）；失败（-1）；还未挂载到具体的媒体上去（-2）；
 // 备注：
 // ============================================================================
-s32 mountfs(const char *source, const char *target, const char *type, u32 opt, void *data)
+s32 File_Mount(const char *source, const char *target, const char *type, u32 opt, void *data)
 {
     struct filesystem *fstype;
     struct FsCore *super;
     struct Object *targetobj, *tmpobj;
     char *notfind;
 
-    fstype = __findtype(type);
+    fstype = File_FindType(type);
     if(!fstype)
     {
         debug_printf("fs","mount failed(cannot find type \"%s\")", type);
         return (-1);
     }
 
-    targetobj = obj_matchpath(target, &notfind);
+    targetobj = OBJ_MatchPath(target, &notfind);
     if(notfind)
     {
 #if 0
         // 未找到安装点
-        targetobj = obj_BuildTempPath(targetobj, notfind); // 建立安装点
+        targetobj = OBJ_BuildTempPath(targetobj, notfind); // 建立安装点
 #else
         return (-1); // 安装点必须准备好。
 #endif
@@ -298,18 +298,18 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
         super->pFsType = fstype;
         if(opt & MS_DIRECTMOUNT)
         {
-            obj_SetPrivate(targetobj, (ptu32_t)super);
+            OBJ_SetPrivate(targetobj, (ptu32_t)super);
             super->pTarget = targetobj;
             super->MountBak = NULL;
-            obj_DutyUp(targetobj);
+            OBJ_DutyUp(targetobj);
         }
         else
         {
-            tmpobj = obj_newprev(targetobj, __mount_ops, (ptu32_t)super, obj_name(targetobj));
-            obj_detach(targetobj);
+            tmpobj = OBJ_NewPrev(targetobj, __File_MountOps, (ptu32_t)super, OBJ_GetName(targetobj));
+            OBJ_Detach(targetobj);
             super->pTarget = tmpobj;
             super->MountBak = targetobj;
-            obj_DutyUp(tmpobj);
+            OBJ_DutyUp(tmpobj);
         }
         super->InstallWay = opt;
         super->Config = data;
@@ -325,34 +325,34 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
 // 返回：成功（0）；失败（-1）；还未挂载到具体的媒体上去（-2）；
 // 备注：
 // ============================================================================
-s32 unmountfs(const char *target, const char *type)
+s32 File_UnMount(const char *target, const char *type)
 {
     struct filesystem *fstype;
     struct Object *targetobj;
     struct FsCore *super;
     char *notfind;
 
-    fstype = __findtype(type);
+    fstype = File_FindType(type);
     if(!fstype)
     {
         debug_printf("fs","mount failed(cannot find type \"%s\")", type);
         return (-1);
     }
 
-    targetobj = obj_matchpath(target, &notfind);
+    targetobj = OBJ_MatchPath(target, &notfind);
     if(notfind)
     {
 #if 0
         // 未找到安装点
-        targetobj = obj_BuildTempPath(targetobj, notfind); // 建立安装点
+        targetobj = OBJ_BuildTempPath(targetobj, notfind); // 建立安装点
 #else
         return (-1); // 安装点必须准备好。
 #endif
     }
     else
     {
-        obj_DutyDown(targetobj);
-        super = (struct FsCore *)obj_GetPrivate(targetobj);
+        OBJ_DutyDown(targetobj);
+        super = (struct FsCore *)OBJ_GetPrivate(targetobj);
         super->pFsType->uninstall(super->Config);
         memset(super, 0, sizeof(*super));
         free(super);
@@ -367,7 +367,7 @@ s32 unmountfs(const char *target, const char *type)
 //      0 -- 成功;
 //备注:
 //-----------------------------------------------------------------------------
-s32 Format(const char *MountPath)
+s32 File_Format(const char *MountPath)
 {
     DIR *dir;
     s32 res = 0;
@@ -384,7 +384,7 @@ s32 Format(const char *MountPath)
         return (-1);
     hdl = (struct objhandle*)(dir->__fd); // 目录的上下文
     ob = hdl->HostObj;      // 目录的节点
-    if(!obj_isMount(ob))
+    if(!File_ObjIsMount(ob))
         return (-1);
     super = (struct FsCore*)ob->ObjPrivate;
     pFsType = super->pFsType;
@@ -399,7 +399,7 @@ s32 Format(const char *MountPath)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-void *corefs(struct Object *ob)
+void *File_Core(struct Object *ob)
 {
     struct FsCore *super;
     struct Object *parent;
@@ -407,18 +407,18 @@ void *corefs(struct Object *ob)
     if(!ob)
         return (NULL);
 
-//  if(!obj_isMount(ob)) // 对象不是集合点；
+//  if(!File_ObjIsMount(ob)) // 对象不是集合点；
 //  {
 //      ob = obj_set(ob); // 获取对象集合；
-//      if((!ob)&&(!obj_isMount(ob)))
+//      if((!ob)&&(!File_ObjIsMount(ob)))
 //          return (NULL); // 不是集合或者不存在；
 //  }
     parent = ob;
-    while( (!obj_isMount(parent)) && (parent != obj_root()))
+    while( (!File_ObjIsMount(parent)) && (parent != OBJ_GetRoot()))
     {
-        parent = obj_parent(parent);
+        parent = OBJ_GetParent(parent);
     }
-    super = (struct FsCore *)obj_GetPrivate(parent);
+    super = (struct FsCore *)OBJ_GetPrivate(parent);
     if(!super)
         return (NULL);
 
@@ -426,13 +426,13 @@ void *corefs(struct Object *ob)
 }
 
 // ============================================================================
-// 功能：把文件系统挂载到指定媒体上
+// 功能：判断文件目标文件系统是否有指定media，如果没有指定，则把文件系统安装到source上去
 // 参数：source -- 将要挂上文件系统的媒体，通常是一个设备名；
 //      target -- 文件系统所要挂载的目标对象；
 // 返回：
 // 备注：
 // ============================================================================
-void FsBeMedia(const char *source, const char *target)
+void File_BeMedia(const char *source, const char *target)
 {
     struct Object *srcobj,*targetobj;
     char *notfind;
@@ -443,17 +443,17 @@ void FsBeMedia(const char *source, const char *target)
     {
         return ;
     }
-    srcobj = obj_matchpath(source, &notfind);
+    srcobj = OBJ_MatchPath(source, &notfind);
     if(notfind)
     {
         return ;
     }
-    targetobj = obj_matchpath(target, &notfind);
+    targetobj = OBJ_MatchPath(target, &notfind);
     if(notfind)
     {
         return ;
     }
-    super = (struct FsCore *)obj_GetPrivate(targetobj);
+    super = (struct FsCore *)OBJ_GetPrivate(targetobj);
     if(!super->MediaDrv)
     {
         return ;        //如果没有找到媒体驱动则不挂载文件系统
@@ -466,7 +466,7 @@ void FsBeMedia(const char *source, const char *target)
     else
     {
         error_printf("fs","file system \"%s\" installed fail on \"%s\".",targetobj->name,srcobj->name);
-        obj_Delete(targetobj);
+        OBJ_Delete(targetobj);
     }
 
 }

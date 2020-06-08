@@ -173,7 +173,7 @@ ptu32_t __InitMB(void)
 // ============================================================================
 s32 Mb_CreateObject(void)
 {
-    if(obj_newchild(obj_root(), Mb_PoolObjOps, 0, "memory pool"))
+    if(OBJ_NewChild(OBJ_GetRoot(), Mb_PoolObjOps, 0, "memory pool"))
         return (0);
 
     return (-1);
@@ -359,7 +359,7 @@ bool_t Mb_DeletePool(struct MemCellPool *pool)
         inc_memory = temp;
     }
     dListRemove(&pool->List);
-//  if(!obj_Delete(&pool->memb_node))
+//  if(!OBJ_Delete(&pool->memb_node))
 //      return false;
     Mb_Free(s_ptPoolCtrl,pool);
     return true;
@@ -384,7 +384,7 @@ bool_t Mb_DeletePool_s(struct MemCellPool *pool)
         inc_memory = temp;
     }
     dListRemove(&pool->List);
-//  if(!obj_Delete(&pool->memb_node))
+//  if(!OBJ_Delete(&pool->memb_node))
 //      return false;
     return true;
 }

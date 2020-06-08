@@ -109,7 +109,7 @@ struct tagSocket *__Fd2Sock(s32 fd)
     struct tagSocket *sock;
 
     hdl = fd2Handle(fd);
-    sock = (struct tagSocket *)handle_context(hdl);
+    sock = (struct tagSocket *)Handle_GetContext(hdl);
     return sock;
 }
 
@@ -122,15 +122,15 @@ struct tagSocket *SocketBuild(void)
     {
         memset(sock, 0, sizeof(struct tagSocket));
         sock->SockSync = mutex_init(NULL);
-        SocketFile = handle_new( );
+        SocketFile = Handle_New( );
         if(SocketFile != NULL)
         {
-            handle_init(SocketFile, s_ptSocketObject, O_RDWR,(ptu32_t)sock);
+            Handle_Init(SocketFile, s_ptSocketObject, O_RDWR,(ptu32_t)sock);
             sock->sockfd = Handle2fd(SocketFile);
 //          sock = Handle2fd(SocketFile);
 //          sock->sockfd = sock;
 //          sock->ProtocolOps = ProtocolOps;
-//          handle_SetMultiplexEvent(SocketFile, sock->IoInitstat);
+//          Handle_SetMultiplexEvent(SocketFile, sock->IoInitstat);
         }
         else
         {
@@ -144,7 +144,7 @@ struct tagSocket *SocketBuild(void)
 
 bool_t SocketFree(struct tagSocket *sock)
 {
-    handle_Delete(fd2Handle(sock->sockfd));
+    Handle_Delete(fd2Handle(sock->sockfd));
     Mb_Free(s_ptSocketPool, sock);
     return true;
 }
@@ -176,16 +176,16 @@ s32 socket(s32 family, s32 type, s32 protocol)
             {
                 errno = EN_NEWLIB_NO_ERROR;
                 result = sock->sockfd;
-//              SocketFile = handle_new( );
+//              SocketFile = Handle_New( );
 //              SocketFile = OBJ_AddFile(s_ptSocketObject);
 //              if(SocketFile != NULL)
 //              {
-//                  handle_init(SocketFile, s_ptSocketObject, O_RDWR,(ptu32_t)sock);
-//                  handle_SetContext(SocketFile, (ptu32_t)sock);
+//                  Handle_Init(SocketFile, s_ptSocketObject, O_RDWR,(ptu32_t)sock);
+//                  Handle_SetContext(SocketFile, (ptu32_t)sock);
 //                  result = Handle2fd(SocketFile);
 //                  sock->sockfd = result;
 //                  sock->ProtocolOps = ProtocolOps;
-//                  handle_SetMultiplexEvent(fd2Handle(sock->sockfd), sock->IoInitstat);
+//                  Handle_SetMultiplexEvent(fd2Handle(sock->sockfd), sock->IoInitstat);
 //              }
 //              else
 //              {
@@ -804,7 +804,7 @@ bool_t sockallinfo(char *param)
     struct objhandle *Current = NULL;
     while(1)
     {
-        Current = obj_ForeachHandle(Current, s_ptSocketObject);
+        Current = OBJ_ForeachHandle(Current, s_ptSocketObject);
         if(Current != NULL)
             sockinfo(Handle2fd(Current), param);
         else
@@ -881,7 +881,7 @@ bool_t SocketInit(void)
         printf("%s:分配socket控制块内存不足\n\r",__FUNCTION__);
         goto EXIT_SOCKMEM;
     }
-    s_ptSocketObject = obj_newchild(obj_root(),Socket_ObjOps, 0, "socket");
+    s_ptSocketObject = OBJ_NewChild(OBJ_GetRoot(),Socket_ObjOps, 0, "socket");
     if(s_ptSocketObject == NULL)
     {
         printf("%s:创建socket文件失败\n\r",__FUNCTION__);

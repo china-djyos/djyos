@@ -69,7 +69,7 @@ typedef u32 size_t;     //todo,这里必须跟编译器的设置一致,不然memcpy等有问题。
 typedef s64 off_t;
 typedef s32 ssize_t;
 typedef s32 mode_t;
-void NULL_func(void);
+void DJY_NullFunc(void);
 
 #ifndef true
   #define true  1

@@ -201,7 +201,7 @@ void __DjyInitTick(void)
 //      周期,需要使用原子操作。
 //参数：无
 //返回：当前时钟
-//说明: 这是一个桩函数,被rtc.c文件的 DjyGetSysTime 函数调用
+//说明: 这是一个桩函数,被rtc.c文件的 DJY_GetSysTime 函数调用
 //-----------------------------------------------------------------------------
 s64 __DjyGetSysTime(void)
 {
@@ -226,7 +226,7 @@ s64 __DjyGetSysTime(void)
 // =============================================================================
 bool_t DjyPoweronTime(s64 *time)
 {
-    *time = DjyGetSysTime();
+    *time = DJY_GetSysTime();
     return true;
 }
 

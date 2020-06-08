@@ -71,13 +71,13 @@ extern "C" {
 /* Multiple bits are incorrect in the data and they cannot be corrected. */
 #define HAMMING_ERROR_MULTIPLE_BITS      3
 
-u16 crc16(u8 *buf, u32 len);
-u32 crc32(u8 *buf, u32 len);
-s32 crc32init(u32 *crc);
-s32 crc32run(u32 *crc, u8 *buf, u32 len);
-s32 crc32exit(u32 *crc);
-u32 hamming_verify_256x(u8 *data, u32 size, const u8 *code);
-void hamming_compute_256x(const u8 *data, u32 size, u8 *code);
+u16 CRC_16(u8 *buf, u32 len);
+u32 CRC_32(u8 *buf, u32 len);
+s32 CRC_32Init(u32 *crc);
+s32 CRC_32Run(u32 *crc, u8 *buf, u32 len);
+s32 CRC_32exit(u32 *crc);
+u32 ECC_HammingVerify256x(u8 *data, u32 size, const u8 *code);
+void ECC_HammingCompute256x(const u8 *data, u32 size, u8 *code);
 
 #ifdef __cplusplus
 }

@@ -20,12 +20,12 @@ _DEFUN (__adjust, (acc, dexp, sign),
 
   if (dexp > MAXE)
     {
-      Djy_SaveLastError(ERANGE);
+      DJY_SaveLastError(ERANGE);
       return (sign) ? -HUGE_VAL : HUGE_VAL;
     }
   else if (dexp < MINE)
     {
-      Djy_SaveLastError(ERANGE);
+      DJY_SaveLastError(ERANGE);
       return 0.0;
     }
 

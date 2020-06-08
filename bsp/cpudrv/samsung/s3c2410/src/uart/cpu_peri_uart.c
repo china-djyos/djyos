@@ -355,7 +355,7 @@ bool_t __UART_SendDirectly(struct UART_REG *Reg,u8 *send_buf,u32 len,u32 timeout
         while((false == __UART_TxTranEmpty(Reg))&& (timeout > 0))//超时或者发送缓冲为空时退出
         {
             timeout--;
-            Djy_DelayUs(1);
+            DJY_DelayUs(1);
         }
         if(timeout == 0)
             break;
@@ -775,7 +775,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(Reg))&& (timeout > 0))
         {
             timeout--;
-            Djy_DelayUs(1);
+            DJY_DelayUs(1);
         }
         if(timeout == 0)
             break;

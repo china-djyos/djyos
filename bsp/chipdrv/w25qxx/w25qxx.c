@@ -166,7 +166,7 @@ bool_t W25QXX_WaitBusy(void)
     {
         if(W25QXX_ReadSR(1, &sta) == false)
             return false;
-        Djy_EventDelay(1000);
+        DJY_EventDelay(1000);
 //        time ++;
 //        if(time > 5000)
 //        {
@@ -589,7 +589,7 @@ bool_t W25QXX_QspiEnable(void)
         else
             ret = false;
     }
-    Djy_EventDelay(20*1000);
+    DJY_EventDelay(20*1000);
     //写使能QSPI指令，地址为0，无数据，8位地址，无地址，单线传输指令，无空周期，0个字节数据
     if(QSPI_Send_CMD(W25X_EnterQPIMode,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE))
         W25QXX_QPI_MODE=1;              //标记QSPI模式
@@ -990,7 +990,7 @@ s32 w25qxx_SectorErase(u32 SectorNo)
 
     SPI_CsInactive(s_ptSpiPort);
 
-    Djy_EventDelay(400000);// 切出//延时切出.
+    DJY_EventDelay(400000);// 切出//延时切出.
 
     if((0 == Ret) && (__Done()))
     {
@@ -1035,7 +1035,7 @@ s32 w25qxx_BlkErase(u32 BlkNo)
 
     SPI_CsInactive(s_ptSpiPort);
 
-    Djy_EventDelay(1000000);// 切出//延时切出.
+    DJY_EventDelay(1000000);// 切出//延时切出.
 
     if((0 == Ret) && (__Done()))
     {
@@ -1076,7 +1076,7 @@ s32 w25qxx_ChipErase(void)
 
     SPI_CsInactive(s_ptSpiPort);
 
-    Djy_EventDelay(40000000);// 切出//延时切出.
+    DJY_EventDelay(40000000);// 切出//延时切出.
 
     if((0 == Ret) && (__Done()))
     {
@@ -1184,7 +1184,7 @@ s32 w25qxx_PageWrite(u32 PageNo, u8 *Data, u32 Flags)
 
     SPI_CsInactive(s_ptSpiPort);
 
-    Djy_EventDelay(3000);// 延时切出.
+    DJY_EventDelay(3000);// 延时切出.
 
     if(__Done())
         Ret = -2;// 未完成,写失败
@@ -1272,7 +1272,7 @@ s32 ModuleInstall_W25qxx(void)
         return (-2);
     }
 
-    dev_Create(Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip);// 设备接入"/dev"
+    Device_Create(Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip);// 设备接入"/dev"
 
     return (0);
 

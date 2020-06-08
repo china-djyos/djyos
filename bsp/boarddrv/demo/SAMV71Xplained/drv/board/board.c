@@ -161,7 +161,7 @@ bool_t Board_GpioInit(void)
     //硬件IO复位PHY芯片
     PIO_Configure(Gmac_Reset_Pin, PIO_LISTSIZE(Gmac_Reset_Pin));
     PIO_Clear(Gmac_Reset_Pin);
-    Djy_DelayUs(1000);
+    DJY_DelayUs(1000);
     PIO_Set(Gmac_Reset_Pin);
 
     //GMAC的IO引脚初始化

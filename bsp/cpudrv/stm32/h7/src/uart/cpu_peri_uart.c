@@ -880,7 +880,7 @@ char Uart_GetCharDirect(void)
     u8 result;
     while(HAL_OK != HAL_UART_Receive(GetCharDirectH,&result,1,0))
     {
-        Djy_EventDelay(500);
+        DJY_EventDelay(500);
     }
     return result;
 }

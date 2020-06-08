@@ -157,10 +157,10 @@ bool_t PHY_Init(void)
     ETH_MACConfigTypeDef MACConf;
     /* Set PHY IO functions */
     LAN8742_RegisterBusIO(&LAN8742, &LAN8742_IOCtx);
-    Djy_DelayUs(200*1000);
+    DJY_DelayUs(200*1000);
   /* Initialize the LAN8742 ETH PHY */
     LAN8742_Init(&LAN8742);
-    Djy_DelayUs(200*1000);
+    DJY_DelayUs(200*1000);
     PHYLinkState = LAN8742_GetLinkState(&LAN8742);
 
   /* Get link state */
@@ -257,7 +257,7 @@ void ModuleInstall_InitNet(void)   //static ip example
     }
 
 #else
-    if(DhcpAddClientTask(CFG_SELECT_NETCARD))
+    if(DHCP_AddClientTask(CFG_SELECT_NETCARD))
     {
        printk("%s:Add %s success\r\n",__FUNCTION__,CFG_SELECT_NETCARD);
     }

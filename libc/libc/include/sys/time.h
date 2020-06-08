@@ -107,23 +107,24 @@ struct tm
 extern char g_cTmWdays[][8];
 
 ptu32_t ModuleInstall_TM(ptu32_t para);
-s64 Tm_Time(s64 *ret);
+s64 Time_Time(s64 *ret);
 s64 Tm_TimeMs(s64 *ret);
-s64 Tm_TimeUs(s64 *ret);
-struct tm *Tm_GmTime(const s64 *time);
-struct tm *Tm_LocalTime(const s64 *time);
-struct tm *Tm_LocalTimeUs_r(const s64 *time_us,struct tm *result);
-struct tm *Tm_LocalTime_r(const s64 *time,struct tm *result);
+s64 Time_TimeUs(s64 *ret);
+struct tm *Time_GmTime(const s64 *time);
+struct tm *Time_GmTimeUs(const s64 *time);
+struct tm *Time_GmTimeUs_r(const s64 *time,struct tm *result);
+struct tm *Time_LocalTime(const s64 *time);
+struct tm *Time_LocalTimeUs_r(const s64 *time_us,struct tm *result);
+struct tm *Time_LocalTime_r(const s64 *time,struct tm *result);
 void Tm_IncSecond(u32 inc);
-void Tm_AscTime(struct tm *tm, char buf[]);
-void Tm_AscTimeMs(struct tm *tm, char buf[]);
+void Time_AscTime(struct tm *tm, char buf[]);
+void Time_AscTimeMs(struct tm *tm, char buf[]);
 void Tm_AscTimeuS(struct tm *tm, char buf[]);
 
-s64 Tm_MkTime(struct tm *dt);
-s64 Tm_MkTimeUs(struct tm *dt);
-extern int Tm_SetDateTimeStr(char *buf);
-void Tm_SetDateTime(struct tm *tm);
-struct tm *Tm_GmTime(const s64 *time);
+s64 Time_MkTime(struct tm *dt);
+s64 Time_MkTimeUs(struct tm *dt);
+extern int Time_SetDateTimeStr(char *buf);
+void Time_SetDateTime(struct tm *tm);
 
 bool_t Rtc_RegisterDev(fnRtc_GetTime gettimefunc,
         fnRtc_SetTime settimefunc);

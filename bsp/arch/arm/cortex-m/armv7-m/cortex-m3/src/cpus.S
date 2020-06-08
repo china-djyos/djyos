@@ -80,7 +80,7 @@
 __asm_reset_thread:
     ldr     r2,[r1,#4]          /* 取线程栈顶指针 */
     mov     r12,#0x01000000     /* xpsr的初始值 */
-    ldr     r3,=__Djy_VmEngine  /* 取线程引擎指针 */
+    ldr     r3,=__DJY_VmEngine  /* 取线程引擎指针 */
     stmfd   r2!,{r3,r12}        /* 存pc，xpsr */
     sub     r2,r2,#14*4         /* 后退14个寄存器,初始状态r0-r12中，除r0外均无意义， */
                                 /* __vm_engine函数不返回，lr也无意义 */
@@ -113,7 +113,7 @@ __asm_reset_thread:
 __asm_reset_switch:
     ldr     sp,[r2,#4]          /* 取老线程栈顶指针 */
     mov     r12,#0x01000000     /* xpsr的初始值 */
-    ldr     r11,=__Djy_VmEngine    /* 取线程引擎指针 */
+    ldr     r11,=__DJY_VmEngine    /* 取线程引擎指针 */
     push    {r11,r12}           /* 存pc,xpsr */
     sub     sp,sp,#14*4         /* 后退14个寄存器,初始状态r0-r12中，除r0外均无意义，
                                    __vm_engine函数不返回，lr也无意义，至此，完成老线程复位*/

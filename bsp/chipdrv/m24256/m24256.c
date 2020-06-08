@@ -162,7 +162,7 @@ u32 E2PROM_WritePage(u32 PageNo,u8 *pSrcBuf,u32 SrcLen)
     Addr = PageNo * CN_E2ROM_PAGE_SIZE;
     result = IIC_Write(pg_E2ROM_Dev,Addr,pSrcBuf,SrcLen,1,CN_E2ROM_OP_TIMEOUT);
 
-    Djy_EventDelay(CN_CHIP_WRITE_FINISHED_TIME);
+    DJY_EventDelay(CN_CHIP_WRITE_FINISHED_TIME);
     return result;
 }
 

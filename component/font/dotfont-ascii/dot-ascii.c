@@ -234,7 +234,7 @@ bool_t ModuleInstall_FontAscii8x8(void)
         return true;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-ascii","ascii 8x8 font install fail\n\r");
         return false;
     }
@@ -349,7 +349,7 @@ bool_t ModuleInstall_FontAscii8x16(void)
         return true;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-ascii","ascii 8x16 font install fail\n\r");
         return false;
     }
@@ -465,7 +465,7 @@ bool_t ModuleInstall_FontAscii6x12(void)
         return true;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-ascii","ascii 6x12 font install fail\n\r");
         return false;
     }
@@ -582,7 +582,7 @@ bool_t ModuleInstall_FontAscii12x24(void)
     }
     else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-ascii","ascii 12x24 font install fail\n\r");
         return false;
     }
@@ -699,7 +699,7 @@ bool_t ModuleInstall_FontAscii16x32(void)
     }
     else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-ascii","ascii 16x32 font install fail\n\r");
         return false;
     }

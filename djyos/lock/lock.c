@@ -133,10 +133,10 @@ struct MemCellPool *g_ptLockPool;  //信号量结构内存池头指针
 static struct dListNode s_tSempHead = {&s_tSempHead, &s_tSempHead};
 static struct dListNode s_tMutexHead = {&s_tMutexHead, &s_tMutexHead};
 
-extern void __Djy_EventReady(struct EventECB *event_ready);
-extern void __Djy_ResumeDelay(struct EventECB *delay_event);
-extern void __Djy_AddToDelay(u32 u32l_uS);
-extern void __Djy_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32 Status);
+extern void __DJY_EventReady(struct EventECB *event_ready);
+extern void __DJY_ResumeDelay(struct EventECB *delay_event);
+extern void __DJY_AddToDelay(u32 u32l_uS);
+extern void __DJY_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32 Status);
 
 void __Lock_ShowSemp(void);
 void __Lock_ShowMutex(void);
@@ -179,7 +179,7 @@ ptu32_t __InitLock(void)
 
     //特别提示：因安装lock模块时，文件系统还没有安装完成，不能用正常的过程创建
     //和打开mutex和semaphore文件。
-//    s_ptSempObject = obj_search_child(OBJ_GetRoot( ), "semaphore");
+//    s_ptSempObject = OBJ_SearchChild(OBJ_GetRoot( ), "semaphore");
 //    OBJ_SetOps(s_ptSempObject,Lock_SempObjOps);
 //  s_ptSempFp = OBJ_GetFirstFile(s_ptSempObject);
 #if 0
@@ -187,7 +187,7 @@ ptu32_t __InitLock(void)
 
 //    OBJ_SetPrivate(s_ptSempObject, (ptu32_t)&s_tSempHead);
 
-//    s_ptMutexObject = obj_search_child(OBJ_GetRoot( ), "mutex");
+//    s_ptMutexObject = OBJ_SearchChild(OBJ_GetRoot( ), "mutex");
 //    OBJ_SetOps(s_ptMutexObject,Lock_MutexObjOps);
 //  s_ptMutexFp = OBJ_GetFirstFile(s_ptMutexObject);
     dListInit(&s_tMutexHead);
@@ -213,10 +213,10 @@ ptu32_t __InitLock(void)
 // ============================================================================
 s32 Lock_CreateObject(void)
 {
-    if(!obj_newchild(obj_root(), (fnObjOps)Lock_MutexObjOps, 0, "mutex"))
+    if(!OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)Lock_MutexObjOps, 0, "mutex"))
         return (-1);
 
-    if(!obj_newchild(obj_root(), (fnObjOps)Lock_SempObjOps, 0, "semaphore"))
+    if(!OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)Lock_SempObjOps, 0, "semaphore"))
         return (-1);
 
     return (0);
@@ -320,10 +320,10 @@ void Lock_SempPost(struct SemaphoreLCB *semp)
             event->multi_previous = NULL;
         }
         if(event->event_status & CN_STS_SYNC_TIMEOUT)
-            __Djy_ResumeDelay(event);    //如果事件在超时等待队列中，取出
+            __DJY_ResumeDelay(event);    //如果事件在超时等待队列中，取出
         event->wakeup_from = CN_STS_WAIT_SEMP;
         event->event_status = CN_STS_EVENT_READY;
-        __Djy_EventReady(event);
+        __DJY_EventReady(event);
     }
     Int_RestoreAsynSignal();
 }
@@ -374,10 +374,10 @@ void Lock_SempExpand(struct SemaphoreLCB *semp, s32 Num)
                 event->multi_previous = NULL;
             }
             if(event->event_status & CN_STS_SYNC_TIMEOUT)
-                __Djy_ResumeDelay(event);    //如果事件在超时等待队列中，取出
+                __DJY_ResumeDelay(event);    //如果事件在超时等待队列中，取出
             event->wakeup_from = CN_STS_WAIT_SEMP;
             event->event_status = CN_STS_EVENT_READY;
-            __Djy_EventReady(event);
+            __DJY_EventReady(event);
             BlockingNum--;
             if((BlockingNum == 0) || (semp->semp_sync == NULL) )
             {
@@ -412,7 +412,7 @@ bool_t Lock_SempPend(struct SemaphoreLCB *semp,u32 timeout)
         g_ptEventRunning->error_no = EN_LOCK_PARA_ERROR;
         return false;
     }
-    sch = Djy_QuerySch();
+    sch = DJY_QuerySch();
     Int_SaveAsynSignal();
     if(semp->lamps_limit == -1)   //本信号量有无限多信号灯
     {
@@ -440,7 +440,7 @@ bool_t Lock_SempPend(struct SemaphoreLCB *semp,u32 timeout)
         return false;   //没有取得信号灯返回
     }
 
-    __Djy_AddRunningToBlock(&(semp->semp_sync),semp->sync_order,timeout,CN_STS_WAIT_SEMP);
+    __DJY_AddRunningToBlock(&(semp->semp_sync),semp->sync_order,timeout,CN_STS_WAIT_SEMP);
 
     Int_RestoreAsynSignal();  //恢复中断，将触发上下文切换
     //检查从哪里返回，是超时还是同步事件完成。
@@ -628,7 +628,7 @@ struct MutexLCB *Lock_MutexCreate_s( struct MutexLCB *mutex,const char *name)
     return mutex;
 }
 
-struct EventECB *__Djy_GetIdle(void);
+struct EventECB *__DJY_GetIdle(void);
 //----释放一个互斥量-----------------------------------------------------------
 //功能：释放互斥量，只有互斥量的拥有者才能释放互斥量。
 //参数：mutex,互斥量指针
@@ -656,7 +656,7 @@ void Lock_MutexPost(struct MutexLCB *mutex)
         }
     }
     if((mutex->owner != g_ptEventRunning)   //互斥量只能由拥有者释放
-        &&(mutex->owner != __Djy_GetIdle( ))) //考虑多事件调度开始前 pend 的互斥量
+        &&(mutex->owner != __DJY_GetIdle( ))) //考虑多事件调度开始前 pend 的互斥量
         return;
     Int_SaveAsynSignal();
     if(mutex->enable > 0)
@@ -686,13 +686,13 @@ void Lock_MutexPost(struct MutexLCB *mutex)
                 event->multi_previous = NULL;
             }
             if(event->event_status & CN_STS_SYNC_TIMEOUT)
-                __Djy_ResumeDelay(event);    //如果事件在超时等待队列中，取出
+                __DJY_ResumeDelay(event);    //如果事件在超时等待队列中，取出
             event->event_status = CN_STS_EVENT_READY;
             event->wakeup_from = CN_STS_WAIT_MUTEX;
 //          if( (mutex->prio_bak != CN_PRIO_INVALID)  //该互斥量发生了优先级继承
 //             ||(!Djy_IsEventPrioChanged(event->event_id))) //且无主动改变优先级
-            Djy_RestorePrio( );
-            __Djy_EventReady(event);
+            DJY_RestorePrio( );
+            __DJY_EventReady(event);
         }
     }
     Int_RestoreAsynSignal();
@@ -716,7 +716,7 @@ bool_t Lock_MutexPend(struct MutexLCB *mutex,u32 timeout)
     struct EventECB *pl_ecb;
     bool_t lamp,sch;
 
-    if(Djy_IsMultiEventStarted() == false)
+    if(DJY_IsMultiEventStarted() == false)
     {
         return true;        //如果调度还未开始则直接返回true
     }
@@ -752,7 +752,7 @@ bool_t Lock_MutexPend(struct MutexLCB *mutex,u32 timeout)
         mutex->enable++;
         return true;
     }
-    sch = Djy_QuerySch();
+    sch = DJY_QuerySch();
     Int_SaveAsynSignal();
     if(mutex->enable == 0)   //信号灯可用
     {
@@ -776,11 +776,11 @@ bool_t Lock_MutexPend(struct MutexLCB *mutex,u32 timeout)
         return false;   //没有取得互斥量返回
     }
 
-    __Djy_AddRunningToBlock(&(mutex->mutex_sync),CN_BLOCK_PRIO,timeout,CN_STS_WAIT_MUTEX);
+    __DJY_AddRunningToBlock(&(mutex->mutex_sync),CN_BLOCK_PRIO,timeout,CN_STS_WAIT_MUTEX);
 
     //下面看看是否要做优先级继承
     pl_ecb = mutex->owner;
-    Djy_RaiseTempPrio(pl_ecb->event_id);
+    DJY_RaiseTempPrio(pl_ecb->event_id);
     Int_RestoreAsynSignal();  //恢复中断，将触发上下文切换
     //检查从哪里返回，是超时还是同步事件完成。
     if(g_ptEventRunning->wakeup_from & CN_STS_SYNC_TIMEOUT)

@@ -183,7 +183,7 @@ void HAL_HCD_MspInit(HCD_HandleTypeDef *hhcd)
         for(;;)
         {
             if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13)) // TODO
-                Djy_EventDelay(100);
+                DJY_EventDelay(100);
             else
                 break;
         }
@@ -492,10 +492,10 @@ static USBH_StatusTypeDef __USBH_LL_ClosePipe(USBH_HandleTypeDef *phost, uint8_t
   *            @arg 1: PID_DATA
   * @param  pbuff: pointer to URB data
   * @param  length: length of URB data
-  * @param  do_ping: activate do ping protocol (for high speed only)
+  * @param  do_ping: activate do PING protocol (for high speed only)
   *          This parameter can be one of these values:
-  *           0: do ping inactive
-  *           1: do ping active
+  *           0: do PING inactive
+  *           1: do PING active
   * @retval USBH Status
   */
 static USBH_StatusTypeDef __USBH_LL_SubmitURB(USBH_HandleTypeDef *phost,
@@ -622,7 +622,7 @@ void __USBH_Delay(uint32_t Delay)
   osDelay(Delay);
 #else
   // HAL_Delay(Delay);
-  Djy_EventDelay(Delay);
+  DJY_EventDelay(Delay);
 #endif
 }
 #endif

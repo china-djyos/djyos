@@ -199,7 +199,7 @@ s32 strtol(const char * __restrict nptr, char **__restrict endptr, s32 base)
     }
     if (any < 0) {
         acc = neg ? LONG_MIN : LONG_MAX;
-        Djy_SaveLastError(ERANGE);
+        DJY_SaveLastError(ERANGE);
     } else if (neg)
         acc = -acc;
     if (endptr != 0)

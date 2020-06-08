@@ -27,47 +27,47 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     RECT rc,rc0;
     hwnd=pMsg->hwnd;
 
-    GetClientRect(hwnd,&rc0);
-    CreateButton("关闭",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,RectW(&rc0)-64,RectH(&rc0)-10,60,24,hwnd,ID_CLOSE,NULL,NULL);
+    GDD_GetClientRect(hwnd,&rc0);
+    Widget_CreateButton("关闭",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-10,60,24,hwnd,ID_CLOSE,NULL,NULL);
 
-    SetRect(&rc,0,10,107,190);
-    ClientToScreen(hwnd,(POINT*)&rc,2);
-    ScreenToWindow(hwnd,(POINT*)&rc,2);
-    hwndLB1=CreateListBox("列表框1",WS_CHILD|WS_BORDER|WS_VISIBLE|WS_CAPTION,
-                            rc.left,rc.top,RectW(&rc),RectH(&rc),
+    GDD_SetRect(&rc,0,10,107,190);
+    GDD_ClientToScreen(hwnd,(POINT*)&rc,2);
+    GDD_ScreenToWindow(hwnd,(POINT*)&rc,2);
+    hwndLB1=Widget_CreateListBox("列表框1",WS_CHILD|WS_BORDER|WS_VISIBLE|WS_CAPTION,
+                            rc.left,rc.top,GDD_RectW(&rc),GDD_RectH(&rc),
                             hwnd,ID_LISTBOX1,NULL,NULL);
-    CreateButton("-->",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,rc.right-50,rc.bottom+4,50,20,hwnd,ID_RIGHT,NULL,NULL);
+    Widget_CreateButton("-->",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,rc.right-50,rc.bottom+4,50,20,hwnd,ID_RIGHT,NULL,NULL);
 
-    OffsetRect(&rc,RectW(&rc)+8,0);
-    hwndLB2=CreateListBox("列表框2",WS_CHILD|WS_BORDER|WS_VISIBLE|WS_CAPTION,
-                        rc.left,rc.top,RectW(&rc),RectH(&rc),
+    GDD_OffsetRect(&rc,GDD_RectW(&rc)+8,0);
+    hwndLB2=Widget_CreateListBox("列表框2",WS_CHILD|WS_BORDER|WS_VISIBLE|WS_CAPTION,
+                        rc.left,rc.top,GDD_RectW(&rc),GDD_RectH(&rc),
                         hwnd,ID_LISTBOX2,NULL,NULL);
-    CreateButton("<--",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,rc.left,rc.bottom+4,50,20,hwnd,ID_LEFT,NULL,NULL);
+    Widget_CreateButton("<--",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,rc.left,rc.bottom+4,50,20,hwnd,ID_LEFT,NULL,NULL);
 
 
-    SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,0,(u32)"ListItem-0");
-    SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,1,(u32)"ListItem-1");
-    SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,2,(u32)"ListItem-2");
-    SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,3,(u32)"ListItem-3");
-    SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,4,(u32)"ListItem-4");
-    SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,5,(u32)"ListItem-5");
-    SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,6,(u32)"ListItem-6");
-    SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,7,(u32)"ListItem-7");
-    SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,8,(u32)"ListItem-8");
-    SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,9,(u32)"ListItem-9");
-    SendMessage(hwndLB1,MSG_ListBox_SETCURSEL,3,0);
+    GDD_SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,0,(u32)"ListItem-0");
+    GDD_SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,1,(u32)"ListItem-1");
+    GDD_SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,2,(u32)"ListItem-2");
+    GDD_SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,3,(u32)"ListItem-3");
+    GDD_SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,4,(u32)"ListItem-4");
+    GDD_SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,5,(u32)"ListItem-5");
+    GDD_SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,6,(u32)"ListItem-6");
+    GDD_SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,7,(u32)"ListItem-7");
+    GDD_SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,8,(u32)"ListItem-8");
+    GDD_SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,9,(u32)"ListItem-9");
+    GDD_SendMessage(hwndLB1,MSG_ListBox_SETCURSEL,3,0);
 
-    SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,0,(u32)"ListItem-10");
-    SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,1,(u32)"ListItem-11");
-    SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,2,(u32)"ListItem-12");
-    SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,3,(u32)"ListItem-13");
-    SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,4,(u32)"ListItem-14");
-    SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,5,(u32)"ListItem-15");
-    SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,6,(u32)"ListItem-16");
-    SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,7,(u32)"ListItem-17");
-    SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,8,(u32)"ListItem-18");
-    SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,9,(u32)"ListItem-19");
-    SendMessage(hwndLB2,MSG_ListBox_SETCURSEL,3,0);
+    GDD_SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,0,(u32)"ListItem-10");
+    GDD_SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,1,(u32)"ListItem-11");
+    GDD_SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,2,(u32)"ListItem-12");
+    GDD_SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,3,(u32)"ListItem-13");
+    GDD_SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,4,(u32)"ListItem-14");
+    GDD_SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,5,(u32)"ListItem-15");
+    GDD_SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,6,(u32)"ListItem-16");
+    GDD_SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,7,(u32)"ListItem-17");
+    GDD_SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,8,(u32)"ListItem-18");
+    GDD_SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,9,(u32)"ListItem-19");
+    GDD_SendMessage(hwndLB2,MSG_ListBox_SETCURSEL,3,0);
 
     timer = GDD_CreateTimer(hwnd,1,3000);
     GDD_StartTimer(timer);
@@ -103,31 +103,31 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
     {
         case ID_CLOSE:
             if(event==MSG_BTN_UP )
-                PostMessage(hwnd,MSG_CLOSE,0,0);
+                GDD_PostMessage(hwnd,MSG_CLOSE,0,0);
             break;
         case ID_RIGHT://-->
             if(event==MSG_BTN_UP )
                 {
                     char *buf;
                     int i_1,i_2,n;
-                    i_1 =SendMessage(hwndLB1,MSG_ListBox_GETCURSEL,0,0);//获取当前选中项
-                    i_2 =SendMessage(hwndLB2,MSG_ListBox_GETCURSEL,0,0);
+                    i_1 =GDD_SendMessage(hwndLB1,MSG_ListBox_GETCURSEL,0,0);//获取当前选中项
+                    i_2 =GDD_SendMessage(hwndLB2,MSG_ListBox_GETCURSEL,0,0);
 
                     if(i_1>=0)
                     {
-                        buf =(char*)malloc(SendMessage(hwndLB1,MSG_ListBox_GETTEXTLEN,i_1,0));
+                        buf =(char*)malloc(GDD_SendMessage(hwndLB1,MSG_ListBox_GETTEXTLEN,i_1,0));
                         if(buf!=NULL)
                         {
-                            SendMessage(hwndLB1,MSG_ListBox_GETTEXT,i_1,(u32)buf);//获取字符串
-                            SendMessage(hwndLB1,MSG_ListBox_DELSTRING,i_1,0);     //删除一个字符
-                            n=SendMessage(hwndLB1,MSG_ListBox_GETCOUNT,0,0);//所有项个数
+                            GDD_SendMessage(hwndLB1,MSG_ListBox_GETTEXT,i_1,(u32)buf);//获取字符串
+                            GDD_SendMessage(hwndLB1,MSG_ListBox_DELSTRING,i_1,0);     //删除一个字符
+                            n=GDD_SendMessage(hwndLB1,MSG_ListBox_GETCOUNT,0,0);//所有项个数
                             if((n-1)<i_1)   i_1--;
-                            SendMessage(hwndLB1,MSG_ListBox_SETCURSEL,i_1,0);     //设置当前选项
+                            GDD_SendMessage(hwndLB1,MSG_ListBox_SETCURSEL,i_1,0);     //设置当前选项
 
 
 
-                            SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,i_2,(u32)buf);//添加一个字符索引为
-                            SendMessage(hwndLB2,MSG_ListBox_SETCURSEL,i_2+1,0);     //设置当前选项
+                            GDD_SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,i_2,(u32)buf);//添加一个字符索引为
+                            GDD_SendMessage(hwndLB2,MSG_ListBox_SETCURSEL,i_2+1,0);     //设置当前选项
                             free(buf);
                         }
                      }
@@ -138,24 +138,24 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
                 {
                     char *buf;
                     int i_1,i_2,n;
-                    i_1 =SendMessage(hwndLB1,MSG_ListBox_GETCURSEL,0,0);//获取当前选中项
-                    i_2 =SendMessage(hwndLB2,MSG_ListBox_GETCURSEL,0,0);
+                    i_1 =GDD_SendMessage(hwndLB1,MSG_ListBox_GETCURSEL,0,0);//获取当前选中项
+                    i_2 =GDD_SendMessage(hwndLB2,MSG_ListBox_GETCURSEL,0,0);
 
                     if(i_2>=0)
                     {
-                        buf =(char*)malloc(SendMessage(hwndLB2,MSG_ListBox_GETTEXTLEN,i_2,0));
+                        buf =(char*)malloc(GDD_SendMessage(hwndLB2,MSG_ListBox_GETTEXTLEN,i_2,0));
                         if(buf!=NULL)
                         {
-                            SendMessage(hwndLB2,MSG_ListBox_GETTEXT,i_2,(u32)buf);//获取字符串
-                            SendMessage(hwndLB2,MSG_ListBox_DELSTRING,i_2,0);     //删除一个字符
-                            n=SendMessage(hwndLB2,MSG_ListBox_GETCOUNT,0,0);//所有项个数
+                            GDD_SendMessage(hwndLB2,MSG_ListBox_GETTEXT,i_2,(u32)buf);//获取字符串
+                            GDD_SendMessage(hwndLB2,MSG_ListBox_DELSTRING,i_2,0);     //删除一个字符
+                            n=GDD_SendMessage(hwndLB2,MSG_ListBox_GETCOUNT,0,0);//所有项个数
                             if((n-1)<i_2)   i_2--;
-                            SendMessage(hwndLB2,MSG_ListBox_SETCURSEL,i_2,0);     //设置当前选项
+                            GDD_SendMessage(hwndLB2,MSG_ListBox_SETCURSEL,i_2,0);     //设置当前选项
 
 
 
-                            SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,i_1,(u32)buf);//添加一个字符索引为
-                            SendMessage(hwndLB1,MSG_ListBox_SETCURSEL,i_1+1,0);     //设置当前选项
+                            GDD_SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,i_1,(u32)buf);//添加一个字符索引为
+                            GDD_SendMessage(hwndLB1,MSG_ListBox_SETCURSEL,i_1+1,0);     //设置当前选项
                             free(buf);
                         }
                      }
@@ -183,12 +183,12 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     HDC  hdc;
     RECT rc;
     hwnd =pMsg->hwnd;
-    hdc =BeginPaint(hwnd);
+    hdc =GDD_BeginPaint(hwnd);
 
-    GetClientRect(hwnd,&rc);
-    SetFillColor(hdc,RGB(200,200,200));
-    FillRect(hdc,&rc);
-    EndPaint(hwnd,hdc);
+    GDD_GetClientRect(hwnd,&rc);
+    GDD_SetFillColor(hdc,RGB(200,200,200));
+    GDD_FillRect(hdc,&rc);
+    GDD_EndPaint(hwnd,hdc);
 
     return true;
 }

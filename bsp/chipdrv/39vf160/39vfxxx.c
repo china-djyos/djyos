@@ -92,7 +92,7 @@ void __get_device_id(u16 *mft_id,u16 *device_id)
     Flash39VFxxxAddress[0x5555]=0xaa;
     Flash39VFxxxAddress[0x2aaa]=0x55;
     Flash39VFxxxAddress[0x5555]=0x90;
-    Djy_DelayUs(1);   // Tida Max 150ns for 39VF640XB
+    DJY_DelayUs(1);   // Tida Max 150ns for 39VF640XB
 
     *mft_id  = Flash39VFxxxAddress[0];
     *device_id  = Flash39VFxxxAddress[1];
@@ -100,7 +100,7 @@ void __get_device_id(u16 *mft_id,u16 *device_id)
     Flash39VFxxxAddress[0x5555]=0xaa;
     Flash39VFxxxAddress[0x2aaa]=0x55;
     Flash39VFxxxAddress[0x5555]=0xF0;
-    Djy_DelayUs(1);   // Tida Max 150ns for 39VF640XB
+    DJY_DelayUs(1);   // Tida Max 150ns for 39VF640XB
 
     return ;
 }
@@ -156,7 +156,7 @@ bool_t wait_end_39vfxxx(void)
         b=*Flash39VFxxxAddress;
         if(a==b)
             return(true);
-        Djy_DelayUs(100);   //延时100uS
+        DJY_DelayUs(100);   //延时100uS
     }
     return(false);  //若70毫秒内仍然不能完成查询，则出错
 }

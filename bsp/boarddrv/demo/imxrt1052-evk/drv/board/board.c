@@ -353,7 +353,7 @@ void Board_ETH_Gpio_Init(void)
     /* pull up the ENET_INT before RESET. */
     GPIO_WritePinOutput(GPIO1, 10, 1);
     GPIO_WritePinOutput(GPIO1, 9, 0);
-    Djy_EventDelay(1*mS);
+    DJY_EventDelay(1*mS);
     GPIO_WritePinOutput(GPIO1, 9, 1);
 }
 

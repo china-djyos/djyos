@@ -54,7 +54,7 @@ static char RichTextBox_temp_str[300];
 // 输出参数: 无。
 // 返回值  :获取到有效字符字节数。
 // =============================================================================
-static s16 __GetValidStrLen(char *str)
+static s16 __Widget_GetValidStrLen(char *str)
 {
     u8 cnt=0;
     char ch;
@@ -74,7 +74,7 @@ static s16 __GetValidStrLen(char *str)
 // 输出参数: 无。
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-static bool_t __GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
+static bool_t __Widget_GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
 {
     u16 cnt=0,chwidthsum=0;
     s16 str_len=0;
@@ -84,7 +84,7 @@ static bool_t __GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
     u32 wc;
     if(str==NULL)
         return false;
-    str_len=__GetValidStrLen(str);
+    str_len=__Widget_GetValidStrLen(str);
     if(str_len==-1)
         return false;
      //计算字符串中字符数
@@ -132,7 +132,7 @@ static bool_t __GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
 // 输出参数: 无
 // 返回值  :指定字符地址.
 // =============================================================================
-static s16 __CharToBytes(char *str,u8 num)
+static s16 __Widget_CharToBytes(char *str,u8 num)
 {
      u16 bytes=0;
      s16 str_len=0;
@@ -143,7 +143,7 @@ static s16 __CharToBytes(char *str,u8 num)
      struct Charset* cur_enc;
      if(str==NULL)
           return -1;
-     str_len=__GetValidStrLen(str);
+     str_len=__Widget_GetValidStrLen(str);
      if(str_len==-1)
         return -1;
      if(num==0)
@@ -187,7 +187,7 @@ static s16 __CharToBytes(char *str,u8 num)
 // 输出参数: 无。
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-static s32 RichTextBox_InsertChar(char *text,char *add,HWND hwnd)
+static s32 __Widget_RichTextBoxInsertChar(char *text,char *add,HWND hwnd)
 {
          u8 i,j;
          RichTextBox *pRTB;
@@ -195,8 +195,8 @@ static s32 RichTextBox_InsertChar(char *text,char *add,HWND hwnd)
          s16 str_len=0;
          s16 len=0;
          pRTB=hwnd->PrivateData;
-         str_len=__GetValidStrLen(text);
-         len=__CharToBytes(text,pRTB->CursorLoc);//此处修改字符串插入位置
+         str_len=__Widget_GetValidStrLen(text);
+         len=__Widget_CharToBytes(text,pRTB->CursorLoc);//此处修改字符串插入位置
          if(len==-1)
              len=0;
 
@@ -232,7 +232,7 @@ static s32 RichTextBox_InsertChar(char *text,char *add,HWND hwnd)
 // =============================================================================
 
 
-static s32 RichTextBox_LineFeed(char *text,HWND hwnd)
+static s32 __Widget_RichTextBoxLineFeed(char *text,HWND hwnd)
 {
          u8 i,j;
          s8 num=0;
@@ -241,7 +241,7 @@ static s32 RichTextBox_LineFeed(char *text,HWND hwnd)
          pRTB=hwnd->PrivateData;
 
 
-         str_len=__GetValidStrLen(text);
+         str_len=__Widget_GetValidStrLen(text);
 
          for(i=0,j=0;j<str_len;i++,j++,num++)
          {
@@ -270,7 +270,7 @@ static s32 RichTextBox_LineFeed(char *text,HWND hwnd)
 // 输出参数: 无。
 // 返回值  :字符像素总宽度.
 // =============================================================================
-static s16 __GetStrWidth(char *str,u16 idx)
+static s16 __Widget_GetStrWidth(char *str,u16 idx)
 {
     struct FontObj* cur_font;
     struct Charset* cur_enc;
@@ -280,7 +280,7 @@ static s16 __GetStrWidth(char *str,u16 idx)
     s16 str_len=0;
     if(str==NULL)
          return -1;
-    str_len=__GetValidStrLen(str);
+    str_len=__Widget_GetValidStrLen(str);
     if(str_len==-1)
          return -1;
     if(idx==0)
@@ -324,7 +324,7 @@ static s16 __GetStrWidth(char *str,u16 idx)
 // 输出参数: 无。
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-static bool_t __MoveCursor(HWND hwnd,u8 idx)
+static bool_t __Widget_MoveCursor(HWND hwnd,u8 idx)
 {
     //内部调用，无需进行参数检查
     RichTextBox *pRTB;
@@ -332,10 +332,10 @@ static bool_t __MoveCursor(HWND hwnd,u8 idx)
     RECT rc;
     u16 width;
     s32 x,y;
-    pRTB=(RichTextBox *)GetWindowPrivateData(hwnd);
+    pRTB=(RichTextBox *)GDD_GetWindowPrivateData(hwnd);
     if(pRTB==NULL)
         return false;
-    GetClientRectToScreen(hwnd,&rc);
+    GDD_GetClientRectToScreen(hwnd,&rc);
     str=RichTextBox_text;
     if(str==NULL)
         return false;
@@ -349,11 +349,11 @@ static bool_t __MoveCursor(HWND hwnd,u8 idx)
         x=rc.left+width+1;
     }
     y=pRTB->idheight;
-    Cursor_Move(x,y);
+    GDD_CursorMove(x,y);
 
-//    MoveWindow(g_CursorHwnd,x,y);
-    UpdateDisplay(hwnd);
-//  PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
+//    GDD_MoveWindow(g_CursorHwnd,x,y);
+    GDD_UpdateDisplay(hwnd);
+//  GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
     return true;
 }
 // =============================================================================
@@ -364,7 +364,7 @@ static bool_t __MoveCursor(HWND hwnd,u8 idx)
 // 输出参数: 无。
 // 返回值  :文本框中字符编号.
 // =============================================================================
-static s16 __FindIdx(HWND hwnd,u16 x,u16 y)
+static s16 __Widget_FindIdx(HWND hwnd,u16 x,u16 y)
 {
     char *str;
     RichTextBox *pRTB;
@@ -388,7 +388,7 @@ static s16 __FindIdx(HWND hwnd,u16 x,u16 y)
     str=RichTextBox_text;
     if(str==NULL)
         return -1;
-    pRTB=(RichTextBox *)GetWindowPrivateData(hwnd);
+    pRTB=(RichTextBox *)GDD_GetWindowPrivateData(hwnd);
 
 //计算每行高度
     cur_font = Font_GetCurFont();
@@ -417,9 +417,9 @@ static s16 __FindIdx(HWND hwnd,u16 x,u16 y)
 
 
 //计算坐标在第几行       (默认左对齐，水平居中)
-         GetClientRectToScreen(hwnd,&rc);
+         GDD_GetClientRectToScreen(hwnd,&rc);
          y0 =rc.top;
-         y0 += ((RectH(&rc)-(linenum*line_h)-((linenum-1)*line_h))/2)-(0.5*line_h);//初始高度定在第一行上移半行的地方
+         y0 += ((GDD_RectH(&rc)-(linenum*line_h)-((linenum-1)*line_h))/2)-(0.5*line_h);//初始高度定在第一行上移半行的地方
          for(line_count=1;line_count<=linenum;line_count++)
          {
              tmp=y0+(line_count*2)*line_h;//算上行间距，每行高度有两倍的字符高度 ，字一行，上下间距各半行
@@ -436,11 +436,11 @@ static s16 __FindIdx(HWND hwnd,u16 x,u16 y)
  //通过像素宽度计算坐标在那一行的第几个数
     if(pRTB==NULL)
         return -1;
-    __GetValidStrInfo(str,&chnum,NULL);
+    __Widget_GetValidStrInfo(str,&chnum,NULL);
 
     for(idx=id;idx<(id+numinline[line_count-1]);idx++)
     {
-        width=__GetStrWidth(str, idx)-__GetStrWidth(str, id);
+        width=__Widget_GetStrWidth(str, idx)-__Widget_GetStrWidth(str, id);
         tmp=rc.left+width;
         if(tmp>x)
         {
@@ -448,17 +448,17 @@ static s16 __FindIdx(HWND hwnd,u16 x,u16 y)
         }
     }
     val1=tmp-x;
-    width=__GetStrWidth(str, idx-1)-__GetStrWidth(str, id);
+    width=__Widget_GetStrWidth(str, idx-1)-__Widget_GetStrWidth(str, id);
     tmp=rc.left+width;
     val2=x-tmp;
     if(val1>val2)
     {
-        pRTB->idwidth=__GetStrWidth(str, idx-1)-__GetStrWidth(str, id);
+        pRTB->idwidth=__Widget_GetStrWidth(str, idx-1)-__Widget_GetStrWidth(str, id);
         return idx-1;
     }
     else
     {
-        pRTB->idwidth=__GetStrWidth(str, idx)-__GetStrWidth(str, id);
+        pRTB->idwidth=__Widget_GetStrWidth(str, idx)-__Widget_GetStrWidth(str, id);
         return idx;
     }
 }
@@ -470,7 +470,7 @@ static s16 __FindIdx(HWND hwnd,u16 x,u16 y)
 // 输出参数: 无。
 // 返回值  :成功返回true,失败则返回false。
 // =============================================================================
-static bool_t RichTextBox_TouchDown(struct WindowMsg *pMsg)
+static bool_t __Widget_RichTextBoxTouchDown(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     u32 loc,Style;;
@@ -484,12 +484,12 @@ static bool_t RichTextBox_TouchDown(struct WindowMsg *pMsg)
     str=RichTextBox_text;
     hwnd =pMsg->hwnd;
 
-    pRTB=(RichTextBox *)GetWindowPrivateData(hwnd);
+    pRTB=(RichTextBox *)GDD_GetWindowPrivateData(hwnd);
     if(pRTB==NULL)
         return false;
     //不可编辑的文本框(Lable不响应该事件)
 
-    __GetValidStrInfo(str,&chnum,&CharWidth);
+    __Widget_GetValidStrInfo(str,&chnum,&CharWidth);
     //在文本框上
     loc=pMsg->Param2;   //获取触摸点信息
     x=loc;
@@ -497,30 +497,30 @@ static bool_t RichTextBox_TouchDown(struct WindowMsg *pMsg)
     if(str==NULL)
     {
          pRTB->CursorLoc=0;
-        __MoveCursor(hwnd,0);
+        __Widget_MoveCursor(hwnd,0);
     }
     else
     {
-        ret=__GetValidStrInfo(str,NULL,&CharWidth);
-        GetWindowRect(hwnd,&rc);
+        ret=__Widget_GetValidStrInfo(str,NULL,&CharWidth);
+        GDD_GetWindowRect(hwnd,&rc);
         tmp=rc.left+CharWidth;
         if(x>tmp)
         {
             pRTB->CursorLoc=chnum;
-            __MoveCursor(hwnd,chnum);
+            __Widget_MoveCursor(hwnd,chnum);
         }
         else
         {
-           idx=__FindIdx(hwnd,x,y);
+           idx=__Widget_FindIdx(hwnd,x,y);
            pRTB->CursorLoc=idx;
-           __MoveCursor(hwnd,idx);
+           __Widget_MoveCursor(hwnd,idx);
         }
     }
-    SetWindowPrivateData(hwnd,(ptu32_t)pRTB);
+    GDD_SetWindowPrivateData(hwnd,(ptu32_t)pRTB);
 
-    Cursor_SetHost(hwnd);
+    GDD_CursorSetHost(hwnd);
 
-    SetFocusWindow(hwnd);
+    GDD_SetFocusWindow(hwnd);
 
     return true;
 }
@@ -531,7 +531,7 @@ static bool_t RichTextBox_TouchDown(struct WindowMsg *pMsg)
 // 输出参数: 无。
 // 返回值  :成功返回true,失败则返回false。
 // =============================================================================
-static ptu32_t RichTextBox_Notify(struct WindowMsg *pMsg)
+static ptu32_t __Widget_RichTextBoxNotify(struct WindowMsg *pMsg)
 {
         HWND hwnd;
         u16 event,id;
@@ -546,8 +546,8 @@ static ptu32_t RichTextBox_Notify(struct WindowMsg *pMsg)
         case ID_INSERT://换行
              if(event==CBN_SELECTED)
              {
-            RichTextBox_text=RichTextBox_InsertChar(RichTextBox_text,RichTextBox_add,hwnd);
-            InvalidateWindow(hwnd,FALSE);
+            RichTextBox_text=__Widget_RichTextBoxInsertChar(RichTextBox_text,RichTextBox_add,hwnd);
+            GDD_InvalidateWindow(hwnd,FALSE);
              }
             break;
 
@@ -560,7 +560,7 @@ static ptu32_t RichTextBox_Notify(struct WindowMsg *pMsg)
                 {
                     bColor =FALSE;
                 }
-            InvalidateWindow(hwnd,true);
+            GDD_InvalidateWindow(hwnd,true);
             break;
             default:break;
         }
@@ -574,7 +574,7 @@ static ptu32_t RichTextBox_Notify(struct WindowMsg *pMsg)
 // 输出参数: 无。
 // 返回值  :成功返回true,失败则返回false。
 // =============================================================================
-static ptu32_t RichTextBox_Create(struct WindowMsg *pMsg)
+static ptu32_t __Widget_RichTextBoxCreate(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     RECT rc0;
@@ -591,17 +591,17 @@ static ptu32_t RichTextBox_Create(struct WindowMsg *pMsg)
                 return false;
             memset(pRTB, 0, sizeof(RichTextBox));
             pRTB->cur_byte_idx=16;//此处修改每一排的字符数
-            SetWindowPrivateData(hwnd,(ptu32_t)pRTB);
+            GDD_SetWindowPrivateData(hwnd,(ptu32_t)pRTB);
         }
-    GetClientRect(hwnd,&rc0);
-//    Cursor_Init();
-    CreateButton("插入换行",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,RectW(&rc0)-64,RectH(&rc0)-60,60,24,hwnd,ID_INSERT,NULL,NULL);
-    CreateButton("改变颜色",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,RectW(&rc0)-64,RectH(&rc0)-30,60,24,hwnd,ID_COLOR,NULL,NULL);
+    GDD_GetClientRect(hwnd,&rc0);
+//    GDD_CursorInit();
+    Widget_CreateButton("插入换行",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-60,60,24,hwnd,ID_INSERT,NULL,NULL);
+    Widget_CreateButton("改变颜色",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-30,60,24,hwnd,ID_COLOR,NULL,NULL);
     return true;
 }
 
 //窗口背景擦除
-static ptu32_t RichTextBox_Erasebkgnd(struct WindowMsg *pMsg)
+static ptu32_t __Widget_RichTextBoxErasebkgnd(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     HDC  hdc;
@@ -609,9 +609,9 @@ static ptu32_t RichTextBox_Erasebkgnd(struct WindowMsg *pMsg)
 
     hwnd =pMsg->hwnd;
     hdc =(HDC)pMsg->Param1;
-    GetClientRect(hwnd,&rc0);
-    SetFillColor(hdc,RGB(200,200,200));
-    FillRect(hdc,&rc0);
+    GDD_GetClientRect(hwnd,&rc0);
+    GDD_SetFillColor(hdc,RGB(200,200,200));
+    GDD_FillRect(hdc,&rc0);
 
     return true;
 }
@@ -623,7 +623,7 @@ static ptu32_t RichTextBox_Erasebkgnd(struct WindowMsg *pMsg)
 // 输出参数: 无。
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-static ptu32_t RichTextBox_Paint(struct WindowMsg *pMsg)
+static ptu32_t __Widget_RichTextBoxPaint(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     HDC  hdc;
@@ -631,25 +631,25 @@ static ptu32_t RichTextBox_Paint(struct WindowMsg *pMsg)
     u32 i;
     hwnd =pMsg->hwnd;
 
-    hdc = BeginPaint(hwnd);
+    hdc = GDD_BeginPaint(hwnd);
     if(hdc == NULL)
         return false;
-    GetClientRect(hwnd,&rc0);
+    GDD_GetClientRect(hwnd,&rc0);
 
-    SetRect(&rc,2,2,RectW(&rc0)-2*2,RectH(&rc0)-10);
+    GDD_SetRect(&rc,2,2,GDD_RectW(&rc0)-2*2,GDD_RectH(&rc0)-10);
 
     if(bColor==true)
        {
-        SetFillColor(hdc,RGB(200,200,0));
+        GDD_SetFillColor(hdc,RGB(200,200,0));
        }
     else
-        SetFillColor(hdc,RGB(0,200,0));
+        GDD_SetFillColor(hdc,RGB(0,200,0));
 
-    FillRect(hdc,&rc);
+    GDD_FillRect(hdc,&rc);
 
-    SetTextColor(hdc,RGB(1,0,0));
-    SetDrawColor(hdc,RGB(255,255,255));
-//    SetFillColor(hdc,RGB(200,0,240));
+    GDD_SetTextColor(hdc,RGB(1,0,0));
+    GDD_SetDrawColor(hdc,RGB(255,255,255));
+//    GDD_SetFillColor(hdc,RGB(200,0,240));
 
     i=DT_LEFT|DT_VCENTER;
     if(bBorder)
@@ -660,10 +660,10 @@ static ptu32_t RichTextBox_Paint(struct WindowMsg *pMsg)
     {
         i |= DT_BKGND;
     }
-//    text=RichTextBox_InsertChar(text,add);
-    RichTextBox_text=RichTextBox_LineFeed(RichTextBox_text,hwnd);
-    DrawText(hdc,RichTextBox_text,-1,&rc,i);
-    EndPaint(hwnd,hdc);
+//    text=__Widget_RichTextBoxInsertChar(text,add);
+    RichTextBox_text=__Widget_RichTextBoxLineFeed(RichTextBox_text,hwnd);
+    GDD_DrawText(hdc,RichTextBox_text,-1,&rc,i);
+    GDD_EndPaint(hwnd,hdc);
 
     return true;
 }
@@ -675,17 +675,17 @@ static ptu32_t RichTextBox_Paint(struct WindowMsg *pMsg)
 //消息处理函数表
 static struct MsgProcTable s_gDrawTextMsgTable[] =
 {
-    {MSG_CREATE,RichTextBox_Create},         //主窗口创建消息
+    {MSG_CREATE,__Widget_RichTextBoxCreate},         //主窗口创建消息
 //    {MSG_TIMER,HmiTimer},           //定时器消息
-    {MSG_NOTIFY,RichTextBox_Notify},         //子控件发来的通知消息
-    {MSG_TOUCH_DOWN,RichTextBox_TouchDown},
-    {MSG_PAINT,RichTextBox_Paint},           //绘制消息
+    {MSG_NOTIFY,__Widget_RichTextBoxNotify},         //子控件发来的通知消息
+    {MSG_TOUCH_DOWN,__Widget_RichTextBoxTouchDown},
+    {MSG_PAINT,__Widget_RichTextBoxPaint},           //绘制消息
 //    {MSG_ERASEBKGND,HmiErasebkgnd}, ///窗口背景擦除; Param1:绘图上下文;
 };
 static struct MsgTableLink  s_gDrawTextDemoMsgLink;
 
 
-void    CreateRichTextBox(void)
+void    Widget_CreateRichTextBox(void)
 {
     s_gDrawTextDemoMsgLink.MsgNum = sizeof(s_gDrawTextMsgTable) / sizeof(struct MsgProcTable);
     s_gDrawTextDemoMsgLink.myTable = (struct MsgProcTable *)&s_gDrawTextMsgTable;

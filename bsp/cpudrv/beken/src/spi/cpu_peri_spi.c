@@ -179,7 +179,7 @@ bool_t SPI_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen, u32 recvoff)
                         REG_WRITE(SPI_DAT, sdata[i]);
                        break;
                     }
-                    Djy_EventDelay(2);
+                    DJY_EventDelay(2);
                 }
             }
             while(spi_read_rxfifo(&ch) == 1);
@@ -194,14 +194,14 @@ bool_t SPI_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen, u32 recvoff)
                 {
                     while(spi_write_txfifo(sdata[i]) == 0)
                     {
-                        Djy_EventDelay(2);
+                        DJY_EventDelay(2);
                     }
                 }
                 else if((i >= slen)&&(i < len_limit))
                 {
                     while(spi_write_txfifo(0xff) == 0)
                     {
-                        Djy_EventDelay(2);
+                        DJY_EventDelay(2);
                     }
                 }
 
@@ -210,7 +210,7 @@ bool_t SPI_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen, u32 recvoff)
 
                     while(spi_read_rxfifo(&ch) == 0)
                     {
-                        Djy_EventDelay(2);
+                        DJY_EventDelay(2);
                     }
                     rdata[i-recvoff] = ch;
                 }
@@ -218,7 +218,7 @@ bool_t SPI_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen, u32 recvoff)
                 {
                     while(spi_read_rxfifo(&ch) == 0)
                     {
-                        Djy_EventDelay(2);
+                        DJY_EventDelay(2);
                     }
                 }
             }

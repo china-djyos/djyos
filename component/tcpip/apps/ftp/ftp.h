@@ -151,10 +151,10 @@ typedef struct __FtpClient
     int          datalen;    //which means how many data in the buffer
     int          errcode;    //which means the last state
 }tagFtpClient;
-void FtpShowClient(tagFtpClient *client);
-int FtpRcvLine(int sock,u8 *buf,int len);
-int FtpConnect(struct in_addr *addr,u16 port);
-int FtpAccept(int s,struct in_addr *ipaddr,u16 *port);
+void FTP_ShowClient(tagFtpClient *client);
+int FTP_RcvLine(int sock,u8 *buf,int len);
+int FTP_Connect(struct in_addr *addr,u16 port);
+int FTP_Accept(int s,struct in_addr *ipaddr,u16 *port);
 
 
 #endif /* __FTP_H */

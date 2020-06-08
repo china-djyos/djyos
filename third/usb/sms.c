@@ -119,7 +119,7 @@ s32 __SMS_CheckResponse(s32 pHandle, char *pCommand, u8 bLogic)
                 return (-1);
             }
 
-            Djy_EventDelay(1000);
+            DJY_EventDelay(1000);
             continue;
         }
 
@@ -166,7 +166,7 @@ s32 __SMS_CheckResponse(s32 pHandle, char *pCommand, u8 bLogic)
                 return (-1);
             }
 
-            Djy_EventDelay(1000);
+            DJY_EventDelay(1000);
             continue;
         }
 
@@ -186,7 +186,7 @@ s32 __SMS_CheckResponse(s32 pHandle, char *pCommand, u8 bLogic)
 // ============================================================================
 u32 __SMS_Command(s32 pHandle, char *pCommand, u32 dwLen)
 {
-    // return (DevWrite(pHandle, (u8*)pCommand, dwLen, 0, 2000000));
+    // return (Device_Write(pHandle, (u8*)pCommand, dwLen, 0, 2000000));
     return (write(pHandle, (u8*)pCommand, dwLen));
 }
 
@@ -318,7 +318,7 @@ s32 SMS_Query(void)
 
     while(1)
     {
-        res = DevRead(handle, (u8*)&index[i], 1, 0, 0);
+        res = Device_Read(handle, (u8*)&index[i], 1, 0, 0);
         if(!res)
         {
             if(i)
@@ -331,7 +331,7 @@ s32 SMS_Query(void)
                 goto QUERY_EXIT;
             }
 
-            Djy_EventDelay(1000);
+            DJY_EventDelay(1000);
             continue;
         }
 
@@ -438,7 +438,7 @@ s32 SMS_Read(u8 bArgC, ...)
     responsed = 0;
     for(i = 0; i < 100; i++)
     {
-        // res = DevRead(handle, buf, len, 0, 100000);
+        // res = Device_Read(handle, buf, len, 0, 100000);
         res = read(handle, buf, len);
         if(res)
         {
@@ -549,7 +549,7 @@ s32 SMS_Write(u8 bArgC, ...)
         goto WRITE_EXIT;
     }
 
-    Djy_EventDelay(5000000);
+    DJY_EventDelay(5000000);
 
     if(__SMS_CheckResponse(handle, response[1], 0))
     {

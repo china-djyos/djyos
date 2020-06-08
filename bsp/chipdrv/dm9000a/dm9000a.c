@@ -202,7 +202,7 @@ static u16 __dm9000PhyRead(tagDm9000Dev *dm9000,int reg)
     /* Fill the phyxcer register into REG_0C */
     regwrite(dm9000,DM9000_EPAR, DM9000_PHY | reg);
     regwrite(dm9000,DM9000_EPCR, 0xc);  /* Issue phyxcer read command */
-    Djy_DelayUs(100);           /* Wait read complete */
+    DJY_DelayUs(100);           /* Wait read complete */
     val = (regread(dm9000,DM9000_EPDRH) << 8) | regread(dm9000,DM9000_EPDRL);
     regwrite(dm9000,DM9000_EPCR, 0x8);  /* Clear phyxcer read command */
 
@@ -224,14 +224,14 @@ static  void __dm9000Reset(tagDm9000Dev *dm9000)
         regwrite(dm9000,DM9000_NCR, DM9000_REG_RESET);
         do {
             DM9000_DBG("resetting the DM9000, 1st reset\r\n");
-            Djy_DelayUs(25);                            /* Wait at least 20 us */
+            DJY_DelayUs(25);                            /* Wait at least 20 us */
         } while (regread(dm9000,DM9000_NCR) & 1);
 
         regwrite(dm9000,DM9000_REG_NCR, 0x00);
         regwrite(dm9000,DM9000_REG_NCR, DM9000_REG_RESET);            /* 对 dm9000 进行软件重置 */
         do {
             DM9000_DBG("resetting the DM9000, 2nd reset\r\n");
-            Djy_DelayUs(25); /* Wait at least 20 us */
+            DJY_DelayUs(25); /* Wait at least 20 us */
         } while (regread(dm9000,DM9000_NCR) & 1);
 
         /* Check whether the ethernet controller is present */
@@ -353,7 +353,7 @@ static void __dm9000HardInit(tagDm9000Dev *dm9000)
             break;
         }
         timeout--;
-        Djy_EventDelay(1000);
+        DJY_EventDelay(1000);
     }
 
     if(timeout)
@@ -428,7 +428,7 @@ static bool_t __dm9000Snd(ptu32_t handle,struct NetPkg *pkg,u32 netdevtask)
             /* 检查 dm9000 是否还在传送中！若是等待直到传送结束 */
             while(regread(dm9000,DM9000_REG_TCR) & DM9000_TCR_SET)
             {
-                Djy_DelayUs (5);
+                DJY_DelayUs (5);
             }
 
             regwrite(dm9000,DM9000_ISR, IMR_PTM);
@@ -475,7 +475,7 @@ static bool_t __dm9000Snd(ptu32_t handle,struct NetPkg *pkg,u32 netdevtask)
             while ( !(regread(dm9000,DM9000_NSR) & (NSR_TX1END | NSR_TX2END)) ||
                 !(regread(dm9000,DM9000_ISR) & IMR_PTM) )
             {
-                Djy_DelayUs(1);
+                DJY_DelayUs(1);
                 if (!sndTimeout)
                 {
                     printk("transmission timeout\n");
@@ -568,14 +568,14 @@ static ptu32_t dm9000Rcv(void)
     struct NetPkg *pkg;
     tagDm9000Dev *dm9000;
 
-    Djy_GetEventPara((ptu32_t *)&dm9000,NULL);
+    DJY_GetEventPara((ptu32_t *)&dm9000,NULL);
     while(1)
     {
         Lock_SempPend(&dm9000->rcvsync,CN_DM9000RCV_TIMEOUT);
         while((pkg = __dm9000RcvPkg(dm9000))!= NULL)
         {
             dm9000dbg.RcvPkgCnt ++;
-            NetDevPush(dm9000->handle,pkg);
+            Link_NetDevPush(dm9000->handle,pkg);
             PkgTryFreePart(pkg);
         }
 
@@ -632,14 +632,14 @@ static bool_t __dm9000CreateDev(tagDm9000Dev *dm9000)
 
     Lock_MutexCreate_s(&dm9000->devsync,NULL);
     Lock_SempCreate_s(&dm9000->rcvsync,1,0,CN_BLOCK_FIFO,NULL);
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS-1, 0, 1,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS-1, 0, 1,
                             (ptu32_t (*)(void))dm9000Rcv,NULL, 0x1000, dm9000->devname);
     if(evttID == CN_EVTT_ID_INVALID)
     {
         goto EVTT_FAILED;
     }
 
-    eventID=Djy_EventPop(evttID, NULL, 0, (ptu32_t)dm9000, 0, 0);
+    eventID=DJY_EventPop(evttID, NULL, 0, (ptu32_t)dm9000, 0, 0);
     if(eventID == CN_EVENT_ID_INVALID)
     {
         goto EVENT_FAILED;
@@ -673,7 +673,7 @@ static bool_t __dm9000CreateDev(tagDm9000Dev *dm9000)
 DEV_FAILED:
     //do the unpop
 EVENT_FAILED:
-    Djy_EvttUnregist(evttID);
+    DJY_EvttUnregist(evttID);
 EVTT_FAILED:
     Lock_MutexDelete_s(&dm9000->devsync);
     Lock_SempDelete_s(&dm9000->rcvsync);

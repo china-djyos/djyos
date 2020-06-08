@@ -121,7 +121,7 @@ static struct MutexLCB s_tMsgQ_Mutex;
 //-----------------------------------------------------------------------------
 bool_t ModuleInstall_MsgQ (void)
 {
-    s_ptMsgQ_Dir = obj_newchild(obj_root(), (fnObjOps)-1, 0, "message queue");
+    s_ptMsgQ_Dir = OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)-1, 0, "message queue");
     if(!s_ptMsgQ_Dir)
     {
         error_printf("module","message queue");
@@ -149,7 +149,7 @@ struct MsgQueue *MsgQ_Create( s32 MaxMsgs,u32  MsgLength,u32 Options)
     MQ = M_Malloc(sizeof(struct MsgQueue)+MsgLength*MaxMsgs,0);
     if(MQ != NULL)
     {
-        MQ_Obj = obj_newchild(s_ptMsgQ_Dir, (fnObjOps)-1, (ptu32_t)MQ, NULL);
+        MQ_Obj = OBJ_NewChild(s_ptMsgQ_Dir, (fnObjOps)-1, (ptu32_t)MQ, NULL);
         if(MQ_Obj)
         {
             MQ->HostObj = MQ_Obj;
@@ -207,7 +207,7 @@ bool_t MsgQ_Delete(struct MsgQueue *pMsgQ)
         }
         else
         {
-            obj_Delete(pMsgQ->HostObj);          //删除信号量结点
+            OBJ_Delete(pMsgQ->HostObj);          //删除信号量结点
             Lock_SempDelete_s(&(pMsgQ->MsgSendSemp));
             Lock_SempDelete_s(&(pMsgQ->MsgRecvSemp));
             free(pMsgQ);

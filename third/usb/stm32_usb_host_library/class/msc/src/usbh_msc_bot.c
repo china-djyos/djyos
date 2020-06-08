@@ -345,7 +345,7 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process (USBH_HandleTypeDef *phost, uint8_t lun)
     
     if(URB_Status == USBH_URB_DONE)
     {
-       // TODO: Djy_EventDelay(1000);
+       // TODO: DJY_EventDelay(1000);
       /* Adjust Data pointer and data length */
       if(MSC_Handle->hbot.cbw.field.DataTransferLength > MSC_Handle->OutEpSize)
       {
@@ -429,7 +429,7 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process (USBH_HandleTypeDef *phost, uint8_t lun)
     /* Decode CSW */
     if(URB_Status == USBH_URB_DONE)
     {
-      // TODO: Djy_EventDelay(1000);
+      // TODO: DJY_EventDelay(1000);
       MSC_Handle->hbot.state = BOT_SEND_CBW;    
       MSC_Handle->hbot.cmd_state = BOT_CMD_SEND;        
       CSW_Status = USBH_MSC_DecodeCSW(phost);

@@ -629,7 +629,7 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,const char* HeapNam
     tg_lcd_display.draw.GetPixelFromScreen = __lcd_get_pixel_screen;
     tg_lcd_display.draw.GetRectFromScreen = __lcd_get_rect_screen;
 
-    tg_lcd_display.DisplayHeap = (struct HeapCB *)M_FindHeap(HeapName);
+    tg_lcd_display.DisplayHeap = (struct HeapCB *)Heap_FindHeap(HeapName);
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
     if(GK_InstallDisplay(&tg_lcd_display,(char*)DisplayName))

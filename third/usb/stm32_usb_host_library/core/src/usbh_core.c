@@ -405,13 +405,13 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
     {
     case HOST_IDLE :
 
-        Djy_EventDelay(1000000); // 1s跑一次，防止USB协议栈空闲是占用CPU太高
+        DJY_EventDelay(1000000); // 1s跑一次，防止USB协议栈空闲是占用CPU太高
         if (phost->device.is_connected) // set by the interrupt logic,即由硬件检测连线与断线
         {
             // Wait for 200 ms after connection
             phost->gState = HOST_DEV_WAIT_FOR_ATTACHMENT;
             // USBH_Delay(200); // 空函数
-            Djy_EventDelay(200);
+            DJY_EventDelay(200);
             USBH_LL_ResetPort(phost); // 端口复位,会使能端口，从而进一步触发端口使能变化中断
             #if (USBH_USE_OS == 1)
             osMessagePut ( phost->os_event, USBH_PORT_EVENT, 0);
@@ -428,7 +428,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
 
         // Wait for 100 ms after Reset
         USBH_Delay(100); // TODO
-        // Djy_EventDelay(100);
+        // DJY_EventDelay(100);
         phost->device.speed = USBH_LL_GetSpeed(phost);
 
         phost->gState = HOST_ENUMERATION;
@@ -617,7 +617,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
         break;
 
     case HOST_SUSPENDED :
-        Djy_EventDelay(1000000); // 1s跑一次，防止USB协议栈空闲是占用CPU太高
+        DJY_EventDelay(1000000); // 1s跑一次，防止USB协议栈空闲是占用CPU太高
 
     case HOST_ABORT_STATE: // 进入死循环
     default :

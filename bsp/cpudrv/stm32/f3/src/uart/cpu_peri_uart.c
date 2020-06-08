@@ -578,7 +578,7 @@ static void __UART_HardInit(u8 SerialNo)
     tg_UART_Reg[SerialNo]->CR2 = 0x0;
     tg_UART_Reg[SerialNo]->CR3 = 0x0000;
     __UART_BaudSet(tg_UART_Reg[SerialNo],SerialNo,115200);
-    Djy_DelayUs(100);//
+    DJY_DelayUs(100);//
     tg_UART_Reg[SerialNo]->ICR|=(1<<4);
     Board_UartHalfDuplexRecv(SerialNo);
 }
@@ -594,7 +594,7 @@ bool_t __uart_dma_timeout(bool_t sending)
     while((sending == true)&& (timeout > 0))//超时
     {
         timeout--;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
     if(timeout == 0)
         return true;
@@ -1186,7 +1186,7 @@ uint32_t UART_Poll_DmaTx_ISR(ptu32_t port)
 
     DMA_ClearIntFlag(UartDmaTxChannel[port]);
     s_UART_DmaSending[port] = false;
-    UART_Poll_PortRead(pUartCB[port]);
+    UART_PollPortRead(pUartCB[port]);
     //todo:为了提高切换的速度这里不判断TC中断完成
     //进IDLE中断的时间可满足4M波特率一个字节
     Board_UartHalfDuplexRecv(port);
@@ -1271,7 +1271,7 @@ uint32_t UART_Poll_DmaRx_ISR(ptu32_t port)
     }
 
     pUartPollCB[port]->RcvBufLen[RcvBufNum] = recvs;
-    num = UART_Poll_PortWrite(pUartCB[port],recvs);
+    num = UART_PollPortWrite(pUartCB[port],recvs);
     if(num != recvs)
     {
         UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
@@ -1509,7 +1509,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;
@@ -1519,7 +1519,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
     while((PutStrDirectReg->ISR &(1<<6))!=(1<<6))
     {
         timeout -=10;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
         if(timeout < 10)
            break;
     }

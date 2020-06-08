@@ -74,7 +74,7 @@ PORTABILITY
 {
     if(!finite(value)||value==0.0) return value;
     value = scalbn(value,exp);
-    if(!finite(value)||value==0.0) Djy_SaveLastError(ERANGE);
+    if(!finite(value)||value==0.0) DJY_SaveLastError(ERANGE);
     return value;
 }
 

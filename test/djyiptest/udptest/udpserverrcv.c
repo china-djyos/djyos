@@ -144,11 +144,11 @@ bool_t UdpServer_Rcv(void)
 bool_t UdpServer_RcvTask(char *param)
 {
    u16   evtt_id = CN_EVTT_ID_INVALID;
-   evtt_id = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1,
+   evtt_id = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1,
         (ptu32_t (*)(void))UdpServer_Rcv,NULL, 0x1000, "UdpServer_Rcv");
     if (evtt_id != CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(evtt_id, NULL, 0, NULL, 0, 0);
+        DJY_EventPop(evtt_id, NULL, 0, NULL, 0, 0);
     }
     return true;
 }

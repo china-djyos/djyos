@@ -61,10 +61,10 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
             n++;
     }
 
-    GetClientRect(hwnd,&rc0);
-    SetRect(&rc,RectW(&rc0)/(m*3+1),RectH(&rc0)/(n*3+1),\
-            (2*RectW(&rc0))/(m*3+1),(2*RectH(&rc0))/(n*3+1));
-    OffsetRect(&rc,0, RectH(&rc)/3);
+    GDD_GetClientRect(hwnd,&rc0);
+    GDD_SetRect(&rc,GDD_RectW(&rc0)/(m*3+1),GDD_RectH(&rc0)/(n*3+1),\
+            (2*GDD_RectW(&rc0))/(m*3+1),(2*GDD_RectH(&rc0))/(n*3+1));
+    GDD_OffsetRect(&rc,0, GDD_RectH(&rc)/3);
     num = 0;
     for(j=0;j<n;j++)
     {
@@ -73,15 +73,15 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
         {
             if(num == (sizeof(test_tab)/sizeof(struct Test_tab)))
                 return true;
-            CreateButton(test_tab[num].text,
+            Widget_CreateButton(test_tab[num].text,
                     WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,//按钮风格
-                    rc.left,rc.top,RectW(&rc),RectH(&rc),    //按钮位置和大小
+                    rc.left,rc.top,GDD_RectW(&rc),GDD_RectH(&rc),    //按钮位置和大小
                     hwnd,num,NULL,NULL);    //按钮所属的父窗口，ID,附加数据
             num++;
-            OffsetRect(&rc,(RectW(&rc)*3)/2,0);
+            GDD_OffsetRect(&rc,(GDD_RectW(&rc)*3)/2,0);
         }
         rc  = rc0;
-        OffsetRect(&rc,0,3*RectH(&rc)/2);
+        GDD_OffsetRect(&rc,0,3*GDD_RectH(&rc)/2);
     }
     return true;
 }
@@ -97,7 +97,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
     if(event==MSG_BTN_UP)
     {
         test_id = id;
-        PostMessage(hwnd,MSG_CLOSE,0,0);
+        GDD_PostMessage(hwnd,MSG_CLOSE,0,0);
     }
     return true;
 }
@@ -131,10 +131,10 @@ void gdd_test(void)
         else
             break;
     }
-    Desktop = GetDesktopWindow();
+    Desktop = GDD_GetDesktopWindow();
     GK_FillWin(Desktop->pGkWin,CN_COLOR_BLUE,0);
-    UpdateDisplay(hwnd);
-//  PostMessage(Desktop, MSG_SYNC_DISPLAY, 0, 0);
+    GDD_UpdateDisplay(hwnd);
+//  GDD_PostMessage(Desktop, MSG_SYNC_DISPLAY, 0, 0);
 
 }
 

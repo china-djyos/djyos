@@ -178,9 +178,9 @@ static void IIC_Start(u8 I2Cx)
     IIC_SetDaOut(I2Cx);     //sda线输出
     IIC_Sda(I2Cx,1);
     IIC_Scl(I2Cx,1);
-    Djy_DelayUs(4);
+    DJY_DelayUs(4);
     IIC_Sda(I2Cx,0);//START:when CLK is high,DATA change form high to low
-    Djy_DelayUs(4);
+    DJY_DelayUs(4);
     IIC_Scl(I2Cx,0);//钳住I2C总线，准备发送或接收数据
 }
 
@@ -194,10 +194,10 @@ static void IIC_Stop(u8 I2Cx)
     IIC_SetDaOut(I2Cx);//sda线输出
     IIC_Scl(I2Cx,0);
     IIC_Sda(I2Cx,0);//STOP:when CLK is high DATA change form low to high
-    Djy_DelayUs(4);
+    DJY_DelayUs(4);
     IIC_Scl(I2Cx,1);
     IIC_Sda(I2Cx,1);//发送I2C总线结束信号
-    Djy_DelayUs(4);
+    DJY_DelayUs(4);
 }
 
 // =============================================================================
@@ -210,13 +210,13 @@ static u8 IIC_Wait_Ack(u8 I2Cx)
     u8 ucErrTime=0;
     IIC_SetDaIn(I2Cx);      //SDA设置为输入
     IIC_Sda(I2Cx,1);
-    Djy_DelayUs(1);
+    DJY_DelayUs(1);
     IIC_Scl(I2Cx,1);
-    Djy_DelayUs(1);
+    DJY_DelayUs(1);
     while(IIC_ReadSda(I2Cx))
     {
         ucErrTime++;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
         if(ucErrTime>250)
         {
             IIC_Stop(I2Cx);
@@ -237,9 +237,9 @@ static void IIC_Ack(u8 I2Cx)
     IIC_Scl(I2Cx,0);
     IIC_SetDaOut(I2Cx);
     IIC_Sda(I2Cx,0);
-    Djy_DelayUs(2);
+    DJY_DelayUs(2);
     IIC_Scl(I2Cx,1);
-    Djy_DelayUs(2);
+    DJY_DelayUs(2);
     IIC_Scl(I2Cx,0);
 }
 
@@ -253,9 +253,9 @@ static void IIC_NAck(u8 I2Cx)
     IIC_Scl(I2Cx,0);
     IIC_SetDaOut(I2Cx);
     IIC_Sda(I2Cx,1);
-    Djy_DelayUs(2);
+    DJY_DelayUs(2);
     IIC_Scl(I2Cx,1);
-    Djy_DelayUs(2);
+    DJY_DelayUs(2);
     IIC_Scl(I2Cx,0);
 }
 
@@ -273,11 +273,11 @@ static void IIC_Send_Byte(u8 I2Cx,u8 txd)
     {
         IIC_Sda(I2Cx,(txd&0x80)>>7);
         txd<<=1;
-        Djy_DelayUs(2);   //对TEA5767这三个延时都是必须的
+        DJY_DelayUs(2);   //对TEA5767这三个延时都是必须的
         IIC_Scl(I2Cx,1);
-        Djy_DelayUs(2);
+        DJY_DelayUs(2);
         IIC_Scl(I2Cx,0);
-        Djy_DelayUs(2);
+        DJY_DelayUs(2);
     }
 }
 
@@ -293,12 +293,12 @@ static u8 IIC_Read_Byte(u8 I2Cx,unsigned char ack)
     for(i=0;i<8;i++ )
     {
         IIC_Scl(I2Cx,0);
-        Djy_DelayUs(2);
+        DJY_DelayUs(2);
         IIC_Scl(I2Cx,1);
         receive<<=1;
         if(IIC_ReadSda(I2Cx))
             receive++;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
     if (!ack)
         IIC_NAck(I2Cx);//发送nACK
@@ -380,7 +380,7 @@ static u32 __IIC_ReadPoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
     }
     buf[i] = IIC_Read_Byte(iic,0);
     IIC_Stop(iic);//产生一个停止条件
-    Djy_DelayUs(1000);
+    DJY_DelayUs(1000);
     return len;
 }
 
@@ -433,7 +433,7 @@ static u32 __IIC_WritePoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
         IIC_Wait_Ack(iic);
     }
     IIC_Stop(iic);//产生一个停止条件
-    Djy_DelayUs(1000);
+    DJY_DelayUs(1000);
     return len;
 }
 #pragma GCC diagnostic pop

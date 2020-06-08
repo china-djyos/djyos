@@ -374,13 +374,13 @@ bool_t ModuleInstall_NandInstallYaf(const char *TargetFs,s32 bstart, s32 bend, u
                     warning_printf("yaf2"," Format failure.");
                 }
             }
-            targetobj = obj_matchpath(TargetFs, &notfind);
+            targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
                 error_printf("nand"," not found need to install file system.");
                 return false;
             }
-            super = (struct FsCore *)obj_GetPrivate(targetobj);
+            super = (struct FsCore *)OBJ_GetPrivate(targetobj);
             if(strcmp(super->pFsType->pType, "YAF2") == 0)
             {
                 if(__nand_FsInstallInit(TargetFs,bstart,bend,&YAF_NAND_DRV) == 0)

@@ -2,14 +2,14 @@
 #include "DDRC.h"
 
 // =============================================================================
-// 函数功能:DdrcInit
+// 函数功能:CPU_DdrcInit
 //          DDRC的初始化
 // 输入参数:
 // 输出参数:无
 // 返回值  :
 // 说明    :667
 // =============================================================================
-void DdrcInit(void)
+void CPU_DdrcInit(void)
 {
    /* Chip select 0 registers initialization */
    /* CS0_BNDS */

@@ -54,7 +54,7 @@
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-.extern      __Djy_VmEngine
+.extern      __DJY_VmEngine
 .extern      Int_HalfEnableAsynSignal
 
 @注: psp并不保存在栈中，而是在vm->stack中!!
@@ -84,7 +84,7 @@ __asm_reset_thread:
     subs    r2,r2,#8
     ldr     r3,=0x01000000      @xpsr的初始值
     str     r3,[r2,#4]
-    ldr     r3,=__Djy_VmEngine @取虚拟机引擎指针
+    ldr     r3,=__DJY_VmEngine @取虚拟机引擎指针
     str     r3,[r2]
     subs    r2,r2,#14*4        @后退14个寄存器,初始状态r0-r12中，除r0外均无意义，
                                 @__vm_engine函数不返回，lr也无意义
@@ -118,7 +118,7 @@ __asm_reset_switch:
     ldr     r7,[r2,#4]          @取老虚拟机栈顶指针
     mov     sp,r7
     ldr     r7,=0x01000000      @xpsr的初始值
-    ldr     r6,=__Djy_VmEngine    @取虚拟机引擎指针
+    ldr     r6,=__DJY_VmEngine    @取虚拟机引擎指针
     push    {r6,r7}             @存pc,xpsr
     sub     sp,sp,#14*4         @后退14个寄存器,初始状态r0-r12中，除r0外均无意义，
                                 @__vm_engine函数不返回，lr也无意义

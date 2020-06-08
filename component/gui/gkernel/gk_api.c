@@ -101,13 +101,13 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
     struct GkscParaCreateDesktop para;
     struct GkWinObj *result = NULL;
     struct GkWinObj *desktop;
-    DisplayObject = obj_search_child(obj_root(), "display");         //取显示器目录
-    DisplayObject = obj_search_child(DisplayObject, DisplayName);    //取显示器对象
+    DisplayObject = OBJ_SearchChild(OBJ_GetRoot(), "display");         //取显示器目录
+    DisplayObject = OBJ_SearchChild(DisplayObject, DisplayName);    //取显示器对象
     desktop = malloc(sizeof(struct GkWinObj));
     if((NULL == DisplayObject) || (NULL == desktop))
         return result;
     memset(desktop, 0, sizeof(struct GkWinObj));
-    para.display = (struct DisplayObj *)obj_GetPrivate(DisplayObject);
+    para.display = (struct DisplayObj *)OBJ_GetPrivate(DisplayObject);
     para.desktop = desktop;
     para.name = (char *)DesktopName;
     para.width = width;
@@ -129,13 +129,13 @@ struct DisplayObj *GK_GetDisplay(const char *display_name)
 {
     struct DisplayObj *display = NULL;
     struct Object *DispObj;
-    DispObj = obj_search_child(obj_root( ),"display");
+    DispObj = OBJ_SearchChild(OBJ_GetRoot( ),"display");
     if(DispObj != NULL)
     {
-        DispObj = obj_search_child(DispObj,display_name);
+        DispObj = OBJ_SearchChild(DispObj,display_name);
         if(DispObj != NULL)
         {
-            display = (struct DisplayObj *)obj_GetPrivate(DispObj);
+            display = (struct DisplayObj *)OBJ_GetPrivate(DispObj);
         }
     }
     return display;
@@ -150,13 +150,13 @@ struct GkWinObj *GK_GetDesktop(const char *display_name)
 {
     struct DisplayObj *display = NULL;
     struct Object *DispObj;
-    DispObj = obj_search_child(obj_root( ),"display");
+    DispObj = OBJ_SearchChild(OBJ_GetRoot( ),"display");
     if(DispObj != NULL)
     {
-        DispObj = obj_search_child(DispObj,display_name);
+        DispObj = OBJ_SearchChild(DispObj,display_name);
         if(DispObj != NULL)
         {
-            display = (struct DisplayObj *)obj_GetPrivate(DispObj);
+            display = (struct DisplayObj *)OBJ_GetPrivate(DispObj);
         }
     }
     if(display != NULL)
@@ -350,7 +350,7 @@ void GK_DrawText(struct GkWinObj *gkwin,
     para.color = color;
     para.Rop2Code = Rop2Code;
     TextBytes = strlen(text);
-    TextBytes += GetEOC_Size(pCharset);
+    TextBytes += Charset_Get_EOC_Size(pCharset);
     __GK_SyscallChunnel(CN_GKSC_DRAW_TEXT,SyncTime,
                         &para,sizeof(para),(void*)text,TextBytes);
     return;
@@ -546,7 +546,7 @@ struct GkWinObj* GK_GetWinFromPt(struct GkWinObj *desktop,
             VisibleHead = VisibleClip;
             while(VisibleClip != NULL)
             {
-                if(PtInRect(&VisibleClip->rect,pt))
+                if(GDD_PtInRect(&VisibleClip->rect,pt))
                 {
                     result = current;
                     break;
@@ -583,8 +583,8 @@ struct GkWinObj* GK_GetTwig(struct GkWinObj *Ancestor)
 
     if(NULL == Ancestor)
         return NULL;
-    result = obj_twig(Ancestor->HostObj);
-    return (struct GkWinObj*)obj_GetPrivate(result);
+    result = OBJ_GetTwig(Ancestor->HostObj);
+    return (struct GkWinObj*)OBJ_GetPrivate(result);
 }
 
 //---遍历后代窗口--------------------------------------------------------------
@@ -599,8 +599,8 @@ struct GkWinObj* GK_TraveScion(struct GkWinObj *Ancestor,struct GkWinObj *Curren
 
     if((NULL == Ancestor) || (NULL == Current))
         return NULL;
-    result = obj_foreach_scion(Ancestor->HostObj, Current->HostObj);
-    return (struct GkWinObj*)obj_GetPrivate(result);
+    result = OBJ_ForeachScion(Ancestor->HostObj, Current->HostObj);
+    return (struct GkWinObj*)OBJ_GetPrivate(result);
 }
 
 //---遍历子窗口--------------------------------------------------------------
@@ -615,8 +615,8 @@ struct GkWinObj* GK_TraveChild(struct GkWinObj *Parent,struct GkWinObj *Current)
 
     if((NULL == Parent) || (NULL == Current))
         return NULL;
-    result = obj_foreach_child(Parent->HostObj, Current->HostObj);
-    return (struct GkWinObj*)obj_GetPrivate(result);
+    result = OBJ_ForeachChild(Parent->HostObj, Current->HostObj);
+    return (struct GkWinObj*)OBJ_GetPrivate(result);
 }
 
 //----过继窗口-----------------------------------------------------------------
@@ -864,7 +864,7 @@ void GK_SetUserTag(struct GkWinObj *gkwin,void *Tag)
 struct GkWinObj *GK_GetParentWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj*)obj_GetPrivate(obj_parent(gkwin->HostObj));
+        return (struct GkWinObj*)OBJ_GetPrivate(OBJ_GetParent(gkwin->HostObj));
     else
         return NULL;
 }
@@ -876,7 +876,7 @@ struct GkWinObj *GK_GetParentWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetChildWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_GetPrivate(obj_child(gkwin->HostObj));
+        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetChild(gkwin->HostObj));
     else
         return NULL;
 }
@@ -889,7 +889,7 @@ struct GkWinObj *GK_GetChildWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetPreviousWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_GetPrivate(obj_prev(gkwin->HostObj));
+        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetPrev(gkwin->HostObj));
     else
         return NULL;
 }
@@ -902,7 +902,7 @@ struct GkWinObj *GK_GetPreviousWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetNextWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_GetPrivate(obj_next(gkwin->HostObj));
+        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetNext(gkwin->HostObj));
     else
         return NULL;
 }
@@ -915,7 +915,7 @@ struct GkWinObj *GK_GetNextWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetFirstWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_GetPrivate(obj_head(gkwin->HostObj));
+        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetHead(gkwin->HostObj));
     else
         return NULL;
 }
@@ -928,7 +928,7 @@ struct GkWinObj *GK_GetFirstWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetLastWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_GetPrivate(obj_twig(gkwin->HostObj));
+        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetTwig(gkwin->HostObj));
     else
         return NULL;
 }

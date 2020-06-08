@@ -110,7 +110,7 @@ static  void zigbee_send_string(const char *str)
 static void  zigbee_ShowString(const char *buf)
 {
     memcpy(ZigBeeTextBuf,buf,256);
-    InvalidateWindow(hwndZigBee,TRUE);
+    GDD_InvalidateWindow(hwndZigBee,TRUE);
 }
 
 /*============================================================================*/
@@ -127,28 +127,28 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     memset(ZigBeeTimeBuf,0,sizeof(ZigBeeTimeBuf));
     hwndZigBee =hwnd;
     zigbee_ShowString("Zigbee Text");
-    GetClientRect(hwnd,&rc0);
-    ClientToScreen(hwnd,(POINT*)&rc0,2);
-    CreateButton("关闭",WS_BORDER|WS_DLGFRAME|WS_CHILD|BS_SIMPLE|WS_VISIBLE,rc0.left+4,rc0.top+100,56,56,hwnd,ID_CLOSE,NULL,NULL);
+    GDD_GetClientRect(hwnd,&rc0);
+    GDD_ClientToScreen(hwnd,(POINT*)&rc0,2);
+    Widget_CreateButton("关闭",WS_BORDER|WS_DLGFRAME|WS_CHILD|BS_SIMPLE|WS_VISIBLE,rc0.left+4,rc0.top+100,56,56,hwnd,ID_CLOSE,NULL,NULL);
 
-    SetRect(&rcZigBeeString,4,4,RectW(&rc0)-4*2,60);
+    GDD_SetRect(&rcZigBeeString,4,4,GDD_RectW(&rc0)-4*2,60);
 
     x=4;
-    y=RectH(&rc0)-70;
-    SetRect(&rcGroupBox_LED,x,y,100,66);
-    SetRect(&rcGroupBox_CTR,x+100+4,y,100,66);
+    y=GDD_RectH(&rc0)-70;
+    GDD_SetRect(&rcGroupBox_LED,x,y,100,66);
+    GDD_SetRect(&rcGroupBox_CTR,x+100+4,y,100,66);
 
     x=rcGroupBox_LED.left+12;
     y=rcGroupBox_LED.top+18;
-    CreateButton("LED1",WS_BORDER|WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+1*24+8,72,20,hwnd,ID_LED1,NULL,NULL);
-    CreateButton("LED2",WS_BORDER|WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+2*24+8,72,20,hwnd,ID_LED2,NULL,NULL);
+    Widget_CreateButton("LED1",WS_BORDER|WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+1*24+8,72,20,hwnd,ID_LED1,NULL,NULL);
+    Widget_CreateButton("LED2",WS_BORDER|WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+2*24+8,72,20,hwnd,ID_LED2,NULL,NULL);
 
     x=rcGroupBox_CTR.left+12;
     y=rcGroupBox_CTR.top+18;
-    CreateButton("组网",WS_BORDER|WS_CHILD|WS_VISIBLE,x,y+1*24+8,72,20,hwnd,ID_NET_ON,NULL,NULL);
-    CreateButton("断开",WS_BORDER|WS_CHILD|WS_VISIBLE,x,y+2*24+8,72,20,hwnd,ID_NET_OFF,NULL,NULL);
+    Widget_CreateButton("组网",WS_BORDER|WS_CHILD|WS_VISIBLE,x,y+1*24+8,72,20,hwnd,ID_NET_ON,NULL,NULL);
+    Widget_CreateButton("断开",WS_BORDER|WS_CHILD|WS_VISIBLE,x,y+2*24+8,72,20,hwnd,ID_NET_OFF,NULL,NULL);
 
-    CreateButton("发送",WS_BORDER|WS_CHILD|BS_SIMPLE|WS_VISIBLE,RectW(&rc0)-60,rcGroupBox_CTR.top-(24+2),56,24,hwnd,ID_SEND,NULL,NULL);
+    Widget_CreateButton("发送",WS_BORDER|WS_CHILD|BS_SIMPLE|WS_VISIBLE,GDD_RectW(&rc0)-60,rcGroupBox_CTR.top-(24+2),56,24,hwnd,ID_SEND,NULL,NULL);
 
     GDD_StartTimer(GDD_CreateTimer(hwnd,0,500));
 
@@ -162,7 +162,7 @@ static ptu32_t HmiTimer(struct WindowMsg *pMsg)
     hwnd =pMsg->hwnd;
     timer_500ms_count++;
     sprintf(ZigBeeTimeBuf,"TIME:%06d",timer_500ms_count);
-    InvalidateWindow(hwnd,FALSE);
+    GDD_InvalidateWindow(hwnd,FALSE);
     return true;
 }
 //控控件通知消息处理函数
@@ -207,7 +207,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
         case MSG_BTN_UP:    //按钮弹起
             if(id==ID_CLOSE)
             {
-                PostMessage(hwnd,MSG_CLOSE,0,0);
+                GDD_PostMessage(hwnd,MSG_CLOSE,0,0);
             }
 
             if(id==ID_LED1)
@@ -233,9 +233,9 @@ static ptu32_t HmiErasebkgnd(struct WindowMsg *pMsg)
     RECT rc;
     hwnd =pMsg->hwnd;
     hdc =pMsg->Param1;
-    GetClientRect(hwnd,&rc);
-    SetFillColor(hdc,RGB(150,150,150));
-    FillRect(hdc,&rc);
+    GDD_GetClientRect(hwnd,&rc);
+    GDD_SetFillColor(hdc,RGB(150,150,150));
+    GDD_FillRect(hdc,&rc);
     return true;
 }
 */
@@ -247,68 +247,68 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     RECT rc;
 
     hwnd =pMsg->hwnd;
-    hdc = BeginPaint(hwnd);
-    SetTextColor(hdc,RGB(0,0,128));
-    SetDrawColor(hdc,RGB(100,100,100));
-    DrawGroupBox(hdc,&rcZigBeeString,"信息接收区");
+    hdc = GDD_BeginPaint(hwnd);
+    GDD_SetTextColor(hdc,RGB(0,0,128));
+    GDD_SetDrawColor(hdc,RGB(100,100,100));
+    GDD_DrawGroupBox(hdc,&rcZigBeeString,"信息接收区");
 
     ////
-    SetRect(&rc,
+    GDD_SetRect(&rc,
             rcGroupBox_LED.left,
             rcGroupBox_LED.top-(24+2),
-            RectW(&rcGroupBox_LED),
+            GDD_RectW(&rcGroupBox_LED),
             24);
 
     if(zigbee_is_ok())
     {
-        SetTextColor(hdc,RGB(0,255,0));
-        SetDrawColor(hdc,RGB(0,200,0));
-        SetFillColor(hdc,RGB(0,128,0));
-        DrawText(hdc,"连接成功",-1,&rc,DT_CENTER|DT_VCENTER|DT_BORDER|DT_BKGND);
+        GDD_SetTextColor(hdc,RGB(0,255,0));
+        GDD_SetDrawColor(hdc,RGB(0,200,0));
+        GDD_SetFillColor(hdc,RGB(0,128,0));
+        GDD_DrawText(hdc,"连接成功",-1,&rc,DT_CENTER|DT_VCENTER|DT_BORDER|DT_BKGND);
 
     }
     else
     {
-        SetTextColor(hdc,RGB(255,0,0));
-        SetDrawColor(hdc,RGB(200,0,0));
-        SetFillColor(hdc,RGB(100,0,0));
+        GDD_SetTextColor(hdc,RGB(255,0,0));
+        GDD_SetDrawColor(hdc,RGB(200,0,0));
+        GDD_SetFillColor(hdc,RGB(100,0,0));
         if(timer_500ms_count&0x01)
         {
-            DrawText(hdc,"未连接",-1,&rc,DT_CENTER|DT_VCENTER|DT_BORDER|DT_BKGND);
+            GDD_DrawText(hdc,"未连接",-1,&rc,DT_CENTER|DT_VCENTER|DT_BORDER|DT_BKGND);
 
         }
         else
         {
-            DrawText(hdc," ",-1,&rc,DT_CENTER|DT_VCENTER|DT_BORDER|DT_BKGND);
+            GDD_DrawText(hdc," ",-1,&rc,DT_CENTER|DT_VCENTER|DT_BORDER|DT_BKGND);
         }
 
     }
 
     ////
-    SetRect(&rc,
+    GDD_SetRect(&rc,
             rcGroupBox_CTR.left,
             rcGroupBox_CTR.top-(24+2),
-            RectW(&rcGroupBox_CTR),
+            GDD_RectW(&rcGroupBox_CTR),
             24);
-    SetTextColor(hdc,RGB(0,255,255));
-    SetDrawColor(hdc,RGB(0,200,200));
-    SetFillColor(hdc,RGB(0,80,80));
-    DrawText(hdc,ZigBeeTimeBuf,-1,&rc,DT_CENTER|DT_VCENTER|DT_BORDER|DT_BKGND);
+    GDD_SetTextColor(hdc,RGB(0,255,255));
+    GDD_SetDrawColor(hdc,RGB(0,200,200));
+    GDD_SetFillColor(hdc,RGB(0,80,80));
+    GDD_DrawText(hdc,ZigBeeTimeBuf,-1,&rc,DT_CENTER|DT_VCENTER|DT_BORDER|DT_BKGND);
 
     ////
-    SetTextColor(hdc,RGB(0,255,0));
-    SetDrawColor(hdc,RGB(0,200,0));
-    SetFillColor(hdc,RGB(0,80,0));
+    GDD_SetTextColor(hdc,RGB(0,255,0));
+    GDD_SetDrawColor(hdc,RGB(0,200,0));
+    GDD_SetFillColor(hdc,RGB(0,80,0));
 
-    CopyRect(&rc,&rcZigBeeString);
-    InflateRectEx(&rc,-4,-20,-4,-4);
-    DrawText(hdc,ZigBeeTextBuf,-1,&rc,DT_LEFT|DT_VCENTER|DT_BORDER|DT_BKGND);
+    GDD_CopyRect(&rc,&rcZigBeeString);
+    GDD_InflateRectEx(&rc,-4,-20,-4,-4);
+    GDD_DrawText(hdc,ZigBeeTextBuf,-1,&rc,DT_LEFT|DT_VCENTER|DT_BORDER|DT_BKGND);
 
-    SetTextColor(hdc,RGB(0,0,128));
-    SetDrawColor(hdc,RGB(80,80,80));
-    DrawGroupBox(hdc,&rcGroupBox_LED,"LED控制");
-    DrawGroupBox(hdc,&rcGroupBox_CTR,"网络控制");
-    EndPaint(hwnd,hdc);
+    GDD_SetTextColor(hdc,RGB(0,0,128));
+    GDD_SetDrawColor(hdc,RGB(80,80,80));
+    GDD_DrawGroupBox(hdc,&rcGroupBox_LED,"LED控制");
+    GDD_DrawGroupBox(hdc,&rcGroupBox_CTR,"网络控制");
+    GDD_EndPaint(hwnd,hdc);
     return true;
 }
 

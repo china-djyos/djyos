@@ -14,11 +14,11 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
 
     hwnd=pMsg->hwnd;
 
-    GetClientRect(hwnd,&rc0);
+    GDD_GetClientRect(hwnd,&rc0);
    //创建一个按钮。
-    CreateButton("关闭",     //按钮名
+    Widget_CreateButton("关闭",     //按钮名
                  WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,    //按钮风格
-                 RectW(&rc0)/2,RectH(&rc0)/2-28,60,48,    //按钮位置和大小
+                 GDD_RectW(&rc0)/2,GDD_RectH(&rc0)/2-28,60,48,    //按钮位置和大小
                  hwnd,ID_CLOSE,NULL,NULL);   //按钮所属的父窗口，ID,附加数据
     return true;
 }
@@ -34,7 +34,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
 
     if(event==MSG_BTN_UP && id==ID_CLOSE)
     {
-        PostMessage(hwnd,MSG_CLOSE,0,0);
+        GDD_PostMessage(hwnd,MSG_CLOSE,0,0);
     }
     return true;
 }
@@ -44,13 +44,13 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     HWND hwnd;
     hwnd=pMsg->hwnd;
     HDC hdc;
-    hdc =BeginPaint(hwnd);  //开始绘图并获得绘图上下文(hdc)。
-    GetClientRect(hwnd,&rc0);           //获得窗口客户区矩形
-    SetFillColor(hdc,RGB(255,255,255)); //设置填充色。
-    FillRect(hdc,&rc0);                 //填充矩形。
-    SetTextColor(hdc,RGB(255,0,0));     //设置文字颜色。
-    TextOut(hdc,100,100,"Hello World!",-1);  //在客户区10,20的位置输出文字。
-    EndPaint(hwnd,hdc); //结束绘制并释放绘图上下文。
+    hdc =GDD_BeginPaint(hwnd);  //开始绘图并获得绘图上下文(hdc)。
+    GDD_GetClientRect(hwnd,&rc0);           //获得窗口客户区矩形
+    GDD_SetFillColor(hdc,RGB(255,255,255)); //设置填充色。
+    GDD_FillRect(hdc,&rc0);                 //填充矩形。
+    GDD_SetTextColor(hdc,RGB(255,0,0));     //设置文字颜色。
+    GDD_TextOut(hdc,100,100,"Hello World!",-1);  //在客户区10,20的位置输出文字。
+    GDD_EndPaint(hwnd,hdc); //结束绘制并释放绘图上下文。
     return true;
 
 }

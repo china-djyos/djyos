@@ -74,7 +74,7 @@ extern "C" {
 #define LBN_SELCHANGE   1   //当前选择项目补改变
 
 
-HWND CreateListBox(  const char *Text,u32 Style,
+HWND Widget_CreateListBox(  const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
                     HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink);

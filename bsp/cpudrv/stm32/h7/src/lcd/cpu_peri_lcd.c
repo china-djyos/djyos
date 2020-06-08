@@ -438,7 +438,7 @@ bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
     while((DMA2D->ISR&(1<<1))==0)   //等待传输完成
     {
       timeout+=10;
-      Djy_DelayUs(10);
+      DJY_DelayUs(10);
       if(timeout>lcd.Dma2dTimeOut)
       {
           flag=false;
@@ -729,7 +729,7 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,\
 
     struct HeapCB *heap;
     Ltdc_Lcd_Config(&lcd);
-    heap =M_FindHeap(HeapName);
+    heap =Heap_FindHeap(HeapName);
     if(heap==NULL)
         return NULL;
     //多申请64字节如果显存不是64字节对齐描点的时候会有闪屏的现象

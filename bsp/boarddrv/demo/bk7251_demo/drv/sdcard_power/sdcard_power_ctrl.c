@@ -130,7 +130,7 @@ void sdcard_power_off(void)
 void sdcard_reset(void)
 {
     sdcard_power_off();
-    Djy_EventDelay(3000*1000);
+    DJY_EventDelay(3000*1000);
     sdcard_power_on();
-    Djy_EventDelay(2000*1000);
+    DJY_EventDelay(2000*1000);
 }

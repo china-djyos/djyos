@@ -76,7 +76,7 @@ wctrans_t wctrans(const char * c)
     return WCT_TOUPPER;
   else
     {
-      Djy_SaveLastError(EINVAL);
+      DJY_SaveLastError(EINVAL);
       return 0;
     }
 }

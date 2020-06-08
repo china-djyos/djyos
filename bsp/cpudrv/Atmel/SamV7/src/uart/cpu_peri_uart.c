@@ -856,7 +856,7 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 //            while((false == __UART_TxTranEmpty(Reg))&& (timeout > 10))
 //            {
 //                timeout -=10;
-//                Djy_DelayUs(10);
+//                DJY_DelayUs(10);
 //            }
 //            Board_UartHalfDuplexRecv(Port);
 //            break;
@@ -1064,7 +1064,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len) )
             break;

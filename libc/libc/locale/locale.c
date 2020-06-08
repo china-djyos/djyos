@@ -267,7 +267,7 @@ char * _setlocale_r(int category, _CONST char *locale)
 
   if (category < LC_ALL || category >= _LC_LAST)
     {
-      Djy_SaveLastError(EINVAL);
+      DJY_SaveLastError(EINVAL);
       return NULL;
     }
 
@@ -292,7 +292,7 @@ char * _setlocale_r(int category, _CONST char *locale)
           env = __get_locale_env ( i);
           if (strlen (env) > ENCODING_LEN)
         {
-          Djy_SaveLastError(EINVAL);
+          DJY_SaveLastError(EINVAL);
           return NULL;
         }
           strcpy (new_categories[i], env);
@@ -303,7 +303,7 @@ char * _setlocale_r(int category, _CONST char *locale)
       env = __get_locale_env (category);
       if (strlen (env) > ENCODING_LEN)
         {
-          Djy_SaveLastError(EINVAL);
+          DJY_SaveLastError(EINVAL);
           return NULL;
         }
       strcpy (new_categories[category], env);
@@ -313,7 +313,7 @@ char * _setlocale_r(int category, _CONST char *locale)
   {
     if (strlen (locale) > ENCODING_LEN)
   {
-    Djy_SaveLastError(EINVAL);
+    DJY_SaveLastError(EINVAL);
     return NULL;
   }
     strcpy (new_categories[category], locale);
@@ -324,7 +324,7 @@ char * _setlocale_r(int category, _CONST char *locale)
     {
       if (strlen (locale) > ENCODING_LEN)
         {
-          Djy_SaveLastError(EINVAL);
+          DJY_SaveLastError(EINVAL);
           return NULL;
         }
       for (i = 1; i < _LC_LAST; ++i)
@@ -336,7 +336,7 @@ char * _setlocale_r(int category, _CONST char *locale)
         ;
       if (!r[1])
         {
-          Djy_SaveLastError(EINVAL);
+          DJY_SaveLastError(EINVAL);
           return NULL;  /* Hmm, just slashes... */
         }
       do
@@ -345,7 +345,7 @@ char * _setlocale_r(int category, _CONST char *locale)
         break;  /* Too many slashes... */
           if ((len = r - locale) > ENCODING_LEN)
         {
-          Djy_SaveLastError(EINVAL);
+          DJY_SaveLastError(EINVAL);
           return NULL;
         }
           strlcpy (new_categories[i], locale, len + 1);
@@ -383,7 +383,7 @@ char * _setlocale_r(int category, _CONST char *locale)
           loadlocale (j);
         }
         }
-      Djy_SaveLastError(saverr);
+      DJY_SaveLastError(saverr);
       return NULL;
     }
     }

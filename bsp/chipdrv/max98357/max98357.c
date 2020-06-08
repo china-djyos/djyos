@@ -242,7 +242,7 @@ void I2Sx_TX_DMA_Init(void)
 
       HAL_DMAEx_MultiBufferStart(&DmaHandle,(u32)gs_buf1,(u32)&(MAX98357_SPIX->DR),(u32)gs_buf2,CN_SINGLE_READ_LEN);
       __HAL_DMA_DISABLE(&DmaHandle);
-      Djy_DelayUs(100);
+      DJY_DelayUs(100);
 
       extern void DMA_IntEnable(DMA_Stream_TypeDef *DMA_Streamx,u8 SrcInt);
       DMA_IntEnable(MAX98357_DMAX_StreamX,DMA_INT_TCIE);    //使能传输完成中断
@@ -376,10 +376,10 @@ bool_t Audio_StartPlay(const char *filename)
     while((b_FileCloseFlag!=true) || (b_ReadCompleteFlag!=true)||(b_DMACloseFlag!=true))
     {
         num++;
-        Djy_EventDelay( 1 * mS );
+        DJY_EventDelay( 1 * mS );
     }
 
-    Djy_EventDelay( 1 * mS );
+    DJY_EventDelay( 1 * mS );
 
     struct stat FileInfo = {0};
     if(filename==NULL)
@@ -493,15 +493,15 @@ ptu32_t ModuleInstall_MAX98357(void)
     gs_ptMax98357MsgQ=MsgQ_Create(1,1,CN_MSGQ_TYPE_FIFO);
     if(gs_ptMax98357MsgQ==NULL)
         return false;
-    evtt_id = Djy_EvttRegist(EN_CORRELATIVE,10,0,0,__WaveReadHandle,
+    evtt_id = DJY_EvttRegist(EN_CORRELATIVE,10,0,0,__WaveReadHandle,
             gs_WaveReadStack,sizeof(gs_WaveReadStack),"wave read function");
     if(evtt_id!=CN_EVTT_ID_INVALID)
     {
-       event_id=Djy_EventPop(evtt_id,NULL,0,NULL,0,0);
+       event_id=DJY_EventPop(evtt_id,NULL,0,NULL,0,0);
     }
     else
     {
-        Djy_EvttUnregist(evtt_id);
+        DJY_EvttUnregist(evtt_id);
         printf("wave read evtt pop failed.\r\n");
     }
     return 1;

@@ -101,12 +101,12 @@ ptu32_t Pipe_ModuleInit(ptu32_t para)
     para = para;        //消除编译器告警
     s_pPipeParentDevice = Driver_DevAddDevice( Driver_DevGetRootDevice(),"pipe",
                                  NULL,NULL,      //无信号量保护
-                                 (devWriteFunc) NULL_func ,
-                                 (devReadFunc ) NULL_func,
-                                 (devCtrlFunc ) NULL_func ,
-                                 (devWriteFunc ) NULL_func ,
-                                 (devReadFunc  ) NULL_func ,
-                                 (devCtrlFunc  ) NULL_func,
+                                 (devWriteFunc) DJY_NullFunc ,
+                                 (devReadFunc ) DJY_NullFunc,
+                                 (devCtrlFunc ) DJY_NullFunc ,
+                                 (devWriteFunc ) DJY_NullFunc ,
+                                 (devReadFunc  ) DJY_NullFunc ,
+                                 (devCtrlFunc  ) DJY_NullFunc,
                                  (ptu32_t)NULL   //key设备私有数据
                                  );
     if(s_pPipeParentDevice == NULL)

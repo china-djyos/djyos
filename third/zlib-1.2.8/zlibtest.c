@@ -80,7 +80,7 @@ void ZlibCmpandUncmpTestMain(void)
 				{
 					if(*tmp1 != *tmp2)
 					{
-						Djy_EventDelay(1000*mS);
+						DJY_EventDelay(1000*mS);
 						printk("%s:error: %d: src = %02d, uncmp = %02d\n\r",\
 								__FUNCTION__,i,*(u8 *)tmp1, *(u8*)tmp2);
 					}
@@ -109,7 +109,7 @@ void ZlibCmpandUncmpTestMain(void)
 
 	while(1)
 	{
-		Djy_EventDelay(1000*mS);
+		DJY_EventDelay(1000*mS);
 	}
 	return;
 }
@@ -118,10 +118,10 @@ void ZlibCmpandUncmpTestMain(void)
 void ZlibCmpandUncmpTest(void)
 {
 	u16 evtt;
-	evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,\
+	evtt = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,\
 					      ZlibCmpandUncmpTestMain,NULL,0x1000,\
                           "ZlibCmpandUncmpTestMain");
-    Djy_EventPop(evtt,NULL,0,NULL,0,0);
+    DJY_EventPop(evtt,NULL,0,NULL,0,0);
 }
 
 

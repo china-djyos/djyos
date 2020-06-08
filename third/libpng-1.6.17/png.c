@@ -102,7 +102,7 @@ void /* PRIVATE */
 png_reset_crc(png_structrp png_ptr)
 {
    /* The cast is safe because the crc is a 32 bit value. */
-   png_ptr->crc = (png_uint_32)crc32(0, Z_NULL, 0);
+   png_ptr->crc = (png_uint_32)CRC_32(0, Z_NULL, 0);
 }
 
 /* Calculate the CRC over a section of data.  We can only pass as
@@ -145,7 +145,7 @@ png_calculate_crc(png_structrp png_ptr, png_const_bytep ptr, png_size_t length)
             safe_length = (uInt)-1; /* evil, but safe */
 #endif
 
-         crc = crc32(crc, ptr, safe_length);
+         crc = CRC_32(crc, ptr, safe_length);
 
          /* The following should never issue compiler warnings; if they do the
           * target system has characteristics that will probably violate other
@@ -2294,8 +2294,8 @@ png_compare_ICC_profile_with_sRGB(png_const_structrp png_ptr,
 #              if PNG_sRGB_PROFILE_CHECKS > 1
                   if (crc == 0)
                   {
-                     crc = crc32(0, NULL, 0);
-                     crc = crc32(crc, profile, length);
+                     crc = CRC_32(0, NULL, 0);
+                     crc = CRC_32(crc, profile, length);
                   }
 
                   /* So this check must pass for the 'return' below to happen.

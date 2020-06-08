@@ -540,7 +540,7 @@ __get_page(hashp, p, bucket, is_bucket, is_disk, is_bitmap)
         bp[0] = 0;  /* We hit the EOF, so initialize a new page */
     else
         if (rsize != size) {
-            Djy_SaveLastError(EFTYPE);
+            DJY_SaveLastError(EFTYPE);
             return (-1);
         }
     if (!is_bitmap && !bp[0]) {
@@ -608,7 +608,7 @@ __put_page(hashp, p, bucket, is_bucket, is_bitmap)
         /* Errno is set */
         return (-1);
     if (wsize != size) {
-        Djy_SaveLastError(EFTYPE);
+        DJY_SaveLastError(EFTYPE);
         return (-1);
     }
     return (0);

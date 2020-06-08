@@ -128,8 +128,8 @@ static u8 write_chunnel_buf[CFG_GKERNEL_CMD_DEEP];  //用于和上层交互的环形缓冲区
 //-----------------------------------------------------------------------------
 bool_t ModuleInstall_GK(void)
 {
-    s_ptDisplayDir = obj_newchild(obj_root(), (fnObjOps)-1, 0, "display");
-    s_ptWindowDir = obj_newchild(obj_root(), (fnObjOps)-1, 0, "gkwindow");
+    s_ptDisplayDir = OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)-1, 0, "display");
+    s_ptWindowDir = OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)-1, 0, "gkwindow");
 
     Ring_Init(&g_tGkChunnel.ring_syscall,(u8 *)write_chunnel_buf,CFG_GKERNEL_CMD_DEEP);
 
@@ -143,10 +143,10 @@ bool_t ModuleInstall_GK(void)
     g_ptGkServerSync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk server sync");
 //  g_ptUsercallSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk wait repaint");
     g_ptSyscallSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk wait job");
-    g_u16GkServerEvtt = Djy_EvttRegist(EN_CORRELATIVE,249,0,0,__GK_Server,
+    g_u16GkServerEvtt = DJY_EvttRegist(EN_CORRELATIVE,249,0,0,__GK_Server,
                                     NULL,0x1000,"gui kernel server");
 
-//  g_u16GkUsercallServerEvtt= Djy_EvttRegist(EN_CORRELATIVE,249,0,0,
+//  g_u16GkUsercallServerEvtt= DJY_EvttRegist(EN_CORRELATIVE,249,0,0,
 //                  __GK_UsercallServer,NULL,4096,"gkernel usercall server");
 
     g_ptClipRectPool = Mb_CreatePool(&g_tClipRect,
@@ -154,8 +154,8 @@ bool_t ModuleInstall_GK(void)
                                   sizeof(struct ClipRect),
                                   100,2000, "clip area");
 
-    g_u16GkServerEvent = Djy_EventPop(g_u16GkServerEvtt,NULL,0,0,0,0);
-//  g_u16GkUsercallServerEvent = Djy_EventPop(g_u16GkUsercallServerEvtt,NULL,0,0,0,0);
+    g_u16GkServerEvent = DJY_EventPop(g_u16GkServerEvtt,NULL,0,0,0,0);
+//  g_u16GkUsercallServerEvent = DJY_EventPop(g_u16GkUsercallServerEvtt,NULL,0,0,0,0);
 
     if(    (g_ptClipRectPool == NULL)
         || (g_u16GkServerEvent == CN_EVENT_ID_INVALID)
@@ -175,8 +175,8 @@ bool_t ModuleInstall_GK(void)
 
 exit_error:
     Mb_DeletePool(g_ptClipRectPool);
-    Djy_EvttUnregist(g_u16GkServerEvtt);
-    Djy_EvttUnregist(g_u16GkUsercallServerEvtt);
+    DJY_EvttUnregist(g_u16GkServerEvtt);
+    DJY_EvttUnregist(g_u16GkUsercallServerEvtt);
     Lock_SempDelete(g_ptSyscallSemp);
 //  Lock_SempDelete(g_ptUsercallSemp);
     Lock_SempDelete(g_ptGkServerSync);
@@ -186,8 +186,8 @@ exit_error:
     Lock_MutexDelete(g_tGkChunnel.syscall_mutex);
     MsgQ_Delete(g_tGkChunnel.usercall_msgq);
 
-    obj_Delete(s_ptDisplayDir);
-    obj_Delete(s_ptWindowDir);
+    OBJ_Delete(s_ptDisplayDir);
+    OBJ_Delete(s_ptWindowDir);
     return false;
 }
 
@@ -388,11 +388,11 @@ struct GkWinObj *__GK_GetZsectionStart(struct GkWinObj *gkwin)
     result = gkwin;
     while(1)
     {
-        temp = obj_child(temp);
+        temp = OBJ_GetChild(temp);
         if(temp == NULL)        //result已经没有子窗口了
             break;
-        temp = obj_prev(temp);
-        current = (struct GkWinObj*)obj_GetPrivate(temp);
+        temp = OBJ_GetPrev(temp);
+        current = (struct GkWinObj*)OBJ_GetPrivate(temp);
         if(current->WinProperty.Zprio <= CN_ZPRIO_DEFAULT )
             break;      //previous是所有子窗口中最后端的窗口，它result前端，代表
                         //所有子窗口均在result前端
@@ -418,10 +418,10 @@ struct GkWinObj *__GK_GetZsectionEnd(struct GkWinObj *gkwin)
     result = gkwin;
     while(1)
     {
-        temp = obj_child(temp);
+        temp = OBJ_GetChild(temp);
         if(temp == NULL)        //result已经没有子窗口了
             break;
-        current = (struct GkWinObj*)obj_GetPrivate(temp);
+        current = (struct GkWinObj*)OBJ_GetPrivate(temp);
         if(current->WinProperty.Zprio > CN_ZPRIO_DEFAULT )
             break;      //第一个子窗口是所有子窗口中最前端的窗口，它在result后端
                         //代表所有子窗口均在result后端
@@ -509,11 +509,11 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
     display->z_topmost = desktop;
     display->desktop = desktop;
     clip = (struct ClipRect*)Mb_Malloc(g_ptClipRectPool,0);
-    NewWindow = obj_newchild(s_ptWindowDir, (fnObjOps)-1, (ptu32_t)desktop, (const char*)(desktop->win_name));
+    NewWindow = OBJ_NewChild(s_ptWindowDir, (fnObjOps)-1, (ptu32_t)desktop, (const char*)(desktop->win_name));
     if((clip == NULL) || (NewWindow == NULL))
     {
         Mb_Free(g_ptClipRectPool, clip);
-        obj_Delete(NewWindow);
+        OBJ_Delete(NewWindow);
         return NULL;
     }
     desktop->HostObj = NewWindow;
@@ -531,9 +531,9 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
                 display->desktop = NULL;
                 M_FreeHeap(desktop->changed_msk.bm_bits,display->DisplayHeap);
                 Mb_Free(g_ptClipRectPool,clip);
-                obj_Delete(NewWindow);
+                OBJ_Delete(NewWindow);
                 __gk_vfree(display,desktop);
-                Djy_SaveLastError(EN_GK_NO_MEMORY);
+                DJY_SaveLastError(EN_GK_NO_MEMORY);
                 debug_printf("gkwin","显存不足\n\r");
                 return NULL;
             }
@@ -552,10 +552,10 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
         else               //分配显存失败，
         {
             Mb_Free(g_ptClipRectPool,clip);
-            obj_Delete(NewWindow);
+            OBJ_Delete(NewWindow);
             display->z_topmost = NULL;
             display->desktop = NULL;
-            Djy_SaveLastError(EN_GK_NO_MEMORY);
+            DJY_SaveLastError(EN_GK_NO_MEMORY);
             debug_printf("gkwin","显存不足\n\r");
             return NULL;
         }
@@ -676,7 +676,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
             if(gkwin->changed_msk.bm_bits == NULL)   //分配修改掩码内存失败
             {
                 __gk_vfree(display,gkwin);
-                Djy_SaveLastError(EN_GK_NO_MEMORY);
+                DJY_SaveLastError(EN_GK_NO_MEMORY);
                 debug_printf("gkwin","显存不足\n\r");
                 return NULL;
             }
@@ -693,7 +693,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
         }
         else               //分配显存失败，
         {
-            Djy_SaveLastError(EN_GK_NO_MEMORY);
+            DJY_SaveLastError(EN_GK_NO_MEMORY);
             debug_printf("gkwin","显存不足\n\r");
             return NULL;
         }
@@ -705,9 +705,9 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     }
 
     //以下把新窗口连接到资源队列中，并插入到z轴中
-    if(obj_child(para->parent_gkwin->HostObj) == NULL)  //父窗口无子窗口
+    if(OBJ_GetChild(para->parent_gkwin->HostObj) == NULL)  //父窗口无子窗口
     {
-        NewWindow = obj_newchild(parent->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
+        NewWindow = OBJ_NewChild(parent->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
                                     (const char*)(gkwin->win_name));
         if(NewWindow == NULL)
             return NULL;
@@ -723,8 +723,8 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     else
     {//父窗口有子窗口
         //取z轴中被移动的与gkwin同级的窗口段开始和结束窗口段
-        move_end = (struct GkWinObj *)obj_GetPrivate(obj_child(parent->HostObj));
-        move_start = (struct GkWinObj*)obj_GetPrivate(obj_prev(move_end->HostObj));
+        move_end = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetChild(parent->HostObj));
+        move_start = (struct GkWinObj*)OBJ_GetPrivate(OBJ_GetPrev(move_end->HostObj));
         target_section = move_end;
         while(1)
         {//扫描同级窗口中和目标窗口优先级相同的窗口，扫描以z轴为对象
@@ -734,20 +734,20 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
             //扫描目标窗口所在z轴段最后一窗口，终止跳出
             if(target_section == move_start)
                 break;
-            target_section = (struct GkWinObj *)obj_GetPrivate(obj_next(target_section->HostObj));
+            target_section = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetNext(target_section->HostObj));
         }
         if(target_section->WinProperty.Zprio == CN_ZPRIO_DEFAULT)
         {//同级窗口中存在和gkwin的prio相等的窗口
 //            NewWindow = OBJ_AddToPrevious(target_section->HostObj, NULL, (ptu32_t)gkwin,
 //                                             (const char *)(gkwin->win_name));
             move_end = __GK_GetZsectionEnd(target_section);
-            NewWindow = obj_newprev(target_section->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
+            NewWindow = OBJ_NewPrev(target_section->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
                                      (const char *)(gkwin->win_name));
             if(NewWindow == NULL)
                 return NULL;
             gkwin->HostObj = NewWindow;
-            if(obj_ishead(target_section->HostObj))
-                obj_child_move2prev(parent->HostObj);
+            if(OBJ_IsHead(target_section->HostObj))
+                OBJ_ChildMoveToOrev(parent->HostObj);
             //获取target_section和其子窗口所在z轴段的结束窗口(最前端)
             //新窗口插入到它的前端
             if(move_end == display->z_topmost)
@@ -766,7 +766,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
             {
 //                NewWindow = OBJ_AddToPrevious(target_section->HostObj, NULL, (ptu32_t)gkwin,
 //                                                (const char *)(gkwin->win_name));
-                NewWindow = obj_newprev(target_section->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
+                NewWindow = OBJ_NewPrev(target_section->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
                                          (const char *)(gkwin->win_name));
                 if(NewWindow == NULL)
                     return NULL;
@@ -776,7 +776,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                 //新窗口在资源队列中处于同级窗口最后端
 //                NewWindow = OBJ_AddToNext(target_section->HostObj, NULL, (ptu32_t )gkwin,
 //                                            (const char*)(gkwin->win_name));
-                NewWindow = obj_newnext(target_section->HostObj, (fnObjOps)-1, (ptu32_t )gkwin,
+                NewWindow = OBJ_NewNext(target_section->HostObj, (fnObjOps)-1, (ptu32_t )gkwin,
                                             (const char*)(gkwin->win_name));
                 if(NewWindow == NULL)
                     return NULL;
@@ -857,7 +857,7 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
         bak = *cwawin;
         if( !__gk_vrmalloc(disp,&bak))
         {
-            Djy_SaveLastError(EN_GK_NO_MEMORY);
+            DJY_SaveLastError(EN_GK_NO_MEMORY);
             debug_printf("gkwin","显存不足\n\r");
             return false;   //分配显存失败，窗口尺寸未改变(仍然有效)
         }else
@@ -936,23 +936,23 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
     cwawin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
 
     changing = cwawin->HostObj;
-    current = obj_foreach_scion(changing, changing);
+    current = OBJ_ForeachScion(changing, changing);
     //遍历gkwin的所有子孙窗口,遍历完成后，current就=NULL了
     while(current != NULL)
     {
-        temp = (struct GkWinObj*)obj_GetPrivate(current);
+        temp = (struct GkWinObj*)OBJ_GetPrivate(current);
         temp->absx0 += delta_left;        //修改窗口绝对坐标
         temp->absy0 += delta_top;
-        current = obj_foreach_scion(changing, current);
+        current = OBJ_ForeachScion(changing, current);
     }
-    current = obj_foreach_scion(changing, changing);
+    current = OBJ_ForeachScion(changing, changing);
     //必须分两次遍历，才能确保Set 孙窗口时，子窗口已经改好了absx0
     while(current != NULL)
     {
-        temp = (struct GkWinObj*)obj_GetPrivate(current);
+        temp = (struct GkWinObj*)OBJ_GetPrivate(current);
         __GK_SetBound(temp);
         temp->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
-        current = obj_foreach_scion(changing, current);
+        current = OBJ_ForeachScion(changing, current);
     }
     __GK_ScanNewVisibleClip(cwawin->disp);
     cwawin->disp->reset_clip = true;
@@ -974,7 +974,7 @@ void __GK_AdoptWin(struct GkscParaAdoptWin *para)
     gkwin = para->gkwin;
     parent = para->NewParent->HostObj;
     display = gkwin->disp;
-    if(obj_parent(gkwin->HostObj) == parent)  //新的父窗口没改变
+    if(OBJ_GetParent(gkwin->HostObj) == parent)  //新的父窗口没改变
         return ;
 
     //因gkwin可能有子窗口，其与子窗口一起，在Z轴中占据连续的一段，
@@ -983,10 +983,10 @@ void __GK_AdoptWin(struct GkscParaAdoptWin *para)
     foremost = __GK_GetZsectionEnd(gkwin);
 
     //以下过程处理对象队列。
-    if(obj_child(parent) == NULL)
+    if(OBJ_GetChild(parent) == NULL)
     {
-        obj_insert2child(parent,gkwin->HostObj);
-        NowWin = (struct GkWinObj *)obj_GetPrivate(parent);
+        OBJ_InsertToChild(parent,gkwin->HostObj);
+        NowWin = (struct GkWinObj *)OBJ_GetPrivate(parent);
         if(gkwin->WinProperty.Zprio > 0)
             Ztarget = NowWin->z_back;
         else
@@ -995,30 +995,30 @@ void __GK_AdoptWin(struct GkscParaAdoptWin *para)
     else    //新的窗口有子窗口，要查找新窗口的插入点
     {
         //找一个Z优先级不高于新窗口的窗口
-        point = obj_foreach_child(parent,parent);
+        point = OBJ_ForeachChild(parent,parent);
         while( point != NULL )
         {
-            NowWin = (struct GkWinObj *)obj_GetPrivate(point);
+            NowWin = (struct GkWinObj *)OBJ_GetPrivate(point);
             if(NowWin->WinProperty.Zprio >= gkwin->WinProperty.Zprio)
                 break;
-            point = obj_foreach_child(parent,point);
+            point = OBJ_ForeachChild(parent,point);
         }
         if(point == NULL)   //没有找到Z优先级低于gkwin的窗口，因是循环链表，最后
                             //端窗口的后面，也就是最前端窗口的前面
         {
-            point = obj_child(parent);
+            point = OBJ_GetChild(parent);
         }
-        obj_insert2prev(point, gkwin->HostObj); //移到对象队列中适当位置
+        OBJ_InsertToPrev(point, gkwin->HostObj); //移到对象队列中适当位置
 
         //看gkwin是否会成为父窗口的头结点
-        if((gkwin->WinProperty.Zprio <= 0) && (point == obj_child(parent)))
+        if((gkwin->WinProperty.Zprio <= 0) && (point == OBJ_GetChild(parent)))
         {
-            obj_child_move2prev(parent);
+            OBJ_ChildMoveToOrev(parent);
         }
 
         //以下查找Z序队列的插入点，插入点在point所在窗口段的前端，但要判断是否
         //跨越parent
-        NowWin = (struct GkWinObj *)obj_GetPrivate(point);
+        NowWin = (struct GkWinObj *)OBJ_GetPrivate(point);
         if( (NowWin->WinProperty.Zprio > 0) && (gkwin->WinProperty.Zprio <= 0) )
             Ztarget = (struct GkWinObj *)parent;       //父窗口在插入点和gkwin之间
         else
@@ -1116,23 +1116,23 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
         __GK_SetBound(movewin);                        //设置可显示边界
     }
     moving = movewin->HostObj;
-    current = obj_foreach_scion(moving, moving);
+    current = OBJ_ForeachScion(moving, moving);
     //遍历gkwin的所有子孙窗口
     while(current != NULL)
     {
-        movewin = (struct GkWinObj*)obj_GetPrivate(current);
+        movewin = (struct GkWinObj*)OBJ_GetPrivate(current);
         movewin->absx0 += delta_left;        //修改窗口绝对坐标
         movewin->absy0 += delta_top;
-        current = obj_foreach_scion(moving, current);
+        current = OBJ_ForeachScion(moving, current);
     }
-    current = obj_foreach_scion(moving, moving);
+    current = OBJ_ForeachScion(moving, moving);
     //必须分两次遍历，才能确保Set 孙窗口时，子窗口已经改好了absx0
     while(current != NULL)
     {
-        movewin = (struct GkWinObj*)obj_GetPrivate(current);
+        movewin = (struct GkWinObj*)OBJ_GetPrivate(current);
         __GK_SetBound(movewin);
         movewin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
-        current = obj_foreach_scion(moving, current);
+        current = OBJ_ForeachScion(moving, current);
     }
     __GK_ScanNewVisibleClip(movewin->disp);
     movewin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
@@ -1155,9 +1155,9 @@ void __GK_SetBound(struct GkWinObj *gkwin)
     //桌面窗口一定是个边界首先窗口
     while(ancestor->WinProperty.BoundLimit == CN_BOUND_UNLIMIT)
     {
-        ancestor = (struct GkWinObj *)obj_GetPrivate(obj_parent(ancestor->HostObj));
+        ancestor = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetParent(ancestor->HostObj));
     }
-    ancestor = (struct GkWinObj*)obj_GetPrivate(obj_parent(ancestor->HostObj));
+    ancestor = (struct GkWinObj*)OBJ_GetPrivate(OBJ_GetParent(ancestor->HostObj));
     if( (ancestor->limit_right  == 0) || (ancestor->limit_bottom == 0)    )
     {
         gkwin->limit_left   =0;
@@ -1224,17 +1224,17 @@ void __GK_SetBoundMode(struct GkscParaSetBoundMode *para)
         return;
     if(para->gkwin->WinProperty.BoundLimit == para->mode)      //模式未改变
         return;
-    if(para->gkwin->disp->desktop->HostObj == obj_parent(para->gkwin->HostObj))
+    if(para->gkwin->disp->desktop->HostObj == OBJ_GetParent(para->gkwin->HostObj))
         return;                         //直接放在桌面的子窗口，不许改变
     //目标窗口边界模式改变，窗口属性改变
     para->gkwin->WinProperty.BoundLimit = CN_BOUND_LIMIT;
     __GK_SetBound(para->gkwin);
     ancestor = para->gkwin->HostObj;
-    Scion = obj_foreach_scion(ancestor,ancestor);
+    Scion = OBJ_ForeachScion(ancestor,ancestor);
     //遍历gkwin的所有子孙窗口
     while( Scion != NULL)
     {
-        current = (struct GkWinObj*)obj_GetPrivate(Scion);
+        current = (struct GkWinObj*)OBJ_GetPrivate(Scion);
         __GK_SetBound(current);
     }
     __GK_ScanNewVisibleClip(para->gkwin->disp);
@@ -1288,10 +1288,10 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
     if(gkwin == display->desktop)  //桌面窗口的优先级不可改变
         return;
 
-    parent = (struct GkWinObj *)obj_GetPrivate(obj_parent(gkwin->HostObj));
+    parent = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetParent(gkwin->HostObj));
     //取z轴中被移动的窗口段最前端的窗口段
-    section_end = (struct GkWinObj *)obj_GetPrivate(obj_child(parent->HostObj));
-    section_start = (struct GkWinObj *)obj_GetPrivate(obj_prev(section_end->HostObj));
+    section_end = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetChild(parent->HostObj));
+    section_start = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetPrev(section_end->HostObj));
     target_section = section_end;
     while(1)
     {   //查找同级窗口中和优先级等于para->prio的的窗口，扫描以z轴为对象
@@ -1301,12 +1301,12 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
         //扫描目标窗口所在z轴段最后一窗口，终止跳出
         if(target_section == section_start)
             break;
-        target_section = (struct GkWinObj *)obj_GetPrivate(obj_next(target_section->HostObj));
+        target_section = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetNext(target_section->HostObj));
     }
     if(target_section->WinProperty.Zprio >= (s32)para->prio)
     {   // 找到gkwin同级窗口中优先级低于或等于新prio的窗口
         if((target_section == gkwin)
-            || (target_section == (struct GkWinObj *)obj_GetPrivate(obj_next(gkwin->HostObj))))
+            || (target_section == (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetNext(gkwin->HostObj))))
         {
             //在资源队列中无须移动，但优先级队列可能要移动
             if((gkwin->WinProperty.Zprio <= CN_ZPRIO_DEFAULT)
@@ -1362,7 +1362,7 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
         }
         else    //资源队列须移动
         {
-            obj_insert2prev(target_section->HostObj, gkwin->HostObj);
+            OBJ_InsertToPrev(target_section->HostObj, gkwin->HostObj);
 
             if((para->prio <= CN_ZPRIO_DEFAULT)
                     && (target_section->WinProperty.Zprio > CN_ZPRIO_DEFAULT))
@@ -1393,7 +1393,7 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
     else
     {//同级窗口优先级均高于新prio
         //OBJ_MoveToNext(target_section->HostObj,gkwin->HostObj);
-        obj_insert2next(target_section->HostObj,gkwin->HostObj);
+        OBJ_InsertToNext(target_section->HostObj,gkwin->HostObj);
         if((para->prio > CN_ZPRIO_DEFAULT)
                     && (target_section->WinProperty.Zprio <=CN_ZPRIO_DEFAULT))
         {
@@ -1517,7 +1517,7 @@ void __gk_destroy_win(struct GkWinObj *gkwin)
         gkwin->disp->z_topmost = gkwin->z_back;
     gkwin->z_back->z_top = gkwin->z_top;
     gkwin->z_top->z_back = gkwin->z_back;
-    obj_Delete(gkwin->HostObj);
+    OBJ_Delete(gkwin->HostObj);
     if(gkwin->visible_clip != NULL)
         gkwin->disp->reset_clip = true;
     gkwin->visible_clip = __GK_FreeClipQueue(gkwin->visible_clip);
@@ -1544,7 +1544,7 @@ void __gk_destroy_win(struct GkWinObj *gkwin)
 void __GK_DestroyWin(struct GkWinObj *gkwin)
 {
     struct GkWinObj *CurWin;
-    while((CurWin = (struct GkWinObj *)obj_GetPrivate((struct Object*)obj_twig(gkwin->HostObj))) != NULL)
+    while((CurWin = (struct GkWinObj *)OBJ_GetPrivate((struct Object*)OBJ_GetTwig(gkwin->HostObj))) != NULL)
     {
         __gk_destroy_win(CurWin);
         M_FreeHeap(CurWin,CurWin->disp->DisplayHeap);
@@ -1725,14 +1725,14 @@ void __GK_OutputRedraw(struct DisplayObj *display)
 
                 //处理镜像显示
                 mirror = display->HostObj;
-                current = obj_child(mirror);
+                current = OBJ_GetChild(mirror);
                 while(current != NULL)
                 {
-                    MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
+                    MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
                     MirrorDisplay->draw.CopyBitmapToScreen(&clip->rect,
                                                 frame_buf->wm_bitmap,
                                                 clip->rect.left,clip->rect.top);
-                    current = obj_foreach_child(mirror, current);
+                    current = OBJ_ForeachChild(mirror, current);
                 }
                 clip = clip->next;
             }while(clip != frame_buf->redraw_clip);
@@ -1752,13 +1752,13 @@ void __gk_redraw_all(void)
     struct DisplayObj *Display;
     struct Object *current;
 
-    current = obj_child(s_ptDisplayDir);
+    current = OBJ_GetChild(s_ptDisplayDir);
     while(current != NULL)
     {
-        Display = (struct DisplayObj*)obj_GetPrivate(current);
+        Display = (struct DisplayObj*)OBJ_GetPrivate(current);
         __GK_GetRedrawClipAll(Display);//扫描取得新的需重绘的区域
         __GK_OutputRedraw(Display);    //重绘
-        current = obj_foreach_child(s_ptDisplayDir, current);
+        current = OBJ_ForeachChild(s_ptDisplayDir, current);
     }
 
 }
@@ -1840,12 +1840,12 @@ void __gk_RefreshDisplay(struct DisplayObj *Display)
         }
         //处理镜像显示
         mirror = Display->HostObj;
-        current = obj_child(mirror);
+        current = OBJ_GetChild(mirror);
         while(current != NULL)
         {
-            MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
+            MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
             MirrorDisplay->draw.CopyBitmapToScreen(&rect,frame_buf->wm_bitmap,0,0);
-            current = obj_foreach_child(mirror, current);
+            current = OBJ_ForeachChild(mirror, current);
         }
 
     }
@@ -1864,7 +1864,7 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
     u16 completed = 0;
     u8 buf[4];
     u32 base_time,rel_timeout = sync_time;
-    base_time = (u32)DjyGetSysTime();
+    base_time = (u32)DJY_GetSysTime();
     //管道访问互斥，用于多个上层应用并发调用之间的互斥
     Lock_MutexPend(g_tGkChunnel.syscall_mutex,rel_timeout);
     while(1)
@@ -1883,10 +1883,10 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
 
             //先PEND一次信号量，防止事先已经被释放过
             Lock_SempPend(g_ptGkServerSync,0);
-            Djy_RaiseTempPrio(g_u16GkServerEvent);
-            Djy_EventDelay(0);
+            DJY_RaiseTempPrio(g_u16GkServerEvent);
+            DJY_EventDelay(0);
 //          Lock_SempPend(g_ptGkServerSync,sync_time);
-            Djy_SetEventPrio(g_u16GkServerEvent, 249);
+            DJY_SetEventPrio(g_u16GkServerEvent, 249);
 
             continue;       //再次检查管道容量
         }
@@ -1902,7 +1902,7 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
             completed += Ring_Write(&g_tGkChunnel.ring_syscall,param2,size2);
         break;
     }
-    if(Djy_IsMultiEventStarted())
+    if(DJY_IsMultiEventStarted())
     {
         //上层应用多次下发命令后，gk_server将一次处理，条件判一下，避免gk_server
         //空转
@@ -1912,13 +1912,13 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
         {
             //先PEND一次信号量，防止事先已经被释放过
             Lock_SempPend(g_ptGkServerSync,0);
-            Djy_RaiseTempPrio(g_u16GkServerEvent);
-            rel_timeout = (u32)DjyGetSysTime() - base_time;
+            DJY_RaiseTempPrio(g_u16GkServerEvent);
+            rel_timeout = (u32)DJY_GetSysTime() - base_time;
             if(rel_timeout < sync_time)
             {
                 rel_timeout = sync_time - rel_timeout;
                 Lock_SempPend(g_ptGkServerSync,rel_timeout);
-                Djy_SetEventPrio(g_u16GkServerEvent, 249);
+                DJY_SetEventPrio(g_u16GkServerEvent, 249);
             }
         }
     }
@@ -2041,7 +2041,7 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
             result = sizeof(struct GkscParaDrawText);
             ParaAddr+=result;
             __GK_DrawText(&para,(char*)ParaAddr,&len);
-            result += strlen((char*)ParaAddr)+ GetEOC_Size(para.pCharset);
+            result += strlen((char*)ParaAddr)+ Charset_Get_EOC_Size(para.pCharset);
         }break;
         case CN_GKSC_SET_HYALINE_COLOR:
         {
@@ -2193,7 +2193,7 @@ ptu32_t __GK_Server(void)
     u32 num,offset,size;
 
 //    Lock_MutexPend(g_ptGkServerSync,CN_TIMEOUT_FOREVER);
-//  Djy_SetEventPrio(249);
+//  DJY_SetEventPrio(249);
     while(1)
     {
 //      printf("> round gkernel\r\n");
@@ -2206,11 +2206,11 @@ ptu32_t __GK_Server(void)
             //所有命令均执行完后，检查有没有win buffer需要刷到screen上
 //            __gk_redraw_all();
 
-//          Djy_SetEventPrio(1);
+//          DJY_SetEventPrio(1);
 //          Lock_MutexPost(g_ptGkServerSync);
 //          Lock_MutexPend(g_ptGkServerSync,CN_TIMEOUT_FOREVER);
             Lock_SempPost(g_ptGkServerSync);
-            Djy_RestorePrio( );
+            DJY_RestorePrio( );
             Lock_SempPend(g_ptSyscallSemp,CN_TIMEOUT_FOREVER);
             continue;
         }

@@ -61,7 +61,7 @@ static u16 sg_ptSlaveEvtt;
 void __ISBUS_Ack(struct Slave_ISBUSPort *Port);
 void __ISBUS_PushMtcPkg(struct Slave_ISBUSPort *Port);
 
-struct ISBUS_FunctionSocket * __Slave_GetProtocol(struct Slave_ISBUSPort *Port,u8 Protocol)
+struct ISBUS_FunctionSocket * __ISBUS_SlaveGetProtocol(struct Slave_ISBUSPort *Port,u8 Protocol)
 {
     struct ISBUS_FunctionSocket *Next,*SocketStart;
     bool_t found = false;
@@ -111,7 +111,7 @@ struct ISBUS_FunctionSocket * __Slave_GetProtocol(struct Slave_ISBUSPort *Port,u
 //        if(cpylen != 0)
 //            memcpy(dbgrecord[offset485].data, buf, cpylen);
 //        dbgrecord[offset485].len = cpylen;
-//        dbgrecord[offset485].time = DjyGetSysTime();
+//        dbgrecord[offset485].time = DJY_GetSysTime();
 //        dbgrecord[offset485].ev = ev;
 //        offset485++;
 //    }
@@ -137,7 +137,7 @@ ptu32_t ISBUS_SlaveProcess(void)
     bool_t needread = true;
     bool_t newpkg;
 
-    Djy_GetEventPara((ptu32_t*)&Port, NULL);
+    DJY_GetEventPara((ptu32_t*)&Port, NULL);
     DevRe = Port->SerialDevice;
     mydst = sg_u8SlaveAddress;
     while(1)
@@ -148,7 +148,7 @@ ptu32_t ISBUS_SlaveProcess(void)
         protobuf = Port->RecvPkgBuf;
         startoffset = Port->analyzeoff;
         readed = Port->recvoff;
-        starttime = (u32)DjyGetSysTime();
+        starttime = (u32)DJY_GetSysTime();
         while(1)        //此循环用于接收包头
         {
             if(startoffset == readed)
@@ -170,7 +170,7 @@ ptu32_t ISBUS_SlaveProcess(void)
             if(needread)
             {
 //              recdbg(2, NULL,0);
-                tmp = DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed,
+                tmp = Device_Read(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed,
                                                 0, Port->Timeout);
                 if(tmp != 0)
                 {
@@ -197,7 +197,7 @@ ptu32_t ISBUS_SlaveProcess(void)
                     if(protobuf[startoffset] == 0xEB)       //找到包头，往下走
                     {
                         Gethead = true;
-                        starttime = (u32)DjyGetSysTime();
+                        starttime = (u32)DJY_GetSysTime();
                         break;
                     }
                     else
@@ -255,7 +255,7 @@ ptu32_t ISBUS_SlaveProcess(void)
                 }
                 else        //一个超时周期过去了，没收到完整的协议头，肯定超时了。
                 {
-                    if(((u32)DjyGetSysTime() - starttime) > Port->Timeout)
+                    if(((u32)DJY_GetSysTime() - starttime) > Port->Timeout)
                     {
                         if(Port->fnError != NULL)
                             Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR,sg_u8SlaveAddress);
@@ -292,13 +292,13 @@ ptu32_t ISBUS_SlaveProcess(void)
             while(1)
             {
 //              recdbg(6, NULL, 0);
-                tmp = DevRead(DevRe, &protobuf[readed],restlen, 0, Port->Timeout);
+                tmp = Device_Read(DevRe, &protobuf[readed],restlen, 0, Port->Timeout);
 //              if(tmp != 0) recdbg(3, &protobuf[readed],tmp);
                 Completed += tmp;
                 readed += tmp;
                 if(Completed >= restlen)
                     break;
-                if(((u32)DjyGetSysTime() - starttime) > Port->Timeout)
+                if(((u32)DJY_GetSysTime() - starttime) > Port->Timeout)
                 {
                     if(Port->fnError != NULL)
                         Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR,sg_u8SlaveAddress);
@@ -316,7 +316,7 @@ ptu32_t ISBUS_SlaveProcess(void)
         if(Completed >= restlen)    //检查是否收齐了数据
         {
 //          recdbg(9, &protohead, 7);
-            Me = __Slave_GetProtocol(Port, protohead.Protocol);
+            Me = __ISBUS_SlaveGetProtocol(Port, protohead.Protocol);
             if(Me != NULL)
             {
 //              recdbg(10, NULL, 0);
@@ -446,7 +446,7 @@ ptu32_t ISBUS_SlaveProcess(void)
 // ============================================================================
 bool_t ISBUS_SlaveInit(u32 StackSize)
 {
-    sg_ptSlaveEvtt = Djy_EvttRegist(EN_INDEPENDENCE, CN_PRIO_REAL, 1, 1, ISBUS_SlaveProcess,
+    sg_ptSlaveEvtt = DJY_EvttRegist(EN_INDEPENDENCE, CN_PRIO_REAL, 1, 1, ISBUS_SlaveProcess,
                             NULL, StackSize, "ISBUS slave");
     if(sg_ptSlaveEvtt == CN_EVTT_ID_INVALID)
     {
@@ -483,7 +483,7 @@ void __SetMTC_Address(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src, u8 *bu
 //      len，数据包长度
 //返回：无意义
 //-----------------------------------------------------------------------------
-void __SetSlaveList(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 *buf,u32 len)
+void __ISBUS_SetSlaveList(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 *buf,u32 len)
 {
     struct Slave_ISBUSPort *Port;
     u8 nearest = 255;   //小于本机地址且最接近本机地址的
@@ -523,7 +523,7 @@ void __SetSlaveList(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 *buf,u
 //      len，数据包长度
 //返回：无异议
 //-----------------------------------------------------------------------------
-void __CHK_SlaveSend(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 *buf,u32 len)
+void ISBUS_CHK_SlaveSend(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 *buf,u32 len)
 {
     struct Slave_ISBUSPort *Port;
     Port = ProtocolSocket->CommPort;
@@ -586,17 +586,17 @@ struct Slave_ISBUSPort *ISBUS_SlaveRegistPort(char *dev,\
 //        Port->SendP = sizeof(struct ISBUS_Protocol);  //发送偏移量为协议头
         Port->MTC_Address = CN_INS_MTC_INVALID;
 //        Driver_SetUserTag(dev, (ptu32_t)Port);
-        dev_SetUserTag(devfd, (ptu32_t)Port);
+        Device_SetUserTag(devfd, (ptu32_t)Port);
 //        Multiplex_AddObject(Port->MultiplexPort, devfd,
 //                                           CN_MULTIPLEX_SENSINGBIT_READ
 ////                                            |  CN_MULTIPLEX_SENSINGBIT_WRITE  //对于主机端，可写不可用
 //                                        |  CN_MULTIPLEX_SENSINGBIT_ERROR
 //                                        |  CN_MULTIPLEX_SENSINGBIT_ET
 //                                        |  CN_MULTIPLEX_SENSINGBIT_OR    );
-        Djy_EventPop(sg_ptSlaveEvtt, NULL, 0, (ptu32_t)Port, 0, 0);
-        ISBUS_SlaveRegistProtocol(Port, CN_SET_SLAVE_TABLE, 255, 0, __SetSlaveList);
+        DJY_EventPop(sg_ptSlaveEvtt, NULL, 0, (ptu32_t)Port, 0, 0);
+        ISBUS_SlaveRegistProtocol(Port, CN_SET_SLAVE_TABLE, 255, 0, __ISBUS_SetSlaveList);
         ISBUS_SlaveRegistProtocol(Port, CN_SET_MTC_TABLE, 255, 0, __SetMTC_Address);
-        ISBUS_SlaveRegistProtocol(Port, CN_CHK_SLAVE, 0, 0, __CHK_SlaveSend);
+        ISBUS_SlaveRegistProtocol(Port, CN_CHK_SLAVE, 0, 0, ISBUS_CHK_SlaveSend);
     }
     else
     {
@@ -690,11 +690,11 @@ void __ISBUS_Ack(struct Slave_ISBUSPort *Port)
     SendBuf[CN_OFF_CHKSUM]  = 0xEB + CN_SLAVE_ACK + sg_u8SlaveAddress;
 
     if(Port->EchoModel == ONE_BY_ONE)
-        DevWrite(Port->SerialDevice, SendBuf, sizeof(struct ISBUS_Protocol),
+        Device_Write(Port->SerialDevice, SendBuf, sizeof(struct ISBUS_Protocol),
                                     0, CN_TIMEOUT_FOREVER);
     else
     {
-        baktime = (u32)DjyGetSysTime();
+        baktime = (u32)DJY_GetSysTime();
         Lock_SempPost(Port->MTC_Semp);
     }
 }
@@ -709,10 +709,10 @@ void __ISBUS_PushMtcPkg(struct Slave_ISBUSPort *Port)
 {
     if(Lock_SempPend(Port->MTC_Semp, Port->Timeout))
     {
-        if(DjyGetSysTime() - baktime > 2000000)
+        if(DJY_GetSysTime() - baktime > 2000000)
             baktime = 0;
 //      recdbg(4, Port->SendPkgBuf,Port->SendPkgBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol));
-        DevWrite(Port->SerialDevice, Port->SendPkgBuf,
+        Device_Write(Port->SerialDevice, Port->SendPkgBuf,
                 Port->SendPkgBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol),
                 0, Port->Timeout);
         return ;
@@ -761,7 +761,7 @@ u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 ds
     if(Port->EchoModel == ONE_BY_ONE)
     {
 //      recdbg(5, SendBuf,SendLen);
-        DevWrite(Port->SerialDevice, SendBuf, SendLen, 0, Port->Timeout);
+        Device_Write(Port->SerialDevice, SendBuf, SendLen, 0, Port->Timeout);
         if((debug_ctrl ==true))
         {
             printf("\r\nslave send:");
@@ -774,7 +774,7 @@ u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 ds
     else
     {
         Lock_SempPost(Port->MTC_Semp);
-        baktime = (u32)DjyGetSysTime();
+        baktime = (u32)DJY_GetSysTime();
     }
 //  if(Completed != -1)
 //      Port->SendP = Completed;

@@ -581,7 +581,7 @@ void __USBH_Delay(uint32_t Delay)
   osDelay(Delay);
 #else
   // HAL_Delay(Delay);
-  Djy_EventDelay(Delay);
+  DJY_EventDelay(Delay);
 #endif
 }
 #endif
@@ -629,13 +629,13 @@ u32 OTG_FS_IRQHandler(u32 dwData)
     static s64 times;
 
     if(dwRawControl & 0x1)
-        times = DjyGetSysTime();
+        times = DJY_GetSysTime();
 
     HAL_HCD_IRQHandler(&HHCD_FS);
 
     if(dwRawControl & 0x1)
     {
-        times = DjyGetSysTime() - times;
+        times = DJY_GetSysTime() - times;
         if((times > 0) && (times > qwRecordMaxFS))
             qwRecordMaxFS = times; // 记录中断处理最大时间
     }
@@ -706,7 +706,7 @@ USBH_StatusTypeDef __USBH_LL_Resume(USBH_HandleTypeDef *pHost)
     regHPRT = USBx_HPRT0;
     USBH_UsrLog("resume(USB) : register HPRT <%xH>\r\n", regHPRT);
 
-    Djy_DelayUs(50000); // NOTE: 必须满足USB的唤醒时序
+    DJY_DelayUs(50000); // NOTE: 必须满足USB的唤醒时序
     settings = (1<<12); //
     USBx_HPRT0 = settings;
     USBH_UsrLog("resume(USB) : set register HPRT <%xH>\r\n", settings);
@@ -717,7 +717,7 @@ USBH_StatusTypeDef __USBH_LL_Resume(USBH_HandleTypeDef *pHost)
     settings = (1<<12) | (1<<6); //
     USBx_HPRT0 = settings;
 
-    Djy_DelayUs(50000); // NOTE: 必须满足USB的唤醒时序
+    DJY_DelayUs(50000); // NOTE: 必须满足USB的唤醒时序
     settings = (1<<12); //
     USBx_HPRT0 = settings;
 #endif

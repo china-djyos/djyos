@@ -142,9 +142,9 @@ __attribute__((weak))  void FT5X26_Pin_Init(void)
 void FT5X26_RST(void)
 {
     FT_RST(0);    //复位
-    Djy_DelayUs(20*mS);
+    DJY_DelayUs(20*mS);
     FT_RST(1);   //释放复位
-    Djy_DelayUs(50*mS);
+    DJY_DelayUs(50*mS);
 }
 
 // =============================================================================
@@ -260,7 +260,7 @@ static bool_t touch_check(void)
     struct SingleTouchMsg touch_xyz0;
     for(i=0;i<5;i++)
     {
-        Djy_DelayUs(50*mS);
+        DJY_DelayUs(50*mS);
         if(FT5X26_Scan(&touch_xyz0))//判断松手
             i=0;
     }

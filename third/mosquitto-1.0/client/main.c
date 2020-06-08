@@ -137,9 +137,9 @@ bool_t pubshell(char *param)
 
     if(evttID == CN_EVENT_ID_INVALID)
     {
-        evttID = Djy_EvttRegist(EN_CORRELATIVE,200,1,1,pubtask,NULL,0x2000,"PUBTASK");
+        evttID = DJY_EvttRegist(EN_CORRELATIVE,200,1,1,pubtask,NULL,0x2000,"PUBTASK");
     }
-    Djy_EventPop(evttID,NULL,0,NULL,NULL,0);
+    DJY_EventPop(evttID,NULL,0,NULL,NULL,0);
     return true;
 }
 

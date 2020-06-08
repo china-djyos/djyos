@@ -491,7 +491,7 @@ static bool_t PHY_Init(void)
     /* Can we talk to the PHY? */
 //    do
 //    {
-//      Djy_DelayUs(500);
+//      DJY_DelayUs(500);
 //      usData = 0xFFFF;
 //      __MII_Read( CN_PHY_ADDR, CN_PHY_IDR1, &usData );
 //    } while( usData == 0xFFFF );
@@ -502,7 +502,7 @@ static bool_t PHY_Init(void)
     /* Wait for auto negotiate to complete. */
     do
     {
-        Djy_DelayUs( 50000);
+        DJY_DelayUs( 50000);
       __MII_Read( CN_PHY_ADDR, PHY_BMSR, &usData );
       NegTimes--;
     } while(( !( usData & PHY_BMSR_AN_COMPLETE ) ) && (NegTimes > 0));
@@ -874,18 +874,18 @@ static bool_t __CreateRcvTask(struct NetDev *nethandle)
     u16 evttID;
     u16 eventID;
 
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1,
         (ptu32_t (*)(void))__GmacRcvTask,NULL, 0x400, "ENETRcvTask");
     if (evttID != CN_EVTT_ID_INVALID)
     {
-        eventID=Djy_EventPop(evttID, NULL,  0,(ptu32_t)nethandle, 0, 0);
+        eventID=DJY_EventPop(evttID, NULL,  0,(ptu32_t)nethandle, 0, 0);
         if(eventID != CN_EVENT_ID_INVALID)
         {
             result = true;
         }
         else
         {
-            Djy_EvttUnregist(evttID);
+            DJY_EvttUnregist(evttID);
         }
     }
     return result;

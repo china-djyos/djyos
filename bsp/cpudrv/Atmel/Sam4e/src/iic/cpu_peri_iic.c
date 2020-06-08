@@ -478,7 +478,7 @@ static void __IIC_GenerateEnd(volatile tagI2CReg *Reg)
 //    __IIC_IntDisable(Reg, TWI_IDR_TXRDY|TWI_IDR_RXRDY|TWI_IDR_TXCOMP);
     __IIC_IntDisable(Reg, TWI_IDR_TXRDY|TWI_IDR_RXRDY|
             TWI_IDR_ENDRX|TWI_IDR_ENDTX|TWI_IDR_TXCOMP);
-    Djy_EventDelay(100);
+    DJY_EventDelay(100);
     __IIC_GenerateStop(Reg);
 
     __IIC_Reset(Reg);

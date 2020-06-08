@@ -2172,7 +2172,7 @@ static HAL_StatusTypeDef QSPI_WaitFlagStateUntilTimeout(QSPI_HandleTypeDef *hqsp
         return HAL_ERROR;
       }
     }
-    Djy_EventDelay(10*1000); //防止一直占用CPU
+    DJY_EventDelay(10*1000); //防止一直占用CPU
   }
   return HAL_OK;
 }

@@ -173,7 +173,7 @@ const sqlite3_mem_methods *sqlite3MemGetDjyos(void);
 
 sqlite_uint64 sqlite3Hwtime(void)
 {
-    return ((sqlite_uint64)DjyGetSysTime());
+    return ((sqlite_uint64)DJY_GetSysTime());
 }
 
 /*
@@ -213,7 +213,7 @@ static const char *djyNextSystemCall(sqlite3_vfs *p, const char *zName){
 }
 
 void sqlite3_djyos_sleep(u32 milliseconds){
-  Djy_EventDelay(milliseconds*mS);
+  DJY_EventDelay(milliseconds*mS);
 }
 
 
@@ -357,7 +357,7 @@ static int getLastErrorMsg(u32 lastErrno, int nBuf, char *zBuf){
 //  const char *zPath,              /* File path associated with error */
 //  int iLine                       /* Source line number where error occurred */
 //){
-//  Djy_SaveLastError(errcode);
+//  DJY_SaveLastError(errcode);
 //  printf("%s\n\r",zFunc);
 //  return errcode;
 //}
@@ -427,7 +427,7 @@ static int djyClose(sqlite3_file *id){
         return SQLITE_OK;
     else
     {
-        Djy_SaveLastError(SQLITE_IOERR_CLOSE);
+        DJY_SaveLastError(SQLITE_IOERR_CLOSE);
         printf("djyClose error\n\r");
         return SQLITE_IOERR_CLOSE;
     }
@@ -454,7 +454,7 @@ static int djyRead(
   OSTRACE(("READ %d lock=%d\n", pFile->djyFp, pFile->locktype));
   if(amt != seekAndRead(pFile->djyFp,offset,pBuf,amt))
   {
-    Djy_SaveLastError(SQLITE_IOERR_SHORT_READ);
+    DJY_SaveLastError(SQLITE_IOERR_SHORT_READ);
     printf("djyRead EOF\n\r");
     return SQLITE_IOERR_SHORT_READ;
   }
@@ -493,7 +493,7 @@ static int djyWrite(
   if(amt != seekAndWrite(pFile->djyFp,offset,pBuf,amt))
   {
     memset((void*)pBuf, 0, amt);
-    Djy_SaveLastError(SQLITE_IOERR_WRITE);
+    DJY_SaveLastError(SQLITE_IOERR_WRITE);
     printf("djyWrite Error\n\r");
     return SQLITE_IOERR_WRITE;
   }
@@ -522,7 +522,7 @@ static int djyTruncate(sqlite3_file *id, sqlite3_int64 nByte){
   }
 
   if( ftruncate(pFile->djyFp, nByte) ){
-    Djy_SaveLastError(SQLITE_IOERR_TRUNCATE);
+    DJY_SaveLastError(SQLITE_IOERR_TRUNCATE);
     printf("djyTruncate2 error\n\r");
     return SQLITE_IOERR_TRUNCATE;
   }
@@ -578,7 +578,7 @@ static int djySync(sqlite3_file *id, int flags){
   /* fflush() returns non-zero when successful, or zero when it fails. */
   if(fflush(pFile->djyFp))
   {
-    Djy_SaveLastError(SQLITE_IOERR_FSYNC);
+    DJY_SaveLastError(SQLITE_IOERR_FSYNC);
     printf("djySync error\n\r");
     return SQLITE_IOERR_FSYNC;
   }
@@ -1199,7 +1199,7 @@ static int djyRandomness(sqlite3_vfs *pVfs, int nBuf, char *zBuf){
 ** Sleep for a little while.  Return the amount of time slept.
 */
 static int djySleep(sqlite3_vfs *pVfs, int microsec){
-  Djy_EventDelay(microsec);
+  DJY_EventDelay(microsec);
   return microsec;
 }
 
@@ -1224,7 +1224,7 @@ int sqlite3_current_time = 0;  /* Fake system time in seconds since 1970. */
 */
 static int djyCurrentTimeInt64(sqlite3_vfs *pVfs, sqlite3_int64 *piNow){
   sqlite3_int64 i;
-  Tm_Time(&i);
+  Time_Time(&i);
   i += ((sqlite3_int64)2440587*24 +12)*3600;     //2490588 «19700101µƒ»Â¬‘»’°£
   i *= mS;
 

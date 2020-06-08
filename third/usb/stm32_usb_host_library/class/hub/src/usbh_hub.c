@@ -137,7 +137,7 @@ static USBH_StatusTypeDef __HUB_InterfaceInit (USBH_HandleTypeDef *pHost)
 
      hub->requestState = CMD_SEND;
 
-     gHubThreatID = Djy_EvttRegist(EN_INDEPENDENCE, 200, 0, 4,
+     gHubThreatID = DJY_EvttRegist(EN_INDEPENDENCE, 200, 0, 4,
                           USBH_HUB_Service, NULL, 0x800, "USB HUB service"); //
 
      hub->state = HUB_INIT;
@@ -186,7 +186,7 @@ USBH_StatusTypeDef __HUB_InterfaceDeInit (USBH_HandleTypeDef *pHost)
         pHost->pActiveClass->pData = NULL;
     }
 
-    Djy_EvttUnregist(gHubThreatID); // 注销HUB维护线程
+    DJY_EvttUnregist(gHubThreatID); // 注销HUB维护线程
 
     return USBH_OK;
 }
@@ -276,7 +276,7 @@ USBH_StatusTypeDef USBH_HUB_HandleChange(USBH_HandleTypeDef *pHost)
                     if(!status.bit.reset)
                         break; // 等待RESET完成
 
-                    Djy_EventDelay(100000); // 等待100ms
+                    DJY_EventDelay(100000); // 等待100ms
                     retry--;
                 }
 
@@ -366,7 +366,7 @@ USBH_StatusTypeDef USBH_HUB_HandleChange(USBH_HandleTypeDef *pHost)
                         }
                     }
 
-                    Djy_EventDelay(10000000); // 10秒等待，电容放电等
+                    DJY_EventDelay(10000000); // 10秒等待，电容放电等
                     // 各port上电
                     while(1)
                     {
@@ -436,14 +436,14 @@ static USBH_StatusTypeDef __HUB_Process (USBH_HandleTypeDef *pHost)
         break;
 
     case HUB_IDLE:
-        Djy_EventDelay(1000000); // 1s周期扫描一次HUB各端口的状态
+        DJY_EventDelay(1000000); // 1s周期扫描一次HUB各端口的状态
         hub->state = HUB_PORT_SCAN;
         break;
 
     case HUB_PORT_SCAN:
         while(1)
         {
-            Djy_EventDelay(200);
+            DJY_EventDelay(200);
             res = HUB_StatusChange(pHost, hub->change.pStatus, hub->change.bBytes); // 获取HUB端口状态,判断端口是否发生了变化
             if((USBH_OK == res) && (hub->change.pStatus))
             {
@@ -972,7 +972,7 @@ static USBH_StatusTypeDef __HUB_Init(USBH_HandleTypeDef *pHost)
         }
     }
 
-    Djy_EventDelay(10000000); // 10秒等待，电容放电等
+    DJY_EventDelay(10000000); // 10秒等待，电容放电等
     // 各port上电
     for(i = 1; i <= hub->bPorts; i++)
     {
@@ -1052,7 +1052,7 @@ USBH_StatusTypeDef USBH_HUB_DeviceConnected(USBH_HandleTypeDef *pHost, u8 bPort)
     new->pPipes = pHost->Pipes; // TODO
     new->device.is_connected = 1;
     hub->pPort[bPort - 1] = new;
-    id = Djy_EventPop(gHubThreatID, NULL, 0, (ptu32_t)new, 0, 0); // 为新设备建立服务线程
+    id = DJY_EventPop(gHubThreatID, NULL, 0, (ptu32_t)new, 0, 0); // 为新设备建立服务线程
     if(CN_EVENT_ID_INVALID == id)
     {
         free(new);
@@ -1077,10 +1077,10 @@ u32  USBH_HUB_Service(void)
     u8 devReady = 0;
     u8 port;
 
-    Djy_GetEventPara((ptu32_t*)&handle, NULL);
+    DJY_GetEventPara((ptu32_t*)&handle, NULL);
     port = (u8)((handle->id & 0xFF00) >> 8);
 
-    time = DjyGetSysTime();
+    time = DJY_GetSysTime();
     while(1)
     {
         USBH_Process(handle);
@@ -1089,7 +1089,7 @@ u32  USBH_HUB_Service(void)
             break; // service退出
 
         // 防止枚举过程卡死
-        comsumed = DjyGetSysTime() - time;
+        comsumed = DJY_GetSysTime() - time;
         if(!devReady)
         {
             if(HOST_CLASS == handle->gState)
@@ -1108,7 +1108,7 @@ u32  USBH_HUB_Service(void)
     if(!devReady)
     {
         USB_DeviceReset((handle->id & 0xFF), ((handle->id &0xFF00)>>8)); // port上的设备复位
-        time = DjyGetSysTime();
+        time = DJY_GetSysTime();
         while(1)
         {
             status = USBH_HUB_ClearPortFeature(handle, port, PORT_POWER);
@@ -1116,7 +1116,7 @@ u32  USBH_HUB_Service(void)
                 break;
 
             // TODO: 此时HUB可能也挂掉了，这个命令就无法发送下去，所以考虑复位整个HUB
-            comsumed = DjyGetSysTime() - time;
+            comsumed = DJY_GetSysTime() - time;
             if(comsumed > 30000000) // 30秒
             {
                 printf("\r\nUSB HUB : error : the hub is not working. reset hub and its ports\r\n");
@@ -1125,18 +1125,18 @@ u32  USBH_HUB_Service(void)
             }
         }
 
-        Djy_EventDelay(10000000); // 等待一段时间，电容放电等
+        DJY_EventDelay(10000000); // 等待一段时间，电容放电等
 
         if(USBH_OK == status)
         {
-            time = DjyGetSysTime();
+            time = DJY_GetSysTime();
             while(1)
             {
                 status = USBH_HUB_SetPortFeature(handle, port, PORT_POWER);
                 if(USBH_OK == status)
                     break;
 
-                comsumed = DjyGetSysTime() - time;
+                comsumed = DJY_GetSysTime() - time;
                 if(comsumed > 30000000) // 30秒
                 {
                     printf("\r\nUSB HUB : error : the hub is not working. reset hub and its ports.");

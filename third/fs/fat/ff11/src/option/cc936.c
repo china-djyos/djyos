@@ -10933,30 +10933,30 @@ WCHAR ff_convert (  /* Converted code, 0 means conversion error */
 #if 1
     WCHAR c;
     UINT temp;
-	if (chr < 0x80)
+    if (chr < 0x80)
     {   /* ASCII */
         c = chr;
     }
-	else
-	{
-		if (dir)
-		{
-	//        mbtowc(&c,&chr,sizeof(WCHAR));
-			if(CN_CFG_BYTE_ORDER == CN_CFG_LITTLE_ENDIAN)
-			{
-				if(sizeof(unsigned short) == sizeof(WCHAR))    //fatæ–‡ä»¶ç³»ç»Ÿä¼šæŠŠå­—ç¬¦ï¼Œè½¬æˆæ•°å­—ï¼Œç³»ç»Ÿå¦‚æžœæ˜¯å°ç«¯çš„è¯ï¼Œè¦æŠŠè¿™ä¸ªæ•°å­—ï¼Œè½¬æ¢æˆå¤§ç«¯ã€‚å› ä¸ºå­—ç¬¦è½¬Unicodeæ˜¯è¦å¤§ç«¯çš„
-					chr = swaps(chr);
-				else if(sizeof(unsigned int) == sizeof(WCHAR))
-						chr = swapl(chr);
-			}
-				mbtowc(&temp,(char *)&chr,sizeof(WCHAR));
-			c = temp;
-		}
-		else
-		{
-			wctomb((char *)&c, chr);
-		}
-	}
+    else
+    {
+        if (dir)
+        {
+    //        mbtowc(&c,&chr,sizeof(WCHAR));
+            if(CN_CFG_BYTE_ORDER == CN_CFG_LITTLE_ENDIAN)
+            {
+                if(sizeof(unsigned short) == sizeof(WCHAR))    //fatÎÄ¼þÏµÍ³»á°Ñ×Ö·û£¬×ª³ÉÊý×Ö£¬ÏµÍ³Èç¹ûÊÇÐ¡¶ËµÄ»°£¬Òª°ÑÕâ¸öÊý×Ö£¬×ª»»³É´ó¶Ë¡£ÒòÎª×Ö·û×ªUnicodeÊÇÒª´ó¶ËµÄ
+                    chr = swaps(chr);
+                else if(sizeof(unsigned int) == sizeof(WCHAR))
+                        chr = swapl(chr);
+            }
+                mbtowc(&temp,(char *)&chr,sizeof(WCHAR));
+            c = temp;
+        }
+        else
+        {
+            wctomb((char *)&c, chr);
+        }
+    }
     return c;
 #else
     const WCHAR *p;

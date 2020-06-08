@@ -194,26 +194,26 @@ void    __HWND_Unlock(HWND hwnd);
 bool_t  __GDD_Lock(void);
 void    __GDD_Unlock(void);
 bool_t GDD_AdoptWin(HWND Hwnd ,HWND NewParent);
-void    __InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type);
-void    __OffsetRect(RECT *prc,s32 dx,s32 dy);
-void    __InflateRect(RECT *prc,s32 dx,s32 dy);
-void    __InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b);
+void    GDD_InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type);
+void    __GDD_OffsetRect(RECT *prc,s32 dx,s32 dy);
+void    __GDD_InflateRect(RECT *prc,s32 dx,s32 dy);
+void    __GDD_InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b);
 bool_t  __PtInRect(const RECT *prc,const POINT *pt);
 
 
-bool_t  __PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
-void    __PostTimerMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,struct WinTimer *ptmr);
+bool_t  __GDD_PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
+void    __GDD_PostTimerMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,struct WinTimer *ptmr);
 
-void    __InvalidateWindow(HWND hwnd,bool_t bErase);
+void    __GDD_InvalidateWindow(HWND hwnd,bool_t bErase);
 struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size);
 void    __GUI_DeleteMsgQ(struct WinMsgQueueCB *pMsgQ);
-void    __RemoveWindowTimer(HWND hwnd);
-void    __DeleteMainWindowData(HWND hwnd);
-void __DeleteChildWindowData(HWND hwnd);
+void    __GDD_RemoveWindowTimer(HWND hwnd);
+void    __GDD_DeleteMainWindowData(HWND hwnd);
+void __GDD_DeleteChildWindowData(HWND hwnd);
 
-struct WinMsgQueueCB *__GetWindowMsgQ(HWND hwnd);
-bool_t __WinMsgProc(struct WindowMsg *pMsg);
-u32         __GetWindowEvent(HWND hwnd);
+struct WinMsgQueueCB *__GDD_GetWindowMsgQ(HWND hwnd);
+bool_t __GDD_WinMsgProc(struct WindowMsg *pMsg);
+u32         __GDD_GetWindowEvent(HWND hwnd);
 ptu32_t GDD_GetGK_Message(void);
 
 /*============================================================================*/

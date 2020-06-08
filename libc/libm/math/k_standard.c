@@ -107,12 +107,12 @@ static double zero = 0.0;   /* used as const */
         exc.name = type < 100 ? "acos" : "acosf";
         exc.retval = zero;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if(_LIB_VERSION == _SVID_) {
             (void) WRITE2("acos: DOMAIN error\n", 19);
           } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 2:
@@ -122,12 +122,12 @@ static double zero = 0.0;   /* used as const */
         exc.name = type < 100 ? "asin" : "asinf";
         exc.retval = zero;
         if(_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if(_LIB_VERSION == _SVID_) {
                 (void) WRITE2("asin: DOMAIN error\n", 19);
           } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 3:
@@ -139,12 +139,12 @@ static double zero = 0.0;   /* used as const */
         exc.name = type < 100 ? "atan2" : "atan2f";
         exc.retval = zero;
         if(_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if(_LIB_VERSION == _SVID_) {
             (void) WRITE2("atan2: DOMAIN error\n", 20);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 4:
@@ -157,9 +157,9 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
         break;
         case 5:
@@ -172,9 +172,9 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
         break;
         case 6:
@@ -187,9 +187,9 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
         break;
         case 7:
@@ -199,9 +199,9 @@ static double zero = 0.0;   /* used as const */
         exc.name = type < 100 ? "exp" : "expf";
         exc.retval = zero;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
         break;
         case 8:
@@ -214,12 +214,12 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("y0: DOMAIN error\n", 17);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 9:
@@ -232,12 +232,12 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /*if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("y0: DOMAIN error\n", 17);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 10:
@@ -250,12 +250,12 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("y1: DOMAIN error\n", 17);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 11:
@@ -268,12 +268,12 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("y1: DOMAIN error\n", 17);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 12:
@@ -286,12 +286,12 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("yn: DOMAIN error\n", 17);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 13:
@@ -304,12 +304,12 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("yn: DOMAIN error\n", 17);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 14:
@@ -322,9 +322,9 @@ static double zero = 0.0;   /* used as const */
                 else
                   exc.retval = HUGE_VAL;
                 if (_LIB_VERSION == _POSIX_)
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
                 else if (!matherr(&exc)) {
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
         }
         break;
         case 15:
@@ -337,12 +337,12 @@ static double zero = 0.0;   /* used as const */
                 else
                   exc.retval = HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("lgamma: SING error\n", 19);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 16:
@@ -355,12 +355,12 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("log: SING error\n", 16);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 17:
@@ -373,12 +373,12 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("log: DOMAIN error\n", 18);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 18:
@@ -391,12 +391,12 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("log10: SING error\n", 18);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 19:
@@ -409,12 +409,12 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("log10: DOMAIN error\n", 20);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 20:
@@ -427,7 +427,7 @@ static double zero = 0.0;   /* used as const */
         if (_LIB_VERSION != _SVID_) exc.retval = 1.0;
         else if (!matherr(&exc)) {
           /* (void) WRITE2("pow(0,0): DOMAIN error\n", 23); */
-            Djy_SaveLastError(EDOM);
+            DJY_SaveLastError(EDOM);
         }
         break;
         case 21:
@@ -445,9 +445,9 @@ static double zero = 0.0;   /* used as const */
           if(x<zero&&rint(y)!=y) exc.retval = -HUGE_VAL;
         }
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
         break;
         case 22:
@@ -457,9 +457,9 @@ static double zero = 0.0;   /* used as const */
         exc.name = type < 100 ? "pow" : "powf";
         exc.retval =  zero;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
         break;
         case 23:
@@ -472,12 +472,12 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("pow(0,neg): DOMAIN error\n", 25);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 24:
@@ -490,12 +490,12 @@ static double zero = 0.0;   /* used as const */
         else
             exc.retval = zero/zero; /* X/Open allow NaN */
         if (_LIB_VERSION == _POSIX_)
-           Djy_SaveLastError(EDOM);
+           DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("neg**non-integral: DOMAIN error\n", 32);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 25:
@@ -508,9 +508,9 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = ( (x>zero) ? HUGE_VAL : -HUGE_VAL);
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
         break;
         case 26:
@@ -523,12 +523,12 @@ static double zero = 0.0;   /* used as const */
         else
           exc.retval = zero/zero;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("sqrt: DOMAIN error\n", 19);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
             case 27:
@@ -541,12 +541,12 @@ static double zero = 0.0;   /* used as const */
         else
             exc.retval = zero/zero;
                 if (_LIB_VERSION == _POSIX_)
-                  Djy_SaveLastError(EDOM);
+                  DJY_SaveLastError(EDOM);
                 else if (!matherr(&exc)) {
                   /* if (_LIB_VERSION == _SVID_) {
                     (void) WRITE2("fmod:  DOMAIN error\n", 20);
                   } */
-                  Djy_SaveLastError(EDOM);
+                  DJY_SaveLastError(EDOM);
                 }
                 break;
             case 28:
@@ -556,12 +556,12 @@ static double zero = 0.0;   /* used as const */
                 exc.name = type < 100 ? "remainder" : "remainderf";
                 exc.retval = zero/zero;
                 if (_LIB_VERSION == _POSIX_)
-                  Djy_SaveLastError(EDOM);
+                  DJY_SaveLastError(EDOM);
                 else if (!matherr(&exc)) {
                   /* if (_LIB_VERSION == _SVID_) {
                     (void) WRITE2("remainder: DOMAIN error\n", 24);
                   } */
-                  Djy_SaveLastError(EDOM);
+                  DJY_SaveLastError(EDOM);
                 }
                 break;
             case 29:
@@ -571,12 +571,12 @@ static double zero = 0.0;   /* used as const */
                 exc.name = type < 100 ? "acosh" : "acoshf";
                 exc.retval = zero/zero;
                 if (_LIB_VERSION == _POSIX_)
-                  Djy_SaveLastError(EDOM);
+                  DJY_SaveLastError(EDOM);
                 else if (!matherr(&exc)) {
                   /* if (_LIB_VERSION == _SVID_) {
                     (void) WRITE2("acosh: DOMAIN error\n", 20);
                   } */
-                  Djy_SaveLastError(EDOM);
+                  DJY_SaveLastError(EDOM);
                 }
                 break;
             case 30:
@@ -586,12 +586,12 @@ static double zero = 0.0;   /* used as const */
                 exc.name = type < 100 ? "atanh" : "atanhf";
                 exc.retval = zero/zero;
                 if (_LIB_VERSION == _POSIX_)
-                  Djy_SaveLastError(EDOM);
+                  DJY_SaveLastError(EDOM);
                 else if (!matherr(&exc)) {
                   /* if (_LIB_VERSION == _SVID_) {
                     (void) WRITE2("atanh: DOMAIN error\n", 20);
                   } */
-                  Djy_SaveLastError(EDOM);
+                  DJY_SaveLastError(EDOM);
                 }
                 break;
             case 31:
@@ -601,12 +601,12 @@ static double zero = 0.0;   /* used as const */
                 exc.name = type < 100 ? "atanh" : "atanhf";
         exc.retval = x/zero;    /* sign(x)*inf */
                 if (_LIB_VERSION == _POSIX_)
-                  Djy_SaveLastError(EDOM);
+                  DJY_SaveLastError(EDOM);
                 else if (!matherr(&exc)) {
                   /* if (_LIB_VERSION == _SVID_) {
                     (void) WRITE2("atanh: SING error\n", 18);
                   } */
-                  Djy_SaveLastError(EDOM);
+                  DJY_SaveLastError(EDOM);
                 }
                 break;
         case 32:
@@ -616,9 +616,9 @@ static double zero = 0.0;   /* used as const */
         exc.name = type < 100 ? "scalb" : "scalbf";
         exc.retval = x > zero ? HUGE_VAL : -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
         break;
         case 33:
@@ -628,9 +628,9 @@ static double zero = 0.0;   /* used as const */
         exc.name = type < 100 ? "scalb" : "scalbf";
         exc.retval = copysign(zero,x);
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(ERANGE);
+            DJY_SaveLastError(ERANGE);
         }
         break;
         case 34:
@@ -640,13 +640,13 @@ static double zero = 0.0;   /* used as const */
                 exc.name = type < 100 ? "j0" : "j0f";
                 exc.retval = zero;
                 if (_LIB_VERSION == _POSIX_)
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
                 else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
                                 (void) WRITE2(exc.name, 2);
                                 (void) WRITE2(": TLOSS error\n", 14);
                         } */
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
                 }
         break;
         case 35:
@@ -656,13 +656,13 @@ static double zero = 0.0;   /* used as const */
                 exc.name = type < 100 ? "y0" : "y0f";
                 exc.retval = zero;
                 if (_LIB_VERSION == _POSIX_)
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
                 else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
                                 (void) WRITE2(exc.name, 2);
                                 (void) WRITE2(": TLOSS error\n", 14);
                         } */
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
                 }
         break;
         case 36:
@@ -672,13 +672,13 @@ static double zero = 0.0;   /* used as const */
                 exc.name = type < 100 ? "j1" : "j1f";
                 exc.retval = zero;
                 if (_LIB_VERSION == _POSIX_)
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
                 else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
                                 (void) WRITE2(exc.name, 2);
                                 (void) WRITE2(": TLOSS error\n", 14);
                         } */
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
                 }
         break;
         case 37:
@@ -688,13 +688,13 @@ static double zero = 0.0;   /* used as const */
                 exc.name = type < 100 ? "y1" : "y1f";
                 exc.retval = zero;
                 if (_LIB_VERSION == _POSIX_)
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
                 else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
                                 (void) WRITE2(exc.name, 2);
                                 (void) WRITE2(": TLOSS error\n", 14);
                         } */
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
                 }
         break;
         case 38:
@@ -704,13 +704,13 @@ static double zero = 0.0;   /* used as const */
                 exc.name = type < 100 ? "jn" : "jnf";
                 exc.retval = zero;
                 if (_LIB_VERSION == _POSIX_)
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
                 else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
                                 (void) WRITE2(exc.name, 2);
                                 (void) WRITE2(": TLOSS error\n", 14);
                         } */
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
                 }
         break;
         case 39:
@@ -720,13 +720,13 @@ static double zero = 0.0;   /* used as const */
                 exc.name = type < 100 ? "yn" : "ynf";
                 exc.retval = zero;
                 if (_LIB_VERSION == _POSIX_)
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
                 else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
                                 (void) WRITE2(exc.name, 2);
                                 (void) WRITE2(": TLOSS error\n", 14);
                         } */
-                        Djy_SaveLastError(ERANGE);
+                        DJY_SaveLastError(ERANGE);
                 }
         break;
         case 40:
@@ -739,9 +739,9 @@ static double zero = 0.0;   /* used as const */
                 else
                   exc.retval = HUGE_VAL;
                 if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(ERANGE);
+          DJY_SaveLastError(ERANGE);
                 else if (!matherr(&exc)) {
-                  Djy_SaveLastError(ERANGE);
+                  DJY_SaveLastError(ERANGE);
                 }
         break;
         case 41:
@@ -754,12 +754,12 @@ static double zero = 0.0;   /* used as const */
                 else
                   exc.retval = HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         else if (!matherr(&exc)) {
           /* if (_LIB_VERSION == _SVID_) {
             (void) WRITE2("gamma: SING error\n", 18);
               } */
-          Djy_SaveLastError(EDOM);
+          DJY_SaveLastError(EDOM);
         }
         break;
         case 42:
@@ -772,12 +772,12 @@ static double zero = 0.0;   /* used as const */
         if (_LIB_VERSION == _IEEE_ ||
             _LIB_VERSION == _POSIX_) exc.retval = 1.0;
         else if (!matherr(&exc)) {
-            Djy_SaveLastError(EDOM);
+            DJY_SaveLastError(EDOM);
         }
         break;
     }
     if (exc.err != 0)
-        Djy_SaveLastError(exc.err);
+        DJY_SaveLastError(exc.err);
     return exc.retval;
 }
 

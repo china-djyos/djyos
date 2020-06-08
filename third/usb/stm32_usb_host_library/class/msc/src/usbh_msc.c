@@ -504,10 +504,10 @@ static USBH_StatusTypeDef USBH_MSC_Process(USBH_HandleTypeDef *phost)
                                 if(s_ReStart)
                                 {
                                     s_ReStart = 0;
-                                    s_StTime = DjyGetSysTime();
+                                    s_StTime = DJY_GetSysTime();
                                 }
 
-                                s_EdTime = DjyGetSysTime();
+                                s_EdTime = DJY_GetSysTime();
                                 s_TimeElapsed = (u64)(s_EdTime - s_StTime);
                                 // if((phost->Timer - MSC_Handle->timer) < 10000) // 此处为FS的SOF的周期(1ms)
                                 if(((phost->Timer - MSC_Handle->timer) < MSC_TEST_UNIT_READY_TIMEOUT) || // 此处为HS的SOF的周期(125us)
@@ -585,7 +585,7 @@ static USBH_StatusTypeDef USBH_MSC_Process(USBH_HandleTypeDef *phost)
         case MSC_IDLE:
         {
             error = USBH_OK;
-            Djy_EventDelay(1000000); // 1s跑一次
+            DJY_EventDelay(1000000); // 1s跑一次
             break;
         }
         

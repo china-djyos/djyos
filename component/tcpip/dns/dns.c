@@ -55,7 +55,7 @@
 #include "dbug.h"
 
 static struct in_addr gDnsV4[2];  //dns and its bak for v4
-bool_t DnsGet(enum_ipv_t ver,void *addr,void *addrbak)
+bool_t DNS_Get(enum_ipv_t ver,void *addr,void *addrbak)
 {
     bool_t ret = false;
     if(ver == EN_IPV_4)
@@ -72,7 +72,7 @@ bool_t DnsGet(enum_ipv_t ver,void *addr,void *addrbak)
     }
     return ret;
 }
-bool_t DnsSet(enum_ipv_t ver,void *addr,void *addrbak)
+bool_t DNS_Set(enum_ipv_t ver,void *addr,void *addrbak)
 {
     bool_t ret = false;
     if(ver == EN_IPV_4)

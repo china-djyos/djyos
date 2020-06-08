@@ -72,20 +72,20 @@ HWND HWND_Focus=NULL;
 //参数：hwnd: 新的焦点窗口
 //返回：true = success, false = failure.
 //-----------------------------------------------------------------------------
-bool_t SetFocusWindow(HWND hwnd)
+bool_t GDD_SetFocusWindow(HWND hwnd)
 {
     HWND wnd=NULL;
-    if(! IsFocusEnable(hwnd))
+    if(! GDD_IsFocusEnable(hwnd))
         return false;
     if(__GDD_Lock())
     {
         wnd =HWND_Focus;
         HWND_Focus =hwnd;
-        Cursor_SetHost(hwnd);
-        if( Cursor_CheckStatus(hwnd) )
-            Cursor_SetShow();
+        GDD_CursorSetHost(hwnd);
+        if( GDD_CursorCheckStatus(hwnd) )
+            GDD_CursorSetShow();
         else
-            Cursor_SetHide();
+            GDD_CursorSetHide();
         __GDD_Unlock();
     }
     else
@@ -95,11 +95,11 @@ bool_t SetFocusWindow(HWND hwnd)
 
     if(wnd!=NULL)
     {
-        SendMessage(wnd,MSG_KILLFOCUS,0,0);
+        GDD_SendMessage(wnd,MSG_KILLFOCUS,0,0);
     }
     if(hwnd!=NULL)
     {
-        SendMessage(hwnd,MSG_SETFOCUS,0,0);
+        GDD_SendMessage(hwnd,MSG_SETFOCUS,0,0);
     }
 
     return true;
@@ -111,7 +111,7 @@ bool_t SetFocusWindow(HWND hwnd)
 //参数：无.
 //返回：焦点窗口.
 //------------------------------------------------------------------------------
-HWND    GetFocusWindow(void)
+HWND    GDD_GetFocusWindow(void)
 {
     HWND wnd=NULL;
 
@@ -128,7 +128,7 @@ HWND    GetFocusWindow(void)
 //参数：hwnd，窗口句柄
 //返回：true = 允许, false = 不允许.
 //-----------------------------------------------------------------------------
-bool_t IsFocusEnable(HWND hwnd)
+bool_t GDD_IsFocusEnable(HWND hwnd)
 {
     if((hwnd->Style & WS_CAN_FOCUS) == WS_CAN_FOCUS)
         return true;
@@ -141,7 +141,7 @@ bool_t IsFocusEnable(HWND hwnd)
 //参数：无.
 //返回：如果指定的窗口是焦点窗口,将返回TRUE,否则返回FALSE.
 //------------------------------------------------------------------------------
-bool_t  IsFocusWindow(HWND hwnd)
+bool_t  GDD_IsFocusWindow(HWND hwnd)
 {
     bool_t res=FALSE;
 
@@ -162,14 +162,14 @@ bool_t  IsFocusWindow(HWND hwnd)
 //参数：hwnd，待检查的窗口
 //返回：true = 是祖先窗口，false = 不是
 //-----------------------------------------------------------------------------
-bool_t IsFocusAncestor(HWND hwnd)
+bool_t GDD_IsFocusAncestor(HWND hwnd)
 {
     HWND desktop,current;
     bool_t result = false;
     if(hwnd == NULL)
        return false;
-    current = GetFocusWindow();
-    desktop = GetDesktopWindow( );
+    current = GDD_GetFocusWindow();
+    desktop = GDD_GetDesktopWindow( );
     while(1)
     {
         if(hwnd == current)
@@ -182,7 +182,7 @@ bool_t IsFocusAncestor(HWND hwnd)
             result = false;
             break;
         }
-        current = Gdd_GetWindowParent(current);
+        current = GDD_GetWindowParent(current);
     }
     return result;
 }

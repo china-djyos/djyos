@@ -529,7 +529,7 @@ char Uart_GetCharDirect(void)
         {
             break;
         }
-        Djy_EventDelay(500);
+        DJY_EventDelay(500);
     }
     return result;
 }

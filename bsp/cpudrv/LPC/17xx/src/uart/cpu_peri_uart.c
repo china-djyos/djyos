@@ -401,7 +401,7 @@ static void __UART_HardInit(u8 SerialNo)
 //        while((false == __UART_TxTranEmpty(Reg))&& (timeout > 0))
 //        {
 //            timeout--;
-//            Djy_DelayUs(1);
+//            DJY_DelayUs(1);
 //        }
 //        if(timeout == 0)
 //            break;
@@ -682,7 +682,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;

@@ -116,7 +116,7 @@ _DEFUN(__hash_open, (file, flags, mode, info, dflags),
     int bpages, hdrsize, new_table, nsegs, save_errno;
 
     if ((flags & O_ACCMODE) == O_WRONLY) {
-        Djy_SaveLastError(EINVAL);
+        DJY_SaveLastError(EINVAL);
         return (NULL);
     }
 
@@ -137,10 +137,10 @@ _DEFUN(__hash_open, (file, flags, mode, info, dflags),
 #ifdef __USE_INTERNAL_STAT64
         (_stat64(file, &statbuf) && (g_ptEventRunning->error_no == ENOENT))) {
 #else
-        (stat(file, &statbuf) && (Djy_GetLastError() == ENOENT))) {
+        (stat(file, &statbuf) && (DJY_GetLastError() == ENOENT))) {
 #endif
         if (g_ptEventRunning->error_no == ENOENT)
-            Djy_SaveLastError(0); /* Just in case someone looks at errno */
+            DJY_SaveLastError(0); /* Just in case someone looks at errno */
         new_table = 1;
     }
     if (file) {
@@ -223,7 +223,7 @@ _DEFUN(__hash_open, (file, flags, mode, info, dflags),
     if (!(dbp = (DB *)malloc(sizeof(DB)))) {
         save_errno = g_ptEventRunning->error_no;
         hdestroy(hashp);
-        Djy_SaveLastError(save_errno);
+        DJY_SaveLastError(save_errno);
         return (NULL);
     }
     dbp->internal = hashp;
@@ -266,7 +266,7 @@ error1:
 
 error0:
     free(hashp);
-    Djy_SaveLastError(save_errno);
+    DJY_SaveLastError(save_errno);
     return (NULL);
 }
 
@@ -297,7 +297,7 @@ hash_fd(dbp)
 
     hashp = (HTAB *)dbp->internal;
     if (hashp->fp == -1) {
-        Djy_SaveLastError(ENOENT);
+        DJY_SaveLastError(ENOENT);
         return (-1);
     }
     return (hashp->fp);
@@ -348,7 +348,7 @@ init_hash(hashp, file, info)
             hashp->BSHIFT = __log2(info->bsize);
             hashp->BSIZE = 1 << hashp->BSHIFT;
             if (hashp->BSIZE > MAX_BSIZE) {
-                Djy_SaveLastError(EINVAL);
+                DJY_SaveLastError(EINVAL);
                 return (NULL);
             }
         }
@@ -361,7 +361,7 @@ init_hash(hashp, file, info)
         if (info->lorder) {
                        if (info->lorder != DB_BIG_ENDIAN &&
                            info->lorder != DB_LITTLE_ENDIAN) {
-                Djy_SaveLastError(EINVAL);
+                DJY_SaveLastError(EINVAL);
                 return (NULL);
             }
             hashp->LORDER = info->lorder;
@@ -452,7 +452,7 @@ hdestroy(hashp)
      * write them to disk.
      */
     if (__buf_free(hashp, 1, hashp->save_file))
-        save_errno = Djy_GetLastError();
+        save_errno = DJY_GetLastError();
     if (hashp->dir) {
         free(*hashp->dir);  /* Free initial segments */
         /* Free extra segments */
@@ -461,7 +461,7 @@ hdestroy(hashp)
         free(hashp->dir);
     }
     if (flush_meta(hashp) && !save_errno)
-        save_errno = Djy_GetLastError();
+        save_errno = DJY_GetLastError();
     /* Free Bigmaps */
     for (i = 0; i < hashp->nmaps; i++)
         if (hashp->mapp[i])
@@ -473,7 +473,7 @@ hdestroy(hashp)
     free(hashp);
 
     if (save_errno) {
-        Djy_SaveLastError(save_errno);
+        DJY_SaveLastError(save_errno);
         return (ERROR);
     }
     return (SUCCESS);
@@ -493,7 +493,7 @@ hash_sync(dbp, flags)
     HTAB *hashp;
 
     if (flags != 0) {
-        Djy_SaveLastError(EINVAL);
+        DJY_SaveLastError(EINVAL);
         return (ERROR);
     }
 
@@ -541,8 +541,8 @@ flush_meta(hashp)
         return (-1);
     else
         if (wsize != sizeof(HASHHDR)) {
-            Djy_SaveLastError(EFTYPE);
-            hashp->error = Djy_GetLastError();
+            DJY_SaveLastError(EFTYPE);
+            hashp->error = DJY_GetLastError();
             return (-1);
         }
     for (i = 0; i < NCACHED; i++)
@@ -574,7 +574,7 @@ hash_get(dbp, key, data, flag)
     hashp = (HTAB *)dbp->internal;
     if (flag) {
         hashp->error = EINVAL;
-        Djy_SaveLastError(EINVAL);
+        DJY_SaveLastError(EINVAL);
         return (ERROR);
     }
     return (hash_access(hashp, HASH_GET, (DBT *)key, data));
@@ -592,12 +592,12 @@ hash_put(dbp, key, data, flag)
     hashp = (HTAB *)dbp->internal;
     if (flag && flag != R_NOOVERWRITE) {
         hashp->error = EINVAL;
-        Djy_SaveLastError(EINVAL);
+        DJY_SaveLastError(EINVAL);
         return (ERROR);
     }
     if ((hashp->flags & O_ACCMODE) == O_RDONLY) {
         hashp->error = EPERM;
-        Djy_SaveLastError(EPERM);
+        DJY_SaveLastError(EPERM);
         return (ERROR);
     }
     return (hash_access(hashp, flag == R_NOOVERWRITE ?
@@ -615,12 +615,12 @@ hash_delete(dbp, key, flag)
     hashp = (HTAB *)dbp->internal;
     if (flag && flag != R_CURSOR) {
         hashp->error = EINVAL;
-        Djy_SaveLastError(EINVAL);
+        DJY_SaveLastError(EINVAL);
         return (ERROR);
     }
     if ((hashp->flags & O_ACCMODE) == O_RDONLY) {
         hashp->error = EPERM;
-        Djy_SaveLastError(EPERM);
+        DJY_SaveLastError(EPERM);
         return (ERROR);
     }
     return (hash_access(hashp, HASH_DELETE, (DBT *)key, NULL));
@@ -951,17 +951,17 @@ alloc_segs(hashp, nsegs)
 
     if ((hashp->dir =
         (SEGMENT *)calloc(hashp->DSIZE, sizeof(SEGMENT *))) == NULL) {
-        save_errno = Djy_GetLastError();
+        save_errno = DJY_GetLastError();
         (void)hdestroy(hashp);
-        Djy_SaveLastError(save_errno);
+        DJY_SaveLastError(save_errno);
         return (-1);
     }
     /* Allocate segments */
     if ((store =
         (SEGMENT)calloc(nsegs << hashp->SSHIFT, sizeof(SEGMENT))) == NULL) {
-        save_errno = Djy_GetLastError();
+        save_errno = DJY_GetLastError();
         (void)hdestroy(hashp);
-        Djy_SaveLastError(save_errno);
+        DJY_SaveLastError(save_errno);
         return (-1);
     }
     for (i = 0; i < nsegs; i++, hashp->nsegs++)

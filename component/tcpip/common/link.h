@@ -81,15 +81,15 @@ struct LinkOps
     fnLinkOut    linkout;
 //  fnLinkIo     linkio;
 };
-bool_t LinkRegister(enum enLinkType type,const char *name,struct LinkOps *ops);
-bool_t LinkUnRegister(enum enLinkType type,const char *name);
-bool_t LinkSend(struct NetDev *DevFace,struct NetPkg *pkg,u32 devtask,u16 proto,\
+bool_t Link_Register(enum enLinkType type,const char *name,struct LinkOps *ops);
+bool_t Link_UnRegister(enum enLinkType type,const char *name);
+bool_t Link_Send(struct NetDev *DevFace,struct NetPkg *pkg,u32 devtask,u16 proto,\
         enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc);
-struct LinkOps  *LinkFindOps(enum enLinkType type);
-const char *LinkTypeName(enum enLinkType type);
-bool_t LinkInit(void);
-bool_t LinkPushRegister(u16 protocol,fnLinkProtoDealer dealer);//ip and arp intall their push functions
-bool_t LinkPush(struct NetDev  *iface,struct NetPkg *pkg,enum enLinkProto protocol); //and the linker layer call this function
+struct LinkOps  *Link_FindOps(enum enLinkType type);
+const char *Link_TypeName(enum enLinkType type);
+bool_t Link_Init(void);
+bool_t Link_PushRegister(u16 protocol,fnLinkProtoDealer dealer);//ip and arp intall their push functions
+bool_t Link_Push(struct NetDev  *iface,struct NetPkg *pkg,enum enLinkProto protocol); //and the linker layer call this function
 //bool_t LinkDeal(struct NetDev *iface,struct NetPkg *pkg);//the net device layer call this function
 
 

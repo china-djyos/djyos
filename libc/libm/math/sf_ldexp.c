@@ -25,7 +25,7 @@
 {
     if(!finitef(value)||value==(float)0.0) return value;
     value = scalbnf(value,exp);
-    if(!finitef(value)||value==(float)0.0) Djy_SaveLastError(ERANGE);
+    if(!finitef(value)||value==(float)0.0) DJY_SaveLastError(ERANGE);
     return value;
 }
 

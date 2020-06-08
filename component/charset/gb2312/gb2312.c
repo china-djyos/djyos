@@ -109,10 +109,10 @@
 //@#$%component end configure
 
 
-s32 GB2312MbToUcs4 (u32 *pwc, const char *mbs, s32 n);
-s32 GB2312MbsToUcs4s(u32* pwcs, const char* mbs, s32 n);
-s32 GB2312Ucs4ToMb(char* s, u32 wc);
-s32 GB2312Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n);
+s32 Gb2312_MbToUcs4 (u32 *pwc, const char *mbs, s32 n);
+s32 Gb2312_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n);
+s32 Gb2312_Ucs4ToMb(char* s, u32 wc);
+s32 Gb2312_Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n);
 
 typedef struct {
   u16 indx; /* index into big table */
@@ -1185,7 +1185,7 @@ static const u16 cg_gb2312_2uni_16_87[6768] = {
 };
 
 // ×¢ÊÍ²ÎÕÕ charset.h-> struct Charset -> GetOneMb
-s32 GB2312GetOneMb(const char* mbs,s32 n)
+s32 Gb2312_GetOneMb(const char* mbs,s32 n)
 {
     u8 c1,c2;
     u32 i;
@@ -1230,7 +1230,7 @@ s32 GB2312GetOneMb(const char* mbs,s32 n)
 }
 
 // ×¢ÊÍ²ÎÕÕ charset.h-> struct Charset -> MbToUcs4
-s32 GB2312MbToUcs4 (u32 *pwc, const char *mbs, s32 n)
+s32 Gb2312_MbToUcs4 (u32 *pwc, const char *mbs, s32 n)
 {
     u8 c1,c2;
     u32 i;
@@ -1291,7 +1291,7 @@ s32 GB2312MbToUcs4 (u32 *pwc, const char *mbs, s32 n)
 
 // ×¢ÊÍ²ÎÕÕ charset.h-> struct Charset -> MbsToUcs4s
 // todo:´ýÊµÏÖ
-s32 GB2312MbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
+s32 Gb2312_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
 {
     return 0;
 }
@@ -2723,7 +2723,7 @@ static const Summary16 gb2312_uni2indx_pageff[15] = {
 };
 
 // ×¢ÊÍ²ÎÕÕ charset.h-> struct Charset -> Ucs4ToMb
-s32 GB2312Ucs4ToMb (char* mb, u32 wc)
+s32 Gb2312_Ucs4ToMb (char* mb, u32 wc)
 {
     u16 used;
     u16 i, c;
@@ -2779,7 +2779,7 @@ __illegal:
 
 // ×¢ÊÍ²ÎÕÕ charset.h-> struct Charset -> Ucs4sToMbs
 //TODO:´ýÊµÏÖ
-s32 GB2312Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n)
+s32 Gb2312_Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n)
 {
     return 0;
 }
@@ -2799,18 +2799,18 @@ bool_t ModuleInstall_CharsetGb2312(void)
 
     encoding.max_len = 2;
     encoding.EOC_Size = 1;
-    encoding.GetOneMb = GB2312GetOneMb;
-    encoding.MbToUcs4 = GB2312MbToUcs4;
-    encoding.Ucs4ToMb = GB2312Ucs4ToMb;
-    encoding.MbsToUcs4s = GB2312MbsToUcs4s;
-    encoding.Ucs4sToMbs = GB2312Ucs4sToMbs;
+    encoding.GetOneMb = Gb2312_GetOneMb;
+    encoding.MbToUcs4 = Gb2312_MbToUcs4;
+    encoding.Ucs4ToMb = Gb2312_Ucs4ToMb;
+    encoding.MbsToUcs4s = Gb2312_MbsToUcs4s;
+    encoding.Ucs4sToMbs = Gb2312_Ucs4sToMbs;
     if( Charset_NlsInstallCharset(&encoding, CN_NLS_CHARSET_GB2312))
     {
         debug_printf("gb2312","gb2312 encoding install sucess\n\r");
         return true;
     }else
     {
-        Djy_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
         debug_printf("gb2312","gb2312 encoding install fail\n\r");
         return false;
     }

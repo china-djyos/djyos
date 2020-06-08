@@ -185,7 +185,7 @@ s64 strtoll(const char * nptr, char **__restrict endptr,s32 base)
     }
     if (any < 0) {
         acc = neg ? LONG_LONG_MIN : LONG_LONG_MAX;
-        Djy_SaveLastError(ERANGE);
+        DJY_SaveLastError(ERANGE);
     } else if (neg)
         acc = -acc;
     if (endptr != 0)

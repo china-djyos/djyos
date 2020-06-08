@@ -405,7 +405,7 @@ bool_t UART_TxEnd(u8 port)
     while((false == __UART_TxTranEmpty(Reg))&& (timeout > 10))
     {
         timeout -=10;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
     }
     return true;
 }
@@ -733,7 +733,7 @@ bool_t __uart_dma_timeout(bool_t sending)
     while((sending == true)&& (timeout > 0))//超时
     {
         timeout--;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
     if(timeout == 0)
         return true;
@@ -846,7 +846,7 @@ void __UART_SetDmaUsed(u32 port)
 
     if(s_UART_DmaUsed[port] == CN_DMA_USED)
         return ;
-    heap =M_FindHeap("nocache");
+    heap =Heap_FindHeap("nocache");
     if(heap==NULL)
         return;
 
@@ -1385,7 +1385,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;
@@ -1395,7 +1395,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
     while((PutStrDirectReg->ISR &(1<<6))!=(1<<6))
     {
         timeout -=10;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
         if(timeout < 10)
            break;
     }
@@ -1418,7 +1418,7 @@ char Uart_GetCharDirect(void)
     GetCharDirectReg->CR1 &= ~((1<<7)); //disable send INT
     GetCharDirectReg->ICR |= (1<<3);    //清溢出错误标志：轮询接收有可能接收不及时产生溢出错误
     while(__UART_RxHadChar(GetCharDirectReg) == false)
-        Djy_EventDelay(1000);
+        DJY_EventDelay(1000);
 
     result = GetCharDirectReg->RDR;
     PutStrDirectReg->CR1 = CR_Bak;                         //restore send INT

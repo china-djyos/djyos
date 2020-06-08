@@ -162,12 +162,12 @@ void semp_del(semp_t semp)
 bool_t taskcreate(const char *name,u16 stacksize,u8 prior,ptu32_t (*fnTask)(void),void *para)
 {
     u16 evttID,eventID;
-    evttID= Djy_EvttRegist(EN_INDEPENDENCE, prior, 0, 1,fnTask,NULL, stacksize,(char *)name);
+    evttID= DJY_EvttRegist(EN_INDEPENDENCE, prior, 0, 1,fnTask,NULL, stacksize,(char *)name);
     if(evttID == CN_EVTT_ID_INVALID)
     {
         goto EXIT_EVTTFAILED;
     }
-    eventID = Djy_EventPop(evttID, NULL, 0,(ptu32_t)para, 0, 0);
+    eventID = DJY_EventPop(evttID, NULL, 0,(ptu32_t)para, 0, 0);
     if(eventID == CN_EVENT_ID_INVALID)
     {
         goto EXIT_EVENTFAILED;
@@ -176,7 +176,7 @@ bool_t taskcreate(const char *name,u16 stacksize,u8 prior,ptu32_t (*fnTask)(void
     return true;
 
 EXIT_EVENTFAILED:
-    Djy_EvttUnregist(evttID);
+    DJY_EvttUnregist(evttID);
 EXIT_EVTTFAILED:
     return false;
 }
@@ -336,7 +336,7 @@ static ptu32_t __NetTickerTask(void)
             }
             mutex_unlock(gTickerCB.lock);
         }
-        Djy_EventDelay(CN_NETTICK_CYCLE*mS);
+        DJY_EventDelay(CN_NETTICK_CYCLE*mS);
     }
     return 0;
 }
@@ -371,7 +371,7 @@ static ptu32_t __NetTickerTask(void)
         }
         mutex_unlock(gTickerCB.lock);
     }
-    Djy_EventDelay(CN_NETTICK_CYCLE*mS);
+    DJY_EventDelay(CN_NETTICK_CYCLE*mS);
     return ret;
 }
 

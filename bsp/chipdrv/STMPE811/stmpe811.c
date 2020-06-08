@@ -199,36 +199,36 @@ static bool_t touch_hard_init(void)
     if(chipid ==0x811)
     {
         TS_Write(SYS_CTRL2, 1, 0x0C);                   //打开TSC及ADC的时钟
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(INT_EN, 1, 0x07);                      //使能中断
         //ADC分辨率（12bit），参考电压（内部）及采样时间（124）
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(ADC_CTRL1 , 1, 0x68);
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(ADC_CTRL2 , 1, 0x01);                  //ADC采样频率（3.25Mhz）
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(GPIO_AF , 1, 0x00);                    //端口选择为触摸屏使用
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(TSC_CFG, 1, 0x92);                     //TSC_CFG
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write (FIFO_TH, 1, 16);             //触摸屏的触发门限1（测量的是单击）
         //TS_Write (FIFO_TH, 1, 0x05);         //触摸屏的触发门限5（测量的是轨迹）
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(FIFO_STA, 1, 0x01);                    //FIFO复位
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(FIFO_STA, 1, 0x00);
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(TSC_FRACT_XYZ, 1, 0x07);
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(TSC_I_DRIVE, 1, 0x01);
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
 
         TS_Write(TSC_CTRL, 1, 0x01 | stmpe811_opmode<<1); //使能TSC
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(INT_STA, 1, 0xFF);                       //清除所有中断
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(INT_CTRL, 1, 0x01);                      //不使能TSC
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
 
 
         return true;
@@ -336,11 +336,11 @@ static ufast_t read_touch_stmpe811(struct SingleTouchMsg *touch_data)
         if (TS_Read(FIFO_SIZE, 1))
         {
             TS_Write(INT_STA, 1, 0xFF);                //清除所有中断
-            Djy_EventDelay(100);
+            DJY_EventDelay(100);
             TS_Write(FIFO_STA, 1, 0x01);                //FIFO复位
-            Djy_EventDelay(100);
+            DJY_EventDelay(100);
             TS_Write(FIFO_STA, 1, 0x00);
-            Djy_EventDelay(100);
+            DJY_EventDelay(100);
         }
         return 1;
     }
@@ -388,7 +388,7 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
         GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
         GK_SyncShow(CN_TIMEOUT_FOREVER);
         while(!read_touch_stmpe811(&touch_xyz0));           //记录触摸屏第一点校正值
-        Djy_DelayUs(300);
+        DJY_DelayUs(300);
 //这里的松手检测是通过读检查fifo中是否有坐标点数据来实现的，
 //有数据清空并延时0.1s再检测，软件可以不用考虑防抖。
         do
@@ -396,14 +396,14 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
             if (TS_Read(FIFO_SIZE, 1))
             {
                 TS_Write(INT_STA, 1, 0xFF);                //清除所有中断
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
                 TS_Write(FIFO_STA, 1, 0x01);                //FIFO复位
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
                 TS_Write(FIFO_STA, 1, 0x00);
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
             }
 
-            Djy_DelayUs(1000*100);
+            DJY_DelayUs(1000*100);
             sta=TS_Read (INT_STA, 1);
         }while(sta&2);//fifo中有数据则重读，无数据则认为松手
 
@@ -424,11 +424,11 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
         if (TS_Read(FIFO_SIZE, 1))
         {
             TS_Write(INT_STA, 1, 0xFF);                //清除所有中断
-            Djy_DelayUs(100);
+            DJY_DelayUs(100);
             TS_Write(FIFO_STA, 1, 0x01);                //FIFO复位
-            Djy_DelayUs(100);
+            DJY_DelayUs(100);
             TS_Write(FIFO_STA, 1, 0x00);
-            Djy_DelayUs(100);
+            DJY_DelayUs(100);
         }
 
         while(!read_touch_stmpe811(&touch_xyz1));           //记录触摸屏第二点校正值
@@ -438,14 +438,14 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
             if (TS_Read(FIFO_SIZE, 1))
             {
                 TS_Write(INT_STA, 1, 0xFF);                //清除所有中断
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
                 TS_Write(FIFO_STA, 1, 0x01);                //FIFO复位
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
                 TS_Write(FIFO_STA, 1, 0x00);
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
             }
 
-            Djy_DelayUs(1000*100);
+            DJY_DelayUs(1000*100);
             sta=TS_Read (INT_STA, 1);
         }while(sta&2);//等待松手
 

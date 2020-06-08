@@ -374,7 +374,7 @@ void __UART_half_duplex_send(u32 SerialNo)
 //    else
 //        ;
     //MAX485芯片返回控制接收和发送时间
-    Djy_DelayUs(12);
+    DJY_DelayUs(12);
 }
 
 // =============================================================================
@@ -391,7 +391,7 @@ void __UART_half_duplex_recv(u32 SerialNo)
 //    else
 //        ;
     //MAX485芯片返回控制接收和发送时间
-    Djy_DelayUs(12);
+    DJY_DelayUs(12);
 }
 
 // =============================================================================
@@ -618,7 +618,7 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 //                && (timeout > 0))//超时或者发送缓冲为空时退出
 //            {
 //                timeout--;
-//                Djy_DelayUs(1);
+//                DJY_DelayUs(1);
 //            }
 //            if(timeout == 0)
 //                break;
@@ -630,7 +630,7 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 ////                && (timeout > 0))//超时或者发送缓冲为空时退出
 ////        {
 ////            timeout--;
-////            Djy_DelayUs(1);
+////            DJY_DelayUs(1);
 ////        }
 ////        if(timeout == 0)
 ////            result = 0;
@@ -650,7 +650,7 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 //        while((!__UART_TxTranEmpty(Reg)) && (timeout > 0))
 //        {
 //            timeout--;
-//            Djy_DelayUs(1);
+//            DJY_DelayUs(1);
 //        }
 //        if(timeout == 0)
 //            result = 0;
@@ -914,7 +914,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;

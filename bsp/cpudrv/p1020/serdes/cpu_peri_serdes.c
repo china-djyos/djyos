@@ -115,5 +115,5 @@ void fsl_serdes_init(void)
 #endif
     /* 100 ms delay */
     //djy_delay_10us(10000);
-    //Djy_EventDelay(100000);
+    //DJY_EventDelay(100000);
 }

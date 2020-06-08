@@ -102,12 +102,12 @@ typedef enum{
 
 }EN_PB_MODE;
 
-HWND CreateProgressBar(  const char *Text,u32 Style,
+HWND Widget_CreateProgressBar(  const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
                     HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink);
 
-bool_t MakeProgressRect(RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MODE mode);
+bool_t Widget_MakeProgressRect(RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MODE mode);
 #if __cplusplus
 }
 #endif

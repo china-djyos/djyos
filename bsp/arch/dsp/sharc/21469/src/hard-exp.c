@@ -111,9 +111,9 @@ bool_t Sh_Reboot(char *param);
 bool_t Sh_RestartSystem(char *param);
 
 
- void reset(void);
- void reboot(void);
- void restart_system(void);
+ void CPU_Reset(void);
+ void CPU_Reboot(void);
+ void CPU_RestartSystem(void);
 
 
 
@@ -803,7 +803,7 @@ bool_t Sh_SoftwareReset(char *param)
 
 
 //------------------------------------------------------------------------------
-//function:this function is used to reboot the os .
+//function:this function is used to CPU_Reboot the os .
 //parameter:
 //return:
 //remarks:sensitive to transplant
@@ -855,7 +855,7 @@ return true;
 }
 
 // =============================================================================
-// 函数功能：reset
+// 函数功能：CPU_Reset
 //           复位CPU
 // 输入参数：无
 //
@@ -863,15 +863,15 @@ return true;
 // 返回值  : 无
 // 说明    ：
 // =============================================================================
-void reset(void)
+void CPU_Reset(void)
 {
     __asm_software_reset();
 }
 
 
 // =============================================================================
-// 函数功能：reboot
-//           reboot CPU
+// 函数功能：CPU_Reboot
+//           CPU_Reboot CPU
 // 输入参数：无
 //
 // 输出参数：无
@@ -879,14 +879,14 @@ void reset(void)
 // 说明    ：
 // =============================================================================
 
-void reboot(void)
+void CPU_Reboot(void)
 {
 
 }
 
 // =============================================================================
-// 函数功能：restart_system
-//           reboot CPU
+// 函数功能：CPU_RestartSystem
+//           CPU_Reboot CPU
 // 输入参数：无
 //
 // 输出参数：无
@@ -894,7 +894,7 @@ void reboot(void)
 // 说明    ：
 // =============================================================================
 
-void restart_system(void)
+void CPU_RestartSystem(void)
 {
 }
 

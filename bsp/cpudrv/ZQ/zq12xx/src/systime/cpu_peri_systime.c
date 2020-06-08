@@ -96,7 +96,7 @@ bool_t MoudleInit_Systime(ptu32_t para)
     SysTime_Config();
 
     //注册系统时钟函数
-    SysTimeConnect(Systime_GetTime,NULL,SYSTIME_FRE,SYSTIME_CYCLE);
+    DJY_SysTimeConnect(Systime_GetTime,NULL,SYSTIME_FRE,SYSTIME_CYCLE);
     return true;
 }
 

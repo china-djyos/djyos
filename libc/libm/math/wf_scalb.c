@@ -59,12 +59,12 @@
         exc.arg2 = (double)fn;
         exc.retval = x > 0.0 ? HUGE_VAL : -HUGE_VAL;
         if (_LIB_VERSION == _POSIX_)
-           Djy_SaveLastError(ERANGE);
+           DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-           Djy_SaveLastError(ERANGE);
+           DJY_SaveLastError(ERANGE);
         }
         if (exc.err != 0)
-           Djy_SaveLastError(exc.err);
+           DJY_SaveLastError(exc.err);
             return exc.retval;
     }
     if(z==(float)0.0&&z!=x) {
@@ -76,16 +76,16 @@
         exc.arg2 = (double)fn;
         exc.retval = copysign(0.0,x);
         if (_LIB_VERSION == _POSIX_)
-           Djy_SaveLastError(ERANGE);
+           DJY_SaveLastError(ERANGE);
         else if (!matherr(&exc)) {
-           Djy_SaveLastError(ERANGE);
+           DJY_SaveLastError(ERANGE);
         }
         if (exc.err != 0)
-           Djy_SaveLastError(exc.err);
+           DJY_SaveLastError(exc.err);
             return exc.retval;
     }
 #ifndef _SCALB_INT
-    if(!finitef(fn)) Djy_SaveLastError(ERANGE);
+    if(!finitef(fn)) DJY_SaveLastError(ERANGE);
 #endif
     return z;
 #endif

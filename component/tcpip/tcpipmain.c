@@ -105,8 +105,8 @@ bool_t ModuleInstall_TcpIp(void)
         goto TCPIP_INITERR;
     }
     //do the link init
-    extern bool_t LinkInit(void);
-    ret = LinkInit();
+    extern bool_t Link_Init(void);
+    ret = Link_Init();
     __LoadLog("LINK",ret);
     if(false == ret)
     {
@@ -120,8 +120,8 @@ bool_t ModuleInstall_TcpIp(void)
     {
         goto TCPIP_INITERR;
     }
-    extern bool_t LinkRawInit(void);
-    ret = LinkRawInit();
+    extern bool_t Link_RawInit(void);
+    ret = Link_RawInit();
     __LoadLog("LINKRAW",ret);
     if(false == ret)
     {
@@ -223,8 +223,8 @@ bool_t ModuleInstall_TcpIp(void)
         }
 #endif
         //add the tcpip service
-    extern bool_t ServiceInit(void);
-    ret = ServiceInit();
+    extern bool_t DHCP_ServiceInit(void);
+    ret = DHCP_ServiceInit();
     __LoadLog("SERVICE",ret);
     if(false == ret)
     {

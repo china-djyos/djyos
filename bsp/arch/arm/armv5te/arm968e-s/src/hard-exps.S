@@ -1,9 +1,9 @@
 //#include "exp_vector.h"
-.globl IAP_SelectLoadProgam
+.globl Iboot_IAP_SelectLoadProgam
 .globl irq_handler
 .globl fiq_handler
 .globl Init_Cpu
-.globl Load_Preload
+.globl Iboot_LoadPreload
 /*
  *==============================================================================
  */
@@ -272,7 +272,7 @@ Init_Cpu:
     MOV R12, #0
 
     bl  cp15_enable_alignfault
-    ldr     pc, =IAP_SelectLoadProgam
+    ldr     pc, =Iboot_IAP_SelectLoadProgam
 
 
 
@@ -309,7 +309,7 @@ AppStart:
     MOV R12, #0
 
     bl  cp15_enable_alignfault
-    bl  Load_Preload
+    bl  Iboot_LoadPreload
 
 .text
 .align 5

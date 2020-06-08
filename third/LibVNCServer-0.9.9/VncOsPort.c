@@ -27,11 +27,11 @@ bool_t  TaskCreate(ptu32_t (*task)(void),void *arg,const char *name)
 {
     bool_t result = false;
     u16 threadID;
-    threadID = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
+    threadID = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
                               task,NULL,0x400,name);
     if(threadID != CN_EVTT_ID_INVALID)
     {
-        if(CN_EVENT_ID_INVALID != Djy_EventPop(threadID,NULL,0,arg,0,0))
+        if(CN_EVENT_ID_INVALID != DJY_EventPop(threadID,NULL,0,arg,0,0))
         {
             result = true;
         }

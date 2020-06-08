@@ -91,7 +91,7 @@ u8 RNG_Init(void)
     while(__HAL_RNG_GET_FLAG(&RNG_Handler,RNG_FLAG_DRDY)==RESET&&retry<10000)//等待RNG准备就绪
     {
         retry++;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
     }
     if(retry>=10000) return 1;//随机数产生器工作不正常
     srand(RNG_Get_RandomRange(CFG_RNG_NUM_MIN,CFG_RNG_NUM_MAX));

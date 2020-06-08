@@ -222,13 +222,13 @@ static bool_t GT9271_Init( )
     u8 count = 0, Val_1 = 0, Val_2 = 0;
     s8 ret = 0;
     GPIO_SettoLow(GPIO_D,PIN2);         //RST 0
-    Djy_EventDelay(20000);
+    DJY_EventDelay(20000);
     GPIO_SettoLow(GPIO_D,PIN3);         //INT 0
-    Djy_EventDelay(2000);
+    DJY_EventDelay(2000);
     GPIO_SettoHigh(GPIO_D,PIN2);        //RST 1
-    Djy_EventDelay(6000);
+    DJY_EventDelay(6000);
     GPIO_SettoLow(GPIO_D,PIN3);         //INT 0
-    Djy_EventDelay(50000);
+    DJY_EventDelay(50000);
 
     Set_TpINT_ToIn();
 
@@ -260,7 +260,7 @@ static bool_t GT9271_Init( )
 //                    {
 //                        if(GT9271_WR_Reg(GT9271_CONFIG_VERSION, cfg_info_group5, sizeof(cfg_info_group5)) == sizeof(cfg_info_group5))
 //                        {
-//                            Djy_EventDelay(2000*1000);
+//                            DJY_EventDelay(2000*1000);
 //                            ret = GT9271_RD_Reg(GT9271_CONFIG_VERSION, test_buf, sizeof(cfg_info_group5));
 //                            if((ret > 0) && (test_buf[0] != cfg_info_group5[0]))    //用以判断配置信息是否真的写进去了。
 //                                printf("config info write fail\r\n");
@@ -331,7 +331,7 @@ static bool_t GT9271_Scan(struct SingleTouchMsg *touch_data)
                 GT9271_WR_Reg(GT9271_READ_COOR_ADDR,&touch_num,1);
             }
         }
-        Djy_EventDelay(6000);
+        DJY_EventDelay(6000);
     }
 
     return 0;
@@ -345,7 +345,7 @@ static bool_t touch_check(void)
     struct SingleTouchMsg touch_xyz0;
     for(i=0;i<5;i++)
     {
-        Djy_DelayUs(50*mS);
+        DJY_DelayUs(50*mS);
         if(GT9271_Scan(&touch_xyz0))//判断松手
             i=0;
     }
@@ -478,7 +478,7 @@ void touch_test(void)
         do
         {
             GT9271_RD_Reg(0x814E, &Val_1, 1);
-            Djy_EventDelay(10000);
+            DJY_EventDelay(10000);
         }while(!(Val_1 & (1 << 7)));
 //        GT9271_RD_Reg(0x814f, &Val, 1);
         if(Val_1 & (1 << 7))
@@ -518,7 +518,7 @@ void touch_test(void)
 //            printf("x=%d.\r\n",xy);
 //            xy = temp[3] | (temp[4] << 8);
 //            printf("y=%d.\r\n",xy);
-////            Djy_EventDelay(1000*1000);
+////            DJY_EventDelay(1000*1000);
 //        }
         touch_num = 0;
         GT9271_WR_Reg(0x814E,&touch_num,1);

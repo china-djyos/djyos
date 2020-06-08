@@ -71,7 +71,7 @@ enum _NEWLIB_ERROR_CODE_
     ECHRNG,      /* Channel number out of range */
     EL2NSYNC,    /* Level   not synchronized */
     EL3HLT,      /* Level   halted */
-    EL3RST,      /* Level   reset */
+    EL3RST,      /* Level   CPU_Reset */
     ELNRNG,      /* Link number out of range */
     EUNATCH,     /* Protocol driver not attached */
     ENOCSI,      /* No CSI structure available */
@@ -131,7 +131,7 @@ enum _NEWLIB_ERROR_CODE_
     ELOOP,       /* Too many symbolic links */
     EOPNOTSUPP,      /* Operation not supported on transport endpoint */
     EPFNOSUPPORT,    /* Protocol family not supported */
-    ECONNRESET,      /* Connection reset by peer */
+    ECONNRESET,      /* Connection CPU_Reset by peer */
     ENOBUFS,     /* No buffer space available */
     EAFNOSUPPORT,     /* Address family not supported by protocol family */
     EPROTOTYPE,      /* Protocol wrong type for socket */
@@ -212,12 +212,13 @@ enum _FS_ERROR_CODE_
     EN_FS_READFILE_EOF                  //读文件到达文件结束
 };
 
-void Djy_SaveLastError(u32 ErrorCode);
-u32 Djy_GetLastError(void);
-//#define errno Djy_GetLastError()
+void DJY_SaveLastError(u32 ErrorCode);
+u32 DJY_GetLastError(void);
+//#define errno DJY_GetLastError()
 
-extern u32 *DjyCurrentErrnoAddr(void);
-#define errno   (*(int*)DjyCurrentErrnoAddr())
+extern u32 *DJY_CurrentErrnoAddr(void);
+extern u32 *DjyCurrentErrnoAddr(void);//修改成DJY_CurrentErrnoAddr函数后和C库有冲突，copy了一份，改了C库之后删掉
+#define errno   (*(int*)DJY_CurrentErrnoAddr())
 //extern int errno;
 
 #ifdef __cplusplus

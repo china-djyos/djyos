@@ -499,7 +499,7 @@ static u32 __computeIsn(void)
     u32 result;
 
     result = (u32)((sIsnCnt++)*CN_ISN_PER_CONNECT +
-            DjyGetSysTime()*mS*CN_TCP_ISNPRE_MS);
+            DJY_GetSysTime()*mS*CN_TCP_ISNPRE_MS);
     return result;
 }
 
@@ -813,7 +813,7 @@ static struct tagSocket * __tcpsocket(s32 family, s32 type, s32 protocal)
         if(NULL != sock)
         {
             sock->ProtocolOps = &gTcpProto;
-            handle_SetMultiplexEvent(fd2Handle(sock->sockfd), 0);
+            Handle_SetMultiplexEvent(fd2Handle(sock->sockfd), 0);
 //          memset(sock, 0, sizeof(struct tagSocket));
 //          sock->SockSync = mutex_init(NULL);
             if(mutex_lock(pTcpHashTab->tabsync))
@@ -1017,7 +1017,7 @@ static struct tagSocket *__acceptclient(struct tagSocket *sock)
         }
     }
     if(scb->clst == NULL) {
-       handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
+       Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
        //printf("--info: low level remove the accept event...\r\n");
     }
     return result;
@@ -1061,7 +1061,7 @@ static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *ad
         }
         if(NULL== result)  //no one to accept
         {
-//          handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT);
+//          Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT);
         }
         else
         {
@@ -1592,12 +1592,12 @@ static s32 __tcpsend(struct tagSocket *sock, const void *msg, s32 len, s32 flags
                    if((ccb->sbuf.buflenleft > ccb->sbuf.trigerlevel)||
                       (0 ==(ccb->channelstat&CN_TCP_CHANNEL_STATASND)))
                    {
-                       handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
+                       Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
                        semp_post(ccb->sbuf.bufsync);
                    }
                    else
                    {
-                       handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
+                       Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
                    }
                 }
                 else
@@ -1619,7 +1619,7 @@ static s32 __tcpsend(struct tagSocket *sock, const void *msg, s32 len, s32 flags
             else
             {
                 result = 0;  // the channel is shutdown now
-                handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
+                Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
                 semp_post(ccb->sbuf.bufsync);
             }
             mutex_unlock(sock->SockSync);
@@ -1721,12 +1721,12 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
                 if((ccb->rbuf.buflen > ccb->rbuf.trigerlevel)||
                    (0 == (ccb->channelstat&CN_TCP_CHANNEL_STATKRCV)))
                 {
-                    handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                    Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
                     semp_post(ccb->rbuf.bufsync);
                 }
                 else
                 {
-                    handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                    Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
                     ccb->channelstat &=(~CN_TCP_CHANNEL_STATCONGEST);
                     //changed the rcv window
                     //we may prevent the data in because of the limited buf, then we
@@ -1743,7 +1743,7 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
             else
             {
                 result = 0;  // the channel receive is shutdown now
-                handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
                 semp_post(ccb->rbuf.bufsync);
             }
 
@@ -2668,7 +2668,7 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
     {
         if(ccb->rbuf.buflen > ccb->rbuf.trigerlevel)
         {
-            handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
+            Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
             semp_post(ccb->rbuf.bufsync);
         }
         if(ccb->rbuf.buflen >= (2*ccb->rbuf.buflenlimit))
@@ -2789,12 +2789,12 @@ static bool_t __ackdata(struct tagSocket *client, struct TcpHdr *hdr)
         if((ccb->sbuf.buflenleft > ccb->sbuf.trigerlevel)||
            (0 ==(ccb->channelstat&CN_TCP_CHANNEL_STATASND)))
         {
-            handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE);
+            Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE);
             semp_post(ccb->sbuf.bufsync);
         }
         else
         {
-            handle_ClrMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE);
+            Handle_ClrMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE);
         }
         if(ccb->sbuf.sndnxtno == ccb->sbuf.unackno)  //noting to resend, so close the resend timer
         {
@@ -2851,7 +2851,7 @@ static bool_t __rcvsyn_ms(struct tagSocket *client, struct TcpHdr *hdr, struct N
             //notice the server to accept
             server = ccb->server;
             scb = (struct ServerCB *)server->TplCB;
-            handle_SetMultiplexEvent(fd2Handle(server->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
+            Handle_SetMultiplexEvent(fd2Handle(server->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
             semp_post(scb->acceptsemp);
         }
     }
@@ -2940,7 +2940,7 @@ static bool_t __stable_ms(struct tagSocket *client, struct TcpHdr *hdr,struct Ne
         ccb->machinestat= EN_TCP_MC_CLOSEWAIT;
         //could never to receive more data
         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKRCV);
-        handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
+        Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
         semp_post(ccb->rbuf.bufsync);
         //--TODO,maybe signal an sigpipe signal
     }
@@ -3023,7 +3023,7 @@ static bool_t __finwait1_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
         }
         //could never to receive more data
         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKRCV);
-        handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
+        Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
         semp_post(ccb->rbuf.bufsync);
         //--TODO,maybe signal an sigpipe signal
     }
@@ -3078,7 +3078,7 @@ static bool_t __finwait2_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
         ccb->mltimer = CN_TCP_TICK_2ML;
         //could never to receive more data
         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKRCV);
-        handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
+        Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
         semp_post(ccb->rbuf.bufsync);
         //--TODO,maybe signal an sigpipe signal
     }
@@ -3239,7 +3239,7 @@ static bool_t __dealrecvpkg(struct tagSocket *client, struct TcpHdr *hdr,struct 
     if((hdr->flags & CN_TCP_FLAG_RST)&&(ccb->rbuf.rcvnxt == htonl(hdr->seqno)))
     {
         __ResetCCB(ccb, EN_TCP_MC_2FREE);           //general deal the reset socket
-        handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE|CN_SOCKET_IOREAD);
+        Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE|CN_SOCKET_IOREAD);
     }
     else
     {
@@ -3298,7 +3298,7 @@ static struct tagSocket* __newclient(struct tagSocket *server, struct TcpHdr *hd
         if(NULL != result)
         {
             result->ProtocolOps = &gTcpProto;
-            handle_SetMultiplexEvent(fd2Handle(result->sockfd), 0);
+            Handle_SetMultiplexEvent(fd2Handle(result->sockfd), 0);
 //          memset(result, 0, sizeof(struct tagSocket));
 //          result->SockSync = mutex_init(NULL);
             ccb = __CreateCCB();

@@ -184,7 +184,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
     protobuf = Port->RecvPkgBuf;
     startoffset = Port->analyzeoff;
     readed = Port->recvoff;
-    starttime = (u32)DjyGetSysTime();
+    starttime = (u32)DJY_GetSysTime();
     while(1)
     {
         if(startoffset == readed)
@@ -202,7 +202,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
             Port->analyzeoff = 0;
             Port->recvoff = readed;
         }
-        tmp = DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed, 0, Port->Timeout);
+        tmp = Device_Read(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed, 0, Port->Timeout);
         if(tmp != 0)
         {
             if(debug_ctrl ==true)
@@ -261,7 +261,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
                     //此处与从机不一样，从机只在收到部分包时判超时，因为从机时被动接收。
                     //主机是发包后等待从机响应，从机必须立即响应。
         {
-            if(((u32)DjyGetSysTime() - starttime) > Port->Timeout)
+            if(((u32)DJY_GetSysTime() - starttime) > Port->Timeout)
             {
                 if(Port->fnError != NULL)
                     Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR, src);
@@ -289,9 +289,9 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
             readed -= startoffset;
             startoffset = 0;
         }
-        while(((u32)DjyGetSysTime() - starttime) < Port->Timeout)
+        while(((u32)DJY_GetSysTime() - starttime) < Port->Timeout)
         {
-            tmp = DevRead(DevRe, &protobuf[readed],restlen, 0, Port->Timeout);
+            tmp = Device_Read(DevRe, &protobuf[readed],restlen, 0, Port->Timeout);
             Completed += tmp;
             readed += tmp;
             if(Completed >= restlen)
@@ -424,8 +424,8 @@ ptu32_t ISBUS_HostProcess(void)
     s64 Polltime;
     u8 dst;
     bool_t send,resend = false;
-    Djy_GetEventPara((ptu32_t*)&Port, NULL);
-    Polltime = DjyGetSysTime();
+    DJY_GetEventPara((ptu32_t*)&Port, NULL);
+    Polltime = DJY_GetSysTime();
     while(1)
     {
         send = __HostSendPkg(Port, resend, &dst);   //dst用于提取发送包的dst地址
@@ -439,14 +439,14 @@ ptu32_t ISBUS_HostProcess(void)
                 if(Port->PollModel == CN_POLL_SAME_INTERVAL)   //等间隔轮询
                 {
                     Polltime += Port->PollCycle;        //此时PollCycle代表查询每个子机的间隔时间
-                    Djy_EventDelayTo(Polltime);
+                    DJY_EventDelayTo(Polltime);
                 }
                 else if(Port->PollModel == CN_POLL_SAME_CYCLE)         //等周期轮询
                 {
                     if(dst == Port->SlaveTail->Address)
                     {
                         Polltime += Port->PollCycle;    //此时PollCycle代表轮询一个周期的时间
-                        Djy_EventDelayTo(Polltime);
+                        DJY_EventDelayTo(Polltime);
                     }
                 }
             }
@@ -456,7 +456,7 @@ ptu32_t ISBUS_HostProcess(void)
                 if(Port->PollModel == CN_POLL_SAME_CYCLE)         //等周期轮询
                 {
                     Polltime += Port->PollCycle;    //此时PollCycle代表轮询一个周期的时间
-                    Djy_EventDelayTo(Polltime);
+                    DJY_EventDelayTo(Polltime);
                 }
             }
         }
@@ -465,9 +465,9 @@ ptu32_t ISBUS_HostProcess(void)
             //创建port时，事件立即启动，此时pollcycle = 0，又没有数据包要发送，导致事件100%占用CPU
             //运行中隐患：删掉了发送数据包，且pollcycle被设置为0，会导致事件100%占用CPU。
             if(Port->PollCycle < 20000)
-                Djy_EventDelay(20000);
+                DJY_EventDelay(20000);
             else
-                Djy_EventDelay(Port->PollCycle);
+                DJY_EventDelay(Port->PollCycle);
             resend = false;
         }
     }
@@ -527,14 +527,14 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
         //若置0，初始状态会发送一包数据。
 //        Port->SendP = sizeof(struct ISBUS_Protocol);  //发送偏移量为协议头
 //      Port->MTC_Address = CN_INS_MTC_INVALID;
-        dev_SetUserTag(devfd, (ptu32_t)Port);
+        Device_SetUserTag(devfd, (ptu32_t)Port);
 //        Multiplex_AddObject(Port->MultiplexPort, devfd,
 //                                           CN_MULTIPLEX_SENSINGBIT_READ
 ////                                            |  CN_MULTIPLEX_SENSINGBIT_WRITE  //对于主机端，可写不可用
 //                                        |  CN_MULTIPLEX_SENSINGBIT_ERROR
 //                                        |  CN_MULTIPLEX_SENSINGBIT_ET
 //                                        |  CN_MULTIPLEX_SENSINGBIT_OR    );
-        Djy_EventPop(sg_ptHostEvtt, NULL, 0, (ptu32_t)Port, 0, 0);
+        DJY_EventPop(sg_ptHostEvtt, NULL, 0, (ptu32_t)Port, 0, 0);
     }
     else
     {
@@ -631,7 +631,7 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
 //        SendBuf[CN_OFF_CHKSUM] += Port->PkgSerial - tmp;
 //        Port->PkgSerial++;
         SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
-        DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
+        Device_Write(Port->SerialDevice, SendBuf, SendLen,0,0);
         *dst = SendBuf[CN_OFF_DST];
 //        printf("\r\nhost resend:");
 //        for(tmp = 0;tmp < SendLen;tmp++)
@@ -661,7 +661,7 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
                 SendBuf[CN_OFF_CHKSUM] += Port->PkgSerial - tmp;
                 Port->PkgSerial++;
                 SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
-                DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
+                Device_Write(Port->SerialDevice, SendBuf, SendLen,0,0);
                 if((debug_ctrl ==true))
                 {
                     printf("\r\nhost send:");
@@ -720,7 +720,7 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
                     Port->PkgSerial++;
                     *dst = SendBuf[CN_OFF_DST];
                     SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
-                    DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
+                    Device_Write(Port->SerialDevice, SendBuf, SendLen,0,0);
                     if((debug_ctrl ==true))
                     {
                         printf("\r\nhost send:");
@@ -904,7 +904,7 @@ void __ISBUS_SentChkSlave(struct Host_ISBUSPort *Port,u8 dst)
     SendBuf[CN_OFF_SERIAL]  = Port->PkgSerial;
     Port->PkgSerial++;
     SendBuf[CN_OFF_CHKSUM]  = 0xEB + dst + SendBuf[CN_OFF_PROTO] + SendBuf[CN_OFF_SERIAL];
-    DevWrite(Port->SerialDevice, SendBuf, sizeof(struct ISBUS_Protocol),0,0);
+    Device_Write(Port->SerialDevice, SendBuf, sizeof(struct ISBUS_Protocol),0,0);
     return ;
 }
 
@@ -1130,7 +1130,7 @@ void ISBUS_DeleteSlave (struct Host_ISBUSPort * Port, u8 address)
 void ISBUS_HostInit(u32 HostStackSize)
 {
 
-    sg_ptHostEvtt = Djy_EvttRegist(EN_INDEPENDENCE, CN_PRIO_REAL, 1, 1, ISBUS_HostProcess,
+    sg_ptHostEvtt = DJY_EvttRegist(EN_INDEPENDENCE, CN_PRIO_REAL, 1, 1, ISBUS_HostProcess,
                             NULL, HostStackSize, "ISBUS host");
     if(sg_ptHostEvtt == CN_EVTT_ID_INVALID)
     {

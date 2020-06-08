@@ -203,13 +203,13 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     hwnd=pMsg->hwnd;
     if(hwnd==NULL)
         return false;
-    hdc =BeginPaint(hwnd);
+    hdc =GDD_BeginPaint(hwnd);
     if(hdc == NULL)
         return false;
-    GetClientRect(hwnd,&rc0);
-    SetDrawColor(hdc,CN_COLOR_BLACK);
-    width=RectW(&rc0);
-    height=RectH(&rc0);
+    GDD_GetClientRect(hwnd,&rc0);
+    GDD_SetDrawColor(hdc,CN_COLOR_BLACK);
+    width=GDD_RectW(&rc0);
+    height=GDD_RectH(&rc0);
     if(width<=height)
     {
         size=width;
@@ -234,7 +234,7 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
    if(qrcode==NULL)//存储空间不足或数据容量超出规定范围
    {
        QRcode_free(qrcode);
-       EndPaint(hwnd,hdc);
+       GDD_EndPaint(hwnd,hdc);
        return false;
    }
     Data=Data_conversion(qrcode);//提取显示数据到Data
@@ -247,8 +247,8 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     bitmap.ExColor = CN_COLOR_WHITE;
     bitmap.height=(s32)(qrcode->width)*2;
     bitmap.width=(s32)(qrcode->width)*2;
-    DrawBitmap(hdc,rc0.left,rc0.top,&bitmap,CN_SYS_PF_GRAY1,RopCode);
-    EndPaint(hwnd,hdc);
+    GDD_DrawBitmap(hdc,rc0.left,rc0.top,&bitmap,CN_SYS_PF_GRAY1,RopCode);
+    GDD_EndPaint(hwnd,hdc);
     QRcode_free(qrcode);
     free(Data);
     free(bm);
@@ -274,9 +274,9 @@ HWND CreateQrcode(  const char *Text,u32 Style,
     HWND pGddWin;
     s_gQrcodeMsgLink.MsgNum = sizeof(s_gQrcodeMsgProcTable) / sizeof(struct MsgProcTable);
     s_gQrcodeMsgLink.myTable = (struct MsgProcTable *)&s_gQrcodeMsgProcTable;
-    pGddWin=CreateWindow(Text,WS_CHILD |Style,x,y,w,h,hParent,WinId,
+    pGddWin=GDD_CreateWindow(Text,WS_CHILD |Style,x,y,w,h,hParent,WinId,
                               CN_WINBUF_PARENT,pdata,&s_gQrcodeMsgLink);
     if(UserMsgTableLink != NULL)
-          AddProcFuncTable(pGddWin,UserMsgTableLink);
+          GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }

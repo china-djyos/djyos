@@ -968,7 +968,7 @@ double cs_time(void) {
   double now;
 #ifndef _WIN32
 #if DJYOS
-  unsigned int tick = DjyGetSysTime()/1000000;
+  unsigned int tick = DJY_GetSysTime()/1000000;
   now = (double)tick;
 #else
   struct timeval tv;

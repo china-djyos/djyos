@@ -602,7 +602,7 @@ struct DisplayRsc* ModuleInstall_LCD(const char *DisplayName,\
 
     struct HeapCB *heap;
     Lcd_Config(&lcd);
-    heap =M_FindHeap(HeapName);
+    heap =Heap_FindHeap(HeapName);
     if(heap==NULL)
         return NULL;
 

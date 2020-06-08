@@ -118,7 +118,7 @@
 //    dtm.tm_sec  = BcdToHex(rBCDSEC);
 //    rRTCCON &= ~1 ;     //RTC read and write disable
 //
-//    Tm_SetDateTime(&dtm); // 向OS的Clock模块传递新的时间值
+//    Time_SetDateTime(&dtm); // 向OS的Clock模块传递新的时间值
 //    return 0;
 //}
 
@@ -135,7 +135,7 @@ bool_t RTC_SetTime(s64 time)
     s64 time_s;
 
     time_s = time/1000000;
-    Tm_LocalTime_r(&time_s,&dtm);
+    Time_LocalTime_r(&time_s,&dtm);
 
     if((dtm.tm_year > 2000) && (dtm.tm_year < 2099))
     {
@@ -172,7 +172,7 @@ bool_t RTC_GetTime(s64 *time)
     dtm.tm_us   = 0;
     rRTCCON &= ~1 ;     //RTC read and write disable
 
-    *time = 1000000 * Tm_MkTime(&dtm);
+    *time = 1000000 * Time_MkTime(&dtm);
     return true;
 }
 
@@ -202,7 +202,7 @@ ptu32_t ModuleInstall_RTC(ptu32_t para)
         DateTime.tm_mon  = 1;
         DateTime.tm_year = 2000;
         RTC_SetTime(&DateTime);
-        Tm_SetDateTime(&DateTime);
+        Time_SetDateTime(&DateTime);
     }
     Rtc_RegisterDev(RTC_GetTime,RTC_SetTime);
     return true;

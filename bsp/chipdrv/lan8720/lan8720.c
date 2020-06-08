@@ -84,7 +84,7 @@ __attribute__((weak)) u8 GMAC_MdioW(u8 dev,u8 reg, u16 value)
 //            printf("\r\n LAN8720驱动需要mac驱动");
 //        return false;
 //    }
-//     Djy_EventDelay(CN_RESET_DELAY);
+//     DJY_EventDelay(CN_RESET_DELAY);
 ////   tickstart=HAL_GetTick();
 //    do
 //    {
@@ -93,7 +93,7 @@ __attribute__((weak)) u8 GMAC_MdioW(u8 dev,u8 reg, u16 value)
 //            return false;
 //        else
 //        {
-//            Djy_DelayUs(1000);
+//            DJY_DelayUs(1000);
 //            delay++;
 //        }
 ////      tickNow=HAL_GetTick();
@@ -117,7 +117,7 @@ __attribute__((weak)) u8 GMAC_MdioW(u8 dev,u8 reg, u16 value)
 //            return false;
 //        else
 //        {
-//            Djy_DelayUs(1000);
+//            DJY_DelayUs(1000);
 //            delay++;
 //        }
 ////      tickNow=HAL_GetTick();
@@ -368,7 +368,7 @@ int32_t LAN8720_ResetInit(void)
                     status=LAN8720_STATUS_READ_ERROR;
                     break;
                 }
-                Djy_DelayUs(10*1000);
+                DJY_DelayUs(10*1000);
                 timeout++;
                 if(timeout>=LAN8720_TIMEOUT) break; //超时跳出,5S
             }
@@ -386,13 +386,13 @@ int32_t LAN8720_ResetInit(void)
     LAN8720_StartAutoNego();                //开启自动协商功能
 
     if(status==LAN8720_STATUS_OK)           //如果前面运行正常就延时1s
-        Djy_DelayUs(200*1000);                     //等待1s
+        DJY_DelayUs(200*1000);                     //等待1s
 
     //等待网络连接成功
     timeout=0;
     while(LAN8720_GetLinkState()<=LAN8720_STATUS_LINK_DOWN)
     {
-        Djy_DelayUs(10*1000);
+        DJY_DelayUs(10*1000);
         timeout++;
         if(timeout>=LAN8720_TIMEOUT)
         {

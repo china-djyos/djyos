@@ -271,7 +271,7 @@ static struct hostent gHostEnt;
 static struct in_addr gHostAddr;    //主机地址
 static struct in_addr gLocalAddr;   //本地地址
 static struct in_addr *gHLAddr[3];  //指向数值格式的网络地址
-extern struct hostent*  DnsNameResolve(const char *name);
+extern struct hostent*  DNS_NameResolve(const char *name);
 //------------------------------------------------------------------------------
 //功能：对应于给定主机名的包含主机名字和地址信息的hostent结构的指针。引用静态定义数据
 //      结构，非多线程安全。如果主机名NULL，则认为是"localhost"。
@@ -308,7 +308,7 @@ struct hostent *gethostbyname(const char *name)
     }
     else
     {
-        ret = DnsNameResolve(name);
+        ret = DNS_NameResolve(name);
     }
     return ret;
 }
@@ -349,7 +349,7 @@ void ended_hostent_ext(struct hostent_ext *phostent_ext)
     }
 }
 
-int DnsNameResolveExt(const char *name, struct hostent_ext *phostent_ext);
+int DNS_NameResolveExt(const char *name, struct hostent_ext *phostent_ext);
 
 //------------------------------------------------------------------------------
 //功能：gethostbyname的多线程安全版本，由调用方提供 hostent_ext 结构。
@@ -392,7 +392,7 @@ struct hostent * gethostbyname_r(const char *name,struct hostent_ext *pnew)
     }
     else
     {
-        DnsNameResolveExt(name, pnew);
+        DNS_NameResolveExt(name, pnew);
     }
     ended_hostent_ext(pnew);
     return (struct hostent *)pnew;

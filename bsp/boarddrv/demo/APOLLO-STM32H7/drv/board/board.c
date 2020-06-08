@@ -494,9 +494,9 @@ unsigned char  NAND_RB_Get(void)
 bool_t LAN8720_RESET(void)
 {
     PCF8574_WriteBit(ETH_RESET_IO,1);
-    Djy_DelayUs(100*mS);
+    DJY_DelayUs(100*mS);
     PCF8574_WriteBit(ETH_RESET_IO,0);
-    Djy_DelayUs(100*mS);
+    DJY_DelayUs(100*mS);
     return true;
 }
 

@@ -143,7 +143,7 @@ static u16 dm_reg_read_phy(u16 reg)
     dm_reg_write(DM9000_EPCR, 0x0c);            //phy读命令
     data = dm_reg_read(DM9000_EPDRH);           //读phy
     data = (data<<8) | dm_reg_read(DM9000_EPDRL);
-    Djy_DelayUs(20);
+    DJY_DelayUs(20);
     dm_reg_write(DM9000_EPCR, 0x08);            //清除读phy操作
     return data;
 }
@@ -154,7 +154,7 @@ static void dm_reg_write_phy(u16 reg, u16 data)
     dm_reg_write(DM9000_EPDRH, (data>>8)&0xff);
     dm_reg_write(DM9000_EPDRL, data&0xff);
     dm_reg_write(DM9000_EPCR, 0x0a);            //phy写命令
-    Djy_DelayUs(20);
+    DJY_DelayUs(20);
     dm_reg_write(DM9000_EPCR, 0x08);            //清除PHY读操作
 }
 
@@ -195,13 +195,13 @@ bool_t DM9000_PhyInit(void)
     u32 timeout = CN_PHY_INTIT_TIMEOUT;
     dm_reg_write(DM9000_GPCR,1);            //设置GPIO0为输出
     dm_reg_write(DM9000_GPR,0);             //激活内部PHY
-    Djy_DelayUs(3 * mS);
+    DJY_DelayUs(3 * mS);
 
     dm_reg_write_phy(DM9000_BMCR,0x8000);
-    Djy_DelayUs(30);
+    DJY_DelayUs(30);
     while(dm_reg_read_phy(DM9000_BMCR) & 0x8000)
     {
-        Djy_DelayUs(10*mS);
+        DJY_DelayUs(10*mS);
         timeout = timeout - 10*mS;
         if(timeout == 0)
         {
@@ -213,10 +213,10 @@ bool_t DM9000_PhyInit(void)
     DM9000_DBG("Phy Reset Success!\r\n");
 
     dm_reg_write_phy(DM9000_BMCR,0x1200);//auto negotiation
-    Djy_DelayUs(30);
+    DJY_DelayUs(30);
     while(!(dm_reg_read_phy(DM9000_BMSR) & 0x20))
     {
-        Djy_DelayUs(10*mS);
+        DJY_DelayUs(10*mS);
         timeout = timeout - 10*mS;
         if(timeout == 0)
         {
@@ -228,7 +228,7 @@ bool_t DM9000_PhyInit(void)
 
     while(!(dm_reg_read_phy(DM9000_BMSR) & 0x04))
     {
-        Djy_DelayUs(10*mS);
+        DJY_DelayUs(10*mS);
         timeout = timeout - 10*mS;
         if(timeout == 0)
         {
@@ -249,11 +249,11 @@ void DM9000_reset(void)
 {
     DM9000_DBG("resetting\n");
     dm_reg_write(DM9000_NCR, NCR_RST);
-    Djy_DelayUs(3000);      /* delay 3ms */
+    DJY_DelayUs(3000);      /* delay 3ms */
     dm_reg_write(DM9000_NCR, 0x00);
 
     dm_reg_write(DM9000_NCR, NCR_RST);
-    Djy_DelayUs(3000);      /* delay 3ms */
+    DJY_DelayUs(3000);      /* delay 3ms */
     dm_reg_write(DM9000_NCR, 0x00);
 }
 
@@ -266,11 +266,11 @@ void DM9000_reset(void)
 bool_t DM9000_HardInit(void)
 {
     dm_reg_write(DM9000_NCR,1);             //软件复位DM9000
-    Djy_DelayUs(30);                        //延时至少20μs
+    DJY_DelayUs(30);                        //延时至少20μs
     dm_reg_write(DM9000_NCR,0);             //清除复位位
 
     dm_reg_write(DM9000_NCR,1);             //为了确保复位正确，再次复位
-    Djy_DelayUs(30);
+    DJY_DelayUs(30);
     dm_reg_write(DM9000_NCR,0);
 
     if(false == DM9000_PhyInit())                       //PHY芯片初始化
@@ -350,7 +350,7 @@ void DM9000_TxPacket(unsigned char *datas, int length)
     //发送数据
     for(i=0;i<length;i+=2)
     {
-//      Djy_DelayUs(50);
+//      DJY_DelayUs(50);
         DM_DATA_PORT = datas[i]|(datas[i+1]<<8);  //8位数据转换为16位数据输出
     }
 
@@ -359,7 +359,7 @@ void DM9000_TxPacket(unsigned char *datas, int length)
     while((dm_reg_read(DM9000_NSR) & 0x0c) == 0)
     ;                                               //等待数据发送完成
 
-//  Djy_DelayUs(50);
+//  DJY_DelayUs(50);
 
     dm_reg_write(DM9000_NSR, 0x2c);                 //清除TX状态
     dm_reg_write(DM9000_IMR, 0x81);                 //打开DM9000接收数据中断
@@ -411,7 +411,7 @@ bool_t DM9000_Send(struct NetDev *dev,struct NetPkg *pkg,u32 netdevtask)
             }
         }
         atom = Int_LowAtomStart();
-//        timedriverstart = DjyGetSysTime();
+//        timedriverstart = DJY_GetSysTime();
         //snd all the pkg
         tmp = pkg;
         //init the dm9000
@@ -451,7 +451,7 @@ bool_t DM9000_Send(struct NetDev *dev,struct NetPkg *pkg,u32 netdevtask)
         dm_reg_write(DM9000_NSR, 0x2c);                 //清除TX状态
         dm_reg_write(DM9000_IMR, 0x81);                 //打开DM9000接收数据中断
 
-//        timedriverend = DjyGetSysTime();
+//        timedriverend = DJY_GetSysTime();
         Int_LowAtomEnd(atom);
 //        timedriverused = (u32)(timedriverend- timedriverstart);
 //        printk("%s:TimeUsed = %d\n\r",__FUNCTION__, timedriverused);
@@ -568,11 +568,11 @@ bool_t Dm9000RcvTask()
     bool_t result = false;
     u16 evttID;
     u16 eventID;
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_CRITICAL, 0, 1,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_CRITICAL, 0, 1,
         (ptu32_t (*)(void))Dm9000Rcv,NULL, 0x1000, "Dm900RcvTask");
     if (evttID != CN_EVTT_ID_INVALID)
     {
-        eventID=Djy_EventPop(evttID, NULL, 0, 0, 0, 0);
+        eventID=DJY_EventPop(evttID, NULL, 0, 0, 0, 0);
         if(eventID != CN_EVENT_ID_INVALID)
         {
             result = true;
@@ -581,7 +581,7 @@ bool_t Dm9000RcvTask()
         }
         else
         {
-            Djy_EvttUnregist(evttID);
+            DJY_EvttUnregist(evttID);
         }
     }
     return result;

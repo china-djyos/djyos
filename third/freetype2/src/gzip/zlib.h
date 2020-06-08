@@ -796,10 +796,10 @@ ZEXTERN(uLong)  adler32 OF((uLong adler, const Bytef *buf, uInt len));
    within this function so it shouldn't be done by the application.
    Usage example:
 
-     uLong crc = crc32(0L, Z_NULL, 0);
+     uLong crc = CRC_32(0L, Z_NULL, 0);
 
      while (read_buffer(buffer, length) != EOF) {
-       crc = crc32(crc, buffer, length);
+       crc = CRC_32(crc, buffer, length);
      }
      if (crc != original_crc) error();
 */

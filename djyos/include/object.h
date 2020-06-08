@@ -219,72 +219,72 @@ struct Object
 };
 
 struct objhandle;
-ptu32_t obj_GetPrivate(struct Object *ob);
-void obj_SetPrivate(struct Object *ob, ptu32_t Private);
-fnObjOps obj_GetOps(struct Object *ob);
-s32 obj_SetOps(struct Object *ob, fnObjOps ops);
-const char *obj_name(struct Object *ob);
+ptu32_t OBJ_GetPrivate(struct Object *ob);
+void OBJ_SetPrivate(struct Object *ob, ptu32_t Private);
+fnObjOps OBJ_GetOps(struct Object *ob);
+s32 OBJ_SetOps(struct Object *ob, fnObjOps ops);
+const char *OBJ_GetName(struct Object *ob);
 char *obj_rename(struct Object *ob,char *NewName);
-struct Object *obj_parent(struct Object *ob);
-struct Object *obj_child(struct Object *ob);
-struct Object *obj_prev(struct Object *ob);
-struct Object *obj_next(struct Object *ob);
-struct Object *obj_head(struct Object *ob);
-s32 obj_level(struct Object *ob);
-s32 obj_ishead(struct Object *ob);
-s32 obj_islast(struct Object *ob);
-s32 obj_isonduty(struct Object *ob);
+struct Object *OBJ_GetParent(struct Object *ob);
+struct Object *OBJ_GetChild(struct Object *ob);
+struct Object *OBJ_GetPrev(struct Object *ob);
+struct Object *OBJ_GetNext(struct Object *ob);
+struct Object *OBJ_GetHead(struct Object *ob);
+s32 OBJ_GetLevel(struct Object *ob);
+s32 OBJ_IsHead(struct Object *ob);
+s32 OBJ_IsLast(struct Object *ob);
+s32 OBJ_IsOnDuty(struct Object *ob);
 struct objhandle* obj_TraveFile(struct objhandle *Current, struct Object *Object);
-s32 obj_LinkHandle(struct objhandle *hdl, struct Object *ob);
-bool_t obj_lock(void);
-void obj_unlock(void);
+s32 OBJ_LinkHandle(struct objhandle *hdl, struct Object *ob);
+bool_t OBJ_Lock(void);
+void OBJ_Unlock(void);
 
 //u32 obj_InuseUp(struct Object *ob);
 //void obj_InuseUpRange(struct Object *start, struct Object *end);
-void obj_DutyUp(struct Object *Obj);
+void OBJ_DutyUp(struct Object *Obj);
 //u32 obj_InuseDown(struct Object *ob);
 //void obj_InuseDownRange(struct Object *start, struct Object *end);
-void obj_DutyDown(struct Object *Obj);
+void OBJ_DutyDown(struct Object *Obj);
 
-s32 obj_Delete(struct Object *ob);
-struct Object *obj_detach(struct Object *branch);
-s32 obj_checkname(const char *name);
-struct Object *obj_matchpath(const char *match, char **left);
-struct Object *obj_BuildTempPath(struct Object *begin, fnObjOps ops,
+s32 OBJ_Delete(struct Object *ob);
+struct Object *OBJ_Detach(struct Object *branch);
+s32 OBJ_CheckName(const char *name);
+struct Object *OBJ_MatchPath(const char *match, char **left);
+struct Object *OBJ_BuildTempPath(struct Object *begin, fnObjOps ops,
                             ptu32_t ObjPrivate, char *path);
-s32 obj_ReleaseTempPath(struct Object *start);
-struct Object *obj_current(void);
-void obj_setcurrent(struct Object *ob);
-struct Object *obj_root(void);
-struct Object *obj_newprev(struct Object *loc, fnObjOps ops,
+s32 OBJ_ReleaseTempPath(struct Object *start);
+struct Object *OBJ_GetCurrent(void);
+void OBJ_SetCurrent(struct Object *ob);
+struct Object *OBJ_GetRoot(void);
+struct Object *OBJ_NewPrev(struct Object *loc, fnObjOps ops,
                         ptu32_t ObjPrivate, const char *name);
-struct Object *obj_newnext(struct Object *loc, fnObjOps ops,
+struct Object *OBJ_NewNext(struct Object *loc, fnObjOps ops,
                         ptu32_t ObjPrivate, const char *name);
-struct Object *obj_newchild(struct Object *parent, fnObjOps ops,
+struct Object *OBJ_NewChild(struct Object *parent, fnObjOps ops,
                          ptu32_t ObjPrivate, const char *name);
-struct Object *obj_newhead(struct Object *loc,fnObjOps ops,
+struct Object *OBJ_NewHead(struct Object *loc,fnObjOps ops,
                            ptu32_t ObjPrivate, const char *name);
-s32 obj_move2last(struct Object *ob);
-s32 obj_move2head(struct Object *ob);
-struct Object *obj_insert2child(struct Object *loc, struct Object *child);
-s32 obj_insert2next(struct Object *loc, struct Object *next);
-s32 obj_insert2prev(struct Object *loc, struct Object *prev);
-s32 obj_child_move2prev(struct Object *parent);
-s32 obj_child_move2next(struct Object *parent);
-struct Object *obj_twig(struct Object *ob);
-struct Object *obj_foreach_child(struct Object *parent, struct Object *child);
-struct Object * obj_foreach_scion(struct Object *ancester, struct Object *scion);
-struct Object *obj_search_sibling(struct Object *ob, const char *name);
-struct Object *obj_search_child(struct Object *parent, const char *name);
-struct Object *obj_search_scion(struct Object *ancester, const char *name);
-struct Object *obj_search_path(struct Object *start, const char *path);
-s32 obj_SetMultiplexEvent(struct Object *ob, u32 events);
-s32 obj_ClrMultiplexEvent(struct Object *ob, u32 events);
+s32 obj_MoveToLast(struct Object *ob);
+s32 OBJ_MoveToHead(struct Object *ob);
+struct Object *OBJ_InsertToChild(struct Object *loc, struct Object *child);
+s32 OBJ_InsertToNext(struct Object *loc, struct Object *next);
+s32 OBJ_InsertToPrev(struct Object *loc, struct Object *prev);
+s32 OBJ_ChildMoveToOrev(struct Object *parent);
+s32 OBJ_ChildMoveToNext(struct Object *parent);
+struct Object *OBJ_GetTwig(struct Object *ob);
+struct Object *OBJ_ForeachChild(struct Object *parent, struct Object *child);
+struct Object * OBJ_ForeachScion(struct Object *ancester, struct Object *scion);
+struct Object *OBJ_SearchSibling(struct Object *ob, const char *name);
+struct Object *OBJ_SearchChild(struct Object *parent, const char *name);
+struct Object *OBJ_SearchScion(struct Object *ancester, const char *name);
+struct Object *OBJ_SearchPath(struct Object *start, const char *path);
+s32 OBJ_SetMultiplexEvent(struct Object *ob, u32 events);
+s32 OBJ_ClrMultiplexEvent(struct Object *ob, u32 events);
 s32 issocketactive(s32 Fd, s32 mode);
-struct objhandle* obj_ForeachHandle(struct objhandle *Current, struct Object *Object);
-s32 CurWorkPathLen(void);
-s32 CurWorkPath(char *Buf, u32 BufSize);
-s32 SetPWD(const char *Path);
+struct objhandle* OBJ_ForeachHandle(struct objhandle *Current, struct Object *Object);
+s32 OBJ_CurWorkPathLen(void);
+s32 OBJ_CurWorkPath(char *Buf, u32 BufSize);
+s32 OBJ_SetPwd(const char *Path);
 
 #ifdef __cplusplus
 }

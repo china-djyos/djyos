@@ -665,7 +665,7 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,const char* HeapNam
 
     __lcd_backlight_onoff(false);
 
-    heap =M_FindHeap(HeapName);
+    heap =Heap_FindHeap(HeapName);
     if(heap==NULL)
     {
         return NULL;

@@ -146,7 +146,7 @@ static bool_t Max11410_Config(struct Max11410_CfgTab *pt_config)
 
     for(i = 0;i<10;i++)
     {
-        Djy_DelayUs(10*mS);
+        DJY_DelayUs(10*mS);
         if(ID_Date == Max11410_GetID())
             break;
     }
@@ -165,7 +165,7 @@ static bool_t Max11410_Config(struct Max11410_CfgTab *pt_config)
     }
     for(i = 0;i<10;i++)
     {
-        Djy_DelayUs(10*mS);
+        DJY_DelayUs(10*mS);
         if(0 != Max11410_GetuC())
         {
             sMaxInited = true;

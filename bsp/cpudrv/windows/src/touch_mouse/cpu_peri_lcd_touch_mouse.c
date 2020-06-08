@@ -517,7 +517,7 @@ ptu32_t ModuleInstall_Lcd(char *DisplayName,char *HeapName)
     tg_lcd_display.draw.GetPixelFromScreen = __lcd_get_pixel_screen;
     tg_lcd_display.draw.GetRectFromScreen = __lcd_get_rect_screen;
 
-    tg_lcd_display.DisplayHeap = M_FindHeap(HeapName);
+    tg_lcd_display.DisplayHeap = Heap_FindHeap(HeapName);
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
     if(GK_InstallDisplay(&tg_lcd_display,DisplayName))

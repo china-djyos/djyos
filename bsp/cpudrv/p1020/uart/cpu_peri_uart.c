@@ -332,7 +332,7 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 //            && (timeout > 0))//超时或者发送缓冲为空时退出
 //        {
 //            timeout--;
-//            Djy_DelayUs(1);
+//            DJY_DelayUs(1);
 //        }
 //        if(timeout == 0)
 //            break;

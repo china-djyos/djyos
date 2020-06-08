@@ -70,7 +70,7 @@
 //参数: locale，字符集，NULL表示当前字符集
 //返回: 串结束符长度。
 //-----------------------------------------------------------------------------
-s32 GetEOC_Size (struct Charset* locale)
+s32 Charset_Get_EOC_Size (struct Charset* locale)
 {
     struct Charset* cur_enc;
 

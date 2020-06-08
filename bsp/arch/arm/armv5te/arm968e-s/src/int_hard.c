@@ -56,7 +56,7 @@
 #include "icu_pub.h"
 #include "drv_model_pub.h"
 
-extern void __Djy_ScheduleAsynSignal(void);
+extern void __DJY_ScheduleAsynSignal(void);
 void intc_enable(int index);
 extern void intc_disable(int index);;
 
@@ -400,7 +400,7 @@ void __irq_Int_EngineAll(ufast_t intStatus)
               __Int_EngineAsynSignal(ufl_line);         //是异步信号
 //            if(g_ptEventReady != g_ptEventRunning)
 //            {
-//                __Djy_ScheduleAsynSignal();       //执行中断内调度
+//                __DJY_ScheduleAsynSignal();       //执行中断内调度
 //            }
           }
           intStatus &=~(1<<ufl_line);
@@ -435,7 +435,7 @@ bool_t init_jtag(char *param);      //lst test
         CpuStatus = Int_GetPreStatus();
         if((CpuStatus == CN_CPU_MODE_USR) || (CpuStatus == CN_CPU_MODE_SYS)
                                           || (CpuStatus == CN_CPU_MODE_SVC))
-            __Djy_ScheduleAsynSignal();       //执行中断内调度
+            __DJY_ScheduleAsynSignal();       //执行中断内调度
     }
 }
 
@@ -461,7 +461,7 @@ void __fiq_Int_EngineAll(ufast_t intStatus)
         CpuStatus = Int_GetPreStatus();
         if((CpuStatus == CN_CPU_MODE_USR) || (CpuStatus == CN_CPU_MODE_SYS)
                                           || (CpuStatus == CN_CPU_MODE_SVC))
-            __Djy_ScheduleAsynSignal();       //执行中断内调度
+            __DJY_ScheduleAsynSignal();       //执行中断内调度
     }
 }
 void __Int_InitHard()
@@ -565,7 +565,7 @@ void __Int_EngineReal(ufast_t ufl_line)
 //参数：ufast ufl_line，响应的中断线号
 //返回：无
 //-----------------------------------------------------------------------------
-extern void __Djy_EventReady(struct EventECB *event_ready);
+extern void __DJY_EventReady(struct EventECB *event_ready);
 void __Int_EngineAsynSignal(ufast_t ufl_line)
 {
     struct EventECB *event;
@@ -591,12 +591,12 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
     if(event != NULL)   //看同步指针中有没有事件(注：单个事件，不是队列)
     {
         event->event_result = isr_result;
-        __Djy_EventReady(event);   //把该事件放到ready队列
+        __DJY_EventReady(event);   //把该事件放到ready队列
         ptIntLine->sync_event = NULL;   //解除同步
     }
     if(ptIntLine->my_evtt_id != CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(ptIntLine->my_evtt_id,
+        DJY_EventPop(ptIntLine->my_evtt_id,
                         NULL,0,(ptu32_t)isr_result, (ptu32_t)ufl_line,0);
     }
     tg_int_global.nest_asyn_signal--;

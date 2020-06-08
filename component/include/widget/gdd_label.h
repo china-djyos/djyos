@@ -71,7 +71,7 @@ extern "C" {
 #define LABEL_BORDER_FIXEDSINGLE   (1<<0)
 #define LABEL_BORDER_FIXED3D       (1<<1)
 
-HWND CreateLabel(  const char *Text,u32 Style,
+HWND Widget_CreateLabel(  const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
                     HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink);
