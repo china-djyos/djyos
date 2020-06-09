@@ -15,7 +15,7 @@
 /*section 1-----OS macro config-----*/
 #define CFG_OS_FREERTOS                            0
 #define CFG_SUPPORT_RTT                            1
-
+#define CFG_SUPPORT_DJYOS                          2
 #define THD_APPLICATION_PRIORITY                   3
 #define THD_CORE_PRIORITY                          2
 #define THD_UMP3_PRIORITY                          4
@@ -23,11 +23,11 @@
 #define THD_LWIP_PRIORITY                          4
 #define THD_INIT_PRIORITY                          4
 #define THD_RECONNECT_PRIORITY                     4
-#define THD_MEDIA_PRIORITY						   4
+#define THD_MEDIA_PRIORITY                         4
 #define THD_WPAS_PRIORITY                          5
 #define THD_EXTENDED_APP_PRIORITY                  5
 #define THD_HOSTAPD_PRIORITY                       5
-#define THDD_KEY_SCAN_PRIORITY					   7
+#define THDD_KEY_SCAN_PRIORITY                     7
 
 /*section 2-----function macro config-----*/
 #define CFG_TX_EVM_TEST                            1
@@ -65,7 +65,7 @@
 #define CFG_SUPPORT_UVC                            0
 #endif
 #define CFG_USE_USB_CHARGE                         0
-#define CFG_USE_QSPI							   0
+#define CFG_USE_QSPI                               0
 
 
 /*section 4-----DEBUG macro config-----*/
@@ -140,12 +140,12 @@
 /*section 19-----for SDCARD HOST*/
 #define CFG_USE_SDCARD_HOST                        1
 //select SD or SD1
-#define SD_HOST_INTF            					0
-#define SD1_HOST_INTF								1
-#define CFG_SD_HOST_INTF							SD1_HOST_INTF
+#define SD_HOST_INTF                                0
+#define SD1_HOST_INTF                               1
+#define CFG_SD_HOST_INTF                            SD1_HOST_INTF
 
 /*section 20 ----- support mp3 decoder*/
-#define CONFIG_APP_MP3PLAYER 			           0
+#define CONFIG_APP_MP3PLAYER                       0
 
 /*section 21 ----- support ota*/
 #define CFG_SUPPORT_OTA_HTTP                       0
@@ -191,6 +191,6 @@
 
 #define CFG_SUPPOET_BSSID_CONNECT                  0
 
-#define CFG_SUPPORT_TPC_PA_MAP 						1
+#define CFG_SUPPORT_TPC_PA_MAP                      1
 
 #endif // _SYS_CONFIG_H_
