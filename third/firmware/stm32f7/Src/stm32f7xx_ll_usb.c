@@ -185,7 +185,7 @@ HAL_StatusTypeDef USB_SetCurrentMode(USB_OTG_GlobalTypeDef *USBx , USB_OTG_ModeT
     USBx->GUSBCFG |= USB_OTG_GUSBCFG_FDMOD; // 设备模式
   }
   HAL_Delay(50); // TODO
-  // Djy_EventDelay(50);
+  // DJY_EventDelay(50);
   return HAL_OK;
 }
 
@@ -1155,7 +1155,7 @@ HAL_StatusTypeDef USB_HostInit (USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef 
   USB_DriveVbus(USBx, 1); // 激活Vbus
   
   HAL_Delay(200); // TODO
-  // Djy_EventDelay(200); 
+  // DJY_EventDelay(200); 
   
   /* Disable all interrupts. */
   USBx->GINTMSK = 0; // 屏蔽所有中断
@@ -1239,7 +1239,7 @@ HAL_StatusTypeDef USB_ResetPort(USB_OTG_GlobalTypeDef *USBx)
   
   USBx_HPRT0 = (USB_OTG_HPRT_PRST | hprt0); // 端口复位
   HAL_Delay (10);  /* See Note #1 */
-  // Djy_EventDelay(10);
+  // DJY_EventDelay(10);
   USBx_HPRT0 = ((~USB_OTG_HPRT_PRST) & hprt0); // 清端口复位
   return HAL_OK;
 }

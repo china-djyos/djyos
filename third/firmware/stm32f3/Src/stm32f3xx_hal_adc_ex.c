@@ -6927,7 +6927,7 @@ HAL_StatusTypeDef HAL_ADC_AnalogWDGConfig(ADC_HandleTypeDef* hadc, ADC_AnalogWDG
   *         For parameters constraints, see comments of structure 
   *         "ADC_MultiModeTypeDef".
   * @note   To change back configuration from multimode to single mode, ADC must
-  *         be reset (using function HAL_ADC_Init() ).
+  *         be CPU_Reset (using function HAL_ADC_Init() ).
   * @param  hadc: ADC handle
   * @param  multimode : Structure of ADC multimode configuration
   * @retval HAL status
