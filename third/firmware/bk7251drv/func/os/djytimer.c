@@ -184,7 +184,7 @@ void djytimer_init(void)
     djytimer.sem = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
     if(djytimer.sem==NULL)
         goto SEM_INIT_ERR;
-    evtt_timer = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
+    evtt_timer = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
             djytimer_thread,NULL,4096, "timer function");
     if(evtt_timer==CN_EVTT_ID_INVALID)
         goto EVTT_REGIST_ERR;
@@ -193,7 +193,7 @@ void djytimer_init(void)
     else
         return;
 EVENT_POP_ERR:
-    Djy_EvttUnregist(evtt_timer);
+    DJY_EvttUnregist(evtt_timer);
 EVTT_REGIST_ERR:
     Lock_SempDelete(djytimer.sem);
 SEM_INIT_ERR:

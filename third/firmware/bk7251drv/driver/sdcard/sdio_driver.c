@@ -424,8 +424,8 @@ int wait_Receive_Data(void)
     uint32 timeoutcnt = 0;
     //extern UINT32 bk_rtos_get_time(void);
 //    uint32 start_tm = bk_rtos_get_time();
-    extern s64 DjyGetSysTime(void);
-    s64 start_tm = DjyGetSysTime();
+    extern s64 DJY_GetSysTime(void);
+    s64 start_tm = DJY_GetSysTime();
     while (1)
     {
         if(DjyGetSysTime() > start_tm + 4000000) // 4s

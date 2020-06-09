@@ -10,7 +10,7 @@ void os_meminit(void)
 {
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
-    pMemHeap = M_FindHeap("dtcm");
+    pMemHeap = Heap_FindHeap("dtcm");
     GLOBAL_INT_RESTORE();
 }
 
