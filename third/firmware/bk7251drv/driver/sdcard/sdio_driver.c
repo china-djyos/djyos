@@ -425,10 +425,10 @@ int wait_Receive_Data(void)
     //extern UINT32 bk_rtos_get_time(void);
 //    uint32 start_tm = bk_rtos_get_time();
     extern s64 DjyGetSysTime(void);
-    s64 start_tm = DjyGetSysTime();
+    s64 start_tm = DJY_GetSysTime();
     while (1)
     {
-        if(DjyGetSysTime() > start_tm + 4000000) // 4s
+        if(DJY_GetSysTime() > start_tm + 4000000) // 4s
         {
             ret = SD_ERR_LONG_TIME_NO_RESPONS;
             break;
