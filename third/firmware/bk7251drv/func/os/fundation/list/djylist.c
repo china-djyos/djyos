@@ -47,91 +47,91 @@
 
 int djylist_get_length(struct djylist_t *head)
 {
-	int length = 0;
-	while (head != NULL)
-	{
-		length++;
-		head = head->next;
-	}
-	return length;
+    int length = 0;
+    while (head != NULL)
+    {
+        length++;
+        head = head->next;
+    }
+    return length;
 }
 
 struct djylist_t *djylist_get_node(struct djylist_t *head, int idx)
 {
-	struct djylist_t *node = head;
-	int pos = 0;
-	while (node != NULL)
-	{
-		if (pos++ == idx)
-			return node;
-		node = node->next;
-	}
-	return node;
+    struct djylist_t *node = head;
+    int pos = 0;
+    while (node != NULL)
+    {
+        if (pos++ == idx)
+            return node;
+        node = node->next;
+    }
+    return node;
 }
 
 int djylist_get_idx(struct djylist_t *head, struct djylist_t *node)
 {
-	int index = 0;
-	while (head != NULL)
-	{
-		if (head == node)
-		{
-			return index;
-		}
-		head = head->next;
-		index++;
-	}
-	return -1;
+    int index = 0;
+    while (head != NULL)
+    {
+        if (head == node)
+        {
+            return index;
+        }
+        head = head->next;
+        index++;
+    }
+    return -1;
 }
 
 int djylist_is_in(struct djylist_t *head, struct djylist_t *node)
 {
-	return vsflist_get_idx(head, node) >= 0;
+    return djylist_get_idx(head, node) >= 0;
 }
 
 int djylist_remove(struct djylist_t **head, struct djylist_t *node)
 {
-	if (!djylist_is_in(*head, node))
-	{
-		return -1;
-	}
+    if (!djylist_is_in(*head, node))
+    {
+        return -1;
+    }
 
-	if (*head == node)
-	{
-		*head = node->next;
-		return 0;
-	}
-	while (*head != NULL)
-	{
-		if ((*head)->next == node)
-		{
-			(*head)->next = node->next;
-			break;
-		}
-		*head = (*head)->next;
-	}
-	return 0;
+    if (*head == node)
+    {
+        *head = node->next;
+        return 0;
+    }
+    while (*head != NULL)
+    {
+        if ((*head)->next == node)
+        {
+            (*head)->next = node->next;
+            break;
+        }
+        *head = (*head)->next;
+    }
+    return 0;
 }
 
 void djylist_append(struct djylist_t *head, struct djylist_t *new_node)
 {
-	struct djylist_t *next;
+    struct djylist_t *next;
 
-	next = head;
-	while (next->next != NULL)
-		next = next->next;
+    next = head;
+    while (next->next != NULL)
+        next = next->next;
 
-	next->next = new_node;
-	new_node->next = NULL;
+    next->next = new_node;
+    new_node->next = NULL;
 }
 
 void djylist_delete_next(struct djylist_t *head)
 {
-	struct djylist_t *next;
+    struct djylist_t *next;
 
-	next = head->next;
-	if (next->next)
-		head->next = next->next;
-	else
-		head->next = NULL;
+    next = head->next;
+    if (next->next)
+        head->next = next->next;
+    else
+        head->next = NULL;
 }

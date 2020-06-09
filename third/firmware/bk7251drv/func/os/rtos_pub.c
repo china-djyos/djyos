@@ -39,11 +39,11 @@ OSStatus bk_rtos_create_thread( beken_thread_t* thread, uint8_t priority, const 
         return kGeneralErr;
     }
 
-    *thread = Djy_EvttRegist(EN_CORRELATIVE,priority,0,0,
+    *thread = DJY_EvttRegist(EN_CORRELATIVE,priority,0,0,
             function,NULL,stack_size, name);
     if(*thread != CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(*thread,NULL,0,arg,0,0);
+        DJY_EventPop(*thread,NULL,0,arg,0,0);
     }
     else
     {
@@ -60,9 +60,9 @@ OSStatus bk_rtos_delete_thread( beken_thread_t* thread )
 {
     extern struct EventECB  *g_ptEventRunning;    //当前正在执行的事件
     if(thread!=NULL)
-        Djy_EvttUnregist(*thread);
+        DJY_EvttUnregist(*thread);
     else
-        Djy_EvttUnregist(g_ptEventRunning->evtt_id);
+        DJY_EvttUnregist(g_ptEventRunning->evtt_id);
     return kNoErr;
 
 }
@@ -70,7 +70,7 @@ OSStatus bk_rtos_delay_milliseconds( uint32_t num_ms )
 {
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
-    Djy_EventDelay(num_ms * mS);
+    DJY_EventDelay(num_ms * mS);
     GLOBAL_INT_RESTORE();
 }
 
@@ -78,7 +78,7 @@ void bk_rtos_thread_sleep(uint32_t seconds)
 {
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
-    Djy_EventDelay(seconds*1000*mS);
+    DJY_EventDelay(seconds*1000*mS);
     GLOBAL_INT_RESTORE();
 }
 
