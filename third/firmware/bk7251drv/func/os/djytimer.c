@@ -77,7 +77,7 @@ void djytimer_start(struct djytimer_t *timer)
 {
     struct djytimer_t *tmp_timer = NULL;
     atom_low_t low = 0;
-    timer->node.addr = timer->interval + (uint32_t)(DjyGetSysTime()/1000);
+    timer->node.addr = timer->interval + (uint32_t)(DJY_GetSysTime()/1000);
     tmp_timer = djytimer.timerlist.head;
     djytimer_stop(timer);
 
@@ -132,7 +132,7 @@ static ptu32_t djytimer_thread(void)
     struct djytimer_t *timer = NULL;
     while(1)
     {
-        cur_tick = (uint32_t)(DjyGetSysTime()/1000);
+        cur_tick = (uint32_t)(DJY_GetSysTime()/1000);
         timer = (struct djytimer_t *)djytimer.timerlist.head;
         while(timer != NULL)
         {
@@ -169,7 +169,7 @@ static ptu32_t djytimer_thread(void)
             Lock_SempPend(djytimer.sem,CN_TIMEOUT_FOREVER);
             timer = (struct djytimer_t *)djytimer.timerlist.head;
         }
-        cur_tick = (uint32_t)(DjyGetSysTime()/1000);
+        cur_tick = (uint32_t)(DJY_GetSysTime()/1000);
         delay_ms = timer->node.addr > cur_tick ?
                 (timer->node.addr - cur_tick) : (CN_LIMIT_SINT32 - cur_tick + timer->node.addr);
         Lock_SempPend(djytimer.sem,delay_ms*mS);
@@ -184,16 +184,16 @@ void djytimer_init(void)
     djytimer.sem = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
     if(djytimer.sem==NULL)
         goto SEM_INIT_ERR;
-    evtt_timer = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
+    evtt_timer = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
             djytimer_thread,NULL,4096, "timer function");
     if(evtt_timer==CN_EVTT_ID_INVALID)
         goto EVTT_REGIST_ERR;
-    if(Djy_EventPop(evtt_timer,NULL,0,NULL,0,0)==CN_EVTT_ID_INVALID)
+    if(DJY_EventPop(evtt_timer,NULL,0,NULL,0,0)==CN_EVTT_ID_INVALID)
         goto EVENT_POP_ERR;
     else
         return;
 EVENT_POP_ERR:
-    Djy_EvttUnregist(evtt_timer);
+    DJY_EvttUnregist(evtt_timer);
 EVTT_REGIST_ERR:
     Lock_SempDelete(djytimer.sem);
 SEM_INIT_ERR:
