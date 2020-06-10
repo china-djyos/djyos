@@ -265,7 +265,7 @@ app_demo_tcp_exit:
     GLOBAL_INT_RESTORE();
 
     app_demo_tcp_hdl = NULL;
-    bk_rtos_delete_thread(NULL);
+    rtos_delete_thread(NULL);
 }
 
 UINT32 app_demo_tcp_init(void)
@@ -275,7 +275,7 @@ UINT32 app_demo_tcp_init(void)
     APP_DEMO_TCP_PRT("app_demo_tcp_init\r\n");
     if(!app_demo_tcp_hdl)
     {
-        ret = bk_rtos_create_thread(&app_demo_tcp_hdl,
+        ret = rtos_create_thread(&app_demo_tcp_hdl,
                                       4,
                                       "app_demo_tcp",
                                       (beken_thread_function_t)app_demo_tcp_main,

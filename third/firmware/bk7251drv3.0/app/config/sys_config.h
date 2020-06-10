@@ -6,7 +6,7 @@
 /* uart2 for debug, and generally, uart1 is used for communication.
    what is more, uart1 maybe is not bound out*/
 #define CFG_USE_UART1                              1
-#define CFG_JTAG_ENABLE                            0
+#define CFG_JTAG_ENABLE                            1
 #define OSMALLOC_STATISTICAL                       0
 
 /*section 0-----app macro config-----*/
@@ -14,17 +14,24 @@
 
 /*section 1-----OS macro config-----*/
 #define CFG_OS_FREERTOS                            0
-#define CFG_SUPPORT_RTT                            1
-#define CFG_SUPPORT_DJYOS                          2
+#define CFG_SUPPORT_RTT                            0
+#define CFG_SUPPORT_DJYOS                          1
+
+#if CFG_SUPPORT_DJYOS		//CK
+#define THD_APPLICATION_PRIORITY                   133	//线程优先级
+#define THD_CORE_PRIORITY                          132
+#define THD_WPAS_PRIORITY                          135
+#else
 #define THD_APPLICATION_PRIORITY                   3
 #define THD_CORE_PRIORITY                          2
+#define THD_WPAS_PRIORITY                          5
+#endif
 #define THD_UMP3_PRIORITY                          4
 #define THD_UBG_PRIORITY                           5
 #define THD_LWIP_PRIORITY                          4
 #define THD_INIT_PRIORITY                          4
 #define THD_RECONNECT_PRIORITY                     4
-#define THD_MEDIA_PRIORITY                         4
-#define THD_WPAS_PRIORITY                          5
+#define THD_MEDIA_PRIORITY						   4
 #define THD_EXTENDED_APP_PRIORITY                  5
 #define THD_HOSTAPD_PRIORITY                       5
 #define THDD_KEY_SCAN_PRIORITY                     7
@@ -65,7 +72,7 @@
 #define CFG_SUPPORT_UVC                            0
 #endif
 #define CFG_USE_USB_CHARGE                         0
-#define CFG_USE_QSPI                               0
+#define CFG_USE_QSPI							   1
 
 
 /*section 4-----DEBUG macro config-----*/
@@ -161,6 +168,11 @@
 #define CFG_LESS_MEMERY_IN_RWNX                    0
 
 /*section 25 ----- use audio*/
+#if(CFG_SUPPORT_DJYOS == 1)						//djyos下，audio配置已经转移到DIDE中,CK
+#define CFG_USE_AUDIO                              CFG_MODULE_ENABLE_CPU_ONCHIP_AUDIO
+//#define CFG_USE_AUD_DAC                            1
+//#define CFG_USE_AUD_ADC                            1
+#else
 #define CFG_USE_AUDIO                              1
 #define CFG_USE_AUD_DAC                            1
 #define CFG_USE_AUD_ADC                            1
@@ -168,8 +180,9 @@
 #define CFG_RF_USER_BLE                            1
 #define CFG_RF_USER_WIFI                           2
 #define CFG_DEFAULT_RF_USER                        CFG_RF_USER_WIFI
+#endif
 /*section 26 ----- general spi master/slave */
-#define CFG_USE_SPI_MASTER                         0
+#define CFG_USE_SPI_MASTER                         1
 #define CFG_USE_SPI_MST_FLASH                      0
 #define CFG_USE_SPI_MST_PSRAM                      0
 #define CFG_USE_SPI_SLAVE                          0

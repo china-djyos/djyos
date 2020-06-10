@@ -820,6 +820,9 @@ void sdcard_uninitialize(void)
     sdio_hw_uninit();
     sdio_sw_init();
     NoneedInitflag = 0;
+#if CFG_SUPPORT_DJYOS	//CK
+    printf("sdcard","SD card has been removed \r\n");
+#endif
 }
 
 void sdcard_get_card_info(SDCARD_S *card_info)
@@ -1678,7 +1681,9 @@ UINT32 sdcard_open(UINT32 op_flag)
     UINT8 cnt;
     UINT32 param, reg;
 
+#if (!CFG_SUPPORT_DJYOS)	//CK
     os_printf("===sd card open:%d===\r\n",NoneedInitflag);
+#endif
     cnt = 3;
     while(1)
     {
@@ -1787,5 +1792,12 @@ void clr_sd_noinitial_flag(void)
 {
     NoneedInitflag = 0;
 }
+
+#if CFG_SUPPORT_DJYOS	//CK
+u16 get_sdcard_is_ready(void)
+{
+    return NoneedInitflag;
+}
+#endif
 #endif  // CFG_USE_SDCARD_HOST
 // EOF

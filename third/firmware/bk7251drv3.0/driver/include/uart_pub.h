@@ -17,8 +17,13 @@
 #endif // CFG_BACKGROUND_PRINT
 #endif // CFG_RELEASE_FIRMWARE
 
+#if CFG_SUPPORT_DJYOS	//CK
+#define warning_prf                    os_null_printf
+#define fatal_prf                      os_null_printf
+#else
 #define warning_prf                    bk_printf
 #define fatal_prf                      bk_printf
+#endif
 #define null_prf                       os_null_printf
 
 #define UART_SUCCESS                 (0)

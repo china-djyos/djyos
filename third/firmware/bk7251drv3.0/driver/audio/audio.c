@@ -115,7 +115,27 @@ void audio_hardware_init(void)
     audio_dac_volume_diff_port();
 #endif
 }
+#if CFG_SUPPORT_DJYOS    //CK
+void audio_dac_volume_use_single_port(void)
+{
+    UINT32 param;
 
+    param = AUDIO_DAC_VOL_SINGLE_MODE;
+    sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_SET_VOLUME_PORT,
+        &param);
+}
+
+void audio_dac_volume_diff_port(void)
+{
+    // default mode is ready diff port
+    // if use single port, call audio_dac_volume_use_single_port when initial dac
+    UINT32 param;
+
+    param = AUDIO_DAC_VOL_DIFF_MODE;
+    sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_SET_VOLUME_PORT,
+        &param);
+}
+#endif
 
 void audio_init(void)
 {
@@ -128,6 +148,9 @@ void audio_init(void)
     #endif
 
     audio_hardware_init();
+#if CFG_SUPPORT_DJYOS    //CK	
+    audio_dac_volume_use_single_port();
+#endif
 }
 
 void audio_exit(void)

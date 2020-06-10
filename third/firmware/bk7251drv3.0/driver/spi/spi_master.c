@@ -15,6 +15,17 @@
 #include "error.h"
 #include "rtos_pub.h"
 
+#if CFG_SUPPORT_DJYOS	//CK
+#include "int_hard.h"
+#include "systime.h"
+#include "stdlib.h"
+#include "string.h"
+#include "dbug.h"
+#include "int.h"
+#include "lock.h"
+#include "stdbool.h"
+#endif
+
 #if CFG_USE_SPI_MASTER
 struct bk_spi_dev
 {
@@ -85,13 +96,116 @@ static void bk_spi_tx_needwrite_callback(int port, void *param)
 
     UINT8 *rxbuf;
     UINT32 offset, drop;
-    
+#if CFG_SUPPORT_DJYOS	//CK
+    UINT32 value;
+#endif
     rxbuf = spi_dev->rx_ptr;
     drop = spi_dev->rx_drop;
     offset = spi_dev->rx_offset;
 
     GLOBAL_INT_DECLARATION();
 
+#if CFG_SUPPORT_DJYOS	//CK
+    if((rxbuf == NULL) && (spi_dev->rx_len == 0))
+    {
+        total_len -= tx_len;
+        value = REG_READ(SPI_CTRL);
+        while(tx_len)
+        {
+            if(value & BIT_WDTH)
+            {
+                if((REG_READ(SPI_STAT) & TXFIFO_FULL) == 0)
+                {
+                    REG_WRITE(SPI_DAT, *(UINT16 *)tx_ptr);
+                    tx_ptr += 2;
+                    tx_len -= 2;
+                }
+            }
+            else
+            {
+                if((REG_READ(SPI_STAT) & TXFIFO_FULL) == 0)
+                {
+                    REG_WRITE(SPI_DAT, *tx_ptr++);
+                    tx_len --;
+                }
+            }
+        }
+        while(spi_read_rxfifo(&data) == 1);
+        if(total_len == 0)
+        {
+            UINT32 enable = 0;
+            spi_ctrl(CMD_SPI_TXINT_EN, (void *)&enable);
+        }
+    }
+    else
+    {
+        while(total_len)
+        {
+            tx_ok = 0;
+
+            if(tx_len)
+            {
+                data = *tx_ptr;
+                if(spi_write_txfifo(data) == 1)
+                {
+                    tx_ok = 1;
+
+                    tx_len --;
+                    tx_ptr ++;
+                }
+            }
+            else
+            {
+                data = 0xff;
+                if(spi_write_txfifo(data) == 1)
+                {
+                    tx_ok = 1;
+                }
+            }
+
+            /* check rx data to prevent rx over flow */
+            if(spi_read_rxfifo(&data) == 1)
+            {
+                if(rxbuf)
+                {
+                    if(drop != 0)
+                    {
+                        drop--;
+                    }
+                    else
+                    {
+                        if(offset < spi_dev->rx_len)
+                        {
+                            rxbuf[offset] = data;
+                            offset++;
+                        }
+                        else
+                        {
+                        BK_SPI_WPRT("0 rx over flow:%02x, %d\r\n", data, spi_dev->rx_len);
+                        }
+                    }
+                }
+            }
+
+            if(tx_ok == 1)
+            {
+                total_len --;
+                if(total_len == 0)
+                {
+                    UINT32 enable = 0;
+                    sddev_control(SPI_DEV_NAME, CMD_SPI_TXINT_EN, (void *)&enable);
+
+                    //BK_SPI_PRT("tx fin\r\n");
+                    break;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+#else
     while(total_len) 
     {
         tx_ok = 0;
@@ -157,7 +271,7 @@ static void bk_spi_tx_needwrite_callback(int port, void *param)
             break;
         }
     }
-
+#endif
     GLOBAL_INT_DISABLE();
     spi_dev->tx_ptr = tx_ptr;
     spi_dev->tx_len = tx_len;
@@ -276,8 +390,10 @@ int bk_spi_master_xfer(struct spi_message *msg)
         GLOBAL_INT_RESTORE();
 
         /* take CS */
+#if (!CFG_SUPPORT_DJYOS)	//CK,和片选有关的，看不太明白，忘了原来为什么去掉了。4线单主方式。NSS被分配一个输出引脚并输出NSSMD0的值。【注意】4线单主模式下，每次传输前软件需要线配置该参数为2’b11后配置成2’b10，传输结束后需要再次配置成2’b11。	
         param = 0x2;
         sddev_control(SPI_DEV_NAME, CMD_SPI_SET_NSSID, (void *)&param);
+#endif
 
         /* enabel tx & rx interrupt */
         param = 1;
@@ -297,8 +413,10 @@ int bk_spi_master_xfer(struct spi_message *msg)
         sddev_control(SPI_DEV_NAME, CMD_SPI_TXINT_EN, (void *)&param);
 
         /* release CS */
+#if (!CFG_SUPPORT_DJYOS)	//CK
         param = 0x3;
         sddev_control(SPI_DEV_NAME, CMD_SPI_SET_NSSID, (void *)&param);
+#endif
 
         /* initial spi_dev with zero*/
         GLOBAL_INT_DISABLE();

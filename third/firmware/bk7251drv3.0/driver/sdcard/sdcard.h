@@ -28,7 +28,9 @@ extern UINT32 sdcard_read(char *user_buf, UINT32 count, UINT32 op_flag);
 extern UINT32 sdcard_write(char *user_buf, UINT32 count, UINT32 op_flag);
 
 extern UINT32 sdcard_ctrl(UINT32 cmd, void *parm);
-
+#if CFG_SUPPORT_DJYOS	//CK
+u16 get_sdcard_is_ready(void);
+#endif
 #endif // CFG_USE_SDCARD_HOST
 
 #endif

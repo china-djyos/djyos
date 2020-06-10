@@ -74,7 +74,9 @@ static void flash_get_current_flash_config(void)
     if(i == (sizeof(flash_config) / sizeof(flash_config_t) - 1))
     {
         flash_current_config = &flash_config[i];
+#if (!CFG_SUPPORT_DJYOS)	//CK
         os_printf("don't config this flash, choose default config\r\n");
+#endif
     }
 }
 
@@ -573,7 +575,9 @@ void flash_init(void)
     while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
 	
     id = flash_get_id();
+#if (!CFG_SUPPORT_DJYOS)	//CK	
     FLASH_PRT("[Flash]id:0x%x\r\n", id);
+#endif
     flash_get_current_flash_config();
 	
 	set_flash_protect(FLASH_UNPROTECT_LAST_BLOCK);
@@ -583,8 +587,9 @@ void flash_init(void)
     flash_set_clk(5);  // 60M
 
     ddev_register_dev(FLASH_DEV_NAME, &flash_op);
-    
+#if (!CFG_SUPPORT_DJYOS)	//CK
     os_printf("flash_init end\r\n");
+#endif
 }
 
 void flash_exit(void)

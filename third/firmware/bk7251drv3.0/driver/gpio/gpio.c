@@ -76,7 +76,9 @@ static UINT32 gpio_ops_filter(UINT32 index)
             || (GPIO22 == index)
             || (GPIO23 == index))
     {
+#if (!CFG_SUPPORT_DJYOS)	//CK
         FATAL_PRT("[JTAG]gpio_filter_%d\r\n", index);
+#endif
         ret = GPIO_SUCCESS;
 
         goto filter_exit;
@@ -103,8 +105,9 @@ void gpio_config(UINT32 index, UINT32 mode)
 
     if(index >= GPIONUM)
     {
+#if (!CFG_SUPPORT_DJYOS)	//CK
         WARN_PRT("gpio_id_cross_border\r\n");
-
+#endif
         goto cfg_exit;
     }
     
@@ -151,7 +154,9 @@ void gpio_config(UINT32 index, UINT32 mode)
 	
     default:
         overstep = 1;
+#if (!CFG_SUPPORT_DJYOS)	//CK
         WARN_PRT("gpio_mode_exception:%d\r\n", mode);
+#endif
         break;
     }
 
@@ -278,7 +283,11 @@ static void gpio_enable_second_function(UINT32 func_mode)
 
     case GFUNC_MODE_UART1:
         start_index = 10;
-        end_index = 13;
+#if (CFG_SUPPORT_DJYOS)	//CK
+        end_index = 11;	//原来招招写的日志：修正GPIO12上电后为高电平，造成录音指示灯闪烁，原因是UART1 CTS引脚被复用
+#else
+		end_index = 13;
+#endif
         pmode = PERIAL_MODE_1;
         config_pull_up = 1;
         break;
@@ -379,14 +388,24 @@ static void gpio_enable_second_function(UINT32 func_mode)
         break;
 
     case GFUNC_MODE_ADC4:
+#if (CFG_SUPPORT_DJYOS)	//CK，ADC通道4和5的管脚反了	
+        start_index = 2;
+        end_index = 2;
+#else
         start_index = 3;
         end_index = 3;
+#endif
         pmode = PERIAL_MODE_2;
         break; 
 
     case GFUNC_MODE_ADC5:
-        start_index = 2;
-        end_index = 2;
+#if (CFG_SUPPORT_DJYOS)	//CK
+        start_index = 3;
+        end_index = 3;
+#else
+	    start_index = 2;
+        end_index = 2;	
+#endif
         pmode = PERIAL_MODE_2;
         break;
 
@@ -428,14 +447,34 @@ static void gpio_enable_second_function(UINT32 func_mode)
         break;
 		
     case GFUNC_MODE_QSPI_1LINE:
+#if (CFG_SUPPORT_DJYOS)	//CK
+#if (1 == CFG_USE_QSPI_GPIO16_19)
         start_index = 16;
         end_index = 17;
+#else
+        start_index = 22;
+        end_index = 23;
+#endif
+#else
+        start_index = 16;
+        end_index = 17;
+#endif
         pmode = PERIAL_MODE_3;
         break;   
 		
 	case GFUNC_MODE_QSPI_4LINE:
+#if (CFG_SUPPORT_DJYOS)	//CK
+#if (1 == CFG_USE_QSPI_GPIO16_19)
         start_index = 16;
         end_index = 19;
+#else
+        start_index = 20;
+        end_index = 23;
+#endif
+#else
+        start_index = 16;
+        end_index = 19;
+#endif
         pmode = PERIAL_MODE_3;
         break;    
 		
@@ -518,7 +557,9 @@ UINT32 gpio_input(UINT32 id)
 
     if(GPIO_SUCCESS == gpio_ops_filter(id))
     {
+#if (!CFG_SUPPORT_DJYOS)	//CK	
         WARN_PRT("gpio_input_fail\r\n");
+#endif
         goto input_exit;
     }
 	
@@ -546,7 +587,9 @@ void gpio_output(UINT32 id, UINT32 val)
 
     if(GPIO_SUCCESS == gpio_ops_filter(id))
     {
+#if (!CFG_SUPPORT_DJYOS)	//CK
         WARN_PRT("gpio_output_fail\r\n");
+#endif
         goto output_exit;
     }
 	
@@ -578,7 +621,9 @@ static void gpio_output_reverse(UINT32 id)
 
     if(GPIO_SUCCESS == gpio_ops_filter(id))
     {
+#if (!CFG_SUPPORT_DJYOS)	//CK
         WARN_PRT("gpio_output_reverse_fail\r\n");
+#endif
         goto reverse_exit;
     }
 	
@@ -645,11 +690,12 @@ void gpio_int_enable(UINT32 index, UINT32 mode, void (*p_Int_Handler)(unsigned c
 
     if(index >= GPIONUM)
     {
+#if (!CFG_SUPPORT_DJYOS)	//CK
         WARN_PRT("gpio_id_cross_border\r\n");
-
+#endif
         return;
     }
-
+#if (!CFG_SUPPORT_DJYOS)	//CK
     mode &= 0x03;
     if ((mode == 0) || (mode == 3))
     {
@@ -659,7 +705,7 @@ void gpio_int_enable(UINT32 index, UINT32 mode, void (*p_Int_Handler)(unsigned c
     {
         gpio_config(index, GMODE_INPUT_PULLDOWN);
     }
-
+#endif
     if (index <= GPIO15) {
         *(volatile UINT32 *)REG_GPIO_INTLV0 = (*(volatile UINT32 *)REG_GPIO_INTLV0 & (~(0x03 << (index << 1)))) | (mode << (index << 1));
     }
@@ -691,8 +737,9 @@ void gpio_init(void)
 #if CFG_SYS_START_TIME
     UINT32 param;
 #endif
+#if (!CFG_SUPPORT_DJYOS)	//CK
     gpio_disable_jtag();
-
+#endif
     sddev_register_dev(GPIO_DEV_NAME, &gpio_op);
 #if CFG_SYS_START_TIME
     param = 3 | (GMODE_OUTPUT << 8);

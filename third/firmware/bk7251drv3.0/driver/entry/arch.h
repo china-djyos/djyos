@@ -49,6 +49,17 @@
 #define GLOBAL_INT_START               portENABLE_INTERRUPTS
 #define GLOBAL_INT_STOP                portDISABLE_INTERRUPTS
 
+#if (CFG_SUPPORT_DJYOS)		//CK
+#include "int.h"
+#define GLOBAL_INT_DECLARATION()   uint32_t irq_tmp
+#define GLOBAL_INT_DISABLE()       do{\
+                                        irq_tmp = Int_HighAtomStart();\
+                                    }while(0)
+
+#define GLOBAL_INT_RESTORE()       do{\
+                                        Int_HighAtomEnd(irq_tmp);\
+                                   }while(0)
+#else
 #if (CFG_SUPPORT_RTT)
 #define GLOBAL_INT_DECLARATION()   rt_base_t irq_level
 #define GLOBAL_INT_DISABLE()       do{\
@@ -79,7 +90,7 @@
                                         }                      \
                                    }while(0)
 #endif
-
+#endif
 /*
  * CPU WORD SIZE
  ****************************************************************************************
