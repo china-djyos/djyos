@@ -65,10 +65,10 @@ extern struct IntMasterCtrl  tg_int_global;
 extern void __DJY_ScheduleAsynSignal(void);
 
 #define CFG_TICKMODE_DYNAMIC        true
-#define CFG_REAL_CRITICAL           100     //若距离当前tick中断时间小于此数，则不修改tick中断时间
+#define CFG_REAL_CRITICAL           100     //若距离当前tick中断时间小于此 uS 数，则不修改tick中断时间
 
 static s32 s_gCurrentTicks = 1;     //当前tick运行周期。
-static s32 s_gCriticalCycle;        //避免在即将发生定时中断时修改tick
+static s32 s_gCriticalCycle;        //CFG_REAL_CRITICAL对应的定时器计数值
 static s32 s_gTicksLimit;           //24bit定时器单次定时最大ticks数
 extern s64  g_s64OsTicks;
 

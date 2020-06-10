@@ -97,10 +97,11 @@ void os_clk_init(void)
 // eof
 #include "pwm.h"
 
-u32 Git_SysTickCnt()
-{
-    return REG_READ(REG_APB_BK_PWMn_CAP_ADDR(FCLK_PWM_ID));
-}
+//BK7251无法读出定时器当前值，无论定时器还是PWM
+//u32 Get_SysTickCnt()
+//{
+//    return REG_READ(REG_APB_BK_PWMn_END_ADDR(FCLK_PWM_ID));
+//}
 
 void Set_SysTickEnd(u32 value)
 {

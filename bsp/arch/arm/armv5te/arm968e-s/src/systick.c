@@ -63,7 +63,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-u32 Git_SysTickCnt();
+u32 Get_SysTickCnt();
 void Set_SysTickEnd(u32 value);
 void  DJY_ScheduleIsr(u32 inc_ticks);
 
@@ -72,10 +72,10 @@ extern struct IntMasterCtrl  tg_int_global;
 extern void __DJY_ScheduleAsynSignal(void);
 
 #define CFG_TICKMODE_DYNAMIC        true
-#define CFG_REAL_CRITICAL           100     //若距离当前tick中断时间小于此数，则不修改tick中断时间
+#define CFG_REAL_CRITICAL           100     //若距离当前tick中断时间小于此 uS 数，则不修改tick中断时间
 
 static s32 s_gCurrentTicks = 1;     //当前tick运行周期。
-static s32 s_gCriticalCycle;        //避免在即将发生定时中断时修改tick
+static s32 s_gCriticalCycle;        //CFG_REAL_CRITICAL对应的定时器计数值
 static s32 s_gTicksLimit;           //32bit定时器单次定时最大ticks数
 extern s64  g_s64OsTicks;
 
@@ -143,13 +143,14 @@ __attribute__((weak))   u64 __DjyGetSysTime(void)
 {
     s64 current;
     atom_low_t atom_low;
-    u32 tick_cnt;
+//  u32 tick_cnt;
     atom_low = Int_LowAtomStart();
     current = g_s64OsTicks;
-    tick_cnt = Git_SysTickCnt();
+//    tick_cnt = Get_SysTickCnt();  //BK7251 无法读出定时器当前值
     Int_LowAtomEnd(atom_low);
 
-   return (current*CN_CFG_TICK_US + (tick_cnt*1000*1000)/26*1000*1000);
+//  return (current*CN_CFG_TICK_US + (tick_cnt*1000*1000)/26*1000*1000);
+    return (current*CN_CFG_TICK_US);
 }
 
 
@@ -172,21 +173,25 @@ __attribute__((weak))   u64 __DjyGetSysTime(void)
 //-----------------------------------------------------------------------------
 __attribute__((weak)) u32 Tick_SetNextTimeTick(s32 Ticks)
 {
-    s32 temp;
+//  s32 temp;
     if(Ticks > s_gTicksLimit)
         Ticks = s_gTicksLimit;
     if(s_gCurrentTicks == Ticks)
         return Ticks;
 
 
-    temp = Git_SysTickCnt();
     //tick中断快到了，为避工作在临界区导致的问题，不允许改变tick时间
-    //由于调用本函数时没有关闭实时中断，故实时中断的ISR执行不能大于CFG_REAL_CRITICAL微秒
-    if((temp +s_gCriticalCycle) <(s_gCurrentTicks*26*1000/1000*1000))
-    {
-        Set_SysTickEnd(Ticks*26*10000);
-        s_gCurrentTicks = Ticks;
-    }
+    //由于调用本函数时没有关闭实时中断，故实时中断的ISR执行不能大于 CFG_REAL_CRITICAL 微秒
+    //特别注释：BK7251 无论定时器还是pwm，都无法读出当前计数值，故无法实现此功能。
+    //只能直接重新设置tick。
+    //理论分析，应该没有问题
+
+//  temp = Get_SysTickCnt();
+//  if((temp +s_gCriticalCycle) <(s_gCurrentTicks*26*1000/1000*1000))
+//  {
+    Set_SysTickEnd(Ticks*26*10000);
+    s_gCurrentTicks = Ticks;
+//  }
 
     return s_gCurrentTicks;
 }

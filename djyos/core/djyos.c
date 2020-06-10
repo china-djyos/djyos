@@ -3300,11 +3300,11 @@ struct EventECB *__DJY_GetIdle(void)
 //惨痛教训:这是一个不允许阻塞的函数，深夜3点调出来的教训。
 //-----------------------------------------------------------------------------
 void CleanWakeupEvent(void);
-u64 buff[256] = {0};
+//u64 buff[256] = {0};
 ptu32_t __DJY_Service(void)
 {
     u32 loop;
-    u8 i = 0;
+//    u8 i = 0;
     u8 level;
     u64 now_tick;
     u64 int_tick;
@@ -3331,15 +3331,15 @@ ptu32_t __DJY_Service(void)
             else
                 int_tick = CN_LIMIT_UINT64;
 
-            AllowPendTicks = int_tick - now_tick;       //具体休眠多少时间，由BSP决定
+            AllowPendTicks = int_tick - now_tick;   //计算允许休眠的ticks数，但实际休眠多少时间，由BSP决定
             if(AllowPendTicks > CN_LIMIT_UINT32)
                 AllowPendTicks = CN_LIMIT_UINT32;
-            buff[i++] = AllowPendTicks;
-            buff[i] = __DjyGetSysTime();
+//            buff[i++] = AllowPendTicks;
+//            buff[i] = __DjyGetSysTime();
             if(AllowPendTicks != 0)
                 g_fnEntryLowPower(g_ptEventRunning->vm,AllowPendTicks); //进入低功耗状态
-            buff[i] = __DjyGetSysTime() - buff[i];
-            i++;
+//            buff[i] = __DjyGetSysTime() - buff[i];
+//            i++;
             Int_LowAtomEnd(atom_bak);
         }
     }
