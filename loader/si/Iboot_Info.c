@@ -71,7 +71,6 @@ extern void __asm_bl_fun(void * fun_addr);
 
 
 #if (CFG_RUNMODE_BAREAPP == 0)
-//const char djyos_tag [] = "djyos";
 const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
 {
         .djyflag[0]    = 'd',
@@ -98,7 +97,7 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
-                          0xff,0xff,0xff,0xff,0xff},
+                          0xff,0xff,0xff,0xff,0xff,0xff},
 
         .VerifBuf      = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
@@ -154,7 +153,7 @@ __attribute__((weak))  u8  Get_Hardflag(enum hardflag flag)
 //}
 //=============================================================================
 //=============================================================================
-#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
+//#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
 // CRC32查询表
 static const u32 crc32_tab[] = {     // CRC polynomial 0xedb88320
 0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
@@ -259,7 +258,7 @@ static s32 iboot_Crc32exit(u32 *crc)
     return (-1);
 }
 #endif
-#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
+//#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
 //define for the data types
 typedef unsigned int u32_t;
 
@@ -541,11 +540,11 @@ static void MD5_Transform (u32_t *buf, u32_t *in)
   buf[3] += d;
 }
 
-#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
+//#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
+//
+//#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
 
-#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
-
-#endif
+//#endif
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -553,22 +552,43 @@ static void MD5_Transform (u32_t *buf, u32_t *in)
 static bool_t Iboot_VerificationAppExit(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
-#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
-    iboot_Crc32exit((u32*)p_apphead->VerifBuf);
-#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
-    unsigned char hash[16];
-    u32 i;
 
-    MD5_Final(hash, (MD5_CTX*)p_apphead->VerifBuf);
-    for(i =0;i<sizeof(MD5_CTX);i++)
-        p_apphead->VerifBuf[i]=0xff;
-    for(i =0;i<16;i++)
-        p_apphead->VerifBuf[i]=hash[i];
-#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
+    if(p_apphead->Verification == VERIFICATION_CRC)
+    {
+        iboot_Crc32exit((u32*)p_apphead->VerifBuf);
+    }
+    else if(p_apphead->Verification == VERIFICATION_MD5)
+    {
+        unsigned char hash[16];
+        u32 i;
 
-#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
+        MD5Final(hash, (MD5_CTX*)p_apphead->VerifBuf);
+        for(i =0;i<sizeof(MD5_CTX);i++)
+            p_apphead->VerifBuf[i]=0xff;
+        for(i =0;i<16;i++)
+            p_apphead->VerifBuf[i]=hash[i];
+    }
+    else if(p_apphead->Verification == VERIFICATION_SSL)
+    {
 
-#endif
+    }
+
+//#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
+//    iboot_Crc32exit((u32*)p_apphead->VerifBuf);
+//#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
+//    unsigned char hash[16];
+//    u32 i;
+//
+//    MD5Final(hash, (MD5_CTX*)p_apphead->VerifBuf);
+//    for(i =0;i<sizeof(MD5_CTX);i++)
+//        p_apphead->VerifBuf[i]=0xff;
+//    for(i =0;i<16;i++)
+//        p_apphead->VerifBuf[i]=hash[i];
+//#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
+//
+//#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
+//
+//#endif
 
     return true;
 }
@@ -576,15 +596,29 @@ static bool_t Iboot_VerificationAppExit(void * apphead)
 static bool_t Iboot_VerificationAppRun(void * apphead, u8 * buf, u32 len)
 {
     struct AppHead*  p_apphead = apphead;
-#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
-    iboot_Crc32run((u32*)p_apphead->VerifBuf,buf,len);
-#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
-    MD5_Update((MD5_CTX*)p_apphead->VerifBuf, buf,len);
-#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
 
-#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
+    if(p_apphead->Verification == VERIFICATION_CRC)
+    {
+        iboot_Crc32run((u32*)p_apphead->VerifBuf,buf,len);
+    }
+    else if(p_apphead->Verification == VERIFICATION_MD5)
+    {
+        MD5Update((MD5_CTX*)p_apphead->VerifBuf, buf,len);
+    }
+    else if(p_apphead->Verification == VERIFICATION_SSL)
+    {
 
-#endif
+    }
+
+//#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
+//    iboot_Crc32run((u32*)p_apphead->VerifBuf,buf,len);
+//#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
+//    MD5Update((MD5_CTX*)p_apphead->VerifBuf, buf,len);
+//#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
+//
+//#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
+//
+//#endif
     return true;
 }
 
@@ -618,21 +652,42 @@ static bool_t Iboot_VerificationAppInit(void *data)
     for(u32 i =0;i<sizeof(p_apphead->VerifBuf);i++)
         p_apphead->VerifBuf[i]=0xff;
 
-#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
-    iboot_Crc32init((u32*)p_apphead->VerifBuf);
-    iboot_Crc32run((u32*)p_apphead->VerifBuf,data,sizeof(struct AppHead) + sizeof(struct ProductInfo));
-#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
-    MD5_CTX md5tmp;
-    char *buf = (char *)&md5tmp;
-    MD5_Init(&md5tmp);
-    MD5_Update(&md5tmp, data, sizeof(struct AppHead) + sizeof(struct ProductInfo));
-    for(u32 i =0;i< sizeof(MD5_CTX);i++)
-        p_apphead->VerifBuf[i]=buf[i];
-#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
+    if(p_apphead->Verification == VERIFICATION_CRC)
+    {
+        iboot_Crc32init((u32*)p_apphead->VerifBuf);
+        iboot_Crc32run((u32*)p_apphead->VerifBuf,data,sizeof(struct AppHead) + sizeof(struct ProductInfo));
+    }
+    else if(p_apphead->Verification == VERIFICATION_MD5)
+    {
+        MD5_CTX md5tmp;
+        char *buf = (char *)&md5tmp;
+        memset(&md5tmp, 0xff, sizeof(MD5_CTX));
+        MD5Init(&md5tmp);
+        MD5Update(&md5tmp, data, sizeof(struct AppHead) + sizeof(struct ProductInfo));
+        for(u32 i =0;i< sizeof(MD5_CTX);i++)
+            p_apphead->VerifBuf[i]=buf[i];
+    }
+    else if(p_apphead->Verification == VERIFICATION_SSL)
+    {
 
-#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
+    }
 
-#endif
+//#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
+//    iboot_Crc32init((u32*)p_apphead->VerifBuf);
+//    iboot_Crc32run((u32*)p_apphead->VerifBuf,data,sizeof(struct AppHead) + sizeof(struct ProductInfo));
+//#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
+//    MD5_CTX md5tmp;
+//    char *buf = (char *)&md5tmp;
+//    memset(&md5tmp, 0xff, sizeof(MD5_CTX));
+//    MD5Init(&md5tmp);
+//    MD5Update(&md5tmp, data, sizeof(struct AppHead) + sizeof(struct ProductInfo));
+//    for(u32 i =0;i< sizeof(MD5_CTX);i++)
+//        p_apphead->VerifBuf[i]=buf[i];
+//#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
+//
+//#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
+//
+//#endif
 
 
     return true;
@@ -752,7 +807,17 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
             }
             break;
         }
-
+        case APP_HEAD_RAW_VERSION_NUM:
+        {
+            len = sizeof(p_productinfo.VersionNumber);
+            if(buf_len >= len)
+            {
+                memcpy(date_buf, p_productinfo.VersionNumber, len);
+            }
+            else
+                goto len_error;
+            break;
+        }
         case APP_HEAD_MANUFACTURER:
         {
             len = strlen((char *)p_productinfo.ManufacturerNameAddr);
@@ -1556,12 +1621,18 @@ static bool_t __RunApp(void * apphead)
     }
     if(p_apphead->Verification != VERIFICATION_NULL)
     {
-#if 0
-
-        if(XIP_AppFileCheck(apphead) == false)
-            return false;
-
+        for(i = 0; i < sizeof(p_apphead->VerifBuf); i ++)
+        {
+            if((u8)p_apphead->VerifBuf[i] != 0xff)  //判断检验码缓冲区中是否为全FF，如果为全FF则表示是在debug，不做程序的校验
+                break;
+        }
+        if(i < sizeof(p_apphead->VerifBuf))
+        {
+#if 1
+            if(XIP_AppFileCheck(apphead) == false)
+                return false;
 #endif
+        }
     }
     Iboot_App_Info.runflag.runmode_iboot        = 0;
     Iboot_App_Info.runflag.runmode_app     = 1;
