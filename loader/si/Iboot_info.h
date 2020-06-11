@@ -80,6 +80,7 @@ enum hardflag
 enum productinfo
 {
     APP_HEAD_VERSION_NUM,        //APP版本xx.xx.xx，
+    APP_HEAD_RAW_VERSION_NUM,        //APP版本号，（直接获取数组里的数字）
     APP_HEAD_MANUFACTURER,       //厂商名
     APP_HEAD_CLASSIFY,           //产品分类
     APP_HEAD_TYPE,               //产品型号
