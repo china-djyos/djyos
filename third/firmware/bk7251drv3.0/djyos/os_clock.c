@@ -27,7 +27,11 @@ void rc_reset_patch(void);
 #endif
 
 static volatile UINT64 current_us = 0;
+#if (CFG_SUPPORT_DJYOS)
+static volatile UINT64 current_clock = 0;
+#else
 static volatile UINT32 current_clock = 0;
+#endif
 static volatile UINT32 current_seconds = 0;
 static UINT32 second_countdown = FCLK_SECOND;
 
@@ -43,8 +47,8 @@ UINT32 use_cal_net = 0;
 
 static void fclk_hdl(UINT8 param)
 {
-	GLOBAL_INT_DECLARATION();
-	GLOBAL_INT_DISABLE();
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
 #if CFG_USE_STA_PS
     if(power_save_use_pwm_isr())
     {
@@ -53,24 +57,25 @@ static void fclk_hdl(UINT8 param)
         return;
     }
 #endif
-	current_clock ++;
+    current_clock ++;
 
     #if CFG_BK7221_MDM_WATCHDOG_PATCH
     rc_reset_patch();
     #endif
 
+#if (CFG_SUPPORT_DJYOS)
+    Exp_SystickTickHandler();
+#else
     rt_tick_increase();
-	GLOBAL_INT_RESTORE();
+#endif
+    GLOBAL_INT_RESTORE();
 
-	if (--second_countdown == 0) 
-	{
-		current_seconds ++;
-		second_countdown = FCLK_SECOND;
+    if (--second_countdown == 0)
+    {
+        current_seconds ++;
+        second_countdown = FCLK_SECOND;
 
-        #if defined(RT_USING_ALARM)
-        rt_alarm_update(NULL, 0);
-        #endif
-	}
+    }
 }
 
 static UINT32 fclk_freertos_update_tick(UINT32 tick)
@@ -108,7 +113,7 @@ UINT32 rtt_update_tick(UINT32 tick)
 
         /* check system timer */
         rt_timer_check();
-        
+
         rt_exit_critical();
     }
 }
@@ -120,6 +125,9 @@ UINT32 fclk_update_tick(UINT32 tick)
     rtt_update_tick(tick);
 #elif (CFG_SUPPORT_ALIOS)
     krhino_update_sys_tick((UINT64)tick);
+#elif (CFG_SUPPORT_DJYOS)
+    mcu_ps_increase_clr();      //lst 为啥ali和rtt不需要修改increase变量？
+    DJY_ScheduleIsr(tick);
 #else
     GLOBAL_INT_DECLARATION();
 
@@ -127,11 +135,11 @@ UINT32 fclk_update_tick(UINT32 tick)
         return 0;
 
     GLOBAL_INT_DISABLE();
-    mcu_ps_increase_clr();
+    mcu_ps_increase_clr();      //lst 为啥ali和rtt不需要修改increase变量？
     fclk_freertos_update_tick(tick);
     vTaskStepTick( tick );
     GLOBAL_INT_RESTORE();
-    
+
 #endif
     return 0;
 }
@@ -148,6 +156,9 @@ UINT64 fclk_get_tick(void)
     fclk = (UINT64)rt_tick_get();
 #elif (CFG_SUPPORT_ALIOS)
     fclk = krhino_sys_tick_get();
+#elif (CFG_SUPPORT_DJYOS)
+    SINT64 __DJY_GetSysTick(void);
+    fclk = (UINT64)__DJY_GetSysTick();
 #else
     fclk = (UINT64)fclk_freertos_get_tick();
 #endif
@@ -160,6 +171,9 @@ UINT32 fclk_get_second(void)
     return (rt_tick_get()/FCLK_SECOND);
 #elif (CFG_SUPPORT_ALIOS)
     return (krhino_sys_tick_get()/FCLK_SECOND);
+#elif (CFG_SUPPORT_DJYOS)
+    SINT64 __DJY_GetSysTick(void);
+    return (UINT32)__DJY_GetSysTick()/FCLK_SECOND;
 #else
     return current_clock/FCLK_SECOND;
 #endif
@@ -197,7 +211,7 @@ UINT32 timer_cal_tick(void)
     GLOBAL_INT_DECLARATION();
 
     GLOBAL_INT_DISABLE();
-    
+
     fclk = BK_TICKS_TO_MS(fclk_get_tick());
     cal_tick_save.tmp1 += ONE_CAL_TIME;
 
@@ -233,7 +247,7 @@ UINT32 timer_cal_tick(void)
             increase_tick = lost;
         }
     }
-    
+
     mcu_ps_machw_init();
     GLOBAL_INT_RESTORE();
     return 0 ;
@@ -292,7 +306,7 @@ UINT32 bk_cal_init(UINT32 setting)
 {
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
-    
+
     if(1 == setting)
     {
         cal_timer_deset();
@@ -319,53 +333,98 @@ UINT32 bk_cal_init(UINT32 setting)
     return 0;
 }
 #endif
+#if (CFG_SUPPORT_DJYOS)
+UINT32 fclk_cal_endvalue(UINT32 mode)
+{
+    UINT32 value = 1;
+
+    if(PWM_CLK_32K == mode)
+    {   /*32k clock*/
+        value = FCLK_DURATION_MS * 32;
+    }
+    else if(PWM_CLK_26M == mode)
+    {
+        /*26m clock*/
+        value = FCLK_DURATION_MS * 26000;
+    }
+
+    return value;
+}
+
+void os_clk_init(void)
+{
+    UINT32 ret;
+    pwm_param_t param;
+
+    /*init pwm*/
+    param.channel         = FCLK_PWM_ID;
+    param.cfg.bits.en     = PWM_ENABLE;
+    param.cfg.bits.int_en = PWM_INT_EN;
+    param.cfg.bits.mode   = PMODE_TIMER;
+
+#if(CFG_RUNNING_PLATFORM == FPGA_PLATFORM)  // FPGA:PWM0-2-32kCLK, pwm3-5-24CLK
+    param.cfg.bits.clk    = PWM_CLK_32K;
+#else
+    param.cfg.bits.clk    = PWM_CLK_26M;
+#endif
+
+    param.p_Int_Handler   = fclk_hdl;
+    param.duty_cycle      = 0;
+    param.end_value       = fclk_cal_endvalue((UINT32)param.cfg.bits.clk);
+
+    ret = sddev_control(PWM_DEV_NAME, CMD_PWM_INIT_PARAM, &param);
+    ASSERT(PWM_SUCCESS == ret);
+}
+
+#else       //for #if(CFG_SUPPORT_DJYOS)
+
 #if (CFG_SOC_NAME == SOC_BK7231)
 UINT32 fclk_cal_endvalue(UINT32 mode)
 {
-	UINT32 value = 1;
-	
-	if(PWM_CLK_32K == mode)
-	{	/*32k clock*/
-		value = FCLK_DURATION_MS * 32;
-	}
-	else if(PWM_CLK_26M == mode)
-	{	/*26m clock*/
+    UINT32 value = 1;
+
+    if(PWM_CLK_32K == mode)
+    {   /*32k clock*/
+        value = FCLK_DURATION_MS * 32;
+    }
+    else if(PWM_CLK_26M == mode)
+    {   /*26m clock*/
         /*26m clock*/
 #if CFG_SUPPORT_ALIOS
-	value = 26000000 / RHINO_CONFIG_TICKS_PER_SECOND;
+    value = 26000000 / RHINO_CONFIG_TICKS_PER_SECOND;
 #else
         value = FCLK_DURATION_MS * 26000;
 #endif
-	}
+    }
 
-	return value;
+    return value;
 }
 #endif
 void os_clk_init(void)
 {
-	UINT32 ret;
-    #if (CFG_SOC_NAME == SOC_BK7231)
-	pwm_param_t param;
+    UINT32 ret;
+#if (CFG_SOC_NAME == SOC_BK7231)
+    pwm_param_t param;
 
-	/*init pwm*/
-	param.channel         = FCLK_PWM_ID;	
-	param.cfg.bits.en     = PWM_ENABLE;
-	param.cfg.bits.int_en = PWM_INT_EN;
-	param.cfg.bits.mode   = PMODE_TIMER;
-    
+    /*init pwm*/
+    param.channel         = FCLK_PWM_ID;
+    param.cfg.bits.en     = PWM_ENABLE;
+    param.cfg.bits.int_en = PWM_INT_EN;
+    param.cfg.bits.mode   = PMODE_TIMER;
+
 #if(CFG_RUNNING_PLATFORM == FPGA_PLATFORM)  // FPGA:PWM0-2-32kCLK, pwm3-5-24CLK
-	param.cfg.bits.clk    = PWM_CLK_32K; 
+    param.cfg.bits.clk    = PWM_CLK_32K;
 #else
-	param.cfg.bits.clk    = PWM_CLK_26M; 
+    param.cfg.bits.clk    = PWM_CLK_26M;
 #endif
 
-	param.p_Int_Handler   = fclk_hdl;
-	param.duty_cycle      = 0;
-	param.end_value       = fclk_cal_endvalue((UINT32)param.cfg.bits.clk);
-	
-	ret = sddev_control(PWM_DEV_NAME, CMD_PWM_INIT_PARAM, &param);
-	ASSERT(PWM_SUCCESS == ret);
-    #else
+    param.p_Int_Handler   = fclk_hdl;
+    param.duty_cycle      = 0;
+    param.end_value       = fclk_cal_endvalue((UINT32)param.cfg.bits.clk);
+
+    ret = sddev_control(PWM_DEV_NAME, CMD_PWM_INIT_PARAM, &param);
+    ASSERT(PWM_SUCCESS == ret);
+#else
     timer_param_t param;
     param.channel = FCLK_TIMER_ID;
     param.div = 1;
@@ -382,7 +441,14 @@ void os_clk_init(void)
 #if (CFG_SOC_NAME != SOC_BK7231)
     bk_cal_init(0);
 #endif
-    #endif
+
+#endif
+}
+
+#endif      //for #if(CFG_SUPPORT_DJYOS)
+void Set_SysTickEnd(u32 value)
+{
+    REG_WRITE(REG_APB_BK_PWMn_END_ADDR(FCLK_PWM_ID), value);
 }
 
 // eof

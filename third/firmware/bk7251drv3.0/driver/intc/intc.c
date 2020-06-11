@@ -62,7 +62,32 @@ void intc_hdl_entry(UINT32 int_status)
         }
     }
 }
-
+#if (CFG_SUPPORT_DJYOS)
+#include "cpu_peri_reg.h"
+#include "int.h"
+#include "bk_uart.h"
+#include "pwm.h"
+#include "../icu/icu.h"
+void intc_service_register(UINT8 int_num, UINT8 int_pri, FUNCPTR isr)
+{
+    (void)int_pri;
+    Int_Register(int_num);
+    Int_SetClearType(int_num,CN_INT_CLEAR_AUTO);
+    Int_IsrConnect(int_num,isr);
+    Int_SettoAsynSignal(int_num);
+    Int_ClearLine(int_num);
+    Int_RestoreAsynLine(int_num);
+}
+void Disable_AllPeri()
+{
+    REG32_CLEAR_BIT(REG_UART1_CONFIG,(UART_TX_ENABLE|UART_RX_ENABLE));
+    REG32_CLEAR_BIT(REG_UART2_CONFIG,(UART_TX_ENABLE|UART_RX_ENABLE));
+//    REG32_CLEAR_BIT(PWM_CTL,(PWM0_EN_BIT|PWM1_EN_BIT|PWM2_EN_BIT|PWM3_EN_BIT|PWM4_EN_BIT|PWM5_EN_BIT));
+    REG32_CLEAR_REG(PWM_CTL);
+    REG32_CLEAR_REG(0x0802800+ 34*4);//gpio
+    REG32_CLEAR_REG(ICU_INTERRUPT_ENABLE);//disable all icu reg
+}
+#else      //#if (CFG_SUPPORT_DJYOS)
 void intc_service_register(UINT8 int_num, UINT8 int_pri, FUNCPTR isr)
 {
     LIST_HEADER_T *pos, *n;
@@ -124,6 +149,7 @@ error:
 
     return;
 }
+#endif     //#if (CFG_SUPPORT_DJYOS)
 
 void intc_service_change_handler(UINT8 int_num, FUNCPTR isr)
 {
@@ -208,22 +234,22 @@ void rf_ps_wakeup_isr_idle_int_cb()
     i2s_isr();
     sddev_control(ICU_DEV_NAME, CMD_CLR_INTR_STATUS, &irq_status);
     }
-#endif    
+#endif
 }
 
 void intc_irq(void)
 {
     UINT32 irq_status;
-	
+
     irq_status = sddev_control(ICU_DEV_NAME, CMD_GET_INTR_STATUS, 0);
     irq_status = irq_status & 0xFFFF;
-	if(0 == irq_status)
-	{
-	    #if (! CFG_USE_STA_PS)
-		os_printf("irq:dead\r\n");
+    if(0 == irq_status)
+    {
+        #if (! CFG_USE_STA_PS)
+        os_printf("irq:dead\r\n");
         #endif
-	}
-	
+    }
+
     sddev_control(ICU_DEV_NAME, CMD_CLR_INTR_STATUS, &irq_status);
 
     intc_hdl_entry(irq_status);
@@ -251,6 +277,7 @@ void intc_init(void)
 {
     UINT32 param;
 
+#if( ! CFG_SUPPORT_DJYOS )
     *((volatile uint32_t *)0x400000) = (uint32_t)&do_irq;
     *((volatile uint32_t *)0x400004) = (uint32_t)&do_fiq;
     *((volatile uint32_t *)0x400008) = (uint32_t)&do_swi;
@@ -267,9 +294,10 @@ void intc_init(void)
 
     intc_enable(FIQ_MAC_TX_RX_MISC);
     intc_enable(FIQ_MAC_TX_RX_TIMER);
-	
-    intc_enable(FIQ_MODEM);	
 
+    intc_enable(FIQ_MODEM);
+
+#endif         //for #if( ! CFG_SUPPORT_DJYOS )
     param = GINTR_FIQ_BIT | GINTR_IRQ_BIT;
     sddev_control(ICU_DEV_NAME, CMD_ICU_GLOBAL_INT_ENABLE, &param);
 
@@ -279,27 +307,28 @@ void intc_init(void)
 void intc_deinit(void)
 {
     UINT32 param;
-	
+
     for( int i = 0; i<=FIQ_DPLL_UNLOCK; i++)
-	{
+    {
         intc_disable(i);
-	}
-	
+    }
+
     param = GINTR_FIQ_BIT | GINTR_IRQ_BIT;
     sddev_control(ICU_DEV_NAME, CMD_ICU_GLOBAL_INT_DISABLE, &param);
 
     return;
 }
 
+//lst 以下函数在 djyos 上用不上
 void bk_cpu_shutdown(void)
 {
     GLOBAL_INT_DECLARATION();
-	
+
     os_printf("shutdown...\n");
-	
-    GLOBAL_INT_DISABLE();	
+
+    GLOBAL_INT_DISABLE();
     while(1);
-	GLOBAL_INT_RESTORE();
+    GLOBAL_INT_RESTORE();
 }
 
 void bk_show_register (struct arm_registers *regs)

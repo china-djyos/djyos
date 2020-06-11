@@ -76,21 +76,21 @@ static bool_t gResumeTickFlag = false;
 //}
 
 //??????????
-__attribute__((weak)) void DjySetUpdateTickFlag(bool_t flag)
-{
-    gResumeTickFlag = flag;
-}
-
-__attribute__((weak)) bool_t DjyGetUpdateTickFlag(void)
-{
-    return gResumeTickFlag;
-}
-
-//??????????
-__attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
-{
-    gRunTicks += ticks;
-}
+//__attribute__((weak)) void DjySetUpdateTickFlag(bool_t flag)
+//{
+//    gResumeTickFlag = flag;
+//}
+//
+//__attribute__((weak)) bool_t DjyGetUpdateTickFlag(void)
+//{
+//    return gResumeTickFlag;
+//}
+//
+////??????????
+//__attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
+//{
+//    gRunTicks += ticks;
+//}
 
 // ============================================================================
 // ARM9的reboot、reset和restart_system，在对应的cpudrv里实现，不放在这里实现

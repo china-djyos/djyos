@@ -164,8 +164,8 @@ UINT32 mcu_power_save(UINT32 sleep_tick)
     {
     }
 
-    DjyUpdateTicks(miss_ticks);
-    DjySetUpdateTickFlag(true);
+//    DjyUpdateTicks(miss_ticks);
+//    DjySetUpdateTickFlag(true);
 //  GLOBAL_INT_RESTORE();       //by djyos
     ASSERT(miss_ticks >= 0);
     return miss_ticks;

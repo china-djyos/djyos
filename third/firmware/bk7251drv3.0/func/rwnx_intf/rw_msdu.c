@@ -179,7 +179,7 @@ MSDU_NODE_T *rwm_tx_node_alloc(UINT32 len)
 {
     UINT8 *buff_ptr;
     MSDU_NODE_T *node_ptr = 0;
-#if (CFG_SUPPORT_RTT) && (CFG_SOC_NAME == SOC_BK7221U)
+#if (CFG_SUPPORT_DJYOS) && (CFG_SOC_NAME == SOC_BK7221U)    //lst
 extern void *dtcm_malloc(unsigned int size);
     node_ptr = (MSDU_NODE_T *)dtcm_malloc(sizeof(MSDU_NODE_T)
                                         + CFG_MSDU_RESV_HEAD_LEN
@@ -190,7 +190,7 @@ extern void *dtcm_malloc(unsigned int size);
                                         + CFG_MSDU_RESV_HEAD_LEN
                                         + len
                                         + CFG_MSDU_RESV_TAIL_LEN);
-#endif
+#endif      //#if (CFG_SUPPORT_DJYOS) && (CFG_SOC_NAME == SOC_BK7221U)
 
     if(NULL == node_ptr)
     {
@@ -331,25 +331,25 @@ void rwm_flush_txing_list(UINT8 sta_idx)
     int ret;
 
     if(sta_idx >= MAX_PS_STA_NUM)
-        return;     
+        return;
 
-    if(rwm_txling_list_node_count(sta_idx)) 
+    if(rwm_txling_list_node_count(sta_idx))
     {
         os_printf("flush buffered node, staid:%d\r\n", sta_idx);
         while(1) {
             node_ptr = rwm_pop_txing_list(sta_idx);
             if(node_ptr)
-                os_free(node_ptr);     
+                os_free(node_ptr);
             else
                 break;
         }
     }
 
-    if(rtos_is_timer_running(&g_ap_ps.sta_ps[sta_idx].timer)) 
+    if(rtos_is_timer_running(&g_ap_ps.sta_ps[sta_idx].timer))
     {
         os_printf("stop ap ps timer, staid:%d\r\n", sta_idx);
         ret = rtos_stop_timer(&g_ap_ps.sta_ps[sta_idx].timer);
-        ASSERT(0 == ret);   
+        ASSERT(0 == ret);
     }
 }
 
@@ -363,61 +363,61 @@ void rwm_ps_tranfer_node(MSDU_NODE_T *node)
 
     vif_idx = node->vif_idx;
     sta_idx = node->sta_idx;
-    
-    if(!rwm_mgmt_is_ap_inface(vif_idx)) 
+
+    if(!rwm_mgmt_is_ap_inface(vif_idx))
     {
         #if NX_POWERSAVE
         txl_cntrl_inc_pck_cnt();
-        #endif    
+        #endif
         // normal transfer
         rwm_transfer_node(node, 0);
     }
-    else 
+    else
     {
         // only ap mode need check peer stations in ps mode
-        if(!g_ap_ps.active) 
+        if(!g_ap_ps.active)
         {
             #if NX_POWERSAVE
             txl_cntrl_inc_pck_cnt();
-            #endif        
+            #endif
             // normal transfer
             rwm_transfer_node(node, 0);
         }
         else
         {
-             if((sta_mgmt_is_in_ps(sta_idx) || rwm_txling_list_node_count(sta_idx)) 
+             if((sta_mgmt_is_in_ps(sta_idx) || rwm_txling_list_node_count(sta_idx))
                 && (sta_idx < MAX_PS_STA_NUM))
              {
-                if(!rwm_txling_list_node_count(sta_idx)) 
+                if(!rwm_txling_list_node_count(sta_idx))
                 {
                     u8 vif_idx = sta_mgmt_get_vif_idx(sta_idx);
                     u16 aid = sta_mgmt_get_aid(sta_idx);
                     int ret;
-                    
+
                     //os_printf("on bcn tim: vif:%d, aid:%d, sta:%d\r\n", vif_idx, aid, sta_idx);
-                    
+
                     //rwnx_send_me_uapsd_traffic_ind(sta_idx, 1);
                     rw_msg_send_tim_update(vif_idx, aid, 1);
                     if(!rtos_is_timer_running(&g_ap_ps.sta_ps[sta_idx].timer)) {
                         ret = rtos_start_timer(&g_ap_ps.sta_ps[sta_idx].timer);
-	                    ASSERT(0 == ret);
+                        ASSERT(0 == ret);
                     }
                 }
-                
+
                 // add this node to txing list
                 //os_printf("addto txing list node:%p, sta:%d\r\n", node, sta_idx);
                 rwm_push_txing_list(node, sta_idx);
-             } 
-             else 
+             }
+             else
              {
                 #if NX_POWERSAVE
                 txl_cntrl_inc_pck_cnt();
                 #endif
                 // normal transfer
                 rwm_transfer_node(node, 0);
-             }   
+             }
         }
-    }   
+    }
 }
 
 void rwm_msdu_send_txing_node(UINT8 sta_idx)
@@ -425,16 +425,16 @@ void rwm_msdu_send_txing_node(UINT8 sta_idx)
     MSDU_NODE_T *node = NULL;
     struct txdesc *txdesc_new = NULL;
     UINT32 node_left;
-    
+
     node = rwm_pop_txing_list(sta_idx);
     if(!node)
         return;
-    
+
     node_left = rwm_txling_list_node_count(sta_idx);
     //if(node_left) {
     //    txdesc_new->host.flags |= TXU_CNTRL_MORE_DATA;
     //}
-    
+
     #if NX_POWERSAVE
     txl_cntrl_inc_pck_cnt();
     #endif
@@ -446,20 +446,20 @@ void rwm_msdu_send_txing_node(UINT8 sta_idx)
         // trigger sending txing again
         //os_printf("retrigger sending %d\r\n", node_left);
         bmsg_txing_sender(sta_idx);
-    } 
-    else if(!node_left) 
+    }
+    else if(!node_left)
     {
         u8 vif_idx = sta_mgmt_get_vif_idx(sta_idx);
         u16 aid = sta_mgmt_get_aid(sta_idx);
-        
+
         //os_printf("off bcn tim: vif:%d, aid:%d, sta:%d\r\n", vif_idx, aid, sta_idx);
-        
+
         //rwnx_send_me_uapsd_traffic_ind(sta_idx, 0);
         rw_msg_send_tim_update(vif_idx, aid, 0);
     }
 }
 
-void rwm_msdu_ps_change_ind_handler(void *msg)  
+void rwm_msdu_ps_change_ind_handler(void *msg)
 {
     struct ke_msg *msg_ptr = (struct ke_msg *)msg;
     struct mm_ps_change_ind *ind;
@@ -468,15 +468,15 @@ void rwm_msdu_ps_change_ind_handler(void *msg)
 
     if(!msg_ptr || !msg_ptr->param)
         return;
-   
+
     ind = (struct mm_ps_change_ind *)msg_ptr->param;
     node_left = rwm_txling_list_node_count(ind->sta_idx);
-    
+
     if((ind->ps_state == PS_MODE_OFF) && node_left) {
         // trigger txing sending
        // os_printf("ps off, trigger txing sending %d\r\n", node_left);
         bmsg_txing_sender(ind->sta_idx);
-        
+
         if(rtos_is_timer_running(&g_ap_ps.sta_ps[ind->sta_idx].timer)) {
             ret = rtos_stop_timer(&g_ap_ps.sta_ps[ind->sta_idx].timer);
             ASSERT(0 == ret);
@@ -487,7 +487,7 @@ void rwm_msdu_ps_change_ind_handler(void *msg)
         // do something
         if(!rtos_is_timer_running(&g_ap_ps.sta_ps[ind->sta_idx].timer)) {
             ret = rtos_start_timer(&g_ap_ps.sta_ps[ind->sta_idx].timer);
-	        ASSERT(0 == ret);
+            ASSERT(0 == ret);
         }
     }
 
@@ -507,16 +507,16 @@ void rwm_msdu_init(void)
     #if CFG_USE_AP_PS
     g_ap_ps.active = true;
 
-    for(int i=0; i<MAX_PS_STA_NUM; i++) 
+    for(int i=0; i<MAX_PS_STA_NUM; i++)
     {
-        int ret; 
+        int ret;
         INIT_LIST_HEAD(&g_ap_ps.sta_ps[i].txing);
-        
-    	ret = rtos_init_timer(&g_ap_ps.sta_ps[i].timer, 
-			                   MAX_BUFFER_TIME,  
-			                   rwm_msdu_ap_ps_timeout, 
-			                   (void *)i);  
-        ASSERT(0 == ret);  
+
+        ret = rtos_init_timer(&g_ap_ps.sta_ps[i].timer,
+                               MAX_BUFFER_TIME,
+                               rwm_msdu_ap_ps_timeout,
+                               (void *)i);
+        ASSERT(0 == ret);
     }
     #endif
 
@@ -572,10 +572,10 @@ UINT32 rwm_transfer_node(MSDU_NODE_T *node, u8 flag)
         #if NX_POWERSAVE
         txl_cntrl_dec_pck_cnt();
         #endif
-        
+
         goto tx_exit;
     }
-    
+
     content_ptr = rwm_get_msdu_content_ptr(node);
     eth_hdr_ptr = (ETH_HDR_PTR)content_ptr;
 
@@ -589,7 +589,7 @@ UINT32 rwm_transfer_node(MSDU_NODE_T *node, u8 flag)
         #if NX_POWERSAVE
         txl_cntrl_dec_pck_cnt();
         #endif
-        
+
         os_printf("rwm_transfer no txdesc \r\n");
         goto tx_exit;
     }
@@ -613,7 +613,7 @@ UINT32 rwm_transfer_node(MSDU_NODE_T *node, u8 flag)
     txdesc_new->host.tid              = tid;
 
     txdesc_new->host.vif_idx          = node->vif_idx;
-    txdesc_new->host.staid            = node->sta_idx;   
+    txdesc_new->host.staid            = node->sta_idx;
 
     txdesc_new->lmac.agg_desc = NULL;
     txdesc_new->lmac.hw_desc->cfm.status = 0;
@@ -760,13 +760,13 @@ UINT8 rwm_mgmt_sta_mac2port(void *mac)
             break;
     }
 
-	if (sta_entry)
-	{
-		if (sta_entry->ctrl_port_state == PORT_OPEN)
+    if (sta_entry)
+    {
+        if (sta_entry->ctrl_port_state == PORT_OPEN)
             return 1;
-	}
-	
-	return 0; 
+    }
+
+    return 0;
 }
 
 UINT8 rwm_mgmt_vif_mac2idx(void *mac)
@@ -942,9 +942,9 @@ void rwn_mgmt_show_vif_peer_sta_list(UINT8 role)
     UINT8 num = 0;
 
     while(vif) {
-        if ( vif->type == role) { 
+        if ( vif->type == role) {
             sta = (struct sta_info_tag *)co_list_pick(&vif->sta_list);
-            while (sta != NULL) 
+            while (sta != NULL)
             {
                 UINT8 *macptr = (UINT8*)sta->mac_addr.array;
                 UINT8 *ipptr = NULL;
@@ -955,16 +955,16 @@ void rwn_mgmt_show_vif_peer_sta_list(UINT8 role)
                     struct netif *netif = (struct netif *)vif->priv;
                     ipptr = inet_ntoa(netif->gw);
                 }
-                
+
                 os_printf("%d: mac:%02x-%02x-%02x-%02x-%02x-%02x, ip:%s\r\n", num++,
-                    macptr[0], macptr[1], macptr[2], 
+                    macptr[0], macptr[1], macptr[2],
                     macptr[3], macptr[4], macptr[5],ipptr);
-                
+
                 sta = (struct sta_info_tag *)co_list_next(&sta->list_hdr);
             }
         }
         vif = (VIF_INF_PTR) rwm_mgmt_next(vif);
-    } 
+    }
 }
 
 // eof
