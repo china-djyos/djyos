@@ -157,7 +157,7 @@ UINT64 fclk_get_tick(void)
 #elif (CFG_SUPPORT_ALIOS)
     fclk = krhino_sys_tick_get();
 #elif (CFG_SUPPORT_DJYOS)
-    SINT64 __DJY_GetSysTick(void);
+    INT64 __DJY_GetSysTick(void);
     fclk = (UINT64)__DJY_GetSysTick();
 #else
     fclk = (UINT64)fclk_freertos_get_tick();
@@ -172,7 +172,7 @@ UINT32 fclk_get_second(void)
 #elif (CFG_SUPPORT_ALIOS)
     return (krhino_sys_tick_get()/FCLK_SECOND);
 #elif (CFG_SUPPORT_DJYOS)
-    SINT64 __DJY_GetSysTick(void);
+    INT64 __DJY_GetSysTick(void);
     return (UINT32)__DJY_GetSysTick()/FCLK_SECOND;
 #else
     return current_clock/FCLK_SECOND;

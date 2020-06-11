@@ -11,6 +11,7 @@
 #if (CFG_SUPPORT_RTT)
 #define FCLK_DURATION_MS      (1000 / RT_TICK_PER_SECOND)
 #define FCLK_SECOND           (RT_TICK_PER_SECOND)
+#endif
 #if (CFG_SUPPORT_DJYOS)
 #define FCLK_DURATION_MS      (1000 / CN_CFG_TICK_HZ)
 #define FCLK_SECOND           (CN_CFG_TICK_HZ)

@@ -37,16 +37,14 @@
 #endif
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯
 //%$#@exclude
-//../common;
+//../common;../alios;../os;
 //../driver/ble;../driver/codec;../driver/entry;../driver/fft;
 //../driver/i2c;../driver/i2s;../driver/irda;../driver/jpeg;../driver/rc_beken;
 //../driver/sdio;../driver/spidma;../driver/usb;
 //../driver/driver.c;../driver/SConscript;../driver/pwm/timer.c;
 //../func/bk7011_cal/bk7011_cal.c;../func/bk7011_cal/bk7231_cal.c;../func/bk7011_cal/bk7231U_cal.c;
 //../func/bk7011_cal/manual_cal_bk7231.c;../func/hostapd-2.5/src/crypto/crypto_ali.c;
-//../func/lwip_intf/lwip-2.0.2/doc;../func/lwip_intf/lwip-2.0.2/src/apps;
-//../func/lwip_intf/lwip-2.0.2/test;//../func/lwip_intf/platform_stub.c;
-//../func/rttos/ate;../func/rttos/source;../func/rttos/os_clock.c;../func/rttos/target_util.c;
+//../func/lwip_intf;
 //../func/user_driver/BkDriverGpio.c;../func/user_driver/BkDriverPwm.c;
 //../func/user_driver/BkDriverUart.c;../func/user_driver/BkDriverWdg.c;../func/mem_arch.c;
 //../func/wlan_ui/lsig_monitor.c;../func/voice_transfer;../func/vad;
@@ -55,7 +53,7 @@
 //../ip;
 //%$#@end exclude
 //%$#@include path
-//../app;
+//../app;../app/config;
 //../app/standalone-ap;../app/standalone-station;
 //../common;
 //../config;
@@ -67,9 +65,8 @@
 //../func/ethernet_intf;../func/hostapd-2.5;../func/hostapd-2.5/bk_patch;
 //../func/hostapd-2.5/hostapd;../func/hostapd-2.5/src;../func/hostapd-2.5/src/ap;
 //../func/hostapd-2.5/src/common;../func/hostapd-2.5/src/drivers;../func/hostapd-2.5/src/utils;
-//../ip/umac/src/apm;../func/include;../func/joint_up;../func/lwip_intf/lwip-2.0.2/port;
-//../func/lwip_intf/lwip-2.0.2/port/arch;../func/lwip_intf/lwip-2.0.2/src/include;
-//../func/os/include;../func/rttos/include;../func/rwnx_intf;../func/temp_detect;
+//../ip/umac/src/apm;../func/include;../func/joint_up;
+//../djyos/include;../func/rwnx_intf;../func/temp_detect;
 //../func/uart_debug;../func/user_driver;
 //../ip/common;
 //../ip/ke;

@@ -50,6 +50,13 @@ typedef uint32_t        beken_time_t;        /**< Time value in milliseconds */
 typedef uint32_t        beken_utc_time_t;    /**< UTC Time in seconds        */
 typedef uint64_t        beken_utc_time_ms_t; /**< UTC Time in milliseconds   */
 typedef uint32_t        beken_event_flags_t;
+#if(CFG_SUPPORT_DJYOS)				//lst
+typedef struct SemaphoreLCB*         beken_semaphore_t;
+typedef struct MutexLCB*             beken_mutex_t;
+typedef uint16_t                     beken_thread_t;
+typedef struct MsgQueue*             beken_queue_t;
+typedef void *                       beken_event_t;        //  OS event: beken_semaphore_t, beken_mutex_t or beken_queue_t
+#else
 typedef void *          beken_semaphore_t;
 typedef void *          beken_mutex_t;
 typedef void *          beken_thread_t;
@@ -58,12 +65,13 @@ typedef void *          beken_event_t;        //  OS event: beken_semaphore_t, b
 
 struct beken_queue
 {
-    rt_mailbox_t	handle;
+    rt_mailbox_t    handle;
     rt_mp_t       mp;
     rt_uint32_t   message_size;
     rt_uint32_t   number_of_messages;
 };
 typedef struct beken_queue* beken_queue_t;
+#endif
 
 typedef enum
 {
@@ -76,6 +84,7 @@ typedef struct
     void *          handle;
     timer_handler_t function;
     void *          arg;
+    uint32_t        time_ms;
 }beken_timer_t;
 
 typedef struct
@@ -101,10 +110,13 @@ typedef struct
     timer_2handler_t function;
     void *          left_arg;
     void *          right_arg;
-	uint32_t        beken_magic;
+    uint32_t        beken_magic;
+#if(CFG_SUPPORT_DJYOS)				//lst
+    uint32_t        time_ms;
+#endif
 }beken2_timer_t;
 
-typedef void (*beken_thread_function_t)( beken_thread_arg_t arg );
+typedef ptu32_t (*beken_thread_function_t)( beken_thread_arg_t arg );
 
 extern beken_worker_thread_t beken_hardware_io_worker_thread;
 extern beken_worker_thread_t beken_worker_thread;
@@ -117,7 +129,7 @@ OSStatus beken_time_set_time(beken_time_t* time_ptr);
 
 /** @defgroup BEKEN_RTOS_Thread _BK_ RTOS Thread Management Functions
  *  @brief Provide thread creation, delete, suspend, resume, and other RTOS management API
- *  @verbatim   
+ *  @verbatim
  *   _BK_ thread priority table
  *
  * +----------+-----------------+
@@ -134,7 +146,7 @@ OSStatus beken_time_set_time(beken_time_t* time_ptr);
  * |     7    |   Application   |
  * |     8    |                 |
  * |     9    |      Idle       |   Lowest priority
- * +----------+-----------------+ 
+ * +----------+-----------------+
  *  @endverbatim
  * @{
  */
@@ -206,7 +218,7 @@ OSStatus rtos_thread_force_awake( beken_thread_t* thread );
   *
   * @Details  Checks if a specified thread is the currently running thread
   *
-  * @param    thread : the handle of the other thread against which the current thread 
+  * @param    thread : the handle of the other thread against which the current thread
   *                    will be compared
   *
   * @return   true   : specified thread is the current thread
@@ -252,7 +264,7 @@ OSStatus rtos_delay_milliseconds( uint32_t num_ms );
   */
 
 /** @defgroup BEKEN_RTOS_SEM _BK_ RTOS Semaphore Functions
-  * @brief Provide management APIs for semaphore such as init,set,get and dinit. 
+  * @brief Provide management APIs for semaphore such as init,set,get and dinit.
   * @{
   */
 
@@ -265,8 +277,9 @@ OSStatus rtos_delay_milliseconds( uint32_t num_ms );
   * @return   kGeneralErr   : if an error occurred
   */
 OSStatus rtos_init_semaphore( beken_semaphore_t* semaphore, int maxCount );
+#if(!CFG_SUPPORT_DJYOS)				//lst
 OSStatus rtos_init_semaphore_ex( beken_semaphore_t* semaphore, const char *name, int maxCount, int initCount );
-
+#endif
 
 /** @brief    Set (post/put/increment) a semaphore
   *
@@ -330,7 +343,7 @@ OSStatus rtos_init_mutex( beken_mutex_t* mutex );
 /** @brief    Obtains the lock on a mutex
   *
   * @Details  Attempts to obtain the lock on a mutex. If the lock is already held
-  *           by another thead, the calling thread will be suspended until the mutex 
+  *           by another thead, the calling thread will be suspended until the mutex
   *           lock is released by the other thread.
   *
   * @param    mutex : a pointer to the mutex handle to be locked
@@ -463,14 +476,14 @@ BOOL rtos_is_queue_full( beken_queue_t* queue );
 uint32_t rtos_get_time(void);
 
 
-/** 
+/**
   * @brief     Initialize a RTOS timer
   *
   * @note      Timer does not start running until @ref beken_start_timer is called
   *
   * @param     timer    : a pointer to the timer handle to be initialised
   * @param     time_ms  : Timer period in milliseconds
-  * @param     function : the callback handler function that is called each time the 
+  * @param     function : the callback handler function that is called each time the
   *                       timer expires
   * @param     arg      : an argument that will be passed to the callback function
   *
@@ -478,12 +491,14 @@ uint32_t rtos_get_time(void);
   * @return    kGeneralErr   : if an error occurred
   */
 OSStatus rtos_init_timer( beken_timer_t* timer, uint32_t time_ms, timer_handler_t function, void* arg );
+#if(! CFG_SUPPORT_DJYOS)				//lst
 OSStatus rtos_init_timer_ex( beken_timer_t* timer, const char* name, uint32_t time_ms, timer_handler_t function, void* arg);
-OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer, 
-									uint32_t time_ms, 
-									timer_2handler_t function,
-									void* larg, 
-									void* rarg );
+#endif
+OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer,
+                                    uint32_t time_ms,
+                                    timer_2handler_t function,
+                                    void* larg,
+                                    void* rarg );
 OSStatus rtos_deinit_oneshot_timer( beken2_timer_t* timer );
 OSStatus rtos_stop_oneshot_timer( beken2_timer_t* timer );
 BOOL rtos_is_oneshot_timer_running( beken2_timer_t* timer );

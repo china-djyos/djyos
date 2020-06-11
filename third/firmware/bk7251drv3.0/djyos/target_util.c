@@ -1,5 +1,6 @@
 #include "include.h"
 #include "arm_arch.h"
+#include "fake_clock_pub.h"
 
 #include "target_util_pub.h"
 #include <djyos.h>
@@ -27,7 +28,7 @@ void delay(INT32 num)
  */
 void delay_ms(UINT32 ms_count)
 {
-    DJY_EventDelay(ms_count * mS);
+    DJY_EventDelay(ms_count * 1000);
 }
 
 /*
@@ -35,15 +36,15 @@ void delay_ms(UINT32 ms_count)
  */
 void delay_sec(UINT32 ms_count)
 {
-    DJY_EventDelay(ms_count * mS * mS);
+    DJY_EventDelay(ms_count * 1000 * 1000);
 }
 
 /*
     [delay offset]worst case: delay about 1 tick;
  */
-void delay_tick(UINT32 tick_count)FCLK_DURATION_MS
+void delay_tick(UINT32 tick_count)
 {
-    DJY_EventDelay(tick_count * FCLK_DURATION_MS * mS);
+    DJY_EventDelay(tick_count * FCLK_DURATION_MS * 1000);
 }
 
 // EOF

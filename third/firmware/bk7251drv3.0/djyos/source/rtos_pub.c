@@ -1,9 +1,9 @@
 #include "sys_rtos.h"
 #include "error.h"
 #include "rtos_pub.h"
-
-#include "finsh.h"
-
+#include <systime.h>
+#include <msgqueue.h>
+#include <djytimer.h>
 #define THREAD_TIMESLICE 5
 
 #define RTOS_DEBUG   0
@@ -58,7 +58,7 @@ OSStatus rtos_delay_milliseconds( uint32_t num_ms )
 {
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
-    DJY_EventDelay(num_ms * mS);
+    DJY_EventDelay(num_ms * 1000);
     GLOBAL_INT_RESTORE();
 }
 
@@ -66,12 +66,12 @@ void rtos_thread_sleep(uint32_t seconds)
 {
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
-    DJY_EventDelay(seconds*1000*mS);
+    DJY_EventDelay(seconds*1000*1000);
     GLOBAL_INT_RESTORE();
 }
 
-static rt_uint32_t rtos_sem_cnt = 0;
-static rt_uint32_t rtos_mutex_cnt = 0;
+static u32 rtos_sem_cnt = 0;
+static u32 rtos_mutex_cnt = 0;
 
 OSStatus rtos_init_semaphore( beken_semaphore_t* semaphore, int maxCount )
 {
@@ -259,34 +259,6 @@ BOOL rtos_is_queue_full(beken_queue_t* queue)
     }
     return false;
 }
-OSStatus rtos_pop_from_queue(beken_queue_t* queue, void* message, uint32_t timeout_ms)
-{
-    void *msg_tmp = RT_NULL;
-    beken_queue_t mq = *queue;
-    rt_err_t result;
-
-	result = rt_mb_recv(mq->handle, (rt_uint32_t *)&msg_tmp, rt_tick_from_millisecond(timeout_ms));
-	if(result != RT_EOK)
-	{
-		RTOS_DBG("%s rt_mb_recv ret:%d, ms:=%d!\r\n", __FUNCTION__, result, rt_tick_from_millisecond(timeout_ms));
-        // RTOS_DBG("mq->handle:%08p!\r\n", mq->handle);
-		return kGeneralErr;
-	}
-
-	if(msg_tmp)
-	{
-		memcpy(message, msg_tmp, mq->message_size);
-		rt_mp_free(msg_tmp);
-	}
-	else
-	{
-		RTOS_DBG("%s rt_mb_recv item:0x%08X!\r\n", __FUNCTION__, msg_tmp);
-		return kGeneralErr;
-	}
-
-	return kNoErr;
-}
-
 
 
 static void timer_oneshot_callback(void* parameter)
@@ -474,26 +446,26 @@ OSStatus rtos_init_timer( beken_timer_t* timer, uint32_t time_ms, timer_handler_
     return ret;
 }
 
-OSStatus rtos_init_timer_ex( beken_timer_t* timer, const char* name, uint32_t time_ms, timer_handler_t function, void* arg)
-{
-	OSStatus ret = kNoErr;
-
-    RTOS_DBG("create period_timer_ex \n");
-    timer->function = function;
-    timer->arg      = arg;
-
-    timer->handle = rt_timer_create(name,
-                                    timer_period_callback,
-                                    timer,
-                                    rt_tick_from_millisecond(time_ms),
-                                    RT_TIMER_FLAG_PERIODIC|RT_TIMER_FLAG_SOFT_TIMER);
-    if ( timer->handle == NULL )
-    {
-        ret = kNoErr;
-    }
-
-    return ret;
-}
+//OSStatus rtos_init_timer_ex( beken_timer_t* timer, const char* name, uint32_t time_ms, timer_handler_t function, void* arg)
+//{
+//	OSStatus ret = kNoErr;
+//
+//    RTOS_DBG("create period_timer_ex \n");
+//    timer->function = function;
+//    timer->arg      = arg;
+//
+//    timer->handle = rt_timer_create(name,
+//                                    timer_period_callback,
+//                                    timer,
+//                                    rt_tick_from_millisecond(time_ms),
+//                                    RT_TIMER_FLAG_PERIODIC|RT_TIMER_FLAG_SOFT_TIMER);
+//    if ( timer->handle == NULL )
+//    {
+//        ret = kNoErr;
+//    }
+//
+//    return ret;
+//}
 
 OSStatus rtos_deinit_timer( beken_timer_t* timer )
 {
