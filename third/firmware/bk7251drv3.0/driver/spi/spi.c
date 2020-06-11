@@ -561,7 +561,9 @@ void spi_isr(void)
 {
     UINT32 status, slv_status;
     volatile UINT8 fifo_empty_num, data_num, rxfifo_empty;
-
+#if CFG_SUPPORT_DJYOS	//CK
+    u8 ch;
+#endif
     //REG_WRITE((0x00802800+(19*4)), 0x02);
     
 	data_num = 0; /*fix warning by clang analyzer*/
@@ -614,7 +616,11 @@ void spi_isr(void)
 
     if(status & RXOVR)
     {
-        os_printf("rxovr\r\n");
+#if CFG_SUPPORT_DJYOS	//CK
+	    while(spi_read_rxfifo(&ch) == 1);
+#else
+        printf("rxovr\r\n");
+#endif
     }
 	
     if(status & MODF)

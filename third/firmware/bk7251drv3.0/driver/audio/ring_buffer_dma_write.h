@@ -16,5 +16,8 @@ void rb_clear_dma_write(RB_DMA_WR_PTR rb);
 UINT32 rb_read_dma_write(RB_DMA_WR_PTR rb, UINT8 *buffer, UINT32 size, UINT32 count);
 UINT32 rb_get_fill_size_dma_write(RB_DMA_WR_PTR rb);
 UINT32 rb_get_free_size_dma_write(RB_DMA_WR_PTR rb);
+#if CFG_SUPPORT_DJYOS	//CK 
+UINT32 audio_adc_clear(void);
+#endif
 
 #endif//__RING_BUFFER_DMA_RD_H__

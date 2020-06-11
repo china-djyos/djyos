@@ -260,8 +260,9 @@ UINT32 sddev_control(char *dev_name, UINT32 cmd, VOID *param)
     UINT32 name_len;
     DRV_SDEV_PTR dev_ptr;
     SDD_OPERATIONS *operation = NULLPTR;
-
+#if (!CFG_SUPPORT_DJYOS)	//CK
     ASSERT(dev_name);
+#endif
     status = DRV_FAILURE;
     name_len = os_strlen(dev_name);
     for(i = 0; i < DD_MAX_SDEV; i ++)
@@ -280,8 +281,9 @@ UINT32 sddev_control(char *dev_name, UINT32 cmd, VOID *param)
         }
     }
 
+#if (!CFG_SUPPORT_DJYOS)	//CK
     ASSERT(operation);
-
+#endif
     return status;
 }
 
@@ -379,9 +381,9 @@ UINT32 ddev_unregister_dev(char *dev_name)
             break;
         }
     }
-
-    ASSERT(NULLPTR == dev_ptr);
-
+#if (!CFG_SUPPORT_DJYOS)	//CK
+    ASSERT(NULLPTR == dev_ptr);       //嵌入式用assert有什么用？
+#endif
     return DRV_SUCCESS;
 }
 

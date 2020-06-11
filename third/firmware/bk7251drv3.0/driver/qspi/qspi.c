@@ -24,10 +24,14 @@ static SDD_OPERATIONS qspi_op =
 
 void qspi_init(void)
 {
+#if (!CFG_SUPPORT_DJYOS)	//CK
 	os_printf("QSPi_init\r\n");
+#endif	
 	intc_service_register(FIQ_PSRAM, PRI_IRQ_QSPI, qspi_isr); 
 	sddev_register_dev(QSPI_DEV_NAME, &qspi_op);	
+#if (!CFG_SUPPORT_DJYOS)	//CK
 	os_printf("QSPi_init1\r\n");
+#endif
 }
 
 void qspi_exit(void)
@@ -405,7 +409,11 @@ void bk_qspi_mode_start(UINT32 mode, UINT32 div)
 	UINT32 param;
 	qspi_open(1);
 
+#if CFG_SUPPORT_DJYOS	//CK
+	param = QSPI_IO_3_3V;
+#else
 	param = 2;
+#endif
 	qspi_ctrl(QSPI_CMD_SET_VOLTAGE, (void *)&param);
 	
 	qspi_ctrl(QSPI_CMD_CLK_SET_26M, NULL);
@@ -417,6 +425,17 @@ void bk_qspi_mode_start(UINT32 mode, UINT32 div)
 	qspi_ctrl(QSPI_CMD_GPIO_CONFIG, (void *)&param);
 	
 }
+#if CFG_SUPPORT_DJYOS	//CK
+void djy_qspi_mode_end(void)    //djyos加的函数，用于关qspi
+{
+    UINT32 param;
+    qspi_close();
+
+    param = QSPI_IO_1_8V;
+    qspi_ctrl(QSPI_CMD_SET_VOLTAGE, (void *)&param);
+}
+#endif
+
 
 
 

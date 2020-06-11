@@ -91,6 +91,7 @@ void bk_send_byte(UINT8 uport, UINT8 data)
     UART_WRITE_BYTE(uport, data);
 }
 
+#if CFG_SUPPORT_DJYOS    //CK
 void bk_send_string(UINT8 uport, const char *string)
 {
     while(*string)
@@ -98,6 +99,7 @@ void bk_send_string(UINT8 uport, const char *string)
         bk_send_byte(uport, *string++);
     }
 }
+#endif
 /*uart2 as deubg port*/
 void bk_printf(const char *fmt, ...)
 {

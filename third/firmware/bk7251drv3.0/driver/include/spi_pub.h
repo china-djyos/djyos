@@ -49,7 +49,11 @@ enum
 #define SPI_FLASH_WP_GPIO_NUM       (GPIO18)
 #define SPI_FLASH_HOLD_GPIO_NUM     (GPIO19)
 
+#if CFG_SUPPORT_DJYOS	//CK
+#define SPI_DEF_CLK_HZ              (30 * 1000 * 1000)
+#else
 #define SPI_DEF_CLK_HZ              (10 * 1000 * 1000)
+#endif
 #define TX_FINISH_FLAG              (1 << 31)
 
 #define BK_SPI_CPOL                 0x01

@@ -61,10 +61,17 @@ typedef struct aud_dac_desc
     }u;
 } AUD_DAC_DESC_ST, *AUD_DAC_DESC_PTR;
 
+#if CFG_SUPPORT_DJYOS	//CK 
+UINT32 audio_dac_open(UINT32 op_flag);
+UINT32 audio_dac_close(void);
+UINT32 audio_dac_write(char *user_buf, UINT32 count, UINT32 op_flag);
+UINT32 audio_dac_ctrl(UINT32 cmd, void *param);
+#else
 static UINT32 audio_dac_open(UINT32 op_flag);
 static UINT32 audio_dac_close(void);
 static UINT32 audio_dac_write(char *user_buf, UINT32 count, UINT32 op_flag);
 static UINT32 audio_dac_ctrl(UINT32 cmd, void *param);
+#endif
 
 DD_OPERATIONS aud_dac_op =
 {
@@ -317,7 +324,9 @@ static void audio_dac_set_sample_rate(UINT32 sample_rate)
         break;
 
     default:
+#if (!CFG_SUPPORT_DJYOS)	//CK
         AUD_PRT("unsupported sample rate:%d\r\n", sample_rate);
+#endif
         break;
     }
 }
@@ -513,17 +522,24 @@ static void audio_dac_set_volume(UINT32 percent)
             audio_dac_eable_mute(0);
 #endif
     }
-
+#if (!CFG_SUPPORT_DJYOS)	//CK
     AUD_PRT("set dac vol:%d - indx:%d,dig:%d,ana:%02x\r\n", percent, idx, vol->dig_gain, vol->ana_gain);
+#endif
 }
 
+#if CFG_SUPPORT_DJYOS	//CK，cpudrv/beken/src/audio/ 中有用到
+UINT32 audio_dac_open(UINT32 op_flag)
+#else
 static UINT32 audio_dac_open(UINT32 op_flag)
+#endif
 {
     AUD_DAC_CFG_PTR cfg;
    
     if(!op_flag)
     {
+#if (!CFG_SUPPORT_DJYOS)	//CK
         AUD_PRT("audio_dac_open is NULL\r\n");
+#endif
         return AUD_FAILURE;
     }
 
@@ -532,7 +548,9 @@ static UINT32 audio_dac_open(UINT32 op_flag)
     #if (!CFG_GENERAL_DMA)
     if(cfg->dma_mode)
     {
+#if (!CFG_SUPPORT_DJYOS)	//CK
         AUD_PRT("audio_dac_open no support dma\r\n");
+#endif
         return AUD_FAILURE;
     }
     #endif // !CFG_GENERAL_DMA
@@ -596,7 +614,11 @@ static UINT32 audio_dac_open(UINT32 op_flag)
     return AUD_SUCCESS;
 }
 
+#if CFG_SUPPORT_DJYOS	//CK，cpudrv/beken/src/audio/ 中有用到
+UINT32 audio_dac_close(void)
+#else
 static UINT32 audio_dac_close(void)
+#endif
 {
 #if AUD_USE_EXT_PA
     audio_dac_eable_mute(1);
@@ -631,7 +653,12 @@ static UINT32 audio_dac_close(void)
     return AUD_SUCCESS;
 }
 
+
+#if CFG_SUPPORT_DJYOS	//CK，cpudrv/beken/src/audio/ 中有用到
+UINT32 audio_dac_write(char *user_buf, UINT32 count, UINT32 op_flag)
+#else
 static UINT32 audio_dac_write(char *user_buf, UINT32 count, UINT32 op_flag)
+#endif
 {
     int free_size;
     UINT8 *read, *write;
@@ -754,7 +781,11 @@ static void audio_dac_play(void)
     aud_dac.status = AUD_DAC_STA_PLAYING;
 }
 
+#if CFG_SUPPORT_DJYOS	//CK，cpudrv/beken/src/audio/ 中有用到
+UINT32 audio_dac_ctrl(UINT32 cmd, void *param)
+#else
 static UINT32 audio_dac_ctrl(UINT32 cmd, void *param)
+#endif
 {
     UINT32 ret = AUD_SUCCESS;
 

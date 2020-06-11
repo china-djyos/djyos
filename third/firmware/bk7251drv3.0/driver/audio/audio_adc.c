@@ -43,10 +43,18 @@ typedef struct aud_adc_desc
     }u;
 } AUD_ADC_DESC_ST, *AUD_ADC_DESC_PTR;
 
+#if CFG_SUPPORT_DJYOS	//CK
+UINT32 audio_adc_open(UINT32 op_flag);
+UINT32 audio_adc_close(void);
+UINT32 audio_adc_read(char *user_buf, UINT32 count, UINT32 op_flag);
+UINT32 audio_adc_ctrl(UINT32 cmd, void *param);
+#else
 static UINT32 audio_adc_open(UINT32 op_flag);
 static UINT32 audio_adc_close(void);
 static UINT32 audio_adc_read(char *user_buf, UINT32 count, UINT32 op_flag);
 static UINT32 audio_adc_ctrl(UINT32 cmd, void *param);
+#endif
+
 
 DD_OPERATIONS adu_adc_op =
 {
@@ -245,7 +253,9 @@ static void audio_adc_set_sample_rate(UINT32 sample_rate)
         break;
 
     default:
+#if (!CFG_SUPPORT_DJYOS)	//CK		
         AUD_PRT("unsupported sample rate:%d\r\n", sample_rate);
+#endif
         break;
     }
 }
@@ -372,24 +382,33 @@ static void audio_adc_linein_detect(void)
         {
             audio_adc_enable_linein();
             aud_adc.mode |= AUD_ADC_MODE_LINEIN;
+#if (!CFG_SUPPORT_DJYOS)	//CK
             AUD_PRT("enable line in: %d\r\n", aud_adc.mode);
+#endif
         }
         else if((gpio_val != AUD_ADC_LINEIN_ENABLE_LEVEL)
             &&(aud_adc.mode & AUD_ADC_MODE_LINEIN))
         {
             audio_adc_disable_linein();
             aud_adc.mode &= ~AUD_ADC_MODE_LINEIN;
+#if (!CFG_SUPPORT_DJYOS)	//CK
             AUD_PRT("disable line in: %d\r\n", aud_adc.mode);
+#endif
         }
     }
 }
-
+#if CFG_SUPPORT_DJYOS	//CK，cpudrv/beken/src/audio/ 中有用到
+UINT32 audio_adc_open(UINT32 op_flag)
+#else
 static UINT32 audio_adc_open(UINT32 op_flag)
+#endif
 {
     AUD_ADC_DESC_PTR cfg;
    
     if(!op_flag) {
+#if (!CFG_SUPPORT_DJYOS)	//CK
         AUD_PRT("audio_adc_open is NULL\r\n");
+#endif
         return AUD_FAILURE;
     }
 
@@ -398,7 +417,9 @@ static UINT32 audio_adc_open(UINT32 op_flag)
     #if(!CFG_GENERAL_DMA)
     if(cfg->mode & AUD_ADC_MODE_DMA_BIT)
     {
+#if (!CFG_SUPPORT_DJYOS)	//CK
         AUD_PRT("audio_dac_open no support dma\r\n");
+#endif
         return AUD_FAILURE;
     }
     #endif // !CFG_GENERAL_DMA
@@ -449,8 +470,11 @@ static UINT32 audio_adc_open(UINT32 op_flag)
 
     return AUD_SUCCESS;
 }
-
+#if CFG_SUPPORT_DJYOS	//CK 同audio_adc_open
+UINT32 audio_adc_close(void)
+#else
 static UINT32 audio_adc_close(void)
+#endif
 {
     audio_adc_set_enable_bit(0);
     audio_adc_set_int_enable_bit(0);
@@ -475,8 +499,11 @@ static UINT32 audio_adc_close(void)
     return AUD_SUCCESS;
 }
 
-
+#if CFG_SUPPORT_DJYOS	//CK 同audio_adc_open
+UINT32 audio_adc_read(char *user_buf, UINT32 count, UINT32 op_flag)
+#else
 static UINT32 audio_adc_read(char *user_buf, UINT32 count, UINT32 op_flag)
+#endif
 {
     int fill_size;
     UINT8 *read, *write;
@@ -508,6 +535,29 @@ static UINT32 audio_adc_read(char *user_buf, UINT32 count, UINT32 op_flag)
 
     return fill_size;
 }
+
+#if CFG_SUPPORT_DJYOS //CK，清除DMA数据
+UINT32 audio_adc_clear(void)
+{
+    int fill_size;
+
+    if(aud_adc.status != AUD_ADC_STA_PLAYING)
+        return 0;
+    if(aud_adc.mode & AUD_ADC_MODE_DMA_BIT)
+    {
+        #if CFG_GENERAL_DMA
+        RB_DMA_WR_PTR rb;
+        rb = &aud_adc.u.rb_dma_wr;
+        fill_size = rb_get_fill_size_dma_write(rb);
+        if(fill_size > 0)
+            rb_clear_dma_write(rb);
+        #endif
+    }
+
+    return 1;
+}
+#endif
+
 
 static UINT32 audio_adc_get_fill_buf_size(void)
 {
@@ -588,11 +638,16 @@ static void audio_adc_set_volume(UINT32 volume)
     reg_val |= ((act_vol & MANUAL_PGA_VAL_MASK) << MANUAL_PGA_VAL_POSI);
 
     REG_WRITE(reg_addr, reg_val);
-
+#if (!CFG_SUPPORT_DJYOS)	//CK
     AUD_PRT("set adc vol: %d - %d\r\n", volume, act_vol);
+#endif
 }
 
+#if CFG_SUPPORT_DJYOS	//CK 同audio_adc_open
+UINT32 audio_adc_ctrl(UINT32 cmd, void *param)
+#else
 static UINT32 audio_adc_ctrl(UINT32 cmd, void *param)
+#endif
 {
     UINT32 ret = AUD_SUCCESS;
 
@@ -625,7 +680,14 @@ static UINT32 audio_adc_ctrl(UINT32 cmd, void *param)
             ASSERT(param);
             audio_adc_set_volume(*((UINT32 *)param));
             break;
-            
+#if CFG_SUPPORT_DJYOS	//CK 
+        case AUD_ADC_CMD_SET_CHANNEL:
+            if (*((UINT32 *)param) == 1 || *((UINT32 *)param) == 2) {
+                if (aud_adc.channels != *((UINT32 *)param))
+                    aud_adc.channels = *((UINT32 *)param);
+            }
+            break;
+#endif
         default:
             break;
     }

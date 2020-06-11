@@ -11,6 +11,10 @@
 
 #define REG_DMA_DECODING_MASK 0x000000FF
 
+#if CFG_SUPPORT_DJYOS	//CK,消除-Wunused-parameter这个类型的告警
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 /**
  * @brief CH_LLI_ROOT register definition
  */
@@ -97,7 +101,9 @@ __INLINE uint32_t dma_dma_status_get(void)
 __INLINE void dma_dma_status_unpack(uint8_t *downstreambsy, uint8_t *upstreambsy, uint8_t *arbq3valid, uint8_t *arbq2valid, uint8_t *arbq1valid, uint8_t *arbq0valid, uint8_t *requeststate, uint8_t *ch3stopped, uint8_t *ch2stopped, uint8_t *ch1stopped, uint8_t *ch0stopped, uint16_t *oftfree)
 {
 }
-
+#if CFG_SUPPORT_DJYOS	//CK
+#pragma GCC diagnostic pop
+#endif
 __INLINE uint8_t dma_dma_status_down_stream_bsy_getf(void)
 {
     return 0;
@@ -198,6 +204,10 @@ __INLINE uint32_t dma_int_rawstatus_get(void)
 #define DMA_ERROR_RST      0x0
 #define DMA_LLI_IRQ_RST    0x0
 
+#if CFG_SUPPORT_DJYOS
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 __INLINE void dma_int_rawstatus_unpack(uint8_t *ch3eot, uint8_t *ch2eot, uint8_t *ch1eot, uint8_t *ch0eot, uint8_t *error, uint16_t *lliirq)
 {
 }
@@ -854,7 +864,9 @@ __INLINE uint8_t dma_dummy_getf(void)
 __INLINE void dma_dummy_setf(uint8_t dummy)
 {
 }
-
+#if CFG_SUPPORT_DJYOS	//CK
+#pragma GCC diagnostic pop
+#endif
 
 #endif // _REG_DMA_H_
 
