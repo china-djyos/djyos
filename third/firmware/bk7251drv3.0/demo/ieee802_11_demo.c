@@ -27,8 +27,9 @@
 #include "power_save_pub.h"
 #include "wlan_ui_pub.h"
 
+#if !CFG_SUPPORT_DJYOS      //CK
 #include "net.h"
-
+#endif
 #if CFG_ROLE_LAUNCH
 #include "role_launch.h"
 #endif
@@ -494,9 +495,9 @@ int wifi_demo(int argc, char **argv)
 
 	return 0;
 }
-
+#if !CFG_SUPPORT_DJYOS      //CK
 MSH_CMD_EXPORT(wifi_demo, wifi_demo command);
-
+#endif
 
 // eof
 

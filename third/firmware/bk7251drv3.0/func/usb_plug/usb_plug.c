@@ -12,7 +12,9 @@
 #include "net_param_pub.h"
 #include "fake_clock_pub.h"
 #include "saradc_pub.h"
+#if !CFG_SUPPORT_DJYOS  //CK
 #include "saradc_intf.h"
+#endif
 
 #if (CFG_SOC_NAME == SOC_BK7221U)
 #if CFG_USE_USB_CHARGE
