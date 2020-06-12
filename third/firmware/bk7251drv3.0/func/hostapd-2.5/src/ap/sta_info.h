@@ -12,9 +12,9 @@
 /* needed for mesh_plink_state enum */
 #include "common/defs.h"
 #endif /* CONFIG_MESH */
-
-#include "list.h"
-
+#if (CFG_SUPPORT_DJYOS)
+#include "../utils/list.h"
+#endif
 /* STA flags */
 #define WLAN_STA_AUTH BIT(0)
 #define WLAN_STA_ASSOC BIT(1)

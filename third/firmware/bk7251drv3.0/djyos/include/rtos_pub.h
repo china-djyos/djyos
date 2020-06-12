@@ -6,6 +6,11 @@
 #include "sys_rtos.h"
 #include "error.h"
 
+#include <stdlib.h>
+#include "djyos.h"
+#include "lock.h"
+#include "msgqueue.h"
+
 #pragma once
 
 #define RTOS_SUCCESS                       (1)

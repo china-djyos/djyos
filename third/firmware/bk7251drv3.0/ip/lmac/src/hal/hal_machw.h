@@ -34,6 +34,9 @@
  * @{
  *****************************************************************************************
  */
+#if (CFG_SUPPORT_DJYOS)
+#include "common/typedef.h"
+#endif
 #include "hal_desc.h"
 #include "reg_mac_core.h"
 #include "reg_mac_pl.h"

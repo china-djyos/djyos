@@ -21,7 +21,10 @@
 #include "rw_pub.h"
 #include "power_save_pub.h"
 #include "rwnx.h"
-#include "net.h"
+#if (CFG_SUPPORT_DJYOS)
+//#include "net.h"
+#include <djy_wifi_config.h>
+#endif
 #include "mm_bcn.h"
 #include "phy_trident.h"
 #include "mcu_ps_pub.h"
@@ -29,8 +32,8 @@
 #include "gpio_pub.h"
 #include "phy_trident.h"
 #include "wdt_pub.h"
-#include "wlan_dev.h"
-#include "rtdevice.h"
+//#include "wlan_dev.h"
+//#include "rtdevice.h"
 #include "sys_ctrl_pub.h"
 #if CFG_ROLE_LAUNCH
 #include "role_launch.h"
@@ -104,11 +107,11 @@ ERR_RETURN:
 int bk_wlan_enter_powersave(struct rt_wlan_device *device, int level)
 {
     int result = 0;
-
+#if (CFG_SUPPORT_RTT)
     if (device == RT_NULL) return -RT_EIO;
 
     result = rt_device_control(RT_DEVICE(device), WIFI_ENTER_POWERSAVE, (void *)&level);
-
+#endif
     return result;
 }
 
@@ -1428,7 +1431,7 @@ static void enter_ps_mode(void *parameter)
 }
 int auto_check_dtim_rf_ps_mode(void )
 {
-    rt_kprintf("rf_ps_enabled:%d,check_ps_timer:%x\r\n",rf_ps_enabled,check_ps_timer);
+    //rt_kprintf("rf_ps_enabled:%d,check_ps_timer:%x\r\n",rf_ps_enabled,check_ps_timer);
     if(1 == rf_ps_enabled)
     {
 		enter_ps_mode(NULL);
