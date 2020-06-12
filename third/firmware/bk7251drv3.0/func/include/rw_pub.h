@@ -10,7 +10,7 @@
 #include "me_task.h"
 #include "mm_task.h"
 #include "mm.h"
-//#include "lwip/netif.h"
+#include "lwip/netif.h"
 #include "vif_mgmt.h"
 #include "rw_msg_pub.h"
 
