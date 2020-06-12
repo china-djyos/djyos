@@ -59,8 +59,8 @@
 //../config;
 //../demo;
 //../driver;
-//../driver/audio;../driver/common;../driver/common/reg;../driver/demo;
-//../driver/dma;../driver/flash;../driver/entry;../driver/include;
+//../driver/audio;../driver/common;../driver/common/reg;../driver/demo;../driver/sdcard;../driver/icu;
+//../driver/dma;../driver/flash;../driver/entry;../driver/include;../driver/gpio;
 //../driver/phy;../driver/pwm;../driver/sys_ctrl;../driver/uart;../driver/qspi;
 //../func/ethernet_intf;../func/hostapd-2.5;../func/hostapd-2.5/bk_patch;
 //../func/hostapd-2.5/hostapd;../func/hostapd-2.5/src;../func/hostapd-2.5/src/ap;
