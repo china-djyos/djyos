@@ -19,6 +19,7 @@
 #endif
 
 #if CFG_USE_AUD_ADC
+
 enum
 {
     AUD_ADC_STA_CLOSED   = 0,

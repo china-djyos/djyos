@@ -1041,12 +1041,12 @@ OSStatus bk_wlan_get_link_status(LinkStatusTypeDef *outStatus)
     struct sm_get_bss_info_cfm *cfm;
     int ret;
     u8 vif_idx = 0, ssid_len;
-
-    if( !sta_ip_is_start() )
-    {
-        return kGeneralErr;
-    }
-    
+#if CFG_SUPPORT_DJYOS
+//    if( !sta_ip_is_start() )
+//    {
+//        return kGeneralErr;
+//    }
+#endif
     outStatus->conn_state = mhdr_get_station_status();
 
     cfm = os_malloc(sizeof(struct sm_get_bss_info_cfm));

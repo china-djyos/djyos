@@ -91,29 +91,29 @@ int wpa_set_passphrase_md5(char *passphrase)
 
 int supplicant_main_exit(void)
 {
-	eloop_process_flush_signals();
-	if (wpa_global_ptr == NULL)
-		return 0;
-	
+    eloop_process_flush_signals();
+    if (wpa_global_ptr == NULL)
+        return 0;
+
     if(wpa_global_ptr)
     {
         wpa_supplicant_deinit(wpa_global_ptr);
         wpa_global_ptr = NULL;
     }
 
-	if(wpas_ifaces)
-	{
-		os_free(wpas_ifaces);
-		wpas_ifaces = 0;
-	}
-	
-	if(wpas_connect_ssid)
-	{
-		os_free(wpas_connect_ssid);
-		wpas_connect_ssid = 0;
-	}
+    if(wpas_ifaces)
+    {
+        os_free(wpas_ifaces);
+        wpas_ifaces = 0;
+    }
 
-	return 0;
+    if(wpas_connect_ssid)
+    {
+        os_free(wpas_connect_ssid);
+        wpas_connect_ssid = 0;
+    }
+
+    return 0;
 }
 
 u8 supplicant_main_is_exit(void)
@@ -129,16 +129,16 @@ int supplicant_main_entry(char *oob_ssid)
     struct wpa_supplicant *wpa_s;
     struct wpa_interface *iface;
 
-	os_memset(&params, 0, sizeof(params));
-	params.wpa_debug_level = MSG_INFO;
+    os_memset(&params, 0, sizeof(params));
+    params.wpa_debug_level = MSG_INFO;
 
-	if(0 == wpas_ifaces)
-	{
-		wpas_ifaces = os_zalloc(sizeof(struct wpa_interface));		
-	    if (wpas_ifaces == NULL)
-	        return -1;
-	}
-	
+    if(0 == wpas_ifaces)
+    {
+        wpas_ifaces = os_zalloc(sizeof(struct wpa_interface));
+        if (wpas_ifaces == NULL)
+            return -1;
+    }
+
     iface = wpas_ifaces;
     iface_count = 1;
     iface->ifname = bss_iface;
@@ -161,13 +161,13 @@ int supplicant_main_entry(char *oob_ssid)
         if (wpas_ifaces[i].ctrl_interface == NULL &&
                 wpas_ifaces[i].ifname == NULL)
         {
-            if (iface_count == 1 
-				&& (params.ctrl_interface 
-					|| params.dbus_ctrl_interface))
+            if (iface_count == 1
+                && (params.ctrl_interface
+                    || params.dbus_ctrl_interface))
             {
                 break;
             }
-			
+
             exitcode = -1;
             break;
         }
@@ -178,8 +178,8 @@ int supplicant_main_entry(char *oob_ssid)
             exitcode = -1;
             break;
         }
-		
-		
+
+
 #if CFG_SUPPOET_BSSID_CONNECT
         if ((NULL == oob_ssid || 0 == os_strlen(oob_ssid))
         && ((g_sta_param_ptr->fast_connect.bssid[0] != 0xFF)
@@ -227,11 +227,11 @@ int supplicant_main_entry(char *oob_ssid)
             ASSERT(0 == wpa_s->ssids_from_scan_req);
             oob_ssid_len = os_strlen(oob_ssid);
 
-			if(0 == wpas_connect_ssid)
-			{
-	            wpas_connect_ssid = (struct wpa_ssid_value *)os_malloc(sizeof(struct wpa_ssid_value));
-	            ASSERT(wpas_connect_ssid);
-			}
+            if(0 == wpas_connect_ssid)
+            {
+                wpas_connect_ssid = (struct wpa_ssid_value *)os_malloc(sizeof(struct wpa_ssid_value));
+                ASSERT(wpas_connect_ssid);
+            }
 
             len = MIN(SSID_MAX_LEN, oob_ssid_len);
 
@@ -250,18 +250,18 @@ int supplicant_main_entry(char *oob_ssid)
         wpa_supplicant_deinit(wpa_global_ptr);
     }
     else
-	{
+    {
         wpa_supplicant_run(wpa_global_ptr);
-       
-		return 0;
-	}
+
+        return 0;
+    }
 
 out:
     os_free(wpas_ifaces);
-	wpas_ifaces = 0;
-	
+    wpas_ifaces = 0;
+
     os_free(params.pid_file);
-	params.pid_file = 0;
+    params.pid_file = 0;
 
     return exitcode;
 }
@@ -272,12 +272,12 @@ static void wpas_thread_main( void *arg )
 
     eloop_run();
 
-	wpas_thread_handle = NULL;
-	
-    bk_rtos_deinit_queue(&wpah_queue);
+    wpas_thread_handle = NULL;
+
+    rtos_deinit_queue(&wpah_queue);
     wpah_queue = NULL;
-	
-	bk_rtos_delete_thread(NULL);
+
+    rtos_delete_thread(NULL);
 }
 
 void wpas_thread_start(void)
@@ -285,59 +285,59 @@ void wpas_thread_start(void)
     OSStatus ret;
 
     if(wpah_queue == NULL) {
-    	ret = bk_rtos_init_queue(&wpah_queue, 
-    							"wpah_queue",
-    							sizeof(WPAH_MSG_ST),
-    							64);
-        ASSERT(kNoErr == ret);    
+        ret = rtos_init_queue(&wpah_queue,
+                                "wpah_queue",
+                                sizeof(WPAH_MSG_ST),
+                                64);
+        ASSERT(kNoErr == ret);
     }
 
     if(NULL == wpas_thread_handle)
     {
-	    ret = bk_rtos_create_thread(&wpas_thread_handle,
-	                             THD_WPAS_PRIORITY,
-	                             "wpas_thread",
-	                             (beken_thread_function_t)wpas_thread_main,
-	                             (unsigned short)wpas_stack_size,
-	                             (beken_thread_arg_t)NULLPTR);
-	    ASSERT(kNoErr == ret);
-	}
+        ret = rtos_create_thread(&wpas_thread_handle,
+                                 THD_WPAS_PRIORITY,
+                                 "wpas_thread",
+                                 (beken_thread_function_t)wpas_thread_main,
+                                 (unsigned short)wpas_stack_size,
+                                 (beken_thread_arg_t)NULLPTR);
+        ASSERT(kNoErr == ret);
+    }
 }
 
 void wpas_thread_stop(void)
 {
     wpa_handler_signal((void*)SIGTERM, 0xff);
 
-	while(wpas_thread_handle != NULL) {
-		bk_rtos_delay_milliseconds(10);
-	}
+    while(wpas_thread_handle != NULL) {
+        bk_rtos_delay_milliseconds(10);
+    }
 }
 
 void wpa_supplicant_poll(void *param)
 {
     OSStatus ret;
 
-	if(wpas_sema)
-	{
-    	ret = bk_rtos_set_semaphore(&wpas_sema);
-	}
+    if(wpas_sema)
+    {
+        ret = bk_rtos_set_semaphore(&wpas_sema);
+    }
 
-	(void)ret;
+    (void)ret;
 }
 
 int wpa_sem_wait(uint32_t ms)
 {
-	if(NULL == wpas_sema)
-	{
-		return kTimeoutErr;
-	}
-	
-	return bk_rtos_get_semaphore(&wpas_sema, ms);
+    if(NULL == wpas_sema)
+    {
+        return kTimeoutErr;
+    }
+
+    return bk_rtos_get_semaphore(&wpas_sema, ms);
 }
 
 u8* wpas_get_sta_psk(void)
 {
-	return wpa_global_ptr->ifaces->conf->ssid->psk;
+    return wpa_global_ptr->ifaces->conf->ssid->psk;
 }
 // eof
 

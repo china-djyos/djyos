@@ -306,7 +306,7 @@ static bool_t __MacSnd(void* handle,struct NetPkg * pkg,u32 netdevtask)
     //            msg.sema = gMacDriver.sendsync;
                 msg.sema = NULL;
     //            Lock_SempPend(gMacDriver.sendsync,10*mS);
-                ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
+                ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
                 if(0 != ret)
                 {
                     result = false;
@@ -538,7 +538,11 @@ bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
     pbuf_init();
     rwnxl_init();
     rl_init();
-    wifi_start();
+#if CFG_SUPPORT_DJYOS
+    //wifi_start();
+    void app_start(void);
+    app_start();
+#endif
     //all the configuration has set in the pDrive now,we need some sys assistant
     //application some semphore and mutex
     pDrive->sendsync = Lock_SempCreate(1,1,CN_BLOCK_FIFO,NULL);

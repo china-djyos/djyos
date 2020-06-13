@@ -17,8 +17,8 @@
 #define CFG_SUPPORT_RTT                            0
 #define CFG_SUPPORT_DJYOS                          1
 
-#if CFG_SUPPORT_DJYOS		//CK
-#define THD_APPLICATION_PRIORITY                   133	//线程优先级
+#if CFG_SUPPORT_DJYOS       //CK
+#define THD_APPLICATION_PRIORITY                   133  //线程优先级
 #define THD_CORE_PRIORITY                          132
 #define THD_WPAS_PRIORITY                          135
 #else
@@ -31,7 +31,7 @@
 #define THD_LWIP_PRIORITY                          4
 #define THD_INIT_PRIORITY                          4
 #define THD_RECONNECT_PRIORITY                     4
-#define THD_MEDIA_PRIORITY						   4
+#define THD_MEDIA_PRIORITY                         4
 #define THD_EXTENDED_APP_PRIORITY                  5
 #define THD_HOSTAPD_PRIORITY                       5
 #define THDD_KEY_SCAN_PRIORITY                     7
@@ -72,7 +72,7 @@
 #define CFG_SUPPORT_UVC                            0
 #endif
 #define CFG_USE_USB_CHARGE                         1
-#define CFG_USE_QSPI							   1
+#define CFG_USE_QSPI                               1
 
 
 /*section 4-----DEBUG macro config-----*/
@@ -168,7 +168,8 @@
 #define CFG_LESS_MEMERY_IN_RWNX                    0
 
 /*section 25 ----- use audio*/
-#if(CFG_SUPPORT_DJYOS == 1)						//djyos下，audio配置已经转移到DIDE中,CK
+#if(CFG_SUPPORT_DJYOS == 1)                     //djyos下，audio配置已经转移到DIDE中,CK
+#include "project_config.h"
 #define CFG_USE_AUDIO                              CFG_MODULE_ENABLE_CPU_ONCHIP_AUDIO
 //#define CFG_USE_AUD_DAC                            1
 //#define CFG_USE_AUD_ADC                            1
