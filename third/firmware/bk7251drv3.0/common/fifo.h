@@ -6,6 +6,10 @@
 #include "mem_pub.h"
 #include "mem_pub.h"
 
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
+
 typedef struct kfifo
 {
 	unsigned int in;

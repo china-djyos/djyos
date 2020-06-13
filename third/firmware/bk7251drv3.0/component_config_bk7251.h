@@ -38,7 +38,7 @@
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //../common;../alios;../os;
-//../driver/ble;../driver/codec;../driver/entry;../driver/fft;
+//../driver/ble;../driver/codec;../driver/fft;
 //../driver/i2c;../driver/i2s;../driver/irda;../driver/jpeg;../driver/rc_beken;
 //../driver/sdio;../driver/spidma;../driver/usb;
 //../driver/driver.c;../driver/SConscript;../driver/pwm/timer.c;

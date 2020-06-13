@@ -14,6 +14,9 @@
 #include "mcu_ps_pub.h"
 
 #include <string.h>
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
 
 saradc_desc_t *saradc_desc = NULL;
 /*0 ~ 1024*/

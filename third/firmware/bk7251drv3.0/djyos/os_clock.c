@@ -26,6 +26,10 @@
 #include "mcu_ps_pub.h"
 #endif
 
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
+
 #if CFG_BK7221_MDM_WATCHDOG_PATCH
 void rc_reset_patch(void);
 #endif

@@ -92,6 +92,15 @@ void bk_send_byte(UINT8 uport, UINT8 data)
 }
 
 #if CFG_SUPPORT_DJYOS    //CK
+void bk_send_string_len(UINT8 uport, const char *string,uint32_t len)
+{
+    int i = 0;
+    for(i=0;i<len;i++)
+    {
+        bk_send_byte(uport, *string++);
+    }
+}
+#endif
 void bk_send_string(UINT8 uport, const char *string)
 {
     while(*string)
@@ -99,8 +108,9 @@ void bk_send_string(UINT8 uport, const char *string)
         bk_send_byte(uport, *string++);
     }
 }
-#endif
+
 /*uart2 as deubg port*/
+#if !CFG_SUPPORT_DJYOS      //CK
 void bk_printf(const char *fmt, ...)
 {
 #if (CFG_SUPPORT_RTT)
@@ -131,7 +141,7 @@ void bk_printf(const char *fmt, ...)
 #endif
 
 }
-
+#endif
 
 #if CFG_BACKGROUND_PRINT
 INT32 uart_printf(const char *fmt, ...)
