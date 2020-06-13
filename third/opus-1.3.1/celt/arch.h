@@ -36,7 +36,10 @@
 
 #include "opus_types.h"
 #include "opus_defines.h"
-#define FIXED_POINT
+
+#ifndef FIXED_POINT
+#define FIXED_POINT 1
+#endif
 
 # if !defined(__GNUC_PREREQ)
 #  if defined(__GNUC__)&&defined(__GNUC_MINOR__)

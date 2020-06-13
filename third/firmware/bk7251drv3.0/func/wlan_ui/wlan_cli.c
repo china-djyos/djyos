@@ -40,7 +40,9 @@
 #include "manual_ps_pub.h"
 #include "phy_trident.h"
 #include "BkDriverPwm.h"
-
+#if (CFG_SUPPORT_DJYOS)
+#include "task.h"
+#endif
 #if (CFG_SOC_NAME == SOC_BK7221U)
 #include "security_pub.h"
 extern void sec_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv);
@@ -2286,7 +2288,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
 	PS_DEEP_CTRL_PARAM deep_sleep_param;
 	deep_sleep_param.gpio_index_map = gpio_index;
 	deep_sleep_param.gpio_edge_map  = dtim;
-	deep_sleep_param.deep_wkway = PS_DEEP_WAKEUP_GPIO;
+	deep_sleep_param.wake_up_way = PS_DEEP_WAKEUP_GPIO;
 
     if(argc < 3)
     {

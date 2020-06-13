@@ -5,6 +5,9 @@
 #include "drv_model.h"
 #include "mem_pub.h"
 #include "str_pub.h"
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
 
 static DRV_SDEV_S drv_sdev_tbl[DD_MAX_SDEV] =
 {

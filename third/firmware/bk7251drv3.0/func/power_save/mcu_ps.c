@@ -13,6 +13,9 @@
 #include "fake_clock_pub.h"
 #include "bk_timer_pub.h"
 #include "drv_model_pub.h"
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
 
 #if CFG_USE_MCU_PS
 static MCU_PS_INFO mcu_ps_info =

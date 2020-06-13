@@ -65,7 +65,7 @@ void intc_hdl_entry(UINT32 int_status)
 #if (CFG_SUPPORT_DJYOS)
 #include "cpu_peri_reg.h"
 #include "int.h"
-#include "bk_uart.h"
+#include "uart.h"
 #include "pwm.h"
 #include "../icu/icu.h"
 void intc_service_register(UINT8 int_num, UINT8 int_pri, FUNCPTR isr)

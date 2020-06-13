@@ -742,7 +742,7 @@ uint32_t wpa_hostapd_queue_poll(uint32_t param)
     }
 
     msg.argu = (u32)param; 
-    ret = bk_rtos_push_to_queue(&wpah_queue, &msg, BEKEN_NO_WAIT);
+    ret = rtos_push_to_queue(&wpah_queue, &msg, BEKEN_NO_WAIT);
 	if(kNoErr != ret)
 	{
 		os_printf("wpa_hostapd_queue_poll_failed:%d\r\n", ret);

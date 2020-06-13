@@ -92,6 +92,15 @@ void bk_send_byte(UINT8 uport, UINT8 data)
 }
 
 #if CFG_SUPPORT_DJYOS    //CK
+void bk_send_string_len(UINT8 uport, const char *string,uint32_t len)
+{
+    int i = 0;
+    for(i=0;i<len;i++)
+    {
+        bk_send_byte(uport, *string++);
+    }
+}
+#endif
 void bk_send_string(UINT8 uport, const char *string)
 {
     while(*string)
@@ -99,8 +108,9 @@ void bk_send_string(UINT8 uport, const char *string)
         bk_send_byte(uport, *string++);
     }
 }
-#endif
+
 /*uart2 as deubg port*/
+#if !CFG_SUPPORT_DJYOS      //CK
 void bk_printf(const char *fmt, ...)
 {
 #if (CFG_SUPPORT_RTT)
@@ -131,7 +141,7 @@ void bk_printf(const char *fmt, ...)
 #endif
 
 }
-
+#endif
 
 #if CFG_BACKGROUND_PRINT
 INT32 uart_printf(const char *fmt, ...)
@@ -521,7 +531,7 @@ void uart1_isr(void)
 
     if(status & (RX_FIFO_NEED_READ_STA | UART_RX_STOP_END_STA))
     {
-#if (!CFG_SUPPORT_RTT)
+#if ((!CFG_SUPPORT_RTT) && (!CFG_SUPPORT_DJYOS))    //CK,下面的这个函数会读取串口fifo的数据，如果这里读了，那我们系统的中断处理函数就读不到了。
         uart_read_fifo_frame(UART1_PORT, uart[UART1_PORT].rx);
 #endif
 
@@ -763,7 +773,7 @@ void uart2_isr(void)
 
     if(status & (RX_FIFO_NEED_READ_STA | UART_RX_STOP_END_STA))
     {
-#if (!CFG_SUPPORT_RTT)
+#if ((!CFG_SUPPORT_RTT) && (!CFG_SUPPORT_DJYOS))    //CK,下面的这个函数会读取串口fifo的数据，如果这里读了，那我们系统的中断处理函数就读不到了。
         uart_read_fifo_frame(UART2_PORT, uart[UART2_PORT].rx);
 #endif
 

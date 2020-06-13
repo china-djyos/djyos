@@ -63,7 +63,7 @@ extern void wpas_thread_start(void);
 void app_init(void)
 {
 #if (!CFG_SUPPORT_RTT)
-    net_wlan_initial();
+    //net_wlan_initial();
 #endif
 
     wpas_thread_start();
@@ -99,7 +99,7 @@ static void init_thread_main( void *arg )
     app_init();
     os_printf("app_init finished\r\n");
 
-    bk_rtos_delete_thread( NULL );
+    rtos_delete_thread( NULL );
 }
 
 /** @brief  When in dtim rf off mode,user can manual wakeup before dtim wakeup time.
@@ -149,7 +149,7 @@ void bmsg_tx_handler(BUS_MSG_T *msg)
     }
 
     ps_set_data_prevent();
-    
+
 #if CFG_USE_STA_PS
     bmsg_ps_handler_rf_ps_mode_real_wakeup();
     bk_wlan_dtim_rf_ps_mode_do_wakeup();
@@ -164,46 +164,46 @@ tx_handler_exit:
 #if (CFG_SUPPORT_ALIOS)
 void bmsg_tx_raw_handler(BUS_MSG_T *msg)
 {
-	uint8_t *pkt = (uint8_t *)msg->arg;
-	uint16_t len = msg->len;
-	MSDU_NODE_T *node;
-	UINT8 *content_ptr;
-	UINT32 queue_idx = AC_VI;
-	struct txdesc *txdesc_new;
-	struct umacdesc *umac;
+    uint8_t *pkt = (uint8_t *)msg->arg;
+    uint16_t len = msg->len;
+    MSDU_NODE_T *node;
+    UINT8 *content_ptr;
+    UINT32 queue_idx = AC_VI;
+    struct txdesc *txdesc_new;
+    struct umacdesc *umac;
 
-	node = rwm_tx_node_alloc(len);
-	if (node == NULL) {
-		goto exit;
-	}
+    node = rwm_tx_node_alloc(len);
+    if (node == NULL) {
+        goto exit;
+    }
 
-	rwm_tx_msdu_renew(pkt, len, node->msdu_ptr);
-	content_ptr = rwm_get_msdu_content_ptr(node);
+    rwm_tx_msdu_renew(pkt, len, node->msdu_ptr);
+    content_ptr = rwm_get_msdu_content_ptr(node);
 
-	txdesc_new = tx_txdesc_prepare(queue_idx);
-	if(txdesc_new == NULL || TXDESC_STA_USED == txdesc_new->status) {
-		rwm_node_free(node);
-		goto exit;
-	}
+    txdesc_new = tx_txdesc_prepare(queue_idx);
+    if(txdesc_new == NULL || TXDESC_STA_USED == txdesc_new->status) {
+        rwm_node_free(node);
+        goto exit;
+    }
 
-	txdesc_new->status = TXDESC_STA_USED;
-	txdesc_new->host.flags = TXU_CNTRL_MGMT;
-	txdesc_new->host.orig_addr = (UINT32)node->msdu_ptr;
-	txdesc_new->host.packet_addr = (UINT32)content_ptr;
-	txdesc_new->host.packet_len = len;
-	txdesc_new->host.status_desc_addr = (UINT32)content_ptr;
-	txdesc_new->host.tid = 0xff;
+    txdesc_new->status = TXDESC_STA_USED;
+    txdesc_new->host.flags = TXU_CNTRL_MGMT;
+    txdesc_new->host.orig_addr = (UINT32)node->msdu_ptr;
+    txdesc_new->host.packet_addr = (UINT32)content_ptr;
+    txdesc_new->host.packet_len = len;
+    txdesc_new->host.status_desc_addr = (UINT32)content_ptr;
+    txdesc_new->host.tid = 0xff;
 
-	umac = &txdesc_new->umac;
-	umac->payl_len = len;
-	umac->head_len = 0;
-	umac->tail_len = 0;
-	umac->hdr_len_802_2 = 0;
+    umac = &txdesc_new->umac;
+    umac->payl_len = len;
+    umac->head_len = 0;
+    umac->tail_len = 0;
+    umac->hdr_len_802_2 = 0;
 
-	umac->buf_control = &txl_buffer_control_24G;
+    umac->buf_control = &txl_buffer_control_24G;
 
-	txdesc_new->lmac.agg_desc = NULL;
-	txdesc_new->lmac.hw_desc->cfm.status = 0;
+    txdesc_new->lmac.agg_desc = NULL;
+    txdesc_new->lmac.hw_desc->cfm.status = 0;
 
     ps_set_data_prevent();
 #if CFG_USE_STA_PS
@@ -211,16 +211,16 @@ void bmsg_tx_raw_handler(BUS_MSG_T *msg)
     bk_wlan_dtim_rf_ps_mode_do_wakeup();
 #endif
 
-	rwm_push_tx_list(node);
-	txl_cntrl_push(txdesc_new, queue_idx);
+    rwm_push_tx_list(node);
+    txl_cntrl_push(txdesc_new, queue_idx);
 
 exit:
-	os_free(pkt);
+    os_free(pkt);
 }
 
 void bmsg_rx_lsig_handler(BUS_MSG_T *msg)
 {
-	lsig_input((msg->arg&0xFFFF0000)>>16, msg->arg&0xFF, msg->len);
+    lsig_input((msg->arg&0xFFFF0000)>>16, msg->arg&0xFF, msg->len);
 }
 #endif
 
@@ -309,10 +309,10 @@ void ps_msg_process(UINT8 ps_msg)
             break;
         case PS_BMSG_IOCTL_RF_PS_TIMER_INIT:
             power_save_set_keep_timer_time(20);
-            break; 
+            break;
         case PS_BMSG_IOCTL_RF_PS_TIMER_DEINIT:
             power_save_set_keep_timer_time(0);
-            break; 
+            break;
 #endif
 
         default:
@@ -394,34 +394,34 @@ int bmsg_tx_sender(struct pbuf *p, uint32_t vif_idx)
 #if (CFG_SUPPORT_ALIOS)
 int bmsg_tx_raw_sender(uint8_t *payload, uint16_t length)
 {
-	OSStatus ret;
-	BUS_MSG_T msg;
+    OSStatus ret;
+    BUS_MSG_T msg;
 
-	msg.type = BMSG_TX_RAW_TYPE;
-	msg.arg = (uint32_t)payload;
-	msg.len = length;
-	msg.sema = NULL;
+    msg.type = BMSG_TX_RAW_TYPE;
+    msg.arg = (uint32_t)payload;
+    msg.len = length;
+    msg.sema = NULL;
 
-	ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1*SECONDS);
+    ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1*SECONDS);
 
-	if(ret != kNoErr) 
-	{
-		APP_PRT("bmsg_tx_sender failed\r\n");
-		os_free(payload);
-	}
+    if(ret != kNoErr)
+    {
+        APP_PRT("bmsg_tx_sender failed\r\n");
+        os_free(payload);
+    }
 
-	return ret;
+    return ret;
 }
 
 void bmsg_rx_lsig(uint16_t len, uint8_t rssi)
 {
-	BUS_MSG_T msg;
+    BUS_MSG_T msg;
 
-	msg.type = BMSG_RX_LSIG;
-	msg.arg = (uint32_t)((len << 16) | rssi);
-	msg.len = rtos_get_time();
-	msg.sema = NULL;
-	rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
+    msg.type = BMSG_RX_LSIG;
+    msg.arg = (uint32_t)((len << 16) | rssi);
+    msg.len = rtos_get_time();
+    msg.sema = NULL;
+    rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
 }
 #endif
 
@@ -585,11 +585,11 @@ static void core_thread_main( void *arg )
                 case BMSG_TX_RAW_TYPE:
                     bmsg_tx_raw_handler(&msg);
                     break;
-					
-				case BMSG_RX_LSIG:
-					bmsg_rx_lsig_handler(&msg);
-					break;
-					
+
+                case BMSG_RX_LSIG:
+                    bmsg_rx_lsig_handler(&msg);
+                    break;
+
 #endif
             default:
                 APP_PRT("unknown_msg\r\n");
@@ -674,13 +674,13 @@ void core_thread_uninit(void)
 }
 
 static void init_app_thread( void *arg )
-{	
-	#if CFG_ENABLE_DEMO_TEST
+{
+    #if CFG_ENABLE_DEMO_TEST
     if(application_start)
     {
         application_start();
     }
-	#endif
+    #endif
 
     rtos_delete_thread( NULL );
 }

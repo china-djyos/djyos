@@ -11,6 +11,10 @@
 #include "k_api.h"
 #elif (CFG_SUPPORT_RTT)
 #include <rtthread.h>
+#elif (CFG_SUPPORT_DJYOS)
+#include "pwm.h"
+#include "sys_rtos.h"
+#include "arm_arch.h"
 #else
 #include "sys_rtos.h"
 #include "arm_arch.h"
@@ -20,6 +24,10 @@
 
 #if CFG_USE_MCU_PS
 #include "mcu_ps_pub.h"
+#endif
+
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
 #endif
 
 #if CFG_BK7221_MDM_WATCHDOG_PATCH

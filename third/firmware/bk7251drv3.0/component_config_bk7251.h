@@ -38,7 +38,7 @@
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯
 //%$#@exclude
 //../common;../alios;../os;
-//../driver/ble;../driver/codec;../driver/entry;../driver/fft;
+//../driver/ble;../driver/codec;../driver/fft;
 //../driver/i2c;../driver/i2s;../driver/irda;../driver/jpeg;../driver/rc_beken;
 //../driver/sdio;../driver/spidma;../driver/usb;
 //../driver/driver.c;../driver/SConscript;../driver/pwm/timer.c;
@@ -49,18 +49,17 @@
 //../func/user_driver/BkDriverUart.c;../func/user_driver/BkDriverWdg.c;../func/mem_arch.c;
 //../func/wlan_ui/lsig_monitor.c;../func/voice_transfer;../func/vad;
 //../func/saradc_intf;../func/misc;../func/music_player;../app/app_demo;
-//../app/airkiss;../app/config;
+//../app/airkiss;
 //../ip;
 //%$#@end exclude
 //%$#@include path
 //../app;../app/config;
 //../app/standalone-ap;../app/standalone-station;
 //../common;
-//../config;
 //../demo;
 //../driver;
-//../driver/audio;../driver/common;../driver/common/reg;../driver/demo;
-//../driver/dma;../driver/flash;../driver/entry;../driver/include;
+//../driver/audio;../driver/common;../driver/common/reg;../driver/demo;../driver/sdcard;../driver/icu;
+//../driver/dma;../driver/flash;../driver/entry;../driver/include;../driver/gpio;../driver/intc;
 //../driver/phy;../driver/pwm;../driver/sys_ctrl;../driver/uart;../driver/qspi;
 //../func/ethernet_intf;../func/hostapd-2.5;../func/hostapd-2.5/bk_patch;
 //../func/hostapd-2.5/hostapd;../func/hostapd-2.5/src;../func/hostapd-2.5/src/ap;

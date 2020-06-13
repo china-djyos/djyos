@@ -13,6 +13,7 @@
 #define FCLK_SECOND           (RT_TICK_PER_SECOND)
 #endif
 #if (CFG_SUPPORT_DJYOS)
+#include "project_config.h"
 #define FCLK_DURATION_MS      (1000 / CN_CFG_TICK_HZ)
 #define FCLK_SECOND           (CN_CFG_TICK_HZ)
 #else

@@ -4,6 +4,9 @@
 #include <systime.h>
 #include <msgqueue.h>
 #include <djytimer.h>
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
 #define THREAD_TIMESLICE 5
 
 #define RTOS_DEBUG   0
@@ -488,5 +491,5 @@ uint32_t rtos_get_timer_expiry_time( beken_timer_t* timer )
 
 uint32_t rtos_get_time(void)
 {
-    return (uint32_t)(DjyGetSysTime()/1000);
+    return (uint32_t)(DJY_GetSysTime()/1000);
 }

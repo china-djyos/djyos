@@ -1,6 +1,9 @@
 #include "include.h"
 #include "arm_arch.h"
 #include <string.h>
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
 
 #if(CFG_SUPPORT_DJYOS)      //lst
 #include <stdlib.h>

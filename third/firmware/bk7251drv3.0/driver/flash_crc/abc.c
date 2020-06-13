@@ -1,6 +1,7 @@
-#if CFG_SUPPORT_DJYOS	//CK
+#include "sys_config.h"
+#if CFG_SUPPORT_DJYOS   //CK
 #include "abc.h"
-
+#include "typedef.h"
 /*
 	pn15_gen u_pn15(.pn_out(pn15),.addr(pn15_addr),.rstn(rstn),.clk(clk),.bps(pn15_bps));
 */

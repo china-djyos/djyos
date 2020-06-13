@@ -1,8 +1,8 @@
 #ifndef _FAKE_SOCKET_H_
 #define _FAKE_SOCKET_H_
-
-#include "list.h"
-
+#if (CFG_SUPPORT_DJYOS)
+#include "../src/utils/list.h"
+#endif
 //#define SK_DEBUG
 
 #ifdef SK_DEBUG
