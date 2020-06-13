@@ -95,8 +95,8 @@ struct NetDev
     u16                 mtu;      //dev mtu
     void                *Private;  //the dev driver use this to has its owner property
     u8                  mac[CN_MACADDR_LEN];   //mac address
-    int (*cb_ip_get)(u32 *ip); //for dhcp (no use the discorver)
-    int (*cb_ip_set)(u32 ip); //for dhcp (no use the discorver)
+    s32 (*cb_ip_get)(u32 *ip); //for dhcp (no use the discorver)
+    s32 (*cb_ip_set)(u32 ip); //for dhcp (no use the discorver)
     //the following used to debug the net device,show some main status
     u32                 pkgsnd;     //frame send
     u32                 pkgsnderr;  //frame snd failed
@@ -907,7 +907,7 @@ bool_t NetDevFlowCtrl(struct NetDev* handle,enum EthFramType type)
     return result;
 }
 
-int dhcp_getip_cb(const char *ifname, int (*cb_ip_get)(u32 *ip))
+s32 dhcp_getip_cb(const char *ifname, s32 (*cb_ip_get)(u32 *ip))
 {
     struct NetDev *pNetDev = NetDevGet(ifname);
     if(pNetDev==NULL) return  -1;
@@ -915,7 +915,7 @@ int dhcp_getip_cb(const char *ifname, int (*cb_ip_get)(u32 *ip))
     return 1;
 }
 
-int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(u32 ip))
+s32 dhcp_setip_cb(const char *ifname, s32 (*cb_ip_set)(u32 ip))
 {
     struct NetDev *pNetDev = NetDevGet(ifname);
     if(pNetDev==NULL) return  -1;
@@ -923,7 +923,7 @@ int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(u32 ip))
     return 1;
 }
 
-int net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp)
+s32 net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp)
 {
     if (pNetDev && pNetDev->cb_ip_get && pNetDev->cb_ip_get(ip_temp)){
         return 1;
@@ -931,12 +931,19 @@ int net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp)
     return 0;
 }
 
-int net_set_dhcp_ip(struct NetDev *pNetDev, u32 ip_temp)
+//------------------------------------------------------------------------------
+//功能：把通过 DHCP 获得的IP地址用回调函数通知用户
+//参数：pNetDev，得到IP地址的网卡
+//      ip_temp，分配到的IP地址
+//返回：1 = 成功，0 = 失败
+//------------------------------------------------------------------------------
+s32 net_set_dhcp_ip(struct NetDev *pNetDev, u32 ip_temp)
 {
     if (pNetDev && pNetDev->cb_ip_set && pNetDev->cb_ip_set(ip_temp)){
         return 1;
     }
-    return 0;
+    else
+        return 0;
 }
 
 
@@ -1006,7 +1013,7 @@ void * NetDevPrivate(struct NetDev *iface)
 //static bool_t __IfconfigShell(char *param)
 bool_t ifconfig(char *param)
 {
-    int i = 0;
+    s32 i = 0;
     struct NetDev *iface;
     OsPrintSplit('*',100);
     debug_printf("netdev","%-2s %-10s %-10s %-8s %-8s %-8s %-8s %-8s %-8s %-s\n\r",\

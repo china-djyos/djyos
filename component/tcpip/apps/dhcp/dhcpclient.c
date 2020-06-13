@@ -155,8 +155,13 @@ int DHCP_WaitDhcpDone(char *ifname, unsigned int timeout)
 
     return ret;
 }
+
+//------------------------------------------------------------------------------
+//功能：处理收到的DHCP应答包
+//参数：msg，接收到的 DHCP 应答包消息
+//返回：true = 成功解析
+//-----------------------------------------------------------------------------
 int net_set_dhcp_ip(struct NetDev *pNetDev, u32 ip_temp);
-//do the reply message deal
 static bool_t __DHCP_CpyReplyMsg(tagDhcpMsg *msg)
 {
     u32              renew_counter;
@@ -242,6 +247,7 @@ static bool_t __DHCP_CpyReplyMsg(tagDhcpMsg *msg)
                 }
                 net_set_dhcp_ip(NetDevGet(tmp->ifname), reply.offerip);
                 tmp->is_exist_ip = 0;
+                result = true;
             }
             else if(reply.msgtype == DHCP_NAK)
             {

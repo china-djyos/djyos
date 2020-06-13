@@ -84,7 +84,9 @@ typedef struct
     void *          handle;
     timer_handler_t function;
     void *          arg;
+#if(CFG_SUPPORT_DJYOS)				//lst
     uint32_t        time_ms;
+#endif
 }beken_timer_t;
 
 typedef struct
