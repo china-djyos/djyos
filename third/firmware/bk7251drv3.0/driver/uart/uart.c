@@ -531,7 +531,7 @@ void uart1_isr(void)
 
     if(status & (RX_FIFO_NEED_READ_STA | UART_RX_STOP_END_STA))
     {
-#if (!CFG_SUPPORT_RTT)
+#if ((!CFG_SUPPORT_RTT) && (!CFG_SUPPORT_DJYOS))    //CK,下面的这个函数会读取串口fifo的数据，如果这里读了，那我们系统的中断处理函数就读不到了。
         uart_read_fifo_frame(UART1_PORT, uart[UART1_PORT].rx);
 #endif
 
@@ -773,7 +773,7 @@ void uart2_isr(void)
 
     if(status & (RX_FIFO_NEED_READ_STA | UART_RX_STOP_END_STA))
     {
-#if (!CFG_SUPPORT_RTT)
+#if ((!CFG_SUPPORT_RTT) && (!CFG_SUPPORT_DJYOS))    //CK,下面的这个函数会读取串口fifo的数据，如果这里读了，那我们系统的中断处理函数就读不到了。
         uart_read_fifo_frame(UART2_PORT, uart[UART2_PORT].rx);
 #endif
 
