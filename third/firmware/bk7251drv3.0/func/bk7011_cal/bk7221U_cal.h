@@ -4,64 +4,64 @@
 #if (CFG_SOC_NAME == SOC_BK7221U)
 void delay05us(INT32 num);
 
-#define trx_reg_is_write(st_trxreg)     while(BK7011RCBEKEN.REG0x1->value & st_trxreg) 	{cpu_delay(1);}
+#define trx_reg_is_write(st_trxreg)     while(BK7011RCBEKEN.REG0x1->value & st_trxreg)  {cpu_delay(1);}
 
-#define DETECT_LOOPCNT		        10
-#define GOLD_OUTPUT_POWER		    56
-#define UNSIGNEDOFFSET10		    512
-#define I_Q_CAP_DIF					32
-#define CONSTANT_RCIQ				117
-#define SUMNUMBERS					4
-#define MINOFFSET			    	16
+#define DETECT_LOOPCNT              10
+#define GOLD_OUTPUT_POWER           56
+#define UNSIGNEDOFFSET10            512
+#define I_Q_CAP_DIF                 32
+#define CONSTANT_RCIQ               117
+#define SUMNUMBERS                  4
+#define MINOFFSET                   16
 
-#define cpu_delay(val)            Djy_EventDelay(MAX(1000, val*1000)) //delay(MAX(1, val/100))
-#define DELAY1US				  100
+#define cpu_delay(val)            DJY_EventDelay(MAX(1000, val*1000)) //delay(MAX(1, val/100))
+#define DELAY1US                  100
 
 
-#define cal_delay(val)            delay05us(MAX(1, val))	// 8us
+#define cal_delay(val)            delay05us(MAX(1, val))    // 8us
 
-#define CAL_DELAY05US			  2		// 20170503 2:1.5us     2 to 20  for debug 20180227
+#define CAL_DELAY05US             2     // 20170503 2:1.5us     2 to 20  for debug 20180227
 #define CAL_TX_NUM                50
 #define CAL_RX_NUM                5
 
-#define cal_delay_100us(val)      delay100us(MAX(1, val))	// 200us
-#define CAL_DELAY100US			  1  //20160804  1:100us 2:200us		// 20170503 1:150us 2:300us
+#define cal_delay_100us(val)      delay100us(MAX(1, val))   // 200us
+#define CAL_DELAY100US            1  //20160804  1:100us 2:200us        // 20170503 1:150us 2:300us
 
-#define st_TRXREG00			(1<<0)
-#define st_TRXREG01			(1<<1)
-#define st_TRXREG02			(1<<2)
-#define st_TRXREG03			(1<<3)
-#define st_TRXREG04			(1<<4)
-#define st_TRXREG05			(1<<5)
-#define st_TRXREG06			(1<<6)
-#define st_TRXREG07			(1<<7)
-#define st_TRXREG08			(1<<8)
-#define st_TRXREG09			(1<<9)
-#define st_TRXREG0A			(1<<10)
-#define st_TRXREG0B			(1<<11)
-#define st_TRXREG0C			(1<<12)
-#define st_TRXREG0D			(1<<13)
-#define st_TRXREG0E			(1<<14)
-#define st_TRXREG0F			(1<<15)
-#define st_TRXREG10			(1<<16)
-#define st_TRXREG11			(1<<17)
-#define st_TRXREG12			(1<<18)
-#define st_TRXREG13			(1<<19)
-#define st_TRXREG14			(1<<20)
-#define st_TRXREG15			(1<<21)
-#define st_TRXREG16			(1<<22)
-#define st_TRXREG17			(1<<23)
-#define st_TRXREG18			(1<<24)
-#define st_TRXREG19			(1<<25)
-#define st_TRXREG1A			(1<<26)
-#define st_TRXREG1B			(1<<27)
+#define st_TRXREG00         (1<<0)
+#define st_TRXREG01         (1<<1)
+#define st_TRXREG02         (1<<2)
+#define st_TRXREG03         (1<<3)
+#define st_TRXREG04         (1<<4)
+#define st_TRXREG05         (1<<5)
+#define st_TRXREG06         (1<<6)
+#define st_TRXREG07         (1<<7)
+#define st_TRXREG08         (1<<8)
+#define st_TRXREG09         (1<<9)
+#define st_TRXREG0A         (1<<10)
+#define st_TRXREG0B         (1<<11)
+#define st_TRXREG0C         (1<<12)
+#define st_TRXREG0D         (1<<13)
+#define st_TRXREG0E         (1<<14)
+#define st_TRXREG0F         (1<<15)
+#define st_TRXREG10         (1<<16)
+#define st_TRXREG11         (1<<17)
+#define st_TRXREG12         (1<<18)
+#define st_TRXREG13         (1<<19)
+#define st_TRXREG14         (1<<20)
+#define st_TRXREG15         (1<<21)
+#define st_TRXREG16         (1<<22)
+#define st_TRXREG17         (1<<23)
+#define st_TRXREG18         (1<<24)
+#define st_TRXREG19         (1<<25)
+#define st_TRXREG1A         (1<<26)
+#define st_TRXREG1B         (1<<27)
 
 #define abs(a)                ((a) < 0 ?(-1*(a)):(a))
 
 #ifndef __BK7011RCBEKEN_H__
 #define __BK7011RCBEKEN_H__
 
-#define RC_BEKEN_BASE		0x01050000
+#define RC_BEKEN_BASE       0x01050000
 
 /// REG0x0
 typedef union
@@ -415,7 +415,7 @@ typedef union
     struct
     {
         volatile unsigned int TXCALCAPI        : 6; /**< I path calib capacity for transmit mode */
-        volatile unsigned int Reserved__       : 2; /**< NC */        
+        volatile unsigned int Reserved__       : 2; /**< NC */
         volatile unsigned int RXCALCAPI        : 6; /**< I path calib capacity for receive mode */
         volatile unsigned int Reserved         : 2; /**< NC */
         volatile unsigned int STANDBYCALCAPI   : 6; /**< I path calib capacity for standby mode */
@@ -430,7 +430,7 @@ typedef union
     struct
     {
         volatile unsigned int TXCALCAPQ        : 6; /**< Q path calib capacity for transmit mode */
-        volatile unsigned int Reserved__       : 2; /**< NC */        
+        volatile unsigned int Reserved__       : 2; /**< NC */
         volatile unsigned int RXCALCAPQ        : 6; /**< Q path calib capacity for receive mode */
         volatile unsigned int Reserved         : 2; /**< NC */
         volatile unsigned int STANDBYCALCAPQ   : 6; /**< Q path calib capacity for standby mode */
@@ -588,7 +588,7 @@ struct BK7011RCBEKEN_TypeDef
     volatile BK7011_RC_BEKEN_REG0x72_TypeDef *REG0x72;
     volatile BK7011_RC_BEKEN_REG0x73_TypeDef *REG0x73;
     volatile BK7011_RC_BEKEN_REG0x74_TypeDef *REG0x74;
-    volatile BK7011_RC_BEKEN_REG0x75_TypeDef *REG0x75; 
+    volatile BK7011_RC_BEKEN_REG0x75_TypeDef *REG0x75;
     volatile BK7011_RC_BEKEN_REG0x76_TypeDef *REG0x76;
     volatile BK7011_RC_BEKEN_REG0x77_TypeDef *REG0x77;
 };
@@ -597,7 +597,7 @@ struct BK7011RCBEKEN_TypeDef
 #ifndef __BK7011TRxV2A_H__
 #define __BK7011TRxV2A_H__
 
-#define TRX_BEKEN_BASE		0x01050080
+#define TRX_BEKEN_BASE      0x01050080
 
 #if 1
 /// REG0x0
@@ -1788,7 +1788,7 @@ typedef union
     } bits;
     volatile unsigned int value;
 } BK7011_TRxV2A_REG0x1C_TypeDef;   // trx reg28   just for test
-#define BK7011_TRxV2ABASE				0X00800080
+#define BK7011_TRxV2ABASE               0X00800080
 #endif
 
 /// BK7011TRxV2A
@@ -1829,23 +1829,23 @@ struct BK7011TRxV2A_TypeDef
 /// POWER
 typedef struct
 {
-    unsigned int rega_4_7   : 4;       
-    unsigned int rega_0_1   : 2; 
+    unsigned int rega_4_7   : 4;
+    unsigned int rega_0_1   : 2;
     unsigned int rega_8_13  : 6;
-    unsigned int regb_28_31 : 4;     
-    unsigned int regc_0_2   : 3; 
-    unsigned int regc_4_6   : 3; 
-    unsigned int regc_8_10  : 3;     
+    unsigned int regb_28_31 : 4;
+    unsigned int regc_0_2   : 3;
+    unsigned int regc_4_6   : 3;
+    unsigned int regc_8_10  : 3;
     unsigned int pregain    : 5;
     unsigned int unuse      : 2;
 } PWR_REGS;
 
 typedef struct
 {
-    unsigned int regb_28_31 : 4;     
-    unsigned int regc_0_3   : 4; 
-    unsigned int regc_4_7   : 4; 
-    unsigned int regc_8_11  : 4;     
+    unsigned int regb_28_31 : 4;
+    unsigned int regc_0_3   : 4;
+    unsigned int regc_4_7   : 4;
+    unsigned int regc_8_11  : 4;
     unsigned short value;
 } PWR_REGS_TPC;
 

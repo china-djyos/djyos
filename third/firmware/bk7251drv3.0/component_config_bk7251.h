@@ -48,15 +48,14 @@
 //../func/user_driver/BkDriverGpio.c;../func/user_driver/BkDriverPwm.c;
 //../func/user_driver/BkDriverUart.c;../func/user_driver/BkDriverWdg.c;../func/mem_arch.c;
 //../func/wlan_ui/lsig_monitor.c;../func/voice_transfer;../func/vad;
-//../func/saradc_intf;../func/misc;../func/joint_up;../func/music_player;../app/app_demo;
-//../app/airkiss;../app/config;
+//../func/saradc_intf;../func/misc;../func/music_player;../app/app_demo;
+//../app/airkiss;
 //../ip;
 //%$#@end exclude
 //%$#@include path
 //../app;../app/config;
 //../app/standalone-ap;../app/standalone-station;
 //../common;
-//../config;
 //../demo;
 //../driver;
 //../driver/audio;../driver/common;../driver/common/reg;../driver/demo;../driver/sdcard;../driver/icu;

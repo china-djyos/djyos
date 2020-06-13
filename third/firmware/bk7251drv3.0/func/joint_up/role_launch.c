@@ -11,11 +11,15 @@
 #include "drv_model_pub.h"
 #include "flash_pub.h"
 #include "param_config.h"
-#include "wlan_dev.h"
-#include "ef_cfg.h"
+//#include "wlan_dev.h"
+//#include "ef_cfg.h"
+
+#define RT_NULL (void*)(0)
 
 #define MAX_FASTCONN_RETRY_CNT				4 /*fast connect retry cnt*/
+#if (CFG_SUPPORT_RTT)
 #define BSSID_INFO_ADDR       (EF_START_ADDR - 0x1000) /*reserve 4k for bssid info*/
+#endif
 #endif
 
 #if CFG_ROLE_LAUNCH
@@ -43,11 +47,12 @@ static void rl_read_bssid_info(RL_BSSID_INFO_PTR bssid_info)
 {
 	uint32_t status, addr;
 	DD_HANDLE flash_hdl;
-
+#if (CFG_SUPPORT_RTT)
 	flash_hdl = ddev_open(FLASH_DEV_NAME, &status, 0);
 	addr = BSSID_INFO_ADDR;
 	ddev_read(flash_hdl, (char *)bssid_info, sizeof(RL_BSSID_INFO_T), addr);
 	ddev_close(flash_hdl);
+#endif
 }
 
 static void rl_write_bssid_info(void)
@@ -94,9 +99,13 @@ static void rl_write_bssid_info(void)
 		ddev_control(flash_hdl, CMD_FLASH_GET_PROTECT, (void *)&protect_flag);
 		protect_param = FLASH_PROTECT_NONE;
 		ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, (void *)&protect_param);
+#if (CFG_SUPPORT_RTT)
 		addr = BSSID_INFO_ADDR;
-		ddev_control(flash_hdl, CMD_FLASH_ERASE_SECTOR, (void *)&addr);
-	    ddev_write(flash_hdl, bssid_info, sizeof(RL_BSSID_INFO_T),addr);
+        ddev_control(flash_hdl, CMD_FLASH_ERASE_SECTOR, (void *)&addr);
+        ddev_write(flash_hdl, bssid_info, sizeof(RL_BSSID_INFO_T),addr);
+#else
+        //这里写入自己的函数
+#endif
 		ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, (void *)&protect_flag);
 		ddev_close(flash_hdl);
 	}
@@ -117,13 +126,14 @@ static void rl_sta_fast_connect(RL_BSSID_INFO_PTR bssid_info)
 	os_memcpy(inNetworkInitParaAdv.ap_info.bssid, bssid_info->bssid, 6);
 	inNetworkInitParaAdv.ap_info.security = bssid_info->security;
 	inNetworkInitParaAdv.ap_info.channel = bssid_info->channel;
-	
-	if(bssid_info->security < SECURITY_WPA_TKIP_PSK)
+#if (CFG_SUPPORT_RTT)
+	if(bssid_info->security < SECURITY_WPA_TKIP_PSK)//WEP psk, WEP share, open
 	{
 		os_strcpy((char*)inNetworkInitParaAdv.key, bssid_info->pwd);
 		inNetworkInitParaAdv.key_len = os_strlen(bssid_info->pwd);
 	}
 	else
+#endif
 	{
 		os_strcpy((char*)inNetworkInitParaAdv.key, bssid_info->psk);
 		inNetworkInitParaAdv.key_len = os_strlen(bssid_info->psk);

@@ -11,6 +11,10 @@
 #include "k_api.h"
 #elif (CFG_SUPPORT_RTT)
 #include <rtthread.h>
+#elif (CFG_SUPPORT_DJYOS)
+#include "pwm.h"
+#include "sys_rtos.h"
+#include "arm_arch.h"
 #else
 #include "sys_rtos.h"
 #include "arm_arch.h"
