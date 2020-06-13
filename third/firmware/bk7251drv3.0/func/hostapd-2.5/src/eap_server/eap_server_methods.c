@@ -133,6 +133,9 @@ int eap_server_method_register(struct eap_method *method)
  * This function is called at program termination to unregister all EAP server
  * methods.
  */
+#ifdef free
+#undef free
+#endif
 void eap_server_unregister_methods(void)
 {
 	struct eap_method *m;
