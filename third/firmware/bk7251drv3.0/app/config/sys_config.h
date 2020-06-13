@@ -71,7 +71,7 @@
 #define CFG_SUPPORT_CCD                            0
 #define CFG_SUPPORT_UVC                            0
 #endif
-#define CFG_USE_USB_CHARGE                         0
+#define CFG_USE_USB_CHARGE                         1
 #define CFG_USE_QSPI							   1
 
 

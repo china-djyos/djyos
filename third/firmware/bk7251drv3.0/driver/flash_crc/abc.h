@@ -1,7 +1,7 @@
-#if CFG_SUPPORT_DJYOS	//CK
 #ifndef __ABC_INCLUDE_H__
 #define __ABC_INCLUDE_H__
-
+#include "sys_config.h"
+#if CFG_SUPPORT_DJYOS   //CK
 typedef unsigned char  u8;
 typedef unsigned short u16;
 typedef unsigned int   u32;

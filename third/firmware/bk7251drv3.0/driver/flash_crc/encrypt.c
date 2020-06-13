@@ -7,13 +7,13 @@
  *
  *
  */
-#if CFG_SUPPORT_DJYOS	//CK
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "abc.h"
-
+#include "sys_config.h"
+#if CFG_SUPPORT_DJYOS   //CK
 #ifndef TRUE
 #define TRUE 1
 #endif

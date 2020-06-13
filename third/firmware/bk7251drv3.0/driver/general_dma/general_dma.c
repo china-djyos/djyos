@@ -10,6 +10,9 @@
 
 #include "drv_model_pub.h"
 #include "mem_pub.h"
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
 
 static SDD_OPERATIONS gdma_op =
 {

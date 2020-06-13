@@ -40,7 +40,6 @@
 #include "co_int.h"
 #include "compiler.h"
 #include "portmacro.h"
-
 #if (CFG_SUPPORT_RTT)
 #include <rthw.h>
 #include <rtthread.h>

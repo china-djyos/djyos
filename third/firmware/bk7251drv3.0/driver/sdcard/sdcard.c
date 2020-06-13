@@ -18,6 +18,10 @@
 #include "mcu_ps_pub.h"
 #include "target_util_pub.h"
 
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
+
 /* Standard sd  commands (  )           type  argument     response */
 #define GO_IDLE_STATE             0   /* bc                          */
 #define ALL_SEND_CID              2
@@ -1351,7 +1355,11 @@ static SDIO_Error sdcard_write_data(UINT8* write_buff,UINT32 block_num,UINT8 fir
         if(2 != ((reg & SDCARD_CMDRSP_WR_STATU)>>20))
         {
             ret = SD_ERROR;
+#if CFG_SUPPORT_DJYOS
+            os_printf("write data error !!!\r\n");
+#else
 			rt_kprintf("write data error !!!\r\n");
+#endif
 			break;
         }
     }

@@ -21,6 +21,10 @@
 #include "error.h"
 #include "role_launch.h"
 
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
+
 volatile static PS_MODE_STATUS    bk_ps_mode = PS_NO_PS_MODE;
 
 #if CFG_USE_STA_PS

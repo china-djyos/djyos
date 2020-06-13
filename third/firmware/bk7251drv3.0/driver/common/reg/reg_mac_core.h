@@ -16,7 +16,9 @@
 #include "compiler.h"
 #include "arch.h"
 #include "reg_access.h"
-
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
 /*lint -e91 */
 /** @brief Number of registers in the REG_MAC_CORE peripheral.
  */

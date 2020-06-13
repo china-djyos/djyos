@@ -5,6 +5,9 @@
 #include "icu.h"
 
 #include "drv_model_pub.h"
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
 
 static SDD_OPERATIONS icu_op =
 {

@@ -21,6 +21,10 @@
 #include "ps_debug_pub.h"
 #include "power_save_pub.h"
 
+#if CFG_SUPPORT_DJYOS       //CK
+    #include "entry/arch.h"
+#endif
+
 #define DPLL_DIV                0x0
 #define DCO_CALIB_26M           0x1
 #define DCO_CALIB_60M           0x2
