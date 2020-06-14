@@ -1,0 +1,11 @@
+{
+	"compile-option":{
+		
+	},
+	"fpu-type":"fpv4-sp-d16",
+	"name":"cortex-m4",
+	"mcpu":"cortex-m4",
+	"vendor-option":{
+		
+	}
+}

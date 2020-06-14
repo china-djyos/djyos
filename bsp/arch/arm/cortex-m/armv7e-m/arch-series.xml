@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<arch>
-    <compile-option>
-        <march>armv7e-m</march>
-    </compile-option>
-</arch>

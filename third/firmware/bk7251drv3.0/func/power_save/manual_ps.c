@@ -558,26 +558,26 @@ void bk_enter_deep_sleep_mode(PS_DEEP_CTRL_PARAM *deep_param)
 	{
 		if(deep_param->gpio_index_map)
 		{
-			rt_kprintf("---enter deep sleep :wake up with gpio 0~31 ps: 0x%x 0x%x \r\n",
+			printk("---enter deep sleep :wake up with gpio 0~31 ps: 0x%x 0x%x \r\n",
 			deep_param->gpio_index_map,deep_param->gpio_edge_map);
 		}
 		
 		if(deep_param->gpio_last_index_map )
 		{
-			rt_kprintf("---enter deep sleep :wake up with gpio32~39 ps: 0x%x 0x%x \r\n",
+		    printk("---enter deep sleep :wake up with gpio32~39 ps: 0x%x 0x%x \r\n",
 			deep_param->gpio_last_index_map,deep_param->gpio_last_edge_map);
 		}		
 	}
 	
 	if((deep_param->wake_up_way & PS_DEEP_WAKEUP_RTC))
 	{
-		rt_kprintf("---enter deep sleep :wake up with ");
+	    printk("---enter deep sleep :wake up with ");
         #if(DEEP_SLEEP_LPO_SRC == LPO_SRC_ROSC)
-        rt_kprintf("  rosc ");
+	    printk("  rosc ");
         #elif(DEEP_SLEEP_LPO_SRC == LPO_SRC_32K_XTAL)
-        rt_kprintf(" xtal 32k ");
+	    printk(" xtal 32k ");
         #endif
-		rt_kprintf(" ps :%d s\r\n",deep_param->sleep_time);
+	    printk(" ps :%d s\r\n",deep_param->sleep_time);
         
 		if(deep_param->sleep_time> 0x1ffff)
 		{

@@ -93,10 +93,12 @@
 
 //@#$%component end configure
 
-static struct gpio_to_wakeup_t{
-    u32 index_map;
-    u32 edge_map;
-}gGpioToWakeUpL4;
+//static struct gpio_to_wakeup_t{
+//    u32 index_map;
+//    u32 edge_map;
+//}gGpioToWakeUpL4;
+
+static PS_DEEP_CTRL_PARAM deep_sleep_param;
 
 void __LP_BSP_EntrySleepL0(u32 pend_ticks)
 {
@@ -108,17 +110,46 @@ void __LP_BSP_EntrySleepL1(u32 pend_ticks){}
 void __LP_BSP_EntrySleepL2(u32 pend_ticks){}
 void __LP_BSP_EntrySleepL3(void){}
 
-void LP_BSP_ResigerGpioToWakeUpL4(u32 gpio_index_map,u32 gpio_edge_map)
+//-----------------------------------------------------------------------------
+//功能：设置从深度睡眠中唤醒条件，设置的条件可以叠加
+//参数：way, 唤醒信源，可选择：PS_DEEP_WAKEUP_GPIO、PS_DEEP_WAKEUP_RTC、PS_DEEP_WAKEUP_GPIO_RTC
+//      gpio_index，如果way == PS_DEEP_WAKEUP_GPIO，指定gpio编号，0~39代表P0~P39
+//          要设置多个引脚，可多次调用本函数，way 等于其他值本参数无效。
+//      gpio_edge，唤醒边沿，0 = 上升沿，1 = 下降沿，way == PS_DEEP_WAKEUP_GPIO才有效
+//      time，如果way == PS_DEEP_WAKEUP_RTC，用于表示休眠时间，单位 = ？
+//返回：无
+//-----------------------------------------------------------------------------
+
+void LP_BSP_ResigerGpioToWakeUpL4(PS_DEEP_WAKEUP_WAY way,u32 gpio_index,
+                                  u32 gpio_edge, u32 time)
 {
-    gGpioToWakeUpL4.index_map = gpio_index_map;
-    gGpioToWakeUpL4.edge_map = gpio_edge_map;
+    u32 map;
+    deep_sleep_param.wake_up_way    = way;
+    if(way == PS_DEEP_WAKEUP_GPIO)
+    {
+        if(gpio_index <= 31)
+        {
+            map = 1 << gpio_index;
+            deep_sleep_param.gpio_index_map |= map;
+            map = gpio_edge << gpio_index;
+            deep_sleep_param.gpio_edge_map |= map;
+        }
+        else
+        {
+            map = 1 << (gpio_index - 32);
+            deep_sleep_param.gpio_last_index_map |= map;
+            map = gpio_edge << (gpio_index - 32);
+            deep_sleep_param.gpio_last_edge_map |= map;
+        }
+    }
+    deep_sleep_param.sleep_time             = time;
 }
 
 void __LP_BSP_EntrySleepL4(void)
 {
-//    bk_enter_deep_sleep(gGpioToWakeUpL4.index_map,gGpioToWakeUpL4.edge_map,0);
     DJY_DelayUs(100000);
-    deep_sleep_wakeup_with_gpio(gGpioToWakeUpL4.index_map,gGpioToWakeUpL4.edge_map);
+    bk_enter_deep_sleep_mode(&deep_sleep_param);
+//    idle_sleep_wakeup_with_gpio(gGpioToWakeUpL4.index_map,gGpioToWakeUpL4.edge_map);
 }
 
 bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel)

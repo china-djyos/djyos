@@ -23,7 +23,7 @@
 
 #define rt_calloc calloc
 #define rt_free free
-#define rt_kprintf printf
+#define rt_kprintf printk
 
 #endif
 #endif

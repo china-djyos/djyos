@@ -1,5 +1,9 @@
 #ifndef _DOUBLY_LIST_H
 #define _DOUBLY_LIST_H
+#include <include.h>        //djyos lst
+#if (CFG_SUPPORT_DJYOS)     //lst
+#include <stddef.h>
+#endif          //for (CFG_SUPPORT_dJYOS)
 
 #ifndef offsetof
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)

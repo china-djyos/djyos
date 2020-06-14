@@ -87,13 +87,13 @@ extern "C" {
 #include <stdint.h>
 
 /* Type definitions. */
-#define portCHAR			char
-#define portFLOAT			float
-#define portDOUBLE			double
-#define portLONG			long
-#define portSHORT			short
-#define portSTACK_TYPE		uint32_t
-#define portBASE_TYPE		long
+#define portCHAR            char
+#define portFLOAT           float
+#define portDOUBLE          double
+#define portLONG            long
+#define portSHORT           short
+#define portSTACK_TYPE      uint32_t
+#define portBASE_TYPE       long
 
 typedef portSTACK_TYPE StackType_t;
 typedef long BaseType_t;
@@ -101,29 +101,30 @@ typedef unsigned long UBaseType_t;
 
 
 #if( configUSE_16_BIT_TICKS == 1 )
-	typedef uint16_t TickType_t;
-	#define portMAX_DELAY ( TickType_t ) 0xffff
+    typedef uint16_t TickType_t;
+    #define portMAX_DELAY ( TickType_t ) 0xffff
 #else
-	typedef uint32_t TickType_t;
-	#define portMAX_DELAY ( TickType_t ) 0xffffffffUL
+    typedef uint32_t TickType_t;
+    #define portMAX_DELAY ( TickType_t ) 0xffffffffUL
 #endif
 /*-----------------------------------------------------------*/
 
 /* Hardware specifics. */
-#define portSTACK_GROWTH			( -1 )
-#define portTICK_PERIOD_MS			( ( TickType_t ) 1000 / configTICK_RATE_HZ )
-#define portBYTE_ALIGNMENT			8
-#define portYIELD()					__asm ( "SWI 0" )
+#define portSTACK_GROWTH            ( -1 )
+#define portTICK_PERIOD_MS          ( ( TickType_t ) 1000 / configTICK_RATE_HZ )
+#define portBYTE_ALIGNMENT          8
+#define portYIELD()                 __asm ( "SWI 0" )
 #define portNOP()                   __asm ( "NOP" )
 
+#if (! CFG_SUPPORT_DJYOS)             //lst
 /*-----------------------------------------------------------*/
 /* Critical section handling. */
 void vPortEnterCritical( void );
 void vPortExitCritical( void );
 
-#define portENTER_CRITICAL()	    vPortEnterCritical()
-#define portEXIT_CRITICAL()			vPortExitCritical()
-
+#define portENTER_CRITICAL()        vPortEnterCritical()
+#define portEXIT_CRITICAL()         vPortExitCritical()
+#endif
 /*
  * Enable Interrupts
  */
@@ -132,35 +133,54 @@ extern void portENABLE_FIQ( void );
 
 extern uint32_t platform_is_in_interrupt_context( void );
 extern uint32_t platform_is_in_fiq_context( void );
-	
-#define portENABLE_INTERRUPTS()			do{		\
-			if(!platform_is_in_interrupt_context())\
-										    	portENABLE_IRQ();\
-			if(!platform_is_in_fiq_context())\
-										    	portENABLE_FIQ();\
-										    }while(0)
-										    
+#if (CFG_SUPPORT_DJYOS)             //lst
+#define portENABLE_INTERRUPTS()         do{     \
+            if(!Int_GetRunLevel())\
+                                            { \
+                                                portENABLE_IRQ();\
+                                                portENABLE_FIQ();\
+                                            } \
+                                        }while(0)
+
 /*
  * Disable Interrupts
  */
 extern int portDISABLE_FIQ(void);
 extern int portDISABLE_IRQ(void);
-	
-#define portDISABLE_INTERRUPTS()		do{		\
-										    	portDISABLE_FIQ();\
-										    	portDISABLE_IRQ();\
-										    }while(0)
-	
+
+#define portDISABLE_INTERRUPTS()        do{     \
+                                                portDISABLE_FIQ();\
+                                                portDISABLE_IRQ();\
+                                            }while(0)
+#else           // for #if (CFG_SUPPORT_DJYOS)
+#define portENABLE_INTERRUPTS()         do{     \
+            if(!platform_is_in_interrupt_context())\
+                                                portENABLE_IRQ();\
+            if(!platform_is_in_fiq_context())\
+                                                portENABLE_FIQ();\
+                                            }while(0)
+
+/*
+ * Disable Interrupts
+ */
+extern int portDISABLE_FIQ(void);
+extern int portDISABLE_IRQ(void);
+
+#define portDISABLE_INTERRUPTS()        do{     \
+                                                portDISABLE_FIQ();\
+                                                portDISABLE_IRQ();\
+                                            }while(0)
+#endif          // for #if (CFG_SUPPORT_DJYOS)
 /*-----------------------------------------------------------*/
 /* Task utilities. */
-#define portEND_SWITCHING_ISR( xSwitchRequired ) 	\
-{													\
-extern void vTaskSwitchContext( void ); 			\
-													\
-	if( xSwitchRequired )							\
-	{												\
-		vTaskSwitchContext();						\
-	}												\
+#define portEND_SWITCHING_ISR( xSwitchRequired )    \
+{                                                   \
+extern void vTaskSwitchContext( void );             \
+                                                    \
+    if( xSwitchRequired )                           \
+    {                                               \
+        vTaskSwitchContext();                       \
+    }                                               \
 }
 
 /* Task function macros as described on the FreeRTOS.org WEB site. */

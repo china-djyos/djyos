@@ -42,31 +42,101 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: CPU外设定义
-//作者:  lst
-//版本：V1.0.0
-//其他说明:
-//修订历史:
-//1. 日期: 2013-05-29
-//   作者:  lst.
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
-//------------------------------------------------------
-#ifndef __CPU_PERI_LOWPOWER_H__
-#define __CPU_PERI_LOWPOWER_H__
+#include <djyq.h>
+#include <stddef.h>
 
-#include <typedef.h>
-#include "manual_ps_pub.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void LP_BSP_ResigerGpioToWakeUpL4(PS_DEEP_WAKEUP_WAY way,u32 gpio_index,
-                                  u32 gpio_edge, u32 time);
-void LP_DeepSleep(void);
-#ifdef __cplusplus
+// queue
+void djyq_init(struct djyq_t *q)
+{
+    q->head = q->tail = NULL;
 }
-#endif
 
-#endif //__CPU_PERI_LOWPOWER_H__
+void djyq_append(struct djyq_t *q, struct djyq_node_t *n)
+{
+    n->next = NULL;
+    if (NULL == q->tail)
+    {
+        q->head = q->tail = n;
+    }
+    else
+    {
+        q->tail->next = n;
+        q->tail = n;
+    }
+}
+
+void djyq_remove(struct djyq_t *q, struct djyq_node_t *n)
+{
+    struct djyq_node_t *head = q->head;
+
+    if (head == n)
+    {
+        q->head = head->next;
+        if (NULL == q->head)
+        {
+            q->tail = NULL;
+        }
+    }
+    else if (head != NULL)
+    {
+        while (head->next != NULL)
+        {
+            if (head->next == n)
+            {
+                head->next = head->next->next;
+                if (NULL == head->next)
+                {
+                    q->tail = head;
+                }
+                break;
+            }
+            head = head->next;
+        }
+    }
+}
+
+void djyq_enqueue(struct djyq_t *q, struct djyq_node_t *n)
+{
+    struct djyq_node_t *tmp = q->head;
+
+    n->next = NULL;
+    if (NULL == tmp)
+    {
+        q->head = q->tail = n;
+    }
+    else if (tmp->addr >= n->addr)
+    {
+        n->next = tmp;
+        q->head = n;
+    }
+    else
+    {
+        while (tmp->next != NULL)
+        {
+            if (tmp->next->addr >= n->addr)
+            {
+                n->next = tmp->next;
+                tmp->next = n;
+                break;
+            }
+            tmp = tmp->next;
+        }
+        // insert last
+        tmp->next = n;
+    }
+}
+
+struct djyq_node_t* djyq_dequeue(struct djyq_t *q)
+{
+    struct djyq_node_t *head = q->head;
+    if (q->head != NULL)
+    {
+        q->head = q->head->next;
+        if (NULL == q->head)
+        {
+            q->tail = NULL;
+        }
+    }
+    return head;
+}
+

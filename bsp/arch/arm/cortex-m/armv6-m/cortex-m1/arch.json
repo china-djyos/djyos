@@ -1,0 +1,10 @@
+{
+	"compile-option":{
+		
+	},
+	"name":"cortex-m1",
+	"mcpu":"cortex-m1",
+	"vendor-option":{
+		
+	}
+}
