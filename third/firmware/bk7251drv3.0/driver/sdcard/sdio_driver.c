@@ -12,6 +12,10 @@
 #include "gpio_pub.h"
 #include "rtos_pub.h"
 
+#if CFG_SUPPORT_DJYOS       //CK
+#include "dbug.h"
+#endif
+
 /******************************************************************************/
 /**************************** platform function *******************************/
 /******************************************************************************/
@@ -148,7 +152,11 @@ SDIO_Error sdio_wait_cmd_response(UINT32 cmd)
     {
         if((cmd != 1))
         {
+#if CFG_SUPPORT_DJYOS       //CK
+            warning_printf("sdcard","sdcard cmd %x timeout,cmdresp_int_reg:0x%x\r\n", cmd , reg);
+#else
             SDCARD_WARN("sdcard cmd %x timeout,cmdresp_int_reg:0x%x\r\n", cmd , reg);
+#endif
         }
         return SD_CMD_RSP_TIMEOUT;
     }
@@ -157,7 +165,11 @@ SDIO_Error sdio_wait_cmd_response(UINT32 cmd)
 
         if((cmd != 41) && (cmd != 2) && (cmd != 9) && (cmd != 1))
         {
+#if CFG_SUPPORT_DJYOS       //CK
+            warning_printf("sdcard","sdcard cmd %x crcfail,cmdresp_int_reg:0x%x\r\n", cmd , reg);
+#else
             SDCARD_WARN("sdcard cmd %x crcfail,cmdresp_int_reg:0x%x\r\n", cmd , reg);
+#endif
             return SD_CMD_CRC_FAIL;
         }
     }
@@ -253,7 +265,11 @@ SDIO_Error sdcard_wait_receive_data(UINT8 *receive_buf)
     }
     if(reg & SDCARD_CMDRSP_DATA_CRC_FAIL)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        warning_printf("sdcard","sdcard data crcfail,cmdresp_int_reg:0x%x\r\n", reg);
+#else
         SDCARD_WARN("sdcard data crcfail,cmdresp_int_reg:0x%x\r\n", reg);
+#endif
         return SD_DATA_CRC_FAIL;
     }
 
@@ -427,7 +443,11 @@ int wait_Receive_Data(void)
         {
             if (status & SDCARD_CMDRSP_DATA_CRC_FAIL)
             {
+#if CFG_SUPPORT_DJYOS       //CK
+                info_printf("sdcard","aaa\r\n");
+#else
                 os_printf("aaa\r\n");
+#endif
                 //ret = SD_DATA_CRC_FAIL;
                 ret = SD_OK;
             }
