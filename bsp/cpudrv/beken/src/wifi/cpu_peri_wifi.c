@@ -375,7 +375,7 @@ void DjyWifi_StaConnect(char *ssid,char *connect_key)
 
 void DjyWifi_StaDisConnect(void)
 {
-    bk_wlan_stop(STATION);
+    bk_wlan_stop(BK_STATION);
     DJY_EventDelay(300*mS);//加个延时，如果断开立即快连，有时发不出去数据。
 }
 
@@ -386,7 +386,7 @@ void DjyWifi_ApOpen(char *ap_ssid, char *ap_key)
 
 void DjyWifi_ApClose(void)
 {
-    bk_wlan_stop(SOFT_AP);
+    bk_wlan_stop(BK_SOFT_AP);
 }
 
 extern int wpa_get_psk(char *psk);
@@ -396,7 +396,7 @@ void DjyWifi_StaConnectDone(void)
     LinkStatusTypeDef link_status;
     struct wlan_fast_connect ap_info;
     uint8_t len = 0;
-    if ((bk_wlan_get_link_status(&link_status) == kNoErr) && (SECURITY_TYPE_WEP != link_status.security))
+    if ((bk_wlan_get_link_status(&link_status) == kNoErr) && (BK_SECURITY_TYPE_WEP != link_status.security))
     {
         printf("info: %s, Write Quick Info Now!!!\r\n", __FUNCTION__);
         memset(&ap_info, 0, sizeof(struct wlan_fast_connect));//必须清空

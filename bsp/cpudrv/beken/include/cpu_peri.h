@@ -61,7 +61,7 @@ extern "C" {
 
 //包含外设所需的头文件"
 
-#include "bk_uart.h"
+#include "uart.h"
 #include "gpio_pub.h"
 #include "intc.h"
 #include "flash.h"
