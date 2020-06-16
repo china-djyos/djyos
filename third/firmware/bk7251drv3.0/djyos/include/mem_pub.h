@@ -2,7 +2,10 @@
 #define _MEM_PUB_H_
 
 #include <stdarg.h>
-
+#include <sys_config.h>
+#if CFG_SUPPORT_DJYOS       //CK
+#include <typedef.h>
+#endif
 INT32 os_memcmp(const void *s1, const void *s2, UINT32 n);
 void *os_memmove(void *out, const void *in, UINT32 n);
 void *os_memcpy(void *out, const void *in, UINT32 n);
