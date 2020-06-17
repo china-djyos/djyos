@@ -59,6 +59,7 @@
 #include "djytimer.h"
 #include "djy_wifi_config.h"
 #include "ieee802_11_demo.h"
+#include "rw_pub.h"
 #include "wlan_ui_pub.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -416,8 +417,13 @@ int GetConnectedRssiValue()
 {
     LinkStatusTypeDef link_status;
     int ret = 0;
+
     if (bk_wlan_get_link_status(&link_status) == kNoErr) {
-            if ((link_status.conn_state & RW_EVT_STA_GOT_IP) || (link_status.conn_state & RW_EVT_STA_CONNECTED)) {
+#if (CFG_SUPPORT_DJYOS)
+            if ((link_status.conn_state & RW_EVT_STA_GOT_IP) || (link_status.conn_state & RW_EVT_STA_CONNECTED )) {
+#else
+            if ((link_status.conn_state & MSG_GOT_IP) || (link_status.conn_state & MSG_CONN_SUCCESS )) {
+#endif
                 //printf("%s:ch[%d], rssi[%d]!\r\n", link_status.ssid, link_status.channel, link_status.wifi_strength);
                 ret = link_status.wifi_strength;
             }
@@ -492,8 +498,12 @@ bool_t __attribute__((weak)) FnNetDevEventHookEvent(struct NetDev* iface,enum Ne
 {
     switch(event)
      {
-         case EN_NETDEVEVENT_IPGET:
+        case EN_NETDEVEVENT_IPGET:
+#if (CFG_SUPPORT_DJYOS)
+             mhdr_set_station_status(RW_EVT_STA_GOT_IP); //for rf power save;
+#else
              mhdr_set_station_status(6/*MSG_GOT_IP*/); //for rf power save;
+#endif
              break;
          default:
              break;

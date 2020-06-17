@@ -94,12 +94,16 @@ static void kmsg_bk_thread_main( void *arg )
 
 static void init_thread_main( void *arg )
 {
+#if (!CFG_SUPPORT_DJYOS)
     GLOBAL_INT_START();
-
+#endif
     app_init();
     os_printf("app_init finished\r\n");
 
+#if (!CFG_SUPPORT_DJYOS)
     rtos_delete_thread( NULL );
+#endif
+
 }
 
 /** @brief  When in dtim rf off mode,user can manual wakeup before dtim wakeup time.
