@@ -417,7 +417,7 @@ int GetConnectedRssiValue()
     LinkStatusTypeDef link_status;
     int ret = 0;
     if (bk_wlan_get_link_status(&link_status) == kNoErr) {
-            if ((link_status.conn_state & MSG_GOT_IP) || (link_status.conn_state & MSG_CONN_SUCCESS)) {
+            if ((link_status.conn_state & RW_EVT_STA_GOT_IP) || (link_status.conn_state & RW_EVT_STA_CONNECTED)) {
                 //printf("%s:ch[%d], rssi[%d]!\r\n", link_status.ssid, link_status.channel, link_status.wifi_strength);
                 ret = link_status.wifi_strength;
             }

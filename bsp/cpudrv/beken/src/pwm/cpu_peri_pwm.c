@@ -154,7 +154,7 @@ int djy_pwm_stop(uint8_t channel)
     uint32_t param;
 
     param = channel;
-    ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UINT_DISABLE, &param);
+    ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UNIT_DISABLE, &param);
 
     if (DRV_SUCCESS == ret)
     {
