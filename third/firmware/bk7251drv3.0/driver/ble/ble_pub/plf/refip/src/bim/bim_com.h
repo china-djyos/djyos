@@ -2,10 +2,10 @@
 
 
 typedef unsigned char  BYTE;
-typedef signed   long  int32;      //  有符号32位整型变量
+typedef signed   int  int32;      //  有符号32位整型变量
 typedef signed   short int16;      //  有符号16位整型变量
 typedef signed   char  int8;       //  有符号8位整型变量 
-typedef unsigned long  uint32;     //  无符号32位整型变量
+typedef unsigned int  uint32;     //  无符号32位整型变量
 typedef unsigned short uint16;     //  无符号16位整型变量
 typedef unsigned char  uint8;      //  无符号8位整型变量 
 

@@ -80,7 +80,7 @@ u32 airkiss_process(u8 start);
 
 #if CFG_SARADC_CALIBRATE
 static void adc_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv);
-#endif 
+#endif
 
 static void cli_rx_callback(int uport, void *param);
 
@@ -242,7 +242,7 @@ static int handle_input(char *inbuf)
 
     os_memset(pCli->outbuf, 0, OUTBUF_SIZE);
     cli_putstr("\r\n");
-	
+
     #if CFG_USE_STA_PS
     /*if cmd,exit dtim ps*/
     if (os_strncmp(command->name, "ps", 2))
@@ -337,7 +337,7 @@ static int get_input(char *inbuf, unsigned int *bp)
                 int left = (int)ch, len = 4 + (int)ch;
                 inbuf[*bp] = ch;
                 (*bp)++;
-                
+
                 while(left--) {
                     cli_getchar(&ch);
                     inbuf[*bp] = ch;
@@ -354,15 +354,15 @@ static int get_input(char *inbuf, unsigned int *bp)
 #endif
         if (inbuf[*bp] == RET_CHAR)
             continue;
-        if (inbuf[*bp] == END_CHAR)  	/* end of input line */
+        if (inbuf[*bp] == END_CHAR)     /* end of input line */
         {
             inbuf[*bp] = '\0';
             *bp = 0;
             return 1;
         }
 
-        if ((inbuf[*bp] == 0x08) ||	/* backspace */
-                (inbuf[*bp] == 0x7f))  	/* DEL */
+        if ((inbuf[*bp] == 0x08) || /* backspace */
+                (inbuf[*bp] == 0x7f))   /* DEL */
         {
             if (*bp > 0)
             {
@@ -435,10 +435,10 @@ static void cli_main( uint32_t data )
 {
     bk_uart_set_rx_callback(CLI_UART, cli_rx_callback, NULL);
 
-	#if CFG_RF_OTA_TEST
-	demo_sta_app_init("CMW-AP", "12345678");
-	#endif /* CFG_RF_OTA_TEST*/
-	
+    #if CFG_RF_OTA_TEST
+    demo_sta_app_init("CMW-AP", "12345678");
+    #endif /* CFG_RF_OTA_TEST*/
+
     while (1)
     {
         int ret;
@@ -452,7 +452,7 @@ static void cli_main( uint32_t data )
 
             if (os_strcmp(msg, EXIT_MSG) == 0)
                 break;
-   
+
             ret = handle_input(msg);
             if (ret == 1)
                 print_bad_command(msg);
@@ -532,9 +532,9 @@ void wifiscan_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char *
 
     param.req_type = LAUNCH_REQ_PURE_STA_SCAN;
     rl_sta_request_enter(&param, 0);
-#else	
+#else
     demo_scan_app_init();
-#endif 
+#endif
 }
 
 void wifiadvscan_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -660,11 +660,11 @@ void add_virtual_intface(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
 void del_virtual_intface(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     char *type;
-    u8 role = 0xff; 
-	
-	#if CFG_ROLE_LAUNCH   
+    u8 role = 0xff;
+
+    #if CFG_ROLE_LAUNCH
     LAUNCH_REQ param;
-	#endif
+    #endif
 
     if(argc <= 1)
         return;
@@ -674,22 +674,22 @@ void del_virtual_intface(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
     if (!os_strncmp(type, "softap", sizeof("softap")))
     {
         role = BK_SOFT_AP;
-		
-		#if CFG_ROLE_LAUNCH
+
+        #if CFG_ROLE_LAUNCH
         param.req_type = LAUNCH_REQ_DELIF_AP;
 
-		rl_ap_request_enter(&param, 0);
-		#endif
+        rl_ap_request_enter(&param, 0);
+        #endif
     }
     else if(!os_strncmp(type, "sta", sizeof("sta")))
     {
         role = BK_STATION;
-		
-		#if CFG_ROLE_LAUNCH
+
+        #if CFG_ROLE_LAUNCH
         param.req_type = LAUNCH_REQ_DELIF_STA;
 
-		rl_sta_request_enter(&param, 0);
-		#endif
+        rl_sta_request_enter(&param, 0);
+        #endif
     }
 
     if(role == 0xff)
@@ -700,7 +700,7 @@ void del_virtual_intface(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
 
 #if (0 == CFG_ROLE_LAUNCH)
     bk_wlan_stop(role);
-#endif	
+#endif
 }
 
 void show_virtual_intface(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -800,7 +800,7 @@ void mtr_thread_main( void *arg )
 void mtr_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     uint32_t channel_num;
-	
+
     if(argc != 2)
     {
         os_printf("monitor_parameter invalid\r\n");
@@ -850,16 +850,16 @@ void sta_adv_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **
 
 void show_sta_psk(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
-	uint8_t *psk;
-	int i;
+    uint8_t *psk;
+    int i;
 
-	psk = wpas_get_sta_psk();
-	os_printf("John# show_sta_psk.r\n");
-	for ( i = 0 ; i < 32 ; i++ )
-	{
-	    os_printf("%02x ", psk[i]);
-	}
-	os_printf("\r\n");
+    psk = wpas_get_sta_psk();
+    os_printf("John# show_sta_psk.r\n");
+    for ( i = 0 ; i < 32 ; i++ )
+    {
+        os_printf("%02x ", psk[i]);
+    }
+    os_printf("\r\n");
 }
 
 void sta_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -941,7 +941,7 @@ void temp_detect_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
 
     if(start == 0)
         temp_detect_pause_timer();
-    else 
+    else
         temp_detect_restart_detect();
 }
 #endif
@@ -992,7 +992,7 @@ void pwm_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv
     bk_pwm_t pwm;
     uint32_t frequency;
     uint32_t duty_cycle;
-    
+
     if(4 != argc)
     {
         os_printf("parameters are exceptional\r\n");
@@ -1001,7 +1001,7 @@ void pwm_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv
 
         return;
     }
-    
+
     /*get the parameters from command line*/
     pwm = os_strtoul(argv[1], NULL, 10);
     frequency = os_strtoul(argv[2], NULL, 10);
@@ -1074,7 +1074,7 @@ void get_version(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv
 void reboot(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     UINT32 wdt_val = 1;
-    
+
 #if CFG_USE_STA_PS
     GLOBAL_INT_DECLARATION();
 
@@ -1086,7 +1086,7 @@ void reboot(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
     }
     else
     {
-#endif        
+#endif
 
     os_printf("wdt reboot\r\n");
     sddev_control(WDT_DEV_NAME, WCMD_SET_PERIOD, &wdt_val);
@@ -1094,7 +1094,7 @@ void reboot(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 #if CFG_USE_STA_PS
     }
     GLOBAL_INT_RESTORE();
-#endif        
+#endif
 }
 
 static void echo_cmd_handler(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -1237,7 +1237,7 @@ static void sd_operate(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
 #endif
 /*
 format: FLASH  E/R/W  0xABCD
-example:	    FLASH  R  0x00100
+example:        FLASH  R  0x00100
 
 */
 
@@ -1251,47 +1251,47 @@ static void flash_command_test(char *pcWriteBuffer, int xWriteBufferLen, int arg
     char cmd = 0;
     uint32_t len = 0;
     uint32_t addr = 0;
-	
+
     if(argc == 4)
     {
         cmd = argv[1][0];
-		addr = atoi(argv[2]);
-		len = atoi(argv[3]);
+        addr = atoi(argv[2]);
+        len = atoi(argv[3]);
 
-       	switch(cmd)
+        switch(cmd)
         {
-	        case 'E':
-				bk_flash_enable_security(FLASH_PROTECT_NONE);
-				test_flash_erase(addr,len);
-				bk_flash_enable_security(FLASH_UNPROTECT_LAST_BLOCK);
-	         break;
-			  
-        	case 'R':
-				test_flash_read(addr,len);
-	            break;
-	        case 'W':
-		        bk_flash_enable_security(FLASH_PROTECT_NONE);
-				test_flash_write(addr,len);
-				bk_flash_enable_security(FLASH_UNPROTECT_LAST_BLOCK);
-	         break;
-	//to check whether protection mechanism can work
-			case 'N':
-				test_flash_erase(addr,len);
-				break;
-			case 'M':
-				test_flash_write(addr,len);
-				break;
+            case 'E':
+                bk_flash_enable_security(FLASH_PROTECT_NONE);
+                test_flash_erase(addr,len);
+                bk_flash_enable_security(FLASH_UNPROTECT_LAST_BLOCK);
+             break;
+
+            case 'R':
+                test_flash_read(addr,len);
+                break;
+            case 'W':
+                bk_flash_enable_security(FLASH_PROTECT_NONE);
+                test_flash_write(addr,len);
+                bk_flash_enable_security(FLASH_UNPROTECT_LAST_BLOCK);
+             break;
+    //to check whether protection mechanism can work
+            case 'N':
+                test_flash_erase(addr,len);
+                break;
+            case 'M':
+                test_flash_write(addr,len);
+                break;
             case 'T':
-				test_flash_read_time(addr,len);
-				break;
-        	default:
+                test_flash_read_time(addr,len);
+                break;
+            default:
             break;
         }
     }
-	else
-	{
-		os_printf("FLASH <R/W/E/M/N/T> <start_addr> <len>\r\n");
-	}
+    else
+    {
+        os_printf("FLASH <R/W/E/M/N/T> <start_addr> <len>\r\n");
+    }
 }
 
 /*UART  I  index
@@ -1337,16 +1337,16 @@ static void rx_sens_cmd_test(char *pcWriteBuffer, int xWriteBufferLen, int argc,
 static void efuse_cmd_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     uint8_t addr, data;
-    
+
     if(argc == 3)
     {
         if (os_strncmp(argv[1], "-r", 2) == 0) {
             hexstr2bin(argv[2], &addr, 1);
             os_printf("efuse read: addr-0x%02x, data-0x%02x\r\n",
                         addr, wifi_read_efuse(addr));
-        } 
-    } 
-    else if(argc == 4) 
+        }
+    }
+    else if(argc == 4)
     {
         if(os_strncmp(argv[1], "-w", 2) == 0)  {
             hexstr2bin(argv[2], &addr, 1);
@@ -1363,7 +1363,7 @@ static void efuse_cmd_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, c
 static void efuse_mac_cmd_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     uint8_t mac[6];
-    
+
     if (argc == 1)
     {
         if(wifi_get_mac_address_from_efuse(mac))
@@ -1376,9 +1376,9 @@ static void efuse_mac_cmd_test(char *pcWriteBuffer, int xWriteBufferLen, int arg
             if(wifi_get_mac_address_from_efuse(mac))
                 os_printf("MAC address: %02x-%02x-%02x-%02x-%02x-%02x\r\n",
                         mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-        } 
-    } 
-    else if(argc == 3) 
+        }
+    }
+    else if(argc == 3)
     {
         if(os_strncmp(argv[1], "-w", 2) == 0)  {
             hexstr2bin(argv[2], mac, 6);
@@ -1434,27 +1434,27 @@ void bkreg_cmd_handle_input(char *inbuf, int len)
 
 static void phy_cca_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
-	if(argc != 2) 
-	{
-		os_printf("cca open\r\n");
-		os_printf("cca close\r\n");
-		os_printf("cca show\r\n");
-		return;
-	}
+    if(argc != 2)
+    {
+        os_printf("cca open\r\n");
+        os_printf("cca close\r\n");
+        os_printf("cca show\r\n");
+        return;
+    }
 
-	if (os_strncmp(argv[1], "open", 4) == 0) {
-		phy_open_cca();
-		os_printf("cca opened\r\n");
-	} else if (os_strncmp(argv[1], "close", 4) == 0) {
-		phy_close_cca();
-		os_printf("cca closed\r\n");
-	} else if (os_strncmp(argv[1], "show", 4) == 0) {
-		phy_show_cca();
-	} else {
-		os_printf("cca open\r\n");
-		os_printf("cca close\r\n");
-		os_printf("cca show\r\n");
-	}
+    if (os_strncmp(argv[1], "open", 4) == 0) {
+        phy_open_cca();
+        os_printf("cca opened\r\n");
+    } else if (os_strncmp(argv[1], "close", 4) == 0) {
+        phy_close_cca();
+        os_printf("cca closed\r\n");
+    } else if (os_strncmp(argv[1], "show", 4) == 0) {
+        phy_show_cca();
+    } else {
+        os_printf("cca open\r\n");
+        os_printf("cca close\r\n");
+        os_printf("cca show\r\n");
+    }
 }
 
 #if CFG_SUPPORT_OTA_TFTP
@@ -1463,8 +1463,8 @@ extern void string_to_ip(char *s);
 static void tftp_ota_get_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     short len = 0,i;
-    extern char		BootFile[] ;
- 
+    extern char     BootFile[] ;
+
     if(argc > 3 )
         {
         os_printf("ota server_ip ota_file\r\n");
@@ -1501,30 +1501,30 @@ void http_client_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
     if ( argc != 2 )
     {
         goto HTTP_CMD_ERR;
-    }    
+    }
     os_memset(&httpclient, 0, sizeof(httpclient_t));
     os_memset(&httpclient_data, 0, sizeof(httpclient_data));
     os_memset(&http_content, 0, sizeof(HTTP_RESP_CONTENT_LEN));
-    httpclient.header = "Accept: text/xml,text/html,\r\n"; 
-    httpclient_data.response_buf = http_content; 
+    httpclient.header = "Accept: text/xml,text/html,\r\n";
+    httpclient_data.response_buf = http_content;
     httpclient_data.response_content_len = HTTP_RESP_CONTENT_LEN;
     ret = httpclient_common(&httpclient,
-        argv[1],  
-        80,  
+        argv[1],
+        80,
         NULL,
-        HTTPCLIENT_GET, 
+        HTTPCLIENT_GET,
         5000,
-        &httpclient_data); 
-    if (0 != ret) { 
+        &httpclient_data);
+    if (0 != ret) {
         os_printf("request epoch time from remote server failed.");
-        } else {  
+        } else {
         os_printf("sucess.\r\n");
     }
 
     return;
 HTTP_CMD_ERR:
     os_printf("Usage:httpc [url:]\r\n");
-        
+
 }
 #endif
 static void reg_write_read_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -1534,10 +1534,10 @@ static void reg_write_read_test(char *pcWriteBuffer, int xWriteBufferLen, int ar
 
     os_memset(optr_tab, 0, 9);
     os_memset(optr_tab, 0x30, 8);
-    
-    if(os_strncmp(argv[1], "-r", 2) == 0) 
+
+    if(os_strncmp(argv[1], "-r", 2) == 0)
     {
-        if(argc != 3) 
+        if(argc != 3)
         {
             os_printf("regshow -r addr\r\n");
             return;
@@ -1551,19 +1551,19 @@ static void reg_write_read_test(char *pcWriteBuffer, int xWriteBufferLen, int ar
         }
         optr_len = 8 - optr_len;
         os_memcpy(&optr_tab[optr_len], argv[2], os_strlen(argv[2]));
-                
+
         hexstr2bin(optr_tab, (u8 *)&reg_addr, 4);
-        reg_addr = ntohl(reg_addr);    
+        reg_addr = ntohl(reg_addr);
         os_printf("regshow R: addr:0x%08x, value:0x%08x\r\n", reg_addr, REG_READ(reg_addr));
     }
-    else if(os_strncmp(argv[1], "-w", 2) == 0) 
+    else if(os_strncmp(argv[1], "-w", 2) == 0)
     {
-        if(argc != 4) 
+        if(argc != 4)
         {
             os_printf("regshow -w addr value\r\n");
             return;
         }
-        
+
         optr_len = os_strlen(argv[2]);
         if(optr_len > 8)
         {
@@ -1572,7 +1572,7 @@ static void reg_write_read_test(char *pcWriteBuffer, int xWriteBufferLen, int ar
         }
         optr_len = 8 - optr_len;
         os_memcpy(&optr_tab[optr_len], argv[2], os_strlen(argv[2]));
-        
+
         hexstr2bin(optr_tab, (u8 *)&reg_addr, 4);
         reg_addr = ntohl(reg_addr);
 
@@ -1588,18 +1588,18 @@ static void reg_write_read_test(char *pcWriteBuffer, int xWriteBufferLen, int ar
         os_memcpy(&optr_tab[optr_len], argv[3], os_strlen(argv[3]));
         hexstr2bin(optr_tab, (u8 *)&reg_value, 4);
         reg_value = ntohl(reg_value);
-        
+
         REG_WRITE(reg_addr, reg_value);
 
         extern INT32 rwnx_cal_save_trx_rcbekn_reg_val(void);
         // when write trx and rc beken regs, updata registers save.
         if( (reg_addr & 0xfff0000) == 0x1050000)
             rwnx_cal_save_trx_rcbekn_reg_val();
-        
-        os_printf("regshow W: addr:0x%08x, value:0x%08x - check:0x%08x\r\n", 
+
+        os_printf("regshow W: addr:0x%08x, value:0x%08x - check:0x%08x\r\n",
             reg_addr, reg_value, REG_READ(reg_addr));
     }
-    else 
+    else
     {
         os_printf("regshow -w/r addr [value]\r\n");
     }
@@ -1622,43 +1622,43 @@ static const uint8_t test_svc_uuid[16] = {0xFF,0xFF,0,0,0x34,0x56,0,0,0,0,0x28,0
 
 enum
 {
-	TEST_IDX_SVC,	 
-	TEST_IDX_FF01_VAL_CHAR,
-	TEST_IDX_FF01_VAL_VALUE,
-	TEST_IDX_FF02_VAL_CHAR,
-	TEST_IDX_FF02_VAL_VALUE,
-	TEST_IDX_FF02_VAL_IND_CFG,
-	TEST_IDX_FF03_VAL_CHAR,
-	TEST_IDX_FF03_VAL_VALUE,
-	TEST_IDX_FF03_VAL_NTF_CFG,
-	TEST_IDX_NB,
+    TEST_IDX_SVC,
+    TEST_IDX_FF01_VAL_CHAR,
+    TEST_IDX_FF01_VAL_VALUE,
+    TEST_IDX_FF02_VAL_CHAR,
+    TEST_IDX_FF02_VAL_VALUE,
+    TEST_IDX_FF02_VAL_IND_CFG,
+    TEST_IDX_FF03_VAL_CHAR,
+    TEST_IDX_FF03_VAL_VALUE,
+    TEST_IDX_FF03_VAL_NTF_CFG,
+    TEST_IDX_NB,
 };
 
 bk_attm_desc_t test_att_db[TEST_IDX_NB] =
 {
-	//  Service Declaration
-	[TEST_IDX_SVC]              = {BK_ATT_DECL_PRIMARY_SERVICE_128, BK_PERM_SET(RD, ENABLE), 0, 0},
-	
-	//  Level Characteristic Declaration
-	[TEST_IDX_FF01_VAL_CHAR]    = {BK_ATT_DECL_CHARACTERISTIC_128,  BK_PERM_SET(RD, ENABLE), 0, 0},
-	//  Level Characteristic Value
-	[TEST_IDX_FF01_VAL_VALUE]   = {WRITE_REQ_CHARACTERISTIC_128,    BK_PERM_SET(WRITE_REQ, ENABLE), BK_PERM_SET(RI, ENABLE)|BK_PERM_SET(UUID_LEN, UUID_16), 128},
-	
-	[TEST_IDX_FF02_VAL_CHAR]    = {BK_ATT_DECL_CHARACTERISTIC_128,  BK_PERM_SET(RD, ENABLE), 0, 0},
-	//  Level Characteristic Value
-	[TEST_IDX_FF02_VAL_VALUE]   = {INDICATE_CHARACTERISTIC_128,     BK_PERM_SET(IND, ENABLE), BK_PERM_SET(RI, ENABLE)|BK_PERM_SET(UUID_LEN, UUID_16), 128},
+    //  Service Declaration
+    [TEST_IDX_SVC]              = {BK_ATT_DECL_PRIMARY_SERVICE_128, BK_PERM_SET(RD, ENABLE), 0, 0},
 
-	//  Level Characteristic - Client Characteristic Configuration Descriptor
+    //  Level Characteristic Declaration
+    [TEST_IDX_FF01_VAL_CHAR]    = {BK_ATT_DECL_CHARACTERISTIC_128,  BK_PERM_SET(RD, ENABLE), 0, 0},
+    //  Level Characteristic Value
+    [TEST_IDX_FF01_VAL_VALUE]   = {WRITE_REQ_CHARACTERISTIC_128,    BK_PERM_SET(WRITE_REQ, ENABLE), BK_PERM_SET(RI, ENABLE)|BK_PERM_SET(UUID_LEN, UUID_16), 128},
 
-	[TEST_IDX_FF02_VAL_IND_CFG] = {BK_ATT_DESC_CLIENT_CHAR_CFG_128, BK_PERM_SET(RD, ENABLE)|BK_PERM_SET(WRITE_REQ, ENABLE), 0, 0},
+    [TEST_IDX_FF02_VAL_CHAR]    = {BK_ATT_DECL_CHARACTERISTIC_128,  BK_PERM_SET(RD, ENABLE), 0, 0},
+    //  Level Characteristic Value
+    [TEST_IDX_FF02_VAL_VALUE]   = {INDICATE_CHARACTERISTIC_128,     BK_PERM_SET(IND, ENABLE), BK_PERM_SET(RI, ENABLE)|BK_PERM_SET(UUID_LEN, UUID_16), 128},
+
+    //  Level Characteristic - Client Characteristic Configuration Descriptor
+
+    [TEST_IDX_FF02_VAL_IND_CFG] = {BK_ATT_DESC_CLIENT_CHAR_CFG_128, BK_PERM_SET(RD, ENABLE)|BK_PERM_SET(WRITE_REQ, ENABLE), 0, 0},
 
     [TEST_IDX_FF03_VAL_CHAR]    = {BK_ATT_DECL_CHARACTERISTIC_128,  BK_PERM_SET(RD, ENABLE), 0, 0},
-	//  Level Characteristic Value
-	[TEST_IDX_FF03_VAL_VALUE]   = {NOTIFY_CHARACTERISTIC_128,       BK_PERM_SET(NTF, ENABLE), BK_PERM_SET(RI, ENABLE)|BK_PERM_SET(UUID_LEN, UUID_16), 128},
+    //  Level Characteristic Value
+    [TEST_IDX_FF03_VAL_VALUE]   = {NOTIFY_CHARACTERISTIC_128,       BK_PERM_SET(NTF, ENABLE), BK_PERM_SET(RI, ENABLE)|BK_PERM_SET(UUID_LEN, UUID_16), 128},
 
-	//  Level Characteristic - Client Characteristic Configuration Descriptor
+    //  Level Characteristic - Client Characteristic Configuration Descriptor
 
-	[TEST_IDX_FF03_VAL_NTF_CFG] = {BK_ATT_DESC_CLIENT_CHAR_CFG_128, BK_PERM_SET(RD, ENABLE)|BK_PERM_SET(WRITE_REQ, ENABLE), 0, 0},
+    [TEST_IDX_FF03_VAL_NTF_CFG] = {BK_ATT_DESC_CLIENT_CHAR_CFG_128, BK_PERM_SET(RD, ENABLE)|BK_PERM_SET(WRITE_REQ, ENABLE), 0, 0},
 };
 
 ble_err_t bk_ble_init(void)
@@ -1681,7 +1681,7 @@ ble_err_t bk_ble_init(void)
 void appm_adv_data_decode(uint8_t len, const uint8_t *data)
 {
     uint8_t index;
-	uint8_t i;
+    uint8_t i;
     for(index = 0; index < len;)
     {
         switch(data[index + 1])
@@ -1794,7 +1794,7 @@ void ble_event_callback(ble_event_t event, void *param)
                 os_printf("%02x ", ((struct ble_gen_dh_key_ind *)param)->result[i]);
             }
             os_printf("\r\n");
-        }    
+        }
         break;
         case BLE_GET_KEY:
         {
@@ -1805,7 +1805,7 @@ void ble_event_callback(ble_event_t event, void *param)
                 os_printf("%02x ", ((struct ble_get_key_ind *)param)->pri_key[i]);
             }
             os_printf("\r\n");
-        }    
+        }
         break;
         case BLE_CREATE_DB_OK:
         {
@@ -1821,9 +1821,9 @@ void ble_event_callback(ble_event_t event, void *param)
 static void ble_command_usage(void)
 {
     os_printf("ble help           - Help information\r\n");
-    os_printf("ble active         - Active ble to with BK7231BTxxx\r\n");    
-	os_printf("ble start_adv      - Start advertising as a slave device\r\n");
-	os_printf("ble stop_adv       - Stop advertising as a slave device\r\n");
+    os_printf("ble active         - Active ble to with BK7231BTxxx\r\n");
+    os_printf("ble start_adv      - Start advertising as a slave device\r\n");
+    os_printf("ble stop_adv       - Stop advertising as a slave device\r\n");
     os_printf("ble notify prf_id att_id value\r\n");
     os_printf("                   - Send ntf value to master\r\n");
     os_printf("ble indicate prf_id att_id value\r\n");
@@ -1841,10 +1841,10 @@ static void ble_get_info_handler(void)
         os_printf("no ble startup          \r\n");
         return;
     }
-    ble_mac = ble_get_mac_addr();    
+    ble_mac = ble_get_mac_addr();
     os_printf("* name: %s             \r\n", ble_get_name());
-    os_printf("* mac:%02x-%02x-%02x-%02x-%02x-%02x\r\n", ble_mac[0], ble_mac[1],ble_mac[2],ble_mac[3],ble_mac[4],ble_mac[5]);  
-    os_printf("***********  end  *****************\r\n");     
+    os_printf("* mac:%02x-%02x-%02x-%02x-%02x-%02x\r\n", ble_mac[0], ble_mac[1],ble_mac[2],ble_mac[3],ble_mac[4],ble_mac[5]);
+    os_printf("***********  end  *****************\r\n");
 }
 
 typedef adv_info_t ble_adv_param_t;
@@ -1888,7 +1888,7 @@ static void ble_advertise(void)
     }
 }
 
-static void ble_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
+/*static*/ void ble_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     ble_adv_param_t adv_param;
 
@@ -1905,8 +1905,8 @@ static void ble_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
         ble_set_read_cb(ble_read_callback);
         ble_set_event_cb(ble_event_callback);
     }
-	else if(os_strcmp(argv[1], "start_adv") == 0)
-    { 
+    else if(os_strcmp(argv[1], "start_adv") == 0)
+    {
         ble_advertise();
     }
     else if(os_strcmp(argv[1], "stop_adv") == 0)
@@ -1922,7 +1922,7 @@ static void ble_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
         uint16 prf_id;
         uint16 att_id;
         uint8 write_buffer[20];
-        
+
         if(argc != 5)
         {
             ble_command_usage();
@@ -1951,7 +1951,7 @@ static void ble_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
         uint16 prf_id;
         uint16 att_id;
         uint8 write_buffer[20];
-        
+
         if(argc != 5)
         {
             ble_command_usage();
@@ -2019,7 +2019,7 @@ static const struct cli_command built_ins[] =
     {"memp", "print memp list", memp_dump_Command},
 
     {"reboot", "reboot system", reboot},
-    
+
     {"time",     "system time",                 uptime_Command},
     {"flash",    "Flash memory map",            partShow_Command},
 
@@ -2041,11 +2041,11 @@ static const struct cli_command built_ins[] =
 
     {"easylink", "start easylink", easylink_Command},
 #if CFG_AIRKISS_TEST
-    {"airkiss", "start airkiss", airkiss_Command},    
+    {"airkiss", "start airkiss", airkiss_Command},
     {"air_kiss", "control airkiss", air_kiss_command},
 #endif
-#if CFG_SUPPORT_OTA_TFTP	
-	{"tftpota", "tftpota [ip] [file]", tftp_ota_get_Command},
+#if CFG_SUPPORT_OTA_TFTP
+    {"tftpota", "tftpota [ip] [file]", tftp_ota_get_Command},
 #endif
 
 #if CFG_USE_SDCARD_HOST
@@ -2056,11 +2056,11 @@ static const struct cli_command built_ins[] =
     {"tmpdetect", "tmpdetect <cmd>", temp_detect_Command},
 #endif
 #if CFG_SUPPORT_OTA_HTTP
-	{"httpc", "http client", http_client_Command},
+    {"httpc", "http client", http_client_Command},
 #endif
     {"regshow", "regshow -w/r addr [value]", reg_write_read_test},
 
-	{"cca", "cca open\\close\\show", phy_cca_test},
+    {"cca", "cca open\\close\\show", phy_cca_test},
 #if ((CFG_SOC_NAME != SOC_BK7231) && (CFG_SUPPORT_BLE == 1))
     {"ble", "ble arg1 arg2",  ble_command},
 #endif
@@ -2275,20 +2275,20 @@ void pwr_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv
 static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     UINT32 dtim = 0;
-	UINT32 gpio_index = 0;
-	#if PS_SUPPORT_MANUAL_SLEEP
+    UINT32 gpio_index = 0;
+    #if PS_SUPPORT_MANUAL_SLEEP
     UINT32 standby_time = 0;
     UINT32 dtim_wait_time = 0;
-	#endif
-  
+    #endif
+
     UINT32 param;
     UINT32 ret;
     UINT32 dtim_data_wait_time = 0;
     UINT32 dtim_uart_wait_time = 0;
-	PS_DEEP_CTRL_PARAM deep_sleep_param;
-	deep_sleep_param.gpio_index_map = gpio_index;
-	deep_sleep_param.gpio_edge_map  = dtim;
-	deep_sleep_param.wake_up_way = PS_DEEP_WAKEUP_GPIO;
+    PS_DEEP_CTRL_PARAM deep_sleep_param;
+    deep_sleep_param.gpio_index_map = gpio_index;
+    deep_sleep_param.gpio_edge_map  = dtim;
+    deep_sleep_param.wake_up_way = PS_DEEP_WAKEUP_GPIO;
 
     if(argc < 3)
     {
@@ -2301,7 +2301,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         {
             goto IDLE_CMD_ERR;
         }
-    
+
         gpio_index = os_strtoul(argv[2], NULL, 16);
         dtim = os_strtoul(argv[3], NULL, 16);
 
@@ -2315,7 +2315,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         {
             goto IDLE_CMD_ERR;
         }
-    
+
         dtim = os_strtoul(argv[2], NULL, 10);
         if(dtim == 1)
         {
@@ -2337,8 +2337,8 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         if(argc != 3)
         {
             goto IDLE_CMD_ERR;
-        }    
-        
+        }
+
         bk_wlan_dtim_rf_ps_mode_do_wakeup();
     }
     else if(0 == os_strcmp(argv[1], "rfdtim"))
@@ -2347,18 +2347,18 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         {
             goto IDLE_CMD_ERR;
         }
-    
+
         dtim = os_strtoul(argv[2], NULL, 10);
         if(dtim == 1)
         {
             if (bk_wlan_dtim_rf_ps_mode_enable())
-				os_printf("dtim enable failed\r\n");
+                os_printf("dtim enable failed\r\n");
         }
         else if(dtim == 0)
         {
             if (bk_wlan_dtim_rf_ps_mode_disable())
-				os_printf("dtim disable failed\r\n");
-        }        
+                os_printf("dtim disable failed\r\n");
+        }
         else
         {
             goto IDLE_CMD_ERR;
@@ -2402,7 +2402,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         {
             goto IDLE_CMD_ERR;
         }
-    }  
+    }
     else if(0 == os_strcmp(argv[1], "lingtm"))
     {
         if(argc != 3)
@@ -2460,7 +2460,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
             goto IDLE_CMD_ERR;
         }
         #endif
-    }    
+    }
     else if(0 == os_strcmp(argv[1], "listen"))
     {
         if(argc != 4)
@@ -2495,7 +2495,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         if(argc != 4)
         {
             goto IDLE_CMD_ERR;
-        }    
+        }
 
         dtim = os_strtoul(argv[2], NULL, 10);
         standby_time = os_strtoul(argv[3], NULL, 10);
@@ -2527,7 +2527,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         {
             goto IDLE_CMD_ERR;
         }
-        
+
         dtim_wait_time = os_strtoul(argv[2], NULL, 10);
         dtim = os_strtoul(argv[3], NULL, 16);
         gpio_index = os_strtoul(argv[4], NULL, 16);
@@ -2540,8 +2540,8 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         bk_wlan_ps_wakeup_with_gpio(dtim_wait_time,dtim, gpio_index);
         os_printf("exit \r\n");
     }
-    
-    #endif    
+
+    #endif
     else
     {
         goto IDLE_CMD_ERR;
@@ -2591,7 +2591,7 @@ static void adc_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
     saradc_cal_val_t p_ADC_cal;
     float voltage = 0.0;
     saradc_desc_t *p_ADC_drv_desc = NULL;
-        
+
     if(argc < 2)
         goto IDLE_CMD_ERR;
 
@@ -2613,7 +2613,7 @@ static void adc_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
             os_printf("malloc1 failed!\r\n");
             return;
         }
-        
+
         saradc_config_param_init(p_ADC_drv_desc);
 
         p_ADC_drv_desc->data_buff_size = ADC_TEMP_BUFFER_SIZE;
@@ -2676,7 +2676,7 @@ static void adc_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
         p_ADC_drv_desc = (saradc_desc_t *)os_malloc(sizeof(saradc_desc_t));
         if (p_ADC_drv_desc == NULL)
         {
-        	os_printf("malloc1 failed!\r\n");
+            os_printf("malloc1 failed!\r\n");
             return;
         }
 
@@ -2685,7 +2685,7 @@ static void adc_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
         p_ADC_drv_desc->data_buff_size = ADC_TEMP_BUFFER_SIZE;
         p_ADC_drv_desc->mode = (ADC_CONFIG_MODE_CONTINUE << 0)
                                | (ADC_CONFIG_MODE_36DIV << 2);
-                               
+
         p_ADC_drv_desc->has_data                = 0;
         p_ADC_drv_desc->current_read_data_cnt   = 0;
         p_ADC_drv_desc->current_sample_data_cnt = 0;
@@ -2712,18 +2712,18 @@ static void adc_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
             }
         }
         voltage = saradc_calculate(p_ADC_drv_desc->pData[4]);
-        
+
         os_printf("voltage is [%f]\r\n", voltage);
         os_free(p_ADC_drv_desc->pData);
         os_free(p_ADC_drv_desc);
         return;
-        
+
     }*/
     else
     {
         goto IDLE_CMD_ERR;
     }
-    
+
     return;
 IDLE_CMD_ERR:
     os_printf("Usage:ps [func] [param]\r\n");
@@ -2732,8 +2732,8 @@ IDLE_CMD_ERR:
 
 static void cli_rx_callback(int uport, void *param)
 {
-	if(log_rx_interrupt_sema)
-    	bk_rtos_set_semaphore(&log_rx_interrupt_sema);
+    if(log_rx_interrupt_sema)
+        bk_rtos_set_semaphore(&log_rx_interrupt_sema);
 }
 
 /* ========= CLI input&output APIs ============ */
@@ -2807,7 +2807,7 @@ static const struct cli_command user_clis[] =
     {"channel", "channel []", channel_Command},
     {"mac", "mac <mac>, Get mac/Set mac. <mac>: c89346000001", mac_command},
     {"ps", "ps [func] [param]", Ps_Command},
-    
+
 #ifdef TCP_CLIENT_DEMO
     {"tcp_cont", "tcp_cont [ip] [port]", tcp_make_connect_server_command},
 #endif

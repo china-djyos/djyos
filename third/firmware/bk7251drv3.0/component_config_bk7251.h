@@ -38,7 +38,7 @@
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯
 //%$#@exclude
 //../common;../alios;../os;
-//../driver/ble;../driver/codec;../driver/fft;
+//../driver/codec;../driver/fft;
 //../driver/i2c;../driver/i2s;../driver/irda;../driver/jpeg;../driver/rc_beken;
 //../driver/sdio;../driver/spidma;../driver/usb;
 //../driver/driver.c;../driver/SConscript;../driver/pwm/timer.c;
@@ -57,7 +57,22 @@
 //../app/standalone-ap;../app/standalone-station;
 //../common;
 //../demo;
-//../driver;
+//../driver;../driver/ble;
+//../driver/ble;../driver/ble/ble_pub/modules/rwip/api;../driver/ble/ble_lib/ip/ble/ll/src/rwble;
+//../driver/ble/ble_lib/ip/ble/hl/inc;../driver/ble/ble_lib/ip/ble/hl/api;
+//../driver/ble/ble_pub/ip/ble/hl/inc;../driver/ble/ble_pub/plf/refip/src/arch;
+//../driver/ble/ble_pub/modules/app/api;../driver/ble/ble_pub/plf/refip/src/arch/compiler;
+//../driver/ble/ble_pub/plf/refip/src/build/ble_full/reg/fw;../driver/ble/ble_pub/plf/refip/src/arch/ll;
+//../driver/ble/ble_pub/plf/refip/src/driver/reg;../driver/ble/ble_pub/modules/common/api;
+//../driver/ble/ble_lib/ip/em/api;../driver/ble/ble_lib/ip/ble/ll/src/em;
+//../driver/ble/ble_lib/modules/h4tl/api;../driver/ble/ble_pub/modules/dbg/api;
+//../driver/ble/ble_lib/ip/ea/api;../driver/ble/ble_pub/modules/rf/api;
+//../driver/ble/ble_pub/plf/refip/src/driver/ble_icu;../driver/ble/ble_lib/modules/ke/api;
+//../driver/ble/ble_lib/ip/hci/api;../driver/ble/ble_pub/modules/ecc_p256/api;
+//../driver/ble/ble_lib/ip/ble/ll/src/llc;../driver/ble/ble_lib/ip/ble/ll/src/llm;
+//../driver/ble/ble_lib/ip/ble/ll/src/lld;../driver/ble/ble_lib/modules/ke/src;
+//../driver/ble/ble_lib/ip/ahi/api;../driver/ble/ble_pub/ip/ble/profiles/sdp/api;
+//../driver/ble/ble_pub/ip/ble/profiles/comm/api;../driver/ble/ble_lib/ip/ble/hl/src/gatt/atts;
 //../driver/audio;../driver/common;../driver/common/reg;../driver/demo;../driver/sdcard;../driver/icu;
 //../driver/dma;../driver/flash;../driver/entry;../driver/include;../driver/gpio;../driver/intc;
 //../driver/phy;../driver/pwm;../driver/sys_ctrl;../driver/uart;../driver/qspi;
