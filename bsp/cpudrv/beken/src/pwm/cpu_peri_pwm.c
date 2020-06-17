@@ -157,7 +157,7 @@ int djy_pwm_stop(uint8_t channel)
 #if (CFG_SUPPORT_DJYOS)
     ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UNIT_DISABLE, &param);
 #else
-    ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UINT_DISABLE, &param);
+    ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UNIT_DISABLE, &param);
 #endif
     if (DRV_SUCCESS == ret)
     {
