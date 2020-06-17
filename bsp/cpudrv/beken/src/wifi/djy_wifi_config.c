@@ -4,7 +4,8 @@
  *  Created on: 2019年7月20日
  *      Author: cc
  */
-
+//文件说明：博通的 SDK 包与lwip绑定，直接使用lwip的包管理，移植到djyos时，就需要在djyos
+//中实现lwip的包管理。
 
 #include <stdint.h>
 #include "djy_wifi_config.h"
@@ -37,7 +38,7 @@ static struct NetPkg * pbuf2pkg(struct pbuf * p)
 static struct pbuf * pkg2pbuf(struct NetPkg * pkg)
 {
     struct djypbuf* mypbuf;
-    u8*p;
+    u8 *p;
 
     if (pkg == NULL)
         return NULL;
@@ -46,7 +47,7 @@ static struct pbuf * pkg2pbuf(struct NetPkg * pkg)
     return &mypbuf->pbuf;
 }
 
-static u8_t djy_pbuf_free(struct pbuf *p)
+static u8 djy_pbuf_free(struct pbuf *p)
 {
     struct NetPkg * pkg;
     pkg = pbuf2pkg(p);
@@ -55,13 +56,13 @@ static u8_t djy_pbuf_free(struct pbuf *p)
 }
 
 //func/rwnx_intf/rw_msdu.c  cpu_peri_wifi.c beken378\ip\umac\src\rxu/rxu_cntrl.c
-struct pbuf *pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
+struct pbuf *pbuf_alloc(pbuf_layer layer, u16 length, pbuf_type type)
 {
     struct NetPkg  *npkg;
     struct djypbuf* mypbuf;
     struct pbuf* pbuf;
 
-    u16_t offset,pak_len;
+    u16 offset,pak_len;
     /* determine header offset */
     if((layer!=PBUF_RAW)||(type!=PBUF_RAM))
     {
@@ -90,12 +91,13 @@ struct pbuf *pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
 }
 
 #else
-struct pbuf *pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
+struct pbuf *pbuf_alloc(pbuf_layer layer, u16 length, pbuf_type type)
 {
 
     struct pbuf* pbuf;
-    u16_t offset,pak_len;
-    if((layer!=PBUF_RAW)||(type!=PBUF_RAM))
+    u16 offset,pak_len;
+    //layer：只需要 PBUF_RAW 层，其他层不需要支持
+    if((layer != PBUF_RAW)||(type != PBUF_RAM))
     {
         printf("error : pbuf_alloc layer or type!!\n\r");
         return NULL;
@@ -119,18 +121,18 @@ struct pbuf *pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
 }
 #endif
 
-u8_t pbuf_free(struct pbuf *p)
+u8 pbuf_free(struct pbuf *p)
 {
-    u16_t type;
+    u16 type;
     struct pbuf *q;
-    u8_t count;
+    u8 count;
 
     if (p == NULL) {
       return 0;
     }
     count = 0;
     while (p != NULL) {
-      u16_t ref;
+      u16 ref;
       ref = --(p->ref);
       if (ref == 0) {
         q = p->next;
@@ -156,7 +158,7 @@ u8_t pbuf_free(struct pbuf *p)
 
 err_t pbuf_copy(struct pbuf *p_to, const struct pbuf *p_from)
 {
-    u16_t offset_to=0, offset_from=0, len;
+    u16 offset_to=0, offset_from=0, len;
 
     /* is the target big enough to hold the source? */
     if((p_to == NULL) || (p_from == NULL) || (p_to->tot_len < p_from->tot_len))
@@ -176,7 +178,7 @@ err_t pbuf_copy(struct pbuf *p_to, const struct pbuf *p_from)
         /* current p_from does not fit into current p_to */
         len = p_to->len - offset_to;
       }
-      memcpy((u8_t*)p_to->payload + offset_to, (u8_t*)p_from->payload + offset_from, len);
+      memcpy((u8*)p_to->payload + offset_to, (u8*)p_from->payload + offset_from, len);
       offset_to += len;
       offset_from += len;
       if (offset_from >= p_from->len) {
@@ -235,7 +237,7 @@ struct pbuf *pbuf_coalesce(struct pbuf *p, pbuf_layer layer)
     pbuf_free(p);
     if(err)
         debug_printf("djyipif","error:%d\n\r",err);
-    return NULL;
+    return q;
 }
 
 
@@ -275,7 +277,7 @@ void pbuf_chain(struct pbuf *head, struct pbuf *tail)
 struct pbuf *pbuf_dechain(struct pbuf *p)
 {
     struct pbuf *q;
-    u8_t tail_gone = 1;
+    u8 tail_gone = 1;
     /* tail */
     q = p->next;
     /* pbuf has successor in chain? */
@@ -351,17 +353,17 @@ enum eth_type {
 #define ETH_HWADDR_LEN 6
 #endif
 struct eth_addr {
-  u8_t addr[ETH_HWADDR_LEN];
+  u8 addr[ETH_HWADDR_LEN];
 }  __attribute__((packed));
 struct eth_hdr {
   struct eth_addr dest;
   struct eth_addr src;
-  u16_t type;
+  u16 type;
 } __attribute__((packed));
 
 
 //func/rwnx_intf/rw_msdu.c
-void ethernetif_input(int iface, struct pbuf *p)
+void ethernetif_input(s32 iface, struct pbuf *p)
 {
     struct eth_hdr *ethhdr;
     struct netif *netif;
@@ -493,7 +495,7 @@ tagRouterPara sta_ip_settings;
 tagRouterPara uap_ip_settings;
 
 //wlan_ui.c
-void ip_address_set(int iface, int dhcp, char *ip, char *mask, char*gw, char*dns)
+void ip_address_set(s32 iface, s32 dhcp, char *ip, char *mask, char*gw, char*dns)
 {
     uint32_t tmp;
     tagRouterPara para;
