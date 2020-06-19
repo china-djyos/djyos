@@ -173,6 +173,10 @@
 #define CFG_USE_AUDIO                              CFG_MODULE_ENABLE_CPU_ONCHIP_AUDIO
 //#define CFG_USE_AUD_DAC                            1
 //#define CFG_USE_AUD_ADC                            1
+#define CFG_SUPPORT_BLE                            1
+#define CFG_RF_USER_BLE                            1
+#define CFG_RF_USER_WIFI                           2
+#define CFG_DEFAULT_RF_USER                         CFG_RF_USER_WIFI
 #else
 #define CFG_USE_AUDIO                              1
 #define CFG_USE_AUD_DAC                            1

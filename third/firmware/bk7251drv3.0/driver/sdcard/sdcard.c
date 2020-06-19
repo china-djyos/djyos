@@ -19,7 +19,8 @@
 #include "target_util_pub.h"
 
 #if CFG_SUPPORT_DJYOS       //CK
-    #include "entry/arch.h"
+#include "entry/arch.h"
+#include "dbug.h"
 #endif
 
 /* Standard sd  commands (  )           type  argument     response */
@@ -313,16 +314,27 @@ static SDIO_Error sdcard_cmd8_process(void)
 
     if(cmd.err == SD_CMD_RSP_TIMEOUT)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        warning_printf("sdcard","cmd8 noresp, voltage mismatch or Ver1.X SD or not SD\r\n");
+#else
         SDCARD_WARN("cmd8 noresp, voltage mismatch or Ver1.X SD or not SD\r\n");
+#endif
         return SD_CMD_RSP_TIMEOUT;
     }
     else if(cmd.err == SD_CMD_CRC_FAIL)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        warning_printf("sdcard","cmd8 cmdcrc err\r\n");
+#else
         SDCARD_WARN("cmd8 cmdcrc err\r\n");
+#endif
         return SD_CMD_CRC_FAIL;
     }
-
+#if CFG_SUPPORT_DJYOS       //CK
+    info_printf("sdcard","found a Ver2.00 or later SDCard\r\n");
+#else
     SDCARD_PRT("found a Ver2.00 or later SDCard\r\n");
+#endif
 
     // check Valid Response,
     // R7-[11:8]:voltage accepted, [7:0] echo-back of check pattern
@@ -333,12 +345,20 @@ static SDIO_Error sdcard_cmd8_process(void)
 
     if(voltage_accpet == 0x1 && check_pattern == 0xaa)
     {
-        SDCARD_PRT("support 2.7~3.6V\r\n");
+#if CFG_SUPPORT_DJYOS       //CK
+    info_printf("sdcard","support 2.7~3.6V\r\n");
+#else
+    SDCARD_PRT("support 2.7~3.6V\r\n");
+#endif
         return SD_OK;
     }
     else
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        warning_printf("sdcard","unsupport voltage\r\n");
+#else
         SDCARD_WARN("unsupport voltage\r\n");
+#endif
         return SD_INVALID_VOLTRANGE;
     }
     return SD_OK;
@@ -359,7 +379,11 @@ static SDIO_Error sdcard_acmd41_process(UINT32 ocr)
     cmd.err = sdio_wait_cmd_response(cmd.index);
     if(cmd.err != SD_OK)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        warning_printf("sdcard","send cmd55 err:%d\r\n", cmd.err);
+#else
         SDCARD_WARN("send cmd55 err:%d\r\n", cmd.err);
+#endif
         return cmd.err;
     }
 
@@ -373,7 +397,11 @@ static SDIO_Error sdcard_acmd41_process(UINT32 ocr)
     // why cmd41 always return crc fail?
     if(cmd.err != SD_OK && cmd.err != SD_CMD_CRC_FAIL)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        warning_printf("sdcard","send cmd41 err:%d\r\n", cmd.err);
+#else
         SDCARD_WARN("send cmd41 err:%d\r\n", cmd.err);
+#endif
         return cmd.err;
     }
 
@@ -419,16 +447,27 @@ static SDIO_Error sdcard_mmc_cmd3_process(void)
 
     if(cmd.err == SD_CMD_RSP_TIMEOUT)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        warning_printf("sdcard","mmc cmd3 noresp \r\n");
+#else
         SDCARD_WARN("mmc cmd3 noresp \r\n");
+#endif
         return SD_CMD_RSP_TIMEOUT;
     }
     else if(cmd.err == SD_CMD_CRC_FAIL)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        warning_printf("sdcard","mmc cmd3 cmdcrc err\r\n");
+#else
         SDCARD_WARN("mmc cmd3 cmdcrc err\r\n");
+#endif
         return SD_CMD_CRC_FAIL;
     }
-
+#if CFG_SUPPORT_DJYOS       //CK
+    info_printf("sdcard","mmc cmd3 is ok, card rca:0x%x\r\n", sdcard.card_rca);
+#else
     SDCARD_PRT("mmc cmd3 is ok, card rca:0x%x\r\n", sdcard.card_rca);
+#endif
     return SD_OK;
 }
 
@@ -447,18 +486,30 @@ static SDIO_Error sdcard_cmd3_process(void)
 
     if(cmd.err == SD_CMD_RSP_TIMEOUT)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        warning_printf("sdcard","cmd3 noresp \r\n");
+#else
         SDCARD_WARN("cmd3 noresp \r\n");
+#endif
         return SD_CMD_RSP_TIMEOUT;
     }
     else if(cmd.err == SD_CMD_CRC_FAIL)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        warning_printf("sdcard","cmd3 cmdcrc err\r\n");
+#else
         SDCARD_WARN("cmd3 cmdcrc err\r\n");
+#endif
         return SD_CMD_CRC_FAIL;
     }
 
     sdio_get_cmdresponse_argument(0, &cmd.resp[0]);
     sdcard.card_rca = (UINT16) (cmd.resp[0] >> 16);
+#if CFG_SUPPORT_DJYOS       //CK
+    info_printf("sdcard","cmd3 is ok, card rca:0x%x\r\n", sdcard.card_rca);
+#else
     SDCARD_PRT("cmd3 is ok, card rca:0x%x\r\n", sdcard.card_rca);
+#endif
     return SD_OK;
 }
 
@@ -507,7 +558,11 @@ static SDIO_Error sdcard_cmd9_process(uint8 card_type)
             sdcard.total_block = (csize + 1) * 1024;
         }
 
+#if CFG_SUPPORT_DJYOS       //CK
+        info_printf("sdcard","size:%x total_block:%x\r\n", sdcard.block_size, sdcard.total_block);
+#else
         os_printf("size:%x total_block:%x\r\n", sdcard.block_size, sdcard.total_block);
+#endif
     }
     else
     {
@@ -527,7 +582,11 @@ static SDIO_Error sdcard_cmd9_process(uint8 card_type)
     }
 
     sdcard.block_size = SD_DEFAULT_BLOCK_SIZE;
+#if CFG_SUPPORT_DJYOS       //CK
+    info_printf("sdcard","Bsize:%x;Total_block:%x\r\n", sdcard.block_size, sdcard.total_block);
+#else
     SDCARD_PRT("Bsize:%x;Total_block:%x\r\n", sdcard.block_size, sdcard.total_block);
+#endif
     ASSERT_ERR(sdcard.block_size == SD_DEFAULT_BLOCK_SIZE);
 
     return SD_OK;
@@ -643,14 +702,22 @@ SDIO_Error sdcard_initialize(void)
     err = sdcard_cmd0_process();
     if(err != SD_OK)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        error_printf("sdcard","send cmd0 err\r\n");
+#else
         SDCARD_FATAL("send cmd0 err\r\n");
+#endif
         goto err_return;
     }
     rtos_delay_milliseconds(5);
 
     rtos_delay_milliseconds(50);
     err = sdcard_cmd1_process();
+#if CFG_SUPPORT_DJYOS       //CK
+    info_printf("sdcard","cmd 1:%x \r\n", err);
+#else
     os_printf("cmd 1:%x \r\n", err);
+#endif
     if(err == SD_OK)
     {
         goto MMC_init;
@@ -662,7 +729,11 @@ SDIO_Error sdcard_initialize(void)
     err = sdcard_cmd8_process();
     if(err != SD_OK && err != SD_CMD_RSP_TIMEOUT )
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        error_printf("sdcard","send cmd8 err\r\n");
+#else
         SDCARD_FATAL("send cmd8 err\r\n");
+#endif
         goto err_return;
     }
 
@@ -675,7 +746,11 @@ SDIO_Error sdcard_initialize(void)
             err = sdcard_acmd41_process(SD_DEFAULT_OCR);
             if(err != SD_OK)
             {
+#if CFG_SUPPORT_DJYOS       //CK
+                error_printf("sdcard","send cmd55&cmd41 err:%d, quite loop\r\n", err);
+#else
                 SDCARD_FATAL("send cmd55&cmd41 err:%d, quite loop\r\n", err);
+#endif
                 goto err_return;
             }
             sdio_get_cmdresponse_argument(0, &resp0);
@@ -693,19 +768,34 @@ SDIO_Error sdcard_initialize(void)
         }
         if(!retry_time)
         {
+#if CFG_SUPPORT_DJYOS       //CK
+            error_printf("sdcard","send cmd55&cmd41 retry time out\r\n");
+#else
             SDCARD_FATAL("send cmd55&cmd41 retry time out\r\n");
+#endif
             return SD_INVALID_VOLTRANGE;
         }
-
+#if CFG_SUPPORT_DJYOS       //CK
+        info_printf("sdcard","send cmd55&cmd41 complete, card is ready\r\n");
+#else
         SDCARD_PRT("send cmd55&cmd41 complete, card is ready\r\n");
+#endif
 
         if(resp0 & OCR_MSK_HC)
         {
+#if CFG_SUPPORT_DJYOS       //CK
+            info_printf("sdcard","High Capacity SD Memory Card\r\n");
+#else
             SDCARD_PRT("High Capacity SD Memory Card\r\n");
+#endif
         }
         else
         {
+#if CFG_SUPPORT_DJYOS       //CK
+            info_printf("sdcard","Standard Capacity SD Memory Card\r\n");
+#else
             SDCARD_PRT("Standard Capacity SD Memory Card\r\n");
+#endif
         }
     }
     else if(err == SD_CMD_RSP_TIMEOUT)
@@ -717,7 +807,11 @@ SDIO_Error sdcard_initialize(void)
             err = sdcard_acmd41_process(OCR_MSK_VOLTAGE_ALL);
             if(err != SD_OK)
             {
+#if CFG_SUPPORT_DJYOS       //CK
+                error_printf("sdcard","send cmd55&cmd41 err, quite loop\r\n");
+#else
                 SDCARD_FATAL("send cmd55&cmd41 err, quite loop\r\n");
+#endif
                 goto err_return;
             }
             sdio_get_cmdresponse_argument(0, &resp0);
@@ -734,18 +828,30 @@ SDIO_Error sdcard_initialize(void)
         }
         if(!retry_time)
         {
+#if CFG_SUPPORT_DJYOS       //CK
+            error_printf("sdcard","send cmd55&cmd41 retry time out, maybe a MMC card\r\n");
+#else
             SDCARD_FATAL("send cmd55&cmd41 retry time out, maybe a MMC card\r\n");
+#endif
             err = SD_ERROR;
             goto err_return;
         }
+#if CFG_SUPPORT_DJYOS       //CK
+        info_printf("sdcard","send cmd55&cmd41 complete, SD V1.X card is ready\r\n");
+#else
         SDCARD_PRT("send cmd55&cmd41 complete, SD V1.X card is ready\r\n");
+#endif
     }
 	rtos_delay_milliseconds(2);
     // get CID, return R2
     err = sdcard_cmd2_process();
     if(err != SD_OK)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        error_printf("sdcard","send cmd2 err:%d\r\n", err);
+#else
         SDCARD_FATAL("send cmd2 err:%d\r\n", err);
+#endif
         goto err_return;
     }
 	rtos_delay_milliseconds(2);
@@ -753,7 +859,11 @@ SDIO_Error sdcard_initialize(void)
     err = sdcard_cmd3_process();
     if(err != SD_OK)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        error_printf("sdcard","send cmd3 err:%d\r\n", err);
+#else
         SDCARD_FATAL("send cmd3 err:%d\r\n", err);
+#endif
         goto err_return;
     }
 
@@ -764,7 +874,11 @@ SDIO_Error sdcard_initialize(void)
     err = sdcard_cmd9_process(SD_CARD);
     if(err != SD_OK)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        error_printf("sdcard","send cmd9 err:%d\r\n", err);
+#else
         SDCARD_FATAL("send cmd9 err:%d\r\n", err);
+#endif
         goto err_return;
     }
 	rtos_delay_milliseconds(2);
@@ -772,7 +886,11 @@ SDIO_Error sdcard_initialize(void)
     err = sdcard_cmd7_process();
     if(err != SD_OK)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        error_printf("sdcard","send cmd7 err:%d\r\n", err);
+#else
         SDCARD_FATAL("send cmd7 err:%d\r\n", err);
+#endif
         goto err_return;
     }
 	rtos_delay_milliseconds(2);
@@ -780,29 +898,53 @@ SDIO_Error sdcard_initialize(void)
     err = sdcard_acmd6_process();
     if(err != SD_OK)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        error_printf("sdcard","send acmd6 err:%d\r\n", err);
+#else
         SDCARD_FATAL("send acmd6 err:%d\r\n", err);
+#endif
         goto err_return;
     }
 
     // Sd_MMC_flag = SD_CARD;
     err = SD_OK;
+#if CFG_SUPPORT_DJYOS       //CK
+    info_printf("sdcard","sdcard initialize is done\r\n");
+#else
     SDCARD_PRT("sdcard initialize is done\r\n");
+#endif
     goto right_return;
 
 MMC_init:
     err = sdcard_cmd2_process();
+#if CFG_SUPPORT_DJYOS       //CK
+    info_printf("sdcard","cmd 2 :%x\r\n", err);
+#else
     os_printf("cmd 2 :%x\r\n", err);
+#endif
     if(err != SD_OK)
         goto err_return;
     err = sdcard_mmc_cmd3_process();
+#if CFG_SUPPORT_DJYOS       //CK
+    info_printf("sdcard","cmd 3 :%x\r\n", err);
+#else
     os_printf("cmd 3 :%x\r\n", err);
+#endif
     sdcard_clock_set(CLK_13M);
     err = sdcard_cmd9_process(MMC_CARD);
+#if CFG_SUPPORT_DJYOS       //CK
+    info_printf("sdcard","cmd 9 :%x\r\n", err);
+#else
     os_printf("cmd 9 :%x\r\n", err);
+#endif
     if(sdcard.Addr_shift_bit == 0)
     {
         err = sdcard_mmc_cmd8_process();
+#if CFG_SUPPORT_DJYOS       //CK
+        info_printf("sdcard","cmd 8 :%x\r\n", err);
+#else
         os_printf("cmd 8 :%x\r\n", err);
+#endif
     }
     if(err != SD_OK)
         goto err_return;
@@ -872,12 +1014,20 @@ sdcard_read_single_block(UINT8 *readbuff, UINT32 readaddr, UINT32 blocksize)
 
     if(ret == SD_CMD_RSP_TIMEOUT)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        error_printf("sdcard","cmd17 noresp, readsingle block err\r\n");
+#else
         SDCARD_FATAL("cmd17 noresp, readsingle block err\r\n");
+#endif
         goto read_return;
     }
     else if(ret == SD_CMD_CRC_FAIL)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        error_printf("sdcard","cmd17 cmdcrc err, readsingle block err\r\n");
+#else
         SDCARD_FATAL("cmd17 cmdcrc err, readsingle block err\r\n");
+#endif
         goto read_return;
     }
 
@@ -886,7 +1036,11 @@ sdcard_read_single_block(UINT8 *readbuff, UINT32 readaddr, UINT32 blocksize)
 
     if(ret != SD_OK)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        error_printf("sdcard","read single block wait data receive err:%d\r\n", cmd.err);
+#else
         SDCARD_FATAL("read single block wait data receive err:%d\r\n", cmd.err);
+#endif
         goto read_return;
     }
 read_return:
@@ -1240,7 +1394,11 @@ SDIO_Error sdcard_write_single_block(UINT8 *writebuff, UINT32 writeaddr)
 
 	if(ret != SD_OK)
 	{
-		os_printf("--single blk write err:%d---\r\n",ret);
+#if CFG_SUPPORT_DJYOS       //CK
+	    info_printf("sdcard","--single blk write err:%d---\r\n",ret);
+#else
+        os_printf("--single blk write err:%d---\r\n",ret);
+#endif
 	}
     sdio_clk_config(0);
 
@@ -1356,7 +1514,11 @@ static SDIO_Error sdcard_write_data(UINT8* write_buff,UINT32 block_num,UINT8 fir
         {
             ret = SD_ERROR;
 #if CFG_SUPPORT_DJYOS
-            os_printf("write data error !!!\r\n");
+#if CFG_SUPPORT_DJYOS       //CK
+        info_printf("sdcard","write data error !!!\r\n");
+#else
+        os_printf("write data error !!!\r\n");
+#endif
 #else
 			rt_kprintf("write data error !!!\r\n");
 #endif
@@ -1432,7 +1594,11 @@ static SDIO_Error sdcard_send_write_stop(int err)
     ret += sdcard_cmd12_process(0);
 	if(ret != SD_OK)
     {
+#if CFG_SUPPORT_DJYOS       //CK
+        error_printf("sdcard","===write err:%x====\r\n",ret);
+#else
         SDCARD_FATAL("===write err:%x====\r\n",ret);
+#endif
     }
 	ret += err;
     return ret;
@@ -1487,7 +1653,11 @@ SDIO_Error sdcard_write_multi_block(UINT8 *write_buff, UINT32 first_block, UINT3
 		}
 		else
 		{
-			SDCARD_FATAL("--cmd25 send error:ret=%d\r\n",ret);
+#if CFG_SUPPORT_DJYOS       //CK
+            error_printf("sdcard","--cmd25 send error:ret=%d\r\n",ret);
+#else
+            SDCARD_FATAL("--cmd25 send error:ret=%d\r\n",ret);
+#endif
 		}
 	}
 	if(ret != SD_OK)
@@ -1699,7 +1869,11 @@ UINT32 sdcard_open(UINT32 op_flag)
             break;
         if(--cnt == 0)
         {
+#if CFG_SUPPORT_DJYOS       //CK
+            error_printf("sdcard","sdcard_open err\r\n");
+#else
             SDCARD_FATAL("sdcard_open err\r\n");
+#endif
             return SDCARD_FAILURE;
         }
     }
@@ -1732,7 +1906,11 @@ UINT32 sdcard_read(char *user_buf, UINT32 count, UINT32 op_flag)
                         SD_DEFAULT_BLOCK_SIZE);
             if(result!=SD_OK)
             {
+#if CFG_SUPPORT_DJYOS       //CK
+                info_printf("sdcard","sdcard_read err:%d, curblk:0x%x\r\n",result, start_blk_addr);
+#else
                 os_printf("sdcard_read err:%d, curblk:0x%x\r\n",result, start_blk_addr);
+#endif
                 count = 0;
                 goto exit;
             }

@@ -1,6 +1,7 @@
 
-
+#if (!CFG_SUPPORT_DJYOS)
 #include <stdint.h>
+
 #include "bim_com.h"
 #include "bim_updataImage.h"
 #include "bim_application.h"
@@ -70,4 +71,4 @@ void bim_main(void)
 	}
 
 }
-
+#endif

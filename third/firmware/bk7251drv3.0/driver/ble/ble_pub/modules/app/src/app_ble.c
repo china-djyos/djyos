@@ -1,3 +1,4 @@
+#if (!CFG_SUPPORT_DJYOS)
 /**
  ****************************************************************************************
  *
@@ -216,10 +217,10 @@ enum appm_svc_list
     #endif // (BLE_APP_FFF0)
     #if (BLE_APP_FFE0)
     APPM_SVC_FFE0,
-    #endif // (BLE_APP_FFE0)	
-	#if (BLE_APP_ANCSC)
-	APPM_SVC_ANCSC,
-  	#endif //(BLE_APP_ANCSC)
+    #endif // (BLE_APP_FFE0)
+    #if (BLE_APP_ANCSC)
+    APPM_SVC_ANCSC,
+    #endif //(BLE_APP_ANCSC)
     #if (BLE_APP_HT)
     APPM_SVC_HTS,
     #endif //(BLE_APP_HT)
@@ -235,9 +236,9 @@ enum appm_svc_list
     #ifdef BLE_APP_AM0
     APPM_SVC_AM0_HAS,
     #endif //defined(BLE_APP_AM0)
-	#if (BLE_APP_OADS)
-	APPM_SVC_OADS,
-	#endif //(BLE_APP_OADS)
+    #if (BLE_APP_OADS)
+    APPM_SVC_OADS,
+    #endif //(BLE_APP_OADS)
 
     APPM_SVC_LIST_STOP ,
 };
@@ -266,8 +267,8 @@ static const appm_add_svc_func_t appm_add_svc_func_list[APPM_SVC_LIST_STOP] =
     #if (BLE_APP_FFE0)
     (appm_add_svc_func_t)app_ffe0_add_ffe0s,
     #endif // (BLE_APP_FFE0)
-	
-	#if (BLE_APP_ANCSC)
+
+    #if (BLE_APP_ANCSC)
     (appm_add_svc_func_t)app_ancs_add_ancsc,
     #endif //(BLE_APP_ANCSC)
     #if (BLE_APP_HT)
@@ -285,9 +286,9 @@ static const appm_add_svc_func_t appm_add_svc_func_list[APPM_SVC_LIST_STOP] =
     #ifdef BLE_APP_AM0
     (appm_add_svc_func_t)am0_app_add_has,
     #endif //defined(BLE_APP_AM0)
-	#if (BLE_APP_OADS)
-	(appm_add_svc_func_t)app_oad_add_oads,
-	#endif //(BLE_APP_OADS)
+    #if (BLE_APP_OADS)
+    (appm_add_svc_func_t)app_oad_add_oads,
+    #endif //(BLE_APP_OADS)
 };
 
 /*
@@ -306,8 +307,8 @@ struct app_env_tag app_env;
 void appm_init()
 {
     #if (NVDS_SUPPORT)
-	
-	  uint8_t peer_irk_len = NVDS_LEN_PEER_IRK;
+
+      uint8_t peer_irk_len = NVDS_LEN_PEER_IRK;
     uint8_t key_len = KEY_LEN;
     #endif //(NVDS_SUPPORT)
 
@@ -355,28 +356,28 @@ void appm_init()
         }
         #endif // #if (NVDS_SUPPORT)
     }
-			  	#if (NVDS_SUPPORT)
+                #if (NVDS_SUPPORT)
            // Store peer identity in NVDS
            if (nvds_get(NVDS_TAG_PEER_IRK, &peer_irk_len, (uint8_t *)&app_env.peer_irk.irk.key) != NVDS_OK)
            {
              UART_PRINTF("not NVDS_TAG_PEER_IRK\r\n");
-						 
+
            }else
-					 {
-						 for(int i = 0;i<sizeof(struct gap_sec_key);i++)
-					{
-							UART_PRINTF("irk.key[%d]  = %x\r\n",i,app_env.peer_irk.irk.key[i]);
-					}
-					
-					UART_PRINTF("addr tyep = %x\r\n",app_env.peer_irk.addr.addr_type);
-					for(int i = 0;i<sizeof(struct bd_addr);i++)
-					{
-							UART_PRINTF("addr.addr[%d]  = %x\r\n",i,app_env.peer_irk.addr.addr.addr[i]);
-					}
-					 
-					 }
+                     {
+                         for(int i = 0;i<sizeof(struct gap_sec_key);i++)
+                    {
+                            UART_PRINTF("irk.key[%d]  = %x\r\n",i,app_env.peer_irk.irk.key[i]);
+                    }
+
+                    UART_PRINTF("addr tyep = %x\r\n",app_env.peer_irk.addr.addr_type);
+                    for(int i = 0;i<sizeof(struct bd_addr);i++)
+                    {
+                            UART_PRINTF("addr.addr[%d]  = %x\r\n",i,app_env.peer_irk.addr.addr.addr[i]);
+                    }
+
+                     }
            #endif // (NVDS_SUPPORT)
-#endif					 			
+#endif
 
     /*------------------------------------------------------
      * INITIALIZE ALL MODULES
@@ -386,13 +387,13 @@ void appm_init()
     #if (DISPLAY_SUPPORT)
     app_display_init();
     #endif //(DISPLAY_SUPPORT)
-		
+
     #if (BLE_APP_FFE0)
     // FFE0 Module
     app_ffe0_init();
     #endif // (BLE_APP_FFE0)
 
-	#if (BLE_APP_ANCSC)
+    #if (BLE_APP_ANCSC)
     // ANCS Module
     app_ancsc_init();
     #endif //(BLE_APP_ANCSC)
@@ -426,11 +427,11 @@ void appm_init()
     // Audio Mode 0 Module
     am0_app_init();
     #endif // defined(BLE_APP_AM0)
-			
-	#if (BLE_APP_OADS)
+
+    #if (BLE_APP_OADS)
     app_oads_init();
     #endif //(BLE_APP_OADS)
-		
+
 }
 
 bool appm_add_svc(void)
@@ -458,8 +459,8 @@ bool appm_add_svc(void)
 /*设备主动断开连接函数*/
 void appm_disconnect(void)
 {
-	if (kernel_state_get(TASK_APP) == APPM_CONNECTED)
-	{
+    if (kernel_state_get(TASK_APP) == APPM_CONNECTED)
+    {
         struct gapc_disconnect_cmd *cmd = KERNEL_MSG_ALLOC(GAPC_DISCONNECT_CMD,
                                                        KERNEL_BUILD_ID(TASK_GAPC, app_env.conidx), TASK_APP,
                                                        gapc_disconnect_cmd);
@@ -469,7 +470,7 @@ void appm_disconnect(void)
 
         // Send the message
         kernel_msg_send(cmd);
-	}
+    }
 }
 
 /**
@@ -482,10 +483,10 @@ void appm_disconnect(void)
 /* 设备发起定向广播函数*/
 void appm_start_direct_dvertising(void)
 {
-    appm_start_advertising();	
-	
+    appm_start_advertising();
+
     return;
-	// Check if the advertising procedure is already is progress
+    // Check if the advertising procedure is already is progress
     if (kernel_state_get(TASK_APP) == APPM_READY)
     {
         struct gapm_start_advertise_cmd *cmd = KERNEL_MSG_ALLOC(GAPM_START_ADVERTISE_CMD,
@@ -499,48 +500,48 @@ void appm_start_direct_dvertising(void)
         cmd->intv_max = APP_ADV_FAST_INT;
 
         cmd->op.code        = GAPM_ADV_UNDIRECT;
-		
+
         cmd->info.host.mode = GAP_GEN_DISCOVERABLE;
-		 
-		/*
-		 * If the peripheral is already bonded with a central device, use the direct advertising
-		 * procedure (BD Address of the peer device is stored in NVDS.
-		 */
-		if(app_sec_get_bond_status())
-		{
-			#if (NVDS_SUPPORT)
-			uint8_t bd_len = NVDS_LEN_PEER_BD_ADDRESS;
-			#endif
-			cmd->op.code   = GAPM_ADV_DIRECT_LDC;
-			//cmd->info.direct.addr_type = 1;
-			
-	
-			#if (NVDS_SUPPORT)
-			if (nvds_get(NVDS_TAG_PEER_BD_ADDRESS, &bd_len,
-	            		(uint8_t *)cmd->info.direct.addr.addr) != NVDS_OK)
-			{
-			    // An error has occurred during access to the NVDS
-			    ASSERT_INFO(0,NVDS_TAG_PEER_BD_ADDRESS,bd_len);
-			}
-			#endif
 
-			kernel_msg_send(cmd);
+        /*
+         * If the peripheral is already bonded with a central device, use the direct advertising
+         * procedure (BD Address of the peer device is stored in NVDS.
+         */
+        if(app_sec_get_bond_status())
+        {
+            #if (NVDS_SUPPORT)
+            uint8_t bd_len = NVDS_LEN_PEER_BD_ADDRESS;
+            #endif
+            cmd->op.code   = GAPM_ADV_DIRECT_LDC;
+            //cmd->info.direct.addr_type = 1;
 
-			#if !(DEEP_SLEEP)
-			kernel_msg_send_basic(APP_PERIOD_TIMER,TASK_APP,TASK_APP);
-			#endif
 
-		//	UART_PRINTF("appm start direct advertising\r\n");
-		}
-		else
-		{
-			kernel_msg_free(kernel_param2msg(cmd));
-            appm_start_advertising();		
- 		//	UART_PRINTF("appm start general advertising\r\n");
-		}
+            #if (NVDS_SUPPORT)
+            if (nvds_get(NVDS_TAG_PEER_BD_ADDRESS, &bd_len,
+                        (uint8_t *)cmd->info.direct.addr.addr) != NVDS_OK)
+            {
+                // An error has occurred during access to the NVDS
+                ASSERT_INFO(0,NVDS_TAG_PEER_BD_ADDRESS,bd_len);
+            }
+            #endif
 
-	    kernel_state_set(TASK_APP, APPM_ADVERTISING);	
-	}		
+            kernel_msg_send(cmd);
+
+            #if !(DEEP_SLEEP)
+            kernel_msg_send_basic(APP_PERIOD_TIMER,TASK_APP,TASK_APP);
+            #endif
+
+        //  UART_PRINTF("appm start direct advertising\r\n");
+        }
+        else
+        {
+            kernel_msg_free(kernel_param2msg(cmd));
+            appm_start_advertising();
+        //  UART_PRINTF("appm start general advertising\r\n");
+        }
+
+        kernel_state_set(TASK_APP, APPM_ADVERTISING);
+    }
 }
 
 
@@ -562,7 +563,7 @@ ble_err_t appm_start_advertising(void)
 
     // Check if the advertising procedure is already is progress
     if (kernel_state_get(TASK_APP) == APPM_READY)
-    {				  
+    {
         // Prepare the GAPM_START_ADVERTISE_CMD message
         struct gapm_start_advertise_cmd *cmd = KERNEL_MSG_ALLOC(GAPM_START_ADVERTISE_CMD,
                                                             TASK_GAPM, TASK_APP,
@@ -570,24 +571,24 @@ ble_err_t appm_start_advertising(void)
 
         cmd->op.addr_src    = GAPM_STATIC_ADDR;
         cmd->channel_map    = adv_info.channel_map;
-        cmd->intv_min 		= adv_info.interval_min;
-        cmd->intv_max 		= adv_info.interval_max;	
+        cmd->intv_min       = adv_info.interval_min;
+        cmd->intv_max       = adv_info.interval_max;
         cmd->op.code        = GAPM_ADV_UNDIRECT;
-		
+
         cmd->info.host.mode = GAP_GEN_DISCOVERABLE;
 
         cmd->info.host.adv_filt_policy = ADV_ALLOW_SCAN_ANY_CON_ANY;
 
- 		/*-----------------------------------------------------------------------------------
+        /*-----------------------------------------------------------------------------------
          * Set the Advertising Data and the Scan Response Data
          *---------------------------------------------------------------------------------*/
         // Flag value is set by the GAP
         cmd->info.host.adv_data_len       = adv_info.advDataLen;
-		os_memcpy(cmd->info.host.adv_data, adv_info.advData, cmd->info.host.adv_data_len);
+        os_memcpy(cmd->info.host.adv_data, adv_info.advData, cmd->info.host.adv_data_len);
         cmd->info.host.scan_rsp_data_len  = adv_info.respDataLen;
-		os_memcpy(cmd->info.host.scan_rsp_data, adv_info.respData, cmd->info.host.scan_rsp_data_len);
-        
-        
+        os_memcpy(cmd->info.host.scan_rsp_data, adv_info.respData, cmd->info.host.scan_rsp_data_len);
+
+
         // Send the message
         kernel_msg_send(cmd);
         bk_printf("appm start advertising\r\n");
@@ -596,7 +597,7 @@ ble_err_t appm_start_advertising(void)
         ble_set_role_mode(BLE_ROLE_SLAVE);
 
         // Set the state of the task to APPM_ADVERTISING
-        kernel_state_set(TASK_APP, APPM_ADVERTISING);	
+        kernel_state_set(TASK_APP, APPM_ADVERTISING);
     }
     else
     {
@@ -609,8 +610,8 @@ ble_err_t appm_start_advertising(void)
 /* 设备主动停止广播函数*/
 ble_err_t appm_stop_advertising(void)
 {
-	
-	ble_err_t status = ERR_SUCCESS;
+
+    ble_err_t status = ERR_SUCCESS;
     if (kernel_state_get(TASK_APP) == APPM_ADVERTISING)
     {
 
@@ -626,22 +627,22 @@ ble_err_t appm_stop_advertising(void)
         ble_set_role_mode(BLE_ROLE_NONE);
 
         // Send the message
-        kernel_msg_send(cmd);	
+        kernel_msg_send(cmd);
         //mcu_prevent_clear(MCU_PS_BLE_FROBID);
     }
     else
     {
-        status = ERR_STOP_ADV_FAIL;	
+        status = ERR_STOP_ADV_FAIL;
     }
-	
+
     return  status;
     // else ignore the request
 }
 
 void appm_update_adv_data( uint8_t* adv_buff, uint8_t adv_len, uint8_t* scan_buff, uint8_t scan_len)
-{  
+{
     if (kernel_state_get(TASK_APP) == APPM_ADVERTISING
-        && (adv_len <= ADV_DATA_LEN) && (scan_len <= ADV_DATA_LEN))  
+        && (adv_len <= ADV_DATA_LEN) && (scan_len <= ADV_DATA_LEN))
     {
         struct gapm_update_advertise_data_cmd *cmd =  KERNEL_MSG_ALLOC(
             GAPM_UPDATE_ADVERTISE_DATA_CMD,
@@ -678,10 +679,10 @@ void appm_update_param(struct gapc_conn_param *conn_param)
     // not used by a slave device
     cmd->ce_len_min = 0xFFFF;
     cmd->ce_len_max = 0xFFFF;
-		
+
   //  printf("intv_min = %d,intv_max = %d,latency = %d,time_out = %d\r\n",
-//		cmd->intv_min,cmd->intv_max,cmd->latency,cmd->time_out);
-	
+//      cmd->intv_min,cmd->intv_max,cmd->latency,cmd->time_out);
+
     // Send the message
     kernel_msg_send(cmd);
 }
@@ -719,13 +720,13 @@ void appm_get_key(void)
 
 uint8_t appm_get_app_status(void)
 {
-	return kernel_state_get(TASK_APP);
+    return kernel_state_get(TASK_APP);
 }
 
 #if (BLE_APP_SEC)
 void appm_send_seurity_req(void)
 {
-	//printf("%s \r\n",__func__);
+    //printf("%s \r\n",__func__);
     return;
     app_sec_send_security_req(app_env.conidx);
 }
@@ -734,7 +735,7 @@ void appm_send_seurity_req(void)
 
 #endif //(BLE_APP_PRESENT)
 
-
+#endif
 
 /// @} APP
 
