@@ -18,7 +18,7 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+//mutex:"bk7251"                //该组件的互斥组件名（可以是none，表示无互斥组件），
                                 //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
@@ -33,6 +33,7 @@
 //%$#@select
 //%$#@SYMBOL
 #define CN_BEKEN_SDK_USE
+#define CN_BEKEN_SDK_3
 //%$#@free
 #endif
 //%$#@end configue  ****参数配置结束

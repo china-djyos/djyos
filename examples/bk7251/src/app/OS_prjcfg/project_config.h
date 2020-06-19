@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -66,7 +66,7 @@
 #define CFG_MAC_ADDR5           00           //
 #define CFG_ETH_LOOP_CYCLE      1000         //
 #define CFG_ETH_LOOP_ENABLE     true        //
-#define CFG_ETH_DEV_NAME        "STM32F7_ETH"//
+#define CFG_ETH_DEV_NAME        "BK7251_WiFi"//
 //*******************************  Configure network config  ******************************************//
 #define    CFG_STATIC_IP                   false             //true=Ê¹ÓÃ¾²Ì¬IPfalse=¶¯Ì¬IP
 #define    CFG_NETCARD_NAME                "BK7251_WIFI"     //

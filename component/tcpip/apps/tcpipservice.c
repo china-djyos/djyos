@@ -55,8 +55,8 @@
 #include <shell.h>
 
 
-extern bool_t DHCP_ServiceDhcpcInit(void);
-extern bool_t DHCP_ServiceDhcpdInit(void);
+//extern bool_t DHCP_ServiceDhcpcInit(void);
+//extern bool_t DHCP_ServiceDhcpdInit(void);
 extern bool_t ServiceDnsInit(void);
 extern bool_t PING_ServicePingInit(void);
 extern bool_t SNTP_ServiceSNTP_Init(void);
@@ -72,34 +72,34 @@ extern bool_t TFTP_ServiceInit(void);
 
 
 // dhcp_mode: 0->dhcp_client; 1->dhcp_server; -1: not use dhcp
-bool_t DHCP_ModeInit(int dhcp_mode)
-{
-    bool_t result = true;
-#if  (CFG_MODULE_ENABLE_DHCP == true)
-    if(dhcp_mode==0 &&CFG_DHCPC_ENABLE)
-    {
-        printf("------dhcp client---------\r\n");
-        if((false == DHCP_ServiceDhcpcInit()))
-        {
-            error_printf("tcpip","###err: service dhcpc failed");
-            result = false;
-        }
-    }
-    if(dhcp_mode==1&&CFG_DHCPD_ENABLE)
-    {
-        printf("------dhcp server---------\r\n");
-        if((false == DHCP_ServiceDhcpdInit()))
-        {
-            error_printf("tcpip","###err: service dhcpd failed");
-            result = false;
-        }
-    }
-#endif
-    return result;
-}
+//bool_t DHCP_ModeInit(int dhcp_mode)
+//{
+//    bool_t result = true;
+//#if  (CFG_MODULE_ENABLE_DHCP == true)
+//    if(dhcp_mode==0 &&CFG_DHCPC_ENABLE)
+//    {
+//        printf("------dhcp client---------\r\n");
+//        if((false == DHCP_ServiceDhcpcInit()))
+//        {
+//            error_printf("tcpip","###err: service dhcpc failed");
+//            result = false;
+//        }
+//    }
+//    if(dhcp_mode==1&&CFG_DHCPD_ENABLE)
+//    {
+//        printf("------dhcp server---------\r\n");
+//        if((false == DHCP_ServiceDhcpdInit()))
+//        {
+//            error_printf("tcpip","###err: service dhcpd failed");
+//            result = false;
+//        }
+//    }
+//#endif
+//    return result;
+//}
 
 //THIS IS THE TCP IP SERVICE LOAD MODULE
-bool_t DHCP_ServiceInit(void)
+bool_t TCPIP_ServiceInit(void)
 {
     bool_t result = true;
 

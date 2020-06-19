@@ -52,6 +52,7 @@
 #include <sys/socket.h>
 #include <netbsp.h>
 #include <dbug.h>
+#include "param_config.h"
 #include "shell.h"
 #include "app.h"
 #include "rwnx.h"
@@ -75,7 +76,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"tcpip","lock","int","tcpip"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"tcpip","lock","int"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -91,13 +92,17 @@
 //%$#@target = header    //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_MAC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,1000,10000,
-#define CFG_ETH_LOOP_CYCLE      1000         //"网卡轮询接收周期",
 //%$#@enum,true,false,
-#define CFG_ETH_LOOP_ENABLE     true        //"网卡接收是否轮询",
 //%$#@string,1,32,
-#define CFG_ETH_DEV_NAME        "BK7251_WiFi"//"网卡名称",
+#define CFG_WIFI_DEV_NAME        "BK7251_WiFi"//"网卡名称",
 //%$#@string,1,100,
-#define CFG_FAST_DATA_FILE_NAME "/efs/fast_data.dat"    //存快联信息的文件路径
+#define CFG_FAST_DATA_FILE_NAME "/efs/fast_data.dat"    //"存快联信息的文件路径"
+#define CFG_MAC_DATA_FILE_NAME "/efs/mac.dat"    //"存MAC地址的文件路径"
+
+#define CFG_AP_DHCPD_IPV4      "192.168.0.253"     //"AP模式主机IP"
+#define CFG_AP_DHCPD_SUBMASK   "255.255.255.0"     //"AP模式子网掩码IP"
+#define CFG_AP_DHCPD_GATWAY    "192.168.0.1"       //"AP模式网关IP"
+#define CFG_AP_DHCPD_DNS       "192.168.0.1"       //"AP模式DNS IP"
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -502,29 +507,111 @@ bool_t __attribute__((weak)) FnNetDevEventHookEvent(struct NetDev* iface,enum Ne
 
 }
 
+static u8   gc_NetMac[CN_MACADDR_LEN] = { 0xC8, 0x47, 0x8C, 0x00, 0x00, 0x00};
+
+u8 *getnetmacaddr()
+{
+    return gc_NetMac;
+}
+
+//timeout: microsecond
+int PendDhcpDone(unsigned int timeout)
+{
+    return DHCP_WaitDhcpDone(CFG_WIFI_DEV_NAME, timeout);
+}
+
+void DhcpStaClearIp(void)
+{
+    printf("info: DhcpStaClearIp!!!\r\n");
+    DhcpclientDeleteAllTask();
+}
+
+//默认不指定IP获取DHCP, 需要四个步骤
+//__attribute__((weak)) int cb_ip_get(u32 *ip)
+//{
+//    return 0;
+//}
+//__attribute__((weak)) int cb_ip_set(u32 ip){
+//    return 0;
+//}
+void DhcpclientDeleteAllTask(void);//清除以前连接的路由和dhcp任务
+int dhcp_gotip_cb(const char *ifname, int (*cb_ip_get)(u32 *ip));
+//int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(u32 ip));
+
+//------------------------------------------------------------------------------
+//功能：启动WiFi的DHCP客户端
+//参数：AssignIP，固定分配的IP，一般用于系统重启后，向DHCP服务器重新申请原来使用的IP
+//              如果AssignIP == 0，则忽略，否则客户端直接进入收到offer状态
+//      cb_ip_set，DHCP客户端获取IP后的回调函数。
+//返回：无
+//------------------------------------------------------------------------------
+void DhcpStaStartIp(u32 AssignIP,s32 (*cb_ip_got)(u32 ip))
+{
+    dhcp_gotip_cb(CFG_WIFI_DEV_NAME, cb_ip_got);
+//  dhcp_setip_cb(CFG_WIFI_DEV_NAME, cb_ip_set);
+
+    DhcpclientDeleteAllTask();
+    if(DHCP_AddClientTask(CFG_WIFI_DEV_NAME, AssignIP))
+    {
+       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_WIFI_DEV_NAME);
+    }
+    else
+    {
+        printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_WIFI_DEV_NAME);
+    }
+}
+
+u32 trng_get_random(void);
 
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
 // 参数：para
 // 返回值  ：true成功  false失败。
 // =============================================================================
-bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
-                          bool_t loop,u32 loopcycle,\
-                          bool_t (*rcvHook)(u8 *buf, u16 len))
+bool_t ModuleInstall_Wifi(void)
 {
     tagMacDriver   *pDrive = &gMacDriver;
     struct NetDevPara   devpara;
 
+    FILE *fd = NULL;
+    struct stat file_state;
+//  extern bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
+//                            bool_t loop,u32 loopcycle,\
+//                            bool_t (*rcvHook)(u8 *buf, u16 len));
+
+    wifi_get_mac_address(getnetmacaddr(),CONFIG_ROLE_NULL);//防止重新设置MAC地址
+    memset(&file_state, 0, sizeof(struct stat));
+    stat(CFG_MAC_DATA_FILE_NAME,&file_state);
+    fd = fopen(CFG_MAC_DATA_FILE_NAME,"a+");
+    fseek(fd, -6, SEEK_END);
+    if(fread(gc_NetMac, 1, 6, fd) == 6)
+//  if(File_GetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6) == false)
+    {
+        u32 mac_rand =  trng_get_random();
+        memcpy(&gc_NetMac[2], &mac_rand, 4);
+        gc_NetMac[0] = 0x00;
+        gc_NetMac[1] = 0x01;
+        if((file_state.st_size + 6) > CFG_EFS_FILE_SIZE_LIMIT)
+        {
+            remove(CFG_MAC_DATA_FILE_NAME);
+            fd = fopen(CFG_MAC_DATA_FILE_NAME,"a+");
+        }
+        fread(gc_NetMac, 1, 6, fd);
+//      File_SetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6);
+    }
+    printf("\r\n==WIFI MAC==:%02X-%02X-%02X-%02X-%02X-%02X!\r\n",
+        gc_NetMac[0], gc_NetMac[1], gc_NetMac[2], gc_NetMac[3], gc_NetMac[4], gc_NetMac[5]);
+
+    wifi_set_mac_address((char*)gc_NetMac);
+
+
     memset((void *)pDrive,0,sizeof(tagMacDriver));
     //copy the config para to the pDrive
-    memcpy(pDrive->devname,devname,CN_DEVNAME_LEN-1);
-    memcpy((void *)pDrive->macaddr,macaddress,CN_MACADDR_LEN);
-    if(loop)
-    {
-        pDrive->loop = 1;
-    }
-    pDrive->loopcycle = loopcycle;
-    pDrive->fnrcvhook = rcvHook;
+    memcpy(pDrive->devname,CFG_WIFI_DEV_NAME,CN_DEVNAME_LEN-1);
+    memcpy((void *)pDrive->macaddr,gc_NetMac,CN_MACADDR_LEN);
+    pDrive->loop = 0;
+    pDrive->loopcycle = 1*mS;
+    pDrive->fnrcvhook = NULL;
     //set the work mode and speed
     pDrive->macstat.pm = 0;         //primmiscuous mode:= 1,no MAC addr filte
     pDrive->macstat.duplex = 1;    //duplex full
@@ -538,11 +625,9 @@ bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
     pbuf_init();
     rwnxl_init();
     rl_init();
-#if CFG_SUPPORT_DJYOS
     //wifi_start();
     void app_start(void);
     app_start();
-#endif
     //all the configuration has set in the pDrive now,we need some sys assistant
     //application some semphore and mutex
     pDrive->sendsync = Lock_SempCreate(1,1,CN_BLOCK_FIFO,NULL);
@@ -561,7 +646,7 @@ bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
     devpara.ifsend = __MacSnd;
     devpara.iftype = EN_LINK_ETHERNET;
     devpara.devfunc = CN_IPDEV_NONE;
-    memcpy(devpara.mac,macaddress,6);
+    memcpy(devpara.mac,gc_NetMac,6);
     devpara.name = (char *)pDrive->devname;
     devpara.mtu = CN_ETH_MTU;
     devpara.Private = (ptu32_t)pDrive;
@@ -572,11 +657,11 @@ bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
     }
 
     NetDevRegisterEventHook(pDrive->devhandle, FnNetDevEventHookEvent);
-    info_printf("eth","%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
+    info_printf("eth","%s:Install Net Device %s success\n\r",__FUNCTION__,CFG_WIFI_DEV_NAME);
     return true;
 
 RcvTaskFailed:
-    NetDevUninstall(devname);
+    NetDevUninstall(CFG_WIFI_DEV_NAME);
 NetInstallFailed:
     Lock_MutexDelete(pDrive->protect);
     pDrive->protect = NULL;
@@ -584,8 +669,30 @@ DEVPROTECT_FAILED:
     Lock_SempDelete(pDrive->sendsync);
     pDrive->sendsync = NULL;
 RCVSYNC_FAILED:
-    error_printf("bspETH","Install Net Device %s failed\n\r",devname);
+    error_printf("bspETH","Install Net Device %s failed\n\r",CFG_WIFI_DEV_NAME);
     return false;
 }
+
+
+void dhcpd_route_add_default()
+{
+    tagHostAddrV4  ipv4addr;
+    //we use the static ip we like
+    memset((void *)&ipv4addr,0,sizeof(ipv4addr));
+    ipv4addr.ip      = inet_addr(CFG_AP_DHCPD_IPV4);
+    ipv4addr.submask = inet_addr(CFG_AP_DHCPD_SUBMASK);
+    ipv4addr.gatway  = inet_addr(CFG_AP_DHCPD_GATWAY);
+    ipv4addr.dns     = inet_addr(CFG_AP_DHCPD_DNS);
+    ipv4addr.broad   = inet_addr("255.255.255.255");
+    if(RoutCreate(CFG_WIFI_DEV_NAME,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
+    {
+        printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_WIFI_DEV_NAME,inet_ntoa(ipv4addr.ip));
+    }
+    else
+    {
+        printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_WIFI_DEV_NAME,inet_ntoa(ipv4addr.ip));
+    }
+}
+
 
 

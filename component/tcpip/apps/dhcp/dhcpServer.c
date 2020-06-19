@@ -373,7 +373,7 @@ ptu32_t __DHCP_ServerMain(void)
 }
 
 //this is main dhcp client module
-bool_t  ModuleInstall_DhcpServer(ptu32_t para)
+bool_t  DHCP_ServerInit(void)
 {
     bool_t  ret = false;
 
@@ -415,12 +415,12 @@ EXIT_TASK:
 BITMAP_FAILED:
     return ret;
 }
-bool_t DHCP_ServiceDhcpdInit(void)
-{
-
-    bool_t result;
-    result = ModuleInstall_DhcpServer(0);
-    return result;
-}
+//bool_t DHCP_ServiceDhcpdInit(void)
+//{
+//
+//    bool_t result;
+//    result = DHCP_ServerInit( );
+//    return result;
+//}
 ADD_TO_ROUTINE_SHELL(dhcpdclient,DHCP_ShowClient,"usage:dhcpdclient:show all the client");
 

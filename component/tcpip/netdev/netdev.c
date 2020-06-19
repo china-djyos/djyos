@@ -95,8 +95,8 @@ struct NetDev
     u16                 mtu;      //dev mtu
     void                *Private;  //the dev driver use this to has its owner property
     u8                  mac[CN_MACADDR_LEN];   //mac address
-    s32 (*cb_ip_get)(u32 *ip); //for dhcp (no use the discorver)
-    s32 (*cb_ip_set)(u32 ip); //for dhcp (no use the discorver)
+    s32 (*cb_ip_got)(u32 *ip);  //dhcp client 获得IP后，通知用户的回调
+//    s32 (*cb_ip_set)(u32 ip); //for dhcp (no use the discorver)
     //the following used to debug the net device,show some main status
     u32                 pkgsnd;     //frame send
     u32                 pkgsnderr;  //frame snd failed
@@ -907,29 +907,35 @@ bool_t NetDevFlowCtrl(struct NetDev* handle,enum EthFramType type)
     return result;
 }
 
-s32 dhcp_getip_cb(const char *ifname, s32 (*cb_ip_get)(u32 *ip))
+//------------------------------------------------------------------------------
+//功能：设置获取IP后的回调函数，该回调函数用于告知用户某块网卡成功获取了IP
+//参数：ifname，网卡名
+//      cb_ip_got，用户提供的回调函数
+//返回：-1 = 出错；非-1 = 成功
+//------------------------------------------------------------------------------
+s32 dhcp_gotip_cb(const char *ifname, s32 (*cb_ip_got)(u32 *ip))
 {
     struct NetDev *pNetDev = NetDevGet(ifname);
     if(pNetDev==NULL) return  -1;
-    pNetDev->cb_ip_get =  cb_ip_get;
+    pNetDev->cb_ip_got =  cb_ip_got;
     return 1;
 }
 
-s32 dhcp_setip_cb(const char *ifname, s32 (*cb_ip_set)(u32 ip))
-{
-    struct NetDev *pNetDev = NetDevGet(ifname);
-    if(pNetDev==NULL) return  -1;
-    pNetDev->cb_ip_set = cb_ip_set;
-    return 1;
-}
+//s32 dhcp_setip_cb(const char *ifname, s32 (*cb_ip_set)(u32 ip))
+//{
+//    struct NetDev *pNetDev = NetDevGet(ifname);
+//    if(pNetDev==NULL) return  -1;
+//    pNetDev->cb_ip_set = cb_ip_set;
+//    return 1;
+//}
 
-s32 net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp)
-{
-    if (pNetDev && pNetDev->cb_ip_get && pNetDev->cb_ip_get(ip_temp)){
-        return 1;
-    }
-    return 0;
-}
+//s32 net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp)
+//{
+//    if (pNetDev && pNetDev->cb_ip_get && pNetDev->cb_ip_get(ip_temp)){
+//        return 1;
+//    }
+//    return 0;
+//}
 
 //------------------------------------------------------------------------------
 //功能：把通过 DHCP 获得的IP地址用回调函数通知用户
@@ -937,9 +943,9 @@ s32 net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp)
 //      ip_temp，分配到的IP地址
 //返回：1 = 成功，0 = 失败
 //------------------------------------------------------------------------------
-s32 net_set_dhcp_ip(struct NetDev *pNetDev, u32 ip_temp)
+s32 __NetDev_DHCP_GotIP(struct NetDev *pNetDev, u32 ip_temp)
 {
-    if (pNetDev && pNetDev->cb_ip_set && pNetDev->cb_ip_set(ip_temp)){
+    if (pNetDev && pNetDev->cb_ip_got && pNetDev->cb_ip_got(ip_temp)){
         return 1;
     }
     else

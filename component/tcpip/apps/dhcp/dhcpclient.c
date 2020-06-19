@@ -69,16 +69,16 @@ typedef struct
     struct RoutItem4          *routlan;       //for the local router
     u32                        offerip;
     u32                        offerserver;
-    int                        is_exist_ip; //IP Got previous.
+    int                        is_exist_ip;     //IP Got previous.
     int                        try_cnts;
     struct SemaphoreLCB*       sem; //notify dhcp get ip successfully
 }tagTaskItem;
 typedef enum
 {
-    EN_CLIENT_DICOVER,  //which means the task has snd the discover request
-    EN_CLIENT_REQUEST,  //which means the task has recieve the offer and snd the request
-    EN_CLIENT_STABLE,   //which means the task has recieve the ack of the request from the server
-    EN_CLIENT_INFORM,   //which means the task has recieve the ack of the request from the server
+    EN_CLIENT_DICOVER,  //which means the task has snd the discover request客户端已经已经发出了分配IP请求
+    EN_CLIENT_REQUEST,  //which means the task has recieve the offer and snd the request客户端已经已经发出请求并收到服务器的offer。
+    EN_CLIENT_STABLE,   //which means the task has recieve the ack of the request from the server客户端已经收到服务器的应答
+    EN_CLIENT_INFORM,   //客户端已经正确收到服务器分配的ipv4地址。
 }enDhcpClientStat;
 
 #define CN_DHCP_TICKER_CYCLE 100    //100ms run once
@@ -161,7 +161,7 @@ int DHCP_WaitDhcpDone(char *ifname, unsigned int timeout)
 //参数：msg，接收到的 DHCP 应答包消息
 //返回：true = 成功解析
 //-----------------------------------------------------------------------------
-int net_set_dhcp_ip(struct NetDev *pNetDev, u32 ip_temp);
+int __NetDev_DHCP_GotIP(struct NetDev *pNetDev, u32 ip_temp);
 static bool_t __DHCP_CpyReplyMsg(tagDhcpMsg *msg)
 {
     u32              renew_counter;
@@ -245,7 +245,7 @@ static bool_t __DHCP_CpyReplyMsg(tagDhcpMsg *msg)
                 if(tmp->sem) {
                     semp_post(tmp->sem);
                 }
-                net_set_dhcp_ip(NetDevGet(tmp->ifname), reply.offerip);
+                __NetDev_DHCP_GotIP(NetDevGet(tmp->ifname), reply.offerip);
                 tmp->is_exist_ip = 0;
                 result = true;
             }
@@ -387,12 +387,19 @@ void DhcpclientDeleteAllTask(void)
     }
 }
 
-int dhcp_getip_cb(const char *ifname, int (*cb_ip_get)(unsigned int *ip));
-int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(unsigned int ip));
-int net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp);
+//int dhcp_gotip_cb(const char *ifname, int (*cb_ip_got)(unsigned int *ip));
+//int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(unsigned int ip));
+//int net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp);
 //if you want to use the interface to get a ipv4 dynamic, then call this function
 
-bool_t DHCP_AddClientTask(const char *ifname)
+//-----------------------------------------------------------------------------
+//功能：添加获取IPv4的任务，客户端需要动态获取IP地址时，调用本函数
+//参数：ifname，网卡名
+//      OldIP，期待分配的IP，一般是系统重启或网络重启后，直接请求原来使用的IP，绝大多数
+//          情况下，DHCP服务器中的IP条目仍在，申请会很快。
+//返回：成功 = true；失败 = false//
+//-----------------------------------------------------------------------------
+bool_t DHCP_AddClientTask(const char *ifname, u32 OldIP)
 {
     bool_t ret = false;
     tagTaskItem *task;
@@ -420,10 +427,12 @@ bool_t DHCP_AddClientTask(const char *ifname)
         goto EXIT_MEM;
     }
     memset((void *)task, 0, sizeof(tagTaskItem));
-    u32 ip_temp = 0;
-    if(net_get_dhcp_ip(NetDevGet(ifname), &ip_temp)){
+//  u32 ip_temp = 0;
+//  if(net_get_dhcp_ip(NetDevGet(ifname), &ip_temp))
+    if(OldIP != 0)
+    {
         task->stat = EN_CLIENT_REQUEST;
-        task->offerip = ip_temp;
+        task->offerip = OldIP;
         task->is_exist_ip = 1;
     }
     else {
@@ -530,7 +539,7 @@ ERR_SOCKET:
     return ret;
 }
 //this is main dhcp client module
-static bool_t  DHCP_ClientInit(void)
+bool_t  DHCP_ClientInit(void)
 {
     bool_t  ret = false;
 
@@ -567,13 +576,13 @@ EXIT_LOCK:
     return ret;
 }
 
-//this is the dhcp entry
-bool_t DHCP_ServiceDhcpcInit(void)
-{
-    bool_t result;
-    result = DHCP_ClientInit();
-    return result;
-}
+////this is the dhcp entry
+//bool_t DHCP_ServiceDhcpcInit(void)
+//{
+//    bool_t result;
+//    result = DHCP_ClientInit();
+//    return result;
+//}
 
 
 

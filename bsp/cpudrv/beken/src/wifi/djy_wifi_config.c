@@ -524,7 +524,7 @@ void ip_address_set(s32 iface, s32 dhcp, char *ip, char *mask, char*gw, char*dns
         para.hop = &v4.gatway;
         para.net = &v4.subnet;
         para.prior = CN_ROUT_PRIOR_UNI;
-        para.ifname = CFG_NETCARD_NAME;
+        para.ifname = CFG_WIFI_DEV_NAME;
     }
     if (iface == 1) // Station
         memcpy(&sta_ip_settings, &para, sizeof(para));

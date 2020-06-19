@@ -583,7 +583,9 @@ typedef ptu32_t   ipaddr_t;
 //bool_t RoutDns(enum_ipv_t ver, ipaddr_t ip);
 //bool_t RoutSetDefaultAddr(enum_ipv_t ver,ipaddr_t ip,ipaddr_t mask,ipaddr_t gateway,ipaddr_t dns);
 //this function use to alloc an ip from the dhcp dynamicly
-bool_t DHCP_AddClientTask(const char *name);
+bool_t DHCP_AddClientTask(const char *ifname, u32 OldIP);
+bool_t  DHCP_ServerInit(void);
+bool_t  DHCP_ClientInit(void);
 
 //used for the multicast
 #define MULTICAST_MASK     (htonl(0xf0000000))

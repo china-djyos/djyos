@@ -223,8 +223,8 @@ bool_t ModuleInstall_TcpIp(void)
         }
 #endif
         //add the tcpip service
-    extern bool_t DHCP_ServiceInit(void);
-    ret = DHCP_ServiceInit();
+    extern bool_t TCPIP_ServiceInit(void);
+    ret = TCPIP_ServiceInit();
     __LoadLog("SERVICE",ret);
     if(false == ret)
     {
