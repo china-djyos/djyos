@@ -154,7 +154,7 @@ int djy_pwm_stop(uint8_t channel)
     uint32_t param;
 
     param = channel;
-#if (CFG_SUPPORT_DJYOS)
+#if (CN_BEKEN_SDK_V3)
     ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UNIT_DISABLE, &param);
 #else
     ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UNIT_DISABLE, &param);

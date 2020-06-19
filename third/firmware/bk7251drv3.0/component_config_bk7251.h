@@ -33,7 +33,7 @@
 //%$#@select
 //%$#@SYMBOL
 #define CN_BEKEN_SDK_USE
-#define CN_BEKEN_SDK_3
+#define CN_BEKEN_SDK_V3
 //%$#@free
 #endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø

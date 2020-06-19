@@ -387,7 +387,7 @@ void DhcpclientDeleteAllTask(void)
     }
 }
 
-//int dhcp_gotip_cb(const char *ifname, int (*cb_ip_got)(unsigned int *ip));
+//int __NetDev_DHCP_SET_GotIP_CB(const char *ifname, int (*cb_ip_got)(unsigned int *ip));
 //int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(unsigned int ip));
 //int net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp);
 //if you want to use the interface to get a ipv4 dynamic, then call this function

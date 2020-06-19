@@ -312,7 +312,11 @@ static bool_t __MacSnd(void* handle,struct NetPkg * pkg,u32 netdevtask)
     //            msg.sema = gMacDriver.sendsync;
                 msg.sema = NULL;
     //            Lock_SempPend(gMacDriver.sendsync,10*mS);
+                #if(CN_BEKEN_SDK_V3)
                 ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
+                #else
+                ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
+                #endif
                 if(0 != ret)
                 {
                     result = false;
@@ -424,14 +428,14 @@ int GetConnectedRssiValue()
     int ret = 0;
 
     if (bk_wlan_get_link_status(&link_status) == kNoErr) {
-#if (CFG_SUPPORT_DJYOS)
-            if ((link_status.conn_state & RW_EVT_STA_GOT_IP) || (link_status.conn_state & RW_EVT_STA_CONNECTED )) {
+#if (CN_BEKEN_SDK_V3)
+        if ((link_status.conn_state & RW_EVT_STA_GOT_IP) || (link_status.conn_state & RW_EVT_STA_CONNECTED )) {
 #else
-            if ((link_status.conn_state & MSG_GOT_IP) || (link_status.conn_state & MSG_CONN_SUCCESS )) {
+        if ((link_status.conn_state & MSG_GOT_IP) || (link_status.conn_state & MSG_CONN_SUCCESS )) {
 #endif
-                //printf("%s:ch[%d], rssi[%d]!\r\n", link_status.ssid, link_status.channel, link_status.wifi_strength);
-                ret = link_status.wifi_strength;
-            }
+            //printf("%s:ch[%d], rssi[%d]!\r\n", link_status.ssid, link_status.channel, link_status.wifi_strength);
+            ret = link_status.wifi_strength;
+        }
     }
     return ret;
 }
@@ -545,7 +549,7 @@ void DhcpStaClearIp(void)
 //    return 0;
 //}
 void DhcpclientDeleteAllTask(void);//清除以前连接的路由和dhcp任务
-int dhcp_gotip_cb(const char *ifname, int (*cb_ip_get)(u32 *ip));
+int __NetDev_DHCP_SET_GotIP_CB(const char *ifname, int (*cb_ip_get)(u32 *ip));
 //int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(u32 ip));
 
 //------------------------------------------------------------------------------
@@ -557,7 +561,7 @@ int dhcp_gotip_cb(const char *ifname, int (*cb_ip_get)(u32 *ip));
 //------------------------------------------------------------------------------
 void DhcpStaStartIp(u32 AssignIP,s32 (*cb_ip_got)(u32 ip))
 {
-    dhcp_gotip_cb(CFG_WIFI_DEV_NAME, cb_ip_got);
+    __NetDev_DHCP_SET_GotIP_CB(CFG_WIFI_DEV_NAME, cb_ip_got);
 //  dhcp_setip_cb(CFG_WIFI_DEV_NAME, cb_ip_set);
 
     DhcpclientDeleteAllTask();

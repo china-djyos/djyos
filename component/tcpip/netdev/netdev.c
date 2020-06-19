@@ -913,7 +913,7 @@ bool_t NetDevFlowCtrl(struct NetDev* handle,enum EthFramType type)
 //      cb_ip_got，用户提供的回调函数
 //返回：-1 = 出错；非-1 = 成功
 //------------------------------------------------------------------------------
-s32 dhcp_gotip_cb(const char *ifname, s32 (*cb_ip_got)(u32 *ip))
+s32 __NetDev_DHCP_SET_GotIP_CB(const char *ifname, s32 (*cb_ip_got)(u32 *ip))
 {
     struct NetDev *pNetDev = NetDevGet(ifname);
     if(pNetDev==NULL) return  -1;
