@@ -312,7 +312,7 @@ static bool_t __MacSnd(void* handle,struct NetPkg * pkg,u32 netdevtask)
     //            msg.sema = gMacDriver.sendsync;
                 msg.sema = NULL;
     //            Lock_SempPend(gMacDriver.sendsync,10*mS);
-                #if(CN_BEKEN_SDK_V3)
+                #if(CN_BEKEN_SDK_V3 == 1)
                 ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
                 #else
                 ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
@@ -385,7 +385,11 @@ void DjyWifi_StaConnect(char *ssid,char *connect_key)
 
 void DjyWifi_StaDisConnect(void)
 {
+#if (CN_BEKEN_SDK_V3 == 1)
     bk_wlan_stop(BK_STATION);
+#else
+    bk_wlan_stop(STATION);
+#endif
     DJY_EventDelay(300*mS);//加个延时，如果断开立即快连，有时发不出去数据。
 }
 
@@ -396,7 +400,11 @@ void DjyWifi_ApOpen(char *ap_ssid, char *ap_key)
 
 void DjyWifi_ApClose(void)
 {
+#if (CN_BEKEN_SDK_V3 == 1)
     bk_wlan_stop(BK_SOFT_AP);
+#else
+    bk_wlan_stop(SOFT_AP);
+#endif
 }
 
 extern int wpa_get_psk(char *psk);
@@ -406,7 +414,11 @@ void DjyWifi_StaConnectDone(void)
     LinkStatusTypeDef link_status;
     struct wlan_fast_connect ap_info;
     uint8_t len = 0;
+#if (CN_BEKEN_SDK_V3 == 1)
     if ((bk_wlan_get_link_status(&link_status) == kNoErr) && (BK_SECURITY_TYPE_WEP != link_status.security))
+#else
+    if ((bk_wlan_get_link_status(&link_status) == kNoErr) && (SECURITY_TYPE_WEP != link_status.security))
+#endif
     {
         printf("info: %s, Write Quick Info Now!!!\r\n", __FUNCTION__);
         memset(&ap_info, 0, sizeof(struct wlan_fast_connect));//必须清空
@@ -428,7 +440,7 @@ int GetConnectedRssiValue()
     int ret = 0;
 
     if (bk_wlan_get_link_status(&link_status) == kNoErr) {
-#if (CN_BEKEN_SDK_V3)
+#if (CN_BEKEN_SDK_V3 == 1)
         if ((link_status.conn_state & RW_EVT_STA_GOT_IP) || (link_status.conn_state & RW_EVT_STA_CONNECTED )) {
 #else
         if ((link_status.conn_state & MSG_GOT_IP) || (link_status.conn_state & MSG_CONN_SUCCESS )) {
@@ -508,7 +520,7 @@ bool_t __attribute__((weak)) FnNetDevEventHookEvent(struct NetDev* iface,enum Ne
     switch(event)
      {
         case EN_NETDEVEVENT_IPGET:
-#if (CFG_SUPPORT_DJYOS)
+#if (CN_BEKEN_SDK_V3 == 1)
              mhdr_set_station_status(RW_EVT_STA_GOT_IP); //for rf power save;
 #else
              mhdr_set_station_status(6/*MSG_GOT_IP*/); //for rf power save;

@@ -32,8 +32,8 @@
 //%$#@string,1,16
 //%$#@select
 //%$#@SYMBOL
-#define CN_BEKEN_SDK_USE
-#define CN_BEKEN_SDK_V3
+#define CN_BEKEN_SDK_USE    1
+#define CN_BEKEN_SDK_V3     1
 //%$#@free
 #endif
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯

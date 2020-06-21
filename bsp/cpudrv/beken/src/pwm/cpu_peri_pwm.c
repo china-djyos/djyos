@@ -154,10 +154,10 @@ int djy_pwm_stop(uint8_t channel)
     uint32_t param;
 
     param = channel;
-#if (CN_BEKEN_SDK_V3)
+#if (CN_BEKEN_SDK_V3 == 1)
     ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UNIT_DISABLE, &param);
 #else
-    ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UNIT_DISABLE, &param);
+    ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UINT_DISABLE, &param);
 #endif
     if (DRV_SUCCESS == ret)
     {

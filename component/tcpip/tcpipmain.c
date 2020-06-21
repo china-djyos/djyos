@@ -64,9 +64,6 @@ bool_t tcpipver(char *param)
     info_printf("tcpip","VERSION  :%s ",CN_TCPIP_VERSION);
     info_printf("tcpip","TIME     :%s ",__TIME__);
     info_printf("tcpip","DATE     :%s ",__DATE__);
-    info_printf("tcpip","SUBMIT2  :Any idea, please contact with us");
-    info_printf("tcpip","ChangeLog:");
-    info_printf("tcpip","FUNCTIONS:/ETHERNET/PPP/IPV4/TCP/UDP/ICMP/FTP/TFTP/SNTP/TELNET/DHCP/PING");
     return true;
 }
 

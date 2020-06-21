@@ -107,8 +107,8 @@
 //@#$%component end configure
 // =============================================================================
 
+#if (CN_BEKEN_SDK_V3 == 1)
 extern void uart_hw_set_change(UINT8 uport, bk_uart_config_t *uart_config);
-
 static bk_uart_config_t djybsp_uart[CN_UART_NUM] = {
     {
         .baud_rate = UART_BAUDRATE_115200,
@@ -125,6 +125,25 @@ static bk_uart_config_t djybsp_uart[CN_UART_NUM] = {
        .flow_control = FLOW_CTRL_DISABLED,
     },
 };
+#else
+extern void uart_hw_set_change(UINT8 uport, uart_config_t *uart_config);
+static uart_config_t djybsp_uart[CN_UART_NUM] = {
+    {
+        .baud_rate = UART_BAUDRATE_115200,
+        .data_width = DATA_WIDTH_8BIT,
+        .parity = BK_PARITY_NO,
+        .stop_bits = BK_STOP_BITS_1,
+        .flow_control = FLOW_CTRL_DISABLED,
+    },
+    {
+       .baud_rate = UART_BAUDRATE_115200,
+       .data_width = DATA_WIDTH_8BIT,
+       .parity = BK_PARITY_NO,
+       .stop_bits = BK_STOP_BITS_1,
+       .flow_control = FLOW_CTRL_DISABLED,
+    },
+};
+#endif
 
 static u16 UART_SndBufLen = 0;
 static u16 UART_RxBufLen = 0;
@@ -249,6 +268,7 @@ static void __UART_ComConfig(u32 port,struct COMParam *COM)
 
     switch(COM->DataBits)               // data bits
     {
+#if (CN_BEKEN_SDK_V3 == 1)
         case CN_UART_DATABITS_7:
             djybsp_uart[port].data_width = BK_DATA_WIDTH_7BIT;
             break;
@@ -256,6 +276,15 @@ static void __UART_ComConfig(u32 port,struct COMParam *COM)
         case CN_UART_DATABITS_8:
             djybsp_uart[port].data_width = BK_DATA_WIDTH_8BIT;
             break;
+#else
+        case CN_UART_DATABITS_7:
+            djybsp_uart[port].data_width = DATA_WIDTH_7BIT;
+            break;
+
+        case CN_UART_DATABITS_8:
+            djybsp_uart[port].data_width = DATA_WIDTH_8BIT;
+            break;
+#endif
         default:break;
     }
 
