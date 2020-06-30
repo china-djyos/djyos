@@ -1,4 +1,4 @@
-
+#include "sys_config.h"
 #if (!CFG_SUPPORT_DJYOS)
 #include <stdint.h>
 

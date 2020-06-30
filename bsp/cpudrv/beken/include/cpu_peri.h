@@ -61,7 +61,11 @@ extern "C" {
 
 //包含外设所需的头文件"
 
-//#include "uart.h"
+#if (CN_BEKEN_SDK_V3 == 1)
+#include "uart\uart.h"
+#else
+#include "bk_uart.h"
+#endif      //for (CN_BEKEN_SDK_V3 == 1)
 #include "gpio_pub.h"
 #include "intc.h"
 #include "flash.h"

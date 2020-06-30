@@ -32,8 +32,8 @@
     .globl bk_trap_pabt
     .globl bk_trap_dabt
     .globl bk_trap_resv
-    
-    #include "sys_config.h"
+
+//    #include "sys_config.h"		//lst
 
 /* ========================================================================
  *                                Macros

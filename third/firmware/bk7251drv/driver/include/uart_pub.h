@@ -2,7 +2,7 @@
 #define _UART_PUB_H
 
 #include <stdio.h>
-#include "typedef.h"
+#include "common/typedef.h"     //lst
 
 #if CFG_SUPPORT_ALIOS
 #include "hal/soc/soc.h"

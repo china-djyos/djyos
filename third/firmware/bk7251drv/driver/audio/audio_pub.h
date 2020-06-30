@@ -1,6 +1,6 @@
 #ifndef __AUDIO_PUB_H__
 #define __AUDIO_PUB_H__
-
+#include "common/typedef.h"        //lst
 #define AUD_FAILURE                  (1)
 #define AUD_SUCCESS                  (0)
 

@@ -2886,7 +2886,7 @@ static bool_t __sndsyn_ms(struct tagSocket *client, struct TcpHdr *hdr,struct Ne
             dealtcpoption(ccb,hdr);
             ccb->rbuf.rcvnxt = ntohl(hdr->seqno) + 1;
             __sendflag(client,CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
-			
+
             if((client->sockstat & CN_SOCKET_PROBLOCK) == 0 &&
                (client->sockstat & CN_SOCKET_PROCONNECT)) {//ÎÕÊÖÉèÖÃ·Ç×èÈû£¬
                 ccb->channelstat|=CN_TCP_CHANNEL_STATASND|CN_TCP_CHANNEL_STATARCV;

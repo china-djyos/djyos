@@ -56,6 +56,7 @@
 //../ip;
 //%$#@end exclude
 //%$#@include path
+//../;
 //../app;
 //../app/standalone-ap;../app/standalone-station;
 //../common;
