@@ -38,5 +38,5 @@
 //../docs;../examples;../jni;../test;../tools;
 //%$#@end exclude
 //%$#@include path
-//..;./include;./src;
+//..;../include;../src;
 //%$#@end include path

@@ -38,5 +38,5 @@
 //../docs;../examples;../jni;../test;../tools;
 //%$#@end exclude
 //%$#@include path
-//..;./include;./celt;./celt/arm;./silk;./silk/arm;./silk/fixed;./silk/fixed/arm;./src;
+//..;../include;../celt;../celt/arm;../silk;../silk/arm;../silk/fixed;../silk/fixed/arm;../src;
 //%$#@end include path
