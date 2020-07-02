@@ -4,7 +4,7 @@
 #include "co_int.h"
 #include "_reg_dma.h"
 #include "compiler.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 #include "reg_access.h"
 
 #define REG_DMA_COUNT 49

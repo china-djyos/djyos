@@ -2,7 +2,7 @@
 #include "arm_arch.h"
 #include <string.h>
 #if CFG_SUPPORT_DJYOS       //CK
-    #include "entry/arch.h"
+#include "driver/entry/arch.h"      //lst
 #endif
 
 #if(CFG_SUPPORT_DJYOS)      //lst

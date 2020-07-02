@@ -55,7 +55,7 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 
-#include "typedef.h"
+#include "common/typedef.h"
 #include "pwm_pub.h"
 #include "drv_model_pub.h"
 

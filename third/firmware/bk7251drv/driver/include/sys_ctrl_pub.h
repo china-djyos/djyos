@@ -1,5 +1,6 @@
 #ifndef _SCTRL_PUB_H_
 #define _SCTRL_PUB_H_
+#include "common/typedef.h"     //lst
 #include "sys_config.h"
 #define SCTRL_DEV_NAME       "sys_ctrl"
 

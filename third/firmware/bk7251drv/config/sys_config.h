@@ -159,8 +159,8 @@
 /*section 25 ----- use audio*/      //djyos下，audio配置已经转移到DIDE中
 #if(CFG_SUPPORT_DJYOS == 1)
 #define CFG_USE_AUDIO                              CFG_MODULE_ENABLE_CPU_ONCHIP_AUDIO
-//#define CFG_USE_AUD_DAC                            1
-//#define CFG_USE_AUD_ADC                            1
+#define CFG_USE_AUD_DAC                            1
+#define CFG_USE_AUD_ADC                            1
 #endif
 
 /*section 26 ----- general spi master/slave */

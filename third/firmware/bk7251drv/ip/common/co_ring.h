@@ -38,7 +38,7 @@
 #include "compiler.h"
 
 // for assertions
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 
 /*
  * STRUCTURE DECLARATIONS

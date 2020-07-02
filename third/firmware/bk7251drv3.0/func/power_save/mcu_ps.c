@@ -14,7 +14,7 @@
 #include "bk_timer_pub.h"
 #include "drv_model_pub.h"
 #if CFG_SUPPORT_DJYOS       //CK
-    #include "entry/arch.h"
+#include "driver/entry/arch.h"      //lst
 #endif
 
 #if CFG_USE_MCU_PS
@@ -213,9 +213,9 @@ UINT32 mcu_power_save(UINT32 sleep_tick)
     else
     {
     }
-    
+
     mcu_ps_cal_increase_tick(& miss_ticks);
-    
+
     GLOBAL_INT_RESTORE();
     ASSERT(miss_ticks >= 0);
     return miss_ticks;
@@ -307,13 +307,13 @@ void mcu_ps_cal_increase_tick(UINT32 *lost_p)
 
     if((lost <= 0) || (0 == increase_tick))
         return;
-	#if 0
+    #if 0
     if((increase_tick < (-5000))|| (increase_tick > 5000))
     {
         //os_printf("--itick--:%x\r\n",increase_tick);
         increase_tick = 0;
     }
-	#endif
+    #endif
 
     GLOBAL_INT_DISABLE();
     lost += increase_tick;
@@ -412,7 +412,7 @@ UINT32 mcu_ps_tsf_cal(UINT64 tsf)
 
         fclk_update_tick(BK_MS_TO_TICKS(loss));
         mcu_ps_machw_init();
-        
+
         increase_tick = 0;
     }
     else
@@ -483,7 +483,7 @@ UINT32 mcu_ps_machw_cal(void)
     }
 
     GLOBAL_INT_DISABLE();
-    
+
     fclk = BK_TICKS_TO_MS(fclk_get_tick());
 
     machw = hal_machw_time();
@@ -535,7 +535,7 @@ UINT32 mcu_ps_machw_cal(void)
             }
         }
 
-        mcu_ps_cal_increase_tick(&lost);        
+        mcu_ps_cal_increase_tick(&lost);
         fclk_update_tick(BK_MS_TO_TICKS(lost));
     }
     else

@@ -4,14 +4,14 @@
 #include "co_int.h"
 #include "_reg_dma.h"
 #include "compiler.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 #include "reg_access.h"
 
 #define REG_DMA_COUNT 49
 
 #define REG_DMA_DECODING_MASK 0x000000FF
 
-#if CFG_SUPPORT_DJYOS	//CK,消除-Wunused-parameter这个类型的告警
+#if CFG_SUPPORT_DJYOS   //CK,消除-Wunused-parameter这个类型的告警
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
@@ -101,7 +101,7 @@ __INLINE uint32_t dma_dma_status_get(void)
 __INLINE void dma_dma_status_unpack(uint8_t *downstreambsy, uint8_t *upstreambsy, uint8_t *arbq3valid, uint8_t *arbq2valid, uint8_t *arbq1valid, uint8_t *arbq0valid, uint8_t *requeststate, uint8_t *ch3stopped, uint8_t *ch2stopped, uint8_t *ch1stopped, uint8_t *ch0stopped, uint16_t *oftfree)
 {
 }
-#if CFG_SUPPORT_DJYOS	//CK
+#if CFG_SUPPORT_DJYOS   //CK
 #pragma GCC diagnostic pop
 #endif
 __INLINE uint8_t dma_dma_status_down_stream_bsy_getf(void)
@@ -864,7 +864,7 @@ __INLINE uint8_t dma_dummy_getf(void)
 __INLINE void dma_dummy_setf(uint8_t dummy)
 {
 }
-#if CFG_SUPPORT_DJYOS	//CK
+#if CFG_SUPPORT_DJYOS   //CK
 #pragma GCC diagnostic pop
 #endif
 

@@ -5,7 +5,7 @@
 #include <msgqueue.h>
 #include <djytimer.h>
 #if CFG_SUPPORT_DJYOS       //CK
-    #include "entry/arch.h"
+#include "driver/entry/arch.h"      //lst
 #endif
 #define THREAD_TIMESLICE 5
 
@@ -20,7 +20,7 @@
 /******************************************************
  *               Function Definitions
  ******************************************************/
-OSStatus rtos_create_thread( beken_thread_t* thread, uint8_t priority, const char* name, 
+OSStatus rtos_create_thread( beken_thread_t* thread, uint8_t priority, const char* name,
                         beken_thread_function_t function, uint32_t stack_size, beken_thread_arg_t arg )
 {
     if(thread == NULL)
@@ -270,10 +270,10 @@ static void timer_oneshot_callback(void* parameter)
 
     RTOS_DBG("one shot callback\n");
 
-	if(BEKEN_MAGIC_WORD != timer->beken_magic)
-	{
-		return;
-	}
+    if(BEKEN_MAGIC_WORD != timer->beken_magic)
+    {
+        return;
+    }
     if (timer->function)
     {
         timer->function(timer->left_arg, timer->right_arg );
@@ -331,13 +331,13 @@ OSStatus rtos_oneshot_reload_timer( beken2_timer_t* timer)
     return kNoErr;
 }
 
-OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer, 
-									uint32_t time_ms, 
-									timer_2handler_t function,
-									void* larg, 
-									void* rarg )
+OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer,
+                                    uint32_t time_ms,
+                                    timer_2handler_t function,
+                                    void* larg,
+                                    void* rarg )
 {
-	OSStatus ret = kNoErr;
+    OSStatus ret = kNoErr;
 
     RTOS_DBG("create oneshot_timer \n");
     timer->function = function;
@@ -451,7 +451,7 @@ OSStatus rtos_init_timer( beken_timer_t* timer, uint32_t time_ms, timer_handler_
 
 //OSStatus rtos_init_timer_ex( beken_timer_t* timer, const char* name, uint32_t time_ms, timer_handler_t function, void* arg)
 //{
-//	OSStatus ret = kNoErr;
+//  OSStatus ret = kNoErr;
 //
 //    RTOS_DBG("create period_timer_ex \n");
 //    timer->function = function;
@@ -472,7 +472,7 @@ OSStatus rtos_init_timer( beken_timer_t* timer, uint32_t time_ms, timer_handler_
 
 OSStatus rtos_deinit_timer( beken_timer_t* timer )
 {
-	OSStatus ret = kNoErr;
+    OSStatus ret = kNoErr;
 
     RTOS_DBG("delete period_timer \n");
     djytimer_free(timer->handle);

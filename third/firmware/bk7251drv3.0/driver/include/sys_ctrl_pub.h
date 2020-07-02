@@ -2,6 +2,7 @@
 #define _SCTRL_PUB_H_
 
 #define SCTRL_DEV_NAME       "sys_ctrl"
+#include <common/typedef.h> //lst
 
 #define SCTRL_FAILURE        ((UINT32)-1)
 #define SCTRL_SUCCESS        (0)

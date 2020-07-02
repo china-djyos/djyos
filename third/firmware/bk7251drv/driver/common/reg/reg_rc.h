@@ -4,7 +4,7 @@
 #include "co_int.h"
 #include "_reg_rc.h"
 #include "compiler.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 #include "reg_access.h"
 
 #define REG_RC_COUNT 107

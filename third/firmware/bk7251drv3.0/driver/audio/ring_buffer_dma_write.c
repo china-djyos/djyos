@@ -1,6 +1,6 @@
 #include "include.h"
 #include "ring_buffer_dma_write.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 #include "mem_pub.h"
 #include "drv_model_pub.h"
 #include "uart_pub.h"
@@ -10,10 +10,10 @@
 
 #define RWP_SAFE_INTERVAL           (4)
 #define RB_DMA_WR_MEMCPY                   os_memcpy
-#define RB_DMA_WR_INT_DECLARATION()        
-#define RB_DMA_WR_INT_DISABLE()            
+#define RB_DMA_WR_INT_DECLARATION()
+#define RB_DMA_WR_INT_DISABLE()
 #define RB_DMA_WR_INT_RESTORE()
-#define RB_DMA_WR_PRT                      //os_printf                   
+#define RB_DMA_WR_PRT                      //os_printf
 
 void rb_init_dma_write(RB_DMA_WR_PTR rb, UINT8 *addr, UINT32 capacity, UINT32 ch)
 {
@@ -37,9 +37,9 @@ void rb_init_dma_write(RB_DMA_WR_PTR rb, UINT8 *addr, UINT32 capacity, UINT32 ch
 void rb_clear_dma_write(RB_DMA_WR_PTR rb)
 {
     GDMA_CFG_ST en_cfg;
-    RB_DMA_WR_INT_DECLARATION();    
- 
-    RB_DMA_WR_INT_DISABLE();   
+    RB_DMA_WR_INT_DECLARATION();
+
+    RB_DMA_WR_INT_DISABLE();
     rb->wp    = 0;
     rb->rp    = 0;
     RB_DMA_WR_INT_RESTORE();
@@ -57,12 +57,12 @@ UINT32 rb_read_dma_write(RB_DMA_WR_PTR rb, UINT8 *buffer, UINT32 size, UINT32 co
     UINT32 remain_bytes;
     UINT32 wp;
     GDMA_CFG_ST en_cfg;
-    
+
     RB_DMA_WR_INT_DECLARATION();
 
-    if(required_bytes == 0) 
+    if(required_bytes == 0)
         return 0;
-    
+
     en_cfg.channel = rb->dma_ch;
     wp = sddev_control(GDMA_DEV_NAME, CMD_GDMA_GET_DST_WRITE_ADDR, &en_cfg);
     RB_DMA_WR_PRT("rb read get dst_wr:%x\r\n", wp);
@@ -81,7 +81,7 @@ UINT32 rb_read_dma_write(RB_DMA_WR_PTR rb, UINT8 *buffer, UINT32 size, UINT32 co
         {
             read_bytes = required_bytes;
         }
-        
+
         RB_DMA_WR_MEMCPY(buffer, &rb->address[rb->rp], read_bytes);
         RB_DMA_WR_INT_DISABLE();
         rb->rp += read_bytes;
@@ -123,14 +123,14 @@ UINT32 rb_read_dma_write(RB_DMA_WR_PTR rb, UINT8 *buffer, UINT32 size, UINT32 co
         }
     }
 
-    
+
 
     en_cfg.channel = rb->dma_ch;
     if(rb->rp >= RWP_SAFE_INTERVAL)
         en_cfg.param = (UINT32)(rb->address + rb->rp - RWP_SAFE_INTERVAL);
     else
         en_cfg.param = (UINT32)(rb->address + rb->capacity + rb->rp - RWP_SAFE_INTERVAL);
-    
+
     RB_DMA_WR_PRT("read set dst:%x\r\n", en_cfg.param);
     sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_DST_PAUSE_ADDR, &en_cfg);
 

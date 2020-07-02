@@ -6,7 +6,7 @@
 #include "mem_pub.h"
 #include "str_pub.h"
 #if CFG_SUPPORT_DJYOS       //CK
-    #include "entry/arch.h"
+#include "driver/entry/arch.h"      //lst
 #endif
 
 static DRV_SDEV_S drv_sdev_tbl[DD_MAX_SDEV] =
@@ -121,7 +121,7 @@ DD_HANDLE ddev_open(char *dev_name, UINT32 *status, UINT32 op_flag)
                 {
                     *status = (operation->open)(op_flag);
                 }
-                
+
                 GLOBAL_INT_DISABLE();
                 dev_ptr->state = DD_STATE_OPENED;
                 dev_ptr->use_cnt = 0;
@@ -172,7 +172,7 @@ UINT32 ddev_close(DD_HANDLE handle)
         }
 
         ASSERT(dev_ptr);
-        
+
         GLOBAL_INT_DISABLE();
         dev_ptr->state = DD_STATE_CLOSED;
         GLOBAL_INT_RESTORE();
@@ -263,7 +263,7 @@ UINT32 sddev_control(char *dev_name, UINT32 cmd, VOID *param)
     UINT32 name_len;
     DRV_SDEV_PTR dev_ptr;
     SDD_OPERATIONS *operation = NULLPTR;
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
     ASSERT(dev_name);
 #endif
     status = DRV_FAILURE;
@@ -284,7 +284,7 @@ UINT32 sddev_control(char *dev_name, UINT32 cmd, VOID *param)
         }
     }
 
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
     ASSERT(operation);
 #endif
     return status;
@@ -384,7 +384,7 @@ UINT32 ddev_unregister_dev(char *dev_name)
             break;
         }
     }
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
     ASSERT(NULLPTR == dev_ptr);       //嵌入式用assert有什么用？
 #endif
     return DRV_SUCCESS;

@@ -2,7 +2,7 @@
 #include "pwm_pub.h"
 #include "icu_pub.h"
 #include "drv_model_pub.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 #include "sys_config.h"
 #include "power_save_pub.h"
 

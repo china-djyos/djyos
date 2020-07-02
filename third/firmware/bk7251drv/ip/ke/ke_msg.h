@@ -52,7 +52,7 @@
 #include <stddef.h>
 #include "co_int.h"
 #include "co_bool.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 #include "compiler.h"
 
 #include "ke_config.h"
@@ -110,11 +110,11 @@ enum ke_msg_status_tag
  */
 __INLINE struct ke_msg * ke_param2msg(void const *param_ptr)
 {
-	if(0 == param_ptr)
-	{
-		return 0;
-	}
-	
+    if(0 == param_ptr)
+    {
+        return 0;
+    }
+
     return (struct ke_msg*) (((uint8_t*)param_ptr) - offsetof(struct ke_msg, param));
 }
 

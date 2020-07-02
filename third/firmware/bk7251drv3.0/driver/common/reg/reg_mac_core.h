@@ -14,11 +14,8 @@
 #include "co_int.h"
 #include "_reg_mac_core.h"
 #include "compiler.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 #include "reg_access.h"
-#if CFG_SUPPORT_DJYOS       //CK
-    #include "entry/arch.h"
-#endif
 /*lint -e91 */
 /** @brief Number of registers in the REG_MAC_CORE peripheral.
  */
@@ -6137,10 +6134,10 @@ __INLINE void nxmac_mac_addr_ram_high_setf(uint16_t macaddrramhigh)
  */
 enum
 {
-	CTYPERAM_NULL_KEY = 0,
-	CTYPERAM_WEP,
-	CTYPERAM_TKIP,
-	CTYPERAM_CCMP,
+    CTYPERAM_NULL_KEY = 0,
+    CTYPERAM_WEP,
+    CTYPERAM_TKIP,
+    CTYPERAM_CCMP,
 };
 
 /// Address of the ENCR_CNTRL register

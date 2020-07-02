@@ -22,7 +22,7 @@
 #include "role_launch.h"
 
 #if CFG_SUPPORT_DJYOS       //CK
-    #include "entry/arch.h"
+#include "driver/entry/arch.h"      //lst
 #endif
 
 volatile static PS_MODE_STATUS    bk_ps_mode = PS_NO_PS_MODE;
@@ -281,7 +281,7 @@ bool power_save_sleep(void)
 #if CFG_USE_STA_PS
     power_save_sleep_status_set();
     sctrl_sta_rf_sleep();
-	
+
     reg = REG_READ(ICU_INTERRUPT_ENABLE);
     reg |= (CO_BIT(FIQ_MAC_WAKEUP));
     REG_WRITE(ICU_INTERRUPT_ENABLE, reg);
@@ -508,7 +508,7 @@ void power_save_ieee_dtim_wakeup(void)
             bmsg_ps_sender(PS_BMSG_IOCTL_RF_KP_SET);
         }
         power_save_rf_ps_wkup_semlist_set();
-        
+
         ke_evt_set(KE_EVT_KE_TIMER_BIT);
         ke_evt_set(KE_EVT_MM_TIMER_BIT);
         power_save_dtim_exit_check();
@@ -599,10 +599,10 @@ void power_save_me_ps_first_set_state(UINT8 state)
                 os_printf("%s:%d malloc fail\r\n", __FUNCTION__, __LINE__);
                 return ;
             }
-            
+
 #if CFG_ROLE_LAUNCH
             rl_pre_sta_set_status(RL_STATUS_STA_PS_SETTING);
-#endif            
+#endif
             os_memset(kmsg_dst, 0, (sizeof(struct ke_msg) + param_len));
             kmsg_dst->id = ME_PS_REQ;
             kmsg_dst->dest_id = TASK_ME;
@@ -707,7 +707,7 @@ UINT8 power_save_me_ps_set_all_state(UINT8 state )
         if(vif_entry->active && vif_entry->type == VIF_STA)
         {
 #if CFG_ROLE_LAUNCH
-	        rl_pre_sta_set_status(RL_STATUS_STA_PS_SETTING);
+            rl_pre_sta_set_status(RL_STATUS_STA_PS_SETTING);
 #endif
             power_save_me_ps_set_state(state, i);
         }
@@ -757,7 +757,7 @@ void power_save_timer_init(void)
 void power_save_keep_timer_init(void)
 {
     UINT32 reg, err;
-    
+
 #if CFG_SUPPORT_ALIOS
     if(rtos_is_timer_init(&ps_keep_timer))
 #else
@@ -876,7 +876,7 @@ int power_save_dtim_enable_handler(void)
     }
 
 #if CFG_ROLE_LAUNCH
-	        rl_pre_sta_set_status(RL_STATUS_STA_LAUNCHED);
+            rl_pre_sta_set_status(RL_STATUS_STA_LAUNCHED);
 #endif
 
     GLOBAL_INT_RESTORE();
@@ -924,9 +924,9 @@ int power_save_dtim_disable_handler(void)
     FUNCPTR reboot = 0;
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
-	
+
 #if CFG_USE_BLE_PS
-	rf_wifi_used_clr();
+    rf_wifi_used_clr();
 #endif
     if(bk_ps_mode == PS_DTIM_PS_CLOSING)
     {
@@ -953,7 +953,7 @@ int power_save_dtim_disable_handler(void)
     }
 
 #if CFG_ROLE_LAUNCH
-	        rl_pre_sta_set_status(RL_STATUS_STA_LAUNCHED);
+            rl_pre_sta_set_status(RL_STATUS_STA_LAUNCHED);
 #endif
 
     GLOBAL_INT_RESTORE();
@@ -1111,12 +1111,12 @@ void power_save_td_ck_timer_real_handler(void *data)
 {
     OSStatus err;
     power_save_td_timer_stop();
-	
+
     if(PS_STA_DTIM_SWITCH)
     {
         ps_td_last_tick = 1;
     }
-	
+
 #if CFG_USE_STA_PS
     extern void bmsg_null_sender(void);
     bmsg_null_sender();
@@ -1183,7 +1183,7 @@ void power_save_wait_timer_real_handler(void *data)
 }
 
 void power_save_wait_timer_handler(void *data)
-{   
+{
     bmsg_ps_sender(PS_BMSG_IOCTL_WAIT_TM_HANDLER);
 }
 void power_save_wait_timer_init(void)
@@ -1224,7 +1224,7 @@ void power_save_wait_timer_init(void)
 }
 
 void power_save_wait_timer_set(void *data)
-{   
+{
     if(PS_STA_DTIM_SWITCH)
     {
         bmsg_ps_sender(PS_BMSG_IOCTL_WAIT_TM_SET);
@@ -1276,9 +1276,9 @@ void power_save_keep_timer_real_handler()
 
     power_save_keep_timer_stop();
     PS_DEBUG_PWM_TRIGER;
-	
+
 #if CFG_USE_BLE_PS
-	rf_wifi_used_clr();
+    rf_wifi_used_clr();
 #endif
 
     GLOBAL_INT_DISABLE();
@@ -1286,7 +1286,7 @@ void power_save_keep_timer_real_handler()
             && bk_ps_info.ps_arm_wakeup_way == PS_ARM_WAKEUP_RW
             && 0 == bk_ps_info.ps_real_sleep)
     {
-        if(0 == ps_reseted_moniter_flag 
+        if(0 == ps_reseted_moniter_flag
         && ps_bcn_loss_max_count < PS_BCN_MAX_LOSS_LIMIT
         )
         {
@@ -1355,7 +1355,7 @@ void power_save_rf_ps_wkup_semlist_wait(void)
         os_printf("semlist_wait NULL\r\n");
         return ;
     }
-    
+
 #if CFG_SUPPORT_ALIOS
     ret = rtos_init_semaphore(&sem_list->wkup_sema, 0);
 #else

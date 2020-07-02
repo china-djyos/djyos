@@ -4,7 +4,7 @@
 #if CFG_USE_SDCARD_HOST
 #include "sdcard_pub.h"
 #if CFG_SUPPORT_DJYOS       //CK
-#include <typedef.h>
+#include <common/typedef.h> //lst
 #endif
 typedef void (*SD_DETECT_FUN)(void);
 

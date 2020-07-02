@@ -27,7 +27,7 @@
  ****************************************************************************************
  */
 // for ASSERT
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 // for __INLINE
 #include "compiler.h"
 // For co_status_t

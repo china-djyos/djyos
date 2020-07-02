@@ -27,7 +27,7 @@
 #endif
 
 #if CFG_SUPPORT_DJYOS       //CK
-    #include "entry/arch.h"
+#include "driver/entry/arch.h"      //lst
 #endif
 
 #if CFG_BK7221_MDM_WATCHDOG_PATCH

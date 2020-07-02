@@ -14,7 +14,7 @@
 #include "co_int.h"
 #include "_reg_la.h"
 #include "compiler.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 #include "reg_access.h"
 
 /** @brief Number of registers in the REG_LA peripheral.

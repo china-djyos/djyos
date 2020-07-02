@@ -18,7 +18,7 @@
 #if (BLE_APP_SDP)
 #include <stdint.h>          // Standard Integer Definition
 #include <common_bt.h>           // Common BT Definitions
-#include "arch.h"            // Platform Definitions
+#include "driver/entry/arch.h"      //lst
 #include "gap.h"
 #include "gapc.h"            // GAPC Definitions
 #include "gattc_task.h"

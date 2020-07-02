@@ -6,7 +6,7 @@
 
 #include "drv_model_pub.h"
 #if CFG_SUPPORT_DJYOS       //CK
-    #include "entry/arch.h"
+#include "driver/entry/arch.h"      //lst
 #endif
 
 static SDD_OPERATIONS icu_op =
@@ -180,14 +180,14 @@ UINT32 icu_ctrl(UINT32 cmd, void *param)
         break;
 
     case CMD_ARM_WAKEUP:
-		reg = (*(UINT32*)param);
-		REG_WRITE(ICU_ARM_WAKEUP_EN, reg);            
+        reg = (*(UINT32*)param);
+        REG_WRITE(ICU_ARM_WAKEUP_EN, reg);
         break;
 
     default:
         break;
     }
-    
+
     GLOBAL_INT_RESTORE();
 
     return ret;

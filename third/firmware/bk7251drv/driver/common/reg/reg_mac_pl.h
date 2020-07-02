@@ -14,7 +14,7 @@
 #include "co_int.h"
 #include "_reg_mac_pl.h"
 #include "compiler.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 #include "reg_access.h"
 
 /*lint -e(91)*/
@@ -18046,7 +18046,7 @@ __INLINE uint32_t nxmac_sec_u_1_tx_current_pointer_getf(void)
     return (localVal >> 0);
 }
 
-#endif // RW_MUMIMO_SEC_USER1_EN 
+#endif // RW_MUMIMO_SEC_USER1_EN
 /// @}
 
 #if RW_MUMIMO_SEC_USER2_EN
@@ -18105,7 +18105,7 @@ __INLINE uint32_t nxmac_sec_u_2_tx_current_pointer_getf(void)
     return (localVal >> 0);
 }
 
-#endif // RW_MUMIMO_SEC_USER2_EN 
+#endif // RW_MUMIMO_SEC_USER2_EN
 /// @}
 
 #if RW_MUMIMO_SEC_USER3_EN
@@ -18164,7 +18164,7 @@ __INLINE uint32_t nxmac_sec_u_3_tx_current_pointer_getf(void)
     return (localVal >> 0);
 }
 
-#endif // RW_MUMIMO_SEC_USER3_EN 
+#endif // RW_MUMIMO_SEC_USER3_EN
 /// @}
 /*lint +e91*/
 

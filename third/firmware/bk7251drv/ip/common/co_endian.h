@@ -41,7 +41,7 @@
 #include "co_int.h"
 #include "rwnx_config.h"
 #include "compiler.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 
 
 /**

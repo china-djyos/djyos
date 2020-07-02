@@ -6,12 +6,12 @@
 #include "generic.h"
 #include "compiler.h"
 
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 
 #if CFG_ENABLE_DEMO_TEST
 #include "demos_config.h"
 #endif
 
-#endif // _INCLUDES_H_ 
+#endif // _INCLUDES_H_
 // eof
 

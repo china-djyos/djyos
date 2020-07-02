@@ -1,7 +1,7 @@
 #ifndef _SDCARD_H_
 #define _SDCARD_H_
 #include <sys_config.h>
-#include <typedef.h>
+#include <common/typedef.h>     //lst
 #if CFG_USE_SDCARD_HOST
 #include "sdcard_pub.h"
 

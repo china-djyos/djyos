@@ -36,7 +36,7 @@
 //standard includes
 #include "co_int.h"
 //for ASSERT_ERR macro
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 
 // for co_list
 #include "co_list.h"
