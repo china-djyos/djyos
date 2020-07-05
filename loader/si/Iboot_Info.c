@@ -562,7 +562,7 @@ static bool_t Iboot_VerificationAppExit(void * apphead)
         unsigned char hash[16];
         u32 i;
 
-        MD5Final(hash, (MD5_CTX*)p_apphead->VerifBuf);
+        MD5_Final(hash, (MD5_CTX*)p_apphead->VerifBuf);
         for(i =0;i<sizeof(MD5_CTX);i++)
             p_apphead->VerifBuf[i]=0xff;
         for(i =0;i<16;i++)
@@ -603,7 +603,7 @@ static bool_t Iboot_VerificationAppRun(void * apphead, u8 * buf, u32 len)
     }
     else if(p_apphead->Verification == VERIFICATION_MD5)
     {
-        MD5Update((MD5_CTX*)p_apphead->VerifBuf, buf,len);
+        MD5_Update((MD5_CTX*)p_apphead->VerifBuf, buf,len);
     }
     else if(p_apphead->Verification == VERIFICATION_SSL)
     {
@@ -662,8 +662,8 @@ static bool_t Iboot_VerificationAppInit(void *data)
         MD5_CTX md5tmp;
         char *buf = (char *)&md5tmp;
         memset(&md5tmp, 0xff, sizeof(MD5_CTX));
-        MD5Init(&md5tmp);
-        MD5Update(&md5tmp, data, sizeof(struct AppHead) + sizeof(struct ProductInfo));
+        MD5_Init(&md5tmp);
+        MD5_Update(&md5tmp, data, sizeof(struct AppHead) + sizeof(struct ProductInfo));
         for(u32 i =0;i< sizeof(MD5_CTX);i++)
             p_apphead->VerifBuf[i]=buf[i];
     }
