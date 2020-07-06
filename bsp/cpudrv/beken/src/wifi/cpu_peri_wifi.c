@@ -62,7 +62,7 @@
 #include "ieee802_11_demo.h"
 #include "rw_pub.h"
 #include "wlan_ui_pub.h"
-
+#include "component_config_wifi.h"
 
 #define CN_DEVNAME_LEN 32
 //this is the mac receive hook, if any hook rcv,then the data will goto the hook
@@ -600,12 +600,14 @@ bool_t ModuleInstall_Wifi(void)
     pbuf_init();
     rwnxl_init();
     rl_init();
-#if ( CN_BEKEN_SDK_V2 == TRUE )
-    wifi_start();
-#else if( CN_BEKEN_SDK_V3 == TRUE )
-    void app_start(void);
-    app_start();
-#endif
+    app_pre_start( );   //博通原本提供的是app_start函数，但许多开源库中有重名函数
+                        //故直接调用app_start内部调用的函数。
+//#if ( CN_BEKEN_SDK_V2 == TRUE )
+//    wifi_start();
+//#else if( CN_BEKEN_SDK_V3 == TRUE )
+//    void app_start(void);
+//    app_start();
+//#endif
     //all the configuration has set in the pDrive now,we need some sys assistant
     //application some semphore and mutex
     pDrive->sendsync = Lock_SempCreate(1,1,CN_BLOCK_FIFO,NULL);

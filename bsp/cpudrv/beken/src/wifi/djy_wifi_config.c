@@ -16,6 +16,7 @@
 #include "rw_pub.h"
 #include "ctype.h"
 #include "cpu_peri.h"
+#include "component_config_wifi.h"
 
 #define PKG_PBUF   0
 
