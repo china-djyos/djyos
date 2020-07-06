@@ -22,7 +22,7 @@
 #include "netlink.h"
 #include "hostapd_cfg.h"
 #include "mac_common.h"
-#include "signal.h"
+#include "bk_patch/signal.h" //区分bk库里和libc里的头文件相同问题
 #include "eloop.h"
 #include "rw_pub.h"
 #include "wlan_ui_pub.h"

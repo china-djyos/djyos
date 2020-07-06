@@ -189,7 +189,7 @@ __attribute__((weak)) u32 Tick_SetNextTimeTick(s32 Ticks)
 //  temp = Get_SysTickCnt();
 //  if((temp +s_gCriticalCycle) <(s_gCurrentTicks*26*1000/1000*1000))
 //  {
-    Set_SysTickEnd(Ticks*26*10000);
+    Set_SysTickEnd(Ticks*(CN_CFG_TICK_US/1000)*26*1000);
     s_gCurrentTicks = Ticks;
 //  }
 

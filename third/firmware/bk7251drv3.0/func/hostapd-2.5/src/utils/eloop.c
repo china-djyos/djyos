@@ -12,7 +12,7 @@
 #include "common.h"
 #include "trace.h"
 #include "eloop.h"
-#include "signal.h"
+#include "bk_patch/signal.h" //区分bk库里和libc里的头文件相同问题
 #include "errno-base.h"
 #include "sk_intf.h"
 #include "main_none.h"

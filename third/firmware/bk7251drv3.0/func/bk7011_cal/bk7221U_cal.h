@@ -13,8 +13,12 @@ void delay05us(INT32 num);
 #define CONSTANT_RCIQ               117
 #define SUMNUMBERS                  4
 #define MINOFFSET                   16
-
+#if (CN_BEKEN_SDK_V3 == 1)
+//这里因为校准每次延时导致很慢，改回while延时。
+#define cpu_delay(val)            delay(MAX(1, val/100))//DJY_EventDelay(MAX(1000, val*1000)) //delay(MAX(1, val/100))
+#else
 #define cpu_delay(val)            DJY_EventDelay(MAX(1000, val*1000)) //delay(MAX(1, val/100))
+#endif
 #define DELAY1US                  100
 
 

@@ -50,7 +50,7 @@
 //../func/user_driver/BkDriverUart.c;../func/user_driver/BkDriverWdg.c;../func/mem_arch.c;
 //../func/wlan_ui/lsig_monitor.c;../func/voice_transfer;../func/vad;
 //../func/saradc_intf;../func/misc;../func/music_player;../app/app_demo;
-//../app/airkiss;
+//../app/airkiss;../driver/entry;
 //../ip;
 //%$#@end exclude
 //%$#@include path
@@ -76,7 +76,7 @@
 //../driver/ble/ble_lib/ip/ahi/api;../driver/ble/ble_pub/ip/ble/profiles/sdp/api;
 //../driver/ble/ble_pub/ip/ble/profiles/comm/api;../driver/ble/ble_lib/ip/ble/hl/src/gatt/atts;
 //../driver/audio;../driver/common;../driver/common/reg;../driver/demo;../driver/sdcard;../driver/icu;
-//../driver/dma;../driver/flash;../driver/entry;../driver/include;../driver/gpio;../driver/intc;
+//../driver/dma;../driver/flash;../driver/include;../driver/gpio;../driver/intc;
 //../driver/phy;../driver/pwm;../driver/sys_ctrl;../driver/uart;../driver/qspi;
 //../func/ethernet_intf;../func/hostapd-2.5;../func/hostapd-2.5/bk_patch;
 //../func/hostapd-2.5/hostapd;../func/hostapd-2.5/src;../func/hostapd-2.5/src/ap;

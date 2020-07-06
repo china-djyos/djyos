@@ -131,11 +131,11 @@ typedef struct
     /// number of us before getting next tick
     uint32_t next_tick;
 } rwip_time_t;
- 
+
 
 #if (DEEP_SLEEP)
 /// Sleep Duration Value in periodic wake-up mode
-#define MAX_SLEEP_DURATION_PERIODIC_WAKEUP     0x0320*20  //10s // 0.5s   
+#define MAX_SLEEP_DURATION_PERIODIC_WAKEUP     0x0320*20  //10s // 0.5s
 /// Sleep Duration Value in external wake-up mode
 #define MAX_SLEEP_DURATION_EXTERNAL_WAKEUP     0x3E80*3  //30s //10s
 
@@ -250,7 +250,7 @@ struct rwip_env_tag
 #if 0
 #define KERNEL_HEAP                    __attribute__((section("kernel_heap"),zero_init))
 #else
-#define KERNEL_HEAP 
+#define KERNEL_HEAP
 #endif
 
 
@@ -260,6 +260,7 @@ static struct rwip_env_tag rwip_env;
 #endif //DEEP_SLEEP
 /// RF API
 struct rwip_rf_api rwip_rf;
+
 
 /// Heap definitions - use uint32 to ensure that memory blocks are 32bits aligned.
 #if (KERNEL_MEM_RW)
@@ -357,16 +358,16 @@ static uint32_t rwip_slot_2_lpcycles(uint32_t slot_cnt)
 void rwip_reg_init(void)
 {
     ble_set_power_up(1);
-    
-	//ICU_TL410_BLE_CLK = 0x0;  //enable ble clock  icu 0x04
-	ble_clk_power_up();
+
+    //ICU_TL410_BLE_CLK = 0x0;  //enable ble clock  icu 0x04
+    ble_clk_power_up();
 
     //REG_ICU_INT_ENABLE |= (1<<30);  //enable ble INT    icu 0x10
     ble_intc_set(1);
-    
-	REG_BLE_XVR_SLOT_TIME = 0x0D123B6D;  // BLE_XVR 0x2a
-	REG_BLE_XVR_TX_CONFIG = REG_BLE_XVR_TX_CONFIG | 0x80; // BLE_XVR 0x30
-	REG_BLE_XVR_AGC_CONFIG = 0x03371C02; // BLE_XVR 0x3c
+
+    REG_BLE_XVR_SLOT_TIME = 0x0D123B6D;  // BLE_XVR 0x2a
+    REG_BLE_XVR_TX_CONFIG = REG_BLE_XVR_TX_CONFIG | 0x80; // BLE_XVR 0x30
+    REG_BLE_XVR_AGC_CONFIG = 0x03371C02; // BLE_XVR 0x3c
 
     //ble_switch_rf_to_ble();
 }
@@ -374,20 +375,20 @@ void rwip_reg_init(void)
 void rwip_reg_deinit(void)
 {
     ble_switch_rf_to_wifi();
-    
+
     ble_intc_set(0);
-    
-	ble_clk_power_down();
+
+    ble_clk_power_down();
 
     ble_set_power_up(0);
 }
 
 void rwip_reg_reinit(void)
 {
-	ble_clk_power_up();
+    ble_clk_power_up();
 
     ble_intc_set(1);
-	//ble_switch_rf_to_ble();
+    //ble_switch_rf_to_ble();
 }
 
 /*
@@ -395,7 +396,7 @@ void rwip_reg_reinit(void)
  ****************************************************************************************
  */
 extern uint8_t cur_read_buf_idx;
-	
+
 void rwip_init(uint32_t error)
 {
     #if (NVDS_SUPPORT && DEEP_SLEEP)
@@ -419,7 +420,7 @@ void rwip_init(uint32_t error)
     kernel_mem_init(KERNEL_MEM_ATT_DB,        (uint8_t*)rwip_heap_db,      RWIP_HEAP_DB_SIZE);
     #endif // (BLE_HOST_PRESENT)
     // Memory allocated for kernel messages
-    kernel_mem_init(KERNEL_MEM_KERNEL_MSG,        (uint8_t*)rwip_heap_msg,     RWIP_HEAP_MSG_SIZE);
+    kernel_mem_init(KERNEL_MEM_KERNEL_MSG,        (uint8_t*)rwip_heap_msg, RWIP_HEAP_MSG_SIZE);
     // Non Retention memory block
     kernel_mem_init(KERNEL_MEM_NON_RETENTION, (uint8_t*)rwip_heap_non_ret, RWIP_HEAP_NON_RET_SIZE);
     #endif // (KERNEL_MEM_RW)
@@ -501,17 +502,17 @@ void rwip_init(uint32_t error)
             }
         }
     }
-	
-    #endif //NVDS_SUPPORT && DEEP_SLEEP   
-	
-		
-	#if ( DEEP_SLEEP)
-		rwip_env.sleep_enable = true;
-		rwip_env.ext_wakeup_enable = true;
+
+    #endif //NVDS_SUPPORT && DEEP_SLEEP
+
+
+    #if ( DEEP_SLEEP)
+        rwip_env.sleep_enable = true;
+        rwip_env.ext_wakeup_enable = true;
         rwip_env.wakeup_delay = 3;///16;
-	#endif		
-	
-	//rwip_env.ext_wakeup_enable = true;
+    #endif
+
+    //rwip_env.ext_wakeup_enable = true;
     #if (BT_EMB_PRESENT || (BLE_EMB_PRESENT && !BLE_HOST_PRESENT))
     // If FW initializes due to FW reset, send the message to Host
     if(error != RESET_NO_ERROR)
@@ -557,7 +558,7 @@ void rwip_reset(void)
     //uint8_t ext_wakeup_enable;
  #endif //NVDS_SUPPORT && DEEP_SLEEP
 
-	
+
     // Disable interrupts until reset procedure is completed
     GLOBAL_INT_DIS();
 
@@ -587,7 +588,7 @@ void rwip_reset(void)
     #endif //BLE_EMB_PRESENT
 
 #if 0
-	#if (NVDS_SUPPORT && DEEP_SLEEP)
+    #if (NVDS_SUPPORT && DEEP_SLEEP)
     // Activate deep sleep feature if enabled in NVDS
     if(nvds_get(NVDS_TAG_SLEEP_ENABLE, &length, &sleep_enable) == NVDS_OK)
     {
@@ -620,7 +621,7 @@ void rwip_reset(void)
     #if (EA_PRESENT)
     ea_init(true);
     #endif //(EA_PRESENT)
-  
+
     // Reset the RF
     rwip_rf.reset();
 
@@ -663,7 +664,7 @@ void rwip_schedule(void)
     {
         // schedule all pending events
         kernel_event_schedule();
-			  
+
     }
     #endif //KERNEL_SUPPORT
 }
@@ -673,14 +674,14 @@ uint8_t rwip_sleep(void)
     uint8_t proc_sleep = RW_NO_SLEEP;
     #if (DEEP_SLEEP)
     uint32_t sleep_duration;
-	if(ble_ps_enabled())
-	{
-	sleep_duration = MAX_SLEEP_DURATION_EXTERNAL_WAKEUP;///MAX_SLEEP_DURATION_SHORT_WAKEUP;
-	}
-	else
-	{
-	sleep_duration = MAX_SLEEP_DURATION_EXTERNAL_WAKEUP;  //10s
-	}
+    if(ble_ps_enabled())
+    {
+    sleep_duration = MAX_SLEEP_DURATION_EXTERNAL_WAKEUP;///MAX_SLEEP_DURATION_SHORT_WAKEUP;
+    }
+    else
+    {
+    sleep_duration = MAX_SLEEP_DURATION_EXTERNAL_WAKEUP;  //10s
+    }
     #endif //DEEP_SLEEP
 
     DBG_SWDIAG(SLEEP, ALGO, 0);
@@ -698,7 +699,7 @@ uint8_t rwip_sleep(void)
             #endif
             break;
             }
-				
+
         //Processor sleep can be enabled
         proc_sleep |= RW_MCU_IDLE_SLEEP;
 
@@ -719,12 +720,12 @@ uint8_t rwip_sleep(void)
          ************************************************************************/
         // First check if no pending procedure prevent from going to sleep
         if (rwip_env.prevent_sleep != 0)
-		{
-			//proc_sleep |= RW_MCU_IDLE_SLEEP; 
-			ble_ps_forbid_trace(BLE_PS_FORBID_PREVENT);
-			break;
-		}
-            
+        {
+            //proc_sleep |= RW_MCU_IDLE_SLEEP;
+            ble_ps_forbid_trace(BLE_PS_FORBID_PREVENT);
+            break;
+        }
+
         DBG_SWDIAG(SLEEP, ALGO, 2);
         /************************************************************************
          **************           CHECK EXT WAKEUP FLAG            **************
@@ -770,11 +771,11 @@ uint8_t rwip_sleep(void)
          **************                 CHECK BLE                   **************
          ************************************************************************/
         if (!rwble_sleep_check())
-		{
+        {
             proc_sleep = RW_NO_SLEEP;
             ble_ps_forbid_trace(BLE_PS_FORBID_RWBLE);
-   			break;
-		}    
+            break;
+        }
         #endif //(BLE_EMB_PRESENT)
         DBG_SWDIAG(SLEEP, ALGO, 4);
 
@@ -782,13 +783,13 @@ uint8_t rwip_sleep(void)
          **************                 CHECK EA                   **************
          ************************************************************************/
         if (!ea_sleep_check(&sleep_duration, rwip_env.wakeup_delay))
-		{
-			//proc_sleep = false;
-			ble_ps_forbid_trace(BLE_PS_FORBID_EA);
-    		break;
-		
-		}
-		
+        {
+            //proc_sleep = false;
+            ble_ps_forbid_trace(BLE_PS_FORBID_EA);
+            break;
+
+        }
+
         DBG_SWDIAG(SLEEP, ALGO, 5);
 
         #if (H4TL_SUPPORT)
@@ -803,8 +804,8 @@ uint8_t rwip_sleep(void)
             break;
         }
         #endif //H4TL_SUPPORT
-				
-		#if 0
+
+        #if 0
         /************************************************************************
          **************                 CHECK UART                   **************
          ************************************************************************/
@@ -812,7 +813,7 @@ uint8_t rwip_sleep(void)
         if (!check_uart_stop())
         {
             proc_sleep = false;
-            break; 
+            break;
         }
         #endif //PLF_UART
 
@@ -832,9 +833,9 @@ uint8_t rwip_sleep(void)
          **************               SWITCH OFF RF                **************
          ************************************************************************/
         rwip_rf.sleep();
-		proc_sleep |= RW_MCU_DEEP_SLEEP;
+        proc_sleep |= RW_MCU_DEEP_SLEEP;
         #endif // DEEP_SLEEP
-			
+
     } while(0);
 
     return proc_sleep;
@@ -1000,27 +1001,27 @@ uint32_t rwip_us_2_lpcycles(uint32_t us)
 
 void rwip_wakeup_delay_set(uint16_t wakeup_delay)
 {
-    
+
 }
 
 void rwip_prevent_sleep_set(uint16_t prv_slp_bit)
 {
-  
+
 }
 
 void rwip_prevent_sleep_clear(uint16_t prv_slp_bit)
 {
-   
+
 }
 
 uint32_t rwip_sleep_lpcycles_2_us(uint32_t lpcycles)
 {
-	return 1;
+    return 1;
 }
 
 uint32_t rwip_us_2_lpcycles(uint32_t us)
 {
-	return 1;
+    return 1;
 }
 
 #endif// DEEP_SLEEP

@@ -16,7 +16,7 @@
 #include "arm_arch.h"
 #include "rw_pub.h"
 #include "power_save_pub.h"
-#include "gapc_task.h" 
+#include "gapc_task.h"
 #include "bk7011_cal_pub.h"
 
 #define BLE_MSG_QUEUE_COUNT          (20)
@@ -41,7 +41,7 @@ uint8_t ble_active = 0;
 typedef struct ble_cfg_st {
     struct bd_addr mac;
     char name[APP_DEVICE_NAME_LENGTH_MAX];
-}BLE_CFG_ST, *BLE_CFG_PTR; 
+}BLE_CFG_ST, *BLE_CFG_PTR;
 BLE_CFG_ST ble_cfg;
 
 static SDD_OPERATIONS ble_op =
@@ -121,7 +121,7 @@ UINT32 if_rf_wifi_used(void )
 uint8 is_rf_switch_to_ble(void)
 {
     UINT32 param;
-    
+
     sddev_control(SCTRL_DEV_NAME, CMD_BLE_RF_BIT_GET, &param);
 
     return (param > 0 ) ? 1 : 0;
@@ -132,7 +132,7 @@ void ble_switch_rf_to_wifi(void)
     // if in ble dut mode, no need change back to wifi any more.
     // ble dut mode can not exit until power off
   //  if (!is_rf_switch_to_ble() || power_save_if_rf_sleep())
-  	if (!is_rf_switch_to_ble())
+    if (!is_rf_switch_to_ble())
         return;
 
     GLOBAL_INT_DECLARATION();
@@ -143,18 +143,18 @@ void ble_switch_rf_to_wifi(void)
     {
         rwnx_cal_recover_txpwr_for_wifi();
     }
-    
+
     rwnx_cal_ble_recover_rfconfig();
-    
+
     sddev_control(SCTRL_DEV_NAME, CMD_BLE_RF_BIT_CLR, NULL);
     extern void sctrl_set_rf_sleep(void);
     sctrl_set_rf_sleep();//after swtich wifi check if can stop rf
-	ble_switch_mac_sleeped = 0;
-	if(power_save_if_rf_sleep())
-	{
-		GLOBAL_INT_RESTORE();
-		return;
-	}
+    ble_switch_mac_sleeped = 0;
+    if(power_save_if_rf_sleep())
+    {
+        GLOBAL_INT_RESTORE();
+        return;
+    }
     if (ble_switch_old_state != HW_IDLE && nxmac_current_state_getf() == HW_IDLE)
     {
         if(ke_state_get(TASK_MM) == MM_ACTIVE)
@@ -165,10 +165,10 @@ void ble_switch_rf_to_wifi(void)
     }
 
 
-	if (!power_save_if_rf_sleep())
-	{
+    if (!power_save_if_rf_sleep())
+    {
         power_save_rf_ps_wkup_semlist_set();
-	}
+    }
     GLOBAL_INT_RESTORE();
 
     //Re-enable MAC interrupts
@@ -192,8 +192,8 @@ void ble_switch_data_pend(void)
 
 void ble_switch_clear_mac_interrupts(void)
 {
-    uint32_t fiq_status; 
-        
+    uint32_t fiq_status;
+
     hal_machw_disable_int();
     nxmac_tx_rx_int_ack_clear(0xffffffff);
     nxmac_gen_int_ack_clear(0xffffffff);
@@ -213,13 +213,13 @@ void ble_switch_rf_to_ble(void)
     if (txl_cntrl_pck_get() && ble_switch_skip_cnt < MAX_SKIP_CNT)
     {
         ble_switch_skip_cnt++;
-		GLOBAL_INT_RESTORE();
+        GLOBAL_INT_RESTORE();
         return;
     }
 
-	if (ps_get_sleep_prevent())
+    if (ps_get_sleep_prevent())
     {
-    	GLOBAL_INT_RESTORE();
+        GLOBAL_INT_RESTORE();
         return;
     }
 
@@ -233,12 +233,12 @@ void ble_switch_rf_to_ble(void)
               | CO_BIT(FIQ_DPLL_UNLOCK)
               ))
     {
-    	GLOBAL_INT_RESTORE();
+        GLOBAL_INT_RESTORE();
         return;
     }
 
     ble_switch_skip_cnt = 0;
-    
+
     ble_switch_old_state = nxmac_current_state_getf();
 
     // Ask HW to go to IDLE
@@ -246,13 +246,13 @@ void ble_switch_rf_to_ble(void)
     {
         uint32_t i_tmp = 0, y_tmp = 0;
         uint32_t v_tmp;
-        
+
         // Ask HW to go to IDLE
         if (nxmac_current_state_getf() != HW_IDLE)
         {
             nxmac_next_state_setf(HW_IDLE);
 
-            while(1) 
+            while(1)
             {
                 if(nxmac_status_idle_interrupt_getf() == 1)
                     break;
@@ -291,14 +291,14 @@ void ble_switch_rf_to_ble(void)
     }
     else
         ble_switch_old_state = HW_IDLE;
-    
+
     sctrl_rf_wakeup();//after swtich ble check if need start rf
-    
+
     sddev_control(SCTRL_DEV_NAME, CMD_BLE_RF_BIT_SET, NULL);
 
     rwnx_cal_ble_set_rfconfig();
 
-#if ATE_APP_FUN    
+#if ATE_APP_FUN
     if(!get_ate_mode_state())
 #endif
     {
@@ -339,7 +339,7 @@ void ble_release_rf_by_isr(void)
     {
         ble_switch_rf_to_wifi();
     }
-#endif    
+#endif
 }
 
 void ble_set_power_up(uint32 up)
@@ -360,7 +360,7 @@ void ble_set_power_up(uint32 up)
 void ble_set_pn9_trx(uint32 param)
 {
     UINT32 reg;
-    
+
     if(PN9_RX == param)
     {
         reg = 0x0;
@@ -381,32 +381,32 @@ void ble_set_pn9_trx(uint32 param)
 
 void ble_init(void)
 {
-	intc_service_register( FIQ_BLE, PRI_FIQ_BLE, ble_isr );
+    intc_service_register( FIQ_BLE, PRI_FIQ_BLE, ble_isr );
 
-	sddev_register_dev( BLE_DEV_NAME, &ble_op );
+    sddev_register_dev( BLE_DEV_NAME, &ble_op );
 
-	return;
+    return;
 }
 
 void ble_exit(void)
 {
-	sddev_unregister_dev( BLE_DEV_NAME );
+    sddev_unregister_dev( BLE_DEV_NAME );
 
-	return;
+    return;
 }
 
 UINT32 ble_ctrl( UINT32 cmd, void *param )
 {
     UINT32 reg;
-	UINT32 ret = ERR_SUCCESS;
+    UINT32 ret = ERR_SUCCESS;
 
-	switch(cmd)
-	{
-	case CMD_BLE_REG_INIT:
-		break;
-		
-	case CMD_BLE_REG_DEINIT:
-		break;
+    switch(cmd)
+    {
+    case CMD_BLE_REG_INIT:
+        break;
+
+    case CMD_BLE_REG_DEINIT:
+        break;
 
     case CMD_BLE_SET_CHANNEL:
         reg = REG_READ(REG_BLE_XVR_CHANNEL_CONFIG_ADDR);
@@ -473,33 +473,33 @@ UINT32 ble_ctrl( UINT32 cmd, void *param )
         REG_WRITE(REG_BLE_XVR_TRX_CONFIG_ADDR, reg);
         break;
 
-	default:
-		ret = ERR_CMD_NOT_SUPPORT;
+    default:
+        ret = ERR_CMD_NOT_SUPPORT;
         break;
-	}
-	
-	return ret;
+    }
+
+    return ret;
 }
 
 void ble_isr(void)
 {
-	rwble_isr();
-	return;
+    rwble_isr();
+    return;
 }
 
 static void ble_main( void *arg )
 {
     memcpy(&common_default_bdaddr, &ble_cfg.mac, sizeof(struct bd_addr));
-    memcpy(&app_dflt_dev_name, &ble_cfg.name, APP_DEVICE_NAME_LENGTH_MAX); 
+    memcpy(&app_dflt_dev_name, &ble_cfg.name, APP_DEVICE_NAME_LENGTH_MAX);
 
     if(!ble_dut_flag)
     {
         UINT8 *mac = (UINT8 *)&ble_cfg.mac;
-        
-        os_printf("ble name:%s, %02x:%02x:%02x:%02x:%02x:%02x\r\n", 
+
+        os_printf("ble name:%s, %02x:%02x:%02x:%02x:%02x:%02x\r\n",
             app_dflt_dev_name, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     }
-	rw_main();
+    rw_main();
 
     rtos_deinit_queue(&ble_msg_que);
     ble_msg_que = NULL;
@@ -507,7 +507,7 @@ static void ble_main( void *arg )
     rf_loop = 0;
 #endif
     ble_thread_handle = NULL;
-	rtos_delete_thread(NULL);
+    rtos_delete_thread(NULL);
 }
 
 #if (CFG_DEFAULT_RF_USER == CFG_RF_USER_BLE)
@@ -624,23 +624,23 @@ void rf_switch_loop(void *param)
 
 static void ble_thread_start(void)
 {
-	OSStatus ret; 
+    OSStatus ret;
 
     if(!ble_thread_handle && !ble_msg_que)
     {
-    	ret = rtos_init_queue(&ble_msg_que, 
-    							"ble_msg_queue",
-    							sizeof(BLE_MSG_T),
-    							BLE_MSG_QUEUE_COUNT);
+        ret = rtos_init_queue(&ble_msg_que,
+                                "ble_msg_queue",
+                                sizeof(BLE_MSG_T),
+                                BLE_MSG_QUEUE_COUNT);
         ASSERT(0 == ret);
-        
-    	ret = rtos_create_thread(&ble_thread_handle, 
-    			6,
-    			"ble", 
-    			(beken_thread_function_t)ble_main, 
-    			(unsigned short)ble_stack_size, 
-    			(beken_thread_arg_t)0);
-    	
+
+        ret = rtos_create_thread(&ble_thread_handle,
+                136,//6, 修改蓝牙任务优先级，如果太高导致别的任务不能运行。
+                "ble",
+                (beken_thread_function_t)ble_main,
+                (unsigned short)ble_stack_size,
+                (beken_thread_arg_t)0);
+
         ASSERT(0 == ret);
     }
 #if (CFG_DEFAULT_RF_USER == CFG_RF_USER_BLE)
@@ -676,23 +676,23 @@ void ble_activate(char *ble_name)
     ble_stop();
 
     memset(&ble_cfg, 0, sizeof(BLE_CFG_ST));
-    
-    wifi_get_mac_address((char *)&ble_cfg.mac, 2);  // get sta's mac addr 
-    ble_cfg.mac.addr[0] += 1; // add 1, diff from wifi's mac 
+
+    wifi_get_mac_address((char *)&ble_cfg.mac, 2);  // get sta's mac addr
+    ble_cfg.mac.addr[0] += 1; // add 1, diff from wifi's mac
 
     len = strlen(ble_name);
     len = (len > APP_DEVICE_NAME_LENGTH_MAX)? APP_DEVICE_NAME_LENGTH_MAX:len;
     memcpy(&ble_cfg.name, ble_name, len);
-    
+
     ble_thread_start();
 }
 
 void ble_dut_start(void)
 {
-    if(!ble_thread_handle) 
+    if(!ble_thread_handle)
     {
-        ble_dut_flag = 1;		
-		extern uint8_t system_mode;
+        ble_dut_flag = 1;
+        extern uint8_t system_mode;
         system_mode = RW_DUT_MODE;
         os_printf("enter ble dut\r\n");
         rwnx_no_use_tpc_set_pwr();
@@ -703,7 +703,7 @@ void ble_dut_start(void)
         #else
         intc_service_change_handler(IRQ_UART1, uart_isr);
         #endif // (BLE_DUT_UART_PORT == PORT_UART2)
-        
+
         ble_activate(NULL);
     }
 }
@@ -725,17 +725,17 @@ UINT8* ble_get_name(void)
 
 void ble_send_msg(UINT32 data)
 {
-	OSStatus ret;
-	BLE_MSG_T msg;
+    OSStatus ret;
+    BLE_MSG_T msg;
 
     if(ble_msg_que) {
-    	msg.data = data;
-    	
-    	ret = rtos_push_to_queue(&ble_msg_que, &msg, BEKEN_NO_WAIT);
-    	if(0 != ret)
-    	{
-    		//os_printf("ble_send_msg failed\r\n");
-    	}
+        msg.data = data;
+
+        ret = rtos_push_to_queue(&ble_msg_que, &msg, BEKEN_NO_WAIT);
+        if(0 != ret)
+        {
+            //os_printf("ble_send_msg failed\r\n");
+        }
     }
 }
 
@@ -778,19 +778,19 @@ void ble_update_connection2(void)
 unsigned char mhdr_wifi_status = RW_EVT_STA_IDLE;
 void ble_is_wifi_status(void)
 {
-	if((kernel_state_get(TASK_APP) == APPM_CONNECTED)
-		&& (mhdr_get_station_status() == RW_EVT_STA_GOT_IP) 
-		&& (mhdr_wifi_status != RW_EVT_STA_GOT_IP))
-	{
-		mhdr_wifi_status = mhdr_get_station_status();
-		ble_update_connection2();
+    if((kernel_state_get(TASK_APP) == APPM_CONNECTED)
+        && (mhdr_get_station_status() == RW_EVT_STA_GOT_IP)
+        && (mhdr_wifi_status != RW_EVT_STA_GOT_IP))
+    {
+        mhdr_wifi_status = mhdr_get_station_status();
+        ble_update_connection2();
     }
-	else if((kernel_state_get(TASK_APP) == APPM_CONNECTED)
-		&& (mhdr_get_station_status() != RW_EVT_STA_GOT_IP) 
-		&& (mhdr_wifi_status == RW_EVT_STA_GOT_IP))
-	{
-		mhdr_wifi_status = mhdr_get_station_status();
-		ble_update_connection();
+    else if((kernel_state_get(TASK_APP) == APPM_CONNECTED)
+        && (mhdr_get_station_status() != RW_EVT_STA_GOT_IP)
+        && (mhdr_wifi_status == RW_EVT_STA_GOT_IP))
+    {
+        mhdr_wifi_status = mhdr_get_station_status();
+        ble_update_connection();
     }
 }
 
