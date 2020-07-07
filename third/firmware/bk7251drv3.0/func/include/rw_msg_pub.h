@@ -8,22 +8,34 @@ typedef enum {
 
 typedef enum {
     /* for station mode */
-	RW_EVT_STA_IDLE = 0,
-	RW_EVT_STA_CONNECTING,
+    RW_EVT_STA_IDLE = 0,
+    RW_EVT_STA_CONNECTING,
     RW_EVT_STA_BEACON_LOSE,
     RW_EVT_STA_PASSWORD_WRONG,
     RW_EVT_STA_NO_AP_FOUND,
     RW_EVT_STA_ASSOC_FULL,
     RW_EVT_STA_DISCONNECTED,    /* disconnect with server */
     RW_EVT_STA_CONNECT_FAILED, /* authentication failed */
-	RW_EVT_STA_CONNECTED,	 /* authentication success */
-	RW_EVT_STA_GOT_IP,
+    RW_EVT_STA_CONNECTED,    /* authentication success */
+    RW_EVT_STA_GOT_IP,
     /* for softap mode */
     RW_EVT_AP_CONNECTED,          /* a client association success */
     RW_EVT_AP_DISCONNECTED,    /* a client disconnect */
     RW_EVT_AP_CONNECT_FAILED, /* a client association failed */
     RW_EVT_MAX
 }rw_evt_type;
+
+#if(CN_BEKEN_SDK_V3 == 1) //vincent, ºÊ»›V2”¶”√
+typedef enum {
+    MSG_IDLE = 0,
+    MSG_CONNECTING = RW_EVT_STA_CONNECTING,
+    MSG_PASSWD_WRONG = RW_EVT_STA_PASSWORD_WRONG,
+    MSG_NO_AP_FOUND = RW_EVT_STA_NO_AP_FOUND,
+    MSG_CONN_FAIL = RW_EVT_STA_CONNECT_FAILED,
+    MSG_CONN_SUCCESS = RW_EVT_STA_CONNECTED,
+    MSG_GOT_IP = RW_EVT_STA_GOT_IP,
+};
+#endif
 
 /** @brief Structure describing WiFi country-based regional restrictions. */
 typedef struct {
@@ -38,12 +50,12 @@ typedef struct sta_scan_res
 {
     UINT8 bssid[6];
     char ssid[32];  /**< The SSID of an access point. */
-    char on_channel; // 1: ds IE channel=center_freq, 0: !=   
+    char on_channel; // 1: ds IE channel=center_freq, 0: !=
     char channel;
     UINT16 beacon_int;
     UINT16 caps;
     int level;
-	int security; // security type
+    int security; // security type
     UINT8 tsf[8];
     UINT32 ie_len;
     /* Followed by ie_len of IE data */
