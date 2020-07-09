@@ -559,7 +559,7 @@ bool_t ModuleInstall_Wifi(void)
     stat(CFG_MAC_DATA_FILE_NAME,&file_state);
     fd = fopen(CFG_MAC_DATA_FILE_NAME,"a+");
     fseek(fd, -6, SEEK_END);
-    if(fread(gc_NetMac, 1, 6, fd) == 6)
+    if(fread(gc_NetMac, 1, 6, fd) != 6)
 //  if(File_GetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6) == false)
     {
         u32 mac_rand =  trng_get_random();
@@ -571,7 +571,7 @@ bool_t ModuleInstall_Wifi(void)
             remove(CFG_MAC_DATA_FILE_NAME);
             fd = fopen(CFG_MAC_DATA_FILE_NAME,"a+");
         }
-        fread(gc_NetMac, 1, 6, fd);
+        fwrite(gc_NetMac, 1, 6, fd);
 //      File_SetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6);
     }
     printf("\r\n==WIFI MAC==:%02X-%02X-%02X-%02X-%02X-%02X!\r\n",
