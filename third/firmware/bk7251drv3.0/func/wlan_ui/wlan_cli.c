@@ -1900,10 +1900,11 @@ static void ble_advertise(void)
 
     if (os_strcmp(argv[1], "active") == 0)
     {
-        ble_activate(NULL);
+//博通提供的库回调放到后面是不正常，这里放到前面来。
         ble_set_write_cb(ble_write_callback);
         ble_set_read_cb(ble_read_callback);
         ble_set_event_cb(ble_event_callback);
+        ble_activate(NULL);
     }
     else if(os_strcmp(argv[1], "start_adv") == 0)
     {

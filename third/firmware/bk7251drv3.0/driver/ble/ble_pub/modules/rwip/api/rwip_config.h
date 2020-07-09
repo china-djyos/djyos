@@ -46,63 +46,65 @@
 /* -------------------------    don't change  format       -------------------------------*/
 /******************************************************************************************/
 
-// <<< Use Configuration Wizard in Context Menu >>> 
+// <<< Use Configuration Wizard in Context Menu >>>
+//关闭指定警告，不然警告太多，看不到编译错误信息。
+#pragma GCC diagnostic ignored "-Wexpansion-to-defined"
 
 
 // <h>  CW_CFG_RW_IP_VALUE
 //   <e> CFG_APP
 //   </e>
 #if ( 1 )
-#define CFG_APP 
+#define CFG_APP
 #endif
 
 //   <o> CFG_BLE Role
-// 		<0=> BROADCASTER  
-// 		<1=> OBSERVER
-// 		<2=> PERIPHERAL 
-// 		<3=> CENTRAL
-// 		<4=> ALLROLES
-//    <i> Select Role 
+//      <0=> BROADCASTER
+//      <1=> OBSERVER
+//      <2=> PERIPHERAL
+//      <3=> CENTRAL
+//      <4=> ALLROLES
+//    <i> Select Role
 #define CFG_ROLE 4
 
 #if ( CFG_ROLE == 0)
-#define CFG_BROADCASTER 
+#define CFG_BROADCASTER
 #endif
 
 #if ( CFG_ROLE == 1)
-#define CFG_OBSERVER 
+#define CFG_OBSERVER
 #endif
 
 #if ( CFG_ROLE == 2)
-#define CFG_PERIPHERAL 
+#define CFG_PERIPHERAL
 #endif
 
 #if ( CFG_ROLE == 3)
-#define CFG_CENTRAL 
+#define CFG_CENTRAL
 #endif
 
 #if ( CFG_ROLE == 4)
-#define CFG_ALLROLES 
+#define CFG_ALLROLES
 #endif
-//  
+//
 
-//   <e> CFG_EMB 
-//   <i> enable Exchange Memeory 
+//   <e> CFG_EMB
+//   <i> enable Exchange Memeory
 //   </e>
 #if ( 1 )
-#define CFG_EMB 
+#define CFG_EMB
 #endif
 
 //   <e> CFG_BLE
-//   	<i> select BLE or BT MODE
-//   </e> 
+//      <i> select BLE or BT MODE
+//   </e>
 #if ( 1 )
 #define CFG_BLE
 #endif
 
 //   <e> CFG_BLE_2MBPS
-//   	<i> select BLE at 2MBPS Mode
-//   </e> 
+//      <i> select BLE at 2MBPS Mode
+//   </e>
 #if ( 0 )
 #define CFG_BLE_2MBPS
 #endif
@@ -110,7 +112,7 @@
 
 //   <e> CFG_CHNL_ASSESS
 //   <i> select BLE CHNL_ASSESS
-//   </e> 
+//   </e>
 #if ( 1 )
 #define CFG_CHNL_ASSESS
 #endif
@@ -118,29 +120,29 @@
 
 
 //   <e> CFG_SEC_CON
-//   	<i> select BLE SEC CON
-//   </e> 
+//      <i> select BLE SEC CON
+//   </e>
 #if ( 1 )
 #define CFG_SEC_CON
 #endif
 
 
 //   <e> CFG_HOST
-//   	<i> enable BLE HOST 
+//      <i> enable BLE HOST
 //   </e>
 #if ( 1 )
 #define CFG_HOST
 #endif
 
 //   <e> CFG_AHITL
-//   	<i> enable Application Host Interface
+//      <i> enable Application Host Interface
 //   </e>
 #if ( 1 )
 #define CFG_AHITL
 #endif
 
 //   <e> CFG_HCITL
-//   	<i> enable Host Controller Interface Support
+//      <i> enable Host Controller Interface Support
 //   </e>
 #if ( 1 )
 #define CFG_HCITL
@@ -148,34 +150,34 @@
 
 
 //   <e> CFG_HW_AUDIO
-//   	<i> enable HW_AUDIO
+//      <i> enable HW_AUDIO
 //   </e>
 #if ( 0 )
 #define CFG_HW_AUDIO
 #endif
 
 //   <e> CFG_NVDS
-//   	<i> enable NVDS
+//      <i> enable NVDS
 //   </e>
 #if ( 0 )
 #define CFG_NVDS
 #endif
 
 //   <e> CFG_PRF
-//   	<i> enable PRF
+//      <i> enable PRF
 //   </e>
 #if ( 1 )
 #define CFG_PRF
 #endif
 
-//  	 <o>  CFG_NB_PRF <0-10> 
-//  	 <i>  CFG_NB_PRF  (0 -- 10)
-#define CFG_NB_PRF			10
+//       <o>  CFG_NB_PRF <0-10>
+//       <i>  CFG_NB_PRF  (0 -- 10)
+#define CFG_NB_PRF          10
 
 
 
 //   <e> CFG_BLE_TESTER(DUT)
-//   	<i> enable BLE_TESTER
+//      <i> enable BLE_TESTER
 //   </e>
 #if ( 1 )
 #define CFG_BLE_TESTER
@@ -187,7 +189,7 @@
 //   <i> enable DEEP_SLEEP
 //   </e>
 #if ( CFG_USE_BLE_PS )
-#define CFG_SLEEP 
+#define CFG_SLEEP
 #endif
 
 // </h>
@@ -197,7 +199,7 @@
 // <h>  Config MAX Connect Device Numble
 // <o>  CFG_CON <1-10>
 // <i>  CFG MAX CONNECT NUM (1 -- 10)
-#define CFG_CON			1
+#define CFG_CON         1
 // </h>
 
 
@@ -211,20 +213,20 @@
 #define CFG_UPDATA
 #endif
 
-// <o>  MIN_INTVALUE <6-3200> 
+// <o>  MIN_INTVALUE <6-3200>
 // <i>  CFG MIN_INTVALUE  (6 -- 3200)
-#define BLE_UAPDATA_MIN_INTVALUE		6
-// <o>  MAX_INTVALUE <6-3200> 
+#define BLE_UAPDATA_MIN_INTVALUE        6
+// <o>  MAX_INTVALUE <6-3200>
 // <i>  CFG MAX_INTVALUE (6 -- 3200)
-#define BLE_UAPDATA_MAX_INTVALUE		10
+#define BLE_UAPDATA_MAX_INTVALUE        10
 // <o>  LATENCY <0-500>
 // <i>  CFG LATENCY NUM (0 -- 500)
 
-#define BLE_UAPDATA_LATENCY				180
+#define BLE_UAPDATA_LATENCY             180
 // <o>  TIMEOUT <10-3200>
 // <i>  (1 + connSlaveLatency) * connInterval * 2.
 
-#define BLE_UAPDATA_TIMEOUT				600
+#define BLE_UAPDATA_TIMEOUT             600
 
 // </h>
 
@@ -234,6 +236,8 @@
 // <e> CFG_DBG_PRINTF
 // <i> enable CFG_DBG_PRINTF
 // </e>
+
+#define ROM_REGISTER_CALLBACK 1
 
 #if ( 0 )
 #define CFG_UART_DBG_PRINTF
@@ -260,31 +264,31 @@
 
 
 #ifdef CFG_BLE_TESTER
-	#define BLE_DUT_TEST  1
+    #define BLE_DUT_TEST  1
 #else
-	#define BLE_DUT_TEST  0
+    #define BLE_DUT_TEST  0
 #endif
 
 #ifdef CFG_UPDATA
-	#define UPDATE_CONNENCT_PARAM  1
+    #define UPDATE_CONNENCT_PARAM  1
 #else
-	#define UPDATE_CONNENCT_PARAM  0
+    #define UPDATE_CONNENCT_PARAM  0
 #endif
 
 #ifdef CFG_GPIO_DEBUG_MSG
-	#define GPIO_DBG_MSG  1
+    #define GPIO_DBG_MSG  1
 #else
-	#define GPIO_DBG_MSG  0
+    #define GPIO_DBG_MSG  0
 #endif
 
 #ifdef CFG_UART_DBG_PRINTF
-	#if GPIO_DBG_MSG
-		#define UART_PRINTF_EN  0
-	#else
-		#define UART_PRINTF_EN  1
-	#endif //GPIO_DBG_MSG
+    #if GPIO_DBG_MSG
+        #define UART_PRINTF_EN  0
+    #else
+        #define UART_PRINTF_EN  1
+    #endif //GPIO_DBG_MSG
 #else
-		#define UART_PRINTF_EN  0
+        #define UART_PRINTF_EN  0
 #endif //CFG_UART_DBG_PRINTF
 
 
@@ -550,7 +554,7 @@
 /******************************************************************************************/
 
 /// DEEP SLEEP enable
-#if defined(CFG_SLEEP) && (BLE_EMB_PRESENT || BT_EMB_PRESENT) 
+#if defined(CFG_SLEEP) && (BLE_EMB_PRESENT || BT_EMB_PRESENT)
 
     #define DEEP_SLEEP                              1
 #else
@@ -788,7 +792,7 @@ enum KERNEL_EVENT_TYPE
     #ifdef CFG_AUDIO_RSA
     KERNEL_EVENT_RSA_SIGN = 3,
     #endif // CFG_AUDIO_RSA
-    
+
     #if SECURE_CONNECTIONS
     KERNEL_EVENT_ECC_MULTIPLICATION = 4,
     #endif // SECURE_CONNECTIONS
@@ -885,7 +889,7 @@ enum KERNEL_TASK_TYPE
     TASK_GAPC = 10,    // Generic Access Profile Controller
 
     // allocate a certain number of profiles task
-    TASK_PRF_MAX = (TASK_GAPC + BLE_NB_PROFILES),//BLE_NB_PROFILES MAX ROM USE == 6 
+    TASK_PRF_MAX = (TASK_GAPC + BLE_NB_PROFILES),//BLE_NB_PROFILES MAX ROM USE == 6
 
     #ifdef BLE_AUDIO_AM0_TASK
     TASK_AM0 = TASK_PRF_MAX + 1,     // BLE Audio Mode 0 Task
@@ -1033,7 +1037,7 @@ enum rwip_coex_config_idx
     RWIP_COEX_CONNECT_IDX,
     #endif //#if (BT_EMB_PRESENT)
     #if (BLE_EMB_PRESENT)
-	RWIP_COEX_CON_IDX,
+    RWIP_COEX_CON_IDX,
     RWIP_COEX_CON_DATA_IDX,
     RWIP_COEX_ADV_IDX,
     RWIP_COEX_SCAN_IDX,

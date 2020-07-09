@@ -15,7 +15,7 @@
 #include "bk7011_cal_pub.h"
 #endif
 
-#if CFG_UART_DEBUG 
+#if CFG_UART_DEBUG
 #include "uart_debug_pub.h"
 #endif
 
@@ -41,19 +41,19 @@ extern void rwnx_cal_initial_calibration(void);
 UINT32 func_init_extended(void)
 {
     char temp_mac[6];
-    
-	cfg_param_init();
+
+    cfg_param_init();
     // load mac, init mac first
     wifi_get_mac_address(temp_mac, CONFIG_ROLE_NULL);
-	
+
     FUNC_PRT("[FUNC]rwnxl_init\r\n");
     rwnxl_init();
 
-#if CFG_UART_DEBUG 
-	#ifndef KEIL_SIMULATOR
-    FUNC_PRT("[FUNC]uart_debug_init\r\n");   
+#if CFG_UART_DEBUG
+    #ifndef KEIL_SIMULATOR
+    FUNC_PRT("[FUNC]uart_debug_init\r\n");
     uart_debug_init();
-	#endif
+    #endif
 #endif
 
 #if (!CFG_SUPPORT_RTT)
@@ -62,11 +62,11 @@ UINT32 func_init_extended(void)
 #endif
 
 #if CFG_SUPPORT_CALIBRATION
-	UINT32 is_tab_inflash = 0;
+    UINT32 is_tab_inflash = 0;
     FUNC_PRT("[FUNC]calibration_main\r\n");
     calibration_main();
     #if CFG_SUPPORT_MANUAL_CALI
-	is_tab_inflash = manual_cal_load_txpwr_tab_flash();
+    is_tab_inflash = manual_cal_load_txpwr_tab_flash();
     manual_cal_load_default_txpwr_tab(is_tab_inflash);
     #endif
     #if CFG_SARADC_CALIBRATE
@@ -75,7 +75,7 @@ UINT32 func_init_extended(void)
     #if CFG_USE_TEMPERATURE_DETECT
     manual_cal_load_temp_tag_flash();
     #endif
-	
+
     #if (CFG_SOC_NAME != SOC_BK7231)
     manual_cal_load_lpf_iq_tag_flash();
     manual_cal_load_xtal_tag_flash();
@@ -83,15 +83,15 @@ UINT32 func_init_extended(void)
 
     rwnx_cal_initial_calibration();
 
-	#if CFG_SUPPORT_MANUAL_CALI
-	if (0) //(is_tab_inflash == 0)
-	{
-		manual_cal_fitting_txpwr_tab();
-		manual_cal_save_chipinfo_tab_to_flash();
-		manual_cal_save_txpwr_tab_to_flash();
-	}
-	#endif // CFG_SUPPORT_MANUAL_CALI
-#endif    
+    #if CFG_SUPPORT_MANUAL_CALI
+    if (0) //(is_tab_inflash == 0)
+    {
+        manual_cal_fitting_txpwr_tab();
+        manual_cal_save_chipinfo_tab_to_flash();
+        manual_cal_save_txpwr_tab_to_flash();
+    }
+    #endif // CFG_SUPPORT_MANUAL_CALI
+#endif
 
 #if CFG_SDIO
     FUNC_PRT("[FUNC]sdio_intf_init\r\n");
@@ -117,15 +117,16 @@ UINT32 func_init_extended(void)
     rl_init();
 #endif
 
-	#if CFG_ENABLE_BUTTON
-	key_initialization();
-	#endif
+    #if CFG_ENABLE_BUTTON
+    key_initialization();
+    #endif
 
 #if (CFG_SOC_NAME == SOC_BK7221U)
-	#if CFG_USE_USB_CHARGE
+    #if CFG_USE_USB_CHARGE
     extern void usb_plug_func_open(void);
-    usb_plug_func_open();
-	#endif
+//编译不过，直接关掉。	
+    //usb_plug_func_open();
+    #endif
 #endif
 
     FUNC_PRT("[FUNC]func_init_extended OVER!!!\r\n\r\n");

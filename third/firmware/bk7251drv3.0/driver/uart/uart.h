@@ -125,8 +125,8 @@ typedef struct _uart_
 #define UART_BASE_ADDR                       (0x0802200)
 #endif
 
-#define UART1_BASE_ADDR			            (0x0802100)
-#define UART2_BASE_ADDR			            (0x0802200)
+#define UART1_BASE_ADDR                     (0x0802100)
+#define UART2_BASE_ADDR                     (0x0802200)
 
 #define REG_UART1_CONFIG                     (UART1_BASE_ADDR + 4 * 0)
 #define REG_UART2_CONFIG                     (UART2_BASE_ADDR + 4 * 0)
@@ -205,8 +205,8 @@ typedef struct _uart_
 #define FLOW_CTRL_HIGH_CNT_POSI                  (8)
 #define FLOW_CONTROL_EN                          (1 << 16)
 //only valid for uart1
-#define RTS_POLARITY_SEL				(1<<17)
-#define CTS_POLARITY_SEL				(1<<18)
+#define RTS_POLARITY_SEL                (1<<17)
+#define CTS_POLARITY_SEL                (1<<18)
 
 #define REG_UART1_WAKE_CONFIG                 (UART1_BASE_ADDR + 4 * 7)
 #define REG_UART2_WAKE_CONFIG                 (UART2_BASE_ADDR + 4 * 7)
@@ -226,33 +226,33 @@ typedef struct _uart_
 
 
 #define UART_WRITE_BYTE(ch,v)           do                                   \
-										{                                     \
-											v = (v & UART_TX_FIFO_DIN_MASK)   \
-													<< UART_TX_FIFO_DIN_POSI; \
-											if(0 == ch)						\
-												REG_WRITE(REG_UART1_FIFO_PORT, v); \
-											else					\
-												REG_WRITE(REG_UART2_FIFO_PORT, v);\
-										}while(0)
+                                        {                                     \
+                                            v = (v & UART_TX_FIFO_DIN_MASK)   \
+                                                    << UART_TX_FIFO_DIN_POSI; \
+                                            if(0 == ch)                     \
+                                                REG_WRITE(REG_UART1_FIFO_PORT, v); \
+                                            else                    \
+                                                REG_WRITE(REG_UART2_FIFO_PORT, v);\
+                                        }while(0)
 #define UART_READ_BYTE(ch,v)            do                                    \
-										{                                     \
-											if(0 == ch)			\
-												v = (REG_READ(REG_UART1_FIFO_PORT) \
-													>> UART_RX_FIFO_DOUT_POSI) \
-													& UART_RX_FIFO_DOUT_MASK;\
-											else					\
-												v = (REG_READ(REG_UART2_FIFO_PORT) \
-													>> UART_RX_FIFO_DOUT_POSI) \
-													& UART_RX_FIFO_DOUT_MASK;\
-										}while(0)
+                                        {                                     \
+                                            if(0 == ch)         \
+                                                v = (REG_READ(REG_UART1_FIFO_PORT) \
+                                                    >> UART_RX_FIFO_DOUT_POSI) \
+                                                    & UART_RX_FIFO_DOUT_MASK;\
+                                            else                    \
+                                                v = (REG_READ(REG_UART2_FIFO_PORT) \
+                                                    >> UART_RX_FIFO_DOUT_POSI) \
+                                                    & UART_RX_FIFO_DOUT_MASK;\
+                                        }while(0)
 
 #define UART_READ_BYTE_DISCARD(ch)      do                                    \
-										{                                     \
-											if(0 == ch)			\
-												REG_READ(REG_UART1_FIFO_PORT);\
-											else					\
-												REG_READ(REG_UART2_FIFO_PORT);\
-										}while(0)
+                                        {                                     \
+                                            if(0 == ch)         \
+                                                REG_READ(REG_UART1_FIFO_PORT);\
+                                            else                    \
+                                                REG_READ(REG_UART2_FIFO_PORT);\
+                                        }while(0)
 
 
 
