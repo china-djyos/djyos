@@ -80,6 +80,9 @@ bool_t File_SetNameValueFs(char *name, char *val, int len)
                 info_printf("app_flash"," file full . remove %s fail\r\n.",name);
             else
                 info_printf("app_flash"," file full . remove %s success\r\n.",name);
+
+            memset(&file_state, 0, sizeof(struct stat));
+            stat(name,&file_state);
         }
 #endif
         fd = fopen(name,"a+");
