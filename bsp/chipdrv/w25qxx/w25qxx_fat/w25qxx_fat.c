@@ -154,7 +154,7 @@ s32 fat_w25qxx_write(u8 *buff, DWORD sector, u32 count)
         if(w25qxx_status())
             res = 3;
         else
-            res = 0;
+            res = 1;
     }
     return res;
 
