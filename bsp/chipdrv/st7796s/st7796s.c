@@ -63,7 +63,7 @@
 //#include "board.h"
 #include "st7796s.h"
 #include "djyos.h"
-
+#include <dbug.h>
 #include "cpu_peri.h"
 #include "systime.h"
 #include "spi_pub.h"
@@ -87,7 +87,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:pre-main            //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"graphical kernel","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"graphical kernel","heap","cpu onchip spi"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -137,9 +137,6 @@ struct DisplayObj tg_lcd_display;
 unsigned char screen[ROW_TEMP][240][COLO_DEP];
 #endif
 
-#define SPI_RST(x)   djy_gpio_write(GPIO19,(x))
-#define SPI_RS(x)    djy_gpio_write(GPIO15,(x))
-#define SPI_CS(x)    djy_gpio_write(GPIO3,(x))
 //#define LED_ON(x)    djy_gpio_write(GPIO36,!(x))
 #if 0
 void SPI_CS (int stat)
@@ -154,6 +151,61 @@ void SPI_CS (int stat)
     spi_ctrl(CMD_SPI_SET_NSSID, (void *)&param);
 }
 #endif
+
+//=====================================================================
+//函数名：spi复位，在board中定义
+//参数：
+//返回值：
+//功能：
+//=====================================================================
+__attribute__((weak)) void SPI_RST(u32 value)
+{
+    error_printf("st7796","board undefined SPI_RST \r\n");
+}
+//=====================================================================
+//函数名：用于控制发送给屏的是数据还是命令，在board中定义
+//参数：
+//返回值：
+//功能：
+//=====================================================================
+__attribute__((weak)) void SPI_RS(u32 value)
+{
+    error_printf("st7796","board undefined SPI_RS \r\n");
+}
+
+//=====================================================================
+//函数名：用于SPI片选，在board中定义
+//参数：
+//返回值：
+//功能：
+//=====================================================================
+__attribute__((weak)) void St7796s_CsActive(void)
+{
+    error_printf("st7796","board undefined St7796s_CsActive \r\n");
+}
+//=====================================================================
+//函数名：用于取消SPI片选，在board中定义
+//参数：
+//返回值：
+//功能：
+//=====================================================================
+__attribute__((weak)) void St7796s_CsInactive(void)
+{
+    error_printf("st7796","board undefined St7796s_CsInactive \r\n");
+}
+
+//=====================================================================
+//函数名：在board里定义，初始化RST、RS和片选3个引脚
+//参数：
+//返回值：
+//功能：
+//=====================================================================
+__attribute__((weak)) void St7796_GpioInit(void)
+{
+    error_printf("st7796","board undefined St7796_GpioInit \r\n");
+//    bk_gpio_config_output(GPIO36);
+//    bk_gpio_output(GPIO36, GPIO_INT_LEVEL_LOW);
+}
 
 //----------------------------------------------------------------------
 void  SendDataSPI(unsigned char dat)
@@ -174,7 +226,7 @@ int  SendRecvDataSPI(unsigned char *send_buf, int slen, unsigned char *recv_buf,
 {
    int ret = 0;
    struct spi_message spi_msg;
-   SPI_CS(0);
+   St7796s_CsActive();
    SPI_RS(0);
    spi_msg.recv_buf = 0;
    spi_msg.recv_len = 0;
@@ -187,14 +239,14 @@ int  SendRecvDataSPI(unsigned char *send_buf, int slen, unsigned char *recv_buf,
    spi_msg.send_buf = 0;
    spi_msg.send_len = 0;
    ret = bk_spi_master_xfer(&spi_msg);
-   SPI_CS(1);
+   St7796s_CsInactive();
    return 0;
 }
 
 void WriteDataBytes(unsigned char *data, int len)
 {
     u32 param;
-    SPI_CS(0);
+    St7796s_CsActive();
     SPI_RS(1);
     s32 result;
     struct spi_message spi_msg;
@@ -209,74 +261,59 @@ void WriteDataBytes(unsigned char *data, int len)
     param = 0;
     spi_ctrl(CMD_SPI_SET_BITWIDTH, &param);
 
-    SPI_CS(1);
+    St7796s_CsInactive();
     //return 0;
 }
 
 
 void WriteComm(unsigned char i)
 {
-    SPI_CS(0);
+    St7796s_CsActive();
     SPI_RS(0);
     SendDataSPI(i);
-    SPI_CS(1);
+    St7796s_CsInactive();
 }
 void WriteData(unsigned char i)
 {
-    SPI_CS(0);
+    St7796s_CsActive();
     SPI_RS(1);
     SendDataSPI(i);
-    SPI_CS(1);
+    St7796s_CsInactive();
 }
 void WriteDispData(unsigned char DataH,unsigned char DataL)
 {
-     SPI_CS(0);
+     St7796s_CsActive();
      SPI_RS(1);
      SendDataSPI(DataH);
      SendDataSPI(DataL);
-     SPI_CS(1);
+     St7796s_CsInactive();
 
 }
 void WriteOneDot(unsigned long int color)
 {
-    SPI_CS(0);
+    St7796s_CsActive();
     SPI_RS(1);
     SendDataSPI(color>>16);
     SendDataSPI(color>>8);
     SendDataSPI(color);
-    SPI_CS(1);
+    St7796s_CsInactive();
 }
 
 void __st7796s_write_cmd(unsigned char cmd)
 {
-    SPI_CS(0);
+    St7796s_CsActive();
     SPI_RS(0);
     SendDataSPI(cmd);
-    SPI_CS(1);
+    St7796s_CsInactive();
 }
 void __st7796s_write_data(unsigned char data)
 {
-    SPI_CS(0);
+    St7796s_CsActive();
     SPI_RS(1);
     SendDataSPI(data);
-    SPI_CS(1);
+    St7796s_CsInactive();
 }
 
-
-void spi_init_extral_gpio(void)
-{
-    bk_gpio_config_output(GPIO15);
-    bk_gpio_output(GPIO15, GPIO_INT_LEVEL_HIGH);
-
-    bk_gpio_config_output(GPIO19);
-    bk_gpio_output(GPIO19, GPIO_INT_LEVEL_HIGH);
-
-    bk_gpio_config_output(GPIO3);
-    bk_gpio_output(GPIO3, GPIO_INT_LEVEL_HIGH);
-
-//    bk_gpio_config_output(GPIO36);
-//    bk_gpio_output(GPIO36, GPIO_INT_LEVEL_LOW);
-}
 
 static void spi_flash_enable_voltage(void)
 {
@@ -304,12 +341,11 @@ static int __st7796s_read_reg()
 ---------------------------------------------------------------------------*/
 void __lcd_st7796s_init(void)
 {
-    spi_init();
-    spi_flash_enable_voltage();
-    spi_init_extral_gpio();
-    DJY_DelayUs(300);
-    bk_spi_master_init(30*1000*1000, SPI_DEF_MODE);
-    spi_init_extral_gpio();
+//    spi_init();
+//    spi_flash_enable_voltage();
+//    Djy_DelayUs(300);
+//    bk_spi_master_init(30*1000*1000, SPI_DEF_MODE);
+    St7796_GpioInit();
     SPI_RST(1);
     DJY_DelayUs(100);
     SPI_RST(0);

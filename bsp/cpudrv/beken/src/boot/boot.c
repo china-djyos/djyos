@@ -2,7 +2,7 @@
 #include <sys_config.h>
 #include <wdt_pub.h>
 #include <power_save_pub.h>
-#include <arch.h>
+//#include <arch.h>
 #include <drv_model_pub.h>
 #include <co_math.h>
 

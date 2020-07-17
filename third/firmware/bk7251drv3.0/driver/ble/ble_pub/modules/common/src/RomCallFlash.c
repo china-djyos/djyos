@@ -7,8 +7,9 @@
 
 struct rom_env_tag rom_env;
 
-
+//vincent
 //这里会因为kernel_malloc返回0导致复位，目前是不复位，但是会一直打印。
+//这里在开发过程中使用，如果正式发布，需要调回原来复位的方案。
 void djyos_reset_notify(uint32_t error)
 {
     if (RESET_MEM_ALLOC_FAIL == error) {

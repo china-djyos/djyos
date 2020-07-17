@@ -78,7 +78,7 @@
 //%$#@enum,MS_INSTALLUSE,MS_INSTALLCREAT
 #define CFG_FAT_MS_INSTALLUSE       MS_INSTALLUSE   //"选项",参考filesystem.h中的MS_INSTALLUSE等定义
 //%$#@enum,"RAM","NAND","CF","SD", "MSC", "EMMC"
-#define CFG_FAT_MEDIA_KIND          "MSC"      //"媒体所属类别",（如"MSC", "EMMC"
+#define CFG_FAT_MEDIA_KIND          "MSC"      //"媒体所属类别",（如"RAM","NAND","CF","SD", "MSC", "EMMC"）
 //%$#@string,1,10,
 #define CFG_FAT_MOUNT_POINT         "fat"      //"安装路径",FAT文件系统安装目录
 //%$#select,        ***定义无值的宏，仅用于第三方组件

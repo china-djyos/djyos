@@ -92,7 +92,7 @@ struct umedia *gd25_umedia;
 extern struct Object *s_ptDeviceRoot;
 
 s32 gd25q16c_Write_Enable(void);
-bool_t gd25q16c_WaitReady(void);
+bool_t gd25q16c_WaitReady(u32 timeout);
 //=====================================================================
 //函数名： 片选拉低
 //参数：
@@ -179,6 +179,12 @@ s32 gd25q16c_Write_SR1_SR2(u8 *sr)
 {
     u8 sndbuf[3];
 
+    if(gd25q16c_WaitReady(200000) == false)
+    {
+        printf("\r\n FLASH : debug : device is busy before Write Reg.");
+        return -1;
+    }
+
     if(gd25q16c_Write_Enable() != 0)                  //写使能
     {
         return -1;
@@ -188,11 +194,6 @@ s32 gd25q16c_Write_SR1_SR2(u8 *sr)
     sndbuf[1] = *sr;
     sndbuf[2] = *(sr + 1);
 
-    if(gd25q16c_WaitReady() == false)
-    {
-        printf("\r\n FLASH : debug : device is busy before Write Reg.");
-        return -1;
-    }
     gd25q16c_CsActive();
 
     if(gd25q16c_TxRx(sndbuf,3,NULL,0,0) == -1)
@@ -227,7 +228,7 @@ s16 gd25q16c_WriteEnableWait(void)
         gd25q16c_TxRx(sndbuf,1,rcvbuf,1,1);
 
         gd25q16c_CsInActive();
-        DJY_DelayUs(100);
+//        DJY_DelayUs(100);
         wait --;
         if(wait == 0)
         {
@@ -259,7 +260,7 @@ s16 gd25q16c_WriteDisableWait(void)
         gd25q16c_TxRx(sndbuf,1,rcvbuf,1,1);
 
         gd25q16c_CsInActive();
-        DJY_DelayUs(100);
+//        DJY_DelayUs(100);
         wait --;
         if(wait == 0)
         {
@@ -333,7 +334,7 @@ s32 gd25q16c_Write_Disable(void)
 //返回值：true ：成功；false ：失败
 //功能：
 //=====================================================================
-bool_t gd25q16c_WaitReady(void)
+bool_t gd25q16c_WaitReady(u32 timeout)
 {
     u8 sr1=1;
     u32 timeoutcnt=0;
@@ -344,9 +345,9 @@ bool_t gd25q16c_WaitReady(void)
     {
         sr1 = gd25q16c_ReadSR(StatusReg1);
 
-        DJY_EventDelay(100);
+//        DJY_EventDelay(100);
         timeoutcnt++;
-        if(timeoutcnt == 200000)
+        if(timeoutcnt == timeout)
         {
             return false;
         }
@@ -366,6 +367,14 @@ s32 gd25q16c_Erase_Sector(u32 SectorNum)
     u8 sndbuf[4];
     Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER);
 
+    if(gd25q16c_WaitReady(200000) == false)
+    {
+        Lock_MutexPost(pgd25q16c_Lock);
+        printf("\r\n QFLASH : debug : device is busy before Sector Erase.");
+        return -1;
+    }
+
+
     if(gd25q16c_Write_Enable() != 0)
     {
         Lock_MutexPost(pgd25q16c_Lock);
@@ -379,13 +388,6 @@ s32 gd25q16c_Erase_Sector(u32 SectorNum)
     sndbuf[2] = (Dst_Addr >> 8) & 0xff;
     sndbuf[1] = (Dst_Addr >> 16) & 0xff;
 
-    if(gd25q16c_WaitReady() == false)
-    {
-        Lock_MutexPost(pgd25q16c_Lock);
-        printf("\r\n QFLASH : debug : device is busy before Sector Erase.");
-        return -1;
-    }
-
     gd25q16c_CsActive();
 
     if(gd25q16c_TxRx(sndbuf,4,NULL,0,0) == -1)
@@ -398,7 +400,7 @@ s32 gd25q16c_Erase_Sector(u32 SectorNum)
     gd25q16c_CsInActive();
 
 
-    if(gd25q16c_WaitReady() == false)
+    if(gd25q16c_WaitReady(200000) == false)
     {
         Lock_MutexPost(pgd25q16c_Lock);
         printf("\r\n QFLASH : debug : device is busy after Sector Erase.");
@@ -420,6 +422,13 @@ s32 gd25q16c_Erase_Chip(void)
     u32 time = 0;
     u8 sndbuf[1];
     Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER);
+    if(gd25q16c_WaitReady(200000) == false)
+    {
+        printf("\r\n FLASH : debug : device is busy before Chip Erase.");
+        Lock_MutexPost(pgd25q16c_Lock);
+        return -1;
+    }
+
     if(gd25q16c_Write_Enable() != 0)
     {
         Lock_MutexPost(pgd25q16c_Lock);
@@ -427,13 +436,6 @@ s32 gd25q16c_Erase_Chip(void)
     }
 
     sndbuf[0] = gd25q16c_ChipErase;
-
-    if(gd25q16c_WaitReady() == false)
-    {
-        printf("\r\n FLASH : debug : device is busy before Chip Erase.");
-        Lock_MutexPost(pgd25q16c_Lock);
-        return -1;
-    }
 
     gd25q16c_CsActive();
 
@@ -479,6 +481,13 @@ s32 gd25q16c_WritePage(u8* pBuffer,u32 PageNum)
 
     WriteAddr = PageNum * gd25q16c_PageSize;
 
+    if(gd25q16c_WaitReady(200000) == false)
+    {
+        printf("\r\n FLASH : debug : device is busy before Page Write.");
+        Lock_MutexPost(pgd25q16c_Lock);
+        return -1;
+    }
+
     if(gd25q16c_Write_Enable() != 0)                  //写使能
     {
         Lock_MutexPost(pgd25q16c_Lock);
@@ -491,13 +500,6 @@ s32 gd25q16c_WritePage(u8* pBuffer,u32 PageNum)
     sndbuf[1] = (WriteAddr >> 16) & 0xff;
     memcpy(sndbuf + 4, pBuffer, gd25q16c_PageSize);
 
-    if(gd25q16c_WaitReady() == false)
-    {
-        printf("\r\n FLASH : debug : device is busy before Page Write.");
-        Lock_MutexPost(pgd25q16c_Lock);
-        return -1;
-    }
-
     gd25q16c_CsActive();
 
     if(gd25q16c_TxRx(sndbuf, 4 + 256 ,NULL,0,0) == -1)
@@ -509,7 +511,7 @@ s32 gd25q16c_WritePage(u8* pBuffer,u32 PageNum)
 
     gd25q16c_CsInActive();
 
-    DJY_EventDelay(4000);// 延时切出. 4ms。不能去除
+//    DJY_EventDelay(4000);// 延时切出. 4ms。不能去除
 
     Lock_MutexPost(pgd25q16c_Lock);
     return 0;
@@ -528,6 +530,14 @@ s32 gd25q16c_WriteMemory(u8* pBuffer,u32 WriteAddr,u32 NumByteToWrite)
     u8 *SendBuf;
 
     Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER);
+
+    if(gd25q16c_WaitReady(200000) == false)
+    {
+        printf("\r\n QFLASH : debug : device is busy before Memory Write.");
+        Lock_MutexPost(pgd25q16c_Lock);
+        return -1;
+    }
+
     if(gd25q16c_Write_Enable() != 0)                  //写使能
     {
         Lock_MutexPost(pgd25q16c_Lock);
@@ -540,14 +550,6 @@ s32 gd25q16c_WriteMemory(u8* pBuffer,u32 WriteAddr,u32 NumByteToWrite)
     command[3] = WriteAddr & 0xff;
     command[2] = (WriteAddr >> 8) & 0xff;
     command[1] = (WriteAddr >> 16) & 0xff;
-
-    if(gd25q16c_WaitReady() == false)
-    {
-        printf("\r\n QFLASH : debug : device is busy before Memory Write.");
-        Lock_MutexPost(pgd25q16c_Lock);
-        return -1;
-    }
-
 
     memcpy(SendBuf, command, 4);
     memcpy(SendBuf + 4, pBuffer, NumByteToWrite);
@@ -562,7 +564,7 @@ s32 gd25q16c_WriteMemory(u8* pBuffer,u32 WriteAddr,u32 NumByteToWrite)
     }
     gd25q16c_CsInActive();
 
-    DJY_EventDelay(4000);// 延时切出. 4ms。不能去除
+//    DJY_EventDelay(4000);// 延时切出. 4ms。不能去除
 
     Lock_MutexPost(pgd25q16c_Lock);
     free(SendBuf);
@@ -588,7 +590,7 @@ s32 gd25q16c_ReadPage(u8* pBuffer,u32 PageNum)
     sndbuf[2] = (ReadAddr >> 8) & 0xff;
     sndbuf[1] = (ReadAddr >> 16) & 0xff;
 
-    if(gd25q16c_WaitReady() == false)
+    if(gd25q16c_WaitReady(200000) == false)
     {
         printf("\r\n FLASH : debug : device is busy before Page Read.");
         Lock_MutexPost(pgd25q16c_Lock);
@@ -626,7 +628,7 @@ s32 gd25q16c_ReadMemory(u8* pBuffer,u32 ReadAddr,u32 NumByteToRead)
     sndbuf[2] = (ReadAddr >> 8) & 0xff;
     sndbuf[1] = (ReadAddr >> 16) & 0xff;
 
-    if(gd25q16c_WaitReady() == false)
+    if(gd25q16c_WaitReady(200000) == false)
     {
         printf("\r\n FLASH : debug : device is busy before Memory Read.");
         Lock_MutexPost(pgd25q16c_Lock);
@@ -682,7 +684,7 @@ u16 gd25q16c_ReadID(void)
     sndbuf[2]=0x00;
     sndbuf[3]=0x00;
 
-    if(gd25q16c_WaitReady() == false)
+    if(gd25q16c_WaitReady(200000) == false)
     {
         printf("\r\n QFLASH : debug : device is busy before Read ID.");
         return -1;
