@@ -633,7 +633,7 @@ bool_t ModuleInstall_BlackBoxRecordTest(struct BlackBoxRecordOperate *opt,u32 ma
     }
     return ret;
 }
-#if(CFG_MODULE_ENABLE_TCPIP == true)
+
 //you could use this function to add one messages -t times -l maxlenth
 //static bool_t __RecordTestShell(char *param)
 bool_t blackboxrtest(char *param)
@@ -771,5 +771,4 @@ bool_t blackboxrtest(char *param)
     return true;
 }
 ADD_TO_ROUTINE_SHELL(blackboxrtest,blackboxrtest,"usage:blackboxrtest [test/func] [subcmdparas]");
-#endif
 

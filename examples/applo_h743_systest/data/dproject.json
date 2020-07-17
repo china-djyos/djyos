@@ -1,5 +1,5 @@
 {
-	"ide_version":"DIDE-V1.6_20190404",
+	"ide_version":"V1.7_20200624",
 	"frameworks_checked":{
 		"app":[],
 		"iboot":[]
@@ -31,15 +31,17 @@
 		"lock",
 		"memory pool",
 		"message queue",
+		"misc",
 		"multiplex",
 		"ring buffer and line buffer",
 		"shell",
 		"Software Timers",
 		"stdio",
+		"STM32 commond code",
 		"stm32h7",
 		"time",
 		"tpl",
 		"uart device file",
-		"STM32 commond code"]
+		"watch dog"]
 	}
 }

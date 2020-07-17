@@ -48,9 +48,6 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern void ClockSetXtal(void);
 //    ClockSetXtal();
-//
-//    extern void Board_GpioInit(void);
-//    Board_GpioInit();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -729,7 +726,7 @@ void Board_SPI_Gpio_Init(void)
  * Description   : Configures pin routing and optionally pin electrical features.
  *
  * END ****************************************************************************************************************/
-void Board_GpioInit(void) {
+void Board_Init(void) {
    CLOCK_EnableClock(kCLOCK_Iomuxc);           /* iomuxc clock (iomuxc_clk_enable): 0x03u */
 
    IOMUXC_SetPinMux(

@@ -352,11 +352,11 @@ SECTIONS
         Shell_Info :
     {
         p_shell_info = .;
-        LONG(restore) /*  该bin文件的起始地址*/
-        LONG(IbootSize) /* 该bin文件允许大小*/
-    }>InnerFlash
-
-
-
+        LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
+        LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
+    }>InnerFlash 
+	
+	
+    
 }
 /**** The End ****/

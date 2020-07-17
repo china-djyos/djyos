@@ -54,7 +54,7 @@
 #include <device/include/unit_media.h>
 #include <string.h>
 #include <endian.h>
-#include <misc.h>
+#include <ecc_256.h>
 #include <lock.h>
 #include "djyfs/efs/efs.h"
 #include <dbug.h>

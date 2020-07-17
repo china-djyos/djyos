@@ -56,10 +56,6 @@ typedef s64  clock_t;
 typedef __time_t time_t;
 
 
-
-#define fd_set _types_fd_set
-
-
 #define ARG_MAX 256
 
 #endif /* __TYPES_h */

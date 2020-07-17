@@ -64,8 +64,6 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern void Board_GpioInit(void);
-//    Board_GpioInit();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -107,7 +105,7 @@
 // 参数：无
 // 返回：true
 // =============================================================================
-void Board_GpioInit(void)
+void Board_Init(void)
 {
     //UART3
     silan_io_func_config(IO_CONFIG_PD7, PD7_FUNC_UART3);

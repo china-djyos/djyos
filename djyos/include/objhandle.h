@@ -82,6 +82,8 @@ struct objhandle{
     ptu32_t context;        // handle访问上下文
 };
 
+#define CN_INVALID_FD  -1
+
 s32 Handle2fd(struct objhandle *hdl);
 struct objhandle *fd2Handle(s32 fd);
 s32 Handle_FlagIsDirectory(u32 flags);

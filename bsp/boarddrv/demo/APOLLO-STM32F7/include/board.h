@@ -89,7 +89,7 @@ extern "C" {
 #define RS485_RE_IO     6       //RS485_RE引脚        P6
 #define ETH_RESET_IO    7       //以太网复位引脚       P7
 /*************************************************************************************/
-void Board_GpioInit(void);
+void Board_Init(void);
 void FT5206_RST(bool_t flag);
 void Board_UartHalfDuplexSend(u8 SerialNo);
 void Board_UartHalfDuplexRecv(u8 SerialNo);
