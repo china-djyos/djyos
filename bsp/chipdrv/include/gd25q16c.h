@@ -39,7 +39,7 @@ s32 gd25q16c_Write_Disable(void);
 u16 gd25q16c_ReadID(void);
 s32 gd25q16c_ReadMemory(u8* pBuffer,u32 ReadAddr,u32 NumByteToRead);
 s32 gd25q16c_ReadPage(u8* pBuffer,u32 PageNum);
-bool_t gd25q16c_WaitReady(void);
+bool_t gd25q16c_WaitReady(u32 timeout);
 s32 gd25q16c_WritePage(u8* pBuffer,u32 PageNum);
 s32 gd25q16c_WriteMemory(u8* pBuffer,u32 WriteAddr,u32 NumByteToWrite);
 s32 gd25q16c_Erase_Sector(u32 SectorNum);
