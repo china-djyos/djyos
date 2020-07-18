@@ -22,8 +22,8 @@ void Sys_ModuleInit(void)
 
     extern void ClockSetXtal(void);
     ClockSetXtal();
-    extern void Board_GpioInit(void);
-    Board_GpioInit();
+    extern void Board_Init(void);
+    Board_Init();
 
     extern void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut);
     Stdio_KnlInOutInit(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME);

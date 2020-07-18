@@ -47,7 +47,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <cpu_peri.h>
-#include <misc/md5/md5.h>
+#include <misc/md5.h>
 #include <driver_info_to_fs.h>
 #include "component_config_wifi.h"
 

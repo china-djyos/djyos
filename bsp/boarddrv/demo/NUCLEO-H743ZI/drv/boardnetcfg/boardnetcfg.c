@@ -49,6 +49,7 @@
 
 #include <stdint.h>
 #include <sys/socket.h>
+#include "cpu_peri.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -97,6 +98,7 @@
 #endif
 //%$#@end configue  ****参数配置结束
 
+#if 0       //20200717,暂且屏蔽 lst
 // HAL库中调用了该函数
 void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
 {
@@ -203,6 +205,7 @@ bool_t PHY_Init(void)
     }
     return true;
 }
+#endif
 
 //please refers the following function in the module-trim in proper place.
 //make sure that that os kernel has been initialize ok and the interrupt system intialize ok
@@ -270,4 +273,3 @@ void ModuleInstall_InitNet(void)   //static ip example
 
     return ;
 }
-

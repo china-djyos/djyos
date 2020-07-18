@@ -52,6 +52,7 @@
 #include "spi/spi.h"
 #include "dbug.h"
 #include "spi_pub.h"
+#include <arm_arch.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -68,7 +69,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
+//init time:pre-main               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"lock","spi bus","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -92,7 +93,7 @@
 #define CFG_SPI_CPHA                     1           //spi时钟相位（1：在SCK周期的第二个边沿采样数据。0：在SCK周期的第一个边沿采样数据）
 //%$#@enum,true,false,
 #define CFG_SPI_FLASH_RAM_POWER         true         //是否打开flash和ram的电源。
-#define CFG_SPI_WORK_MODE_INTE          false        //设置SPI的工作模式，true为中断模式通信，false为普通模式。
+#define CFG_SPI_WORK_MODE_INTE          true        //设置SPI的工作模式，true为中断模式通信，false为普通模式。
 //%$#@select
 //%$#@free,
 #endif

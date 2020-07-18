@@ -176,7 +176,7 @@
 
 //typedef int socklen_t;
 #define socklen_t int
-#define CN_INVALID_FD  -1
+//#define CN_INVALID_FD  -1
 
 
 //bsd socket type and addr type defines
@@ -522,30 +522,31 @@ int getpeername(int sockfd,struct sockaddr *addr,socklen_t *addrlen);
 #define O_NDELAY    O_NONBLOCK
 #endif
 
-#ifndef FD_SETSIZE
-#define FD_SETSIZE     (10)    //the mac select num
-#endif
+//#ifndef FD_SETSIZE
+//#define FD_SETSIZE     (10)    //the mac select num
+//#endif
 
 #include <unistd.h>
 //select.h
 #include <sys/time.h>
-#define CN_SELECT_MAXNUM      FD_SETSIZE
+
 //#define CN_SELECT_TIMEDEFAULT 10
-typedef struct
-{
-    int  mode;
-    u32  fd[CN_SELECT_MAXNUM];
-}_types_fd_set;
-
-#define fd_set _types_fd_set
-#define ARG_MAX 256
-int FD_SET(int fd, fd_set *sets);
-int FD_CLR(int fd, fd_set *sets);
-int FD_ISSET(int fd, fd_set *sets);
-int FD_ZERO(fd_set *sets);
-
-int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
-           struct timeval *timeout);
+//在“工具链路径\include\sys\select.h”上有定义
+//typedef struct
+//{
+//    int  mode;
+//    u32  fd[CN_SELECT_MAXNUM];
+//}_types_fd_set;
+//
+//#define fd_set _types_fd_set
+//#define ARG_MAX 256
+//int FD_SET(int fd, fd_set *sets);
+//int FD_CLR(int fd, fd_set *sets);
+//int FD_ISSET(int fd, fd_set *sets);
+//int FD_ZERO(fd_set *sets);
+//
+//int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
+//           struct timeval *timeout);
 ////////////////////////NETDEV DRIVER USED INTERFACE///////////////////////////////
 //ip address defines
 #ifndef INADDR_LOOPBACK

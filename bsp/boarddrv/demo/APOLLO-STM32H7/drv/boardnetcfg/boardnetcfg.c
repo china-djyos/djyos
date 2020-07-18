@@ -246,7 +246,7 @@ void ModuleInstall_InitNet(void)   //static ip example
     }
 
 #else
-    if(DHCP_AddClientTask(CFG_SELECT_NETCARD))
+    if(DHCP_AddClientTask(CFG_SELECT_NETCARD,0))
     {
        printk("%s:Add %s success\r\n",__FUNCTION__,CFG_SELECT_NETCARD);
     }

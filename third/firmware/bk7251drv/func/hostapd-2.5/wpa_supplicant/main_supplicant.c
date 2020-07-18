@@ -16,7 +16,7 @@
 #include "main_none.h"
 #include "ps.h"
 
-#include <misc/md5/md5.h>
+#include <misc/md5.h>
 
 #if (!CFG_SUPPORT_ALIOS)
 #include "sys_rtos.h"

@@ -50,7 +50,7 @@
 extern "C" {
 #endif
 
-void Board_GpioInit(void);
+void Board_Init(void);
 bool_t Board_SpiCsCtrl(u8 port,u8 cs,u8 state);
 void AT24_WPEn(u8 en);
 void Wdt_Init(void);

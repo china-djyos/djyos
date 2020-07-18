@@ -20,8 +20,8 @@ void Sys_ModuleInit(void)
 {
     uint16_t evtt_main;
 
-    extern void Board_GpioInit(void);
-    Board_GpioInit();
+    extern void Board_Init(void);
+    Board_Init();
 
     //-------------------early-------------------------//
     #if !defined (CFG_RUNMODE_BAREAPP)

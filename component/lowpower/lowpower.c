@@ -50,7 +50,7 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-#define LP_DEFAULT_TRIGGER_TICK         (2U)
+//#define LP_DEFAULT_TRIGGER_TICK         (2U)
 struct LowPowerCtrl
 {
     u32 SleepLevel;                             //当前低功耗级别

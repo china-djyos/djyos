@@ -50,7 +50,7 @@
 extern "C" {
 #endif
 
-void Board_GpioInit(void);
+void Board_Init(void);
 
 #ifdef __cplusplus
 }

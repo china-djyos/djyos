@@ -74,6 +74,7 @@ enum ucmd{
     remain = 1,     // 某unit的所属block，后续的unit数量req(remain, *left, *unit)
     whichblock,     // 某unit的属于block的号, req(whichblock, *block, *unit)
     totalblocks,    // 总块数, req(totalblocks, *blocks)
+    totalSectors,   // 总扇区数, req(totalblocks, *blocks)
     unitbytes,      // 某unit的Bytes, req(unitbytes, *bytes)
     sparebytes,     // 某unit的spare区域的bytes，req(sparebytes,*bytes);
     blockunits,     // 一个块中的unit数量；req(blockunits, *units, block)

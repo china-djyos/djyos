@@ -50,7 +50,7 @@
 extern "C" {
 #endif
 
-void Board_GpioInit(void);
+void Board_Init(void);
 void Board_UartHalfDuplexSend(u8 SerialNo);
 void Board_UartHalfDuplexRecv(u8 SerialNo);
 bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level);

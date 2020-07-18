@@ -11,7 +11,7 @@ extern "C" {
 #define CTRL_MUTE                               IO_CONFIG_PD10
 #define CTRL_IR                                 IO_CONFIG_PA2
 
-extern void Board_GpioInit(void);
+extern void Board_Init(void);
 
 #ifdef __cplusplus
 }

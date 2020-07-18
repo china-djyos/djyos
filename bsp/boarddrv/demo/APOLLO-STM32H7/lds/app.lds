@@ -19,6 +19,7 @@ SECTIONS
     {
         gc_AppStart = .;
         KEEP(*(.DjyAppHead .DjyAppHead.*))
+        KEEP(*(.DjyProductInfo .DjyProductInfo.*))    
     }>InnerFlash
 
         Iboot_RevRam (NOLOAD):
@@ -264,7 +265,7 @@ SECTIONS
         LONG(sys_heap5_top)         /*第5段地址上限（不含），须符合对齐要求*/
         LONG(32)                    /*第5段页尺寸=32bytes*/
         LONG(msp_bottom)            /*第6段基址，回收初始化栈，须符合对齐要求*/
-        LONG(msp_top - 1024)         /*第6段地址上限（不含），1024是留给中断使用的，须符合对齐要求*/
+        LONG(msp_top - 2048)         /*第6段地址上限（不含），1024是留给中断使用的，须符合对齐要求*/
         LONG(24)                    /*第二段页尺寸=24bytes*/
         BYTE(0x73)                  /*'s'*/
         BYTE(0x79)                  /*'y'*/
@@ -366,8 +367,8 @@ SECTIONS
         Shell_Info :
     {
         p_shell_info = .;
-        LONG(gc_AppStart) /*  该bin文件的起始地址*/
-        LONG( LENGTH(InnerFlash)-IbootSize) /* 该bin文件允许大小*/
-    }>InnerFlash
+        LONG(gc_AppStart) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
+        LONG( LENGTH(InnerFlash)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/   
+    }>InnerFlash 
 }
 /**** The End ****/
