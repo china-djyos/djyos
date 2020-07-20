@@ -96,6 +96,11 @@
 // ·µ»Ø£ºÎÞ
 // ============================================================================
 
+static const Pin uart2_pin[] = {
+        {GPIO_D,PIN5,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
+        {GPIO_D,PIN6,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
+};
+
 static const Pin uart3_pin[] = {
         {GPIO_D,PIN8,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
         {GPIO_D,PIN9,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
@@ -219,6 +224,7 @@ void Board_Init(void)
     Led_PinInit();
 //    Uart_Pin_Init();
     PIO_Configure(uart3_pin, PIO_LISTSIZE(uart3_pin));      //USART3
+    PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));      //USART2
 }
 
 bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level)
