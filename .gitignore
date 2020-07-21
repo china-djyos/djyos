@@ -1,6 +1,6 @@
 /.svn
-bsp/boarddrv/user/*
-userlib/*
+bsp/boarddrv/user/
+userlib/
 *.mk
 *.o
 *.d
