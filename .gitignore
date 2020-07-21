@@ -1,8 +1,6 @@
 /.svn
 bsp/boarddrv/user/*
 userlib/*
-!bsp/boarddrv/user/*
-!userlib/readme.txt
 *.mk
 *.o
 *.d
@@ -14,4 +12,3 @@ userlib/*
 /*.vpw
 /*.vpwhist
 /*.vpj
-draft-prj
