@@ -19,6 +19,7 @@ SECTIONS
     {
         gc_AppStart = .;
         KEEP(*(.DjyAppHead .DjyAppHead.*))
+        KEEP(*(.DjyProductInfo .DjyProductInfo.*))
     }>Flash
 
         Iboot_RevRam (NOLOAD):

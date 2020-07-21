@@ -155,10 +155,10 @@ u8 W25QXX_ReadSR(u8 regno, u8 *sta)
 //返回: true -- 成功; false -- 失败;
 //备注:
 //-----------------------------------------------------------------------------
-bool_t W25QXX_WaitBusy(void)
+bool_t W25QXX_WaitBusy(u32 timeout)
 {
     bool_t ret = true;
-//    u32 time = 0;
+    u32 time = 0;
     u8 sta = 0;
     if(W25QXX_ReadSR(1, &sta) == false)
         return false;
@@ -167,13 +167,13 @@ bool_t W25QXX_WaitBusy(void)
         if(W25QXX_ReadSR(1, &sta) == false)
             return false;
         DJY_EventDelay(1000);
-//        time ++;
-//        if(time > 5000)
-//        {
-//            ret = false;
-//            error_printf("W25q","Wait busy timeput.\r\n");
-//            break;
-//        }
+        time ++;
+        if(time > timeout)
+        {
+            ret = false;
+            error_printf("W25q","Wait busy timeput.\r\n");
+            break;
+        }
     }
     return ret;
 }
@@ -202,6 +202,12 @@ u8 W25QXX_WriteSR(u8 regno, u8 data)
             command=W25X_WriteStatusReg1;
             break;
     }
+
+    if(W25QXX_WaitBusy(5000) == false)
+    {
+        return false;
+    }
+
     if(W25QXX_QPI_MODE)
     {
         //QSPI，地址位0，4线传数据，8位地址，无地址，4线传输指令，无空周期，1字节数据
@@ -216,6 +222,31 @@ u8 W25QXX_WriteSR(u8 regno, u8 data)
 }
 
 //-----------------------------------------------------------------------------
+//功能: 写使能等待
+//参数: 无
+//返回: true -- 成功; false -- 失败;
+//备注:
+//-----------------------------------------------------------------------------
+bool_t W25QXX_WriteEnableWait(void)
+{
+    u8 sta = 0;
+    u32 wait = 40;
+    if(W25QXX_ReadSR(1, &sta))
+    {
+        while((sta & 2) != 2)
+        {
+            wait --;
+            if(wait == 0)
+                return false;
+            sta = 0;
+            W25QXX_ReadSR(1, &sta);
+        }
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
 //功能: 写使能
 //参数: 无
 //返回: true -- 成功; false -- 失败;
@@ -223,18 +254,25 @@ u8 W25QXX_WriteSR(u8 regno, u8 data)
 //-----------------------------------------------------------------------------
 bool_t W25QXX_WriteEnable(void)
 {
-    bool_t ret = false;
+    if(W25QXX_WaitBusy(5000) == false)
+    {
+        return false;
+    }
+
     if(W25QXX_QPI_MODE)
     {
         //QSPI，地址位0，无数据，8位地址，无地址，4线传输指令，无空周期，0字节数据
-        ret = QSPI_Send_CMD(W25X_WriteEnable,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE);
+         if(QSPI_Send_CMD(W25X_WriteEnable,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE) == false)
+             return false;
     }
     else
     {
         //SPI，地址位0，无数据，8位地址，无地址，单线传输指令，无空周期，0字节数据
-        ret = QSPI_Send_CMD(W25X_WriteEnable,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE);
+        if(QSPI_Send_CMD(W25X_WriteEnable,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE) == false)
+            return false;
     }
-    return ret;
+    return W25QXX_WriteEnableWait();
+//    return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -246,6 +284,12 @@ bool_t W25QXX_WriteEnable(void)
 bool_t W25QXX_WriteDisable(void)
 {
     bool_t ret = false;
+
+    if(W25QXX_WaitBusy(5000) == false)
+    {
+        return false;
+    }
+
     if(W25QXX_QPI_MODE)
     {
         //QSPI，地址位0，无数据，8位地址，无地址，4线传输指令，无空周期，0字节数据
@@ -270,6 +314,12 @@ u16 W25QXX_ReadID(void)
     u8 temp[2];
     u16 deviceid;
     bool_t ret = false;
+
+    if(W25QXX_WaitBusy(5000) == false)
+    {
+        return false;
+    }
+
     if(W25QXX_QPI_MODE)
     {
         //QSPI，地址位0，4线传输数据，24位地址，4线传输地址，4线传输指令，无空周期，2字节数据
@@ -300,12 +350,12 @@ bool_t W25QXX_EraseChip(void)
     Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER);
     if(W25QXX_WriteEnable())
     {
-        if(W25QXX_WaitBusy())
+        if(W25QXX_WaitBusy(5000))
         {
             //QSPI，地址为0，无数据，8位地址，无地址，4线传输指令，无空周期
             if(QSPI_Send_CMD(W25X_ChipErase,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE))
             {
-                if(W25QXX_WaitBusy())
+                if(W25QXX_WaitBusy(5000))
                 {
                     Lock_MutexPost(W25qxx_Lock);
                     return true;
@@ -329,18 +379,18 @@ bool_t W25QXX_EraseSector(u32 addr)
     Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER);
     if(W25QXX_WriteEnable())
     {
-        if(W25QXX_WaitBusy())
-        {
+//        if(W25QXX_WaitBusy(5000))
+//        {
             //QSPI，地址为addr，无数据，32位地址，4线传输地址，4线传输指令，无空周期
             if(QSPI_Send_CMD(W25X_SectorErase,addr,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_NONE))
             {
-                if(W25QXX_WaitBusy())
-                {
+//                if(W25QXX_WaitBusy(5000))
+//                {
                     Lock_MutexPost(W25qxx_Lock);
                     return true;
-                }
+//                }
             }
-        }
+//        }
     }
     Lock_MutexPost(W25qxx_Lock);
     return false;
@@ -358,18 +408,18 @@ bool_t W25QXX_EraseBlock(u32 addr)
     Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER);
     if(W25QXX_WriteEnable())
     {
-        if(W25QXX_WaitBusy())
-        {
+//        if(W25QXX_WaitBusy(5000))
+//        {
             //QSPI，地址为addr，无数据，32位地址，4线传输地址，4线传输指令，无空周期
             if(QSPI_Send_CMD(W25X_BlockErase,addr,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_NONE))
             {
-                if(W25QXX_WaitBusy())
-                {
+//                if(W25QXX_WaitBusy(5000))
+//                {
                     Lock_MutexPost(W25qxx_Lock);
                     return true;
-                }
+//                }
             }
-        }
+//        }
     }
     Lock_MutexPost(W25qxx_Lock);
     return false;
@@ -384,6 +434,13 @@ bool_t W25QXX_EraseBlock(u32 addr)
 bool_t W25QXX_Read(u8* buf,u32 addr,u32 len)
 {
     Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER);
+
+    if(W25QXX_WaitBusy(5000) == false)
+    {
+        return false;
+    }
+
+
     //QSPI，快速读数据，地址为addr，4线传输数据，32位地址，4线传输地址，4线传输指令，2个空周期，
     if(QSPI_Send_CMD(W25X_FastReadData,addr,2,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_4_LINES))
     {
@@ -418,16 +475,16 @@ bool_t W25QXX_WritePage(u8* buf,u32 addr,u32 len)
         {
             if(QSPI_Transmit(buf, len))
             {
-                if(W25QXX_WaitBusy())
-                {
+//                if(W25QXX_WaitBusy(5000))
+//                {
                     Lock_MutexPost(W25qxx_Lock);
                     return true;
-                }
-                else
-                {
-                    Lock_MutexPost(W25qxx_Lock);
-                    return false;
-                }
+//                }
+//                else
+//                {
+//                    Lock_MutexPost(W25qxx_Lock);
+//                    return false;
+//                }
             }
         }
     }
@@ -579,22 +636,29 @@ bool_t W25QXX_QspiEnable(void)
         return false;
     if((sta2 & 0X02)==0)           //QE位未使能
     {
+        W25QXX_WriteEnable();      //写使能
+        sta2 |= 1<<1;              //使能QE位
+        if(W25QXX_WriteSR(2, sta2) == false) //写状态寄存器2
+            ret = false;
 
-        if(W25QXX_WriteEnable())      //写使能
+        //写使能QSPI指令，地址为0，无数据，8位地址，无地址，单线传输指令，无空周期，0个字节数据
+//        QSPI_Send_CMD(W25X_ExitQPIMode,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE);
+        if(QSPI_Send_CMD(W25X_EnterQPIMode,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE))
         {
-            sta2 |= 1<<1;              //使能QE位
-            if(W25QXX_WriteSR(2, sta2) == false) //写状态寄存器2
+            W25QXX_QPI_MODE=1;              //标记QSPI模式
+            if(W25QXX_ReadSR(2, &sta2))       //读状态寄存器2的值
+            {
+                if((sta2 & 0X02)==0)           //QE位未使能
+                    ret = false;
+            }
+            else
                 ret = false;
         }
         else
             ret = false;
     }
-    DJY_EventDelay(20*1000);
-    //写使能QSPI指令，地址为0，无数据，8位地址，无地址，单线传输指令，无空周期，0个字节数据
-    if(QSPI_Send_CMD(W25X_EnterQPIMode,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE))
-        W25QXX_QPI_MODE=1;              //标记QSPI模式
     else
-        ret = false;
+        W25QXX_QPI_MODE=1;              //标记QSPI模式
     return ret;
 }
 
