@@ -114,7 +114,6 @@
 //@#$%component end configure
 // ============================================================================
 extern struct NorDescr *nordescription;
-extern bool_t addition_crc_data;
 u8 is_protect = 1;   //1 -- 有写保护，0 -- 无写保护
 extern void flash_protection_op(UINT8 mode, PROTECT_TYPE type);
 extern bool_t flash_is_install(void);
@@ -158,7 +157,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
     u32 unit;
     s32 check_len = (s32)bytes;
 
-    if(addition_crc_data == true)
+    if(GetOperFalshMode() == true)
     {
         unit = pos + (core->MStart * nordescription->BytesPerPage) * 34 / 32;    //算好crc的数据只需要把起始地址 * 34 / 32就可以了，后面的数据直接写就行了，因为已经有crc了
     }
@@ -177,7 +176,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                     page_size = nordescription->BytesPerPage;
                 else
                     page_size = check_len;
-                if(addition_crc_data == true)
+                if(GetOperFalshMode() == true)
                     djy_flash_read_crc(unit, um->ubuf, page_size);
                 else
                     djy_flash_read(unit, um->ubuf, page_size);
@@ -199,7 +198,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 
             if(pos == offset)
             {
-                if(addition_crc_data == true)
+                if(GetOperFalshMode() == true)
                 {
                     offset = (offset * 34 / 32) - offset;   //存在crc的bin文件，app的文件头要在这里先保留下来
                     app_head = malloc(offset + Iboot_GetAppHeadSize());
@@ -214,7 +213,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                     pos += offset;
                     data += offset;
                     bytes -= offset;
-                    if(addition_crc_data == true)
+                    if(GetOperFalshMode() == true)
                     {
                         unit = pos + (core->MStart * nordescription->BytesPerPage) * 34 / 32;
                     }
@@ -230,7 +229,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                     flash_protection_op(0,FLASH_PROTECT_NONE);
                 }
             }
-            if(addition_crc_data == true)
+            if(GetOperFalshMode() == true)
             {
                 if(pos == 0)
                 {
@@ -293,7 +292,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 
 //        // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
 //        // (page+1)用于防止格式化了不属于xip的空间
-//        if(addition_crc_data == true)
+//        if(GetOperFalshMode() == true)
 //        {
 //            djy_flash_req(whichblock, (ptu32_t)&block, &unit);
 //            djy_flash_req(remain, (ptu32_t)&more, &unit);
