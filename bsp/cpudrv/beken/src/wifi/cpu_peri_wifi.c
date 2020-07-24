@@ -558,22 +558,53 @@ bool_t ModuleInstall_Wifi(void)
     memset(&file_state, 0, sizeof(struct stat));
     stat(CFG_MAC_DATA_FILE_NAME,&file_state);
     fd = fopen(CFG_MAC_DATA_FILE_NAME,"a+");
-    fseek(fd, -6, SEEK_END);
-    if(fread(gc_NetMac, 1, 6, fd) != 6)
-//  if(File_GetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6) == false)
+    if(fd)
     {
-        u32 mac_rand =  trng_get_random();
-        memcpy(&gc_NetMac[2], &mac_rand, 4);
-        gc_NetMac[0] = 0x00;
-        gc_NetMac[1] = 0x01;
-        if((file_state.st_size + 6) > CFG_EFS_FILE_SIZE_LIMIT)
+        fseek(fd, -6, SEEK_END);
+        if(fread(gc_NetMac, 1, 6, fd) != 6)
+    //  if(File_GetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6) == false)
         {
-            remove(CFG_MAC_DATA_FILE_NAME);
-            fd = fopen(CFG_MAC_DATA_FILE_NAME,"a+");
+            u32 mac_rand =  trng_get_random();
+            memcpy(&gc_NetMac[2], &mac_rand, 4);
+            gc_NetMac[0] = 0x00;
+            gc_NetMac[1] = 0x01;
+#if CFG_MODULE_ENABLE_EASY_FILE_SYSTEM
+            if((file_state.st_size + 6) > CFG_EFS_FILE_SIZE_LIMIT)
+            {
+                if(fclose(fd) == -1)
+                {
+                    printf("befor remove close file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
+                }
+                else
+                {
+                    fd = NULL;
+                    if(remove(CFG_MAC_DATA_FILE_NAME) == -1)
+                        printf("remove file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
+                    else
+                    {
+                        fd = fopen(CFG_MAC_DATA_FILE_NAME,"a+");
+                        if(fd == NULL)
+                            printf("after remove file, open file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
+                    }
+                }
+            }
+#endif
+            if(fd)
+            {
+                fseek(fd, 0, SEEK_END);
+                if(fwrite(gc_NetMac, 1, 6, fd) != 6)
+                    printf("write file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
+            }
+    //      File_SetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6);
         }
-        fwrite(gc_NetMac, 1, 6, fd);
-//      File_SetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6);
+        if(fd)
+        {
+            if(fclose(fd) == -1)
+                printf("close file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
+        }
     }
+    else
+        printf("open file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
     printf("\r\n==WIFI MAC==:%02X-%02X-%02X-%02X-%02X-%02X!\r\n",
         gc_NetMac[0], gc_NetMac[1], gc_NetMac[2], gc_NetMac[3], gc_NetMac[4], gc_NetMac[5]);
 

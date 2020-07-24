@@ -150,6 +150,7 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
     int ret = 0;
     uint32_t crc = 0;
     struct wlan_fast_connect *p = 0;
+    FILE *fd = NULL;
     unsigned char md5_tmp[16];
     MD5_CTX ctx;
 
@@ -161,7 +162,16 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
     memset(md5_tmp, 0, sizeof(md5_tmp));
     memset(new_buf, 0, BLOCK_SIZE);
 
-    ret = File_GetNameValueFs(CFG_FAST_DATA_FILE_NAME, new_buf, BLOCK_SIZE);
+    fd = fopen(CFG_FAST_DATA_FILE_NAME,"a+");
+    if(fd)
+    {
+        fseek(fd, -(BLOCK_SIZE), SEEK_END);
+        ret = fread(new_buf, 1, BLOCK_SIZE, fd);
+        if(fclose(fd) == -1)
+            printf("close file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+    }
+
+//    ret = File_GetNameValueFs(CFG_FAST_DATA_FILE_NAME, new_buf, BLOCK_SIZE);
     if(ret <= 0) {
         goto FUN_RET;
     }
@@ -256,7 +266,8 @@ int wlan_fast_connect_info_write(wlan_fast_connect_t *data_info)
 {
     int ret = 0;
     struct wlan_fast_connect *p = 0;
-
+    struct stat file_state;
+    FILE *fd = NULL;
     if(data_info == NULL)
       return -1;
 
@@ -265,10 +276,20 @@ int wlan_fast_connect_info_write(wlan_fast_connect_t *data_info)
 
     memset(new_buf, 0, BLOCK_SIZE);
 
-    ret = File_GetNameValueFs(CFG_FAST_DATA_FILE_NAME, new_buf, BLOCK_SIZE);
+
+    fd = fopen(CFG_FAST_DATA_FILE_NAME,"a+");
+    if(fd)
+    {
+        fseek(fd, -(BLOCK_SIZE), SEEK_END);
+        ret = fread(new_buf, 1, BLOCK_SIZE, fd);
+        if(fclose(fd) == -1)
+            printf("close file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+    }
+//    ret = File_GetNameValueFs(CFG_FAST_DATA_FILE_NAME, new_buf, BLOCK_SIZE);
     if(ret < 0) {
         goto FUN_RET;
     }
+
     int cnt = ret/sizeof(struct wlan_fast_connect);
     //printf("info: %s, cnt=%d, ret=%d, size_item=%d!\r\n", __FUNCTION__, cnt, ret, sizeof(struct wlan_fast_connect));
     p = (struct wlan_fast_connect*)new_buf;
@@ -285,7 +306,50 @@ int wlan_fast_connect_info_write(wlan_fast_connect_t *data_info)
     }
     if(cnt<=0) {//找不到，重新写入
         printf("info: %s, New Item Will Be Writed!\r\n", __FUNCTION__);
-        File_SetNameValueFs(CFG_FAST_DATA_FILE_NAME, data_info, sizeof(struct wlan_fast_connect));
+//        File_SetNameValueFs(CFG_FAST_DATA_FILE_NAME, data_info, sizeof(struct wlan_fast_connect));
+
+        memset(&file_state, 0, sizeof(struct stat));
+        stat(CFG_FAST_DATA_FILE_NAME,&file_state);
+        fd = fopen(CFG_FAST_DATA_FILE_NAME,"a+");
+        if(fd)
+        {
+#if CFG_MODULE_ENABLE_EASY_FILE_SYSTEM
+            if((file_state.st_size + BLOCK_SIZE) > CFG_EFS_FILE_SIZE_LIMIT)
+            {
+                if(fclose(fd) == -1)
+                {
+                    printf("befor remove close file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+                }
+                else
+                {
+                    fd = NULL;
+                    if(remove(CFG_FAST_DATA_FILE_NAME) == -1)
+                        printf("remove file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+                    else
+                    {
+                        fd = fopen(CFG_FAST_DATA_FILE_NAME,"a+");
+                        if(fd == NULL)
+                            printf("after remove file, open file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+                    }
+                }
+            }
+#endif
+            if(fd)
+            {
+                fseek(fd, 0, SEEK_END);
+                if(fwrite(data_info, 1, sizeof(struct wlan_fast_connect), fd) != sizeof(struct wlan_fast_connect))
+                    printf("write file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+            }
+            if(fd)
+            {
+                if(fclose(fd) == -1)
+                    printf("close file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+            }
+        }
+        else
+            printf("open file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+
+
         ret = 1;
     }
 
