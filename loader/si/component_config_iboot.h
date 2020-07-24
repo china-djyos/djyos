@@ -5,8 +5,8 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //#if !defined (CFG_RUNMODE_BAREAPP)
-//    extern bool_t ModuleInstall_XIP(void);
-//    ModuleInstall_XIP( );
+//    extern bool_t ModuleInstall_UpdateIboot(void);
+//    ModuleInstall_UpdateIboot( );
 //#endif
 //%$#@end initcode  ****初始化代码结束
 
@@ -36,6 +36,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 #define CFG_UPDATEIBOOT_EN      false       //"是否支持在线更新Iboot"，
+#define CFG_START_APP_IS_VERIFICATION      true       //"启动app时是否执行校验功能"，
 //%$#@enum,EN_FORM_FILE,EN_DIRECT_RUN,
 #define  CFG_APP_RUNMODE  EN_DIRECT_RUN     //"APP运行模式",EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
 //%$#@enum,VERIFICATION_NULL,VERIFICATION_CRC,VERIFICATION_MD5,VERIFICATION_SSL,

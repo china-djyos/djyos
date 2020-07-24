@@ -1628,7 +1628,7 @@ static bool_t __RunApp(void * apphead)
         }
         if(i < sizeof(p_apphead->VerifBuf))
         {
-#if 1
+#if CFG_START_APP_IS_VERIFICATION
             if(XIP_AppFileCheck(apphead) == false)
                 return false;
 #endif

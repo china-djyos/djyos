@@ -102,7 +102,7 @@ static bool_t sflashInited = false;
 static struct umedia *flash_um;
 const char *flash_name = "emflash";      //该flash在obj在的名字
 extern struct Object *s_ptDeviceRoot;
-bool_t addition_crc_data = false;
+bool_t data_mode = false;      //true：对flash的数据操作带CRC，false：对flash的数据状态不带CRC
 
 struct NorDescr *nordescription;
 
@@ -129,6 +129,30 @@ void encrypt(u32 *rx, u8 *tx, u32 num);
 //    Description->MappedStAddr = 0x0;
 //    return (0);
 //}
+
+// ============================================================================
+// 功能：设置操作flash数据时需不需要考虑CRC
+// 参数：flag:true--不需要CRC，false--需要CRC
+// 返回：
+// 备注：
+// ============================================================================
+void SetOperFalshMode(bool_t flag)
+{
+    data_mode = flag;
+}
+
+// ============================================================================
+// 功能：获取操作flash数据时需不需要考虑CRC
+// 参数：flag:true--不需要CRC，false--需要CRC
+// 返回：
+// 备注：
+// ============================================================================
+bool_t GetOperFalshMode(void)
+{
+    return data_mode;
+}
+
+
 static s32 SetFlash_Init(struct NorDescr *Description)
 {
     Description->BytesPerPage = 256;
@@ -219,7 +243,7 @@ void djy_flash_write(uint32_t address, const void *data, uint32_t size)
     }
 
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
-    if(addition_crc_data == true)
+    if(GetOperFalshMode() == true)
     {
         flash_write((char *)data, size, address);   //写带crc的数据，需要再调用该函数之前先算好crc
     }
