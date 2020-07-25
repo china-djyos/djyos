@@ -1009,35 +1009,6 @@ bool_t RouterItemChange(enum_ipv_t ver,ipaddr_t ipold,tagHostAddrV4 *newaddr)
     return result;
 }
 
-// 函数已经废弃，只为兼容保留，新设计使用RouterCreate函数
-bool_t RoutCreate(const char *ifname,enum_ipv_t ver,void *netaddr,u32 pro)
-{
-    tagHostAddrV4 v4;
-    tagRouterPara para;
-    bool_t     ret = false;
-    if(ver != EN_IPV_4)
-    {
-        return ret;
-    }
-    ret = true;
-    //add this one here
-    memset(&para,0,sizeof(para));
-    memcpy(&v4,netaddr,sizeof(v4));
-    v4.gatway = INADDR_ANY;
-    v4.subnet = v4.ip&v4.submask;
-    para.ver = ver;
-    para.host = &v4.ip;
-    para.mask = &v4.submask;
-    para.broad = &v4.broad;
-    para.hop = &v4.gatway;
-    para.net = &v4.subnet;
-    para.prior = CN_ROUT_PRIOR_UNI;
-    para.ifname = ifname;
-    RouterRemove(&para);
-    RouterCreate(&para);
-    return ret;
-}
-
 ADD_TO_ROUTINE_SHELL(rout,rout,"usage:rout -a/d/p(action) -v(4/6) -i ifname -n net -h host -g gateway");
 
 
