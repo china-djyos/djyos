@@ -161,10 +161,10 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
     memset(md5_tmp, 0, sizeof(md5_tmp));
     memset(new_buf, 0, BLOCK_SIZE);
 
-    fd = fopen(CFG_FAST_DATA_FILE_NAME,"a+");
+    fd = fopen(CFG_FAST_DATA_FILE_NAME,"r+");
     if(fd)
     {
-        fseek(fd, -(BLOCK_SIZE), SEEK_END);
+//        fseek(fd, -(BLOCK_SIZE), SEEK_END);
         ret = fread(new_buf, 1, BLOCK_SIZE, fd);
         if(fclose(fd) == -1)
             printf("close file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
@@ -178,7 +178,7 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
     printf("info: %s, cnt=%d, ret=%d, size_item=%d!\r\n", __FUNCTION__, cnt, ret, sizeof(struct wlan_fast_connect));
     p = (struct wlan_fast_connect*)new_buf;
     while(cnt > 0) {
-        //printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
+        printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
         if (strcmp(p[cnt-1].ssid, ssid) == 0 ){
             if (passwd) {
                 MD5_Init(&ctx);
@@ -276,10 +276,10 @@ int wlan_fast_connect_info_write(wlan_fast_connect_t *data_info)
     memset(new_buf, 0, BLOCK_SIZE);
 
 
-    fd = fopen(CFG_FAST_DATA_FILE_NAME,"a+");
+    fd = fopen(CFG_FAST_DATA_FILE_NAME,"r+");
     if(fd)
     {
-        fseek(fd, -(BLOCK_SIZE), SEEK_END);
+//        fseek(fd, -(BLOCK_SIZE), SEEK_END);
         ret = fread(new_buf, 1, BLOCK_SIZE, fd);
         if(fclose(fd) == -1)
             printf("close file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
@@ -309,11 +309,11 @@ int wlan_fast_connect_info_write(wlan_fast_connect_t *data_info)
 
         memset(&file_state, 0, sizeof(struct stat));
         stat(CFG_FAST_DATA_FILE_NAME,&file_state);
-        fd = fopen(CFG_FAST_DATA_FILE_NAME,"a+");
+        fd = fopen(CFG_FAST_DATA_FILE_NAME,"r+");
         if(fd)
         {
 #if CFG_MODULE_ENABLE_EASY_FILE_SYSTEM
-            if((file_state.st_size + BLOCK_SIZE) > CFG_EFS_FILE_SIZE_LIMIT)
+            if((file_state.st_size + sizeof(struct wlan_fast_connect)) > CFG_EFS_FILE_SIZE_LIMIT)
             {
                 if(fclose(fd) == -1)
                 {
