@@ -309,7 +309,7 @@ int wlan_fast_connect_info_write(wlan_fast_connect_t *data_info)
 
         memset(&file_state, 0, sizeof(struct stat));
         stat(CFG_FAST_DATA_FILE_NAME,&file_state);
-        fd = fopen(CFG_FAST_DATA_FILE_NAME,"r+");
+        fd = fopen(CFG_FAST_DATA_FILE_NAME,"a+");
         if(fd)
         {
 #if CFG_MODULE_ENABLE_EASY_FILE_SYSTEM
