@@ -117,13 +117,6 @@ void Sys_ModuleInit(void)
     #endif
     //end kernel
 
-    //loader
-    #if !defined (CFG_RUNMODE_BAREAPP)
-    extern bool_t ModuleInstall_XIP(void);
-    ModuleInstall_XIP( );
-    #endif
-    //end loader
-
     //cpu onchip uart
     extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
     #if CFG_UART1_ENABLE ==1
@@ -157,11 +150,17 @@ void Sys_ModuleInit(void)
     ModuleInstall_TcpIp( );
     //end tcpip
 
-    DHCP_ClientInit();
     //cpu onchip MAC
     extern bool_t ModuleInstall_ETH(void);
     ModuleInstall_ETH( );
     //end cpu onchip MAC
+
+    //loader
+    #if !defined (CFG_RUNMODE_BAREAPP)
+    extern bool_t ModuleInstall_XIP(void);
+    ModuleInstall_XIP( );
+    #endif
+    //end loader
 
     //----------------------------later----------------------------//
     //stdio

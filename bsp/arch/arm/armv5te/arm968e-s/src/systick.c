@@ -122,10 +122,10 @@ void Exp_SystickTickHandler(void)
     g_bScheduleEnable = false;
     tg_int_global.nest_asyn_signal++;
 
-    g_s64OsTicks += s_gCurrentTicks;
-    s_gCurrentTicks = 1;
+//  g_s64OsTicks += s_gCurrentTicks;
 
     DJY_ScheduleIsr(s_gCurrentTicks);
+    s_gCurrentTicks = 1;
     tg_int_global.nest_asyn_signal--;
     g_bScheduleEnable = true;
 }

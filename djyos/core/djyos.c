@@ -312,8 +312,8 @@ void __DJY_MaintainSysTime(void);
 void  DJY_ScheduleIsr(u32 inc_ticks)
 {
     struct EventECB *pl_ecb,*pl_ecbp,*pl_ecbn;
-    s64 now_tick;
-    now_tick = __DJY_GetSysTick();
+    g_s64OsTicks += inc_ticks;
+//  now_tick = __DJY_GetSysTick();
     //用于维护系统时钟运转，使读系统时间的间隔，小于硬件定时器循环周期。
     __DJY_MaintainSysTime( );
     if(g_ptEventDelay != NULL)
@@ -321,7 +321,7 @@ void  DJY_ScheduleIsr(u32 inc_ticks)
         pl_ecb = g_ptEventDelay;
         while(1)
         {
-            if(pl_ecb->delay_end_tick <= now_tick) //默认64位ticks不会溢出
+            if(pl_ecb->delay_end_tick <= g_s64OsTicks) //默认64位ticks不会溢出
             {
                 //事件在某同步队列中，应该从该队列取出
                 if(pl_ecb->sync_head != NULL)
@@ -383,7 +383,7 @@ void  DJY_ScheduleIsr(u32 inc_ticks)
         if( (g_ptEventRunning->prio == g_ptEventRunning->next->prio)
                     &&(g_ptEventRunning != g_ptEventRunning->next) )
         {//该优先级有多个事件，看轮转时间是否到
-            if((u32)now_tick % s_u32RRS_Slice == 0) //时间片用完
+            if((u32)g_s64OsTicks % s_u32RRS_Slice == 0) //时间片用完
             {
                 //先处理优先级单调队列，把pg_event_running从队列中取出，代之以
                 //g_ptEventRunning->next。
