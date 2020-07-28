@@ -243,13 +243,15 @@ __asm_switch_context_int:
 @----保存上下文---------------------------------------------------------------
 @功能: 保存当前线程的上下文，但不切换,专用于进入CN_SLEEP_L3之前调用.
 @参数: running_vm，当前线程的控制块指针，即&vm->stack。
-@参数: WakeUpAddr, 唤醒后的返回地址.
+@参数: SaveRamL3, 把执行过step1的内存保存到flash中.
+@参数: EntrySleep, 进入低功耗.
 @返回:  无
 @函数原型: void __LP_BSP_AsmSaveReg(struct tagThreadVm *running_vm，
                     bool_t (*SaveRamL3)(void),
-                    void (*EntrySleepL3)(void))
+                    void (*EntrySleep)(void))
 @-----------------------------------------------------------------------------
 */
+
 .text
 .align 2
 .global __asm_reset_cpu

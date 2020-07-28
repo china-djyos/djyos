@@ -50,11 +50,14 @@
 #include "mcu_ps_pub.h"
 #include "manual_ps_pub.h"
 #include "wlan_ui_pub.h"
+#include <dbug.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    void ModuleInstall_LowPower (void)
+//    ModuleInstall_LowPower();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -100,15 +103,35 @@
 
 static PS_DEEP_CTRL_PARAM deep_sleep_param;
 
-void __LP_BSP_EntrySleepL0(u32 pend_ticks)
-{
-//  if(pend_ticks>=LP_GetTriggerTick())
-        mcu_power_save(pend_ticks);
-}
 
-void __LP_BSP_EntrySleepL1(u32 pend_ticks){}
-void __LP_BSP_EntrySleepL2(u32 pend_ticks){}
-void __LP_BSP_EntrySleepL3(void){}
+//-----------------------------------------------------------------------------
+//功能: 进入休眠
+//参数: sleep_level,休眠等级
+//      pend_ticks, 休眠tick数
+//返回: 无意义
+//-----------------------------------------------------------------------------
+void __LP_BSP_EntrySleep(u8 sleep_level, u32 pend_ticks)
+{
+    switch(sleep_level)
+    {
+        case CN_SLEEP_L0:
+            mcu_power_save(pend_ticks);
+            break;
+        case CN_SLEEP_L1:
+            warning_printf("LP", "Entry sleep level_1 undefined");
+            break;
+        case CN_SLEEP_L2:
+            warning_printf("LP", "Entry sleep level_2 undefined");
+            break;
+        case CN_SLEEP_L3:
+            warning_printf("LP", "Entry sleep level_3 undefined");
+            break;
+        case CN_SLEEP_L4:
+            DJY_DelayUs(100000);
+            bk_enter_deep_sleep_mode(&deep_sleep_param);
+            break;
+    }
+}
 
 //-----------------------------------------------------------------------------
 //功能：设置从深度睡眠中唤醒条件，设置的条件可以叠加
@@ -145,13 +168,6 @@ void LP_BSP_ResigerGpioToWakeUpL4(PS_DEEP_WAKEUP_WAY way,u32 gpio_index,
     deep_sleep_param.sleep_time             = time;
 }
 
-void __LP_BSP_EntrySleepL4(void)
-{
-    DJY_DelayUs(100000);
-    bk_enter_deep_sleep_mode(&deep_sleep_param);
-//    idle_sleep_wakeup_with_gpio(gGpioToWakeUpL4.index_map,gGpioToWakeUpL4.edge_map);
-}
-
 bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel)
 {
     return true;
@@ -179,6 +195,16 @@ void LP_DeepSleep(void)
     DJY_EventDelay(1000*1000);
 }
 
+//-----------------------------------------------------------------------------
+//功能: 安装低功耗组件，要把一些低功耗需要使用到的函数，注册到系统中
+//参数: __LP_BSP_EntrySleep：进入休眠；__LP_BSP_SaveSleepLevel：保存休眠等级；__LP_BSP_SaveRamL3：保存进入休眠等级3之前的内存，
+//		__LP_BSP_AsmSaveReg：获取含自己的返回地址在内的上下文并保存到栈中
+//返回: 无
+//-----------------------------------------------------------------------------
+void ModuleInstall_LowPower (void)
+{
+    Register_LowPower_Function(__LP_BSP_EntrySleep, __LP_BSP_SaveSleepLevel, __LP_BSP_SaveRamL3, __LP_BSP_AsmSaveReg);
+}
 
 
 

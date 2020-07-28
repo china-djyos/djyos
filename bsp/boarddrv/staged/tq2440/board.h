@@ -52,8 +52,6 @@
 extern "C" {
 #endif
 
-u32 TQ2440_EntrySleepReCall(u32 SleepLevel);
-u32 TQ2440_ExitSleepReCall(u32 SleepLevel);
 
 #ifdef __cplusplus
 }
