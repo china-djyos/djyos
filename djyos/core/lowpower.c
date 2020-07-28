@@ -11,54 +11,24 @@
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
-//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
-//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
-//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-// extern void ModuleInstall_LowPower (void);
-//    ModuleInstall_LowPower();
-//%$#@end initcode  ****初始化代码结束
-
-//%$#@describe      ****组件描述开始
-//component name:"lowpower"//低功耗模块
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
-                                //表示初始化时间，分别是早期、中期、后期
-//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //选中该组件时，被依赖组件将强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                //选中该组件时，被依赖组件不会被强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
-                                //如果与多个组件互斥，则依次列出，用“,”分隔
-//%$#@end describe  ****组件描述结束
-
-//%$#@configue      ****参数配置开始
-#if ( CFG_MODULE_ENABLE_LOWPOWER == false )
-//#warning  " lowpower  组件参数未配置，使用默认配置"
-//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#define CFG_MODULE_ENABLE_LOWPOWER    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,0,100,
-//%$#@enum,true,false,
-//%$#@string,1,10,
-//%$#select,        ***从列出的选项中选择若干个定义成宏
-//%$#@free,
-#endif
-//%$#@end configue  ****参数配置结束
-//@#$%component end configure
-
 //#define LP_DEFAULT_TRIGGER_TICK         (2U)
 struct LowPowerCtrl
 {
     u32 SleepLevel;                             //当前低功耗级别
 //  u32 TriggerTick;
     u32 DisableCounter;     //禁止低功耗次数计数,0才可以进入L1及以上级别低功耗
+
     u32 (*EntrySleepReCall)(u32 SleepLevel);    //进入低功耗状态前的回调函数
                                                 //返回值表示是否允许进入相应级别低功耗
     u32 (*ExitSleepReCall)(u32 SleepLevel);     //从低功耗状态唤醒后的回调函数
+
+    void (*EntrySleep)(u8 sleep_level, u32 pend_ticks);    //进入低功耗的函数
+    bool_t (*SaveSleepLevel)(u32 SleepLevel);                        //保存休眠等级的函数
+    bool_t (*SaveRamL3)(void);              //把执行过AsmSaveReg的内存保存到flash中
+
+    void (*AsmSaveReg)(struct ThreadVm *running_vm,
+                                bool_t (*SaveRamL3)(void),
+                                void (*EntrySleep)(u8 sleep_level, u32 pend_ticks));  //当系统从L3模式唤醒时，系统应从__LP_BSP_AsmSaveReg的返回地址，即下一行代码处继续运行。要实现以下顺序指定：
 
 };
 
@@ -84,7 +54,7 @@ u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks)
            case CN_SLEEP_L0:
                if(g_tLowPower.EntrySleepReCall(CN_SLEEP_L0))
                {
-                   __LP_BSP_EntrySleepL0(pend_ticks);
+                   g_tLowPower.EntrySleep(CN_SLEEP_L0, pend_ticks);
                    g_tLowPower.ExitSleepReCall(CN_SLEEP_L0);
                }
                return CN_SLEEP_L0;
@@ -93,7 +63,7 @@ u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks)
                atom_bak = Int_LowAtomStart();
                if(g_tLowPower.EntrySleepReCall(CN_SLEEP_L1))
                {
-                   __LP_BSP_EntrySleepL1(pend_ticks);
+                   g_tLowPower.EntrySleep(CN_SLEEP_L1, pend_ticks);
                    g_tLowPower.ExitSleepReCall(CN_SLEEP_L1);
                }
                Int_LowAtomEnd(atom_bak);
@@ -103,7 +73,7 @@ u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks)
                atom_bak = Int_LowAtomStart();
                if(g_tLowPower.EntrySleepReCall(CN_SLEEP_L2))
                {
-                   __LP_BSP_EntrySleepL2(pend_ticks);
+                   g_tLowPower.EntrySleep(CN_SLEEP_L2, pend_ticks);
                    g_tLowPower.ExitSleepReCall(CN_SLEEP_L2);
                }
                Int_LowAtomEnd(atom_bak);
@@ -113,16 +83,16 @@ u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks)
                atom_bak = Int_LowAtomStart();
                if(g_tLowPower.EntrySleepReCall(CN_SLEEP_L3))
                {
-                   __LP_BSP_SaveSleepLevel(CN_SLEEP_L3);
+                   g_tLowPower.SaveSleepLevel(CN_SLEEP_L3);
                    //当系统从L3模式唤醒时，系统应从__LP_BSP_AsmSaveReg的返回地址，即
                    //下一行代码处继续运行。要实现以下顺序指定：
                    //step1：__LP_BSP_AsmSaveReg获取含自己的返回地址在内的上下文并保存到栈中。
                    //step2：__LP_BSP_SaveRamL3把执行过step1的内存保存到flash中。
-                   //step3：__LP_BSP_EntrySleepL3进入低功耗
+                   //step3：g_tLowPower.EntrySleep进入低功耗
                    //step4：从低功耗唤醒后，恢复内存和上下文，程序继续运行
-                   //似乎只有把__LP_BSP_SaveRamL3和__LP_BSP_EntrySleepL3函数按参数
+                   //似乎只有把__LP_BSP_SaveRamL3和g_tLowPower.EntrySleep函数按参数
                    //传入才能实现。
-                   __LP_BSP_AsmSaveReg(vm,__LP_BSP_SaveRamL3,__LP_BSP_EntrySleepL3);
+                   g_tLowPower.AsmSaveReg(vm, g_tLowPower.SaveRamL3, g_tLowPower.EntrySleep);
                    g_tLowPower.ExitSleepReCall(CN_SLEEP_L3);
                }
                Int_LowAtomEnd(atom_bak);
@@ -132,8 +102,8 @@ u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks)
                atom_bak = Int_LowAtomStart();
                if(g_tLowPower.EntrySleepReCall(CN_SLEEP_L4))
                {
-                   __LP_BSP_SaveSleepLevel(CN_SLEEP_L4);
-                   __LP_BSP_EntrySleepL4( );    //进入低功耗,并且不会返回这里
+                   g_tLowPower.SaveSleepLevel(CN_SLEEP_L4);
+                   g_tLowPower.EntrySleep(CN_SLEEP_L4, 0);    //进入低功耗,并且不会返回这里
                    //若正确调用，上面的函数并不返回，而是等待复位，下面的代码，是为了在上述
                    //函数执行不正常而返回时，不使系统紊乱。
                    g_tLowPower.ExitSleepReCall(CN_SLEEP_L3);
@@ -224,21 +194,30 @@ u32 LP_EmptyReCall(u32 SleepLevel)
 {
     return 1;
 }
-//----初始化-------------------------------------------------------------------
-//功能: 初始化低功耗组件
-//参数: EntrySleepReCall,进入低功耗状态前调用的回调函数
-//      ExitSleepReCall, 离开低功耗状态时调用的回调函数
+//-----------------------------------------------------------------------------
+//功能: 注册低功耗相关的功能函数
+//参数: EntrySleep,进入低功耗状态前调用的回调函数
+//      SaveSleepLevel, 保持休眠等级
+//      SaveRamL3, 保存在进入休眠等级3之前的内存
+//      AsmSaveReg, 获取含自己的返回地址在内的上下文并保存到栈中
 //返回: 无意义
 //-----------------------------------------------------------------------------
-extern u32 (*g_fnEntryLowPower)(struct ThreadVm *vm,u32 pend_ticks);  //进入低功耗状态的函数指针。
-void ModuleInstall_LowPower (void)
+void Register_LowPower_Function (void (*EntrySleep)(u8 sleep_level, u32 pend_ticks),
+                                 bool_t (*SaveSleepLevel)(u32 SleepLevel),
+                                 bool_t (*SaveRamL3)(void),
+                                 void (*AsmSaveReg)(struct ThreadVm *running_vm,
+                                                     bool_t (*SaveRamL3)(void),
+                                                     void (*EntrySleep)(u8 sleep_level, u32 pend_ticks)))
 {
+    g_tLowPower.EntrySleep = EntrySleep;
+    g_tLowPower.SaveSleepLevel = SaveSleepLevel;
+    g_tLowPower.SaveRamL3 = SaveRamL3;
+    g_tLowPower.AsmSaveReg = AsmSaveReg;
+
     g_tLowPower.EntrySleepReCall = LP_EmptyReCall;
     g_tLowPower.ExitSleepReCall = LP_EmptyReCall;
     g_tLowPower.SleepLevel = CN_SLEEP_L0;
-//    g_tLowPower.TriggerTick = CN_LIMIT_UINT32;
     g_tLowPower.DisableCounter = 0;
-    g_fnEntryLowPower = LP_EntryLowPower;
     return ;
 }
 

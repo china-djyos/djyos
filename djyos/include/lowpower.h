@@ -125,7 +125,7 @@ void __LP_BSP_EntrySleepL4(void);
 //在cps.S中实现,进入L3级低功耗前调用,保存上下文。
 void __LP_BSP_AsmSaveReg(struct ThreadVm *running_vm,
                             bool_t (*SaveRamL3)(void),
-                            void (*EntrySleepL3)(void));
+                            void (*EntrySleepLevel)(u8 sleep_level, u32 pend_ticks));
 
 bool_t __LP_BSP_SetSleepMode(ptu32_t param);
 //禁止sleep,使DisableCounter+1
@@ -139,10 +139,16 @@ u32 LP_SetSleepLevel(u32 Level);
 u32 LP_GetSleepLevel(void);
 void LP_SetTriggerTick(u32 tick);
 u32 LP_GetTriggerTick(void);
+u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks);
 void LP_SetHook(u32 (*EntrySleepReCall)(u32 SleepLevel),
                 u32 (*ExitSleepReCall)(u32 SleepLevel));
-//安装低功耗组件
-void ModuleInstall_LowPower (void);
+//注册低功耗组件
+void Register_LowPower_Function (void (*EntrySleepLevel)(u8 sleep_level, u32 pend_ticks),
+                                 bool_t (*SaveSleepLevel)(u32 SleepLevel),
+                                 bool_t (*SaveRamL3)(void),
+                                 void (*AsmSaveReg)(struct ThreadVm *running_vm,
+                                                     bool_t (*SaveRamL3)(void),
+                                                     void (*EntrySleepLevel)(u8 sleep_level, u32 pend_ticks)));
 
 #ifdef __cplusplus
 }

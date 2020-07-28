@@ -175,7 +175,6 @@ bool_t g_bScheduleEnable;               //系统当前运行状态是否允许调
 bool_t g_bMultiEventStarted = false;    //多事件(线程)调度是否已经开始
 u32 g_u32OsRunMode;     //运行模式，参看 CN_RUNMODE_SI 系列定义
 
-u32 (*g_fnEntryLowPower)(struct ThreadVm *vm,u32 PendTicks) = NULL;  //进入低功耗状态的函数指针。
 void __DJY_SelectEventToRun(void);
 void __DJY_EventReady(struct EventECB *event_ready);
 void __DJY_ResumeDelay(struct EventECB *delay_event);
@@ -3308,7 +3307,7 @@ ptu32_t __DJY_Service(void)
     u8 level;
     u64 now_tick;
     u64 int_tick;
-    u64 AllowPendTicks;     //允许休眠的时间，从上一次tick中断起计
+    u32 AllowPendTicks;     //允许休眠的时间，从上一次tick中断起计
     atom_low_t  atom_bak;
     while(1)
     {
@@ -3321,27 +3320,24 @@ ptu32_t __DJY_Service(void)
                 __DJY_CheckStack(loop);
           }
         }
-        if(g_fnEntryLowPower != NULL)
-        {
-            CleanWakeupEvent();
-            atom_bak = Int_LowAtomStart();
-            now_tick = __DJY_GetSysTick();
-            if(g_ptEventDelay != NULL)
-                int_tick = g_ptEventDelay->delay_end_tick;
-            else
-                int_tick = CN_LIMIT_UINT64;
+        CleanWakeupEvent();
+        atom_bak = Int_LowAtomStart();
+        now_tick = __DJY_GetSysTick();
+        if(g_ptEventDelay != NULL)
+            int_tick = g_ptEventDelay->delay_end_tick;
+        else
+            int_tick = CN_LIMIT_UINT64;
 
-            AllowPendTicks = int_tick - now_tick;   //计算允许休眠的ticks数，但实际休眠多少时间，由BSP决定
-            if(AllowPendTicks > CN_LIMIT_UINT32)
-                AllowPendTicks = CN_LIMIT_UINT32;
+        AllowPendTicks = (u32)(int_tick - now_tick);   //计算允许休眠的ticks数，但实际休眠多少时间，由BSP决定
+        if(AllowPendTicks > CN_LIMIT_UINT32)
+            AllowPendTicks = CN_LIMIT_UINT32;
 //            buff[i++] = AllowPendTicks;
 //            buff[i] = __DjyGetSysTime();
-            if(AllowPendTicks != 0)
-                g_fnEntryLowPower(g_ptEventRunning->vm,AllowPendTicks); //进入低功耗状态
+        if(AllowPendTicks != 0)
+            LP_EntryLowPower(g_ptEventRunning->vm,AllowPendTicks); //进入低功耗状态
 //            buff[i] = __DjyGetSysTime() - buff[i];
 //            i++;
-            Int_LowAtomEnd(atom_bak);
-        }
+        Int_LowAtomEnd(atom_bak);
     }
     return 0;//消除编译警告
 }

@@ -191,10 +191,34 @@ end:
 __asm_bl_fun:
     BX   R0
 
+
+/*
+@----保存上下文---------------------------------------------------------------
+@功能: 保存当前线程的上下文，但不切换,专用于进入CN_SLEEP_L3之前调用.
+@参数: running_vm，当前线程的控制块指针，即&vm->stack。
+@参数: SaveRamL3, 把执行过step1的内存保存到flash中.
+@参数: EntrySleep, 进入低功耗.
+@返回:  无
+@函数原型: void __LP_BSP_AsmSaveReg(struct tagThreadVm *running_vm，
+                    bool_t (*SaveRamL3)(void),
+                    void (*EntrySleep)(void))
+@-----------------------------------------------------------------------------
+*/
 .global __LP_BSP_AsmSaveReg
 .type   __LP_BSP_AsmSaveReg, %function
 __LP_BSP_AsmSaveReg:
-    BX   LR
+    push    {lr}                /* 保存PC,退出L3低功耗后,将从本函数返回地址处继续运行*/
+    push    {r0-r3,r12,lr}      /* 保存r0-r3,r12,lr */
+    push    {r4-r11}
+    str     sp,[r0]             /* 保存旧上下文栈指针到vm->stack */
+    push    {r2}
+    blx      r1                  /* 调用保存RAM到非易失存储器的函数*/
+    pop     {r2}
+    mov 	r0, #0x4			/* 选择休眠方式:L3 */
+    blx      r2                  /* 调用进入SLEEP3的函数 */
+    bx      lr
+
+ /*   BX   LR */
 
 
 /*
