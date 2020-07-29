@@ -175,7 +175,6 @@ bool_t g_bScheduleEnable;               //系统当前运行状态是否允许调
 bool_t g_bMultiEventStarted = false;    //多事件(线程)调度是否已经开始
 u32 g_u32OsRunMode;     //运行模式，参看 CN_RUNMODE_SI 系列定义
 
-u32 (*g_fnEntryLowPower)(struct ThreadVm *vm,u32 PendTicks) = NULL;  //进入低功耗状态的函数指针。
 void __DJY_SelectEventToRun(void);
 void __DJY_EventReady(struct EventECB *event_ready);
 void __DJY_ResumeDelay(struct EventECB *delay_event);
@@ -312,8 +311,8 @@ void __DJY_MaintainSysTime(void);
 void  DJY_ScheduleIsr(u32 inc_ticks)
 {
     struct EventECB *pl_ecb,*pl_ecbp,*pl_ecbn;
-    s64 now_tick;
-    now_tick = __DJY_GetSysTick();
+    g_s64OsTicks += inc_ticks;
+//  now_tick = __DJY_GetSysTick();
     //用于维护系统时钟运转，使读系统时间的间隔，小于硬件定时器循环周期。
     __DJY_MaintainSysTime( );
     if(g_ptEventDelay != NULL)
@@ -321,7 +320,7 @@ void  DJY_ScheduleIsr(u32 inc_ticks)
         pl_ecb = g_ptEventDelay;
         while(1)
         {
-            if(pl_ecb->delay_end_tick <= now_tick) //默认64位ticks不会溢出
+            if(pl_ecb->delay_end_tick <= g_s64OsTicks) //默认64位ticks不会溢出
             {
                 //事件在某同步队列中，应该从该队列取出
                 if(pl_ecb->sync_head != NULL)
@@ -383,7 +382,7 @@ void  DJY_ScheduleIsr(u32 inc_ticks)
         if( (g_ptEventRunning->prio == g_ptEventRunning->next->prio)
                     &&(g_ptEventRunning != g_ptEventRunning->next) )
         {//该优先级有多个事件，看轮转时间是否到
-            if((u32)now_tick % s_u32RRS_Slice == 0) //时间片用完
+            if((u32)g_s64OsTicks % s_u32RRS_Slice == 0) //时间片用完
             {
                 //先处理优先级单调队列，把pg_event_running从队列中取出，代之以
                 //g_ptEventRunning->next。
@@ -3308,7 +3307,7 @@ ptu32_t __DJY_Service(void)
     u8 level;
     u64 now_tick;
     u64 int_tick;
-    u64 AllowPendTicks;     //允许休眠的时间，从上一次tick中断起计
+    u32 AllowPendTicks;     //允许休眠的时间，从上一次tick中断起计
     atom_low_t  atom_bak;
     while(1)
     {
@@ -3321,27 +3320,24 @@ ptu32_t __DJY_Service(void)
                 __DJY_CheckStack(loop);
           }
         }
-        if(g_fnEntryLowPower != NULL)
-        {
-            CleanWakeupEvent();
-            atom_bak = Int_LowAtomStart();
-            now_tick = __DJY_GetSysTick();
-            if(g_ptEventDelay != NULL)
-                int_tick = g_ptEventDelay->delay_end_tick;
-            else
-                int_tick = CN_LIMIT_UINT64;
+        CleanWakeupEvent();
+        atom_bak = Int_LowAtomStart();
+        now_tick = __DJY_GetSysTick();
+        if(g_ptEventDelay != NULL)
+            int_tick = g_ptEventDelay->delay_end_tick;
+        else
+            int_tick = CN_LIMIT_UINT64;
 
-            AllowPendTicks = int_tick - now_tick;   //计算允许休眠的ticks数，但实际休眠多少时间，由BSP决定
-            if(AllowPendTicks > CN_LIMIT_UINT32)
-                AllowPendTicks = CN_LIMIT_UINT32;
+        AllowPendTicks = (u32)(int_tick - now_tick);   //计算允许休眠的ticks数，但实际休眠多少时间，由BSP决定
+        if(AllowPendTicks > CN_LIMIT_UINT32)
+            AllowPendTicks = CN_LIMIT_UINT32;
 //            buff[i++] = AllowPendTicks;
 //            buff[i] = __DjyGetSysTime();
-            if(AllowPendTicks != 0)
-                g_fnEntryLowPower(g_ptEventRunning->vm,AllowPendTicks); //进入低功耗状态
+        if(AllowPendTicks != 0)
+            LP_EntryLowPower(g_ptEventRunning->vm,AllowPendTicks); //进入低功耗状态
 //            buff[i] = __DjyGetSysTime() - buff[i];
 //            i++;
-            Int_LowAtomEnd(atom_bak);
-        }
+        Int_LowAtomEnd(atom_bak);
     }
     return 0;//消除编译警告
 }

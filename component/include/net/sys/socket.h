@@ -577,7 +577,6 @@ int getpeername(int sockfd,struct sockaddr *addr,socklen_t *addrlen);
 typedef ptu32_t   ipaddr_t;
 
 
-//bool_t RoutCreate(const char *name,enum_ipv_t ver,void *netaddr,u32 pro);
 //bool_t RoutDelete(const char *name,enum_ipv_t ver,ipaddr_t addr);
 //bool_t RoutSet(const char *name,enum_ipv_t ver,ipaddr_t ipold,void *newaddr);
 //bool_t RoutSetDefault(enum_ipv_t ver,ipaddr_t ip);

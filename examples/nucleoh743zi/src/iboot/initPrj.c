@@ -27,7 +27,6 @@ void Sys_ModuleInit(void)
 {
 	uint16_t evtt_main;
 
-
     //shell
     extern void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut);
     Stdio_KnlInOutInit(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME);
@@ -36,10 +35,25 @@ void Sys_ModuleInit(void)
     //end shell
 
     //----------------------------early----------------------------//
+    //black box
+    extern void ModuleInstall_BlackBox(void);
+    ModuleInstall_BlackBox( );
+    //end black box
+
     //device file system
     extern s32 ModuleInstall_dev(void);
     ModuleInstall_dev();    // 安装设备文件系统；
     //end device file system
+
+    //message queue
+    extern bool_t ModuleInstall_MsgQ(void);
+    ModuleInstall_MsgQ ( );
+    //end message queue
+
+    //multiplex
+    extern bool_t ModuleInstall_Multiplex(void);
+    ModuleInstall_Multiplex ();
+    //end multiplex
 
     //cpu drive inner flash
     s32 ModuleInstall_EmbededFlash(u32 doformat);
@@ -59,13 +73,6 @@ void Sys_ModuleInit(void)
     kernel_command();
     #endif
     //end kernel
-
-    //loader
-    #if !defined (CFG_RUNMODE_BAREAPP)
-    extern bool_t ModuleInstall_XIP(void);
-    ModuleInstall_XIP( );
-    #endif
-    //end loader
 
     //cpu onchip uart
     extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
@@ -94,6 +101,13 @@ void Sys_ModuleInit(void)
     ModuleInstall_UART(CN_UART8);
     #endif
     //end cpu onchip uart
+
+    //loader
+    #if !defined (CFG_RUNMODE_BAREAPP)
+    extern bool_t ModuleInstall_XIP(void);
+    ModuleInstall_XIP( );
+    #endif
+    //end loader
 
     //----------------------------later----------------------------//
     //stdio

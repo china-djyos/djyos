@@ -654,6 +654,10 @@ static void ble_thread_start(void)
 
 void ble_stop(void)
 {
+    if(ERR_SUCCESS==appm_disconnect())
+        rt_kprintf("appm_disconnect success\r\n");
+    if(ERR_SUCCESS==appm_stop_advertising())
+        rt_kprintf("appm_stop_advertising success\r\n");
     if(ble_thread_handle) {
         ble_send_msg(BLE_MSG_EXIT);
 

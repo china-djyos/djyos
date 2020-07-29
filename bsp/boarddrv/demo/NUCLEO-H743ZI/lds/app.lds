@@ -19,13 +19,14 @@ SECTIONS
     {
         gc_AppStart = .;
         KEEP(*(.DjyAppHead .DjyAppHead.*))
+        KEEP(*(.DjyProductInfo .DjyProductInfo.*))
     }>InnerFlash
 
         Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
         KEEP(*(.IbootAppInfo .IbootAppInfo.*))
-    }>RAM1
+    }>RAM2
 
     stack_rRAM1_lRAM1 (NOLOAD) :
     {

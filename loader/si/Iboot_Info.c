@@ -73,22 +73,23 @@ extern void __asm_bl_fun(void * fun_addr);
 #if (CFG_RUNMODE_BAREAPP == 0)
 const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
 {
-        .djyflag[0]    = 'd',
-        .djyflag[1]    = 'j',
-        .djyflag[2]    = 'y',
-        .AppVer        = APP_HEAD_VERSION,
-        .filesize      = 0xffffffff,
-        .Verification  = CFG_APP_VERIFICATION,
-        .appbinsize    = 0xffffffff,
+        .djy_flag[0]    = 'd',
+        .djy_flag[1]    = 'j',
+        .djy_flag[2]    = 'y',
+        .app_ver        = APP_HEAD_VERSION,
+        .file_size      = 0xffffffff,
+        .verification  = CFG_APP_VERIFICATION,
+        .app_bin_size    = 0xffffffff,
 #if(CN_PTR_BITS < 64)
-        .VirtAddr      = (u32)(&Djy_App_Head),
+        .virt_addr      = (u32)(&Djy_App_Head),
         .reserved32    = 0xffffffff,
 #else
-        .VirtAddr      = (u64)(&Djy_App_Head),
+        .virt_addr      = (u64)(&Djy_App_Head),
 #endif
-        .appheadsize   = sizeof(struct AppHead),
-        .reserved      = {0xff,0xff,0xff,0xff,0xff,0xff},
-        .appname       = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+        .app_head_size   = sizeof(struct AppHead),
+        .start_app_is_verify = CFG_START_APP_IS_VERIFICATION,
+        .reserved      = {0xff,0xff,0xff,0xff,0xff},
+        .app_name       = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
@@ -99,7 +100,7 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff},
 
-        .VerifBuf      = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+        .verif_buf      = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
@@ -147,7 +148,7 @@ __attribute__((weak))  u8  Get_Hardflag(enum hardflag flag)
 //{
 //    struct AppHead*  p_apphead = apphead;
 //
-//    if(p_apphead->Verification&1)
+//    if(p_apphead->verification&1)
 //        return true;
 //    return false;
 //}
@@ -553,37 +554,37 @@ static bool_t Iboot_VerificationAppExit(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
 
-    if(p_apphead->Verification == VERIFICATION_CRC)
+    if(p_apphead->verification == VERIFICATION_CRC)
     {
-        iboot_Crc32exit((u32*)p_apphead->VerifBuf);
+        iboot_Crc32exit((u32*)p_apphead->verif_buf);
     }
-    else if(p_apphead->Verification == VERIFICATION_MD5)
+    else if(p_apphead->verification == VERIFICATION_MD5)
     {
         unsigned char hash[16];
         u32 i;
 
-        MD5_Final(hash, (MD5_CTX*)p_apphead->VerifBuf);
+        MD5_Final(hash, (MD5_CTX*)p_apphead->verif_buf);
         for(i =0;i<sizeof(MD5_CTX);i++)
-            p_apphead->VerifBuf[i]=0xff;
+            p_apphead->verif_buf[i]=0xff;
         for(i =0;i<16;i++)
-            p_apphead->VerifBuf[i]=hash[i];
+            p_apphead->verif_buf[i]=hash[i];
     }
-    else if(p_apphead->Verification == VERIFICATION_SSL)
+    else if(p_apphead->verification == VERIFICATION_SSL)
     {
 
     }
 
 //#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
-//    iboot_Crc32exit((u32*)p_apphead->VerifBuf);
+//    iboot_Crc32exit((u32*)p_apphead->verif_buf);
 //#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
 //    unsigned char hash[16];
 //    u32 i;
 //
-//    MD5Final(hash, (MD5_CTX*)p_apphead->VerifBuf);
+//    MD5Final(hash, (MD5_CTX*)p_apphead->verif_buf);
 //    for(i =0;i<sizeof(MD5_CTX);i++)
-//        p_apphead->VerifBuf[i]=0xff;
+//        p_apphead->verif_buf[i]=0xff;
 //    for(i =0;i<16;i++)
-//        p_apphead->VerifBuf[i]=hash[i];
+//        p_apphead->verif_buf[i]=hash[i];
 //#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
 //
 //#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
@@ -597,23 +598,23 @@ static bool_t Iboot_VerificationAppRun(void * apphead, u8 * buf, u32 len)
 {
     struct AppHead*  p_apphead = apphead;
 
-    if(p_apphead->Verification == VERIFICATION_CRC)
+    if(p_apphead->verification == VERIFICATION_CRC)
     {
-        iboot_Crc32run((u32*)p_apphead->VerifBuf,buf,len);
+        iboot_Crc32run((u32*)p_apphead->verif_buf,buf,len);
     }
-    else if(p_apphead->Verification == VERIFICATION_MD5)
+    else if(p_apphead->verification == VERIFICATION_MD5)
     {
-        MD5_Update((MD5_CTX*)p_apphead->VerifBuf, buf,len);
+        MD5_Update((MD5_CTX*)p_apphead->verif_buf, buf,len);
     }
-    else if(p_apphead->Verification == VERIFICATION_SSL)
+    else if(p_apphead->verification == VERIFICATION_SSL)
     {
 
     }
 
 //#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
-//    iboot_Crc32run((u32*)p_apphead->VerifBuf,buf,len);
+//    iboot_Crc32run((u32*)p_apphead->verif_buf,buf,len);
 //#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
-//    MD5Update((MD5_CTX*)p_apphead->VerifBuf, buf,len);
+//    MD5Update((MD5_CTX*)p_apphead->verif_buf, buf,len);
 //#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
 //
 //#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
@@ -630,7 +631,7 @@ static bool_t Iboot_VerificationAppInit(void *data)
     struct ProductInfo* p_productinfo = data + sizeof(struct AppHead);
     u32 i;
 
-//    p_apphead->filesize = 0xFFFFFFFF;          //文件系统读到的文件大小   在线升级时 由文件系统填充编译时由外部工具填充
+//    p_apphead->file_size = 0xFFFFFFFF;          //文件系统读到的文件大小   在线升级时 由文件系统填充编译时由外部工具填充
 //    p_apphead->ProductionNumber = 0xFFFFFFFF;
 
 //#if(CN_PTR_BITS < 64)
@@ -646,18 +647,18 @@ static bool_t Iboot_VerificationAppInit(void *data)
     for( i=0;i<sizeof(p_productinfo->ProductionTime);i++)
         p_productinfo->ProductionTime[i]=0xff;
 
-    for( i=0;i<sizeof(p_apphead->appname);i++)
-        p_apphead->appname[i]=0xff;
+    for( i=0;i<sizeof(p_apphead->app_name);i++)
+        p_apphead->app_name[i]=0xff;
 
-    for(u32 i =0;i<sizeof(p_apphead->VerifBuf);i++)
-        p_apphead->VerifBuf[i]=0xff;
+    for(u32 i =0;i<sizeof(p_apphead->verif_buf);i++)
+        p_apphead->verif_buf[i]=0xff;
 
-    if(p_apphead->Verification == VERIFICATION_CRC)
+    if(p_apphead->verification == VERIFICATION_CRC)
     {
-        iboot_Crc32init((u32*)p_apphead->VerifBuf);
-        iboot_Crc32run((u32*)p_apphead->VerifBuf,data,sizeof(struct AppHead) + sizeof(struct ProductInfo));
+        iboot_Crc32init((u32*)p_apphead->verif_buf);
+        iboot_Crc32run((u32*)p_apphead->verif_buf,data,sizeof(struct AppHead) + sizeof(struct ProductInfo));
     }
-    else if(p_apphead->Verification == VERIFICATION_MD5)
+    else if(p_apphead->verification == VERIFICATION_MD5)
     {
         MD5_CTX md5tmp;
         char *buf = (char *)&md5tmp;
@@ -665,16 +666,16 @@ static bool_t Iboot_VerificationAppInit(void *data)
         MD5_Init(&md5tmp);
         MD5_Update(&md5tmp, data, sizeof(struct AppHead) + sizeof(struct ProductInfo));
         for(u32 i =0;i< sizeof(MD5_CTX);i++)
-            p_apphead->VerifBuf[i]=buf[i];
+            p_apphead->verif_buf[i]=buf[i];
     }
-    else if(p_apphead->Verification == VERIFICATION_SSL)
+    else if(p_apphead->verification == VERIFICATION_SSL)
     {
 
     }
 
 //#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
-//    iboot_Crc32init((u32*)p_apphead->VerifBuf);
-//    iboot_Crc32run((u32*)p_apphead->VerifBuf,data,sizeof(struct AppHead) + sizeof(struct ProductInfo));
+//    iboot_Crc32init((u32*)p_apphead->verif_buf);
+//    iboot_Crc32run((u32*)p_apphead->verif_buf,data,sizeof(struct AppHead) + sizeof(struct ProductInfo));
 //#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
 //    MD5_CTX md5tmp;
 //    char *buf = (char *)&md5tmp;
@@ -682,7 +683,7 @@ static bool_t Iboot_VerificationAppInit(void *data)
 //    MD5Init(&md5tmp);
 //    MD5Update(&md5tmp, data, sizeof(struct AppHead) + sizeof(struct ProductInfo));
 //    for(u32 i =0;i< sizeof(MD5_CTX);i++)
-//        p_apphead->VerifBuf[i]=buf[i];
+//        p_apphead->verif_buf[i]=buf[i];
 //#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
 //
 //#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
@@ -697,10 +698,10 @@ static bool_t  Iboot_VerificationCompare(void *apphead,void *appheadcmp)
     struct AppHead*  p_apphead = apphead;
     struct AppHead*  p_appheadcmp = appheadcmp;
     u32 i;
-    for(i=0;i<sizeof(p_apphead->VerifBuf);i++)
+    for(i=0;i<sizeof(p_apphead->verif_buf);i++)
     {
-        if(p_apphead->VerifBuf[i]!=p_appheadcmp->VerifBuf[i]
-                    &&p_apphead->VerifBuf[i]!=(char)0xFF)
+        if(p_apphead->verif_buf[i]!=p_appheadcmp->verif_buf[i]
+                    &&p_apphead->verif_buf[i]!=(char)0xFF)
             return false;
     }
     return true;
@@ -714,16 +715,16 @@ bool_t Iboot_RewriteAppHeadFileInfo(void * apphead,const char*name,u32 filesize)
 {
     struct AppHead*  p_apphead = apphead;
     u8 flag = 1;
-    for(u8 i=0;i<sizeof(p_apphead->appname);i++)
+    for(u8 i=0;i<sizeof(p_apphead->app_name);i++)
     {
         if(flag)
-            p_apphead->appname[i] = name[i];
+            p_apphead->app_name[i] = name[i];
         else
-            p_apphead->appname[i] = 0xff;
+            p_apphead->app_name[i] = 0xff;
         if(name[i]==0)
             flag=0;
     }
-    p_apphead->filesize = filesize;
+    p_apphead->file_size = filesize;
     if(flag)
         return false;
     return true;
@@ -1019,10 +1020,10 @@ u32 Iboot_GetAppHeadSize(void)
 bool_t XIP_AppFileCheckEasy(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
-    if(p_apphead->djyflag[0]!='d' || \
-       p_apphead->djyflag[1]!='j' || \
-       p_apphead->djyflag[2]!='y' ||\
-       p_apphead->appheadsize !=Iboot_GetAppHeadSize())
+    if(p_apphead->djy_flag[0]!='d' || \
+       p_apphead->djy_flag[1]!='j' || \
+       p_apphead->djy_flag[2]!='y' ||\
+       p_apphead->app_head_size !=Iboot_GetAppHeadSize())
     {
         return false;
     }
@@ -1041,11 +1042,11 @@ bool_t XIP_AppFileCheck(void * apphead)
     u32 AppHead_Len, ProductInfo_Len;
     AppHead_Len = sizeof(struct AppHead);
     ProductInfo_Len = sizeof(struct ProductInfo);
-    if(p_apphead->Verification != VERIFICATION_NULL)
+    if(p_apphead->verification != VERIFICATION_NULL)
     {
         memcpy(apphead_and_productinfo, apphead, sizeof(apphead_and_productinfo));
         Iboot_VerificationAppInit(apphead_and_productinfo);
-        Iboot_VerificationAppRun(apphead_and_productinfo, apphead+AppHead_Len+ProductInfo_Len, p_apphead->appbinsize-AppHead_Len-ProductInfo_Len);
+        Iboot_VerificationAppRun(apphead_and_productinfo, apphead+AppHead_Len+ProductInfo_Len, p_apphead->app_bin_size-AppHead_Len-ProductInfo_Len);
         Iboot_VerificationAppExit(apphead_and_productinfo);
         if(false == Iboot_VerificationCompare(apphead,apphead_and_productinfo))
         {
@@ -1065,7 +1066,7 @@ bool_t XIP_AppFileCheck(void * apphead)
 void * XIP_GetAppStartAddr(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
-    return  (void *)p_apphead->VirtAddr;
+    return  (void *)p_apphead->virt_addr;
 }
 //==============================================================================
 //功能：获取通过xip文件系统写入的APP文件大小
@@ -1075,7 +1076,7 @@ void * XIP_GetAppStartAddr(void * apphead)
 u32 XIP_GetAppSize(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
-    return  p_apphead->filesize;
+    return  p_apphead->file_size;
 }
 
 //bool_t XIP_APPIsDebug(void )
@@ -1094,7 +1095,7 @@ u32 XIP_GetAppSize(void * apphead)
 u32 Iboot_GetAppSize(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
-    return  p_apphead->appbinsize;
+    return  p_apphead->app_bin_size;
 }
 //==============================================================================
 //功能：获取APP文件文件名
@@ -1104,7 +1105,7 @@ u32 Iboot_GetAppSize(void * apphead)
 char* Iboot_GetAppName(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
-    return  p_apphead->appname;
+    return  p_apphead->app_name;
 }
 
 
@@ -1221,30 +1222,30 @@ bool_t Iboot_SetAppBulidTime(u16 pyear,u8 pmon,u8 pday,u8 phour,u8 pmin,u8 psec)
         return false;
     }
 
-    Iboot_App_Info.app_buildyear = pyear;
-    Iboot_App_Info.app_buildmon = pmon;
-    Iboot_App_Info.app_buildmday = pday;
-    Iboot_App_Info.app_buildhour = phour;
-    Iboot_App_Info.app_buildmin = pmin;
-    Iboot_App_Info.app_buildsec = psec;
+    Iboot_App_Info.app_build_year = pyear;
+    Iboot_App_Info.app_build_mon = pmon;
+    Iboot_App_Info.app_build_day = pday;
+    Iboot_App_Info.app_build_hour = phour;
+    Iboot_App_Info.app_build_min = pmin;
+    Iboot_App_Info.app_build_sec = psec;
 
     return true;
 }
 //==============================================================================
 //功能：填充板件名到交互信息
-//参数：boardname：板件名称；buf：待写入的地址；maxlen：板件名称最大长度。
+//参数：board_name：板件名称；buf：待写入的地址；maxlen：板件名称最大长度。
 //返回： true/false
 //==============================================================================
-static bool_t Iboot_FillBoardName(char* boardname,char* buf,u8 maxlen)
+static bool_t Iboot_FillBoardName(char* board_name,char* buf,u8 maxlen)
 {
     u8 i;
     for(i=0;i<maxlen;i++)
     {
-        if(*boardname != 0)
-            *buf++ = *boardname++;
+        if(*board_name != 0)
+            *buf++ = *board_name++;
         else
         {
-            *buf++ = *boardname++;
+            *buf++ = *board_name++;
             break;
         }
     }
@@ -1269,8 +1270,8 @@ bool_t Iboot_SiIbootAppInfoInit()
     switch (hardflag)
     {
         case 0: //0=无此硬件
-            if((Iboot_App_Info.PreviouReset != PREVIOURESET_APP) && \
-               (Iboot_App_Info.PreviouReset != PREVIOURESET_IBOOT))
+            if((Iboot_App_Info.previou_reset != PREVIOURESET_APP) && \
+               (Iboot_App_Info.previou_reset != PREVIOURESET_IBOOT))
                 PowerUp = true;
             break;
         case 1: break; //1=有此硬件，但无标志；
@@ -1284,16 +1285,16 @@ bool_t Iboot_SiIbootAppInfoInit()
             break;
     }
 #if (CFG_RUNMODE_BAREAPP == 0)
-    Iboot_GetIbootBulidTime(&Iboot_App_Info.iboot_buildyear,&Iboot_App_Info.iboot_buildmon,&Iboot_App_Info.iboot_buildmday,\
-    &Iboot_App_Info.iboot_buildhour,&Iboot_App_Info.iboot_buildmin,&Iboot_App_Info.iboot_buildsec);
-    Iboot_App_Info.ibootVer_small = CFG_IBOOT_VERSION_SMALL;         //iboot 版本
-    Iboot_App_Info.ibootVer_medium = CFG_IBOOT_VERSION_MEDIUM;         //iboot 版本
-    Iboot_App_Info.ibootVer_large = CFG_IBOOT_VERSION_LARGE;         //iboot 版本
+    Iboot_GetIbootBulidTime(&Iboot_App_Info.iboot_build_year,&Iboot_App_Info.iboot_build_mon,&Iboot_App_Info.iboot_build_day,\
+    &Iboot_App_Info.iboot_build_hour,&Iboot_App_Info.iboot_build_min,&Iboot_App_Info.iboot_build_sec);
+    Iboot_App_Info.iboot_ver_small = CFG_IBOOT_VERSION_SMALL;         //iboot 版本
+    Iboot_App_Info.iboot_ver_medium = CFG_IBOOT_VERSION_MEDIUM;         //iboot 版本
+    Iboot_App_Info.iboot_ver_large = CFG_IBOOT_VERSION_LARGE;         //iboot 版本
 #endif
-    Iboot_FillBoardName(PRODUCT_BOARD_TYPE,Iboot_App_Info.boardname,sizeof(Iboot_App_Info.boardname));
+    Iboot_FillBoardName(PRODUCT_BOARD_TYPE,Iboot_App_Info.board_name,sizeof(Iboot_App_Info.board_name));
     if(PowerUp == true)                        //上电复位初始化
     {
-        Iboot_App_Info.PreviouReset = 0;//复位前运行模式
+        Iboot_App_Info.previou_reset = 0;//复位前运行模式
         Iboot_App_Info.runflag.heard_set_run_iboot   = 0;//硬件设置运行iboot
         Iboot_App_Info.runflag.restart_run_iboot     = 0;//指示启动后运行Iboot
         Iboot_App_Info.runflag.restart_run_app       = 0;//指示启动后运行APP
@@ -1346,12 +1347,12 @@ bool_t Iboot_SiIbootAppInfoInit()
         else
             Iboot_App_Info.runflag.low_power_wakeup = 0;
 
-        if(Iboot_App_Info.PreviouReset == PREVIOURESET_APP)
+        if(Iboot_App_Info.previou_reset == PREVIOURESET_APP)
         {
             Iboot_App_Info.runflag.Before_run_app   = 1;
             Iboot_App_Info.runflag.Before_run_iboot= 0;
         }
-        else if(Iboot_App_Info.PreviouReset == PREVIOURESET_IBOOT)
+        else if(Iboot_App_Info.previou_reset == PREVIOURESET_IBOOT)
         {
             Iboot_App_Info.runflag.Before_run_app = 0;
             Iboot_App_Info.runflag.Before_run_iboot= 1;
@@ -1384,9 +1385,9 @@ bool_t Iboot_ClearResetFlag()
 bool_t Iboot_SetAppVerFlag(u8 small, u8 medium, u8 large)
 
 {
-    Iboot_App_Info.appVer_small = small;         //app 版本
-    Iboot_App_Info.appVer_medium = medium;         //app 版本
-    Iboot_App_Info.appVer_large = large;         //app 版本
+    Iboot_App_Info.app_ver_small = small;         //app 版本
+    Iboot_App_Info.app_ver_medium = medium;         //app 版本
+    Iboot_App_Info.app_ver_large = large;         //app 版本
 
     return true;
 }
@@ -1605,7 +1606,7 @@ static bool_t __RunApp(void * apphead)
     u8 * buf = (u8*)&app_head;
     u8 *bufapp = apphead;
     u32 i;
-    if(p_apphead->djyflag[0]!='d' ||p_apphead->djyflag[1]!='j' ||p_apphead->djyflag[2]!='y' )
+    if(p_apphead->djy_flag[0]!='d' ||p_apphead->djy_flag[1]!='j' ||p_apphead->djy_flag[2]!='y' )
     {
         Iboot_App_Info.runflag.error_app_no_file = 1;
         return false;
@@ -1615,23 +1616,21 @@ static bool_t __RunApp(void * apphead)
     Iboot_App_Info.runflag.restart_run_app = 0;
     Iboot_App_Info.runflag.error_app_check = 0;
     Iboot_App_Info.runflag.error_app_size  = 0;
-    if(p_apphead->appbinsize != p_apphead->filesize)
+    if(p_apphead->app_bin_size != p_apphead->file_size)
     {
         Iboot_App_Info.runflag.error_app_size  = 1;
     }
-    if(p_apphead->Verification != VERIFICATION_NULL)
+    if((p_apphead->start_app_is_verify) && (p_apphead->verification != VERIFICATION_NULL))
     {
-        for(i = 0; i < sizeof(p_apphead->VerifBuf); i ++)
+        for(i = 0; i < sizeof(p_apphead->verif_buf); i ++)
         {
-            if((u8)p_apphead->VerifBuf[i] != 0xff)  //判断检验码缓冲区中是否为全FF，如果为全FF则表示是在debug，不做程序的校验
+            if((u8)p_apphead->verif_buf[i] != 0xff)  //判断检验码缓冲区中是否为全FF，如果为全FF则表示是在debug，不做程序的校验
                 break;
         }
-        if(i < sizeof(p_apphead->VerifBuf))
+        if(i < sizeof(p_apphead->verif_buf))
         {
-#if 1
             if(XIP_AppFileCheck(apphead) == false)
                 return false;
-#endif
         }
     }
     Iboot_App_Info.runflag.runmode_iboot        = 0;
@@ -1694,9 +1693,9 @@ bool_t Iboot_UpdateToRun()
 bool_t Iboot_SetPreviouResetFlag()
 {
     if(Iboot_App_Info.runflag.runmode_app == 1)
-        Iboot_App_Info.PreviouReset = PREVIOURESET_APP;
+        Iboot_App_Info.previou_reset = PREVIOURESET_APP;
     if(Iboot_App_Info.runflag.runmode_iboot == 1)
-        Iboot_App_Info.PreviouReset = PREVIOURESET_IBOOT;
+        Iboot_App_Info.previou_reset = PREVIOURESET_IBOOT;
 
     return true;
 }
@@ -1940,13 +1939,13 @@ bool_t Iboot_GetErrorAppSize(void)
 //========================SHELL================================================
 static bool_t ibootinfo( )
 {
-    printf("iboot version:V%2d.%2d.%2d \n\r",Iboot_App_Info.ibootVer_small,Iboot_App_Info.ibootVer_medium,
-                                                                        Iboot_App_Info.ibootVer_large);
-    printf("iboot build time : %4d/%2d/%2d %2d:%2d:%2d \n\r",Iboot_App_Info.iboot_buildyear,\
-            Iboot_App_Info.iboot_buildmon, Iboot_App_Info.iboot_buildmday, Iboot_App_Info.iboot_buildhour, \
-            Iboot_App_Info.iboot_buildmin, Iboot_App_Info.iboot_buildsec);
+    printf("iboot version:V%2d.%2d.%2d \n\r",Iboot_App_Info.iboot_ver_small,Iboot_App_Info.iboot_ver_medium,
+                                                                        Iboot_App_Info.iboot_ver_large);
+    printf("iboot build time : %4d/%2d/%2d %2d:%2d:%2d \n\r",Iboot_App_Info.iboot_build_year,\
+            Iboot_App_Info.iboot_build_mon, Iboot_App_Info.iboot_build_day, Iboot_App_Info.iboot_build_hour, \
+            Iboot_App_Info.iboot_build_min, Iboot_App_Info.iboot_build_sec);
 //    printf("Iboot start addr: 0x%8llx \n\r", Iboot_App_Info.ibootstartaddr);
-    printf("board name %s \n\r", Iboot_App_Info.boardname);
+    printf("board name %s \n\r", Iboot_App_Info.board_name);
 
     return true;
 }
@@ -1955,18 +1954,18 @@ static bool_t ibootinfo( )
 static bool_t appinfo( )
 {
     struct AppHead*  p_apphead = gc_pAppOffset;
-    if(p_apphead->djyflag[0]!='d' || p_apphead->djyflag[1]!='j' || p_apphead->djyflag[2]!='y' )
+    if(p_apphead->djy_flag[0]!='d' || p_apphead->djy_flag[1]!='j' || p_apphead->djy_flag[2]!='y' )
     {
         printf("cand find APP \r\n");
         return true;
     }
-    printf("app ver :v%d \r\n",p_apphead->AppVer);
-    printf("app size: %f k \r\n",(float)p_apphead->filesize/1024);
-    if(p_apphead->appname[0] == 0)
+    printf("app ver :v%d \r\n",p_apphead->app_ver);
+    printf("app size: %f k \r\n",(float)p_apphead->file_size/1024);
+    if(p_apphead->app_name[0] == 0)
         printf("app name: NULL  \r\n");
     else
-        printf("app name: %s  \r\n",p_apphead->appname);
-    printf("app appheadsize: %d  \r\n",p_apphead->appheadsize);
+        printf("app name: %s  \r\n",p_apphead->app_name);
+    printf("app appheadsize: %d  \r\n",p_apphead->app_head_size);
 
     return true;
 }

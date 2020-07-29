@@ -13,6 +13,7 @@ SECTIONS
     {
         gc_AppStart = .;
         KEEP(*(.DjyAppHead .DjyAppHead.*))
+        KEEP(*(.DjyProductInfo .DjyProductInfo.*))
     }>ROM2_SDRAM
 
     /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/

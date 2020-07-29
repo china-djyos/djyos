@@ -200,15 +200,30 @@ void ModuleInstall_InitNet(void)   //static ip example
         return;
     }
 #if CFG_STATIC_IP == 1
+    u32 hop,net;
+    tagRouterPara para;
     tagHostAddrV4  ipv4addr;
     //we use the static ip we like
     memset((void *)&ipv4addr,0,sizeof(ipv4addr));
+    memset(&para,0,sizeof(para));
     ipv4addr.ip      = inet_addr(CFG_MY_IPV4);
     ipv4addr.submask = inet_addr(CFG_MY_SUBMASK);
     ipv4addr.gatway  = inet_addr(CFG_MY_GATWAY);
     ipv4addr.dns     = inet_addr(CFG_MY_DNS);
     ipv4addr.broad   = inet_addr("192.168.0.255");
-    if(RoutCreate(CFG_SELECT_NETCARD,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
+
+    hop = INADDR_ANY;
+    net = ipv4addr.ip & ipv4addr.submask;
+    para.ver = EN_IPV_4;
+    para.host = &ipv4addr.ip;
+    para.mask = &ipv4addr.submask;
+    para.broad = &ipv4addr.broad;
+    para.hop = &hop;
+    para.net = &net;
+    para.prior = CN_ROUT_PRIOR_UNI;
+    para.ifname = CFG_SELECT_NETCARD;
+
+    if(RouterCreate(&para))
     {
         printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_SELECT_NETCARD,inet_ntoa(ipv4addr.ip));
     }
@@ -236,7 +251,18 @@ void ModuleInstall_InitNet(void)   //static ip example
     ipv4addr.gatway  = inet_addr("192.168.1.1");
     ipv4addr.dns     = inet_addr("192.168.1.1");
     ipv4addr.broad   = inet_addr("192.168.1.255");
-    if(RoutCreate(CFG_SELECT_NETCARD,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
+
+    net = ipv4addr.ip & ipv4addr.submask;
+    para.ver = EN_IPV_4;
+    para.host = &ipv4addr.ip;
+    para.mask = &ipv4addr.submask;
+    para.broad = &ipv4addr.broad;
+    para.hop = &hop;
+    para.net = &net;
+    para.prior = CN_ROUT_PRIOR_UNI;
+    para.ifname = CFG_SELECT_NETCARD;
+
+    if(RouterCreate(&para))
     {
         printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_SELECT_NETCARD,inet_ntoa(ipv4addr.ip));
     }

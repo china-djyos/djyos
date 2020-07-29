@@ -113,6 +113,7 @@ void CleanWakeupEvent(void)
 // =============================================================================
 void Exp_SystickTickHandler(void)
 {
+    s32 inc;
     g_bScheduleEnable = false;
 //  tg_int_global.en_asyn_signal_counter++;
     tg_int_global.nest_asyn_signal++;
@@ -120,7 +121,8 @@ void Exp_SystickTickHandler(void)
 //      DjyUpdateTicks(1);
 //  else
 //      DjySetUpdateTickFlag(false);
-    g_s64OsTicks += s_gCurrentTicks;
+//  g_s64OsTicks += s_gCurrentTicks;
+    inc = s_gCurrentTicks;
     s_gCurrentTicks = 1;
     pg_systick_reg->ctrl;   //清零，与 __DjyGetSysTime 函数配合使用
     DJY_ScheduleIsr(0);

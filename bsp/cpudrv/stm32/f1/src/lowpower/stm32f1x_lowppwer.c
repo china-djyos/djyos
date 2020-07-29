@@ -67,12 +67,15 @@
 #include "stdint.h"
 #include "lowpower.h"
 #include "cpu_peri.h"
+#include <dbug.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    void ModuleInstall_LowPower (void)
+//    ModuleInstall_LowPower();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -125,6 +128,38 @@ bool_t __LP_BSP_HardInit(void)
     return true;
 }
 
+//-----------------------------------------------------------------------------
+//功能: 进入休眠
+//参数: sleep_level,休眠等级
+//      pend_ticks, 休眠tick数
+//返回: 无意义
+//-----------------------------------------------------------------------------
+void __LP_BSP_EntrySleep(u8 sleep_level, u32 pend_ticks)
+{
+    switch(sleep_level)
+    {
+        case CN_SLEEP_L0:
+            HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
+            break;
+        case CN_SLEEP_L1:
+            HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
+            break;
+        case CN_SLEEP_L2:
+            //禁止中断
+            //清所有外部中断标志和RTC闹钟标志
+            EXTI->PR=0xFFFFF;
+            CLEAR_BIT(RTC->CRL, RTC_FLAG_ALRAF);
+            HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFE);
+            break;
+        case CN_SLEEP_L3:
+            HAL_PWR_EnterSTANDBYMode();
+            break;
+        case CN_SLEEP_L4:
+            HAL_PWR_EnterSTANDBYMode( );
+            break;
+    }
+}
+
 //----读取休眠级别------------------------------------------------------------
 //功能: 当个系统从休眠唤醒并重新,调用本函数可以获得唤醒前的休眠状态,返回值是
 //      在lowpower.h文件中定义的CN_SLEEP_L3、CN_SLEEP_L4、CN_SLEEP_NORMAL之一,
@@ -166,62 +201,6 @@ bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel)
     HAL_RTCEx_BKUPWrite(&RTC_Handler,RTC_BKP_DR1,SleepLevel);
     return true;
 
-}
-
-//----进入L0级低功耗-----------------------------------------------------------
-//功能: 进入L0级低功耗状态,函数在lowpower.h中声明,供lowpower.c文件调用
-//参数: 无
-//返回: 无
-//-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL0(u32 pend_ticks)
-{
-    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
-}
-
-//----进入L1级低功耗-----------------------------------------------------------
-//功能: 进入L1级低功耗状态,函数在lowpower.h中声明,供lowpower.c文件调用.在stm32中
-//      L0和L1其实是一样的,但用户的回调函数可能不一样.
-//参数: 无
-//返回: 无
-//-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL1(u32 pend_ticks)
-{
-    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
-}
-
-//----进入L2级低功耗-----------------------------------------------------------
-//功能: 进入L2级低功耗状态,函数在lowpower.h中声明,供lowpower.c文件调用
-//参数: 无
-//返回: 无
-//-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL2(u32 pend_ticks)
-{
-    //禁止中断
-    //清所有外部中断标志和RTC闹钟标志
-    EXTI->PR=0xFFFFF;
-    CLEAR_BIT(RTC->CRL, RTC_FLAG_ALRAF);
-    HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFE);
-}
-
-//----进入L3级低功耗-----------------------------------------------------------
-//功能: 进入L3级低功耗状态,函数在lowpower.h中声明,供lowpower.c文件调用
-//参数: 无
-//返回: 无
-//-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL3(void)
-{
-    HAL_PWR_EnterSTANDBYMode();
-}
-
-//----进入L4级低功耗-----------------------------------------------------------
-//功能: 进入L4级低功耗状态,函数在lowpower.h中声明,供lowpower.c文件调用,stm32中,
-//      L3和L4在cpudrv方面,是一致的.
-//参数: 无
-//返回: 无
-//-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL4(void)
-{
-    HAL_PWR_EnterSTANDBYMode( );
 }
 
 //64K的片内RAM保存在flash主存储区的64k范围内
@@ -374,5 +353,16 @@ bool_t __LP_BSP_SaveRamL3(void)
     LP_RamFlashProgram(FlashAddr,(u32*)RamAddr,len);
 
    return true;
+}
+
+//-----------------------------------------------------------------------------
+//功能: 安装低功耗组件，要把一些低功耗需要使用到的函数，注册到系统中
+//参数: __LP_BSP_EntrySleep：进入休眠；__LP_BSP_SaveSleepLevel：保存休眠等级；__LP_BSP_SaveRamL3：保存进入休眠等级3之前的内存，
+//		__LP_BSP_AsmSaveReg：获取含自己的返回地址在内的上下文并保存到栈中
+//返回: 无
+//-----------------------------------------------------------------------------
+void ModuleInstall_LowPower (void)
+{
+    Register_LowPower_Function(__LP_BSP_EntrySleep, __LP_BSP_SaveSleepLevel, __LP_BSP_SaveRamL3, __LP_BSP_AsmSaveReg);
 }
 

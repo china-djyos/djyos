@@ -73,17 +73,17 @@ extern "C" {
 //特别注意,根据硬件能力,有些级别在某些硬件下可能会重叠,例如在stm32的cortex-m系列
 //mcu中,L0和L1级是等同的(用户的回调函数可能不一样).
 //低功耗控制是高级功能,在编写回调函数前,必须非常了解自己的硬件系统.
-//L0.每次系统服务事件执行,不执行栈检查,进入最浅的休眠,一旦有中断,典型是tick中断,
+//L0.每次IDLE事件执行,不执行栈检查,进入最浅的休眠,一旦有中断,典型是tick中断,
 //   立即唤醒继续执行。
-//L1.每次系统服务事件执行,不执行栈检查,进入深度睡眠,保持所有内存,tick时钟正常运行,
+//L1.每次IDLE事件执行,不执行栈检查,进入深度睡眠,保持所有内存,tick时钟正常运行,
 //   一旦有中断,典型是tick中断,立即唤醒继续执行,唤醒所需时间可能长于L0。
 //   注:对许多CPU来说,L0和L1可能是相同的,但有些外设也许有区别
-//L2.每次系统服务事件执行,不执行栈检查,进入深度睡眠,保持内存,时钟停止,仅中断能
+//L2.每次IDLE事件执行,不执行栈检查,进入深度睡眠,保持内存,时钟停止,仅中断能
 //   唤醒CPU,唤醒后,处理中断,然后继续运行,直到下一次进入低功耗状态。
-//L3.每次系统服务事件执行,不执行栈检查,进入深度睡眠,内存掉电,时钟停止,调用回调函数,把全
+//L3.每次IDLE事件执行,不执行栈检查,进入深度睡眠,内存掉电,时钟停止,调用回调函数,把全
 //   部内存数据保存到非易失存储器中.复位唤醒CPU后,重新启动,把保存到非易失存储器中的内容
 //   恢复到RAM,然后继续运行。
-//L4.每次系统服务事件执行,不执行栈检查,进入深度睡眠,内存掉电,时钟停止,硬件唤醒CPU后,重新
+//L4.每次IDLE事件执行,不执行栈检查,进入深度睡眠,内存掉电,时钟停止,硬件唤醒CPU后,重新
 //   启动并加载运行。
 
 #define CN_SLEEP_NORMAL    0       //休眠方式:正常
@@ -125,7 +125,7 @@ void __LP_BSP_EntrySleepL4(void);
 //在cps.S中实现,进入L3级低功耗前调用,保存上下文。
 void __LP_BSP_AsmSaveReg(struct ThreadVm *running_vm,
                             bool_t (*SaveRamL3)(void),
-                            void (*EntrySleepL3)(void));
+                            void (*EntrySleepLevel)(u8 sleep_level, u32 pend_ticks));
 
 bool_t __LP_BSP_SetSleepMode(ptu32_t param);
 //禁止sleep,使DisableCounter+1
@@ -139,10 +139,16 @@ u32 LP_SetSleepLevel(u32 Level);
 u32 LP_GetSleepLevel(void);
 void LP_SetTriggerTick(u32 tick);
 u32 LP_GetTriggerTick(void);
+u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks);
 void LP_SetHook(u32 (*EntrySleepReCall)(u32 SleepLevel),
                 u32 (*ExitSleepReCall)(u32 SleepLevel));
-//安装低功耗组件
-void ModuleInstall_LowPower (void);
+//注册低功耗组件
+void Register_LowPower_Function (void (*EntrySleepLevel)(u8 sleep_level, u32 pend_ticks),
+                                 bool_t (*SaveSleepLevel)(u32 SleepLevel),
+                                 bool_t (*SaveRamL3)(void),
+                                 void (*AsmSaveReg)(struct ThreadVm *running_vm,
+                                                     bool_t (*SaveRamL3)(void),
+                                                     void (*EntrySleepLevel)(u8 sleep_level, u32 pend_ticks)));
 
 #ifdef __cplusplus
 }

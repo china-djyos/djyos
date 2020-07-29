@@ -311,7 +311,6 @@ typedef struct
 #define CN_ROUT_DHCP    (1<<0)  //use this bit to get ip address from the dhcp server
 #define CN_ROUT_NONE    (0)
 //usage:is ver is EN_IPV_4, then the netaddr is tagHostAddrV4,else  tagHostAddrV6
-bool_t RoutCreate(const char *ifname,enum_ipv_t ver,void *netaddr,u32 pro); //the parameter pro is abandoned
 bool_t DNS_Get(enum_ipv_t ver,void *addr,void *addrbak);
 bool_t DNS_Set(enum_ipv_t ver,void *addr,void *addrbak);
 

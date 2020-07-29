@@ -112,7 +112,7 @@ static uint16 NoneedInitflag = 0;
 
 
 static UINT8 no_need_send_cmd12_flag = 1;
-static UINT8 SDIO_WR_flag = 0;
+static UINT8 SDIO_WR_flag = SDIO_RD_DATA;
 static UINT32 last_WR_addr = 0;
 
 #define SDIO_RD_DATA             0
@@ -697,6 +697,9 @@ SDIO_Error sdcard_initialize(void)
     rtos_delay_milliseconds(20);
     sdio_hw_init();
     rtos_delay_milliseconds(30);
+    SDIO_WR_flag = SDIO_RD_DATA;
+    no_need_send_cmd12_flag = 1;
+    last_WR_addr = 0;
     // rest card
     err = sdcard_cmd0_process();
     if(err != SD_OK)

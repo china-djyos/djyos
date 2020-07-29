@@ -304,7 +304,7 @@ int ModuleInstall_SPI(void)
     if(CFG_SPI_FLASH_RAM_POWER)
         SPI_Flash_Enable_Voltage();
 
-    Spi_Init_Extral_Gpio();
+//    Spi_Init_Extral_Gpio();
 
     mode = (CFG_SPI_CPOL | (CFG_SPI_CPHA << 1));
 

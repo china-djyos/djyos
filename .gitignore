@@ -1,6 +1,6 @@
 /.svn
-user
-userlib
+bsp/boarddrv/user/
+userlib/
 *.mk
 *.o
 *.d
@@ -12,4 +12,3 @@ userlib
 /*.vpw
 /*.vpwhist
 /*.vpj
-draft-prj

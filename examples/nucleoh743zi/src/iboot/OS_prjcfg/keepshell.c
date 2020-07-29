@@ -8,6 +8,18 @@ void keep_shell(void)
     volatile void *keep;
     (void)keep;
 
+    extern void *djysh_startmsg;
+    keep = (void *)djysh_startmsg;
+
+    extern void *djysh_linemem;
+    keep = (void *)djysh_linemem;
+
+    extern void *djysh_blackboxrtest;
+    keep = (void *)djysh_blackboxrtest;
+
+    extern void *djysh_blackboxi;
+    keep = (void *)djysh_blackboxi;
+
     extern void *djysh_heap;
     keep = (void *)djysh_heap;
 

@@ -389,7 +389,7 @@ ble_err_t appm_stop_advertising(void);
 uint8_t appm_start_scanning(void);
 uint8_t appm_stop_scanning(void);
 ble_scan_list_t *appm_get_scan_result(void);
-void appm_disconnect(void);
+ble_err_t appm_disconnect(void);
 
 ble_err_t bk_ble_send_ntf_value(uint32_t len, uint8_t *buf, uint16_t prf_id, uint16_t att_idx);
 ble_err_t bk_ble_send_ind_value(uint32_t len, uint8_t *buf, uint16_t prf_id, uint16_t att_idx);

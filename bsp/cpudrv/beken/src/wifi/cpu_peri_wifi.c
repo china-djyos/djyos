@@ -558,22 +558,53 @@ bool_t ModuleInstall_Wifi(void)
     memset(&file_state, 0, sizeof(struct stat));
     stat(CFG_MAC_DATA_FILE_NAME,&file_state);
     fd = fopen(CFG_MAC_DATA_FILE_NAME,"a+");
-    fseek(fd, -6, SEEK_END);
-    if(fread(gc_NetMac, 1, 6, fd) != 6)
-//  if(File_GetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6) == false)
+    if(fd)
     {
-        u32 mac_rand =  trng_get_random();
-        memcpy(&gc_NetMac[2], &mac_rand, 4);
-        gc_NetMac[0] = 0x00;
-        gc_NetMac[1] = 0x01;
-        if((file_state.st_size + 6) > CFG_EFS_FILE_SIZE_LIMIT)
+        fseek(fd, -6, SEEK_END);
+        if(fread(gc_NetMac, 1, 6, fd) != 6)
+    //  if(File_GetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6) == false)
         {
-            remove(CFG_MAC_DATA_FILE_NAME);
-            fd = fopen(CFG_MAC_DATA_FILE_NAME,"a+");
+            u32 mac_rand =  trng_get_random();
+            memcpy(&gc_NetMac[2], &mac_rand, 4);
+            gc_NetMac[0] = 0x00;
+            gc_NetMac[1] = 0x01;
+#if CFG_MODULE_ENABLE_EASY_FILE_SYSTEM
+            if((file_state.st_size + 6) > CFG_EFS_FILE_SIZE_LIMIT)
+            {
+                if(fclose(fd) == -1)
+                {
+                    printf("befor remove close file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
+                }
+                else
+                {
+                    fd = NULL;
+                    if(remove(CFG_MAC_DATA_FILE_NAME) == -1)
+                        printf("remove file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
+                    else
+                    {
+                        fd = fopen(CFG_MAC_DATA_FILE_NAME,"a+");
+                        if(fd == NULL)
+                            printf("after remove file, open file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
+                    }
+                }
+            }
+#endif
+            if(fd)
+            {
+                fseek(fd, 0, SEEK_END);
+                if(fwrite(gc_NetMac, 1, 6, fd) != 6)
+                    printf("write file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
+            }
+    //      File_SetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6);
         }
-        fwrite(gc_NetMac, 1, 6, fd);
-//      File_SetNameValueFs(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6);
+        if(fd)
+        {
+            if(fclose(fd) == -1)
+                printf("close file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
+        }
     }
+    else
+        printf("open file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
     printf("\r\n==WIFI MAC==:%02X-%02X-%02X-%02X-%02X-%02X!\r\n",
         gc_NetMac[0], gc_NetMac[1], gc_NetMac[2], gc_NetMac[3], gc_NetMac[4], gc_NetMac[5]);
 
@@ -656,15 +687,30 @@ RCVSYNC_FAILED:
 
 void dhcpd_route_add_default()
 {
+    u32 hop,net;
     tagHostAddrV4  ipv4addr;
+    tagRouterPara para;
     //we use the static ip we like
     memset((void *)&ipv4addr,0,sizeof(ipv4addr));
+    memset(&para,0,sizeof(para));
     ipv4addr.ip      = inet_addr(CFG_AP_DHCPD_IPV4);
     ipv4addr.submask = inet_addr(CFG_AP_DHCPD_SUBMASK);
     ipv4addr.gatway  = inet_addr(CFG_AP_DHCPD_GATWAY);
     ipv4addr.dns     = inet_addr(CFG_AP_DHCPD_DNS);
     ipv4addr.broad   = inet_addr("255.255.255.255");
-    if(RoutCreate(CFG_WIFI_DEV_NAME,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
+
+    hop = INADDR_ANY;
+    net = ipv4addr.ip & ipv4addr.submask;
+    para.ver = EN_IPV_4;
+    para.host = &ipv4addr.ip;
+    para.mask = &ipv4addr.submask;
+    para.broad = &ipv4addr.broad;
+    para.hop = &hop;
+    para.net = &net;
+    para.prior = CN_ROUT_PRIOR_UNI;
+    para.ifname = CFG_WIFI_DEV_NAME;
+
+    if(RouterCreate(&para))
     {
         printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_WIFI_DEV_NAME,inet_ntoa(ipv4addr.ip));
     }

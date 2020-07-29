@@ -121,7 +121,6 @@ u32 efs_embflash_read(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags
 bool_t efs_embflash_erase(u32 dwBlock);
 bool_t efs_embflash_CheckBlockReady(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize);
 
-extern bool_t addition_crc_data;
 extern struct NorDescr *nordescription;
 
 struct __efs_media_drv EFS_EMBFLASH_DRV =
@@ -153,10 +152,10 @@ u32 efs_embflash_write(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlag
     {
         flash_protection_op(0,FLASH_PROTECT_NONE);
         djy_flash_req(lock, CN_TIMEOUT_FOREVER);
-        crc_start = addition_crc_data;
-        addition_crc_data = true;
+        crc_start = GetOperFalshMode();
+        SetOperFalshMode(true);
         djy_flash_write(addr, pBuf, dwSize);
-        addition_crc_data = crc_start;
+        SetOperFalshMode(crc_start);
         djy_flash_req(unlock, 0);
         flash_protection_op(0,FLASH_PROTECT_ALL);
     }

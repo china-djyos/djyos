@@ -1,8 +1,10 @@
 {
 	"ide_version":"V1.7_20200624",
 	"frameworks_checked":{
-		"app":[],
-		"iboot":[]
+		"app":["用串口的shell终端",
+		"用串口的shell终端"],
+		"iboot":["用串口的shell终端",
+		"用串口的shell终端"]
 	},
 	"libs_checked":{
 		"app":[],
@@ -53,12 +55,15 @@
 		"uart device file",
 		"udp",
 		"watch dog"],
-		"iboot":["board config",
+		"iboot":["black box",
+		"board config",
 		"cpu drive inner flash",
 		"cpu onchip gpio",
 		"cpu onchip uart",
+		"debug information",
 		"device file system",
 		"emflash insatall xip",
+		"flash",
 		"heap",
 		"int",
 		"kernel",
@@ -66,7 +71,9 @@
 		"loader",
 		"lock",
 		"memory pool",
+		"message queue",
 		"misc",
+		"multiplex",
 		"ring buffer and line buffer",
 		"shell",
 		"stdio",

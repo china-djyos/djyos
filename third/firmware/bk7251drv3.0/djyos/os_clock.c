@@ -134,8 +134,11 @@ UINT32 fclk_update_tick(UINT32 tick)
 #elif (CFG_SUPPORT_ALIOS)
     krhino_update_sys_tick((UINT64)tick);
 #elif (CFG_SUPPORT_DJYOS)
+    GLOBAL_INT_DECLARATION();
     mcu_ps_increase_clr();      //lst 为啥ali和rtt不需要修改increase变量？
+    GLOBAL_INT_DISABLE();
     DJY_ScheduleIsr(tick);
+    GLOBAL_INT_RESTORE();
 #else
     GLOBAL_INT_DECLARATION();
 

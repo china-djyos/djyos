@@ -457,8 +457,9 @@ bool appm_add_svc(void)
 
 
 /*设备主动断开连接函数*/
-void appm_disconnect(void)
+ble_err_t appm_disconnect(void)
 {
+    ble_err_t status = ERR_SUCCESS;
     if (kernel_state_get(TASK_APP) == APPM_CONNECTED)
     {
         struct gapc_disconnect_cmd *cmd = KERNEL_MSG_ALLOC(GAPC_DISCONNECT_CMD,
@@ -470,7 +471,20 @@ void appm_disconnect(void)
 
         // Send the message
         kernel_msg_send(cmd);
+        int dis_con_time=rt_tick_get();
+        while(kernel_state_get(TASK_APP) != APPM_READY)
+        {
+            rt_thread_delay(50);
+        }
+        rt_kprintf("dis_con_time:%d\r\n",rt_tick_get()-dis_con_time);
+        //mcu_prevent_clear(MCU_PS_BLE_FROBID);
     }
+    else
+    {
+        status = ERR_STOP_CONN_FAIL;
+    }
+
+    return  status;
 }
 
 /**
@@ -628,6 +642,12 @@ ble_err_t appm_stop_advertising(void)
 
         // Send the message
         kernel_msg_send(cmd);
+        int stop_adv_time=rt_tick_get();
+        while(kernel_state_get(TASK_APP) != APPM_READY)
+        {
+            rt_thread_delay(10);
+        }
+        rt_kprintf("stop_adv_time:%d\r\n",rt_tick_get()-stop_adv_time);
         //mcu_prevent_clear(MCU_PS_BLE_FROBID);
     }
     else

@@ -479,7 +479,7 @@ __attribute__((weak)) bool_t Iboot_UserUpdateIboot(char *param)
     return false;
 }
 
-bool_t ModuleInstall_XIP(void)
+bool_t ModuleInstall_UpdateIboot(void)
 {
     uint16_t evtt_Update = CN_EVTT_ID_INVALID;
     char run_mode = Iboot_GetRunMode();

@@ -12,7 +12,7 @@
 #include "driver_i.h"
 #include "main_none.h"
 #include "ps.h"
-#include <misc/md5/md5.h>
+#include <misc/md5.h>
 #include "sys_rtos.h"
 #include "rtos_pub.h"
 #include "error.h"

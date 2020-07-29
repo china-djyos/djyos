@@ -99,7 +99,7 @@ struct IbootAppInfo
 {
     #define PREVIOURESET_IBOOT   (0x12345678)//复位前运行iboot
     #define PREVIOURESET_APP     (0x87654321)//复位前运行APP
-    u32 PreviouReset;//复位前运行模式
+    u32 previou_reset;//复位前运行模式
     struct{
         u32 heard_set_run_iboot   :1;//硬件设置运行iboot
         u32 restart_run_iboot     :1;//指示启动后运行Iboot
@@ -128,50 +128,51 @@ struct IbootAppInfo
         u32 power_on_resent_flag  :1;//上电复位标志，结合b18~19以及“上电标志”字判定
     }runflag; //运行标志
     u64  reserved;//保留
-    u16  iboot_buildyear;    /* years since 1900 */
-    u8   iboot_buildmon;     /* months since January [0-11] */
-    u8   iboot_buildmday;    /* day of the month [1-31] */
-    u8   iboot_buildhour;    /* hours since midnight [0-23] */
-    u8   iboot_buildmin;     /* minutes after the hour [0-59] */
-    u8   iboot_buildsec;     /* seconds after the minute [0-60] */
-    u16  app_buildyear;    /* years since 1900 */
-    u8   app_buildmon;     /* months since January [0-11] */
-    u8   app_buildmday;    /* day of the month [1-31] */
-    u8   app_buildhour;    /* hours since midnight [0-23] */
-    u8   app_buildmin;     /* minutes after the hour [0-59] */
-    u8   app_buildsec;     /* seconds after the minute [0-60] */
-    u8   ibootVer_small;         //iboot 版本 xx.xx.__
-    u8   ibootVer_medium;        //iboot 版本 xx.__.xx
-    u8   ibootVer_large;         //iboot 版本 __.xx.xx
-    u8   appVer_small;           //app 版本 xx.xx.__
-    u8   appVer_medium;          //app 版本 xx.__.xx
-    u8   appVer_large;           //app 版本 __.xx.xx
-    char boardname[20];    //组件名
+    u16  iboot_build_year;    /* years since 1900 */
+    u8   iboot_build_mon;     /* months since January [0-11] */
+    u8   iboot_build_day;    /* day of the month [1-31] */
+    u8   iboot_build_hour;    /* hours since midnight [0-23] */
+    u8   iboot_build_min;     /* minutes after the hour [0-59] */
+    u8   iboot_build_sec;     /* seconds after the minute [0-60] */
+    u16  app_build_year;    /* years since 1900 */
+    u8   app_build_mon;     /* months since January [0-11] */
+    u8   app_build_day;    /* day of the month [1-31] */
+    u8   app_build_hour;    /* hours since midnight [0-23] */
+    u8   app_build_min;     /* minutes after the hour [0-59] */
+    u8   app_build_sec;     /* seconds after the minute [0-60] */
+    u8   iboot_ver_small;         //iboot 版本 xx.xx.__
+    u8   iboot_ver_medium;        //iboot 版本 xx.__.xx
+    u8   iboot_ver_large;         //iboot 版本 __.xx.xx
+    u8   app_ver_small;           //app 版本 xx.xx.__
+    u8   app_ver_medium;          //app 版本 xx.__.xx
+    u8   app_ver_large;           //app 版本 __.xx.xx
+    char board_name[20];    //组件名
     char update_path[40];    //待升级文件路径
 };
 
 struct AppHead
 {
-    char djyflag[3];        //"djy"标志                    固定标志
-    u8   AppVer;            //信息块的版本
-    u32  filesize;          //文件系统读到的文件大小   在线升级时 由文件系统填充编译时由外部工具填充
+    char djy_flag[3];        //"djy"标志                    固定标志
+    u8   app_ver;            //信息块的版本
+    u32  file_size;          //文件系统读到的文件大小   在线升级时 由文件系统填充编译时由外部工具填充
 
     #define VERIFICATION_NULL     0
     #define VERIFICATION_CRC      1
     #define VERIFICATION_MD5      2
     #define VERIFICATION_SSL      3  //SSL安全证书
-    u32  Verification;    //校验方法默认校验方法为不校验，由外部工具根据配置修改
-    u32  appbinsize;      //app bin文件大小 由外部工具填充
+    u32  verification;    //校验方法默认校验方法为不校验，由外部工具根据配置修改
+    u32  app_bin_size;      //app bin文件大小 由外部工具填充
 #if(CN_PTR_BITS < 64)
-    u32  VirtAddr;        //运行地址
+    u32  virt_addr;        //运行地址
     u32  reserved32;      //保留
 #else
-    u64  VirtAddr;        //运行地址
+    u64  virt_addr;        //运行地址
 #endif
-    u16  appheadsize;     //信息块的大小
-    char reserved[6];          //保留
-    char appname[96];      //app的文件名 由外部工具填充该bin文件的文件名
-    char VerifBuf[128];     //校验码与校验方法对应的具体内容 由工具填充
+    u16  app_head_size;     //信息块的大小
+    u8 start_app_is_verify;  //启动App之前是否进行校验
+    char reserved[5];          //保留
+    char app_name[96];      //app的文件名 由外部工具填充该bin文件的文件名
+    char verif_buf[128];     //校验码与校验方法对应的具体内容 由工具填充
 };
 
 struct ProductInfo
