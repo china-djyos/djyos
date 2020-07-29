@@ -45,8 +45,13 @@
 #include <rtthread.h>
 #endif
 
+#ifndef GLOBAL_INT_START
 #define GLOBAL_INT_START               portENABLE_INTERRUPTS
+#endif
+
+#ifndef GLOBAL_INT_STOP
 #define GLOBAL_INT_STOP                portDISABLE_INTERRUPTS
+#endif
 
 #if (CFG_SUPPORT_DJYOS)		//CK
 #include "int.h"
