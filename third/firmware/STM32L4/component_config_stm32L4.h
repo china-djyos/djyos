@@ -55,6 +55,6 @@
 //%$#@exclude
 //%$#@end exclude
 //%$#@include path
-//..;..\inc;
+//.;.\inc;
 //%$#@end include path
 

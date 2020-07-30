@@ -37,5 +37,5 @@
 //%$#@exclude
 //%$#@end exclude
 //%$#@include path
-//../src;
+//./src;
 //%$#@end include path
