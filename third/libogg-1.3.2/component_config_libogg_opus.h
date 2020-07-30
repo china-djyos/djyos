@@ -35,8 +35,8 @@
 #endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
-//../docs;../examples;../jni;../test;../tools;
+//./docs;./examples;./jni;./test;./tools;
 //%$#@end exclude
 //%$#@include path
-//..;../include;../include;
+//.;./include;./include;
 //%$#@end include path

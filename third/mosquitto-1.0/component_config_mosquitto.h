@@ -37,5 +37,5 @@
 //%$#@exclude
 //%$#@end exclude
 //%$#@include path
-//../lib;
+//./lib;
 //%$#@end include path

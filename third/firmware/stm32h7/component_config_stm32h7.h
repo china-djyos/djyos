@@ -44,6 +44,6 @@
 //%$#@exclude
 //%$#@end exclude
 //%$#@include path
-//..;..\inc;..\cmsis\include;
+//.;.\inc;.\cmsis\include;
 //%$#@end include path
 

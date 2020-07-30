@@ -85,5 +85,5 @@
 //%$#@exclude
 //%$#@end exclude
 //%$#@include path
-//..;
+//.;
 //%$#@end include path

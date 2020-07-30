@@ -37,5 +37,5 @@
 //%$#@exclude
 //%$#@end exclude
 //%$#@include path
-//..;../driver/include;
+//.;./driver/include;
 //%$#@end include path
