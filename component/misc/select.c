@@ -6,7 +6,7 @@
  */
 
 #include <os.h>
-
+#include "board-config.h"
 #include <sys/select.h>
 #include <sys/socket.h>
 
@@ -136,8 +136,10 @@ s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
         {
             if(waittime > 0)//do the delay
             {
-                DJY_EventDelay(1*mS);
-                waittime--;
+//                DJY_EventDelay(1*mS);
+//                waittime--;
+                DJY_EventDelay(CN_CFG_TICK_US);
+                waittime -= (CN_CFG_TICK_US/1000);
             }
             else
             {
@@ -146,7 +148,8 @@ s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
         }
         else
         {
-            DJY_EventDelay(1*mS);
+            //DJY_EventDelay(1*mS);
+            DJY_EventDelay(CN_CFG_TICK_US);
         }
 
     }

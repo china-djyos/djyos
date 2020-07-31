@@ -389,7 +389,7 @@ void sctrl_init(void)
     #if (CFG_SOC_NAME == SOC_BK7231)
     param = 0x59E04520;
     #elif (CFG_SOC_NAME == SOC_BK7221U)
-    param = CHARGE_ANALOG_CTRL4_CHARGE_DEFAULT_VALUE;
+    param = CHARGE_ANALOG_CTRL4_CAL_DEFAULT_VALUE;
     #else
     param = 0x59C04520;  // 0x59E04520
     #endif // (CFG_SOC_NAME == SOC_BK7231)

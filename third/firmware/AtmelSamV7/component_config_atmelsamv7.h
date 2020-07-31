@@ -44,30 +44,30 @@
 #endif
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯
 //%$#@exclude
-//../source/gmac.c
-//../source/gmacd.c
-//../source/iso7816_4.c
-//../source/mcan.c
-//../source/mcid_dma.c
-//../source/pio_capture.c
-//../source/pio_it.c
-//../source/pio.c
-//../source/qspi_dma.c
-//../source/qspi.c
-//../source/sdramc.c
-//../source/smc.c
-//../source/twi.c
-//../source/twid.c
-//../source/uart_dma.c
-//../source/uart.c
-//../source/usart_dma.c
-//../source/usart.c
-//../source/xdma_hardware_interface.c
-//../source/xdmac.c
-//../source/xdmad.c
+//./source/gmac.c
+//./source/gmacd.c
+//./source/iso7816_4.c
+//./source/mcan.c
+//./source/mcid_dma.c
+//./source/pio_capture.c
+//./source/pio_it.c
+//./source/pio.c
+//./source/qspi_dma.c
+//./source/qspi.c
+//./source/sdramc.c
+//./source/smc.c
+//./source/twi.c
+//./source/twid.c
+//./source/uart_dma.c
+//./source/uart.c
+//./source/usart_dma.c
+//./source/usart.c
+//./source/xdma_hardware_interface.c
+//./source/xdmac.c
+//./source/xdmad.c
 //%$#@end exclude
 //%$#@include path
-//..;..\include;
-//..;..\include\samv7;
+//.;.\include;
+//.;.\include\samv7;
 //%$#@end include path
 

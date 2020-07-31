@@ -37,6 +37,6 @@
 //%$#@exclude
 //%$#@end exclude
 //%$#@include path
-//..;..\include;
+//.;.\include;
 //%$#@end include path
 
