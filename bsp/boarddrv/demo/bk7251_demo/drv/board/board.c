@@ -193,6 +193,23 @@ enum SpeakerState GetSpeakerState()
     return Speaker;
 }
 
+// =============================================================================
+// 功能：用于设置系统时钟为180M，该函数在initcpu.S中调用，
+// 参数：无
+// 返回：无
+// =============================================================================
+extern UINT32 sctrl_ctrl(UINT32 cmd, void *param);
+extern void sctrl_set_cpu_clk_dco(void);
+void InitOsClk_180M(void)
+{
+    u32 param;
+    param = BLK_BIT_26M_XTAL | BLK_BIT_DPLL_480M | BLK_BIT_XTAL2RF | BLK_BIT_DCO;
+    sctrl_ctrl(CMD_SCTRL_BLK_ENABLE, &param);
+
+    sctrl_dco_cali(5);      //#define DCO_CALIB_180M          0x5
+    sctrl_set_cpu_clk_dco();
+}
+
 void Board_Init(void)
 {
     extern void os_clk_init(void);
