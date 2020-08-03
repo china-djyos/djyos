@@ -1606,7 +1606,7 @@ static SDIO_Error sdcard_send_write_stop(int err)
     return ret;
 }
 
-#if 1
+#if (!CFG_SUPPORT_DJYOS)    //CK,这里有两个write_multi_block，使用第一个时会进入死循环
 SDIO_Error sdcard_write_multi_block(UINT8 *write_buff, UINT32 first_block, UINT32 block_num)
 {
     int ret = SD_OK;

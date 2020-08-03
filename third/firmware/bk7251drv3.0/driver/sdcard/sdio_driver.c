@@ -241,9 +241,12 @@ void driver_sdcard_recv_data_start(int timeout )
 SDIO_Error sdcard_wait_receive_data(UINT8 *receive_buf)
 {
     UINT32 reg, i;
-//	u32 tout=100000;	//这些和tout有关注释掉的是，耳机放SD卡音乐时，会在while里一直死循环
-//  while(tout--)
+#if (CFG_SUPPORT_DJYOS)    //CK
+	u32 tout=100000;	//这些和tout有关注释掉的是，耳机放SD卡音乐时，会在while里一直死循环
+	while(tout--)
+#else
     while(1)
+#endif
     {
         reg = REG_READ(REG_SDCARD_CMD_RSP_INT_SEL);
         if(reg & (SDCARD_CMDRSP_DATA_REC_END_INT
@@ -253,11 +256,13 @@ SDIO_Error sdcard_wait_receive_data(UINT8 *receive_buf)
             break;
         }
     }
-//    if (0 == tout)
-//    {
-//        reg |= SDCARD_CMDRSP_DATA_TIME_OUT_INT;
-//        printf("SDCARD_CMDRSP_DATA_TIME_OUT_INT\r\n");
-//    }
+#if (CFG_SUPPORT_DJYOS)    //CK
+    if (0 == tout)
+    {
+        reg |= SDCARD_CMDRSP_DATA_TIME_OUT_INT;
+        printf("SDCARD_CMDRSP_DATA_TIME_OUT_INT 1\r\n");
+    }
+#endif
     REG_WRITE(REG_SDCARD_CMD_RSP_INT_SEL, SD_DATA_RSP);//clear the int flag
     if(reg & SDCARD_CMDRSP_DATA_TIME_OUT_INT)
     {
@@ -275,20 +280,25 @@ SDIO_Error sdcard_wait_receive_data(UINT8 *receive_buf)
 
     for (i = 0; i < SD_DEFAULT_BLOCK_SIZE ;)
     {
-//        tout=100000;
         /* wait fifo data valid */
-//		while(tout--)
+#if (CFG_SUPPORT_DJYOS)    //CK
+        tout=100000;
+		while(tout--)
+#else
         while(1)
+#endif
         {
             //software  needn't handle dead-loop,hardware can garantee
             if(REG_READ(REG_SDCARD_FIFO_THRESHOLD)&SDCARD_FIFO_RXFIFO_RD_READY)
                 break;
         }
-		
-//		if (0 == tout)
-//        {
-//            break;
-//        }
+#if (CFG_SUPPORT_DJYOS)    //CK
+		if (0 == tout)
+        {
+		    printf("SDCARD_CMDRSP_DATA_TIME_OUT_INT 2\r\n");
+            break;
+        }
+#endif
         reg = REG_READ(REG_SDCARD_RD_DATA_ADDR);
         *(receive_buf+i++) = reg & 0xff;
         *(receive_buf+i++) = (reg >> 8) & 0xff;
