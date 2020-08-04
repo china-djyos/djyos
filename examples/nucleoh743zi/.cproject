@@ -67,9 +67,9 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.12618273" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
@@ -82,9 +82,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/cmsis/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1494761559" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -99,14 +99,14 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
@@ -137,7 +137,6 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.86459" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -154,14 +153,14 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
@@ -196,7 +195,6 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.1984398787" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.149537354" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.2019724367" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -325,9 +323,9 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.185773362" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
@@ -340,9 +338,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/cmsis/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1272976018" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -358,14 +356,14 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/mongoose-6.15&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
@@ -395,7 +393,6 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.576479793" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -411,14 +408,14 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/mongoose-6.15&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
@@ -452,7 +449,6 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.1274758699" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.562305016" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.1311632395" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -592,19 +588,19 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/cmsis/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1033376135" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -619,11 +615,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
@@ -653,9 +649,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1472411991" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -670,11 +666,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
@@ -704,13 +700,13 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.888545620" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1195977604" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.299785014" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1445491555" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.2067850758" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -847,9 +843,9 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.824325990" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
@@ -863,9 +859,9 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/cmsis/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1954110412" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -880,14 +876,14 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/mongoose-6.15&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
@@ -916,7 +912,6 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1588187403" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -931,14 +926,14 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/mongoose-6.15&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
@@ -971,7 +966,6 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.1599926400" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1081858792" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.448488494" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -1108,19 +1102,19 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/cmsis/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.582620925" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -1134,11 +1128,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
@@ -1165,9 +1159,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1806742167" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -1181,11 +1175,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
@@ -1212,13 +1206,13 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.326087053" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1046411390" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.419162547" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1664161319" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.365195092" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -1354,9 +1348,9 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1347468026" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
@@ -1370,9 +1364,9 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/cmsis/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1944386163" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -1386,14 +1380,14 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
@@ -1422,7 +1416,6 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1375750575" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -1438,14 +1431,14 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
@@ -1478,7 +1471,6 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.1124244138" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.150397694" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.405156835" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -1611,19 +1603,19 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/cmsis/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.22991104" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -1638,11 +1630,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
@@ -1672,9 +1664,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1176820893" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -1691,11 +1683,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
@@ -1725,13 +1717,13 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1229356408" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1932152147" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.1142155076" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.2048765015" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.781913709" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -1865,19 +1857,19 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/cmsis/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.131975683" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -1891,11 +1883,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
@@ -1922,9 +1914,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.107101811" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -1940,11 +1932,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
@@ -1971,13 +1963,13 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.944746953" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.658648950" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.946358997" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.192322797" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.189137760" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -2109,19 +2101,19 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/cmsis/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.409217191" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -2136,11 +2128,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
@@ -2170,9 +2162,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1969251823" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -2189,11 +2181,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
@@ -2223,13 +2215,13 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.2139355274" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.814889271" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.2070933613" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.664047407" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.1872578083" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -2361,19 +2353,19 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/cmsis/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.80419526" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -2388,11 +2380,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
@@ -2422,9 +2414,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.957695246" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -2441,11 +2433,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
@@ -2475,13 +2467,13 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1174043253" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1910454073" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.1407973259" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1064002000" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.1813305522" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -2611,8 +2603,8 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1191724536" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32H7/include&quot;"/>
@@ -2626,9 +2618,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1961770359" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -2643,11 +2635,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -2677,9 +2669,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/drv/boardnetcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.459510444" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -2696,11 +2688,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -2730,13 +2722,13 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/drv/boardnetcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1800132275" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1226751831" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.1892714260" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.86437124" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.515708295" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -2873,18 +2865,18 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.93269112" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -2904,9 +2896,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
@@ -2915,8 +2907,8 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
@@ -2931,9 +2923,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.2017920778" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -2955,9 +2947,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
@@ -2966,8 +2958,8 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
@@ -2982,13 +2974,13 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1101047541" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1703093632" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.126271262" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1383244531" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.1008207559" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -3117,8 +3109,8 @@
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.156443857" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.634937782" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.584386546" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -3131,9 +3123,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.290611370" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -3146,14 +3138,14 @@
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.387229032" name="Cross ARM GNU C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.1881372884" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/mongoose-6.15&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
@@ -3181,9 +3173,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1204196225" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -3198,14 +3190,14 @@
 							<tool command="${cross_prefix}${cross_cpp}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.287153025" name="Cross ARM GNU C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths.1936300217" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/mongoose-6.15&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
@@ -3233,13 +3225,13 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/src/emflash&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1763291069" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.286114410" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.1307330281" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.2141404153" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.60040139" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -3374,18 +3366,18 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1165358888" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -3403,9 +3395,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
@@ -3414,8 +3406,8 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
@@ -3431,9 +3423,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.416689507" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -3453,9 +3445,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
@@ -3464,8 +3456,8 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
@@ -3481,13 +3473,13 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1048167063" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1822362683" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.274531062" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.30960998" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.484155918" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_MONGOOSE=true"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
@@ -3618,8 +3610,8 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.282519359" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32H7/include&quot;"/>
@@ -3634,9 +3626,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.222818029" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -3650,11 +3642,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -3685,9 +3677,9 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.24655448" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -3703,11 +3695,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32h7/Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -3738,13 +3730,13 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-H743ZI/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1301399622" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.317555367" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.1035191176" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.675888639" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.1200313110" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -3880,9 +3872,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
@@ -3890,9 +3882,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.594234192" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -3911,9 +3903,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
@@ -3922,8 +3914,8 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
@@ -3940,9 +3932,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.470955678" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>
@@ -3963,9 +3955,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/h7/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
@@ -3974,8 +3966,8 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../-I${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
@@ -3992,13 +3984,13 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1366099066" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1913611389" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit.1143019588" name="Do not use _cxa_atexit() (-fno-use-cxa-atexit)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nousecxaatexit" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1561867461" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.1860501387" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32H7=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32H7"/>

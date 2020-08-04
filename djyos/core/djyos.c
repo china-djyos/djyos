@@ -1604,7 +1604,7 @@ void __DJY_ChangeBlockQueue(struct EventECB *Event)
     pl_ecb->multi_previous->multi_next = Event;
     pl_ecb->multi_previous = pl_ecb;
     if((Head)->prio > Event->prio)
-        Head = Event;
+        *Event->sync_head = Event;
 }
 
 //----设置事件优先级-----------------------------------------------------------
