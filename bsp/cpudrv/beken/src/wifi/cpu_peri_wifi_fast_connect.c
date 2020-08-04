@@ -175,10 +175,10 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
         goto FUN_RET;
     }
     int cnt = ret/sizeof(struct wlan_fast_connect);
-    printf("info: %s, cnt=%d, ret=%d, size_item=%d!\r\n", __FUNCTION__, cnt, ret, sizeof(struct wlan_fast_connect));
+    //printf("info: %s, cnt=%d, ret=%d, size_item=%d!\r\n", __FUNCTION__, cnt, ret, sizeof(struct wlan_fast_connect));
     p = (struct wlan_fast_connect*)new_buf;
     while(cnt > 0) {
-        printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
+        //printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
         if (strcmp(p[cnt-1].ssid, ssid) == 0 ){
             if (passwd) {
                 MD5_Init(&ctx);
@@ -192,16 +192,16 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
             //hex_dump("wlan_fast_info_match: md5", md5_tmp, sizeof(md5_tmp));
 
             //if(memcmp(p[cnt-1].md5_passphrase, md5_tmp, sizeof(md5_tmp)) == 0){
-            printf("info: %s, md5_passphrase matched ok!!!\r\n", __FUNCTION__);
+            //printf("info: %s, md5_passphrase matched ok!!!\r\n", __FUNCTION__);
             crc = wlan_standard_chksum(&p[cnt-1], sizeof(wlan_fast_connect_t)-4);
-            printf("info: %s, index: %d, crc validated, (crc)(%08x %s %08x)!\r\n",
-                    __FUNCTION__, cnt-1, crc, (crc==p[cnt-1].crc?"=":"!="), p[cnt-1].crc);
+            //printf("info: %s, index: %d, crc validated, (crc)(%08x %s %08x)!\r\n",
+//                    __FUNCTION__, cnt-1, crc, (crc==p[cnt-1].crc?"=":"!="), p[cnt-1].crc);
             if (p[cnt-1].ssid[0] != 0xFF &&
                 p[cnt-1].channel >= 1 &&
                 p[cnt-1].channel <= 13 &&
                 p[cnt-1].crc == crc &&
                 out_info) {
-                printf("info: %s, matched ok, Do WiFi Quick Connnecting ... \r\n", __FUNCTION__);
+                //printf("info: %s, matched ok, Do WiFi Quick Connnecting ... \r\n", __FUNCTION__);
                 memcpy(out_info, &p[cnt-1], sizeof(wlan_fast_connect_t));
                 ret = 1;
                 break;
@@ -211,7 +211,7 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
         cnt--;
     }
     if(cnt<=0) {
-        printf("info: %s, matched failed, Do Normal WiFi Connecting ... \r\n", __FUNCTION__);
+        //printf("info: %s, matched failed, Do Normal WiFi Connecting ... \r\n", __FUNCTION__);
         ret = 0;
     }
 

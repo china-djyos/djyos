@@ -93,6 +93,8 @@
 //#warning  " touchscreen_FT6236  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_TOUCHSCREEN_FT6236    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+//%$#@enum,24,32,
+#define  CFG_TOUCH_SIZE  32     //"触摸尺寸",
 //%$#@num,1,100,
 #define CT_MAX_TOUCH  5                         //"触控数",支持最多5点触摸
 //%$#@enum,true,false,
@@ -107,8 +109,13 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+#if (CFG_TOUCH_SIZE == 24)
 #define FT_CMD_WR               (0X15<<1)
 #define FT_CMD_RD               (0X15<<1|1)
+#elif (CFG_TOUCH_SIZE == 32)
+#define FT_CMD_WR               0X70        //写命令
+#define FT_CMD_RD               0X71        //读命令
+#endif
 //FT6236 部分寄存器定义
 #define FT_DEVIDE_MODE          0x00//FT6236模式控制寄存器
 #define FT_REG_NUM_FINGER       0x02//触摸状态寄存器
@@ -231,13 +238,19 @@ static bool_t FT6236_Scan(struct SingleTouchMsg *touch_data)
     tch_x=0;    tch_y=0; touch_data->z=0;
     for(i=0;i<CT_MAX_TOUCH;i++)
     {
-       FT6236_RD_Reg(FT6236_TPX_TBL[i],buf,4); //读取XY坐标值
-       if( ((buf[0]&0XF0)==0X80) && ((buf[2]&0XF0)!=0Xf0))
-       {
-           tch_x +=((s32)(buf[0]&0X0F)<<8)+buf[1];
-           tch_y +=((s32)(buf[2]&0X0F)<<8)+buf[3];
-           contact++;
-       }
+        FT6236_RD_Reg(FT6236_TPX_TBL[i],buf,4); //读取XY坐标值
+        if( ((buf[0]&0XF0)==0X80) && ((buf[2]&0XF0)!=0Xf0))
+        {
+            #if (CFG_TOUCH_SIZE == 24)
+            tch_x +=((s32)(buf[0]&0X0F)<<8)+buf[1];
+            tch_y +=((s32)(buf[2]&0X0F)<<8)+buf[3];
+            #elif (CFG_TOUCH_SIZE == 32)
+            tch_y +=((s32)(buf[0]&0X0F)<<8)+buf[1];
+            tch_x +=((s32)(buf[2]&0X0F)<<8)+buf[3];
+            #endif
+
+            contact++;
+        }
     }
 
     if(contact ==0)
@@ -318,8 +331,14 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
 //        GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
 //        GK_SyncShow(CN_TIMEOUT_FOREVER);
 //        while(!FT6236_Scan(&touch_xyz0));//等待触摸
-        touch_xyz0.x = 220;
+        #if (CFG_TOUCH_SIZE == 24)
+        touch_xyz0.x = 20;
         touch_xyz0.y = 20;
+        #elif (CFG_TOUCH_SIZE == 32)
+        touch_xyz0.y = 20;
+        touch_xyz0.x = 300;
+        #endif
+
         printf("采集坐标1:(%d,%d)\n\r",touch_xyz0.x,touch_xyz0.y);
 //        touch_check();
 
@@ -338,8 +357,14 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
 //        GK_SyncShow(CN_TIMEOUT_FOREVER);
 //
 //        while(!FT6236_Scan(&touch_xyz1)); //记录触摸屏第二点校正值
+        #if (CFG_TOUCH_SIZE == 24)
         touch_xyz1.x = 20;
         touch_xyz1.y = 300;
+        #elif (CFG_TOUCH_SIZE == 32)
+        touch_xyz1.y = 220;
+        touch_xyz1.x = 20;
+        #endif
+
         printf("采集坐标2:(%d,%d)\n\r",touch_xyz1.x,touch_xyz1.y);
 //        touch_check();
 

@@ -61,7 +61,7 @@
 #include "gkernel.h"
 #include <gui/gkernel/gk_display.h>
 //#include "board.h"
-#include "st7796s.h"
+#include "ST7789V.h"
 #include "djyos.h"
 #include <dbug.h>
 #include "cpu_peri.h"
@@ -75,12 +75,12 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//  extern ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName);
-//  ModuleInstall_st7796s(CFG_ST7796S_DISPLAY_NAME,CFG_ST7796S_HEAP_NAME);
+//  extern ptu32_t ModuleInstall_ST7789V(const char *DisplayName,const char* HeapName);
+//  ModuleInstall_ST7789V(CFG_ST7789V_DISPLAY_NAME,CFG_ST7789V_HEAP_NAME);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"LCD driver st7796s"//LCD显示驱动
+//component name:"LCD driver ST7789V"//LCD显示驱动
 //parent:"graphical kernel"   //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -99,9 +99,11 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#if ( CFG_MODULE_ENABLE_LCD_DRIVER_ST7796 == false )
+#if ( CFG_MODULE_ENABLE_LCD_DRIVER_ST7789V == false )
 //#warning  " keyboard_hard_driver  组件参数未配置，使用默认配置"
-#define CFG_MODULE_ENABLE_LCD_DRIVER_ST7796    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+#define CFG_MODULE_ENABLE_LCD_DRIVER_ST7789V    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+//%$#@enum,24,32,
+#define  CFG_LCD_SIZE  24     //"LCD尺寸",
 //%$#@num,0,65536,
 #define CFG_LCD_XSIZE   320             //"LCD宽度-像素数",
 #define CFG_LCD_YSIZE   480             //"LCD高度-像素数",
@@ -110,8 +112,8 @@
 #define CFG_LCD_YSIZE_UM   48960            //"LCD高度-微米数",
 //%$#@enum,true,false,
 //%$#@string,1,10,
-#define CFG_ST7796S_DISPLAY_NAME        "lcdst7796s"    //"显示器名称",配置液晶显示的名称
-#define CFG_ST7796S_HEAP_NAME           "extram"        //"驱动使用堆名",配置液晶驱动所使用的堆名称
+#define CFG_ST7789V_DISPLAY_NAME        "lcdst7789v"    //"显示器名称",配置液晶显示的名称
+#define CFG_ST7789V_HEAP_NAME           "extram"        //"驱动使用堆名",配置液晶驱动所使用的堆名称
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -160,7 +162,7 @@ void SPI_CS (int stat)
 //=====================================================================
 __attribute__((weak)) void SPI_RST(u32 value)
 {
-    error_printf("st7796","board undefined SPI_RST \r\n");
+    error_printf("ST7789V","board undefined SPI_RST \r\n");
 }
 //=====================================================================
 //函数名：用于控制发送给屏的是数据还是命令，在board中定义
@@ -170,7 +172,7 @@ __attribute__((weak)) void SPI_RST(u32 value)
 //=====================================================================
 __attribute__((weak)) void SPI_RS(u32 value)
 {
-    error_printf("st7796","board undefined SPI_RS \r\n");
+    error_printf("ST7789V","board undefined SPI_RS \r\n");
 }
 
 //=====================================================================
@@ -179,9 +181,9 @@ __attribute__((weak)) void SPI_RS(u32 value)
 //返回值：
 //功能：
 //=====================================================================
-__attribute__((weak)) void St7796s_CsActive(void)
+__attribute__((weak)) void ST7789V_CsActive(void)
 {
-    error_printf("st7796","board undefined St7796s_CsActive \r\n");
+    error_printf("ST7789V","board undefined ST7789V_CsActive \r\n");
 }
 //=====================================================================
 //函数名：用于取消SPI片选，在board中定义
@@ -189,9 +191,9 @@ __attribute__((weak)) void St7796s_CsActive(void)
 //返回值：
 //功能：
 //=====================================================================
-__attribute__((weak)) void St7796s_CsInactive(void)
+__attribute__((weak)) void ST7789V_CsInactive(void)
 {
-    error_printf("st7796","board undefined St7796s_CsInactive \r\n");
+    error_printf("ST7789V","board undefined ST7789V_CsInactive \r\n");
 }
 
 //=====================================================================
@@ -200,9 +202,9 @@ __attribute__((weak)) void St7796s_CsInactive(void)
 //返回值：
 //功能：
 //=====================================================================
-__attribute__((weak)) void St7796_GpioInit(void)
+__attribute__((weak)) void ST7789V_GpioInit(void)
 {
-    error_printf("st7796","board undefined St7796_GpioInit \r\n");
+    error_printf("ST7789V","board undefined ST7789V_GpioInit \r\n");
 //    bk_gpio_config_output(GPIO36);
 //    bk_gpio_output(GPIO36, GPIO_INT_LEVEL_LOW);
 }
@@ -226,7 +228,7 @@ int  SendRecvDataSPI(unsigned char *send_buf, int slen, unsigned char *recv_buf,
 {
    int ret = 0;
    struct spi_message spi_msg;
-   St7796s_CsActive();
+   ST7789V_CsActive();
    SPI_RS(0);
    spi_msg.recv_buf = 0;
    spi_msg.recv_len = 0;
@@ -239,14 +241,14 @@ int  SendRecvDataSPI(unsigned char *send_buf, int slen, unsigned char *recv_buf,
    spi_msg.send_buf = 0;
    spi_msg.send_len = 0;
    ret = bk_spi_master_xfer(&spi_msg);
-   St7796s_CsInactive();
+   ST7789V_CsInactive();
    return 0;
 }
 
 void WriteDataBytes(unsigned char *data, int len)
 {
     u32 param;
-    St7796s_CsActive();
+    ST7789V_CsActive();
     SPI_RS(1);
     s32 result;
     struct spi_message spi_msg;
@@ -261,57 +263,57 @@ void WriteDataBytes(unsigned char *data, int len)
     param = 0;
     spi_ctrl(CMD_SPI_SET_BITWIDTH, &param);
 
-    St7796s_CsInactive();
+    ST7789V_CsInactive();
     //return 0;
 }
 
 
 void WriteComm(unsigned char i)
 {
-    St7796s_CsActive();
+    ST7789V_CsActive();
     SPI_RS(0);
     SendDataSPI(i);
-    St7796s_CsInactive();
+    ST7789V_CsInactive();
 }
 void WriteData(unsigned char i)
 {
-    St7796s_CsActive();
+    ST7789V_CsActive();
     SPI_RS(1);
     SendDataSPI(i);
-    St7796s_CsInactive();
+    ST7789V_CsInactive();
 }
 void WriteDispData(unsigned char DataH,unsigned char DataL)
 {
-     St7796s_CsActive();
+     ST7789V_CsActive();
      SPI_RS(1);
      SendDataSPI(DataH);
      SendDataSPI(DataL);
-     St7796s_CsInactive();
+     ST7789V_CsInactive();
 
 }
 void WriteOneDot(unsigned long int color)
 {
-    St7796s_CsActive();
+    ST7789V_CsActive();
     SPI_RS(1);
     SendDataSPI(color>>16);
     SendDataSPI(color>>8);
     SendDataSPI(color);
-    St7796s_CsInactive();
+    ST7789V_CsInactive();
 }
 
-void __st7796s_write_cmd(unsigned char cmd)
+void __ST7789V_write_cmd(unsigned char cmd)
 {
-    St7796s_CsActive();
+    ST7789V_CsActive();
     SPI_RS(0);
     SendDataSPI(cmd);
-    St7796s_CsInactive();
+    ST7789V_CsInactive();
 }
-void __st7796s_write_data(unsigned char data)
+void __ST7789V_write_data(unsigned char data)
 {
-    St7796s_CsActive();
+    ST7789V_CsActive();
     SPI_RS(1);
     SendDataSPI(data);
-    St7796s_CsInactive();
+    ST7789V_CsInactive();
 }
 
 
@@ -329,7 +331,7 @@ static void spi_flash_enable_voltage(void)
     sddev_control(SCTRL_DEV_NAME, CMD_QSPI_VDDRAM_VOLTAGE, &param);
 }
 
-static int __st7796s_read_reg()
+static int __ST7789V_read_reg()
 {
     return 0x7796;
 }
@@ -339,13 +341,13 @@ static int __st7796s_read_reg()
 /*---------------------------------------------------------------------------
 功能：    lcd 初始化
 ---------------------------------------------------------------------------*/
-void __lcd_st7796s_init(void)
+void __lcd_ST7789V_init(void)
 {
 //    spi_init();
 //    spi_flash_enable_voltage();
 //    Djy_DelayUs(300);
 //    bk_spi_master_init(30*1000*1000, SPI_DEF_MODE);
-    St7796_GpioInit();
+    ST7789V_GpioInit();
     SPI_RST(1);
     DJY_DelayUs(100);
     SPI_RST(0);
@@ -353,98 +355,88 @@ void __lcd_st7796s_init(void)
     SPI_RST(1);
     DJY_DelayUs(300);
 
-    if( __st7796s_read_reg() != 0x7796)
+    if( __ST7789V_read_reg() != 0x7796)
     {
         return;
     }
-#if 0
-    //************* Start Initial Sequence **********//
-    WriteComm(0xE0);
-    WriteData(0x00);
-    WriteData(0x07);
-    WriteData(0x0f);
-    WriteData(0x0D);
-    WriteData(0x1B);
-    WriteData(0x0A);
-    WriteData(0x3c);
-    WriteData(0x78);
-    WriteData(0x4A);
-    WriteData(0x07);
-    WriteData(0x0E);
-    WriteData(0x09);
-    WriteData(0x1B);
-    WriteData(0x1e);
-    WriteData(0x0f);
-
-    WriteComm(0xE1);
-    WriteData(0x00);
-    WriteData(0x22);
-    WriteData(0x24);
-    WriteData(0x06);
-    WriteData(0x12);
-    WriteData(0x07);
-    WriteData(0x36);
-    WriteData(0x47);
-    WriteData(0x47);
-    WriteData(0x06);
-    WriteData(0x0a);
-    WriteData(0x07);
-    WriteData(0x30);
-    WriteData(0x37);
-    WriteData(0x0f);
-
-    WriteComm(0XC0); //Power Control 1
-    WriteData(0x18); //Vreg1out
-    WriteData(0x17); //Verg2out
-
-    WriteComm(0xC1); //Power Control 2
-    WriteData(0x41); //VGH,VGL
-
-    WriteComm(0xC5); //Power Control 3
-    WriteData(0x00);
-    WriteData(0x1A); //Vcom
-    WriteData(0x80);
+#if (CFG_LCD_SIZE == 32)
+    //*************  **********//
+    WriteComm(0x11);
 
     WriteComm(0x36);
-    WriteData(0x08); //WriteData(0x48);
+    WriteData(0xa0);   //y轴相反：0x60
 
-    WriteComm(0x3A); //Interface Mode Control
-    WriteData(0x55);//WriteData(0x66);
+    WriteComm(0x3A);
+    WriteData(0x55);
 
-    WriteComm(0XB0);  //Interface Mode Control
+
+    WriteComm(0xb2);
+    WriteData(0x0C);
+    WriteData(0x0C);
     WriteData(0x00);
+    WriteData(0x33);
+    WriteData(0x33);
 
-    WriteComm(0xB1);   //Frame rate 70HZ
-    WriteData(0xA0);//WriteData(0xB0);
-    //WriteData(0x11);
+    WriteComm(0xb7);
+    WriteData(0x35);
 
-    WriteComm(0xB4);
-    WriteData(0x02);
+    WriteComm(0xbb);
+    WriteData(0x28);
 
-    WriteComm(0xB6); //RGB/MCU Interface Control
-    WriteData(0x02);
-    WriteData(0x02);
+    WriteComm(0xc0);
+    WriteData(0x2c);
 
-    //WriteComm(0xB7);
-    //WriteData(0xC6);
+    WriteComm(0xc2);
+    WriteData(0x01);
 
-    //WriteComm(0XBE);
-    //WriteData(0x00);
-    //WriteData(0x04);
+    WriteComm(0xc3);
+    WriteData(0x10);
 
-    WriteComm(0xE9);
+    WriteComm(0xc4);
+    WriteData(0x20);
+
+    WriteComm(0xc6);
+    WriteData(0x0F);
+
+    WriteComm(0xd0);
+    WriteData(0xa4);
+    WriteData(0xa1);
+
+    WriteComm(0xe0);
+    WriteData(0xd0);
     WriteData(0x00);
+    WriteData(0x02);
+    WriteData(0x07);
+    WriteData(0x0A);
+    WriteData(0x28);
+    WriteData(0x32);
+    WriteData(0x44);
+    WriteData(0x42);
+    WriteData(0x06);
+    WriteData(0x0E);
+    WriteData(0x12);
+    WriteData(0x14);
+    WriteData(0x17);
 
-    WriteComm(0XF7);
-    WriteData(0xA9);
-    WriteData(0x51);
-    WriteData(0x2C);
-    WriteData(0x82);
+    WriteComm(0xe1);
+    WriteData(0xd0);
+    WriteData(0x00);
+    WriteData(0x02);
+    WriteData(0x07);
+    WriteData(0x0A);
+    WriteData(0x28);
+    WriteData(0x31);
+    WriteData(0x54);
+    WriteData(0x47);
+    WriteData(0x0E);
+    WriteData(0x1C);
+    WriteData(0x17);
+    WriteData(0x1B);
+    WriteData(0x1E);
 
-    WriteComm(0x11);
-    DJY_DelayUs(120);
     WriteComm(0x29);
-#else
+    WriteComm(0x2C);
+#elif (CFG_LCD_SIZE == INCHES_2_4)
     WriteComm(0x11);   //sleep out
 //    delay_ms(200);
 
@@ -573,7 +565,7 @@ void __lcd_st7796s_init(void)
 /*---------------------------------------------------------------------------
 功能：  设置一个像素
 ---------------------------------------------------------------------------*/
-void __st7796s_set_pixel(u32 x, u32 y, u16 color)
+void __ST7789V_set_pixel(u32 x, u32 y, u16 color)
 {
     unsigned int Xstart = x;
     unsigned int Xend = x;
@@ -622,9 +614,9 @@ void BlockWrite(unsigned int Xstart,unsigned int Xend,unsigned int Ystart,unsign
 /*---------------------------------------------------------------------------
 功能：  读取一个像素
 ---------------------------------------------------------------------------*/
-u16 __st7796s_get_pixel(u32 x, u32 y)
+u16 __ST7789V_get_pixel(u32 x, u32 y)
 {
-    printf("__st7796s_get_pixel\r\n");
+    printf("__ST7789V_get_pixel\r\n");
     return 0;
 }
 
@@ -633,7 +625,7 @@ u16 __st7796s_get_pixel(u32 x, u32 y)
         row     :0--319
         column  :0--239
 ---------------------------------------------------------------------------*/
-void __st7796s_set_cursor(u32 x, u32 y)
+void __ST7789V_set_cursor(u32 x, u32 y)
 {
     unsigned int Xstart = x;
     unsigned int Xend = x;
@@ -657,7 +649,7 @@ void __st7796s_set_cursor(u32 x, u32 y)
 /*---------------------------------------------------------------------------
 功能：  开窗
 ---------------------------------------------------------------------------*/
-void __st7796s_set_window(u32 x,u32 y, u32 wide,u32 high)
+void __ST7789V_set_window(u32 x,u32 y, u32 wide,u32 high)
 {
     unsigned int Xstart = x;
     unsigned int Xend = x+wide-1;
@@ -682,9 +674,9 @@ void __st7796s_set_window(u32 x,u32 y, u32 wide,u32 high)
 /*---------------------------------------------------------------------------
 功能：  关窗
 ---------------------------------------------------------------------------*/
-void __st7796s_close_window(void)
+void __ST7789V_close_window(void)
 {
-    __st7796s_set_cursor(0, 0);//光标设在左上角
+    __ST7789V_set_cursor(0, 0);//光标设在左上角
 }
 
 void lcd_clear(u32 color)
@@ -932,13 +924,13 @@ bool_t __lcd_set_pixel_screen(s32 x,s32 y,u32 color,u32 r2_code)
     pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,color);
     if(CN_R2_COPYPEN == r2_code)
     {
-        __st7796s_set_pixel(x,y,pixel);
+        __ST7789V_set_pixel(x,y,pixel);
     }else
     {
-        printf("__st7796s_get_pixel\r\n");
-        dest = __st7796s_get_pixel(x,y);
+        printf("__ST7789V_get_pixel\r\n");
+        dest = __ST7789V_get_pixel(x,y);
         pixel = GK_BlendRop2(dest, pixel, r2_code);
-        __st7796s_set_pixel(x,y,pixel);
+        __ST7789V_set_pixel(x,y,pixel);
     }
     return true;
 }
@@ -983,7 +975,7 @@ bool_t __lcd_fill_rect_screen(struct Rectangle *Target,
     pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,Color0);
     width = Focus->right-Focus->left;
     height = Focus->bottom-Focus->top;
-    __st7796s_set_window(Focus->left,Focus->top,width,height);
+    __ST7789V_set_window(Focus->left,Focus->top,width,height);
     printf("Focus->right = %d,Focus->left = %d\r\n",Focus->right,Focus->left);
     printf("Focus->bottom = %d,Focus->top = %d\r\n",Focus->bottom,Focus->top);
 }
@@ -1003,7 +995,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
         return false;
     width = dst_rect->right-dst_rect->left;
     height = dst_rect->bottom-dst_rect->top;
-    __st7796s_set_window(xsrc,ysrc,width,height);
+    __ST7789V_set_window(xsrc,ysrc,width,height);
 
     linelen = src_bitmap->linebytes;
     line = (u16*)(src_bitmap->bm_bits + ysrc*linelen + xsrc*2);
@@ -1020,7 +1012,7 @@ u32 __lcd_get_pixel_screen(s32 x,s32 y)
 {
     printf("__lcd_get_pixel_screen\r\n");
     return GK_ConvertColorToRGB24(CN_SYS_PF_RGB565,
-                        __st7796s_get_pixel(x,y),0);
+                        __ST7789V_get_pixel(x,y),0);
 }
 
 //把screen内矩形区域的内容复制到bitmap，调用前，先设置好dest的pf_type
@@ -1061,7 +1053,7 @@ bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
 //参数: 无
 //返回: 显示器资源指针
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
+ptu32_t ModuleInstall_ST7789V(const char *DisplayName,const char* HeapName)
 {
     static struct GkWinObj frame_win;
     static struct RectBitmap FrameBitmap;
@@ -1071,7 +1063,7 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
 
     //struct HeapCB *heap;
 
-    __lcd_st7796s_init( );
+    __lcd_ST7789V_init( );
 
 #if 0
     heap =Heap_FindHeap(HeapName);

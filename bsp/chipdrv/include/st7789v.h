@@ -56,7 +56,7 @@
 #ifndef __LCD_ST7796S_H__
 #define __LCD_ST7796S_H__
 
-ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName);
+ptu32_t ModuleInstall_ST7789V(const char *DisplayName,const char* HeapName);
 void lcd_display_on(void);
 void lcd_display_off(void);
 
