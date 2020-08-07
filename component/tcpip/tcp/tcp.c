@@ -2254,7 +2254,19 @@ static s32 __tcpgetsockopt(struct tagSocket *sock, s32 level, s32 optname, void 
                s32 *optlen)
 {
     s32  result = -1;
-
+    if(mutex_lock(sock->SockSync)) {
+        switch(level) {
+        case SOL_SOCKET:
+            if (optname == SO_ERROR) {
+                *(s32*)optval = sock->errorno;
+            }
+            result = 0;
+            break;
+        default:
+            break;
+        }
+        mutex_unlock(sock->SockSync);
+    }
 
     return  result;
 }
@@ -3239,7 +3251,9 @@ static bool_t __dealrecvpkg(struct tagSocket *client, struct TcpHdr *hdr,struct 
     if((hdr->flags & CN_TCP_FLAG_RST)&&(ccb->rbuf.rcvnxt == htonl(hdr->seqno)))
     {
         __ResetCCB(ccb, EN_TCP_MC_2FREE);           //general deal the reset socket
-        Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE|CN_SOCKET_IOREAD);
+        client->errorno =  ECONNRESET;
+        //Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE|CN_SOCKET_IOREAD);
+        Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOERR);
     }
     else
     {

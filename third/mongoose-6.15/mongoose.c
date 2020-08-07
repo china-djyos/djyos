@@ -4127,7 +4127,7 @@ void mg_mgr_handle_conn(struct mg_connection *nc, int fd_flags, double now) {
   if (nc->flags & MG_F_CONNECTING) {
     if (fd_flags != 0) {
       int err = 0;
-#if !defined(MG_ESP8266) && !defined(DJYOS)
+#if !defined(MG_ESP8266)// && !defined(DJYOS)
       if (!(nc->flags & MG_F_UDP)) {
         socklen_t len = sizeof(err);
         int ret =

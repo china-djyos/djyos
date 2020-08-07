@@ -73,7 +73,7 @@ s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
     }
     if(NULL != exps)
     {
-        writes->mode |= CN_SOCKET_IOERR;
+        exps->mode |= CN_SOCKET_IOERR;
         mode |= CN_SOCKET_IOERR;
     }
 
