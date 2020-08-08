@@ -658,7 +658,12 @@ bool_t W25QXX_QspiEnable(void)
             ret = false;
     }
     else
-        W25QXX_QPI_MODE=1;              //标记QSPI模式
+    {
+        if(QSPI_Send_CMD(W25X_EnterQPIMode,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE))
+            W25QXX_QPI_MODE=1;              //标记QSPI模式
+        else
+            ret = false;
+    }
     return ret;
 }
 
