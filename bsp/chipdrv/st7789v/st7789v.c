@@ -436,7 +436,7 @@ void __lcd_ST7789V_init(void)
 
     WriteComm(0x29);
     WriteComm(0x2C);
-#elif (CFG_LCD_SIZE == INCHES_2_4)
+#elif (CFG_LCD_SIZE == 24)
     WriteComm(0x11);   //sleep out
 //    delay_ms(200);
 
