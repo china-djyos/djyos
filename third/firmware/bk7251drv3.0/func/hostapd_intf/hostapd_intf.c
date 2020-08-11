@@ -735,7 +735,8 @@ int wpa_hostapd_set_sta_flag(struct prism2_hostapd_param *param, int len)
 	   	{
 	   		if(wpa_hostapd_no_password_connected(param->sta_addr))
 			{
-				bk_ap_no_password_connected();
+				if(bk_ap_no_password_connected)
+					bk_ap_no_password_connected();
 			}
 		   return 0;
 	   	}

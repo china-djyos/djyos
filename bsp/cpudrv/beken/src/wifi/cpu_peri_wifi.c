@@ -360,6 +360,9 @@ extern int wpa_get_psk(char *psk);
 extern int wpa_get_passphrase_md5(unsigned char *md5_passphrase, int len);
 void DjyWifi_StaConnectDone(void)
 {
+#if (CN_BEKEN_SDK_V3 == 1)
+    //新代码不用写入，在回调里有写入信息
+#else
     LinkStatusTypeDef link_status;
     struct wlan_fast_connect ap_info;
     uint8_t len = 0;
@@ -381,6 +384,7 @@ void DjyWifi_StaConnectDone(void)
         wpa_get_passphrase_md5(ap_info.md5_passphrase, sizeof(ap_info.md5_passphrase));
         wlan_fast_connect_info_write(&ap_info);
     }
+#endif
 }
 
 int GetConnectedRssiValue()
@@ -405,6 +409,10 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
 int wpa_set_passphrase_md5(char *passphrase);
 void DjyWifi_StaAdvancedConnect(char *ssid,char *connect_key)
 {
+#if (CN_BEKEN_SDK_V3 == 1)
+    printf("info: %s, Do Normal WiFi Connect, ssid=%s, connect_key=%s\r\n", __FUNCTION__, ssid, connect_key);
+    demo_sta_app_init(ssid, connect_key);
+#else
     int i = 0;
     char tmp[68] = {0};
     network_InitTypeDef_adv_st  wNetConfigAdv;
@@ -429,11 +437,14 @@ void DjyWifi_StaAdvancedConnect(char *ssid,char *connect_key)
         wNetConfigAdv.wifi_retry_interval = 100;
         bk_wlan_start_sta_adv(&wNetConfigAdv);
     }
-    else {
+    else
+    {
         SetQuickConnectFlag(0);
         printf("info: %s, Do Normal WiFi Connect, ssid=%s, connect_key=%s\r\n", __FUNCTION__, ssid, connect_key);
         demo_sta_app_init(ssid, connect_key);
     }
+#endif
+
 
 }
 
@@ -464,6 +475,7 @@ uint32_t DjyWifi_GetScanResult(struct sta_scan_res **scan_result)
     return scan_rst_ap_num;
 }
 
+void rl_write_bssid_info(void);//chenws:如果分配IP就写入快连信息
 bool_t __attribute__((weak)) FnNetDevEventHookEvent(struct NetDev* iface,enum NetDevEvent event)
 {
     switch(event)
@@ -471,6 +483,7 @@ bool_t __attribute__((weak)) FnNetDevEventHookEvent(struct NetDev* iface,enum Ne
         case EN_NETDEVEVENT_IPGET:
 #if (CN_BEKEN_SDK_V3 == 1)
              mhdr_set_station_status(RW_EVT_STA_GOT_IP); //for rf power save;
+             rl_write_bssid_info();
 #else
              mhdr_set_station_status(6/*MSG_GOT_IP*/); //for rf power save;
 #endif

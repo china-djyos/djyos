@@ -144,6 +144,185 @@ void hex_dump(const char *desc, const void *addr, const int len);
 * 返回值： 返回0，没快连信息； 返回1,获取快连信息成功
 */
 #define BLOCK_SIZE 4*1024
+
+#if (CN_BEKEN_SDK_V3 == 1) //chenws: 主要是SDK3.0更换快连方式，这里配合处理
+#include "role_launch.h"
+int wlan_fast_info_match(char *ssid, char *passwd, RL_BSSID_INFO_PTR out_info)
+{
+    int ret = 0;
+    RL_BSSID_INFO_T *p = 0;
+    FILE *fd = NULL;
+
+    if(ssid==0 /* || passwd==0 */) return -1;
+
+    u8 *new_buf = (u8*)malloc(BLOCK_SIZE);
+    if(new_buf==0) return -1;
+
+
+    fd = fopen(CFG_FAST_DATA_FILE_NAME,"r+");
+    if(fd)
+    {
+        ret = fread(new_buf, 1, BLOCK_SIZE, fd);
+        if(fclose(fd) == -1)
+            printf("close file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+    }
+    if(ret <= 0) {
+        goto FUN_RET;
+    }
+    int cnt = ret/sizeof(RL_BSSID_INFO_T);
+    printf("info: %s, cnt=%d, ret=%d, size_item=%d!\r\n", __FUNCTION__, cnt, ret, sizeof(RL_BSSID_INFO_T));
+    p = (RL_BSSID_INFO_T*)&new_buf[ret];//指向存放下个数据的开始位置
+    int idx = 0; //逆向查找
+    while(cnt > 0) {
+        --idx;
+        if (strcmp(p[idx].ssid, ssid) == 0 ){
+            if (passwd) {
+                if(strcmp(p[idx].pwd, passwd) != 0){//密码不匹配
+                    cnt--;
+                    continue;
+                }
+            }
+            if (p[idx].ssid[0] != 0xFF &&
+                p[idx].channel >= 1 &&
+                p[idx].channel <= 13 &&
+                out_info) {
+                printf("info: %s, matched ok, Do WiFi Quick Connnecting ... \r\n", __FUNCTION__);
+                memcpy(out_info, &p[idx], sizeof(RL_BSSID_INFO_T));
+                ret = 1;
+                break;
+            }
+        }
+        cnt--;
+    }
+    if(cnt<=0) {
+        printf("info: %s, matched failed, Do Normal WiFi Connecting ... \r\n", __FUNCTION__);
+        ret = 0;
+    }
+
+FUN_RET:
+    if(new_buf) free(new_buf);
+    return ret;
+}
+
+int CompFastInfo(RL_BSSID_INFO_PTR src, RL_BSSID_INFO_PTR  dest)
+{
+    if (src == 0 || dest==0) return -1;
+    if (strcmp(src->ssid, dest->ssid) != 0) {
+        //printf("info: %s, src->ssid=%s, dest->ssid=%s!\r\n", __FUNCTION__, src->ssid, dest->ssid);
+        return -1;
+    }
+    if (memcmp(src->bssid, dest->bssid, sizeof(src->bssid)) != 0){
+        //hex_dump("warnning src bssid", src->bssid, sizeof(src->bssid));
+        //hex_dump("warnning dest bssid", dest->bssid, sizeof(dest->bssid));
+        printf("info: %s, src bssid != dest bssid!\r\n", __FUNCTION__);
+        return -2;
+    }
+    if (src->channel != dest->channel) {
+        printf("warning: src->channel=%d, dest->channel=%d!\r\n", src->channel, dest->channel);
+        return -3;
+    }
+    if (src->security != dest->security) {
+        printf("warning: src->security=%d, dest->security=%d!\r\n", src->security, dest->security);
+        return -3;
+    }
+    if (memcmp(src->psk, dest->psk, sizeof(src->psk)) != 0){
+        //hex_dump("warnning src psk", src->psk, sizeof(src->psk));
+        //hex_dump("warnning dest psk", dest->psk, sizeof(dest->psk));
+        printf("info: %s, src psk != dest psk!\r\n", __FUNCTION__);
+        return -5;
+    }
+    return 0;
+}
+
+int wlan_fast_connect_info_write(RL_BSSID_INFO_PTR data_info)
+{
+    int ret = 0;
+    RL_BSSID_INFO_T *p = 0;
+    struct stat file_state;
+    FILE *fd = NULL;
+    if(data_info == NULL)
+      return -1;
+
+    u8 *new_buf = (u8*)malloc(BLOCK_SIZE);
+    if(new_buf==0) return -1;
+
+    memset(new_buf, 0, BLOCK_SIZE);
+
+    fd = fopen(CFG_FAST_DATA_FILE_NAME,"r+");
+    if(fd)
+    {
+        ret = fread(new_buf, 1, BLOCK_SIZE, fd);
+        if(fclose(fd) == -1)
+            printf("close file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+    }
+    if(ret < 0) {
+        goto FUN_RET;
+    }
+
+    int cnt = ret/sizeof(RL_BSSID_INFO_T);
+    p = (RL_BSSID_INFO_T*)&new_buf[ret];//指向存放下个数据的开始位置
+    int idx = 0; //逆向查找
+    while(cnt > 0) {
+        idx--;
+        if (CompFastInfo(&p[idx], data_info)==0){
+            printf("info: %s, mathed item, index=%d, Do Not Writed New, Do Nothing!!!\r\n", __FUNCTION__, cnt-1);
+            break;
+        }
+        cnt--;
+    }
+    if(cnt<=0) {//找不到，重新写入
+        printf("info: %s, New Item Will Be Writed!\r\n", __FUNCTION__);
+        memset(&file_state, 0, sizeof(struct stat));
+        stat(CFG_FAST_DATA_FILE_NAME,&file_state);
+        fd = fopen(CFG_FAST_DATA_FILE_NAME,"a+");
+        if(fd)
+        {
+#if CFG_MODULE_ENABLE_EASY_FILE_SYSTEM
+            if((file_state.st_size + sizeof(RL_BSSID_INFO_T)) > CFG_EFS_FILE_SIZE_LIMIT)
+            {
+                if(fclose(fd) == -1)
+                {
+                    printf("befor remove close file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+                }
+                else
+                {
+                    fd = NULL;
+                    if(remove(CFG_FAST_DATA_FILE_NAME) == -1)
+                        printf("remove file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+                    else
+                    {
+                        fd = fopen(CFG_FAST_DATA_FILE_NAME,"a+");
+                        if(fd == NULL)
+                            printf("after remove file, open file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+                    }
+                }
+            }
+#endif
+            if(fd)
+            {
+                fseek(fd, 0, SEEK_END);
+                if(fwrite(data_info, 1, sizeof(RL_BSSID_INFO_T), fd) != sizeof(RL_BSSID_INFO_T))
+                    printf("write file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+            }
+            if(fd)
+            {
+                if(fclose(fd) == -1)
+                    printf("close file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+            }
+        }
+        else
+            printf("open file \" %s \" fail\r\n",CFG_FAST_DATA_FILE_NAME);
+
+
+        ret = 1;
+    }
+
+FUN_RET:
+    if(new_buf) free(new_buf);
+    return ret;
+}
+
+#else
 int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info)
 {
     int ret = 0;
@@ -175,10 +354,10 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
         goto FUN_RET;
     }
     int cnt = ret/sizeof(struct wlan_fast_connect);
-    //printf("info: %s, cnt=%d, ret=%d, size_item=%d!\r\n", __FUNCTION__, cnt, ret, sizeof(struct wlan_fast_connect));
+    printf("info: %s, cnt=%d, ret=%d, size_item=%d!\r\n", __FUNCTION__, cnt, ret, sizeof(struct wlan_fast_connect));
     p = (struct wlan_fast_connect*)new_buf;
     while(cnt > 0) {
-        //printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
+        printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
         if (strcmp(p[cnt-1].ssid, ssid) == 0 ){
             if (passwd) {
                 MD5_Init(&ctx);
@@ -192,16 +371,16 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
             //hex_dump("wlan_fast_info_match: md5", md5_tmp, sizeof(md5_tmp));
 
             //if(memcmp(p[cnt-1].md5_passphrase, md5_tmp, sizeof(md5_tmp)) == 0){
-            //printf("info: %s, md5_passphrase matched ok!!!\r\n", __FUNCTION__);
+            printf("info: %s, md5_passphrase matched ok!!!\r\n", __FUNCTION__);
             crc = wlan_standard_chksum(&p[cnt-1], sizeof(wlan_fast_connect_t)-4);
-            //printf("info: %s, index: %d, crc validated, (crc)(%08x %s %08x)!\r\n",
-//                    __FUNCTION__, cnt-1, crc, (crc==p[cnt-1].crc?"=":"!="), p[cnt-1].crc);
+            printf("info: %s, index: %d, crc validated, (crc)(%08x %s %08x)!\r\n",
+                    __FUNCTION__, cnt-1, crc, (crc==p[cnt-1].crc?"=":"!="), p[cnt-1].crc);
             if (p[cnt-1].ssid[0] != 0xFF &&
                 p[cnt-1].channel >= 1 &&
                 p[cnt-1].channel <= 13 &&
                 p[cnt-1].crc == crc &&
                 out_info) {
-                //printf("info: %s, matched ok, Do WiFi Quick Connnecting ... \r\n", __FUNCTION__);
+                printf("info: %s, matched ok, Do WiFi Quick Connnecting ... \r\n", __FUNCTION__);
                 memcpy(out_info, &p[cnt-1], sizeof(wlan_fast_connect_t));
                 ret = 1;
                 break;
@@ -211,7 +390,7 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
         cnt--;
     }
     if(cnt<=0) {
-        //printf("info: %s, matched failed, Do Normal WiFi Connecting ... \r\n", __FUNCTION__);
+        printf("info: %s, matched failed, Do Normal WiFi Connecting ... \r\n", __FUNCTION__);
         ret = 0;
     }
 
@@ -219,6 +398,7 @@ FUN_RET:
     if(new_buf) free(new_buf);
     return ret;
 }
+
 
 
 int CompFastInfo(wlan_fast_connect_t *src, wlan_fast_connect_t *dest)
@@ -356,5 +536,7 @@ FUN_RET:
     if(new_buf) free(new_buf);
     return ret;
 }
+
+#endif
 
 

@@ -14,9 +14,11 @@
 //#include "wlan_dev.h"
 //#include "ef_cfg.h"
 
+#include "ieee802_11_defs.h"
+
 #define RT_NULL (void*)(0)
 
-#define MAX_FASTCONN_RETRY_CNT              4 /*fast connect retry cnt*/
+#define MAX_FASTCONN_RETRY_CNT              1 /*fast connect retry cnt*/
 #if (CFG_SUPPORT_RTT)
 #define BSSID_INFO_ADDR       (EF_START_ADDR - 0x1000) /*reserve 4k for bssid info*/
 #else
@@ -51,9 +53,9 @@ void rl_cnt_init(void)
 
 static void rl_read_bssid_info(RL_BSSID_INFO_PTR bssid_info)
 {
+#if (CFG_SUPPORT_RTT)
     uint32_t status, addr;
     DD_HANDLE flash_hdl;
-#if (CFG_SUPPORT_RTT)
     flash_hdl = ddev_open(FLASH_DEV_NAME, &status, 0);
     addr = BSSID_INFO_ADDR;
     ddev_read(flash_hdl, (char *)bssid_info, sizeof(RL_BSSID_INFO_T), addr);
@@ -61,7 +63,8 @@ static void rl_read_bssid_info(RL_BSSID_INFO_PTR bssid_info)
 #endif
 }
 
-static void rl_write_bssid_info(void)
+//chenws: 直接在获取ip成功后调用该函数
+/*static*/ void rl_write_bssid_info(void)
 {
     int i;
     uint8_t temp[4];
@@ -70,6 +73,7 @@ static void rl_write_bssid_info(void)
     RL_BSSID_INFO_PTR bssid_info,bssid_rd;
     LinkStatusTypeDef link_status;
     DD_HANDLE flash_hdl;
+    uint32_t ssid_len;
     GLOBAL_INT_DECLARATION();
 
 
@@ -83,7 +87,12 @@ static void rl_write_bssid_info(void)
      }
     os_memset(&link_status, 0, sizeof(link_status));
     bk_wlan_get_link_status(&link_status);
-    os_strcpy(bssid_info->ssid, link_status.ssid);
+    ssid_len = os_strlen(link_status.ssid);
+    if(ssid_len > SSID_MAX_LEN)
+    {
+        ssid_len = SSID_MAX_LEN;
+    }
+    os_strncpy(bssid_info->ssid,link_status.ssid,ssid_len);
     os_memcpy(bssid_info->bssid, link_status.bssid, 6);
     bssid_info->security = link_status.security;
     bssid_info->channel = link_status.channel;
@@ -97,6 +106,9 @@ static void rl_write_bssid_info(void)
     }
     os_strcpy(bssid_info->pwd, g_rl_sta_key);
 
+#if (CFG_SUPPORT_DJYOS)
+    wlan_fast_connect_info_write(bssid_info);
+#else
     rl_read_bssid_info(bssid_rd);
     if(memcmp(bssid_rd,bssid_info, sizeof(RL_BSSID_INFO_T))!= 0)
     {
@@ -105,16 +117,14 @@ static void rl_write_bssid_info(void)
         ddev_control(flash_hdl, CMD_FLASH_GET_PROTECT, (void *)&protect_flag);
         protect_param = FLASH_PROTECT_NONE;
         ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, (void *)&protect_param);
-#if (CFG_SUPPORT_RTT)
         addr = BSSID_INFO_ADDR;
         ddev_control(flash_hdl, CMD_FLASH_ERASE_SECTOR, (void *)&addr);
         ddev_write(flash_hdl, bssid_info, sizeof(RL_BSSID_INFO_T),addr);
-#else
-        //这里写入自己的函数
-#endif
         ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, (void *)&protect_flag);
         ddev_close(flash_hdl);
     }
+
+#endif
     if(bssid_info)
         rt_free(bssid_info);
     if(bssid_rd)
@@ -132,14 +142,14 @@ static void rl_sta_fast_connect(RL_BSSID_INFO_PTR bssid_info)
     os_memcpy(inNetworkInitParaAdv.ap_info.bssid, bssid_info->bssid, 6);
     inNetworkInitParaAdv.ap_info.security = bssid_info->security;
     inNetworkInitParaAdv.ap_info.channel = bssid_info->channel;
-#if (CFG_SUPPORT_RTT)
-    if(bssid_info->security < SECURITY_WPA_TKIP_PSK)//WEP psk, WEP share, open
+//#if (CFG_SUPPORT_RTT)
+    if(bssid_info->security < BK_SECURITY_TYPE_WPA_TKIP)
     {
         os_strcpy((char*)inNetworkInitParaAdv.key, bssid_info->pwd);
         inNetworkInitParaAdv.key_len = os_strlen(bssid_info->pwd);
     }
     else
-#endif
+//#endif
     {
         os_strcpy((char*)inNetworkInitParaAdv.key, bssid_info->psk);
         inNetworkInitParaAdv.key_len = os_strlen(bssid_info->psk);
@@ -537,7 +547,7 @@ void rl_init(void)
     ASSERT(kNoErr == err);
     g_role_launch.rl_timer_flag = RL_TIMER_INIT;
 
-#if RL_SUPPORT_FAST_CONNECT
+#if RL_SUPPORT_FAST_CONNECT//chenws: 这里在获取IP成功后直接调用rl_write_bssid_info
     //user_connected_callback(rl_write_bssid_info);
 #endif
 }
@@ -762,9 +772,10 @@ uint32_t rl_pre_sta_set_status(uint32_t status)
     g_role_launch.pre_sta_status = status;
     cancel = g_role_launch.pre_sta_cancel;
 
+set_out:
     GLOBAL_INT_RESTORE();
 
-set_out:
+
     return cancel;
 }
 
@@ -843,6 +854,7 @@ void rl_sta_request_start(LAUNCH_REQ *req)
     extern void demo_scan_app_init(void);
 #if RL_SUPPORT_FAST_CONNECT
     RL_BSSID_INFO_T bssid_info;
+    uint32_t ssid_len;
 #endif
 
     ASSERT(req);
@@ -858,8 +870,25 @@ void rl_sta_request_start(LAUNCH_REQ *req)
                 rl_cnt ++;
                 os_memset(&g_rl_sta_key, 0, sizeof(g_rl_sta_key));
                 os_strcpy(g_rl_sta_key, req->descr.wifi_key);
+#if (CFG_SUPPORT_DJYOS == 1) //chenws: 修改这里支持多ssid和pwd支持快连信息
+                int wlan_fast_info_match(char *ssid, char *passwd, RL_BSSID_INFO_PTR bssid_info);
+                if (wlan_fast_info_match(req->descr.wifi_ssid, req->descr.wifi_key, &bssid_info)) {
+                    bk_printf("fast_connect\r\n");
+                    rl_sta_fast_connect(&bssid_info);
+                }
+                else {
+                    bk_printf("normal_connect11\r\n");
+                    bk_wlan_start_sta(&req->descr);
+                }
+#else
                 rl_read_bssid_info(&bssid_info);
-                if(os_strcmp(req->descr.wifi_ssid, bssid_info.ssid) == 0
+                ssid_len = os_strlen(bssid_info.ssid);
+                if(ssid_len > SSID_MAX_LEN)
+                {
+                    ssid_len = SSID_MAX_LEN;
+                }
+
+                if(os_memcmp(req->descr.wifi_ssid, bssid_info.ssid,ssid_len) == 0
                     && os_strcmp(req->descr.wifi_key, bssid_info.pwd) == 0)
                 {
                     bk_printf("fast_connect\r\n");
@@ -870,6 +899,8 @@ void rl_sta_request_start(LAUNCH_REQ *req)
                     bk_printf("normal_connect11\r\n");
                     bk_wlan_start_sta(&req->descr);
                 }
+#endif
+
             }
             else
             {
