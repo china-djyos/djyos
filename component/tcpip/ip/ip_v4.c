@@ -241,11 +241,17 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
         }
         if(ret)
         {
-            //chenws: dhcp的发现包必须为0，不然有些dhcp请求会失败，例如iphone手机做热点，如果ipsrc不为0，不回应
-//          if(ipsrc == INADDR_ANY)
-//          {
-//              ipsrc = iphost;
-//          }
+            if(ipsrc == INADDR_ANY)
+            {
+                if (rout.type == EN_IPTYPE_V4_BROAD) {
+                    //chenws: dhcp的发现包必须为0，不然有些dhcp请求会失败，例如iphone手机做热点，如果ipsrc不为0，不回应
+                    ipsrc = 0;
+                }
+                else {
+                    ipsrc = iphost;
+                }
+
+            }
             if(iphop == INADDR_ANY) //if not,which means need send to the hop
             {
                 iphop = ipdst;
