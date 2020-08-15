@@ -269,7 +269,7 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
                         break;
                     case  CN_IPDEV_ICMPOCHKSUM:
                         IpPkgLstChkSum(pkg,chksum,0);
-                        devtask |= CN_IPDEV_NONE; //do it by the software
+                        devtask = CN_IPDEV_NONE; //do it by the software
                         break;
                     default: //not supported yet,do nothing here
                         break;
