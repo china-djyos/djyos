@@ -241,10 +241,11 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
         }
         if(ret)
         {
-            if(ipsrc == INADDR_ANY)
-            {
-                ipsrc = iphost;
-            }
+            //chenws: dhcp的发现包必须为0，不然有些dhcp请求会失败，例如iphone手机做热点，如果ipsrc不为0，不回应
+//          if(ipsrc == INADDR_ANY)
+//          {
+//              ipsrc = iphost;
+//          }
             if(iphop == INADDR_ANY) //if not,which means need send to the hop
             {
                 iphop = ipdst;
@@ -261,11 +262,14 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
                         break;
                     case  CN_IPDEV_UDPOCHKSUM:
                         IpPseudoPkgLstChkSumV4(ipsrc,ipdst,proto,pkg,translen,chksum);
-                        devtask = CN_IPDEV_NONE; //do it by the software
+                        //MAC的dst必须是FFFFFFFF: CN_IPDEV_IPBROAD
+                        //这里不可以直接清除devtask标志,广播包根据这个标志来设置mac地址
+                        //devtask = CN_IPDEV_NONE; //do it by the software
+                        devtask &= CN_IPDEV_IPBROAD; //保留ipbroad
                         break;
                     case  CN_IPDEV_ICMPOCHKSUM:
                         IpPkgLstChkSum(pkg,chksum,0);
-                        devtask = CN_IPDEV_NONE; //do it by the software
+                        devtask |= CN_IPDEV_NONE; //do it by the software
                         break;
                     default: //not supported yet,do nothing here
                         break;
