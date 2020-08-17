@@ -85,6 +85,8 @@ void *os_realloc(void *ptr, size_t size)
         os_memcpy(tmp, ptr, size);
         GLOBAL_INT_DISABLE();
         free(ptr);
+        //chenws: 这里可能是专用堆的malloc, 补充专用堆的free.
+        if(pMemHeap) M_FreeHeap(ptr,pMemHeap);
         GLOBAL_INT_RESTORE();
     }
 
@@ -98,6 +100,8 @@ void os_free(void *ptr)
         GLOBAL_INT_DECLARATION();
         GLOBAL_INT_DISABLE();
         free(ptr);
+        //chenws: 这里可能是专用堆的malloc, 补充专用堆的free.
+        if(pMemHeap) M_FreeHeap(ptr,pMemHeap);
         GLOBAL_INT_RESTORE();
     }
 }
