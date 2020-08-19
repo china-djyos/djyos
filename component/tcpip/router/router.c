@@ -922,6 +922,29 @@ void RouterRemoveByHandle(struct RoutItem4 *rout)
     return;
 }
 
+void RouterRemoveByNetDev(const char *ifname)
+{
+    struct RoutItem4 *mark;
+    struct RoutItem4 *root;
+
+    root = NetDev_GetIPv4RoutEntry(NetDevGet(ifname));
+    if (NULL == root)
+    {
+        return;
+    }
+    if (mutex_lock(gRoutCB.lock))
+    {
+        while(root) {
+            mark = root;
+            root = __RemoveFromQueueV4(root, mark);
+            net_free(mark);
+        }
+        mutex_unlock(gRoutCB.lock);
+    }
+    NetDev_SetIPv4RoutEntry(NetDevGet(ifname), 0); //Çå0
+    return;
+}
+
 //delete the rout item filtered by if name ,net ,host ,hop
 //delete the rout,such as you get a new ip,then you will delete all the old binded to the old host address
 void   RouterRemove(tagRouterPara *para)

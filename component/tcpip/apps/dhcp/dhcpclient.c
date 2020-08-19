@@ -354,37 +354,66 @@ static void __DHCP_ClientTicker(void)
     return ;
 }
 void   RouterRemoveByHandle(struct RoutItem4 *rout);
+
 void DhcpclientDeleteAllTask(void)
 {
-
+//  tagTaskItem      *task;
+//  tagTaskItem      *task_tmp;
+//  //OK,NOW ADD IT TO THE QUEUE
+//  if(mutex_lock(gClientCB.lock))
+//  {
+//      task = gClientCB.lst;
+//      while (task) {
+//          task_tmp = task;
+//          task = task->nxt;
+//          gClientCB.lst = task;
+//
+//          //delete task_tmp
+//          if(task_tmp->routwan){
+//              RouterRemoveByHandle(task_tmp->routwan);
+//              task->routwan = 0;
+//          }
+//          if(task_tmp->routlan){
+//              RouterRemoveByHandle(task_tmp->routlan);
+//              task_tmp->routlan = 0;
+//          }
+//          if(task_tmp->sem) {
+//              semp_del(task_tmp->sem);
+//              task_tmp->sem = 0;
+//          }
+//          net_free(task_tmp);
+//          printf("-------------DhcpclientDeleteAllTask----------------\r\n");
+//      }
+//      mutex_unlock(gClientCB.lock);
+//  }
+}
+void RouterRemoveByNetDev(const char *ifname);
+void DhcpclientDeleteTask(const char *ifname)
+{
     tagTaskItem      *task;
     tagTaskItem      *task_tmp;
-    //OK,NOW ADD IT TO THE QUEUE
     if(mutex_lock(gClientCB.lock))
     {
         task = gClientCB.lst;
-        while (task) {
+        while (task) {//网卡名必须一致
             task_tmp = task;
             task = task->nxt;
             gClientCB.lst = task;
-            //delete task_tmp
-            if(task_tmp->routwan){
-                RouterRemoveByHandle(task_tmp->routwan);
-                task->routwan = 0;
+            //printf("task_tmp->ifname:%s, ifname:%s\r\n", task_tmp->ifname, ifname);
+            if (strcmp(task_tmp->ifname, ifname)==0) {
+                //delete task_tmp
+                RouterRemoveByNetDev(ifname);//删除某网卡下所有路由
+                if(task_tmp->sem) {
+                    semp_del(task_tmp->sem);
+                    task_tmp->sem = 0;
+                }
+                net_free(task_tmp);
             }
-            if(task_tmp->routlan){
-                RouterRemoveByHandle(task_tmp->routlan);
-                task_tmp->routlan = 0;
-            }
-            if(task_tmp->sem) {
-                semp_del(task_tmp->sem);
-                task_tmp->sem = 0;
-            }
-            net_free(task_tmp);
-            //printf("-----------------------------\r\n");
+            //printf("-------------DhcpclientDeleteTask----------------\r\n");
         }
         mutex_unlock(gClientCB.lock);
     }
+
 }
 
 //int __NetDev_DHCP_SET_GotIP_CB(const char *ifname, int (*cb_ip_got)(unsigned int *ip));
@@ -405,6 +434,9 @@ bool_t DHCP_AddClientTask(const char *ifname, u32 OldIP)
     tagTaskItem *task;
     tagHostAddrV4 addr;
     tagRouterPara  routpara; //use this to make the router
+
+    //每次添加任务前删除这个网卡的所有路由
+    DhcpclientDeleteTask(ifname);
 
     //first we will do some thing here
     memset(&addr,0,sizeof(addr));

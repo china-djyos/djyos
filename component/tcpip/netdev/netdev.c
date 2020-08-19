@@ -378,6 +378,16 @@ struct RoutItem4 *NetDev_GetIPv4RoutEntry(struct NetDev *NetDev)
     if(NetDev != NULL)
         return NetDev->v4lst;
 }
+//-----------------------------------------------------------------------------
+//功能: 取网卡的IPv4 路由条目链表入口
+//参数: NetDev，网卡指针
+//返回: 网卡控制块，遍历完成则返回NULL
+//-----------------------------------------------------------------------------
+void NetDev_SetIPv4RoutEntry(struct NetDev *NetDev, struct RoutItem4 *new_root)
+{
+    if(NetDev != NULL)
+        NetDev->v4lst = new_root;
+}
 
 //-----------------------------------------------------------------------------
 //功能: 取网卡的IPv6 路由条目链表入口
