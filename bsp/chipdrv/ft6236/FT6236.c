@@ -332,7 +332,7 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
 //        GK_SyncShow(CN_TIMEOUT_FOREVER);
 //        while(!FT6236_Scan(&touch_xyz0));//µÈ´ý´¥Ãþ
         #if (CFG_TOUCH_SIZE == 24)
-        touch_xyz0.x = 20;
+        touch_xyz0.x = 220;
         touch_xyz0.y = 20;
         #elif (CFG_TOUCH_SIZE == 32)
         touch_xyz0.y = 20;
