@@ -132,7 +132,7 @@ static DD_INIT_S dd_init_tbl[] =
     {FFT_DEV_NAME,          fft_init,                   fft_exit},
 #endif
 #if CFG_USE_I2S
-//    {I2S_DEV_NAME,          i2s_init,                   i2s_exit},
+    {I2S_DEV_NAME,          i2s_init,                   i2s_exit},
 #endif
     {SARADC_DEV_NAME,       saradc_init,                saradc_exit},
 #if CFG_USE_IRDA

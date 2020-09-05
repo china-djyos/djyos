@@ -27,7 +27,11 @@
 
 #define RT_I2S_BIT_DEBUG
 #ifdef  RT_I2S_BIT_DEBUG
+#if (CFG_SUPPORT_DJYOS)    //CK
+#define bit_dbg(fmt, ...)   bk_printf(fmt, ##__VA_ARGS__)
+#else
 #define bit_dbg(fmt, ...)   rt_kprintf(fmt, ##__VA_ARGS__)
+#endif
 #else
 #define bit_dbg(fmt, ...)
 #endif
@@ -193,7 +197,7 @@ static void i2s_set_pcm_dlen(UINT8 val)
 
 static void i2s_set_freq_datawidth(i2s_rate_t *p_rate)
 {
-    UINT32 bitratio, value ,lrck_div,sys_clk= 0;
+    UINT32 bitratio, value = 0 ,lrck_div,sys_clk= 0;
 	
     if( (p_rate->freq != 8000) && (p_rate->freq != 16000) && 
 		(p_rate->freq != 24000) && (p_rate->freq != 32000) &&(p_rate->freq != 48000)&&
@@ -584,73 +588,73 @@ static UINT32 i2s_ctrl(UINT32 cmd, void *param)
 
     switch(cmd)
     {
-    case I2S_CMD_UNIT_ENABLE:
+    case I2S_CMD_UNIT_ENABLE:       //使能
         i2s_active(*(UINT8 *)param);
 		break;
-	case I2S_CMD_SET_MSTEN:
+	case I2S_CMD_SET_MSTEN:         //设置主从模式
         i2s_set_msten(*(UINT8 *)param);
 		break;
-	case I2S_CMD_SELECT_MODE:
+	case I2S_CMD_SELECT_MODE:       //工作模式设置
         i2s_select_mode(*(UINT8 *)param);
 		break;
-	case I2S_CMD_SET_LRCK:
+	case I2S_CMD_SET_LRCK:          //设置LRCK
         i2s_set_lrck(*(UINT8 *)param);
 		break;
-	case I2S_CMD_SET_SCK_INV:
+	case I2S_CMD_SET_SCK_INV:       //设置SCK
         i2s_set_sck_inv(*(UINT8 *)param);
 		break;
-	case I2S_CMD_SET_SCK_LSB:
+	case I2S_CMD_SET_SCK_LSB:       //设置MSB或LSB
         i2s_set_sck_lsb(*(UINT8 *)param);
 		break;
-	case I2S_CMD_SET_SCK_SYNCLEN:
+	case I2S_CMD_SET_SCK_SYNCLEN:   //设置同步长度只有长帧同步有效
         i2s_set_sck_synclen(*(UINT8 *)param);
 		break;
-	case I2S_CMD_SET_PCM_DLEN:
+	case I2S_CMD_SET_PCM_DLEN:      //设置 pcm_dlen
         i2s_set_pcm_dlen(*(UINT8 *)param);
 		break;
-    case I2S_CMD_SET_FREQ_DATAWIDTH:
+    case I2S_CMD_SET_FREQ_DATAWIDTH:    //设置采样率和位宽
         i2s_set_freq_datawidth((i2s_rate_t *)param);
         break;		
-	case I2S_CMD_RXINT_EN:
+	case I2S_CMD_RXINT_EN:          //设置rx中断使能和失能
         i2s_rxint_enable(*(UINT8 *)param);
 		break;
-	case I2S_CMD_TXINT_EN:
+	case I2S_CMD_TXINT_EN:          //设置tx中断使能和失能
         i2s_txint_enable(*(UINT8 *)param);
 		break;
-	case I2S_CMD_RXOVR_EN:
+	case I2S_CMD_RXOVR_EN:          //设置enable rxover int
         i2s_rxovr_enable(*(UINT8 *)param);
 		break;
-	case I2S_CMD_TXOVR_EN:
+	case I2S_CMD_TXOVR_EN:          //设置enable txover int
         i2s_txovr_enable(*(UINT8 *)param);
 		break;
-	case I2S_CMD_RXFIFO_CLR_EN:
+	case I2S_CMD_RXFIFO_CLR_EN:     //设置rxfifo clear enable
         i2s_rxfifo_clr_enable();
 		break;
-	case I2S_CMD_TXFIFO_CLR_EN:
+	case I2S_CMD_TXFIFO_CLR_EN:     //设置txfifo clear enable
         i2s_txfifo_clr_enable();
 		break;	
-	case I2S_CMD_RXINT_MODE:
+	case I2S_CMD_RXINT_MODE:        //设置rxfifo深度
         i2s_rxint_mode(*(UINT8 *)param);
 		break;
-	case I2S_CMD_TXINT_MODE:
+	case I2S_CMD_TXINT_MODE:        //设置txfifo深度
         i2s_txint_mode(*(UINT8 *)param);
 		break;
 	case I2S_CMD_GET_BUSY:
          i2s_get_busy();
 		break;
-	case I2S_CMD_ENABLE_INTERRUPT:
+	case I2S_CMD_ENABLE_INTERRUPT:      //使能中断
 		i2s_enable_interrupt();
 		break;
-	case I2S_CMD_DISABLE_INTERRUPT:
+	case I2S_CMD_DISABLE_INTERRUPT:     //失能中断
 		i2s_disable_interrupt();
 		break;
-	case I2S_CMD_MASTER_ENABLE:
+	case I2S_CMD_MASTER_ENABLE:         //使能I2S，设置主从模式，使能时钟
 		i2s_master_enable(*(UINT32 *)param);	
 		break;
-	case I2S_CMD_DISABLE_I2S:
+	case I2S_CMD_DISABLE_I2S:           //失能I2S，失能时钟
     	i2s_disable_i2s();
     	break;
-    case I2S_CMD_DMA_MASTER_ENABLE:
+    case I2S_CMD_DMA_MASTER_ENABLE:     //使能I2S,DMA模式，设置主从模式
 		i2s_dma_master_enable(*(UINT32 *)param);
 		break;
     case I2S_CMD_DMA_ISR:
@@ -774,17 +778,17 @@ UINT32 i2s_configure(UINT32 fifo_level, UINT32 sample_rate, UINT32 bits_per_samp
 	return I2S_SUCCESS;
 }
 
-
-UINT32 i2s_transfer(UINT32 *i2s_send_buf , UINT32 *i2s_recv_buf, UINT32 count, UINT32 param )
+#if (CFG_SUPPORT_DJYOS)    //CK
+UINT32 i2s_transfer(UINT8 *i2s_send_buf , UINT8 *i2s_recv_buf, UINT32 send_count, UINT32 recv_count, UINT32 param )
 {
 	GLOBAL_INT_DECLARATION();
 	
     GLOBAL_INT_DISABLE();
 	i2s_trans.trans_done = 0;
-	i2s_trans.tx_remain_data_cnt = count;	
-	i2s_trans.rx_remain_data_cnt = count;
-	i2s_trans.p_tx_buf =(UINT32 *) i2s_send_buf;
-	i2s_trans.p_rx_buf =(UINT32 *) i2s_recv_buf;
+	i2s_trans.tx_remain_data_cnt = send_count;
+	i2s_trans.rx_remain_data_cnt = recv_count;
+	i2s_trans.p_tx_buf = i2s_send_buf;
+	i2s_trans.p_rx_buf = i2s_recv_buf;
 	i2s_fifo_level.tx_level = FIFO_LEVEL_32;
 	i2s_fifo_level.rx_level = FIFO_LEVEL_32;
     GLOBAL_INT_RESTORE();	
@@ -802,9 +806,10 @@ UINT32 i2s_transfer(UINT32 *i2s_send_buf , UINT32 *i2s_recv_buf, UINT32 count, U
 
 	while(!i2s_trans.trans_done )
 	{
+//	    delay_ms(1);
 	}
 	
-	delay_ms(1000);
+//	delay_ms(1000);
 	i2s_trans.trans_done = 0;
 	
 	i2s_ctrl(I2S_CMD_DISABLE_I2S, NULL);
@@ -814,10 +819,11 @@ UINT32 i2s_transfer(UINT32 *i2s_send_buf , UINT32 *i2s_recv_buf, UINT32 count, U
 
 void i2s_isr(void)
 {
-	uint16_t i,rxint,txint0,ultemp;
-	uint32_t i2s_status,temp;
+	uint16_t i,rxint,txint0,ultemp,data_16;
+	uint32_t i2s_status,temp,data_width,data_32;
 	volatile uint16_t data_num ;
 	
+	data_width = (REG_READ(PCM_CTRL) & 0x1f0000) >> 16;
 	i2s_status= REG_READ(PCM_STAT);
 	rxint  = i2s_status & 0x01;
 	txint0 = i2s_status & 0x02;
@@ -841,15 +847,41 @@ void i2s_isr(void)
 		}
 		else
 		{
-			for(i = 0; i < data_num; i ++)
-			{
-				REG_WRITE(PCM_DAT0,*i2s_trans.p_tx_buf);
-				i2s_trans.p_tx_buf ++;
-			}
+		    if(data_width == (DATA_WIDTH_32BIT-1))
+		    {
+                for(i = 0; i < data_num; i ++)
+                {
+                    data_32 = *((u32 *)i2s_trans.p_tx_buf);
+                    REG_WRITE(PCM_DAT0, data_32);
+                    i2s_trans.p_tx_buf += sizeof(u32);
+                }
+                data_num *= sizeof(u32);
+		    }
+		    else if(data_width == (DATA_WIDTH_16BIT - 1))
+		    {
+//		        data_num = 8;
+                for(i = 0; i < data_num; i ++)
+                {
+                    data_32 = (*((u16 *)i2s_trans.p_tx_buf)) & 0xffff;
+                    REG_WRITE(PCM_DAT0,data_32);
+//                    data_32 = ((*((u32 *)i2s_trans.p_tx_buf)) & 0xffff0000) >> 16;
+//                    REG_WRITE(PCM_DAT0,data_32);
+                    i2s_trans.p_tx_buf += sizeof(u16);
+                }
+                data_num *= sizeof(u16);
+		    }
+		    i2s_trans.tx_remain_data_cnt -= data_num;
 		}
+	    if(i2s_trans.tx_remain_data_cnt <=0)
+	    {
+	        i = 0;
+	        i2s_ctrl(I2S_CMD_TXINT_EN, (void*)&i);
+	    }
+
 		i2s_status |= 0x2;
 	}
 	
+
 	if(rxint)
 	{
 		switch(i2s_fifo_level.rx_level)
@@ -859,7 +891,9 @@ void i2s_isr(void)
 			case 2	: data_num = 32; break;
 			default : data_num = 48; break;
 		}
-		
+//		if(data_width == (DATA_WIDTH_16BIT - 1))
+//		    data_num = 8;
+
 		if(data_num > i2s_trans.rx_remain_data_cnt)
 		{
 			data_num = i2s_trans.rx_remain_data_cnt;
@@ -875,28 +909,179 @@ void i2s_isr(void)
 		}
 		else
 		{
-			for(i=0; i<data_num; i++)
-			{	
-				*i2s_trans.p_rx_buf = REG_READ(PCM_DAT0);
-				i2s_trans.p_rx_buf++;
-			}
-			
+            if(data_width == (DATA_WIDTH_32BIT - 1))
+            {
+                for(i=0; i<data_num; i++)
+                {
+                    *(u32 *)i2s_trans.p_rx_buf = REG_READ(PCM_DAT0);
+    //				if(data_width == (16 - 1))
+    //				    ultemp = REG_READ(PCM_DAT0);
+                    i2s_trans.p_rx_buf += sizeof(u32);
+                }
+                data_num *= sizeof(u32);
+            }
+            else if(data_width == (DATA_WIDTH_16BIT - 1))
+            {
+                for(i=0; i<data_num; i++)
+                {
+                    data_32 = REG_READ(PCM_DAT0);
+                    *(u16 *)i2s_trans.p_rx_buf = ((u16)data_32);
+                    i2s_trans.p_rx_buf += sizeof(u16);
+                }
+                data_num *= sizeof(u16);
+            }
 			i2s_trans.rx_remain_data_cnt -= data_num;
 
-			if(i2s_trans.rx_remain_data_cnt <=0)
-			{
-				i = 0;
-				i2s_trans.trans_done = 1;
-				i2s_ctrl(I2S_CMD_TXINT_EN, (void*)&i);
-				i2s_ctrl(I2S_CMD_RXINT_EN, (void*)&i);
-			}
-		}		
+		}
+
+        if(i2s_trans.rx_remain_data_cnt <=0)
+        {
+//            printk(" ====== I2S_CMD_RXINT_EN ====\r\n");
+            i = 0;
+            i2s_ctrl(I2S_CMD_RXINT_EN, (void*)&i);
+        }
+
 		i2s_status |= 0x1;
 	}
 	
+	if((i2s_trans.rx_remain_data_cnt <=0) && (i2s_trans.tx_remain_data_cnt <=0))
+	{
+//	    i = 0;
+	    i2s_trans.trans_done = 1;
+//	    printk("........................\r\n");
+//	    i2s_ctrl(I2S_CMD_RXINT_EN, (void*)&i);
+	}
+//	else
+//	    printk(" ===== rx =%d , tx = %d.======\r\n",i2s_trans.rx_remain_data_cnt,i2s_trans.tx_remain_data_cnt);
+
 	REG_WRITE(PCM_STAT,i2s_status);
 
 }
+#else
+UINT32 i2s_transfer(UINT32 *i2s_send_buf , UINT32 *i2s_recv_buf, UINT32 count, UINT32 param )
+{
+    GLOBAL_INT_DECLARATION();
+
+    GLOBAL_INT_DISABLE();
+    i2s_trans.trans_done = 0;
+    i2s_trans.tx_remain_data_cnt = count;
+    i2s_trans.rx_remain_data_cnt = count;
+    i2s_trans.p_tx_buf =(UINT32 *) i2s_send_buf;
+    i2s_trans.p_rx_buf =(UINT32 *) i2s_recv_buf;
+    i2s_fifo_level.tx_level = FIFO_LEVEL_32;
+    i2s_fifo_level.rx_level = FIFO_LEVEL_32;
+    GLOBAL_INT_RESTORE();
+
+    if(param)
+    {
+        delay_ms(1000);
+    }
+
+    /* rxfifo clear enable*/
+    //i2s_ctrl(I2S_CMD_RXFIFO_CLR_EN, NULL);
+
+    /* enable */
+    i2s_ctrl(I2S_CMD_MASTER_ENABLE,(void*)&param);
+
+    while(!i2s_trans.trans_done )
+    {
+    }
+
+    delay_ms(1000);
+    i2s_trans.trans_done = 0;
+
+    i2s_ctrl(I2S_CMD_DISABLE_I2S, NULL);
+
+    return i2s_trans.trans_done;
+}
+
+void i2s_isr(void)
+{
+    uint16_t i,rxint,txint0,ultemp;
+    uint32_t i2s_status,temp;
+    volatile uint16_t data_num ;
+
+    i2s_status= REG_READ(PCM_STAT);
+    rxint  = i2s_status & 0x01;
+    txint0 = i2s_status & 0x02;
+
+    if(txint0)
+    {
+        switch(i2s_fifo_level.tx_level)
+        {
+            case 0  : data_num = 8; break;
+            case 1  : data_num = 16; break;
+            case 2  : data_num = 32; break;
+            default : data_num = 48; break;
+        }
+
+        if(i2s_trans.p_tx_buf == NULL)
+        {
+            for(i=0; i<data_num; i++)
+            {
+                REG_WRITE(PCM_DAT0,0xEEEEEEEE);
+            }
+        }
+        else
+        {
+            for(i = 0; i < data_num; i ++)
+            {
+                REG_WRITE(PCM_DAT0,*i2s_trans.p_tx_buf);
+                i2s_trans.p_tx_buf ++;
+            }
+        }
+        i2s_status |= 0x2;
+    }
+
+    if(rxint)
+    {
+        switch(i2s_fifo_level.rx_level)
+        {
+            case 0  : data_num = 8; break;
+            case 1  : data_num = 16; break;
+            case 2  : data_num = 32; break;
+            default : data_num = 48; break;
+        }
+
+        if(data_num > i2s_trans.rx_remain_data_cnt)
+        {
+            data_num = i2s_trans.rx_remain_data_cnt;
+        }
+
+        if((i2s_trans.p_rx_buf == NULL) || (i2s_status & RX_FIFO0_EMPTY))
+        {
+            for(i=0; i<data_num; i++)
+            {
+                ultemp = REG_READ(PCM_DAT0);
+                (void ) ultemp;
+            }
+        }
+        else
+        {
+            for(i=0; i<data_num; i++)
+            {
+                *i2s_trans.p_rx_buf = REG_READ(PCM_DAT0);
+                i2s_trans.p_rx_buf++;
+            }
+
+            i2s_trans.rx_remain_data_cnt -= data_num;
+
+            if(i2s_trans.rx_remain_data_cnt <=0)
+            {
+                i = 0;
+                i2s_trans.trans_done = 1;
+                i2s_ctrl(I2S_CMD_TXINT_EN, (void*)&i);
+                i2s_ctrl(I2S_CMD_RXINT_EN, (void*)&i);
+            }
+        }
+        i2s_status |= 0x1;
+    }
+
+    REG_WRITE(PCM_STAT,i2s_status);
+
+}
+
+#endif
 #endif
 // eof
 

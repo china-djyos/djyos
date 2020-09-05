@@ -1,8 +1,11 @@
 #ifndef __RING_BUFFER_DMA_WR_H__
 #define __RING_BUFFER_DMA_WR_H__
 
-
+#if (CFG_SUPPORT_DJYOS)    //CK
+typedef struct rb_dma_wr_st
+#else
 typedef struct rb_dma_rd_st
+#endif
 {
     UINT8 *address;     
     UINT32 capacity;    /**< memory capacity in bytes */

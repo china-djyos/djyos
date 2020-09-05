@@ -200,7 +200,7 @@
 
 
 #define CFG_USE_FFT                                0
-#define CFG_USE_I2S                                0
+#define CFG_USE_I2S                                1
 #define CFG_USE_IRDA                               0
 
 

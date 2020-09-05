@@ -67,8 +67,13 @@ struct i2s_message
 
 typedef struct
 {
+#if (CFG_SUPPORT_DJYOS)    //CK
+    UINT8 *p_tx_buf;
+    UINT8 *p_rx_buf;
+#else
     UINT32 *p_tx_buf;
     UINT32 *p_rx_buf;
+#endif
     UINT32 trans_done;
 	volatile UINT32 tx_remain_data_cnt;
     volatile UINT32 rx_remain_data_cnt;

@@ -42,49 +42,75 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: CPU外设定义
-//作者:  lst
-//版本：V1.0.0
-//其他说明:
-//修订历史:
-//1. 日期: 2013-05-29
-//   作者:  lst.
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
-//------------------------------------------------------
-#ifndef __CPU_PERI_H__
-#define __CPU_PERI_H__
+
+// 文件名     ：cpu_peri_spi.h
+// 模块描述: SPI模块底层硬件驱动头文件
+// 模块版本: V1.00
+// 创建人员: HM
+// 创建时间: 16/10.2015
+// =============================================================================
+
+#ifndef CPU_PERI_I2S_H_
+#define CPU_PERI_I2S_H_
+
+#include "stdint.h"
+#include "ring_buffer_dma_write.h"
+#include "ring_buffer_dma_read.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-//包含外设所需的头文件"
+struct IIS_Device
+{
+    u32 open_flag;      //设置打开方式
+    u32 sample_rate;    //采样率
+    u8 bits_width;      //位宽
 
-#if (CN_BEKEN_SDK_V3 == 1)
-#include "uart\uart.h"
-#else
-#include "bk_uart.h"
-#endif      //for (CN_BEKEN_SDK_V3 == 1)
-#include "gpio_pub.h"
-#include "intc.h"
-#include "flash.h"
-#include "flash_pub.h"
-#include "audio_pub.h"
+    u8 tx_enable:1;     //发送DMA使能状态
+    u8 rx_enable:1;     //接收DMA使能状态
 
-#include "cpu_peri_uart.h"
-#include "cpu_peri_flash.h"
-#include "cpu_peri_gpio.h"
-#include "cpu_peri_audio_mic.h"
-#include "cpu_peri_audio_dac.h"
-#include "cpu_peri_wifi.h"
-#include "cpu_peri_wifi_fast_connect.h"
-#include "cpu_peri_lowpower.h"
-#include "cpu_peri_spi.h"
-#include "cpu_peri_i2s.h"
-#include "cpu_peri_sdcard.h"
+    /* rx members */
+    u8 *rx_fifo;      //发送缓存地址
+    RB_DMA_WR_ST rb_dma_wr;     //注册到博通库里，一个专门处理DMA数据的缓冲区里
+    RB_DMA_RD_ST wr_dma_rd;     //注册到博通库里，一个专门处理DMA数据的缓冲区里
+    /* tx members */
+    u8 *tx_fifo;      //发送缓存地址
+    u32 tx_fill_pos;    //发送缓存填充位置
+    u32 tx_fill_size;   //发送缓存填充大小
+    u8 tx_paused;
+};
+
+struct IIS_OperParam
+{
+    u32 sample_rate;    //采样率
+    u8 bits_width;      //位宽
+    void (*i2s_rx_fin_handler)(u32);            //接收的回调函数   回调函数是成对的，一次得定义两个，定义了rx回调函数，那IIS_Read就无效了，是通过回调函数拿数据，tx也一样
+    void (*i2s_rx_half_fin_handler)(u32);       //接收的回调函数
+
+    void (*i2s_tx_fin_handler)(u32);            //发送的回调函数
+    void (*i2s_tx_half_fin_handler)(u32);       //发送回调函数
+};
+
+
+enum i2s_ctrl
+{
+    IIS_DMA_RX_ENABLE = 0,      //IIS DMA接收使能
+    IIS_DMA_TX_ENABLE,          //IIS DMA发送使能
+    I2S_DMA_MASTER_SLAVE,      //IIS DMA主从模式设置
+    I2S_SAMPLE_RATE_SET,        //IIS DMA采样率设置
+    I2S_BIT_WIDTH_SET,          //IIS DMA位宽设置
+};
+
+int ModuleInstall_I2S(void);
+s32 IIS_Open(struct IIS_OperParam *param, u32 mode);
+s32 IIS_Read(void *buffer, s32 size);
+s32 IIS_Close(void);
+s32 IIS_Write(void *buffer, s32 size);
+s32 IIS_Cotrol(enum i2s_ctrl cmd, ptu32_t data);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__CPU_PERI_H__
+#endif

@@ -40,7 +40,7 @@
 //%$#@exclude
 //./common;./alios;./os;
 //./driver/codec;./driver/fft;
-//./driver/i2c;./driver/i2s;./driver/irda;./driver/jpeg;./driver/rc_beken;
+//./driver/i2c;./driver/irda;./driver/jpeg;./driver/rc_beken;
 //./driver/sdio;./driver/spidma;./driver/usb;
 //./driver/driver.c;./driver/SConscript;./driver/pwm/timer.c;
 //./func/bk7011_cal/bk7011_cal.c;./func/bk7011_cal/bk7231_cal.c;./func/bk7011_cal/bk7231U_cal.c;

@@ -111,6 +111,11 @@
 #define I2S_LRCK_NO_TURN					(0 << 3)
 #define I2S_SCK_NO_TURN						(0 << 4)
 #define I2S_MSB_FIRST						(0 << 5)
+#if (CFG_SUPPORT_DJYOS)    //CK
+#define I2S_LRCK_TURN                       (1 << 3)
+#define I2S_SCK_TURN                        (1 << 4)
+#define I2S_LSB_FIRST                       (1 << 5)
+#endif
 
 #define I2S_SYNC_LENGTH_BIT					(8)
 #define I2S_PCM_DATA_LENGTH_BIT				(12)
@@ -120,7 +125,11 @@
 *******************************************************************************/
 UINT32 i2s_configure(UINT32 fifo_level, UINT32 sample_rate, UINT32 bits_per_sample, UINT32 mode);
 
+#if (CFG_SUPPORT_DJYOS)    //CK
+UINT32 i2s_transfer(UINT8 *i2s_send_buf , UINT8 *i2s_recv_buf, UINT32 send_count, UINT32 recv_count, UINT32 param );
+#else
 UINT32 i2s_transfer(UINT32 *i2s_send_buf , UINT32 *i2s_recv_buf, UINT32 count , UINT32 param );
+#endif
 static UINT32 i2s_ctrl(UINT32 cmd, void *param);
 
 #endif //_I2S_H_
