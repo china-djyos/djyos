@@ -471,12 +471,13 @@ ble_err_t appm_disconnect(void)
 
         // Send the message
         kernel_msg_send(cmd);
-        int dis_con_time=rt_tick_get();
+        //int dis_con_time=rt_tick_get();
         while(kernel_state_get(TASK_APP) != APPM_READY)
         {
-            rt_thread_delay(50);
+            //rt_thread_delay(50);
+			DJY_EventDelay(50*1000);
         }
-        rt_kprintf("dis_con_time:%d\r\n",rt_tick_get()-dis_con_time);
+        //rt_kprintf("dis_con_time:%d\r\n",rt_tick_get()-dis_con_time);
         //mcu_prevent_clear(MCU_PS_BLE_FROBID);
     }
     else
@@ -642,12 +643,13 @@ ble_err_t appm_stop_advertising(void)
 
         // Send the message
         kernel_msg_send(cmd);
-        int stop_adv_time=rt_tick_get();
+        //int stop_adv_time=rt_tick_get();
         while(kernel_state_get(TASK_APP) != APPM_READY)
         {
-            rt_thread_delay(10);
+            //rt_thread_delay(10);
+			DJY_EventDelay(10*1000);
         }
-        rt_kprintf("stop_adv_time:%d\r\n",rt_tick_get()-stop_adv_time);
+        //rt_kprintf("stop_adv_time:%d\r\n",rt_tick_get()-stop_adv_time);
         //mcu_prevent_clear(MCU_PS_BLE_FROBID);
     }
     else
