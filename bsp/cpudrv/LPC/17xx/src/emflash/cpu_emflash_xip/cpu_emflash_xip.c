@@ -55,8 +55,8 @@
 #include <systime.h>
 #include <dbug.h>
 #include <djyfs/filesystems.h>
-#include <device/flash/flash.h> // will be obsolete
-#include <device/include/unit_media.h>
+#include <device/djy_flash.h> // will be obsolete
+#include <device/unit_media.h>
 #include <xip.h>
 
 #if 0

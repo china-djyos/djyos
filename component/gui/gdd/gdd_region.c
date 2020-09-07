@@ -59,7 +59,7 @@
 //   新版本号：V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-#include    <gui/gdd/gdd_private.h>
+#include    "gdd_private.h"
 
 s32 GDD_RectW(const RECT *prc)
 {

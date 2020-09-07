@@ -52,7 +52,7 @@
 #include <cpu_peri.h>
 #include <djyos.h>
 #include <device.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <spibus.h>
 #include <dbug.h>
 #include "w25qxx.h"

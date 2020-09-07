@@ -57,7 +57,7 @@
 #include "systime.h"
 #include "cpu_peri.h"
 #include "cpu_peri_int_line.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "device.h"
 #include "int.h"
 #include "djyos.h"

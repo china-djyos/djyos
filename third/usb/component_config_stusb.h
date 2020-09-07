@@ -72,7 +72,7 @@
 //%$#@configue      ****参数配置开始
 #if ( CFG_MODULE_ENABLE_STM32USB == false )
 //#warning  " stm32usb  组件参数未配置，使用默认配置"
-//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@target = cmdline           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_STM32USB    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,1,10
 #define CFG_USB_CONTROLLER_ID              1      //USB控制器ID
@@ -87,3 +87,5 @@
 //%$#@include path
 //.;
 //%$#@end include path
+//@#$%component end configure
+

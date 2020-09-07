@@ -54,7 +54,7 @@
 #include <object.h>
 #include <objhandle.h>
 #include <stdio.h>
-#include "filesystems.h"
+#include <djyfs/filesystems.h>
 #include "dbug.h"
 #include "component_config_fs.h"
 #include <device.h>

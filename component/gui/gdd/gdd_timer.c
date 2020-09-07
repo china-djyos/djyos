@@ -61,7 +61,7 @@
 //------------------------------------------------------
 #include <stdint.h>
 #include <djyos.h>
-#include <gui/gdd/gdd_private.h>
+#include    "gdd_private.h"
 #include <gui\gdd_timer.h>
 
 static  list_t  sg_GddTimerList;

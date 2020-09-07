@@ -53,7 +53,7 @@ extern "C" {
 
 #include    "stdint.h"
 #include    "gkernel.h"
-#include    <gui/gkernel/gk_display.h>
+#include    <gui/gk_display.h>
 
 /*===========================================================================*/
 struct LCD_ConFig

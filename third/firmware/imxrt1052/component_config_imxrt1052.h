@@ -45,3 +45,5 @@
 //./CMSIS/Include;
 //./utilities;
 //%$#@end include path
+//@#$%component end configure
+

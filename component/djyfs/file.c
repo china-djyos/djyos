@@ -55,7 +55,7 @@
 #include <fcntl.h>
 #include <stat.h>
 #include <unistd.h>
-#include "file.h"
+#include <djyfs/file.h>
 #include "dbug.h"
 #include "component_config_fs.h"
 #include <shell.h>

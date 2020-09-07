@@ -23,7 +23,7 @@
 #include "hmi-input.h"
 #include "cpu_peri.h"
 #include "cpu.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include "touch.h"
 
 //坐标系说明,描述了显存偏移地址与屏上像素点的坐标映射关系,注意单色和灰度显示器

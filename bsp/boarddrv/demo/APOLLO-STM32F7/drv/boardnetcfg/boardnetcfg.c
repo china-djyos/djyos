@@ -96,6 +96,7 @@
 //%$#@free
 #endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
+//@#$%component end configure
 
 //please refers the following function in the module-trim in proper place.
 //make sure that that os kernel has been initialize ok and the interrupt system intialize ok

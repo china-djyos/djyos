@@ -49,14 +49,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <device.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <cpu_peri.h>
 #include <djyos.h>
 #include <math.h>
 #include "stm32f7xx_hal_conf.h"
 #include <dbug.h>
 #include <djyfs/filesystems.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
 
@@ -393,7 +393,7 @@ int32_t djybsp_spiflash_init(void)
 }
 
 /////////////////////////////////////////IAP FS/////////////////////////////////////////////
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 
 
 //flash –≈œ¢√Ë ˆ

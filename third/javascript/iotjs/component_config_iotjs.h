@@ -37,4 +37,5 @@
 //%$#@include path
 //../include;
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
+//@#$%component end configure
 

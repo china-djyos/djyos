@@ -18,7 +18,7 @@ extern void GDD_Demo_Progressbar(void);
 #include <gdd.h>
 #include <gdd_widget.h>
 #include "systime.h"
-#include <gui/gdd/gdd_private.h>
+//#include    "..gui/gdd/gdd_private.h"
 #include <widget/gdd_button.h>
 
 //#include "arm32_stdint.h"

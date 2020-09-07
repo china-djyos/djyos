@@ -65,7 +65,7 @@
 #include <djyos.h>
 #include <multiplex.h>
 #include <device.h>
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include <int.h>
 #include "dbug.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。

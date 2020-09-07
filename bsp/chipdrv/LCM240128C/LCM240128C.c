@@ -19,7 +19,7 @@
 #include "cpu_peri.h"
 #include "os.h"
 #include "board-config.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include <shell.h>
 
 //坐标系说明,描述了显存偏移地址与屏上像素点的坐标映射关系,注意单色和灰度显示器

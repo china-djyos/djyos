@@ -59,8 +59,8 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include <stdint.h>
-#include <gui/gdd/gdd_private.h>
-#include <gui\gdd_cursor.h>
+#include "gdd_private.h"
+#include <gui/gdd_cursor.h>
 
 
 #define CN_CURSOR_FLASH_TIME     800            //光标闪烁时间（ms）

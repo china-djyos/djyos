@@ -49,11 +49,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <device.h>
 #include "xip.h"
 #include "dbug.h"
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #if 0
 #define LOCAL_BUF_SIZE        512
 // ============================================================================

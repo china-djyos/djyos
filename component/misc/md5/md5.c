@@ -32,7 +32,7 @@
  */
 #include <stdint.h>
 #include <os.h>
-#include "md5.h"
+#include <misc/md5.h>
 
 #include <string.h>
 

@@ -61,7 +61,7 @@
 #include "string.h"
 #include "stdio.h"
 
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "cpu_peri_uart.h"
 
 #include "os.h"

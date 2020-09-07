@@ -59,7 +59,7 @@
 #include "string.h"
 
 #include "gkernel.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 //#include "board.h"
 //#include "TW6448s.h"
 #include "djyos.h"

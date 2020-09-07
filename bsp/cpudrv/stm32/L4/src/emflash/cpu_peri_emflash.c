@@ -46,7 +46,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <device.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <cpu_peri.h>
 #include <stm32l4xx_hal_flash.h>
 #include <int.h>

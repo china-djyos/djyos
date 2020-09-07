@@ -58,4 +58,5 @@
 //%$#@includepath
 //./;
 //%$#@endincludepath
+//@#$%component end configure
 

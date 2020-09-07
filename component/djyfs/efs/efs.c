@@ -51,12 +51,12 @@
 #include <dirent.h>
 #include <djyfs/filesystems.h>
 #include <stdlib.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <string.h>
 #include <endian.h>
-#include <ecc_256.h>
+#include <misc/ecc_256.h>
 #include <lock.h>
-#include "djyfs/efs/efs.h"
+#include <djyfs/efs.h>
 #include <dbug.h>
 #include <Object.h>
 #include <systime.h>

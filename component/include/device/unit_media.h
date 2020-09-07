@@ -54,10 +54,10 @@
 extern "C" {
 #endif
 
-#include "../flash/jedec.h"
-#include "../flash/nor.h"
-#include "../flash/nand.h"
-#include "../flash/embedded_flash.h"
+#include "jedec.h"
+#include "nor.h"
+#include "nand.h"
+#include "embedded_flash.h"
 
 
 enum utype{

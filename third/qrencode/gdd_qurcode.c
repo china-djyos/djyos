@@ -60,7 +60,6 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include    "gdd.h"
-#include    <gui/gdd/gdd_private.h>
 #include    <gdd_widget.h>
 #include     <gkernel.h>
 #include    "qrencode.h"
@@ -221,7 +220,7 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     size=size/2;
     //根据尺寸计算二维码大小
     vernum=(size-17)/4;
-    str=hwnd->Text;
+    str=GDD_GetWindowText(hwnd);
 /* 89x89位宽的二维码参数为
  * 版本号:18
  * 容错等级  (ECC)  数字  (容量)     字母                                汉字          二进制代码

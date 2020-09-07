@@ -5,7 +5,7 @@
 #include <gdd_widget.h>
 #include <gui\gdd_cursor.h>
 
-#include    <gui/gdd/gdd_private.h>
+#include    "../gdd_private.h"
 
 #include    <string.h>
 #include    <_ansi.h>

@@ -56,9 +56,9 @@
 #include <stdlib.h>
 #include <djyos.h>
 #include <MKxxF12.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <include/device.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
 #include <dbug.h>

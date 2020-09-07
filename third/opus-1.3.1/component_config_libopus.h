@@ -40,3 +40,5 @@
 //%$#@include path
 //.;./include;./celt;./celt/arm;./silk;./silk/arm;./silk/fixed;./silk/fixed/arm;./src;
 //%$#@end include path
+//@#$%component end configure
+

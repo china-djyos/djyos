@@ -56,10 +56,10 @@
 #include <stdlib.h>
 #include <math.h>
 #include <device.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <cpu_peri.h>
 #include <int.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <dbug.h>
 #include <djyfs/filesystems.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。

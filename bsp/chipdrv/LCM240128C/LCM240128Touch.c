@@ -63,7 +63,7 @@
 #include "spibus.h"
 #include "gkernel.h"
 #include "systime.h"
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <device.h>
 //#include "at24c128b.h"
 #include "Touch.h"

@@ -50,8 +50,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <cpu_peri.h>
-#include <device/flash/flash.h>
-#include <device/include/unit_media.h>
+#include <device/djy_flash.h>
+#include <device/unit_media.h>
 #include <device.h>
 #include <spibus.h>
 #include <systime.h>

@@ -51,7 +51,7 @@
 #include <stdlib.h>
 #include "flash.h"
 #include "dbug.h"
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include "filesystems.h"
 #include "device.h"
 #include "norflash.h"

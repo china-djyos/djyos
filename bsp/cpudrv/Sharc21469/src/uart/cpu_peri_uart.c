@@ -55,7 +55,7 @@
 //------------------------------------------------------
 #include "stdint.h"
 
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "cpu_peri_uart.h"
 #include <cdef21469.h>
 #include "def21469.h"

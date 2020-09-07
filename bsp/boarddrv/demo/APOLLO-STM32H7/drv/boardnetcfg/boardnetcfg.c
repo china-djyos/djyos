@@ -102,6 +102,7 @@
 #endif
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯
 
+//@#$%component end configure
 
 static lan8720_IOCtx_t  LAN8720_IOCtx = {ETH_PHY_IO_Init,
                                          ETH_PHY_IO_DeInit,

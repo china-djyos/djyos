@@ -37,4 +37,6 @@
 //%$#@include path
 //../jerry-core;
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
+//@#$%component end configure
+
 

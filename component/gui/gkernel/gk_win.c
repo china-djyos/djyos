@@ -74,9 +74,8 @@
 #include "pool.h"
 #include "msgqueue.h"
 #include "djyos.h"
-#include "gk_syscall.h"
 #include "gk_usercall.h"
-#include "gk_display.h"
+#include <gui/gk_display.h>
 #include "gk_win.h"
 #include "gk_draw.h"
 #include "gk_clip.h"

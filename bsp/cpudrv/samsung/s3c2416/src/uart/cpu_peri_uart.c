@@ -63,7 +63,7 @@
 #include "cpu_peri.h"
 #include "int.h"
 #include "djyos.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "string.h"
 #include "cpu_peri_uart.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。

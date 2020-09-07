@@ -39,3 +39,5 @@
 //%$#@include path
 //./lib;
 //%$#@end include path
+//@#$%component end configure
+

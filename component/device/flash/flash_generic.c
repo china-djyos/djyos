@@ -53,8 +53,8 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "../include/unit_media.h"
-#include "flash.h" // will be obsolete
+#include "device/unit_media.h"
+#include "device/djy_flash.h"      // will be obsolete
 #include "dbug.h"
 
 // ============================================================================

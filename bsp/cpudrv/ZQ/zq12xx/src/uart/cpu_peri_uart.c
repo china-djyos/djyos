@@ -61,7 +61,7 @@
 #include "systime.h"
 #include "cpu_peri.h"
 #include "uartctrl.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include <silan_syscfg.h>
 #include <silan_uart.h>
 #include "cpu_peri_isr.h"

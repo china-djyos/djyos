@@ -29,7 +29,7 @@
 //%$#@configue      ****参数配置开始
 #if ( CFG_MODULE_ENABLE_WEBSERVER_GOAHEAD401 == false )
 //#warning  " webserver_goahead401  组件参数未配置，使用默认配置"
-//%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@target = cmdline          //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_WEBSERVER_GOAHEAD401    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100
 //%$#@enum,true,false
@@ -47,3 +47,5 @@
 //%$#@include path
 ///src;/build/djyos-default/inc;/src/osdep;/src/mbedtls;
 //%$#@end include path
+//@#$%component end configure
+

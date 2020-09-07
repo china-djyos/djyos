@@ -41,4 +41,5 @@
 //%$#@include path
 //.;.\include;
 //%$#@end include path
+//@#$%component end configure
 

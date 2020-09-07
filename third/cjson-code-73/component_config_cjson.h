@@ -39,4 +39,5 @@
 //%$#@include path
 //.;
 //%$#@end include path
+//@#$%component end configure
 

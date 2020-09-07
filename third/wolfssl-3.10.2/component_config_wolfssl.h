@@ -39,3 +39,5 @@
 //%$#@include path
 //./;./wolfssl;./wolfssl/openssl;./wolfssl/wolfcrypt;
 //%$#@end include path
+//@#$%component end configure
+

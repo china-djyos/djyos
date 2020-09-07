@@ -63,7 +63,7 @@
 #include <int.h>
 #include <string.h>
 #include <stdlib.h>
-#include "./include/ring.h"
+#include "ring.h"
 #include "component_config_buffer.h"
 
 //----建立环形缓冲区----------------------------------------------------------

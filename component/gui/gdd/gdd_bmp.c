@@ -61,7 +61,7 @@
 //------------------------------------------------------
 
 #include <align.h>
-#include    <gui/gdd/gdd_private.h>
+#include    "gdd_private.h"
 
 #pragma pack(1)
 

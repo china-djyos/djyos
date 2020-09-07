@@ -39,3 +39,5 @@
 //%$#@include path
 //.;./driver/include;
 //%$#@end include path
+//@#$%component end configure
+

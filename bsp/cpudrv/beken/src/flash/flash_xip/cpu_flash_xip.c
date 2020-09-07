@@ -56,8 +56,8 @@
 #include <dbug.h>
 #include <Iboot_info.h>
 #include <djyfs/filesystems.h>
-#include <device/flash/flash.h> // will be obsolete
-#include <device/include/unit_media.h>
+#include <device/djy_flash.h> // will be obsolete
+#include <device/unit_media.h>
 #include <xip.h>
 #include <endian.h>
 #include <objhandle.h>

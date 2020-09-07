@@ -56,7 +56,7 @@
 #include "errno.h"
 #include "systime.h"
 #include "cpu_peri.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "int.h"
 #include "djyos.h"
 #include "cpu_peri_uart.h"

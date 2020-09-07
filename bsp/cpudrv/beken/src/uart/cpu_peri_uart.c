@@ -44,7 +44,7 @@
 //-----------------------------------------------------------------------------
 // =============================================================================
 #include "cpu_peri.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "stdlib.h"
 #include <icu_pub.h>
 #include "arm_arch.h"

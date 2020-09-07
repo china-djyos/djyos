@@ -51,7 +51,7 @@
 
 #include "board-config.h"
 #include "gkernel.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include "cpu_peri.h"
 
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。

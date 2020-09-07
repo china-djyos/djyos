@@ -60,7 +60,7 @@
 //---------------------------------
 
 #include  "gdd.h"
-#include  <gui/gdd/gdd_private.h>
+#include    "../gdd_private.h"
 #include "font.h"
 #include    <gdd_widget.h>
 #include "dbug.h"

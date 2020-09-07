@@ -13,7 +13,7 @@
  * option) any later version.
  */
 //------------------------------------------------------
-#include "../include/pci.h"
+#include "device/pci.h"
 #include "stdio.h"
 #include "dbug.h"
 

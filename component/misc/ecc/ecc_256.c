@@ -46,7 +46,7 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
-#include "ecc_256.h"
+#include <misc/ecc_256.h>
 
 /**
  *  Count and return the number of bits set to '1' in the given byte.

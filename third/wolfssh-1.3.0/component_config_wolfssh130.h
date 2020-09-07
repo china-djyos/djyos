@@ -102,10 +102,11 @@
 #endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
-./examples;./src/keygen.c;./src/misc.c;./tests;
+//./examples;./src/keygen.c;./src/misc.c;./tests;
 
 //%$#@endexclude
 //%$#@includepath
 //./;
 //%$#@endincludepath
+//@#$%component end configure
 

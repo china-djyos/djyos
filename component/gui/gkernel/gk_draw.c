@@ -65,8 +65,7 @@
 #include "string.h"
 #include "object.h"
 #include "gkernel.h"
-#include "gk_display.h"
-#include "gk_syscall.h"
+#include <gui/gk_display.h>
 #include "gk_win.h"
 #include "gk_draw.h"
 #include "gk_clip.h"

@@ -52,9 +52,11 @@
 //%$#@free
 #endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
+
 //%$#@exclude
 //%$#@end exclude
 //%$#@include path
 //.;.\inc;
 //%$#@end include path
+//@#$%component end configure
 

@@ -96,6 +96,7 @@
 //%$#@end exclude   ****×é¼şÃèÊö½áÊø
 
 //@#$%component end configure
+
 #pragma pack(1)
 struct IcmpHdr
 {

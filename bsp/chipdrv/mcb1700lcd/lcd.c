@@ -53,7 +53,7 @@
 #include "cpu_peri.h"
 #include "djyos.h"
 #include "gkernel.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include "lcd.h"
 #include "lcd_spidrv.h"
 #include "heap.h"

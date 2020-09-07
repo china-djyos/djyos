@@ -266,7 +266,7 @@ static s32 __stdio_close(struct objhandle *hdl)
     }
 
 //  return (Handle_Delete(hdl));
-    return;
+    return 0;
 }
 
 // ============================================================================

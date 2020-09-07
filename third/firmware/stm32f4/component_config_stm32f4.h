@@ -67,4 +67,5 @@
 //%$#@include path
 //.;.\inc;
 //%$#@end include path
+//@#$%component end configure
 

@@ -46,4 +46,5 @@
 //%$#@include path
 //.;.\inc;.\cmsis\include;
 //%$#@end include path
+//@#$%component end configure
 

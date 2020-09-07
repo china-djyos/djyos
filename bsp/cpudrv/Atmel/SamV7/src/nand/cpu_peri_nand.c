@@ -57,10 +57,10 @@
 #include <device.h>
 #include <djyos.h>
 #include "dbug.h"
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <math.h>
 #include <djyfs/filesystems.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
 #include <cpu_peri.h>// °üº¬"samv71q21.h"

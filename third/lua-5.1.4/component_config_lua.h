@@ -39,3 +39,5 @@
 //%$#@include path
 //./src;
 //%$#@end include path
+//@#$%component end configure
+

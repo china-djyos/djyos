@@ -21,7 +21,7 @@
 #include "spibus.h"
 #include "djybus.h"
 #include "driver.h"
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <device.h>
 #include <djyfs/filesystems.h>
 #include <include/spi_pub.h>

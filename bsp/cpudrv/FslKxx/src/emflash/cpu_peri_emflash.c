@@ -45,10 +45,10 @@
 
 #include <stdlib.h>
 #include <device.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <cpu_peri.h>
 #include <int.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <dbug.h>
 #include <xip.h>
 #include <djyfs/filesystems.h>

@@ -46,7 +46,7 @@
 #include "stdint.h"
 #include "stdlib.h"
 
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include "board-config.h"
 
 #include "cpu_peri.h"

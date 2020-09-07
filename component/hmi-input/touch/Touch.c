@@ -60,7 +60,7 @@
 #include "djyos.h"
 #include "Touch.h"
 #include <gdd.h>
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include "string.h"
 #include "systime.h"
 

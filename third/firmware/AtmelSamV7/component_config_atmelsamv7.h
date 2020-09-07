@@ -70,4 +70,5 @@
 //.;.\include;
 //.;.\include\samv7;
 //%$#@end include path
+//@#$%component end configure
 

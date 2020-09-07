@@ -54,7 +54,7 @@
 #include "cpu_peri.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "string.h"
 #include "uart_dma.h"
 #include "uart_dma.h"

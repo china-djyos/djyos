@@ -60,8 +60,8 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include "stdint.h"
-#include <gui/gkernel/gk_display.h>
-#include    <gui/gdd/gdd_private.h>
+#include <gui/gk_display.h>
+#include    "gdd_private.h"
 #include    <gui/gdd_timer.h>
 #include "list.h"
 #include "pool.h"

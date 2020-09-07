@@ -45,7 +45,7 @@
 // =============================================================================
 #include <typedef.h>
 #include "cpu_peri.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "stdlib.h"
 #include "gpio_pub.h"
 #include "icu_pub.h"

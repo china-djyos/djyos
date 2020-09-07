@@ -60,9 +60,9 @@
 //------------------------------------------------------
 #include <stdint.h>
 #include <lock.h>
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include <hmi-input.h>
-#include <gui/gdd/gdd_private.h>
+#include    "gdd_private.h"
 #include "dbug.h"
 static tpInputMsgQ sg_ptGddMsgQ;
 

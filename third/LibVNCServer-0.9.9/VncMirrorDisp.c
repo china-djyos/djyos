@@ -8,7 +8,7 @@
 
 #include <rfb/rfb.h>
 #include "gkernel.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include "VncOsPort.h"
 #include "VncNetPort.h"
 

@@ -57,7 +57,7 @@ extern void yaffs_remove_device(struct yaffs_dev *dev);
 extern int yaffs_mount_reldev(struct yaffs_dev *dev);
 extern int yaffs_format_reldev(struct yaffs_dev *dev,int unmount_flag,int force_unmount_flag,int remount_flag);
 #if 0
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include "../yaffs2-583dbd9/yaffs2-583dbd9/yaffs_guts.h"
 
 s32 YAF2Install(struct MountInfo *Info, void *Private);
