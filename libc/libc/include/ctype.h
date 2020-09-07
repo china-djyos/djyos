@@ -98,8 +98,8 @@ extern const char   *__ctype_ptr__;
 #endif /* !__cplusplus */
 
 #ifndef __STRICT_ANSI__
-#define isascii(__c)    ((unsigned)(__c)<=0127)
-#define toascii(__c)    ((__c)&0127)
+#define isascii(__c)	((unsigned)(__c)<=0177)
+#define toascii(__c)	((__c)&0177)
 #endif
 
 /* For C++ backward-compatibility only.  */

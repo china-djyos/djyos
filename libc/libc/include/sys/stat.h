@@ -54,8 +54,8 @@
 //   新版本号:
 //   修改说明: 新建
 //------------------------------------------------------
-#ifndef __STAT_H__
-#define __STAT_H__
+#ifndef _SYS_STAT_H
+#define _SYS_STAT_H
 
 #include "_ansi.h"
 #include "cdefs.h"
@@ -182,4 +182,5 @@ int   _EXFUN(lstat, (const char *__restrict, struct stat *__restrict));
 }
 #endif
 
-#endif      //for __STAT_H__
+#endif      //for _SYS_STAT_H
+

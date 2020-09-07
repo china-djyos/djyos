@@ -104,3 +104,10 @@
 #define OPEN_MAX    CN_LIMIT_SINT32
 #endif   /* !_LIBC_LIMITS_H_ */
 
+#ifndef ARG_MAX
+#define ARG_MAX		4096
+#endif
+
+#ifndef PATH_MAX
+#define PATH_MAX	4096
+#endif

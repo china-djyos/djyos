@@ -1,7 +1,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-//#include <sys/termios.h>
+#include <machine/termios.h>
 #ifdef __cplusplus
 }
 #endif

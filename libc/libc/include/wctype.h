@@ -2,7 +2,9 @@
 #define _WCTYPE_H_
 
 #include <_ansi.h>
+#include <sys/_types.h>
 
+#define __need_wint_t
 #include <stddef.h>
 
 #ifndef WEOF

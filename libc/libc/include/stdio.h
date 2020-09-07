@@ -144,6 +144,7 @@ bool_t IsInitedStdio(FILE* stream);
 #define FP_IOREAD           0x0001      // currently reading
 #define FP_IOWRITE          0x0002      // currently writing
 //#define FP_IOFLOW           0x0100      // 流动数据，例如串口，display等，不允许写缓冲
+                                        //不应该在此定义，而是在stat.h中定义 S_IFFLOW
 #define FP_IORW             0x0080      // opened as "r+w"
 #define FP_BINARY           0x1000      // reading binary file
 #define FP_TEXT             0x2000      // reading text file

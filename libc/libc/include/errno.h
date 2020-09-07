@@ -71,7 +71,7 @@ enum _NEWLIB_ERROR_CODE_
     ECHRNG,      /* Channel number out of range */
     EL2NSYNC,    /* Level   not synchronized */
     EL3HLT,      /* Level   halted */
-    EL3RST,      /* Level   CPU_Reset */
+    EL3RST,      /* Level   reset */
     ELNRNG,      /* Link number out of range */
     EUNATCH,     /* Protocol driver not attached */
     ENOCSI,      /* No CSI structure available */
@@ -131,7 +131,7 @@ enum _NEWLIB_ERROR_CODE_
     ELOOP,       /* Too many symbolic links */
     EOPNOTSUPP,      /* Operation not supported on transport endpoint */
     EPFNOSUPPORT,    /* Protocol family not supported */
-    ECONNRESET,      /* Connection CPU_Reset by peer */
+    ECONNRESET,      /* Connection reset by peer */
     ENOBUFS,     /* No buffer space available */
     EAFNOSUPPORT,     /* Address family not supported by protocol family */
     EPROTOTYPE,      /* Protocol wrong type for socket */

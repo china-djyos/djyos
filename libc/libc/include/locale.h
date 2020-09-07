@@ -9,6 +9,7 @@
 
 #include "_ansi.h"
 
+#define __need_NULL
 #include <stddef.h>
 
 #define LC_ALL      0

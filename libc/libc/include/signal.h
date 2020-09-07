@@ -4,6 +4,7 @@
  *  Created on: 2015Äê9ÔÂ6ÈÕ
  *      Author: zqf
  */
+#include <sys/_sigset.h>
 
 #ifndef SIGNAL_H_
 #define SIGNAL_H_

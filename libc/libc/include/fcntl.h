@@ -46,7 +46,7 @@ extern "C" {
  #warning "O_RDWR" duplicate definition!
 #endif
 #ifndef O_EXEC
- #define O_EXEC                     0x00000004      //(00000003)
+ #define O_EXEC                     0x00000004      //(00000004)
 #else
  #warning "O_EXEC" duplicate definition!
 #endif

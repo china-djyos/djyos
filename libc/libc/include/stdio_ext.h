@@ -13,6 +13,10 @@
 
 #include <stdio.h>
 
+#define	FSETLOCKING_QUERY	0
+#define	FSETLOCKING_INTERNAL	1
+#define	FSETLOCKING_BYCALLER	2
+
 _BEGIN_STD_C
 
 void	 _EXFUN(__fpurge,(FILE *));
@@ -47,6 +51,16 @@ _ELIDABLE_INLINE inline size_t
 __fpending (FILE *__fp) { return __fp->_p - __fp->_bf._base; }
 
 #else
+
+size_t	 _EXFUN(__fbufsize,(FILE *));
+int	 _EXFUN(__freading,(FILE *));
+int	 _EXFUN(__fwriting,(FILE *));
+int	 _EXFUN(__freadable,(FILE *));
+int	 _EXFUN(__fwritable,(FILE *));
+int	 _EXFUN(__flbf,(FILE *));
+size_t	 _EXFUN(__fpending,(FILE *));
+
+#ifndef __cplusplus
 
 #define __fbufsize(__fp) ((size_t) (__fp)->_bf._size)
 #define __freading(__fp) (((__fp)->_flags & __SRD) != 0)

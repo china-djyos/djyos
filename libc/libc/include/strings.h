@@ -24,8 +24,9 @@ char    *_EXFUN(index,(const char *, int));
 char    *_EXFUN(rindex,(const char *, int));
 #endif /* ! __STRICT_ANSI__ */
 
-int  _EXFUN(strcasecmp,(const char *, const char *));
-int  _EXFUN(strncasecmp,(const char *, const char *, size_t));
+int	 _EXFUN(ffs,(int));
+int	 _EXFUN(strcasecmp,(const char *, const char *));
+int	 _EXFUN(strncasecmp,(const char *, const char *, size_t));
 
 _END_STD_C
 

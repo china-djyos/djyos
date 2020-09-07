@@ -108,7 +108,6 @@ extern char g_cTmWdays[][8];
 
 ptu32_t ModuleInstall_TM(ptu32_t para);
 s64 Time_Time(s64 *ret);
-s64 Tm_TimeMs(s64 *ret);
 s64 Time_TimeUs(s64 *ret);
 struct tm *Time_GmTime(const s64 *time);
 struct tm *Time_GmTimeUs(const s64 *time);
@@ -116,10 +115,8 @@ struct tm *Time_GmTimeUs_r(const s64 *time,struct tm *result);
 struct tm *Time_LocalTime(const s64 *time);
 struct tm *Time_LocalTimeUs_r(const s64 *time_us,struct tm *result);
 struct tm *Time_LocalTime_r(const s64 *time,struct tm *result);
-void Tm_IncSecond(u32 inc);
 void Time_AscTime(struct tm *tm, char buf[]);
 void Time_AscTimeMs(struct tm *tm, char buf[]);
-void Tm_AscTimeuS(struct tm *tm, char buf[]);
 
 s64 Time_MkTime(struct tm *dt);
 s64 Time_MkTimeUs(struct tm *dt);
