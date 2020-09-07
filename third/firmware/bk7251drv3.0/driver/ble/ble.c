@@ -19,6 +19,8 @@
 #include "gapc_task.h"
 #include "bk7011_cal_pub.h"
 
+#define rt_kprintf printk
+
 #define BLE_MSG_QUEUE_COUNT          (20)
 
 beken_queue_t ble_msg_que = NULL;
