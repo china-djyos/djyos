@@ -14,13 +14,8 @@ void delay05us(INT32 num);
 #define SUMNUMBERS                  4
 #define MINOFFSET                   16
 
-//chenws： 这里修改主要是因为如果硬延时，联网中导致mp3同时播放卡音
-//注意： 蓝牙校准需要先关中断，校准完开中断，因为校准调用这里的延时，导致很慢
-#if (CFG_SUPPORT_DJYOS)     
-#define cpu_delay(val)            DJY_EventDelay(MAX(1000, val*1000)) //delay(MAX(1, val/100))
-#else
 #define cpu_delay(val)            delay(MAX(1, val/100))
-#endif
+
 #define DELAY1US                  100
 
 
