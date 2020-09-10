@@ -222,13 +222,13 @@ static bool_t GT911_Init( )
     u8 count = 0, Val_1 = 0, Val_2 = 0;
     s8 ret = 0;
     GPIO_SettoLow(GPIO_D,PIN2);         //RST 0
-    Djy_EventDelay(20000);
+    DJY_EventDelay(20000);
     GPIO_SettoLow(GPIO_D,PIN3);         //INT 0
-    Djy_EventDelay(2000);
+    DJY_EventDelay(2000);
     GPIO_SettoHigh(GPIO_D,PIN2);        //RST 1
-    Djy_EventDelay(6000);
+    DJY_EventDelay(6000);
     GPIO_SettoLow(GPIO_D,PIN3);         //INT 0
-    Djy_EventDelay(50000);
+    DJY_EventDelay(50000);
 
     Set_TpINT_ToIn();
 
@@ -331,7 +331,7 @@ static bool_t GT911_Scan(struct SingleTouchMsg *touch_data)
                 GT911_WR_Reg(GT911_READ_COOR_ADDR,&touch_num,1);
             }
         }
-        Djy_EventDelay(6000);
+        DJY_EventDelay(6000);
     }
 
     return 0;
