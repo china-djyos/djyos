@@ -262,7 +262,9 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
             }
             if( (devtask & CN_IPDEV_ICMPOCHKSUM) && !(devfunc & CN_IPDEV_ICMPOCHKSUM) )
             {
-                IpPseudoPkgLstChkSumV4(ipsrc,ipdst,proto,pkg,translen,chksum);
+                //chenws: 注意tcp,udp需要伪头部一起计算，icmp不需要伪头部计算
+                //IpPseudoPkgLstChkSumV4(ipsrc,ipdst,proto,pkg,translen,chksum);
+                IpPkgChkSum(pkg, chksum, 0);
                 devtask &= ~CN_IPDEV_ICMPOCHKSUM;  //do it by the software
             }
 
