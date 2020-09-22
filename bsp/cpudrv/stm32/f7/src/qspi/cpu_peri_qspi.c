@@ -111,6 +111,37 @@ bool_t QSPI_WaitFlag(u32 flag, u8 state, u32 time)
     else
         return false;
 }
+
+void QSPI_HandingErrorState(void)
+{
+    u8 fifo_data = 0;
+    u8 read_fifo;
+    __IO u32 *data_reg = &QUADSPI->DR;
+
+    if(QSPI_Handler.State == HAL_QSPI_STATE_ERROR)
+    {
+        notice_printf("QSPI", " handing qspid error state.\r\n");
+        while(QSPI_WaitFlag(QSPI_SR_BUSY, 0, 0xffff) == false)
+        {
+            while(QSPI_WaitFlag(QSPI_SR_FTF, 0, 0xffff) == false)
+            {
+                fifo_data = (QUADSPI->SR >> 8);
+                if(fifo_data > 0x20)
+                    printf(" >20 ");
+                while(fifo_data > 0)
+                {
+                    read_fifo = *(__IO u8 *)data_reg;
+                    fifo_data --;
+                }
+
+            }
+            printf(" .");
+        }
+        QSPI_Handler.State = HAL_QSPI_STATE_READY;
+    }
+}
+
+
 //-----------------------------------------------------------------------------
 //功能: 命令发送
 //参数: cmd：发送的命令，addr：目标地址，mode：模式，dmcycle：空指令周期数
@@ -160,6 +191,8 @@ bool_t QSPI_Send_CMD(u32 instruction,u32 addr,u32 dummy_cycles,u32 instruction_m
     return  false;
 #else
     QSPI_CommandTypeDef Cmdhandler;
+    HAL_StatusTypeDef ret = HAL_ERROR;
+    u8 i = 0;
 
     Cmdhandler.Instruction=instruction;     //指令
     Cmdhandler.Address=addr;             //地址
@@ -220,10 +253,28 @@ bool_t QSPI_Send_CMD(u32 instruction,u32 addr,u32 dummy_cycles,u32 instruction_m
     else
         Cmdhandler.DdrHoldHalfCycle=QSPI_DDR_HHC_HALF_CLK_DELAY;
 
-    if(HAL_QSPI_Command(&QSPI_Handler,&Cmdhandler,CFG_QSPI_TIMEOUT) == HAL_OK)
+    ret = HAL_QSPI_Command(&QSPI_Handler,&Cmdhandler,CFG_QSPI_TIMEOUT);
+    if(ret != HAL_OK)
+    {
+        while(i++ < 3)
+        {
+            if(ret != HAL_OK)
+            {
+                QSPI_HandingErrorState();
+            }
+            else
+                break;
+            ret = HAL_QSPI_Command(&QSPI_Handler,&Cmdhandler,CFG_QSPI_TIMEOUT);
+        }
+    }
+
+    if(ret == HAL_OK)
         return  true;
     else
+    {
+        error_printf("qspi", "cmd send fail\r\n");
         return  false;
+    }
 #endif
 }
 
@@ -270,29 +321,36 @@ bool_t QSPI_Receive(u8 *buf,u32 len)
     return sta;
 #else
 
-    u8 fifo_data = 0;
-    u8 read_fifo;
+    u8 i = 0;
+    HAL_StatusTypeDef ret = HAL_ERROR;
     __IO u32 *data_reg = &QUADSPI->DR;
-    QSPI_Handler.Instance->DLR=len-1;       //配置数据长度
-    if(HAL_QSPI_Receive(&QSPI_Handler, buf, CFG_QSPI_TIMEOUT)==HAL_OK)
-    {
-        while(QSPI_WaitFlag(QSPI_SR_BUSY, 0, 0xffff) == false)
-        {
-            while(QSPI_WaitFlag(QSPI_SR_FTF, 0, 0xffff) == false)
-            {
-                fifo_data = (QUADSPI->SR >> 8) & 0x1f;
-                while(fifo_data > 0)
-                {
-                    read_fifo = *(__IO u8 *)data_reg;
-                    fifo_data --;
-                }
 
+    QSPI_Handler.Instance->DLR=len-1;       //配置数据长度
+
+    ret = HAL_QSPI_Receive(&QSPI_Handler, buf, CFG_QSPI_TIMEOUT);
+    if(ret != HAL_OK)
+    {
+        while(i++ < 3)
+        {
+            if(ret != HAL_OK)
+            {
+                QSPI_HandingErrorState();
             }
+            else
+                break;
+            ret = HAL_QSPI_Receive(&QSPI_Handler, buf, CFG_QSPI_TIMEOUT);
         }
+    }
+
+    if(ret == HAL_OK)
+    {
         return true;
     }
     else
+    {
+        error_printf("qspi", "receive error\r\n");
         return false;
+    }
 #endif
 }
 
@@ -338,9 +396,35 @@ u8 QSPI_Transmit(u8 *buf,u32 len)
     }
     return sta;
 #else
+    u8 i = 0;
+    HAL_StatusTypeDef ret = HAL_ERROR;
+
     QSPI_Handler.Instance->DLR=len-1;
-    if(HAL_QSPI_Transmit(&QSPI_Handler,buf,CFG_QSPI_TIMEOUT)==HAL_OK) return true;
-    else return false;
+
+    ret = HAL_QSPI_Transmit(&QSPI_Handler,buf,CFG_QSPI_TIMEOUT);
+    if(ret != HAL_OK)
+    {
+        while(i++ < 3)
+        {
+            if(ret != HAL_OK)
+            {
+                QSPI_HandingErrorState();
+            }
+            else
+                break;
+            ret = HAL_QSPI_Transmit(&QSPI_Handler,buf,CFG_QSPI_TIMEOUT);
+        }
+    }
+
+    if(ret == HAL_OK)
+    {
+        return true;
+    }
+    else
+    {
+        error_printf("qspi", "transmit error\r\n");
+        return false;
+    }
 #endif
 }
 //-----------------------------------------------------------------------------
@@ -390,48 +474,48 @@ bool_t QSPI_Init(void)
     return true;
 #else
     QSPI_Handler.Instance=QUADSPI;
-    QSPI_Handler.Init.ClockPrescaler=CFG_QSPI_CLOCK_PRESCALER;     //设置QSPI的时钟为AHB时钟的1/3,216/3 = 72Mhz = 13.8ns
-    QSPI_Handler.Init.FifoThreshold=CFG_QSPI_FIFO_THRESHOLD_LEVEL;      //FIFO的阈值为4
+    QSPI_Handler.Init.ClockPrescaler=CFG_QSPI_CLOCK_PRESCALER;     //设置QSPI的时钟,216/(CFG_QSPI_CLOCK_PRESCALER+1),如果CFG_QSPI_CLOCK_PRESCALER=2的话。clk = 72Mhz = 13.8ns
+    QSPI_Handler.Init.FifoThreshold=CFG_QSPI_FIFO_THRESHOLD_LEVEL;      //FIFO的阈值为
 
     if(CFG_QSPI_SAMPLE_SHIFT)
         QSPI_Handler.Init.SampleShifting=QSPI_SAMPLE_SHIFTING_HALFCYCLE;    //采样移位半个周期
     else
         QSPI_Handler.Init.SampleShifting=QSPI_SAMPLE_SHIFTING_NONE;    //采样不发生移位
 
-    QSPI_Handler.Init.FlashSize=CFG_QSPI_FLASH_SIZE; //设置flash大小为 2^25 = 32M
+    QSPI_Handler.Init.FlashSize=CFG_QSPI_FLASH_SIZE; //设置flash大小为 2^(CFG_QSPI_FLASH_SIZE + 1)
 
     switch(CFG_QSPI_CHIP_SELECT_HIGH_TIME)
     {
         case 1:
-            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;
+            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;   //设置片选高电平时间为1个时钟13.8ns*1
             break;
         case 2:
-            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_2_CYCLE;
+            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_2_CYCLE;   //设置片选高电平时间为2个时钟13.8ns*2
             break;
         case 3:
-            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_3_CYCLE;
+            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_3_CYCLE;   //设置片选高电平时间为3个时钟13.8ns*3
             break;
         case 4:
-            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_4_CYCLE; //设置片选高电平时间为4个时钟13.8ns*4=55.2ns，看手册
+            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_4_CYCLE; //设置片选高电平时间为4个时钟13.8ns*4
             break;
         case 5:
-            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_5_CYCLE; //设置片选高电平时间为4个时钟13.8ns*4=55.2ns，看手册
+            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_5_CYCLE; //设置片选高电平时间为4个时钟13.8ns*5
             break;
         case 6:
-            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_6_CYCLE; //设置片选高电平时间为4个时钟13.8ns*4=55.2ns，看手册
+            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_6_CYCLE; //设置片选高电平时间为4个时钟13.8ns*6
             break;
         case 7:
-            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_7_CYCLE; //设置片选高电平时间为4个时钟13.8ns*4=55.2ns，看手册
+            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_7_CYCLE; //设置片选高电平时间为4个时钟13.8ns*7
             break;
         case 8:
-            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_8_CYCLE; //设置片选高电平时间为4个时钟13.8ns*4=55.2ns，看手册
+            QSPI_Handler.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_8_CYCLE; //设置片选高电平时间为4个时钟13.8ns*8
             break;
         default:
             error_printf("QSPI","Chip select high time error.\r\n");
            break;
     }
     if(CFG_QSPI_CK_MODE)
-        QSPI_Handler.Init.ClockMode=QSPI_CLOCK_MODE_3;  //模式 0
+        QSPI_Handler.Init.ClockMode=QSPI_CLOCK_MODE_3;  //模式 3
     else
         QSPI_Handler.Init.ClockMode=QSPI_CLOCK_MODE_0;  //模式 0
 
@@ -441,7 +525,7 @@ bool_t QSPI_Init(void)
         QSPI_Handler.Init.FlashID=QSPI_FLASH_ID_2;
 
     if(CFG_QSPI_DUAL_FLASH_MODE)
-        QSPI_Handler.Init.DualFlash=QSPI_DUALFLASH_ENABLE; //禁止双闪存模式
+        QSPI_Handler.Init.DualFlash=QSPI_DUALFLASH_ENABLE;
     else
         QSPI_Handler.Init.DualFlash=QSPI_DUALFLASH_DISABLE; //禁止双闪存模式
 

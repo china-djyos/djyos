@@ -881,18 +881,18 @@ s32 ModuleInstall_gd25q16c(void)
         return false;
     }
 
-//    temp=gd25q16c_ReadID();        //读取FLASH ID.目前只能用中断方式，在initPrj.c文件中初始化中断还没起来
+    temp=gd25q16c_ReadID();        //读取FLASH ID.目前只能用中断方式，在initPrj.c文件中初始化中断还没起来
 
-//    if(temp==gd25q16c_TYPE)
-//   {
-//        printf("gd25q16c Read ID Success,ID:%x\r\n",gd25q16c_TYPE);
-//    }
-//    else
-//    {
-//       printf("gd25q16c Read ID Error,True ID:%x",gd25q16c_TYPE);
-//       printf("    Read ID:%x\r\n",temp);
-//       return false;
-//    }
+    if(temp==gd25q16c_TYPE)
+   {
+        printf("gd25q16c Read ID Success,ID:%x\r\n",gd25q16c_TYPE);
+    }
+    else
+    {
+       printf("gd25q16c Read ID Error,True ID:%x",gd25q16c_TYPE);
+       printf("    Read ID:%x\r\n",temp);
+       return false;
+    }
 
     if(!qflashdescription)
     {

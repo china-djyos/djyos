@@ -196,7 +196,7 @@ ptu32_t KeyBoard_Scan(void)
             else
             {
                 if(keyboard_pr->vtime_count < keyboard_pr->vtime_limit)
-                    keyboard_pr->vtime_count += 30;
+                    keyboard_pr->vtime_count += 10;
             }
 
             if((keyboard_pr->key_bak != keyboard_pr->key_now)
@@ -253,7 +253,7 @@ ptu32_t KeyBoard_Scan(void)
                 keyboard_pr->key_bak = keyboard_pr->key_now;
             }
         }
-        DJY_EventDelay(50*mS);
+        DJY_EventDelay(10*mS);
     }
 }
 

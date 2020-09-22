@@ -577,7 +577,7 @@ s32 IIS_Open(struct IIS_OperParam *param, u32 mode)
 // =============================================================================
 s32 IIS_Read(void *buffer, s32 size)
 {
-    s32 fill_size;
+    s32 fill_size = 0;
     if(!(g_i2s.open_flag & O_RDONLY))
         return 0;
 
@@ -601,7 +601,7 @@ s32 IIS_Read(void *buffer, s32 size)
 // =============================================================================
 s32 IIS_Write(void *buffer, s32 size)
 {
-    s32 fill_size;
+    s32 fill_size = 0;
     if(!(g_i2s.open_flag & O_WRONLY))
         return 0;
 
