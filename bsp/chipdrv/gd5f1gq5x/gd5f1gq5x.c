@@ -52,11 +52,11 @@
 #include <cpu_peri.h>
 #include <djyos.h>
 #include <device.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <spibus.h>
 #include <djyfs/filesystems.h>
 #include <dbug.h>
-#include <device/flash/nand.h>
+#include <device/nand.h>
 #include <gd5f1gq5x.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。

@@ -62,7 +62,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include <list.h>
+#include <include/list.h>
 #include <fcntl.h>
 
 // fnObjOps º¯Êý·µ»ØÖµ¡£

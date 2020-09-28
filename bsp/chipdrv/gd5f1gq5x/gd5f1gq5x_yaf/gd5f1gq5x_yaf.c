@@ -50,14 +50,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <device.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <cpu_peri.h>
 #include <djyos.h>
 #include <math.h>
 #include "stm32f7xx_hal_conf.h"
 #include <dbug.h>
 #include <djyfs/filesystems.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <board.h>
 #include <gd5f1gq5x.h>
 #include <fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_guts.h>
