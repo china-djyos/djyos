@@ -95,6 +95,84 @@ struct NandDescr{
 #define HW_ECC_SUPPORTED                ((u8)0x1)
 #define SW_ECC_SUPPORTED                ((u8)0x2)
 };
+
+
+//
+// @brief  ONFI
+//
+struct NandONFI
+{
+    //修订信息和特征块
+    s8 signature[4];             //ONFI签名
+    s16 revision_num;            //支持的ONFI版本号
+    s16 features_supp;           //功能支持
+    s16 opt_cmd_supp;            //支持可选的命令
+    s8 adv_cmd_supp;             //ONFI-JEDEC JTG主要高级命令支持
+    s8 tar_cmd_supp;             //训练命令支持
+    s16 ext_param_page_len;      //扩展参数页长
+    s8 param_page_num;           //参数页数
+    s8 feat_reserved[17];        //修订信息和特征块中保留的位
+    //制造商信息块
+    s8 dev_manufacturer[12];         //设备制造商
+    s8 dev_model[20];            //设备型号
+    s8 manufacturer_id;          //JEDEC 制造商ID
+    s16 data_code;               //数据代码
+    s8 manuf_reserved[13];       //制造商信息块中保留的位
+    //内存结构块
+    s32 bytes_per_page;          //每页的字节数
+    s16 spare_bytes_per_page;    //每页的备用字节数
+    s32 obsolete_bytes_per_partial_page;            //每部分页的字节数(已废弃)
+    s16 obsolete_spare_bytes_per_partial_page;      //每部分页的备用字节数(已废弃)
+    s32 pages_per_block;          //每块的页数
+    s32 blocks_per_LUN;           //每个LUN的块数
+    s8 LUNs;                      //LUN数
+    s8 address_cycles;            //地址周期数，0-3：行地址周期数，4-7：列地址周期数
+    s8 bits_per_cell;             //每个单元的比特数
+    s16 bad_blk_max_per_LUN;      //每个LUN的最大坏块数
+    s16 block_endurance;          //块的耐久性
+    s8 blocks_begin_valid;        //在目标开始时保证有效块
+    s16 valid_block_endurance;    //保证有效块的块持久性
+    s8 programs_per_page;         //每页的程序数
+    s8 obsolete_Part_programs_attri;       //部分编程属性(已废弃)
+    s8 ECC_corr_bits;             //ECC可纠正位数
+    s8 plane_address_bits;        //面地址位数
+    s8 multi_plane_oper_attri;    //多面操作属性
+    s8 EZ_nand_support;           //EZ nand支持
+    s8 memory_reserved[12];       //内存结构块的保留位
+    //电气参数块
+    s8 IO_capacitance_max;        //I/O引脚电容量，最大值
+    s16 SDR_timing_support;       //SDR计时模式支持
+    s16 obsolete_SDR_program_cache;     //支持SDR程序缓存定时模式(已废弃)
+    s16 max_page_program_time;    //tPROG最大页面程序时间
+    s16 max_block_erase_time;     //tBERS最大块擦除时间
+    s16 max_page_read_time;       //tR最大页读取时间
+    s16 min_change_colu_set_time; //最小更改列设置时间
+    s8 NV_DDR_timing_mode_supp;   //NV-DDR定时模式支持
+    s8 NV_DDR2_timing_mode_supp;   //NV-DDR2定时模式支持
+    s8 DDR_DDR2_features;          //NV-DDR - NV-DDR2功能
+    s16 CLK_input_capacitance;     //时钟输入引脚电容量，典型值
+    s16 IO_capacitance_typical;    //I/O引脚电容量，典型值
+    s16 input_capacitance_typical; //输入引脚电容量，典型值
+    s8 input_capacitance_max;      //输入引脚电容量，最大值
+    s8 driver_strength_supp;       //驱动力量支持
+    s16 multi_plane_page_read_time_max;     //最大多面也读时间
+    s16 program_page_reg_clear;    //程序页寄存器清除增强tADL值
+    s16 typical_page_read_time;    //典型的EZ NAND的页面读取时间
+    s8 NV_DDR2_3_features;         //NV-DDR2/3特性
+    s8 NV_DDR2_3_warmup_cycles;    //NV-DDR2/3预热周期
+    s16 NV_DDR3_timing_supp;       //NV-DDR3定时模式支持
+    s8 NV_DDR2_timing_supp;        //NV-DDR2定时模式支持
+    s8 electrical_reserved;        //电气参数块，保留位
+    //供应商的块
+    s16 vendor_specific_revision;  //供应商特定版本号
+    s8 vendor_specific[88];        //特定于供应商的
+    s16 integrity_CRC;             //完整CRC
+    //剩余的参数页
+    s8 redundant1[256];
+    s8 redundant2[256];
+
+}__attribute__((packed));
+
 //
 //
 //

@@ -64,6 +64,7 @@
 #include <djyfs/filesystems.h>
 #include <device/unit_media.h>
 #include <board.h>
+#include <ecc_256.h>
 //#include <libc/misc/ecc/ecc_256.h>
 
 
@@ -1175,7 +1176,11 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
             *((u32*)args) = __nandescription->BytesPerPage;
             break;
         }
-
+        case sparebytes:
+        {
+            *((u32*)args) = __nandescription.OOB_Size;
+            break;
+        }
         case checkbad:
         {
             if(badslocation == (s32)args)

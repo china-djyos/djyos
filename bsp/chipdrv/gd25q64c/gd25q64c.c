@@ -133,7 +133,7 @@ __attribute__((weak)) void Gd25q64c_CsInactive(void)
 //=====================================================================
 __attribute__((weak)) void Gd25q64c_GpioInit(void)
 {
-    printf("board undefined St7796_GpioInit \r\n");
+    printf("board undefined Gd25q64c_GpioInit \r\n");
 //    bk_gpio_config_output(GPIO36);
 //    bk_gpio_output(GPIO36, GPIO_INT_LEVEL_LOW);
 }

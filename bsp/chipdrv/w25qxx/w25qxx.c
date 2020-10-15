@@ -437,6 +437,7 @@ bool_t W25QXX_Read(u8* buf,u32 addr,u32 len)
 
     if(W25QXX_WaitBusy(5000) == false)
     {
+        Lock_MutexPost(W25qxx_Lock);
         return false;
     }
 

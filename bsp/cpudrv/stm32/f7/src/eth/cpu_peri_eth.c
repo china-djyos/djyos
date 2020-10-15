@@ -958,9 +958,14 @@ bool_t ModuleInstall_ETH(void)
     GetCpuID(&signature[0],&signature[1],&signature[2]);
     printk("CPU SIGNATURE:%08X-%08X-%08X\n\r",signature[0],signature[1],signature[2]);
     //use the signature as the mac address
-    signature[0] = signature[1]+signature[2];
-    memcpy(gc_NetMac,&signature[0],CN_MACADDR_LEN);
-    gc_NetMac[0]=0x00;      //根据mac的规定，第一字节某位置为1表示广播或者组播
+    signature[0] = signature[0]^signature[1]^signature[2];
+    //memcpy(gc_NetMac,&signature[0],CN_MACADDR_LEN);
+    memcpy(&gc_NetMac[2], &signature[0], 4);
+    gc_NetMac[1] = (u8)(signature[1]&0xFF);
+    gc_NetMac[0] = 0x00;      //根据mac的规定，第一字节某位置为1表示广播或者组播
+//    if (gc_NetMac[5]==0) {
+//        gc_NetMac[5]=0xFF;
+//    }
 #else
     u8 gc_NetMac[CN_MACADDR_LEN] ={CFG_ETH_MAC_ADDR0,CFG_ETH_MAC_ADDR1,
                                    CFG_ETH_MAC_ADDR2,CFG_ETH_MAC_ADDR3,
@@ -972,6 +977,8 @@ bool_t ModuleInstall_ETH(void)
     memcpy(pDrive->devname,CFG_ETH_NETCARD_NAME,CN_DEVNAME_LEN-1);
     pDrive->devname[CN_DEVNAME_LEN-1] = '\0';
     memcpy((void *)pDrive->macaddr,gc_NetMac,CN_MACADDR_LEN);
+    printf("mac: %02x-%02x-%02x-%02x-%02x-%02x！\r\n",
+            gc_NetMac[0], gc_NetMac[1],gc_NetMac[2], gc_NetMac[3],gc_NetMac[4], gc_NetMac[5]);
     if(CFG_ETH_LOOP_ENABLE)
     {
         pDrive->loopcycle = CFG_ETH_LOOP_CYCLE;
