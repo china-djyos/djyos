@@ -2677,7 +2677,7 @@ void __DJY_ActiveEventSyncExp(struct EventECB *sync)
 //}
 
 //----从同步队列中移除该ECB-----------------------------------------------
-//功能: //此函数不做任何的检查，内部调用，确认此ecb在sync队列中
+//功能: 此函数不做任何的检查，内部调用，确认此ecb在sync队列中
 //返回: 无
 //      该同步队列是多功能指针的双向循环队列
 //-----------------------------------------------------------------------------
@@ -2853,7 +2853,7 @@ void __DJY_EventExit(struct EventECB *event, u32 exit_code,u32 action)
     if(pl_evtt->property.correlative == EN_CORRELATIVE)      //关联型事件
     {
         pl_evtt->property.inuse = 0;
-        if(pl_evtt->default_prio<0x80)
+        if(pl_evtt->default_prio < 0x80)
         {//运行模式为si或dlsp，或者该事件类型拥有紧急优先级时，
          //须保留线程
             vm_final = CN_KEEP;
@@ -2951,7 +2951,7 @@ void __DJY_EventExit(struct EventECB *event, u32 exit_code,u32 action)
 }
 
 //----事件处理完成----------------------------------------------------------
-//功能：通知系统，事件已经处理完成，但未事件处理函数仍将继续运行，等待处理下一条时间,将激
+//功能：通知系统，事件已经处理完成，但事件处理函数仍将继续运行，等待处理下一条事件,将激
 //      活正在等待本事件完成的事件。常见使用方法：
 //      A事件调用Djy_WaitEvttCompleted等待B类型事件完成n次，则B类型事件调用n次本函数后，
 //          将激活A事件

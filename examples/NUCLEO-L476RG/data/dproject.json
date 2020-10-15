@@ -1,5 +1,5 @@
 {
-	"ide_version":"DIDE-V1.6_20190304",
+	"ide_version":"V1.7_20200624",
 	"frameworks_checked":{
 		"app":[],
 		"iboot":[]
@@ -26,10 +26,8 @@
 		"int",
 		"kernel",
 		"kernel object system",
-		"lib C",
 		"loader",
 		"lock",
-		"lowpower",
 		"memory pool",
 		"message queue",
 		"multiplex",

@@ -250,7 +250,7 @@ extern struct HeapCB *tg_pSysHeap;   //堆链指针，系统中所有的堆被链接在一起。
 
 void *__Heap_Malloc(ptu32_t size,u32 timeout);
 void  __Heap_Free(void * pl_mem);
-void *__Heap_Realloc(void *, ptu32_t NewSize);
+void *__Heap_Realloc(void *p, ptu32_t NewSize);
 void *__Heap_MallocHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 void *__Heap_MallocLc(ptu32_t size,u32 timeout);
 void *__Heap_MallocLcHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout);
@@ -297,6 +297,22 @@ extern void __DJY_CutReadyEvent(struct EventECB *event);
 extern void __DJY_ResumeDelay(struct EventECB *delay_event);
 extern void __DJY_AddToDelay(u32 u32l_uS);
 //extern void __Djy_CutEventFromEvttMarked(struct EventECB *event);
+
+void free(void* pl_mem)
+{
+    __Heap_Free(pl_mem)
+}
+
+void *malloc(ptu32_t size)
+{
+    return __Heap_Malloc(size, 0);
+}
+
+void *realloc(void *p, ptu32_t NewSize)
+{
+    return __Heap_Realloc(p, NewSize);
+}
+
 
 //----查找堆-------------------------------------------------------------------
 //功能: 通过名字，查找堆控制块指针

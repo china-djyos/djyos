@@ -177,10 +177,10 @@ pHeap_t Heap_Add(void* bottom, u32 size, u32 PageSize,u32 AlignSize,
 extern ptu32_t (*M_GetFreeMem)(void);
 extern ptu32_t (*M_GetFreeMemHeap)(pHeap_t Heap);
 extern ptu32_t (*M_CheckSize)(void * mp);
+void free(void* pl_mem);
+void *malloc(ptu32_t size);
+void *realloc(void *p, ptu32_t NewSize);
 
-#define free(x) M_Free(x)
-#define malloc(x) M_Malloc(x,0)
-#define realloc(p,size) M_Realloc(p,size)
 #define malloc_usable_size(ptr) M_CheckSize(ptr)
 
 extern void * calloc (ptu32_t, ptu32_t);
