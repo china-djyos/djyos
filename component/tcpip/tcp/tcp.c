@@ -1615,6 +1615,7 @@ static s32 __tcpsend(struct tagSocket *sock, const void *msg, s32 len, s32 flags
             else if((sock->sockstat & CN_SOCKET_PROBLOCK) == 0 &&
                     (sock->sockstat & CN_SOCKET_PROCONNECT)) {//握手设置非阻塞，
                 //result = -1; //默认是-1，这里不用设置也可以
+                semp_post(ccb->sbuf.bufsync);
             }
             else
             {
@@ -1739,6 +1740,7 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
                     (sock->sockstat & CN_SOCKET_PROCONNECT)) //握手设置非阻塞，
             {
                 //result = -1; //默认是-1，这里不用设置也可以
+                semp_post(ccb->rbuf.bufsync);
             }
             else
             {
