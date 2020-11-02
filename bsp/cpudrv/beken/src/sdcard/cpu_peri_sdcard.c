@@ -181,7 +181,7 @@ s32 __SDCARD_Read(u8 *buff, u32 sector, u32 count)
                 break;
             else
                 i ++;   //偶尔可能会因为等待SD卡的响应超时而失败一次。如果连续读3次都失败，则认为是失败。
-        }while(i > 2);
+        }while(i < 2);
         if(i > 2)
         {
             if(get_sdcard_is_ready ())
@@ -222,7 +222,7 @@ s32 __SDCARD_Write(u8 *buff, u32 sector, u32 count)
                 break;
             else
                 i ++;   //偶尔可能会因为等待SD卡的响应超时而失败一次。如果连续读3次都失败，则认为是失败。
-        }while(i > 5);
+        }while(i < 5);
         if(i > 5)
         {
             if(get_sdcard_is_ready ())
