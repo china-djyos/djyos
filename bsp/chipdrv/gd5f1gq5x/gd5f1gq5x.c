@@ -1021,7 +1021,7 @@ s32 Gd5f1g_Ctrl(enum ucmd cmd, ptu32_t args, ...)
             if(!tmp)
                 return (-1);
 
-            if(0 == Gd5f1g_ReadPage(bads_location, (void*)(tmp), HW_ECC)) // ¶Á»µ¿é±í
+            if(Gd5f1g_ReadPage(bads_location, (void*)(tmp), HW_ECC)) // ¶Á»µ¿é±í
             {
                 if(nandvalidbads((u32*)tmp))
                     escape = 1; // ´æÔÚ»µ¿é±í£¬²»²Á³ý£»
