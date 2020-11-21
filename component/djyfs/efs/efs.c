@@ -466,6 +466,45 @@ static void __Efs_Reset_File_Size(struct EasyFS *efs, u8 *file_info_buf)
     }
 }
 
+//-----------------------------------------------------------------------------
+//功能: 刷新内存里的文件列表
+//参数: efs -- efs文件系统管理
+//返回:
+//-----------------------------------------------------------------------------
+static bool_t __Efs_RefreshFileList(struct EasyFS *efs)
+{
+    s8 *file_name, *file_info_buf;
+    u32 i, filesize_no;
+
+    if(efs == NULL)
+        return false;
+
+    file_info_buf = malloc(EFS_ITEM_LIMIT);
+    for(i = 1; i < CFG_EFS_MAX_OPEN_FILE_NUM; i++)
+    {
+        file_name = efs->file_list_buf + (i * Ram_file_info_len);
+        if(*file_name != 0xff)
+        {
+            for (filesize_no = 1; filesize_no < IndexesNum; filesize_no++)
+            {
+                if(!efs->drv->efs_read_media(efs->start_block, filesize_no * EFS_ITEM_LIMIT, file_info_buf, EFS_ITEM_LIMIT, EF_WR_NOECC))
+                    memset(file_info_buf, 0xFF, EFS_ITEM_LIMIT);
+                file_info_buf[FILENAME_LIMIT] = '\0';
+                ChkOrRecNameByECC((char *)file_info_buf, file_info_buf + FILENAME_LIMIT + 1);
+                if (strncmp((const char*)file_info_buf ,file_name, FILENAME_LIMIT) == 0)
+                {     //找到目标文件
+                    memcpy(efs->file_list_buf + (i * Ram_file_info_len), file_info_buf, EFS_ITEM_LIMIT);
+                    break;
+                }
+            }
+        }
+
+    }
+    free(EFS_ITEM_LIMIT);
+    return true;
+}
+
+
 //----修改文件尺寸-------------------------------------------------------------
 //功能: 修改文件分配表中文件尺寸部分。1、在主分配表中找一个空闲位置写入。2、如果
 //      找不到，则读出整块，把整个filesize区填充成ff，然后把文件尺寸更新到第一个
@@ -484,9 +523,13 @@ static void __Efs_ChangeFileSize(struct Object *ob, u32 newsize)
     u32 filesize_no,file_max_size,block_no,block_addr;
     u16 crc16_check;
 
+    if(ob == NULL)
+        return ;
     fp = (struct FileRsc *)OBJ_GetPrivate(ob);
     efs = (struct EasyFS *)File_Core(ob);
     fileinfo = (struct EfsFileInfo *) fp->private;
+    if((efs == NULL) || (fp == NULL) || (fileinfo == NULL))
+        return ;
 
     cfg_blocks = (FileInfoList + efs->block_size - 1) / efs->block_size;  //文件分配表所占块数
     block_buf = efs->file_list_buf + (fileinfo->temp_item * Ram_file_info_len);
@@ -556,6 +599,7 @@ static void __Efs_ChangeFileSize(struct Object *ob, u32 newsize)
         if((efs->start_block + 2*cfg_blocks - 1) == (efs->start_block + block_no + cfg_blocks))
             efs->drv->efs_write_media(efs->start_block + 2*cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC);
 
+        __Efs_RefreshFileList(efs);
         free(block_buf);
     }
 }
@@ -670,6 +714,8 @@ static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *fi
     fileinfo->start_block = start_block;
     fileinfo->item = item;
     fileinfo->filesize = 0;
+
+    __Efs_RefreshFileList(efs);
 
     for (loop = 0; loop < CFG_EFS_MAX_OPEN_FILE_NUM; loop++)
     {
@@ -1206,9 +1252,15 @@ static s8 Efs_Close (struct objhandle *hdl)
     efs = (struct EasyFS *)File_Core(ob);
     fileinfo = (tagEfsFileInfo *)fp->private;
     if ((fp == NULL) || (efs == 0) || (fileinfo == NULL))
+    {
+        printk("close file param error\r\n");
         return -1;
+    }
     if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
+    {
+        printk("close file timeout\r\n");
        return -1;
+    }
 
     if(!Handle_FlagIsDirectory(hdl->flags)) // 非目录逻辑
     {
