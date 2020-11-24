@@ -435,7 +435,7 @@ void eloop_free_resource(void);
  * called.
  */
 int eloop_terminated(void);
-void eloop_handle_signal(int sig);
+int eloop_handle_signal(int sig);
 
 /**
  * eloop_wait_for_read_sock - Wait for a single reader

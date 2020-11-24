@@ -660,23 +660,6 @@ static SDIO_Error sdcard_cmd12_process(uint32 addr)
     return cmd.err;
 }
 
-static SDIO_Error sdcard_cmd13_process(u32 *data)
-{
-    SDIO_CMD_S cmd;
-
-    cmd.index = SEND_STATUS;
-    cmd.arg = (UINT32)(sdcard.card_rca << 16);;
-    cmd.flags = SD_CMD_SHORT;
-    cmd.timeout = get_timeout_param(1);
-    sdio_send_cmd(&cmd);
-    cmd.err = sdio_wait_cmd_response(cmd.index);
-    sdio_get_cmdresponse_argument(0, data);
-
-    // dismiss the CID info
-
-    return cmd.err;
-}
-
 static SDIO_Error sdcard_send_read_stop(void)
 {
     //send stop command
@@ -1005,34 +988,22 @@ sdcard_read_single_block(UINT8 *readbuff, UINT32 readaddr, UINT32 blocksize)
 {
     SDIO_CMD_S cmd;
     SDIO_Error ret;
-    UINT32 reg,sd_data0,sta = 0;
-    u32 time_out = 100000;
+    UINT32 reg,sd_data0;
 
 #if (CFG_SD_HOST_INTF == SD1_HOST_INTF)
     sd_data0 = 36;
 #else
     sd_data0 = 17;
 #endif
-    sdio_clk_config(1);
     gpio_config(sd_data0, GMODE_INPUT_PULLUP);
     while(!gpio_input(sd_data0));
     gpio_config(sd_data0, GMODE_SECOND_FUNC_PULL_UP);
+    sdio_clk_config(1);
 
     REG_WRITE(REG_SDCARD_CMD_RSP_INT_SEL, 0xffffffff);
     // setup data reg first
     sdio_set_data_timeout( get_timeout_param(0));//DEF_DATA_TIME_OUT);
     sdio_setup_data(SDIO_RD_DATA, blocksize);
-
-    while(!(sta & (1 << 8)))
-    {
-        if(time_out == 0)
-        {
-            error_printf("sdcard","card no ready\r\n");
-            break;
-        }
-        sdcard_cmd13_process(&sta);
-        time_out --;
-    }
 
     cmd.index = READ_SINGLE_BLOCK;
     cmd.arg = (UINT32)(readaddr << sdcard.Addr_shift_bit);
@@ -1060,18 +1031,6 @@ sdcard_read_single_block(UINT8 *readbuff, UINT32 readaddr, UINT32 blocksize)
         SDCARD_FATAL("cmd17 cmdcrc err, readsingle block err\r\n");
 #endif
         goto read_return;
-    }
-
-    time_out = 100000;
-    while(!(sta & (1 << 8)))
-    {
-        if(time_out == 0)
-        {
-            error_printf("sdcard","card no ready\r\n");
-            break;
-        }
-        sdcard_cmd13_process(&sta);
-        time_out --;
     }
 
     cmd.err = sdcard_wait_receive_data(readbuff);

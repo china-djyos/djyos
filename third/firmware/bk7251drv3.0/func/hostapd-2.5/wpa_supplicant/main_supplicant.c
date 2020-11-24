@@ -23,13 +23,15 @@
 #if CFG_SUPPOET_BSSID_CONNECT
 #include "param_config.h"
 #endif
-
+#include "eloop.h"
+//#include "wpa_psk_cache.h"
 static struct wpa_global *wpa_global_ptr = NULL;
 beken_thread_t wpas_thread_handle = NULL;
 uint32_t wpas_stack_size = 4000;
 beken_semaphore_t wpas_sema = NULL;
 struct wpa_ssid_value *wpas_connect_ssid = 0;
 struct wpa_interface *wpas_ifaces = 0;
+uint32_t supplicant_exit_flag = 0;
 
 extern beken_queue_t wpah_queue;
 
@@ -89,12 +91,39 @@ int wpa_set_passphrase_md5(char *passphrase)
     return 0;
 }
 
+
+int supplicant_exit_done(void)
+{
+	supplicant_exit_flag = 0;
+	os_printf("supplicant_exit_done\r\n");
+	
+	return 0;
+}
+
+int supplicant_is_exiting(void)
+{
+	return supplicant_exit_flag;
+}
+
 int supplicant_main_exit(void)
 {
-    eloop_process_flush_signals();
-    if (wpa_global_ptr == NULL)
-        return 0;
+	supplicant_exit_flag = 1;
 
+	wpa_hostapd_queue_poll(0xff);
+	while(supplicant_exit_flag)
+	{
+		os_printf("supplicant_main_exiting\r\n");
+		rtos_delay_milliseconds(10);
+	}
+
+	return 0;
+}
+
+int supplicant_exit_handler(void)
+{
+	if (wpa_global_ptr == NULL)
+		return 0;
+	
     if(wpa_global_ptr)
     {
         wpa_supplicant_deinit(wpa_global_ptr);
@@ -268,6 +297,8 @@ out:
 
 static void wpas_thread_main( void *arg )
 {
+//	wpa_psk_init();
+	
     eloop_init();
 
     eloop_run();
@@ -340,4 +371,5 @@ u8* wpas_get_sta_psk(void)
     return wpa_global_ptr->ifaces->conf->ssid->psk;
 }
 // eof
+
 
