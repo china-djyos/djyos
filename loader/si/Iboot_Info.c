@@ -1031,7 +1031,7 @@ bool_t XIP_AppFileCheckEasy(void * apphead)
     return true;
 }
 //==============================================================================
-//功能：App 文件的校验
+//功能：App 文件的校验,文件全在内存里的话用这个。
 //参数：apphead：App信息块地址
 //返回：true：成功；false：失败。
 //==============================================================================
@@ -1056,6 +1056,58 @@ bool_t XIP_AppFileCheck(void * apphead)
     }
     return true;
 }
+
+
+//==============================================================================
+//功能：App 文件的校验(分段)
+//      addr和compare_addr不要直接填写源app的地址，因为校验过程中会修改一点文件头，
+//      一般操作就把文件头读出来存两份，addr和compare_addr各一份。
+//参数：addr：计算校验码的文件头(文件描述信息和产品描述信息)，buf：文件数据缓冲区，len：数据长度，
+//      compare_addr：用于比较的文件头（文件描述信息和产品描述信息）
+//返回：true：成功；false：失败。
+//使用说明：开始校验和校验过程中都只需要填addr、buf和len，compare_addr参数是要对比的原始文件头，里面有原始校验码
+//          当compare_addr不为空时，则表示这是最后一次增加需要校验的数据，这次计算完后,
+//          就会去对比addr和compare_addr里的校验码是否一致，一致的话校验成功否则校验失败。
+//==============================================================================
+bool_t XIP_AppFileCheckSubsection(s8 *addr, u8 *buf, s32 len, s8 *compare_addr)
+{
+    struct AppHead *apphead = (struct AppHead *)addr, *compare_apphead = (struct AppHead *)compare_addr;
+    bool_t ret = false;
+    u32 i;
+    if(addr != NULL)
+    {
+        if(apphead->verification != VERIFICATION_NULL)
+        {
+            ret = true;
+            for(i=0; i < sizeof(apphead->app_name); i++)
+            {
+                if(apphead->app_name[i] != (s8)0xff)
+                    break;
+            }
+            if(i != sizeof(apphead->app_name))
+            {
+                Iboot_VerificationAppInit(addr);
+            }
+            Iboot_VerificationAppRun(addr, buf, len);
+
+            if(compare_apphead != NULL)
+            {
+                Iboot_VerificationAppExit(apphead);
+                return Iboot_VerificationCompare(compare_apphead,apphead);
+            }
+        }
+        else
+        {
+            info_printf("xip", "not need to check .\r\n");
+        }
+    }
+    else
+    {
+        error_printf("xip", "param error \r\n");
+    }
+    return ret;
+}
+
 
 
 //==============================================================================
