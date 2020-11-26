@@ -110,7 +110,12 @@ int SDCARD_Read(BYTE *Buff, DWORD Sector, UINT Count);
 int SDCARD_Write(BYTE *Buff, DWORD Sector, UINT Count);
 int SDCARD_Ioctl( BYTE Cmd, void *Buff);
 
+static uint16_t evtt_sd_install;
+static uint16_t evtt_sd_uninstall;
+
 extern struct Object *s_ptDeviceRoot;
+
+#define RETRY_COUNT     100
 
 struct FatDrvFuns SDCARD_Drv =
 {
@@ -181,8 +186,8 @@ s32 __SDCARD_Read(u8 *buff, u32 sector, u32 count)
                 break;
             else
                 i ++;   //偶尔可能会因为等待SD卡的响应超时而失败一次。如果连续读3次都失败，则认为是失败。
-        }while(i > 2);
-        if(i > 2)
+        }while(i < RETRY_COUNT);
+        if(i >= RETRY_COUNT)
         {
             if(get_sdcard_is_ready ())
                 res = 1; // RES_ERROR;
@@ -222,8 +227,8 @@ s32 __SDCARD_Write(u8 *buff, u32 sector, u32 count)
                 break;
             else
                 i ++;   //偶尔可能会因为等待SD卡的响应超时而失败一次。如果连续读3次都失败，则认为是失败。
-        }while(i > 5);
-        if(i > 5)
+        }while(i < RETRY_COUNT);
+        if(i >= RETRY_COUNT)
         {
             if(get_sdcard_is_ready ())
                 res = 1; // RES_ERROR;
@@ -447,6 +452,26 @@ s32 UninstallDevSdcard(void)
 static void sdcard_isr_uninitialize(void);
 static void sdcard_isr_initialize(void)
 {
+    DJY_EventPop(evtt_sd_install, NULL, 0, 0, 0, 0);
+}
+// ============================================================================
+// 功能: sdcard的热拔中断响应
+// 参数:
+// 返回:
+// 备注:
+// ============================================================================
+static void sdcard_isr_uninitialize(void)
+{
+    DJY_EventPop(evtt_sd_uninstall, NULL, 0, 0, 0, 0);
+}
+// ============================================================================
+// 功能: sdcard的安装任务
+// 参数:
+// 返回:
+// 备注:
+// ============================================================================
+static void sdcard_install_event(void)
+{
     extern SDIO_Error sdcard_initialize(void);
     extern s32 ModuleInstall_FAT(const char *dir_name, u32 opt, void *data);
 
@@ -465,12 +490,12 @@ static void sdcard_isr_initialize(void)
     djy_gpio_irq_enable(GPIO12, 1);
 }
 // ============================================================================
-// 功能: sdcard的热拔中断响应
+// 功能: sdcard的卸载任务
 // 参数:
 // 返回:
 // 备注:
 // ============================================================================
-static void sdcard_isr_uninitialize(void)
+static void sdcard_uninstall_event(void)
 {
     extern void sdcard_uninitialize(void);
     extern s32 UnfileSystem_FAT(const char *dir);
@@ -494,6 +519,24 @@ int ModuleInstall_SDCARD(void)
 {
     sdcard_init();
     sdcard_power_on();
+    evtt_sd_install = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
+            sdcard_install_event,NULL,CFG_MAINSTACK_LIMIT, "sd install");
+    if (CN_EVTT_ID_INVALID == evtt_sd_install)
+    {
+        error_printf("sdcard"," sd install register failed.\r\n");
+        return 0;
+    }
+
+    evtt_sd_uninstall = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
+            sdcard_uninstall_event,NULL,CFG_MAINSTACK_LIMIT, "sd uninstall");
+    if (CN_EVTT_ID_INVALID == evtt_sd_uninstall)
+    {
+        if(DJY_EvttUnregist(evtt_sd_install) == false)
+            error_printf("sdcard","sd install unregister failed.\r\n");
+        error_printf("sdcard"," sd uninstall register failed.\r\n");
+        return 0;
+    }
+
     gpio_config(12, GMODE_INPUT_PULLUP);
     djy_gpio_attach_irq(GPIO12, PIN_IRQ_MODE_FALLING, (void *)sdcard_isr_initialize, 0);//设置卡被插上时的中断响应函数
     djy_gpio_irq_enable(GPIO12, 1);

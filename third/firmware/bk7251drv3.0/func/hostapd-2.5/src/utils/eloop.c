@@ -462,9 +462,8 @@ void eloop_process_flush_signals(void)
 		GLOBAL_INT_DISABLE();
 		if (eloop.signals[i].signaled) {
 			eloop.signals[i].signaled = 0;
-		}else{
-			GLOBAL_INT_RESTORE();
-		}		
+		}
+		GLOBAL_INT_RESTORE();
 	}
 }
 
@@ -703,7 +702,19 @@ void eloop_run(void)
 			if (eloop.terminate)
 				break;
 		}
-
+        
+		if(hostapd_is_exiting())
+		{
+			hostapd_exit_handler();
+			hostapd_exit_done();
+		}
+		
+		if(supplicant_is_exiting())
+		{
+			supplicant_exit_handler();
+			supplicant_exit_done();
+		}
+        
 		timeout = dl_list_first(&eloop.timeout, struct eloop_timeout,
 					list);
 		if (timeout) {
@@ -824,4 +835,5 @@ void eloop_wait_for_read_sock(int sock)
 {
 }
 //eof
+
 

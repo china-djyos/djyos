@@ -1,6 +1,8 @@
 #ifndef _RW_MSG_PUB_H_
 #define _RW_MSG_PUB_H_
 
+#include "typedef.h"
+
 typedef enum {
     WIFI_COUNTRY_POLICY_AUTO,   /**< Country policy is auto, use the country info of AP to which the station is connected */
     WIFI_COUNTRY_POLICY_MANUAL, /**< Country policy is manual, always use the configured country info */
