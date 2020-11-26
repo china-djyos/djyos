@@ -300,7 +300,7 @@ bool_t Icmp_EchoRequest(u32 ipdst, u8 *data, int len,int timeout)
         {
             seqno++;
             PkgSetDataLen(sndpkg, pkglen);
-            PkgSetNextUnit(sndpkg,NULL);
+//            PkgSetNextUnit(sndpkg,NULL);      //PkgMalloc已经设置好
 //          sndpkg->datalen = pkglen;
 //          sndpkg->partnext = NULL;
             //fill the snd pkg
@@ -361,7 +361,7 @@ bool_t Icmp_MsgSnd(u32 ipsrc, u32 ipdst, u8 type, u8 code, u8 *info, u16 infolen
     if(NULL != pkg2snd)
     {
         PkgSetDataLen(pkg2snd, pkglen);
-        PkgSetNextUnit(pkg2snd,NULL);
+//        PkgSetNextUnit(pkg2snd,NULL);      //PkgMalloc已经设置好
 //      pkg2snd->datalen = pkglen;
 //      pkg2snd->partnext = NULL;
         hdr = (struct IcmpHdr *)PkgGetCurrentBuffer(pkg2snd);

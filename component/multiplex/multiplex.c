@@ -128,7 +128,7 @@ struct MultiplexObjectCB
     struct MultiplexSetsCB *MySets;     //指向主控制块
     s32 Fd;                             //被MultiplexSets等待的文件
     ptu32_t ObjectID;                   //被MultiplexSets等待的对象
-    u32 ET_SaveBit;                     //保存 ET（边沿）触发的原状态。
+    u32 ET_SaveBit;                     // ET模式触发 wait 函数返回的触发位。
     u32 PendingBit;                     //bit0~23：对象中已经触发的bit，
                                         //bit31：1=对象已激活。
     u32 SensingBit;                     //bit0~23：敏感位标志
@@ -596,13 +596,12 @@ s32 Multiplex_Wait(struct MultiplexSetsCB *Sets, u32 *Status, u32 Timeout)
         if(Object->SensingBit & CN_MULTIPLEX_SENSINGBIT_ET)
         {
             //把Object从Sets->ActiveQ队列拿出，放到ObjectQ队列中
-//            Object->PendingBit = 0;
             //取出上次触发时未触发，而本次变位为已触发的位
-            Object->PendingBit &= CN_MULTIPLEX_STATUSMSK;
-//          Object->PendingBit &= ~CN_MULTIPLEX_OBJECT_ACTIVED;
-            Object->ET_SaveBit = (~Object->ET_SaveBit) & Object->PendingBit;
+//            Object->PendingBit &= CN_MULTIPLEX_STATUSMSK;
+//            Object->ET_SaveBit = (~Object->ET_SaveBit) & Object->PendingBit;
             if (Status != NULL)
-                *Status = Object->ET_SaveBit;
+                *Status = Object->PendingBit;
+            Object->PendingBit = 0;
             __Multiplex_ChangeList(&(Sets->ActiveQ), &(Sets->ObjectQ), Object);
             if (Sets->Actived != 0)
                 Sets->Actived--;

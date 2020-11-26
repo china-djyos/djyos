@@ -192,7 +192,7 @@ static bool_t  __IpPushNew(struct NetDev *iface,struct NetPkg *pkg)
             //do nothing here, unknown internet protocol version
         }
     }
-    return 0;
+    return ret;
 }
 
 // =============================================================================

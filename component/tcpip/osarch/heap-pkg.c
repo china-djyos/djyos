@@ -56,22 +56,46 @@
 #define   HEAP_AEESRT(x)
 #endif
 
-static const size_t heap_mem_list[HEAD_LIST_NUM] = {16,32,64,128,256,512,1024,1560,2048,3072,4096,8192};
+#define HEAD_LIST_NUM               (12U)
+#define BLOCK_ALIGN_SIZE            (0X04U)
+//链表中每个节点的尺寸，要加上 block_header_t
+static const size_t heap_mem_list[HEAD_LIST_NUM] =
+                            {16,32,64,128,256,512,1024,1560,2048,3072,4096,8192};
 
-#define BLOCK_HEADER_OFFSET         (sizeof(tagBlockHeader))
-#define BLOCK_SIZE_MIN              (heap_mem_list[0] + sizeof(tagBlockHeader))
-#define BLOCK_SIZE_MAX              (heap_mem_list[HEAD_LIST_NUM-1] + sizeof(tagBlockHeader))
-#define BLOCK_HRADER_FREE_BIT       (1U<<0)
-#define BLOCK_HEADER_PREV_FREE_BIT  (1U<<1)
+//块控制头结构。
+//AddressSortPrev 指针用于合并相邻块，它把所有块按物理相邻的原则串接起来。
+struct block_header_t
+{
+    struct block_header_t * AddressSortPrev;    //指向按地址排序的前一块，不管是否空闲
+    size_t size;            //块尺寸，不包含 struct block_header_t 本身；
+                            //bit0 用于表示 BLOCK_FREE_BIT
+                            //bit1 用于表示 BLOCK_PREV_FREE_BIT
+    struct block_header_t * next_free;
+    struct block_header_t * prev_free;
+}__attribute__((aligned (BLOCK_ALIGN_SIZE)));
+
+#define BLOCK_SIZE_MIN              (heap_mem_list[0] + sizeof(struct block_header_t))
+#define BLOCK_SIZE_MAX              (heap_mem_list[HEAD_LIST_NUM-1] + sizeof(struct block_header_t))
+#define BLOCK_FREE_BIT       (1U<<0)
+#define BLOCK_PREV_FREE_BIT  (1U<<1)
+
+//mem_lst[i]所串联的是 ≥ heap_mem_list[i] 且 ＜ heap_mem_list[i+1] 的内存块
+struct PkgHeapCB
+{
+//  struct block_header_t block_null;
+    struct block_header_t *mem_lst[HEAD_LIST_NUM];
+    size_t last_addr;       //堆的末地址（最后一个字节地址+1）
+};
+
 
 // =============================================================================
 // 功能：获取block的大小
 // 参数：block：block的指针
 // 返回：无
 // =============================================================================
-static size_t BlockGetSize(const tagBlockHeader * block)
+static size_t __BlockGetSize(const struct block_header_t * block)
 {
-    return block->size & ~(BLOCK_HRADER_FREE_BIT | BLOCK_HEADER_PREV_FREE_BIT);
+    return block->size & ~(BLOCK_FREE_BIT | BLOCK_PREV_FREE_BIT);
 }
 
 // =============================================================================
@@ -79,10 +103,10 @@ static size_t BlockGetSize(const tagBlockHeader * block)
 // 参数：block：block的指针
 // 返回：无
 // =============================================================================
-static void BlockSetSize(tagBlockHeader * block, size_t size)
+static void __BlockSetSize(struct block_header_t * block, size_t size)
 {
     const size_t oldsize = block->size;
-    block->size = size | (oldsize & (BLOCK_HRADER_FREE_BIT | BLOCK_HEADER_PREV_FREE_BIT));
+    block->size = size | (oldsize & (BLOCK_FREE_BIT | BLOCK_PREV_FREE_BIT));
 }
 
 // =============================================================================
@@ -90,109 +114,9 @@ static void BlockSetSize(tagBlockHeader * block, size_t size)
 // 参数：block：block的指针
 // 返回：无
 // =============================================================================
-static int BlockIsLast(const tagBlockHeader * block)
+static int BlockIsLast(const struct block_header_t * block)
 {
-    return (BlockGetSize(block) == 0);
-}
-
-// =============================================================================
-// 功能：检查block的是否是空闲的
-// 参数：block：block的指针
-// 返回：无
-// =============================================================================
-static int BlockIsFree(const tagBlockHeader * block)
-{
-    return (int)(block->size & BLOCK_HRADER_FREE_BIT);
-}
-
-// =============================================================================
-// 功能：设置block为空闲状态
-// 参数：block：block的指针
-// 返回：无
-// =============================================================================
-static void BlockSetFree(tagBlockHeader * block)
-{
-    block->size |= BLOCK_HRADER_FREE_BIT;
-}
-
-// =============================================================================
-// 功能：设置block为正在使用状态
-// 参数：block：block的指针
-// 返回：无
-// =============================================================================
-static void BlockSetUsed(tagBlockHeader * block)
-{
-    block->size &= ~BLOCK_HRADER_FREE_BIT;
-}
-
-// =============================================================================
-// 功能：检查block的前一个物理相邻的block为空闲标志位
-// 参数：block：block的指针
-// 返回：无
-// =============================================================================
-static int BlockIsPrevFree(const tagBlockHeader * block)
-{
-    return (int)(block->size & BLOCK_HEADER_PREV_FREE_BIT);
-}
-
-// =============================================================================
-// 功能：设置block的前一个物理相邻的block为空闲标志位
-// 参数：block：block的指针
-// 返回：无
-// =============================================================================
-static void BlockSetPrevFree(tagBlockHeader * block)
-{
-    block->size |= BLOCK_HEADER_PREV_FREE_BIT;
-}
-
-// =============================================================================
-// 功能：设置block的前一个物理相邻的block为忙碌标志位
-// 参数：block：block的指针
-// 返回：无
-// =============================================================================
-static void BlockSetPrevUsed(tagBlockHeader * block)
-{
-    block->size &= ~BLOCK_HEADER_PREV_FREE_BIT;
-}
-
-// =============================================================================
-// 功能：从ptr里面偏移得到block的地址
-// 参数：ptr：缓存地址
-// 返回：block的地址
-// =============================================================================
-static tagBlockHeader * BlockFromPtr(const void * ptr)
-{
-    return (tagBlockHeader *)(ptr - BLOCK_HEADER_OFFSET);
-}
-
-// =============================================================================
-// 功能：从block里面偏移得到ptr的地址
-// 参数：block：block的地址
-// 返回：ptr:缓存的地址
-// =============================================================================
-static void * BlockToPtr(const tagBlockHeader * block)
-{
-    return (void*)((uint8_t*)block + BLOCK_HEADER_OFFSET);
-}
-
-// =============================================================================
-// 功能：从ptr里面偏加上偏移值
-// 参数：ptr：缓存地址，size:偏移地址
-// 返回：block的地址
-// =============================================================================
-static tagBlockHeader * OffsetToBlock(const void * ptr, size_t size)
-{
-    return (tagBlockHeader *)((uint8_t*)ptr + size);
-}
-
-// =============================================================================
-// 功能：获取物理相邻的前一个block的地址
-// 参数：Block：block的地址
-// 返回：前一个block的地址
-// =============================================================================
-static tagBlockHeader * BlockPrev(const tagBlockHeader * block)
-{
-    return block->prev_phys_block;
+    return (__BlockGetSize(block) == 0);
 }
 
 // =============================================================================
@@ -200,47 +124,54 @@ static tagBlockHeader * BlockPrev(const tagBlockHeader * block)
 // 参数：Block：block的地址
 // 返回：后一个block的地址
 // =============================================================================
-static tagBlockHeader * BlockNext(tagHeadControl * control,const tagBlockHeader * block)
+static struct block_header_t * __BlockPhyNext(struct PkgHeapCB * PkgHeap,
+                                    const struct block_header_t * block)
 {
-    tagBlockHeader * next = OffsetToBlock(BlockToPtr(block), BlockGetSize(block));
-//  HEAP_AEESRT(!BlockIsLast(block));
+    struct block_header_t * next;
+    next = (struct block_header_t*)((size_t)(block+1) + __BlockGetSize(block));
     if(!BlockIsLast(block))
     {
-        if((size_t)next>=(size_t)(control->last_addr))
+        if((size_t)next>=(size_t)(PkgHeap->last_addr))
             return NULL;
         else
             return next;
     }
+    else
+        printf("--------------------------------------------------\r\n");
     return NULL;
 }
 
 // =============================================================================
 // 功能：把物理相邻的后一个block的prev_phys_block参数设成前一个block的地址
 // 参数：control：控制块，Block：前一个block的地址
-// 返回：后一个block的地值
+// 返回：后一个物理相邻block的地址
 // =============================================================================
-static tagBlockHeader * BlockLinkNext(tagHeadControl * control,tagBlockHeader * block)
+static struct block_header_t * __BlockLinkNext(struct PkgHeapCB * PkgHeap,
+                                        struct block_header_t * block)
 {
-    tagBlockHeader * next = BlockNext(control,block);
+    struct block_header_t * next = __BlockPhyNext(PkgHeap,block);
     if(next==NULL)
         return NULL;
-    next->prev_phys_block = block;
+    next->AddressSortPrev = block;
     return next;
 }
 
 // =============================================================================
 // 功能：把block的标志位设为空闲，并设置后一个Block的prev_phys_block参数
-// 参数：control：控制块，Block：block的地址
+// 参数：PkgHeap：所属 heap，
+//       Block：被操作的 block
 // 返回：无
 // =============================================================================
-static void BlockMarkAsFree(tagHeadControl * control,tagBlockHeader * block)
+static void __BlockMarkAsFree(struct PkgHeapCB * PkgHeap,struct block_header_t * block)
 {
-    tagBlockHeader * next = NULL;
-    BlockSetFree(block);
-    next = BlockLinkNext(control,block);
+    struct block_header_t * next = NULL;
+//  __BlockSetFree(block);                  //把本 block 设为空闲
+    block->size |= BLOCK_FREE_BIT;          //把本 block 设为空闲
+    next = __BlockLinkNext(PkgHeap,block);  //把 block 相邻的下一块的 phy prev 指针指向自己
     if(next==NULL)
         return;
-    BlockSetPrevFree(next);
+//  __BlockSetPrevFree(next);                 //设置 block 相邻的下一块的“前一块空闲”标志
+    next->size |= BLOCK_PREV_FREE_BIT;       //设置 block 相邻的下一块的“前一块空闲”标志
 }
 
 // =============================================================================
@@ -248,26 +179,28 @@ static void BlockMarkAsFree(tagHeadControl * control,tagBlockHeader * block)
 // 参数：control：控制块，Block：block的地址
 // 返回：无
 // =============================================================================
-static void BlockMarkAsUsed(tagHeadControl * control,tagBlockHeader * block)
+static void __BlockMarkAsUsed(struct PkgHeapCB * PkgHeap,struct block_header_t * block)
 {
-    tagBlockHeader * next = NULL;
-    BlockSetUsed(block);
+    struct block_header_t * next = NULL;
+//  BlockSetUsed(block);
+    block->size &= ~BLOCK_FREE_BIT;
     block->next_free = block;
     block->prev_free = block;
-    next = BlockNext(control,block);
+    next = __BlockPhyNext(PkgHeap,block);
     if(next==NULL)
         return;
-    BlockSetPrevUsed(next);
+//  BlockSetPrevUsed(next);
+    next->size &= ~BLOCK_PREV_FREE_BIT;
 }
 
 // =============================================================================
-// 功能：把size值对应到链表的某个档位(插入时用)
+// 功能：计算size值对应到链表的某个档位(插入时用)
 // 参数：size:需要的大小
 // 返回：档位
 // =============================================================================
-static uint16_t BlockFindLevel(size_t size)
+static u16 __BlockFindLevel(size_t size)
 {
-    uint16_t i = 0;
+    u16 i = 0;
     for(i=0;i<HEAD_LIST_NUM;i++)
     {
         if(heap_mem_list[i]>size)
@@ -278,85 +211,69 @@ static uint16_t BlockFindLevel(size_t size)
 }
 
 // =============================================================================
-// 功能：把size值对应到链表的某个档位（取出时用）
-// 参数：size:需要的大小
-// 返回：档位
-// =============================================================================
-static uint16_t BlockFindFitLevel(size_t size)
-{
-    uint16_t i = 0;
-    for(i=0;i<HEAD_LIST_NUM;i++)
-    {
-        if(heap_mem_list[i]>=size)
-            break;
-    }
-    return i;
-}
-
-//void * AlignPtr(const void * ptr, size_t align)
-//{
-//    const size_t *aligned = (size_t*)(((size_t)ptr + (align - 1)) & ~(align - 1));
-//    HEAP_AEESRT(0 == (align & (align - 1)) && "must align to a power of two");
-//    return (void*)aligned;
-//}
-
-// =============================================================================
-// 功能：把找到size值所对应的档位
+// 功能：根据 size 值找到对应的且有可用内存的档位
 // 参数：
 // 返回：
 // =============================================================================
-static uint32_t AdjustRequestSize(size_t size, size_t align)
+static u32 __GetLevel(size_t size, size_t align)
 {
-    uint32_t adjust_id = 0;
+    u32 scale = 0;
+//  u16 i = 0;
     if (size)
     {
         const size_t aligned = align_up(align, size);
-        adjust_id = BlockFindFitLevel(aligned);
+//      scale = BlockFindFitLevel(aligned);
+        for(scale=0; scale<HEAD_LIST_NUM; scale++)
+        {
+            if(heap_mem_list[scale] >= size)
+                break;
+        }
     }
-    return adjust_id;
+    return scale;
 }
 
 // =============================================================================
 // 功能：把block从control控制块中移除
 // 参数：control:控制块，block：block的地址
-// 返回：
+// 返回：无
 // =============================================================================
-static void BlockRemove(tagHeadControl * control, tagBlockHeader * block)
+static void __BlockRemove(struct PkgHeapCB * PkgHeap, struct block_header_t * block)
 {
-    uint16_t id = 0;
+    u16 id = 0;
 //  HEAP_AEESRT(!((block->next_free==NULL)&&(block->prev_free!=NULL)));
 //  HEAP_AEESRT(!((block->next_free!=NULL)&&(block->prev_free==NULL)));
-    if(block->next_free!=NULL)
+    if(block->next_free != NULL)
     {
         block->prev_free->next_free = block->next_free;
         block->next_free->prev_free = block->prev_free;
     }
-    id = BlockFindLevel(block->size);
-    if(control->mem_lst[id]==block)
+    id = __BlockFindLevel(block->size);
+    if(PkgHeap->mem_lst[id]==block)
     {
-        if(block->next_free!=block)
-            control->mem_lst[id] = block->next_free;
+        if(block->next_free != block)
+            PkgHeap->mem_lst[id] = block->next_free;
         else
-            control->mem_lst[id] = NULL;
+            PkgHeap->mem_lst[id] = NULL;
     }
     block->prev_free = block;
     block->next_free = block;
 }
 
-// =============================================================================
-// 功能：把block插入control控制块中
-// 参数：control:控制块，block：block的地址
-// 返回：
-// =============================================================================
-static void BlockInsert(tagHeadControl * control, tagBlockHeader * block)
+//=============================================================================
+//功能：把block插入 PkgHeap 相应尺寸 level 的链表中
+//参数：PkgHeap:所属堆，
+//      block：block的地址
+//返回：无
+//=============================================================================
+static void __BlockInsert(struct PkgHeapCB * PkgHeap, struct block_header_t * block)
 {
-    tagBlockHeader *tmp_block = NULL;
-    uint16_t id = 0;
-    id = BlockFindLevel(block->size);
-    tmp_block = control->mem_lst[id];
+    struct block_header_t *tmp_block = NULL;
+    u16 id = 0;
+    id = __BlockFindLevel(block->size);
+    tmp_block = PkgHeap->mem_lst[id];
     if(tmp_block==NULL)
     {
-        control->mem_lst[id] = block;
+        PkgHeap->mem_lst[id] = block;
         block->next_free = block;
         block->prev_free = block;
     }
@@ -370,153 +287,173 @@ static void BlockInsert(tagHeadControl * control, tagBlockHeader * block)
 }
 
 // =============================================================================
-// 功能：检查该块是否还可以被分割
+// 功能：检查该块是否还可以被分割，块尺寸＞ (level 对应的尺寸 + BLOCK_SIZE_MIN)说明
+//      可以分割，BLOCK_SIZE_MIN=最小块尺寸+sizeof(struct block_header_t)
 // 参数：
 // 返回：
 // =============================================================================
-static int BlockCanSplit(tagBlockHeader * block, uint32_t level)
+static int __BlockCanSplit(struct block_header_t * block, u32 level)
 {
-    return BlockGetSize(block) >= (BLOCK_SIZE_MIN + heap_mem_list[level]);
+    return __BlockGetSize(block) >= (BLOCK_SIZE_MIN + heap_mem_list[level]);
 }
 
-// =============================================================================
-// 功能：分割block
-// 参数：
-// 返回：
-// =============================================================================
-static tagBlockHeader *
-BlockSplit(tagHeadControl * control,tagBlockHeader * block, uint32_t level)
+//=============================================================================
+//功能：分割 block，原 block 指针保持不变，其尺寸保留 Level 级别。并设置物理空闲链表，
+//      把物理下一块的 phy prev 指针指向自己并设置其“前一块空”标志
+//参数：PkgHeap，所属堆
+//      block，待分割的块，把其中多余的内存切出去。
+//      level，block中需要保留的 level
+//返回：分割出来的块指针，若不能分割，则返回NULL
+//=============================================================================
+static struct block_header_t *__BlockSplit(struct PkgHeapCB * PkgHeap,
+                                    struct block_header_t * block, u32 level)
 {
     size_t size = heap_mem_list[level];
-    tagBlockHeader* remaining = OffsetToBlock(BlockToPtr(block), size);
-    const size_t remain_size = BlockGetSize(block) - (size + BLOCK_HEADER_OFFSET);
+    size_t remain_size;
+    struct block_header_t* remaining;
+    //从 block 中裁出 level 所需尺寸，取相邻地址
+    remaining = (struct block_header_t*)((size_t)(block+1) + size);
+//  remaining = OffsetToBlock(__BlockToPtr(block), size);
 
-    if(BlockToPtr(remaining) == (void*)align_down(BLOCK_ALIGN_SIZE, BlockToPtr(remaining)))
+    //计算多出来的内存尺寸，减掉了块控制头的尺寸
+    remain_size = __BlockGetSize(block) - (size + sizeof(struct block_header_t));
+
+    if(remain_size >= heap_mem_list[0])
     {
-//      HEAP_AEESRT(BlockGetSize(block) == remain_size + size + BLOCK_HEADER_OFFSET);
-        BlockSetSize(remaining, remain_size);
-//      HEAP_AEESRT(BlockGetSize(remaining) >= heap_mem_list[0] && "block split with invalid size");
-        if(BlockGetSize(remaining) >= heap_mem_list[0])
-        {
-            BlockSetSize(block, size);
-            BlockMarkAsFree(control,remaining);
-            return remaining;
-        }
-        else
-            return NULL;
+        __BlockSetSize(remaining, remain_size);
+        __BlockSetSize(block, size);
+        __BlockMarkAsFree(PkgHeap,remaining);
+        return remaining;
     }
     else
         return NULL;
 }
 
 // =============================================================================
-// 功能：把block与其前一个block融合，合成一个block
-// 参数：
+// 功能：把物理相邻的前后两个block融合，合成一个block。调用前以确保两个block是空闲的
+// 参数：PkgHeap，所属堆
+//      prev，待融合的两个block中排前面的一个（地址较小）
+//      block，带融合的两个block中排后面的一个（地址较大）
 // 返回：
 // =============================================================================
-static tagBlockHeader *
-BlockAbsorb(tagHeadControl * control,tagBlockHeader * prev, tagBlockHeader * block)
+static struct block_header_t *__BlockMerge(struct PkgHeapCB * PkgHeap,
+                   struct block_header_t * prev, struct block_header_t * block)
 {
 //  HEAP_AEESRT(!BlockIsLast(prev) && "previous block can't be last!");
     if(!BlockIsLast(prev))
     {
-        prev->size += BlockGetSize(block) + BLOCK_HEADER_OFFSET;
-        BlockLinkNext(control,prev);
+        prev->size += __BlockGetSize(block) + sizeof(struct block_header_t);
+        __BlockLinkNext(PkgHeap,prev);
         return prev;
     }
     else
+    {
+        printf("--------------------------------------------------\r\n");
         return NULL;
+    }
 }
 
-// =============================================================================
-// 功能：检查是否可以融合，可以的话把block与其前一个block融合，合成一个block
-// 参数：
-// 返回：
-// =============================================================================
-static tagBlockHeader * BlockMergePrev(tagHeadControl * control, tagBlockHeader * block)
+//=============================================================================
+// 功能：检查block与其物理上前面相邻的一个block是否空闲，空闲则融合
+// 参数：PkgHeap，所属堆
+//       block，待检查的块
+// 返回：融合后新块地址，若不能融合则返回NULL
+//=============================================================================
+static struct block_header_t * __BlockMergePrev(struct PkgHeapCB * PkgHeap,
+                                        struct block_header_t * block)
 {
-    if (BlockIsPrevFree(block))
+    if ((block->size & BLOCK_PREV_FREE_BIT))
     {
-        tagBlockHeader* prev = BlockPrev(block);
+        struct block_header_t* prev = block->AddressSortPrev;
         if(prev == NULL)
             return NULL;
 //      HEAP_AEESRT(prev && "prev physical block can't be null");
-        if( ! BlockIsFree(prev))
+//      if( ! __BlockIsFree(prev))
+        if(! (prev->size & BLOCK_FREE_BIT))
             return NULL;
-//      HEAP_AEESRT(BlockIsFree(prev) && "prev block is not free though marked as such");
-        BlockRemove(control, prev);
-        block = BlockAbsorb(control,prev, block);
+//      HEAP_AEESRT(__BlockIsFree(prev) && "prev block is not free though marked as such");
+        __BlockRemove(PkgHeap, prev);
+        block = __BlockMerge(PkgHeap,prev, block);
     }
 
     return block;
 }
 
-// =============================================================================
-// 功能：检查是否可以融合，可以的话把block与其后一个block融合，合成一个block
-// 参数：
-// 返回：
-// =============================================================================
-static tagBlockHeader * BlockMergeNext(tagHeadControl * control, tagBlockHeader * block)
+//=============================================================================
+// 功能：检查block与其物理上后面相邻的一个block是否空闲，空闲则融合
+// 参数：PkgHeap，所属堆
+//       block，待检查的块
+// 返回：融合后新块地址，若不能融合则返回NULL
+//=============================================================================
+static struct block_header_t * __BlockMergeNext(struct PkgHeapCB * PkgHeap,
+                                        struct block_header_t * block)
 {
-    tagBlockHeader* next = BlockNext(control,block);
+    struct block_header_t* next = __BlockPhyNext(PkgHeap,block);
     if(next==NULL)
         return NULL;
-    if (BlockIsFree(next))
+//  if (__BlockIsFree(next))
+    if((next->size & BLOCK_FREE_BIT))
     {
 //      HEAP_AEESRT(!BlockIsLast(block) && "previous block can't be last!");
         if(BlockIsLast(block))
+        {
+            printf("--------------------------------------------------\r\n");
             return NULL;
-        BlockRemove(control, next);
-        block = BlockAbsorb(control,block, next);
+        }
+        __BlockRemove(PkgHeap, next);
+        block = __BlockMerge(PkgHeap,block, next);
     }
     return block;
 }
 
-// =============================================================================
-// 功能：检查该block是否可分割，可以的话执行分割，并把分割出来的block重新插回链表
-// 参数：
-// 返回：
-// =============================================================================
-static void BlockTrimFree(tagHeadControl * control, tagBlockHeader * block, uint32_t level)
+//=============================================================================
+//功能：修剪block，根据要求的 level ，检查该block是否可分割，可以的话执行分割，并把
+//      分割出来的block重新插回链表，原 block 指针保持不变，其尺寸保留 Level 级别。
+//参数：PkgHeap，所属堆
+//      block，待分割的块，必须是空闲的，把其中多余的内存切出去。
+//      level，block中需要保留的 level
+//返回：
+//=============================================================================
+static void __BlockTrim(struct PkgHeapCB * PkgHeap, struct block_header_t * block,
+                            u32 level)
 {
-    if(BlockIsFree(block))
+    struct block_header_t* remaining_block;
+    if (__BlockCanSplit(block, level))
     {
-        if (BlockCanSplit(block, level))
-        {
-            tagBlockHeader* remaining_block = BlockSplit(control,block, level);
-            BlockLinkNext(control,block);
-            BlockSetPrevFree(remaining_block);
-            BlockInsert(control, remaining_block);
-        }
+        remaining_block = __BlockSplit(PkgHeap,block, level);
+        __BlockLinkNext(PkgHeap,block);
+//      __BlockSetPrevFree(remaining_block);
+        remaining_block->size |= BLOCK_PREV_FREE_BIT;   //设置 block 相邻的下一块的“前一块空闲”标志
+        __BlockInsert(PkgHeap, remaining_block);
     }
 }
 
-// =============================================================================
-// 功能：把block从链表中取出
-// 参数：
-// 返回：
-// =============================================================================
-static tagBlockHeader * BlockLocateFree(tagHeadControl * control, uint32_t level)
+//=============================================================================
+//功能：从 PkgHeap 中取出一个level级别的 block，如果该 level 的队列是 NULL 的，则
+//      取上一级的，依次类推。如果取出的是上级块，并不分割。
+//参数：PkgHeap，堆指针
+//     level，尺寸阶级
+//返回：块控制块头指针
+//=============================================================================
+static struct block_header_t * __GetOneBlock(struct PkgHeapCB * PkgHeap, u32 level)
 {
-    tagBlockHeader * block = NULL;
+    struct block_header_t * block = NULL;
 //  HEAP_AEESRT(level<HEAD_LIST_NUM);
     if(!(level<HEAD_LIST_NUM))
         return NULL;
 //SEARCH_MEM:
     while(1)
     {
-        if(level>=HEAD_LIST_NUM)
-            return NULL;
-        if(control->mem_lst[level]!=NULL)
+        if(PkgHeap->mem_lst[level] != NULL)
         {
-            block = control->mem_lst[level];
+            block = PkgHeap->mem_lst[level];
             if(block->next_free==block)
-                control->mem_lst[level] = NULL;
+                PkgHeap->mem_lst[level] = NULL;
             else
             {
                 block->next_free->prev_free = block->prev_free;
                 block->prev_free->next_free = block->next_free;
-                control->mem_lst[level] = block->next_free;
+                PkgHeap->mem_lst[level] = block->next_free;
             }
             block->next_free = NULL;
             block->prev_free = NULL;
@@ -525,108 +462,102 @@ static tagBlockHeader * BlockLocateFree(tagHeadControl * control, uint32_t level
         else
         {
             level++;
-//            goto SEARCH_MEM;
+            if(level>=HEAD_LIST_NUM)
+                return NULL;
         }
     }
     return block;
 }
 
-// =============================================================================
-// 功能：该block准备被使用，设置标志位以及检查分割情况
-// 参数：
-// 返回：
-// =============================================================================
-static void *
-BlockPrepareUsed(tagHeadControl * control, tagBlockHeader * block, uint32_t level)
-{
-    void* p = 0;
-    if (block)
-    {
-        BlockTrimFree(control, block, level);
-        BlockMarkAsUsed(control,block);
-        p = BlockToPtr(block);
-    }
-    return p;
-}
-
-// =============================================================================
-// 功能：初始化control控制块
-// 参数：
-// 返回：
-// =============================================================================
-static void ControlConstruct(tagHeadControl * control)
-{
-    uint16_t i=0;
-    control->block_null.next_free = &control->block_null;
-    control->block_null.prev_free = &control->block_null;
-    for(i=0;i<HEAD_LIST_NUM;i++)
-        control->mem_lst[i] = NULL;
-}
-
-static void * __Malloc(tagHeadControl * control, size_t size)
-{
-    const uint32_t adjust_id = AdjustRequestSize(size, BLOCK_ALIGN_SIZE);
-    if(adjust_id==HEAD_LIST_NUM)
-        return NULL;
-    tagBlockHeader * block = BlockLocateFree(control, adjust_id);
-    return BlockPrepareUsed(control, block, adjust_id);
-}
-
-static void __Free(tagHeadControl * control, void * ptr)
-{
-    if (ptr)
-    {
-        tagBlockHeader * block = BlockFromPtr(ptr);
-        if(BlockIsFree(block))
-            return;
-        BlockMarkAsFree(control,block);
-        block = BlockMergePrev(control, block);
-        block = BlockMergeNext(control, block);
-        BlockInsert(control, block);
-    }
-}
-
-void *DjyMalloc(tagHeadControl *control,size_t size)
+//------------------------------------------------------------------------------
+//功能：分配一块内存，步骤：
+//      1、从 heap_mem_list 表中找到与size匹配档位 level
+//      2、从 level 档位链表中取出一个block，若无空闲，则向更大尺寸level取。
+//      3、所取块的size可能大于所需，把多余部分裁剪下来，重新加入链表中。
+//参数：PkgHeap，所属块
+//      size，欲分配的内存
+//返回：分配到的内存指针
+//------------------------------------------------------------------------------
+void *__PkgMalloc(struct PkgHeapCB *PkgHeap,size_t size)
 {
     void *mem = NULL;
+    u32 level;
+    struct block_header_t * block;
     atom_low_t low;
-    if(control==NULL || size==0)
+    if(PkgHeap==NULL || size==0)
         return NULL;
     low = Int_LowAtomStart();
-    mem = __Malloc(control,size);
+//    mem = __Malloc(PkgHeap,size);
+    level = __GetLevel(size, BLOCK_ALIGN_SIZE);
+    if(level==HEAD_LIST_NUM)    //size＞最大块，无法分配
+        mem = NULL;
+    else
+    {
+        block = __GetOneBlock(PkgHeap, level);      //从空闲链表中取出一块，可能比所需的大
+        if(block != NULL)
+        {
+            __BlockTrim(PkgHeap, block, level);     //修剪块，把多余的部分回收
+            __BlockMarkAsUsed(PkgHeap,block);
+//          mem = __BlockToPtr(block);
+            mem = (void*)(block+1);
+        }
+        else
+            mem = NULL;
+    }
     Int_LowAtomEnd(low);
     return mem;
 }
 
-void DjyFree(tagHeadControl *control,void * ptr)
+void __PkgFree(struct PkgHeapCB *PkgHeap,void * ptr)
 {
     atom_low_t low;
-    if(control==NULL || ptr==NULL)
+    struct block_header_t * block;
+    if(PkgHeap==NULL || ptr==NULL)
          return;
     low = Int_LowAtomStart();
-    __Free(control,ptr);
+//  __Free(PkgHeap,ptr);
+//  block = BlockFromPtr(ptr);
+    block = (struct block_header_t*)ptr-1;
+//  if( ! __BlockIsFree(block))
+    if(! (block->size & BLOCK_FREE_BIT))
+    {
+        __BlockMarkAsFree(PkgHeap,block);
+        block = __BlockMergePrev(PkgHeap, block);
+        block = __BlockMergeNext(PkgHeap, block);
+        __BlockInsert(PkgHeap, block);
+    }
     Int_LowAtomEnd(low);
 }
 
-bool_t DjyMemInit(tagHeadControl *control,void *mem,size_t size)
+struct PkgHeapCB * __PkgMenInit(void *mem,size_t size)
 {
-    tagBlockHeader  *block;
+    struct block_header_t  *block;
     atom_low_t low;
-    if(mem==NULL || size<=sizeof(tagBlockHeader) || control==NULL)
-        return false;
+    struct PkgHeapCB *PkgHeap;
+    u16 i=0;
+    if(mem==NULL || size<=sizeof(struct block_header_t))
+        return NULL;
+    PkgHeap =  net_malloc(sizeof(struct PkgHeapCB) );
+    if(PkgHeap == NULL)
+        return NULL;
     low = Int_LowAtomStart();
-    ControlConstruct(control);
-    block = (tagBlockHeader*)align_up(BLOCK_ALIGN_SIZE,(size_t)mem);
+//  __ControlConstruct(PkgHeap);
+    for(i=0;i<HEAD_LIST_NUM;i++)
+        PkgHeap->mem_lst[i] = NULL;
+
+    block = (struct block_header_t*)align_up(BLOCK_ALIGN_SIZE,(size_t)mem);
 //  HEAP_AEESRT((size_t)block<=(size_t)mem);
 //  if((size_t)block<(size_t)mem)
 //      return false;
-    block->size = size +  (size_t)block - (size_t)mem - sizeof(tagBlockHeader);
-    block->prev_phys_block = NULL;
+    //size 要扣除 sizeof(struct block_header_t)
+    block->size = size +  (size_t)block - (size_t)mem - sizeof(struct block_header_t);
+    block->AddressSortPrev = NULL;
     block->next_free = block;
     block->prev_free = block;
-    control->last_addr = block->size +  (size_t)block + sizeof(tagBlockHeader);
-    BlockInsert(control,block);
-    BlockSetFree(block);
+    PkgHeap->last_addr = block->size +  (size_t)block + sizeof(struct block_header_t);
+    __BlockInsert(PkgHeap,block);
+//  __BlockSetFree(block);
+    block->size |= BLOCK_FREE_BIT;          //把本 block 设为空闲
     Int_LowAtomEnd(low);
-    return true;
+    return PkgHeap;
 }

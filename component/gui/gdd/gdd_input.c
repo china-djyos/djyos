@@ -67,12 +67,6 @@
 static tpInputMsgQ sg_ptGddMsgQ;
 
 
-
-tpInputMsgQ GDD_AddInputD()
-{
-
-   return  sg_ptGddMsgQ;
-}
 //-----------------------------------------------------------------------------
 //功能：添加输入设备，用于接收来自HMI设备的输入消息。
 //参数：用于GDD的输入设备名。注意，非设计用于GDD的输入设备，不放在这里。

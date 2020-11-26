@@ -2072,7 +2072,7 @@ u32 DJY_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout)
 //      pop_times输入作为计算同步的起始次数，同时用于输出同步条件达到时，目标事
 //      件类型的弹出次数。
 //参数: evtt_id,目标事件类型号
-//      base_times,弹出次数起始值，目标事件累计弹出*base_times+1作为同步条件，
+//      base_times,弹出次数条件，目标事件累计弹出*base_times+1作为同步条件，
 //          同步条件达到时，返回实际弹出次数。如果给NULL,则从调用时的弹出次数+1
 //          做同步条件，不能得到实际弹出次数。
 //      timeout，超时设置,单位是微秒，CN_TIMEOUT_FOREVER=无限等待，0则立即按
@@ -3241,7 +3241,9 @@ bool_t DJY_GetEventInfo(u16 id, struct EventInfo *info)
 }
 //----获取事件类型名字-----------------------------------------------------------
 //功能: 根据事件类型号获取事件类型名字
-//参数: evtt_id,事件类型ID,dest,存储空间，len,最大存储长度
+//参数: evtt_id,事件类型ID,
+//      dest,存储空间，
+//      len,最大存储长度
 //返回: true成功，false失败
 //-----------------------------------------------------------------------------
 bool_t DJY_GetEvttName(u16 evtt_id, char *dest, u32 len)

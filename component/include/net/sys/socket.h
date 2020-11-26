@@ -185,16 +185,16 @@ typedef uint16_t in_port_t;
 typedef uint32_t in_addr_t;
 
 struct sockaddr {
-      sa_family_t sa_family;       /* Address family */
-      char sa_data[14];            /* protocol-specific address */
+      sa_family_t sa_family;       // Address family
+      char sa_data[14];            // protocol-specific address
 };
 struct in_addr  {
     in_addr_t s_addr;                    /* IPv4 address */
 };
 struct sockaddr_in {
      sa_family_t sin_family;             /* AF_INET */
-     in_port_t sin_port;                 /* Port number.  */
-     struct in_addr sin_addr;            /* Internet address.  */
+     in_port_t sin_port;                 // remote Port number.  sa_data[0~1]
+     struct in_addr sin_addr;            // remote IP. sa_data[2~5]
 
      /* Pad to size of `struct sockaddr'.  */
      unsigned char sin_zero[8];
@@ -306,7 +306,7 @@ enum _EN_SOCKEY_ERRORNO
 #define CN_SOCKET_PROOOB        (1<<12)
 #define CN_SOCKET_PRONAGLE      (1<<13)
 #define CN_SOCKET_PROLINGER     (1<<14)
-#define CN_SOCKET_PROCORK       (1<<15)
+#define CN_SOCKET_PROCORK       (1<<15)     //收集到最大量数据才发送。
 #define CN_SOCKET_PROREUSE      (1<<16)
 #define CN_SOCKET_PROKEEPALIVE  (1<<17)
 #define CN_SOCKET_PROBROAD      (1<<18)
@@ -545,7 +545,7 @@ int getpeername(int sockfd,struct sockaddr *addr,socklen_t *addrlen);
 //int FD_ISSET(int fd, fd_set *sets);
 //int FD_ZERO(fd_set *sets);
 //
-//int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
+//int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps,
 //           struct timeval *timeout);
 ////////////////////////NETDEV DRIVER USED INTERFACE///////////////////////////////
 //ip address defines

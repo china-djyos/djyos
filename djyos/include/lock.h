@@ -77,7 +77,7 @@ struct SemaphoreLCB
     s32 lamps_limit;   //信号灯数量上限，cn_limit_uint32表示不限数量
     s32 lamp_counter;  //可用信号灯数量。
     struct EventECB *semp_sync;    //等候信号的事件队列
-    char name[8];
+    char *name;
 };
 
 //互斥量是可以递归请求的，即同一个事件允许反复请求，但要求释放的次数和请求的次数
@@ -89,7 +89,7 @@ struct MutexLCB
     ufast_t  prio_bak;                  //优先级继承中备份原优先级
     struct EventECB *owner;         //占用互斥量的事件，若被中断占用，则无效
     struct EventECB *mutex_sync;    //等候互斥量的事件队列，优先级排队
-    char name[8];
+    char *name;
 };
 
 //用于信号量和互斥量共享内存池

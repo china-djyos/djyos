@@ -180,7 +180,7 @@ static struct NetPkg *__PHMake(u32 ipsrc,u32 ipdst,u8 proto,u32 translen,bool_t 
         hdr->chksum = 0;
         hdr->ipsrc = ipsrc;
         hdr->ipdst = ipdst;
-        PkgSetNextUnit(result,NULL);
+//        PkgSetNextUnit(result,NULL);      //PkgMalloc已经设置好
         PkgSetDataLen(result, sizeof(tagV4PH));
 //      result->datalen = sizeof(tagV4PH);
 //      result->partnext = NULL;
@@ -270,8 +270,8 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
 
             if(devfunc & CN_IPDEV_IPOCHKSUM)
             {
-                devtask |= CN_IPDEV_IPOCHKSUM;
-                ipchksum = false;
+                devtask |= CN_IPDEV_IPOCHKSUM;  //网卡有IPCHK功能，给网卡添加任务
+                ipchksum = false;               //make包头时就不用管IPCHK了
             }
             else
             {

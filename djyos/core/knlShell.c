@@ -86,7 +86,6 @@ bool_t spyk(u16 pl_ecb);
 // 返回：
 // 备注：
 // ============================================================================
-//bool_t Sh_ShowEvent(char *param)
 bool_t event(char *param)
 {
     u16 pl_ecb;
@@ -95,15 +94,12 @@ bool_t event(char *param)
     bool_t native = false;
 
     MemSize = 0;
-    printf("事件号  类型号  优先级 CPU  栈尺寸   动态内存 最大内存   类型名");
+    printf("事件号  类型号  优先级 CPU  栈尺寸   动态内存 最大内存   类型名：总时间(us)");
     for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
     {
         if(g_tECB_Table[pl_ecb].previous !=
                         (struct EventECB*)&s_ptEventFree)
         {
-            // printf("%05d %05d     ",pl_ecb,g_ptECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK));
-            // printf("%03d    ",g_ptECB_Table[pl_ecb].prio);
-            // printf("%02d%%  %8x",time1,g_ptECB_Table[pl_ecb].vm->stack_size);
 #if CFG_OS_TINY == false
             time1 = g_tECB_Table[pl_ecb].consumed_time_second/10000;
             name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
@@ -113,22 +109,19 @@ bool_t event(char *param)
 #endif  //CFG_OS_TINY == false
             if(NULL == g_tECB_Table[pl_ecb].vm)
             {
-//                printf("knlshell","%02d%%  %08x %s",0,0,name);
                 StackSize = 0;
             }
             else
             {
                 StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
-//                printf("knlshell","%02d%%  %08x %s",time1,g_tECB_Table[pl_ecb].vm->stack_size,name);
-//                MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
             }
-//            printf("knlshell","\n\r");
 
-            printf("\r\n%05d   %05d   %03d    %02d%%  %08x %08x %08x %s",\
+            printf("\r\n%05d   %05d   %03d    %02d%%  %08x %08x %08x %s : %lld",\
                    pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK),\
-                    g_tECB_Table[pl_ecb].prio,time1,\
-                    StackSize, g_tECB_Table[pl_ecb].HeapSize,
-                    g_tECB_Table[pl_ecb].HeapSizeMax, name);
+                                    g_tECB_Table[pl_ecb].prio,time1,\
+                                    StackSize, g_tECB_Table[pl_ecb].HeapSize,
+                                    g_tECB_Table[pl_ecb].HeapSizeMax, name,
+                                    g_tECB_Table[pl_ecb].consumed_time);
             heapsize += g_tECB_Table[pl_ecb].HeapSize;
             maxsize += g_tECB_Table[pl_ecb].HeapSizeMax;
             MemSize += StackSize;
@@ -137,7 +130,6 @@ bool_t event(char *param)
         }
         else
         {
-//          printf("knlshell","%5d   空闲",pl_ecb);
         }
     }
 
@@ -156,15 +148,12 @@ bool_t eventk(char *param)
     bool_t native = false;
 
     MemSize = 0;
-    printk("事件号  类型号  优先级 CPU  栈尺寸   动态内存 最大内存   类型名");
+    printk("事件号  类型号  优先级 CPU  栈尺寸   动态内存 最大内存   类型名：总时间(us)");
     for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
     {
         if(g_tECB_Table[pl_ecb].previous !=
                         (struct EventECB*)&s_ptEventFree)
         {
-            // printf("%05d %05d     ",pl_ecb,g_ptECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK));
-            // printf("%03d    ",g_ptECB_Table[pl_ecb].prio);
-            // printf("%02d%%  %8x",time1,g_ptECB_Table[pl_ecb].vm->stack_size);
 #if CFG_OS_TINY == false
             time1 = g_tECB_Table[pl_ecb].consumed_time_second/10000;
             name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
@@ -176,22 +165,19 @@ bool_t eventk(char *param)
                 busy = pl_ecb;
             if(NULL == g_tECB_Table[pl_ecb].vm)
             {
-//                printf("knlshell","%02d%%  %08x %s",0,0,name);
                 StackSize = 0;
             }
             else
             {
                 StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
-//                printf("knlshell","%02d%%  %08x %s",time1,g_tECB_Table[pl_ecb].vm->stack_size,name);
-//                MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
             }
-//            printf("knlshell","\n\r");
 
-            printk("\r\n%05d   %05d   %03d    %02d%%  %08x %08x %08x %s",\
+            printk("\r\n%05d   %05d   %03d    %02d%%  %08x %08x %08x %s : %lld",\
                    pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK),\
                     g_tECB_Table[pl_ecb].prio,time1,\
                     StackSize, g_tECB_Table[pl_ecb].HeapSize,
-                    g_tECB_Table[pl_ecb].HeapSizeMax, name);
+                    g_tECB_Table[pl_ecb].HeapSizeMax, name,
+                    g_tECB_Table[pl_ecb].consumed_time);
             heapsize += g_tECB_Table[pl_ecb].HeapSize;
             maxsize += g_tECB_Table[pl_ecb].HeapSizeMax;
             MemSize += StackSize;
@@ -200,7 +186,6 @@ bool_t eventk(char *param)
         }
         else
         {
-//          printf("knlshell","%5d   空闲",pl_ecb);
         }
     }
 

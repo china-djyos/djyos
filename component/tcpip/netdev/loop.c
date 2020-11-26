@@ -80,7 +80,7 @@
 typedef struct
 {
     mutex_t lock;
-    semp_t  sync;
+    u32     evttID;     //用32位数，以后事件类型ID要改为32位的
     struct NetDev *iface;
     struct NetPkg *pkg;
 }tagLoopCB;
@@ -89,22 +89,33 @@ static tagLoopCB gLoopCB;
 //for the tempory, we will create a loop task here
 static ptu32_t __LoopTask(void)
 {
-    struct NetPkg *pkg = NULL;
+    struct NetPkg *pkg = NULL,*tmp;
     while(1)
     {
-        if(semp_pendtimeout(gLoopCB.sync,10*mS))
+        DJY_WaitEvttPop(DJY_GetMyEvttId(), NULL, 100 * mS);
+        while(1)
         {
             if(mutex_lock(gLoopCB.lock))
             {
                 pkg = gLoopCB.pkg;
-                gLoopCB.pkg = NULL;
+                if(pkg != NULL)
+                {
+                    gLoopCB.pkg = PkgGetNextUnit(pkg);
+                    PkgSetNextUnit(pkg, NULL);
+                }
                 mutex_unlock(gLoopCB.lock);
+                if(pkg != NULL)
+                {
+                    Link_NetDevPush(gLoopCB.iface,pkg);
+                    PkgTryFreePart(pkg);
+                }
+                else
+                {
+                    break;
+                }
             }
-            if(NULL!= pkg) //PUSH IT
-            {
-                Link_NetDevPush(gLoopCB.iface,pkg);
-                PkgTryFreePart(pkg);
-            }
+            else
+                break;
         }
     }
     return 0;
@@ -128,6 +139,14 @@ static ptu32_t __LoopTask(void)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
+//----自环网卡的发送函数---------------------------------------------------------
+//功能：把上层传下来的pkg链合并为一个大的pkg，然后链接到网卡控制块的pkg成员下，并
+//      弹出事件，自环网卡的接收事件将启动。
+//参数：iface，网卡指针
+//      pkg，待发送的数据包链表
+//      netdevtask，须网卡做的辅助任务，对于自环网卡来说，无意义。
+//返回：true = 成功发送，false = 内存不足导致失败
+//------------------------------------------------------------------------------
 static bool_t __LoopOut(struct NetDev *iface,struct NetPkg *pkg,u32 netdevtask)
 {
     bool_t  ret = false;
@@ -138,38 +157,30 @@ static bool_t __LoopOut(struct NetDev *iface,struct NetPkg *pkg,u32 netdevtask)
     sndpkg = PkgMalloc(framlen,0);
     if(NULL != sndpkg)
     {
-        tmp = pkg;
-        PkgCopyFrameToPkg(tmp, sndpkg);
-//        while(NULL != tmp)
-//        {
-//            src = (u8 *)(tmp->buf + tmp->offset);
-//            dst = (u8 *)(sndpkg->buf + sndpkg->offset + sndpkg->datalen);
-//            memcpy(dst, src, tmp->datalen);
-//            sndpkg->datalen += tmp->datalen;
-////          if(tmp->pkgflag & CN_PKLGLST_END)
-//            if(PkgIsBufferEnd(tmp))
-//            {
-//                tmp = NULL;
-//            }
-//            else
-//            {
-//                tmp = PkgGetNextUnit(tmp);
-//            }
-//        }
-        //push it to the loop controller
+        PkgCopyFrameToPkg(pkg, sndpkg);
         if(mutex_lock(gLoopCB.lock))
         {
-            if(NULL == gLoopCB.pkg)
+            tmp = gLoopCB.pkg;
+            if(NULL == tmp)
             {
                 gLoopCB.pkg = sndpkg;
                 ret = true;
             }
+            else
+            {
+                framlen = 0;
+                while(PkgGetNextUnit(tmp) != NULL)
+                {
+                    framlen++;
+                    tmp = PkgGetNextUnit(tmp);
+                }
+                if(framlen >3)
+                    framlen = 4;
+                PkgSetNextUnit(tmp, sndpkg);
+//                PkgSetNextUnit(sndpkg, NULL);      //PkgMalloc已经设置好
+            }
             mutex_unlock(gLoopCB.lock);
-            semp_post(gLoopCB.sync);
-        }
-        if(false == ret)
-        {
-            PkgTryFreePart(sndpkg);
+            DJY_EventPop(gLoopCB.evttID,NULL,0,0,0,0);
         }
         ret = true;
     }
@@ -188,16 +199,20 @@ static bool_t __LoopOut(struct NetDev *iface,struct NetPkg *pkg,u32 netdevtask)
 bool_t LoopInit(void)
 {
     struct NetDevPara   devpara;
+    u16 evttID;
 
     //do the loop device initialize
     memset(&gLoopCB,0,sizeof(gLoopCB));
     gLoopCB.lock = mutex_init(NULL);
-    gLoopCB.sync = semp_init(1,0,NULL);
-    taskcreate("LOOPDEV",0x800,CN_PRIO_RRS,__LoopTask,NULL);
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1, __LoopTask, NULL, 0x2800, "LOOPDEV");
+    if(evttID == CN_EVTT_ID_INVALID)
+    {
+        goto EXIT_EVTTFAILED;
+    }
+    gLoopCB.evttID = evttID;
     //then we will register a loop device to the stack
     memset((void *)&devpara,0,sizeof(devpara));
     devpara.ifsend = __LoopOut;
-//  devpara.ifrecv = __LoopIn;
     devpara.iftype = EN_LINK_RAW;
     devpara.name = CN_LOOP_DEVICE;
     devpara.Private = 0;
@@ -214,6 +229,8 @@ bool_t LoopInit(void)
     return true;
 
 EXIT_LOOPDEV:
+    DJY_EvttUnregist(evttID);
+EXIT_EVTTFAILED:
     return false;
 }
 

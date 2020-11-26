@@ -264,12 +264,14 @@ s32 UART_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 t
             break;
         }
     }
+
+    Lock_MutexPost(UGCB->WriteMutex);
+    //对多路复用的操作不允许在 Lock_MutexPost(UGCB->WriteMutex) 之前调用，因为多路复用
+	//操作内部也有互斥量，存在死锁隐患；例如 __Multiplex_Set 函数内部调用串口打印。
     if(Ring_IsFull(&UGCB->SendRingBuf))
     {
         OBJ_ClrMultiplexEvent(UartObj, CN_MULTIPLEX_SENSINGBIT_WRITE);
     }
-
-    Lock_MutexPost(UGCB->WriteMutex);
     return completed;
 }
 
@@ -312,7 +314,11 @@ s32 UART_AppRead(struct objhandle *hdl,u8* dst_buf,u32 len, u32 offset, u32 time
     else
         completed = Ring_Read(&UGCB->RecvRingBuf,(uint8_t*)dst_buf,len);
 
+    Lock_MutexPost(UGCB->ReadMutex);
+
     //若缓冲区中不再有数据，清掉多路复用触发状态。
+    //对多路复用的操作不允许在 Lock_MutexPost(UGCB->ReadMutex) 之前调用，因为多路复用
+	//操作内部也有互斥量，存在死锁隐患；例如 __Multiplex_Set 函数内部调用串口打印。
     if(Ring_IsEmpty(&UGCB->RecvRingBuf))
     {
         //标记1。
@@ -324,7 +330,6 @@ s32 UART_AppRead(struct objhandle *hdl,u8* dst_buf,u32 len, u32 offset, u32 time
         }
     }
 
-    Lock_MutexPost(UGCB->ReadMutex);
     return completed;
 }
 

@@ -621,17 +621,19 @@ void __Handle_SetMultiplexHead(struct objhandle *hdl, struct MultiplexObjectCB *
 // ============================================================================
 void Handle_SetMultiplexEvent(struct objhandle *hdl, u32 events)
 {
-    u32 check;
+//    u32 MultiplexEvents;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
-    Int_SaveAsynSignal();
+//    Int_SaveAsynSignal();
+    __Handle_LockSys();
     if(hdl)
     {
-        check = hdl->MultiplexEvents;
+//        MultiplexEvents = hdl->MultiplexEvents;
         hdl->MultiplexEvents |= events;
-        if(check!=hdl->MultiplexEvents)
+//        if(MultiplexEvents!=hdl->MultiplexEvents)
             __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
     }
-    Int_RestoreAsynSignal();
+//    Int_RestoreAsynSignal();
+    __Handle_UnlockSys();
 }
 
 // ============================================================================
@@ -643,17 +645,19 @@ void Handle_SetMultiplexEvent(struct objhandle *hdl, u32 events)
 // ============================================================================
 void Handle_ClrMultiplexEvent(struct objhandle *hdl, u32 events)
 {
-    u32 check;
+//    u32 MultiplexEvents;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
-    Int_SaveAsynSignal();
+//    Int_SaveAsynSignal();
+    __Handle_LockSys();
     if(hdl)
     {
-        check = hdl->MultiplexEvents;
+//        MultiplexEvents = hdl->MultiplexEvents;
         hdl->MultiplexEvents &= ~events;
-        if(check != hdl->MultiplexEvents)
+//        if(MultiplexEvents != hdl->MultiplexEvents)
             __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
     }
-    Int_RestoreAsynSignal();
+//  Int_RestoreAsynSignal();
+    __Handle_UnlockSys();
 }
 
 // ============================================================================
@@ -666,24 +670,26 @@ void Handle_ClrMultiplexEvent(struct objhandle *hdl, u32 events)
 s32 OBJ_SetMultiplexEvent(struct Object *ob, u32 events)
 {
     struct objhandle *hdl;
-    u32 MultiplexEvents;
+//    u32 MultiplexEvents;
     list_t *head, *cur;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
 
     if(!ob)
         return (-1);
 
-    Int_SaveAsynSignal();
     head = &ob->handles; // head是不需要设置的；
     dListForEach(cur, head)
     {
         hdl = dListEntry(cur, struct objhandle, list);
-        MultiplexEvents = hdl->MultiplexEvents;
+//        MultiplexEvents = hdl->MultiplexEvents;
+//        Int_SaveAsynSignal();
+        __Handle_LockSys();
         hdl->MultiplexEvents |= events;
-        if(MultiplexEvents!=hdl->MultiplexEvents)
-            __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
+//        if(MultiplexEvents!=hdl->MultiplexEvents)
+        __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
+//      Int_RestoreAsynSignal();
+        __Handle_UnlockSys();
     }
-    Int_RestoreAsynSignal();
     return (0);
 }
 
@@ -697,25 +703,27 @@ s32 OBJ_SetMultiplexEvent(struct Object *ob, u32 events)
 s32 OBJ_ClrMultiplexEvent(struct Object *ob, u32 events)
 {
     struct objhandle *hdl;
-    u32 MultiplexEvents;
+//    u32 MultiplexEvents;
     list_t *head, *cur;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
 
     if(!ob)
         return (-1);
 
-    Int_SaveAsynSignal();
     head = &ob->handles;             // 头部是不需要设置的；
     dListForEach(cur, head)
     {
         hdl = dListEntry(cur, struct objhandle, list);
-        MultiplexEvents = hdl->MultiplexEvents;
+//        MultiplexEvents = hdl->MultiplexEvents;
+//      Int_SaveAsynSignal();
+        __Handle_LockSys();
         hdl->MultiplexEvents &= ~events;
-        if(MultiplexEvents != hdl->MultiplexEvents)
-            __Multiplex_Set(Handle2fd(hdl),hdl->MultiplexEvents);
+//        if(MultiplexEvents != hdl->MultiplexEvents)
+        __Multiplex_Set(Handle2fd(hdl),hdl->MultiplexEvents);
+//      Int_RestoreAsynSignal();
+        __Handle_UnlockSys();
     }
 
-    Int_RestoreAsynSignal();
     return (0);
 }
 

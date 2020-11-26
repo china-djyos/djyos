@@ -245,8 +245,7 @@ struct SemaphoreLCB *Lock_SempCreate(s32 lamps_limit,s32 init_lamp,
     semp->lamps_limit = lamps_limit;
     semp->lamp_counter = init_lamp;
     semp->semp_sync = NULL;
-    if(name != NULL)
-        strncpy(semp->name, name, 8);
+    semp->name = name;
     //把新节点挂到信号量队列下
     dListInsertAfter(&s_tSempHead, &semp->List);
 //  OBJ_AddChild(s_ptMutexObject,&semp->node,
@@ -276,8 +275,7 @@ struct SemaphoreLCB *Lock_SempCreate_s( struct SemaphoreLCB *semp,
     semp->lamps_limit = lamps_limit;
     semp->lamp_counter = init_lamp;
     semp->semp_sync = NULL;
-    if(name != NULL)
-        strncpy(semp->name, name, 8);
+    semp->name = name;
     //把新节点挂到信号量队列下
     dListInsertAfter(&s_tSempHead, &semp->List);
 
@@ -591,8 +589,7 @@ struct MutexLCB *Lock_MutexCreate(const char *name)
     mutex->mutex_sync = NULL;
 //  mutex->prio_bak = CN_PRIO_INVALID;
     mutex->owner = NULL;
-    if(name != NULL)
-        strncpy(mutex->name, name, 8);
+    mutex->name = name;
     //把新节点挂到互斥量队列下
     dListInsertAfter(&s_tMutexHead, &mutex->List);
     //把新节点挂到信号量根节点下
@@ -618,8 +615,7 @@ struct MutexLCB *Lock_MutexCreate_s( struct MutexLCB *mutex,const char *name)
     mutex->mutex_sync = NULL;
 //  mutex->prio_bak = CN_PRIO_INVALID;
     mutex->owner = NULL;
-    if(name != NULL)
-        strncpy(mutex->name, name, 8);
+    mutex->name = name;
     //把新节点挂到互斥量队列下
     dListInsertAfter(&s_tMutexHead, &mutex->List);
     //把新节点挂到信号量根节点下
@@ -915,7 +911,7 @@ void __Lock_ShowMutex(void)
         else
             debug_printf("lock","无        ");
 
-        if(Mutex->name[0] != '\0')
+        if((Mutex->name != NULL) && (Mutex->name[0] != '\0'))
         {
             debug_printf("lock","%s\r\n", Mutex->name);
         }else
@@ -984,7 +980,7 @@ void __Lock_ShowSemp(void)
         else
             debug_printf("lock","无        ");
 
-        if(Semp->name[0] != '\0')
+        if((Semp->name != NULL) && (Semp->name[0] != '\0'))
         {
             debug_printf("lock","%s\r\n", Semp->name);
         }

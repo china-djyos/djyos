@@ -63,7 +63,7 @@ struct RoutItem6;
 
 struct NetPkg *PkgMalloc(u16 bufsize,u8 flags);
 bool_t     PkgTryFreePart(struct NetPkg *pkg);
-bool_t     PkgTryFreeLst(struct NetPkg  *pkglst);
+//bool_t     PkgTryFreeLst(struct NetPkg  *pkglst);
 bool_t     PkgTryFreeQ(struct NetPkg  *pkglst);
 bool_t     PkgCachedPart(struct NetPkg  *pkg);
 bool_t     PkgCachedLst(struct NetPkg   *pkglst);
