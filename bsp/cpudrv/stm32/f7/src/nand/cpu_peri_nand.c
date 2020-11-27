@@ -1178,7 +1178,7 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
         }
         case sparebytes:
         {
-            *((u32*)args) = __nandescription.OOB_Size;
+            *((u32*)args) = __nandescription->OOB_Size;
             break;
         }
         case checkbad:

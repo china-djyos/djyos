@@ -564,7 +564,7 @@ char Uart_GetCharDirect(void)
     return result;
 }
 
-void bk_printf(const char *fmt, ...)
+__attribute__((weak)) void bk_printf(const char *fmt, ...)
 {
 
 }
