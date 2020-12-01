@@ -1076,19 +1076,20 @@ bool_t XIP_AppFileCheckSubsection(s8 *addr, u8 *buf, s32 len, s8 *compare_addr)
     u32 i;
     if(addr != NULL)
     {
-        if(apphead->verification != VERIFICATION_NULL)
+        if(apphead->verification != VERIFICATION_NULL)  //判断是否需要校验
         {
             ret = true;
             for(i=0; i < sizeof(apphead->app_name); i++)
             {
-                if(apphead->app_name[i] != (s8)0xff)
+                if(apphead->app_name[i] != (s8)0xff)    //看文件头里的文件名是否为全ff，如果全是ff说明文件头已经参加过校验了
                     break;
             }
             if(i != sizeof(apphead->app_name))
             {
-                Iboot_VerificationAppInit(addr);
+                Iboot_VerificationAppInit(addr);    //文件名不为全ff，则先计算文件头的校验码
             }
-            Iboot_VerificationAppRun(addr, buf, len);
+            if(len != 0)
+                Iboot_VerificationAppRun(addr, buf, len);
 
             if(compare_apphead != NULL)
             {
@@ -1098,6 +1099,7 @@ bool_t XIP_AppFileCheckSubsection(s8 *addr, u8 *buf, s32 len, s8 *compare_addr)
         }
         else
         {
+            ret = true;
             info_printf("xip", "not need to check .\r\n");
         }
     }
