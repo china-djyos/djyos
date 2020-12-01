@@ -2136,7 +2136,7 @@ bool_t ModuleInstall_FontGb2312_24_Fang(void)
 #endif      //CFG_GB2312_24_FANG != zk_disable
 
 #if CFG_GB2312_24_HEI != zk_disable
-#include "../dotfont-ascii/dot-ascii8x24hei.h"
+#include "../dotfont-ascii/dot-ascii12x24hei.h"
 
 bool_t __Gb2312_24LoadFromFileHei(const char* FileName);
 void __Gb2312_24UnLoadFromFileHei(void);
@@ -2182,7 +2182,7 @@ bool_t __Font_Gb2312_24GetCharBitMapHei(u32 charcode, u32 size,u32 resv,
         bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<24; i++)
+            for(i=0; i<FONT_HZ24_ASCII_BYTES; i++)
             {
                 bitmap->bm_bits[i] = pg_Ascii12x24Hei[offset + i];
             }
@@ -2297,7 +2297,7 @@ bool_t ModuleInstall_FontGb2312_24_Hei(void)
         return false;
     }
 
-    pg_Ascii12x24Hei = (u8*)cs_ascii_12x24;
+    pg_Ascii12x24Hei = (u8*)cs_ascii_hei_12x24;
     font_gb2312_8x24_2424.MaxWidth = FONT_HZ24_W;
     font_gb2312_8x24_2424.MaxHeight = FONT_HZ24_H;
     font_gb2312_8x24_2424.Attr = CN_FONT_TYPE_DOT;
@@ -3107,7 +3107,7 @@ bool_t ModuleInstall_FontGb2312_32_Fang(void)
 #endif      //CFG_GB2312_32_FANG != zk_disable
 
 #if CFG_GB2312_32_HEI != zk_disable
-#include "../dotfont-ascii/dot-ascii8x32hei.h"
+#include "../dotfont-ascii/dot-ascii16x32hei.h"
 
 bool_t __Gb2312_32LoadFromFileHei(const char* FileName);
 void __Gb2312_32UnLoadFromFileHei(void);
@@ -3268,7 +3268,7 @@ bool_t ModuleInstall_FontGb2312_32_Hei(void)
         return false;
     }
 
-    pg_Ascii16x32Hei = (u8*)cs_ascii_16x32;
+    pg_Ascii16x32Hei = (u8*)cs_ascii_hei_16x32;
     font_gb2312_8x32_3232.MaxWidth = FONT_HZ32_W;
     font_gb2312_8x32_3232.MaxHeight = FONT_HZ32_H;
     font_gb2312_8x32_3232.Attr = CN_FONT_TYPE_DOT;
