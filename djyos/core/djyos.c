@@ -2210,7 +2210,7 @@ u32 DJY_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout)
 //              2、如果携带参数，prio不高于已有优先级则新参数置入task_low_prio队
 //                 列，prio高于已有优先级则新参数置入task_high_prio队列，数越大，
 //                 优先级越低。
-//返回：若不能获取事件控制块，返回cn_invalid_event_id，否则返回事件id。
+//返回：若不能获取事件控制块，返回 CN_EVENT_ID_INVALID，否则返回事件id。
 //注: 不会因不能获得事件控制块而阻塞。
 //-----------------------------------------------------------------------------
 u16 DJY_EventPop(   u16  hybrid_id,

@@ -1335,7 +1335,7 @@ static void __cpy2sndbuf(struct tagSocket *sock, const void *msg, s32 len)
 //------------------------------------------------------------------------------
 static s32 __chkchannelsendlen(struct tagSocket *sock)
 {
-    s32      result,congest;
+    s32      result = 0,congest;
     s32      datalen;
     struct ClientCB  *ccb;
 
@@ -1361,6 +1361,8 @@ static s32 __chkchannelsendlen(struct tagSocket *sock)
             result = 0;                 //²»×ãmss£¬²»·¢ËÍ
         }
     }
+    else
+        result = datalen;
 //  else //nagle is close
 //  {
 //      //we will send the mixnum of (sndwnd cwnd datalen)
