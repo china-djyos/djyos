@@ -133,6 +133,11 @@ void __LP_BSP_EntrySleep(u8 sleep_level, u32 pend_ticks)
     }
 }
 
+void ImmediatelyDeepSleep(void)
+{
+    bk_enter_deep_sleep_mode(&deep_sleep_param);
+}
+
 //-----------------------------------------------------------------------------
 //功能：设置从深度睡眠中唤醒条件，设置的条件可以叠加
 //参数：way, 唤醒信源，可选择：PS_DEEP_WAKEUP_GPIO、PS_DEEP_WAKEUP_RTC、PS_DEEP_WAKEUP_GPIO_RTC
