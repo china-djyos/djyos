@@ -3235,6 +3235,14 @@ bool_t DJY_GetEventInfo(u16 id, struct EventInfo *info)
 #if CFG_OS_TINY == false
         info->consumed_time = event->consumed_time;
         info->EventStartTime = event->EventStartTime;
+        info->consumed_time_second = event->consumed_time_second;
+        info->EvttName = g_tEvttTable[event->evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
+        info->StackTop = event->vm->stack_top;
+        info->StackBottom = (u32*)(&(event->vm[1]));
+
+        info->Stack = event->vm->stack;
+        info->StackUsed = event->vm->stack_used;
+        info->StackSize = event->vm->stack_size;
 #endif  //CFG_OS_TINY == false
         return true;
     }

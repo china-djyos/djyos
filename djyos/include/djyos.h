@@ -203,13 +203,16 @@ struct ThreadVm          //线程数据结构
 //};
 struct EventInfo
 {
-#if (CN_USE_TICKLESS_MODE)
-    u64    EventStartCnt;      //事件发生时间，uS
-    u64    consumed_cnt;       //事件消耗的总时间
-#else
     s64    EventStartTime;      //事件发生时间，uS
     s64    consumed_time;       //事件消耗的总时间
-#endif
+    u32    consumed_time_second;//最近1秒消耗的时间
+    u32    StackSize;
+    u32    Stack;
+    u32*   StackUsed;
+    u32*   StackBottom;
+    u32*   StackTop;
+    s8 *   EvttName;
+
     u32    error_no;            //本事件执行产生的最后一个错误号
     ptu32_t event_result;       //如果本事件处理时弹出了事件，并且等待处理结果
                                 //(即调用pop函数时，timeout !=0)，且正常返回，这
