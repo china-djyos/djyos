@@ -85,7 +85,6 @@ typedef struct
     void            *DstIP;   //this structure depends on the ver:ipv4 ipv6
     void            *HopIP;   //this structure depends on the ver:ipv4 ipv6
     void            *HostIP;  //this structure depends on the ver:ipv4 ipv6
-    u16             mtu;      //you need this do the fragment
 }tagRoutLink; //you could use this structure to storage the message need in the external
 //you could do the decision on the type,if UNKNOWN,which means we could resolve this
 //if need more function,you could extend it this structure -- TODO,zhangqf

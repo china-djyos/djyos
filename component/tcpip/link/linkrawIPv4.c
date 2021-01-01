@@ -97,7 +97,7 @@ static bool_t __Link_Out(struct NetDev *iface,struct NetPkg *pkg,u32 framlen,u32
         {
             TCPIP_DEBUG_INC((iface)->pkgsnderr);
         }
-//      ret = NetDevSend(iface,pkg,framlen,devtask);
+//      ret = NetDev_Send(iface,pkg,framlen,devtask);
     }
     return ret;
 }

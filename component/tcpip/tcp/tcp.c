@@ -344,7 +344,7 @@ static bool_t __hashTabInit( void )
 //  }
 //  memset((void *)TcpHashTab,0,sizeof(tagTcpHashTab) + len *sizeof(struct tagSocket *));
 
-    TcpHashTab.tabsync = mutex_init(NULL);
+    TcpHashTab.tabsync = Lock_MutexCreate(NULL);
     if(NULL == TcpHashTab.tabsync)
     {
         goto ERR_SYNC;
@@ -446,6 +446,8 @@ static bool_t __hashSocketAdd(struct tagSocket *sock)
 
     hashKey = v4->iplocal + v4->portlocal + v4->ipremote + v4->portremote;
     hashKey = hashKey%CFG_TCP_SOCKET_HASH_LEN;
+    if(hashKey == 7)        //lst debug
+        tmp = NULL;
     tmp = TcpHashTab.array[hashKey];
     if(NULL == tmp)
     {
@@ -536,7 +538,7 @@ static bool_t  __initCB(s32 ccbnum, s32 scbnum)
 
     if((ccbnum <= 0) || (scbnum <= 0))
         return false;
-    pCBSync = mutex_init(NULL);
+    pCBSync = Lock_MutexCreate(NULL);
 
     //do the ccb initialize
     pCCBFreeList = net_malloc(ccbnum *sizeof(struct ClientCB));
@@ -575,7 +577,7 @@ SCB_MEM:
     net_free((void *)pCCBFreeList);
     pCCBFreeList = NULL;
 CCB_MEM:
-    mutex_del(pCBSync);
+    Lock_MutexDelete(pCBSync);
     pCBSync = NULL;
     return false;
 }
@@ -584,7 +586,7 @@ CCB_MEM:
 static struct ClientCB  *mallocccb(void)
 {
     struct ClientCB           *result = NULL;
-    if(mutex_lock(pCBSync))
+    if(Lock_MutexPend(pCBSync,CN_TIMEOUT_FOREVER))
     {
         if(NULL != pCCBFreeList)
         {
@@ -592,19 +594,19 @@ static struct ClientCB  *mallocccb(void)
             pCCBFreeList = result->nxt;
         }
 
-        mutex_unlock(pCBSync);
+        Lock_MutexPost(pCBSync);
     }
     return result;
 }
 //net_free a ccb
 static bool_t  freeccb(struct ClientCB  *ccb)
 {
-    if(mutex_lock(pCBSync))
+    if(Lock_MutexPend(pCBSync,CN_TIMEOUT_FOREVER))
     {
         ccb->nxt = pCCBFreeList;
         pCCBFreeList = ccb;
 
-        mutex_unlock(pCBSync);
+        Lock_MutexPost(pCBSync);
     }
     return true;
 }
@@ -613,26 +615,26 @@ static struct ServerCB  *mallocscb(void)
 {
     struct ServerCB           *result = NULL;
 
-    if(mutex_lock(pCBSync))
+    if(Lock_MutexPend(pCBSync,CN_TIMEOUT_FOREVER))
     {
         if(NULL != pSCBFreeList)
         {
             result = pSCBFreeList;
             pSCBFreeList = result->nxt;
         }
-        mutex_unlock(pCBSync);
+        Lock_MutexPost(pCBSync);
     }
     return result;
 }
 //net_free a scb
 static bool_t  freescb(struct ServerCB  *scb)
 {
-    if(mutex_lock(pCBSync))
+    if(Lock_MutexPend(pCBSync,CN_TIMEOUT_FOREVER))
     {
         scb->nxt = pSCBFreeList;
         pSCBFreeList = scb;
 
-        mutex_unlock(pCBSync);
+        Lock_MutexPost(pCBSync);
     }
     return true;
 }
@@ -655,8 +657,8 @@ static struct ClientCB  *__CreateCCB(void)
         goto EXIT_CCBMEM;
     }
     memset((void *)result,0, sizeof(struct ClientCB));
-    result->sbuf.bufsync = semp_init(1,1,NULL);
-    result->rbuf.bufsync = semp_init(1,0,NULL);
+    result->sbuf.bufsync = Lock_SempCreate(1,1,CN_BLOCK_FIFO,NULL);
+    result->rbuf.bufsync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
     if((NULL == result->sbuf.bufsync)||(NULL == result->rbuf.bufsync))
     {
         goto EXIT_CCBSEMP;
@@ -718,8 +720,8 @@ static struct ClientCB  *__CreateCCB(void)
 
 EXIT_CCBSBUF:
 EXIT_CCBSEMP:
-    semp_del(result->rbuf.bufsync);
-    semp_del(result->sbuf.bufsync);
+    Lock_SempDelete(result->rbuf.bufsync);
+    Lock_SempDelete(result->sbuf.bufsync);
     freeccb(result);
     result = NULL;
 EXIT_CCBMEM:
@@ -730,7 +732,7 @@ static void  __ResetCCB(struct ClientCB *ccb,u16 machinestat)
 {
     //init the ccb member
     //set the snd and receive buf limit to default
-    semp_post(ccb->sbuf.bufsync);
+    Lock_SempPost(ccb->sbuf.bufsync);
     //reset the receive buf
     ccb->rbuf.buflen       = 0;
     ccb->rbuf.buflenlimit  = CN_TCP_RCVBUF_SIZEDEFAULT;
@@ -739,7 +741,7 @@ static void  __ResetCCB(struct ClientCB *ccb,u16 machinestat)
     PkgTryFreeQ(ccb->rbuf.phead);
     ccb->rbuf.phead = NULL;
     ccb->rbuf.ptail = NULL;
-    semp_post(ccb->rbuf.bufsync);
+    Lock_SempPost(ccb->rbuf.bufsync);
 
     //reset the recomb queue
     PkgTryFreeQ(ccb->pkgrecomblst);
@@ -764,8 +766,8 @@ static bool_t __DeleCCB(struct ClientCB *ccb)
     //net_free all the pkg to recomb
     PkgTryFreeQ(ccb->pkgrecomblst);
     //del the semp for the buf
-    semp_del(ccb->rbuf.bufsync);
-    semp_del(ccb->sbuf.bufsync);
+    Lock_SempDelete(ccb->rbuf.bufsync);
+    Lock_SempDelete(ccb->sbuf.bufsync);
 
     freeccb(ccb);
     return true;
@@ -781,7 +783,7 @@ static struct ServerCB* __CreateScb(void)
     {
         goto SCB_MEM;
     }
-    result->acceptsemp = semp_init(CN_TCP_ACCEPTMAX,0,NULL);
+    result->acceptsemp = Lock_SempCreate(CN_TCP_ACCEPTMAX,0,CN_BLOCK_FIFO,NULL);
     if(NULL == result->acceptsemp)
     {
         goto SCB_SYNC;
@@ -800,13 +802,13 @@ SCB_MEM:
 //use this function to delete an scb and net_free it
 static bool_t __DeleteScb(struct ServerCB* scb)
 {
-    semp_del(scb->acceptsemp);
+    Lock_SempDelete(scb->acceptsemp);
     freescb(scb);
     return true;
 }
 static bool_t __ReseSCB(struct ServerCB* scb)
 {
-    semp_post(scb->acceptsemp);
+    Lock_SempPost(scb->acceptsemp);
     scb->backlog =  CN_TCP_LISTENDEFAULT;
     scb->clst    =  NULL;
     scb->pendnum =  0;
@@ -836,8 +838,8 @@ static struct tagSocket * __tcpsocket(s32 family, s32 type, s32 protocal)
             sock->ProtocolOps = &gTcpProto;
             Handle_SetMultiplexEvent(fd2Handle(sock->sockfd), 0);
 //          memset(sock, 0, sizeof(struct tagSocket));
-//          sock->SockSync = mutex_init(NULL);
-            if(mutex_lock(TcpHashTab.tabsync))
+//          sock->SockSync = Lock_MutexCreate(NULL);
+            if(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER))
             {
                 //ok, find any port could use
                 do
@@ -875,7 +877,7 @@ static struct tagSocket * __tcpsocket(s32 family, s32 type, s32 protocal)
                 {
                     //no port for you,you must do some kidding
                 }
-                mutex_unlock(TcpHashTab.tabsync);
+                Lock_MutexPost(TcpHashTab.tabsync);
             }//end if for the lock pend
         }//end if NULL != sock
     }//end if AF_INET == family
@@ -905,9 +907,9 @@ static s32 __tcpbind(struct tagSocket *sock,struct sockaddr *addr, s32 addrlen)
     {
         return result;
     }
-    if(mutex_lock(TcpHashTab.tabsync))
+    if(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER))
     {
-        if(mutex_lock(sock->SockSync))
+        if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
         {
             if((0 == (sock->sockstat&CN_SOCKET_BIND))&&\
                (0 == (CN_SOCKET_CLOSE&sock->sockstat)))  //NOT BIND YET
@@ -953,9 +955,9 @@ static s32 __tcpbind(struct tagSocket *sock,struct sockaddr *addr, s32 addrlen)
                     }
                 }
             }
-            mutex_unlock(sock->SockSync);
+            Lock_MutexPost(sock->SockSync);
         }
-        mutex_unlock(TcpHashTab.tabsync);
+        Lock_MutexPost(TcpHashTab.tabsync);
     }
     return  result;
 }
@@ -972,7 +974,7 @@ static s32 __tcplisten(struct tagSocket *sock, s32 backlog)
     struct ServerCB  *scb;
 
     result = -1;
-    if(mutex_lock(sock->SockSync))
+    if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
     {
         if((CN_SOCKET_BIND &sock->sockstat)&&\
            (0 == (CN_SOCKET_CONNECT&sock->sockstat))&&\
@@ -993,7 +995,7 @@ static s32 __tcplisten(struct tagSocket *sock, s32 backlog)
                 result = 0;
             }
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
     return  result;
 }
@@ -1063,7 +1065,7 @@ static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *ad
     //first we will find if any client is ready
     if((0 ==(CN_SOCKET_CLIENT&sock->sockstat))&&\
        (sock->sockstat &CN_SOCKET_LISTEN)&&\
-       mutex_lock(sock->SockSync))
+       Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
     {
         scb = (struct ServerCB *)sock->TplCB;
         result = __acceptclient(sock);
@@ -1071,10 +1073,10 @@ static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *ad
         if((NULL == result)&&(0 != waittime))
         {
             //if none find and permit the wait
-            mutex_unlock(sock->SockSync);
-            if(semp_pendtimeout(scb->acceptsemp,waittime))
+            Lock_MutexPost(sock->SockSync);
+            if(Lock_SempPend(scb->acceptsemp,waittime))
             {
-                if(mutex_lock(sock->SockSync))
+                if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
                 {
                     result = __acceptclient(sock);
                 }
@@ -1088,13 +1090,14 @@ static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *ad
         {
             result->sockstat |= CN_SOCKET_OPEN;
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
-    if((NULL != result)&&(mutex_lock(TcpHashTab.tabsync)))
-    {
-        __hashSocketAdd(result);
-        mutex_unlock(TcpHashTab.tabsync);
-    }
+//应该在ack的时候添加hash表项
+//    if((NULL != result)&&(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER)))
+//    {
+//        __hashSocketAdd(result);
+//        Lock_MutexPost(TcpHashTab.tabsync);
+//    }
     if((NULL != result)&&(NULL != addr) &&(NULL != addrlen))
     {
         //fill the address if possible
@@ -1212,7 +1215,7 @@ static s32 __tcpconnect(struct tagSocket *sock, struct sockaddr *serveraddr, s32
     result = -1;
 
     //fist we make sure to adjust the its place in the hash tab
-    if(mutex_lock(TcpHashTab.tabsync))
+    if(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER))
     {
         if((NULL != serveraddr)&&(addrlen == sizeof(struct sockaddr_in))&&\
             (CN_SOCKET_CLIENT&sock->sockstat))
@@ -1225,13 +1228,13 @@ static s32 __tcpconnect(struct tagSocket *sock, struct sockaddr *serveraddr, s32
             __hashSocketAdd(sock);
             result = 0;
         }
-        mutex_unlock(TcpHashTab.tabsync);
+        Lock_MutexPost(TcpHashTab.tabsync);
     }
     if(0 == result)
     {
         result = -1;
         //now do the handshake with the server
-        if(mutex_lock(sock->SockSync))
+        if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
         {
             ccb = (struct ClientCB *)sock->TplCB;
             if((0 ==(CN_SOCKET_CONNECT &sock->sockstat))&&\
@@ -1244,11 +1247,11 @@ static s32 __tcpconnect(struct tagSocket *sock, struct sockaddr *serveraddr, s32
                 ccb->sbuf.sndnxtno++;
                 ccb->machinestat = EN_TCP_MC_SYNSNT;
                 ccb->timerctrl  = CN_TCP_TIMER_SYN;
-                mutex_unlock(sock->SockSync); //release the mutex
+                Lock_MutexPost(sock->SockSync); //release the mutex
                 //wait the SockSync signal happens
-                semp_pendtimeout(ccb->rbuf.bufsync,ccb->rbuf.timeout);
+                Lock_SempPend(ccb->rbuf.bufsync,ccb->rbuf.timeout);
                 //check the connection
-                mutex_lock(sock->SockSync);
+                Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER);
                 if(ccb->machinestat == EN_TCP_MC_ESTABLISH)
                 {
                     //the app could send and rceive data from now on
@@ -1266,7 +1269,7 @@ static s32 __tcpconnect(struct tagSocket *sock, struct sockaddr *serveraddr, s32
                     __ResetCCB(ccb, EN_TCP_MC_2FREE); //THE NEXT STEP NEED BE CLOSE
                 }
             }
-            mutex_unlock(sock->SockSync);
+            Lock_MutexPost(sock->SockSync);
         }
     }
     return  result;
@@ -1600,10 +1603,10 @@ static s32 __tcpsend(struct tagSocket *sock, const void *msg, s32 len, s32 flags
         return result;
     }
     ccb = (struct ClientCB *)sock->TplCB;
-    if(semp_pendtimeout(ccb->sbuf.bufsync,ccb->sbuf.timeout))
+    if(Lock_SempPend(ccb->sbuf.bufsync,ccb->sbuf.timeout))
     {
         //got the mutex
-        if(mutex_lock(sock->SockSync))
+        if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
         {
             //check if we could copy it to the buffer
             if(CN_TCP_CHANNEL_STATASND&ccb->channelstat)
@@ -1626,7 +1629,7 @@ static s32 __tcpsend(struct tagSocket *sock, const void *msg, s32 len, s32 flags
                       (0 ==(ccb->channelstat&CN_TCP_CHANNEL_STATASND)))
                    {
                        Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
-                       semp_post(ccb->sbuf.bufsync);
+                       Lock_SempPost(ccb->sbuf.bufsync);
                    }
                    else
                    {
@@ -1648,15 +1651,15 @@ static s32 __tcpsend(struct tagSocket *sock, const void *msg, s32 len, s32 flags
             else if((sock->sockstat & CN_SOCKET_PROBLOCK) == 0 &&
                     (sock->sockstat & CN_SOCKET_PROCONNECT)) {//握手设置非阻塞，
                 result = -1;                //默认是-1，这里不用设置也可以
-                semp_post(ccb->sbuf.bufsync);
+                Lock_SempPost(ccb->sbuf.bufsync);
             }
             else
             {
                 result = 0;  // the channel is shutdown now
                 Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
-                semp_post(ccb->sbuf.bufsync);
+                Lock_SempPost(ccb->sbuf.bufsync);
             }
-            mutex_unlock(sock->SockSync);
+            Lock_MutexPost(sock->SockSync);
         }
     }
     else
@@ -1725,10 +1728,10 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
         return result;
     }
     ccb = (struct ClientCB *)sock->TplCB;
-    if(semp_pendtimeout(ccb->rbuf.bufsync,ccb->rbuf.timeout))
+    if(Lock_SempPend(ccb->rbuf.bufsync,ccb->rbuf.timeout))
     {
         //got the mutex
-        if(mutex_lock(sock->SockSync))
+        if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
         {
             if(CN_TCP_CHANNEL_STATARCV & ccb->channelstat)
             {
@@ -1752,7 +1755,7 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
                    (0 == (ccb->channelstat&CN_TCP_CHANNEL_STATKRCV)))
                 {
                     Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
-                    semp_post(ccb->rbuf.bufsync);
+                    Lock_SempPost(ccb->rbuf.bufsync);
                 }
                 else
                 {
@@ -1769,16 +1772,16 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
                     (sock->sockstat & CN_SOCKET_PROCONNECT)) //握手设置非阻塞，
             {
                 //result = -1; //默认是-1，这里不用设置也可以
-                semp_post(ccb->rbuf.bufsync);
+                Lock_SempPost(ccb->rbuf.bufsync);
             }
             else
             {
                 result = 0;  // the channel receive is shutdown now
 //                Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
-                semp_post(ccb->rbuf.bufsync);
+                Lock_SempPost(ccb->rbuf.bufsync);
             }
 
-            mutex_unlock(sock->SockSync);
+            Lock_MutexPost(sock->SockSync);
         }
     }
     else
@@ -1813,7 +1816,7 @@ static s32 __shutdownRD(struct tagSocket *sock)
     ccb->rbuf.phead = NULL;
     ccb->rbuf.ptail = NULL;
     ccb->rbuf.trigerlevel = 0;
-    semp_post(ccb->rbuf.bufsync);
+    Lock_SempPost(ccb->rbuf.bufsync);
     //net_free all the recomblst
     PkgTryFreeQ(ccb->pkgrecomblst);
     ccb->pkgrecomblst = NULL;
@@ -1878,7 +1881,7 @@ static s32 __tcpshutdown(struct tagSocket *sock, u32 how)
     s32    result = -1;
 
     if((CN_SOCKET_CLIENT&sock->sockstat)&&\
-        mutex_lock(sock->SockSync))
+        Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
     {
         switch(how)
         {
@@ -1899,7 +1902,7 @@ static s32 __tcpshutdown(struct tagSocket *sock, u32 how)
                 result = -1;
                 break;
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
     return  result;
 }
@@ -1924,9 +1927,9 @@ static s32 __closesocket(struct tagSocket *sock)
     struct tagSocket *server;
     result = -1;
 
-    if(mutex_lock(TcpHashTab.tabsync))
+    if(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER))
     {
-        if(mutex_lock(sock->SockSync))
+        if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
         {
             if(CN_SOCKET_CLIENT&sock->sockstat)  //sock client
             {
@@ -1943,7 +1946,7 @@ static s32 __closesocket(struct tagSocket *sock)
                     __shutdownRD(client);
                     result = __shutdownWR(client);
                 }
-                mutex_unlock(client->SockSync);
+                Lock_MutexPost(client->SockSync);
             }
             else   //this is the server,so just close it and close all the client hung on it
             {
@@ -1969,7 +1972,7 @@ static s32 __closesocket(struct tagSocket *sock)
             result = 0;
         }
 
-        mutex_unlock(TcpHashTab.tabsync);
+        Lock_MutexPost(TcpHashTab.tabsync);
     }
 
     return result;
@@ -2249,7 +2252,7 @@ static s32 __tcpsetsockopt(struct tagSocket *sock, s32 level, s32 optname,\
 {
     s32  result = -1;
 
-    if(mutex_lock(sock->SockSync))
+    if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
     {
         switch(level)
         {
@@ -2266,7 +2269,7 @@ static s32 __tcpsetsockopt(struct tagSocket *sock, s32 level, s32 optname,\
                 result = -1;
                 break;
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
     return  result;
 }
@@ -2285,7 +2288,7 @@ static s32 __tcpgetsockopt(struct tagSocket *sock, s32 level, s32 optname, void 
                s32 *optlen)
 {
     s32  result = -1;
-    if(mutex_lock(sock->SockSync)) {
+    if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER)) {
         switch(level) {
         case SOL_SOCKET:
             if (optname == SO_ERROR) {
@@ -2296,7 +2299,7 @@ static s32 __tcpgetsockopt(struct tagSocket *sock, s32 level, s32 optname, void 
         default:
             break;
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
 
     return  result;
@@ -2647,7 +2650,7 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
         if(ccb->rbuf.buflen > ccb->rbuf.trigerlevel)
         {
             Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
-            semp_post(ccb->rbuf.bufsync);
+            Lock_SempPost(ccb->rbuf.bufsync);
         }
         if(ccb->rbuf.buflen >= (2*ccb->rbuf.buflenlimit))
         {
@@ -2763,7 +2766,7 @@ static bool_t __ackdata(struct tagSocket *client, struct TcpHdr *hdr)
            (0 ==(ccb->channelstat&CN_TCP_CHANNEL_STATASND)))
         {
             Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE);
-            semp_post(ccb->sbuf.bufsync);
+            Lock_SempPost(ccb->sbuf.bufsync);
         }
         else
         {
@@ -2824,8 +2827,13 @@ static bool_t __rcvsyn_ms(struct tagSocket *client, struct TcpHdr *hdr, struct N
             //notice the server to accept
             server = ccb->server;
             scb = (struct ServerCB *)server->TplCB;
+            if((Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER)))
+            {
+                __hashSocketAdd(client);
+                Lock_MutexPost(TcpHashTab.tabsync);
+            }
             Handle_SetMultiplexEvent(fd2Handle(server->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
-            semp_post(scb->acceptsemp);
+            Lock_SempPost(scb->acceptsemp);
         }
     }
     return true;
@@ -2865,7 +2873,7 @@ static bool_t __sndsyn_ms(struct tagSocket *client, struct TcpHdr *hdr,struct Ne
                 ccb->channelstat|=CN_TCP_CHANNEL_STATASND|CN_TCP_CHANNEL_STATARCV;
             }
             //notice the applications  the connect success
-            semp_post(ccb->rbuf.bufsync);
+            Lock_SempPost(ccb->rbuf.bufsync);
         }
     }
     return true;
@@ -2914,7 +2922,7 @@ static bool_t __stable_ms(struct tagSocket *client, struct TcpHdr *hdr,struct Ne
         //could never to receive more data
         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKRCV);
         Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
-        semp_post(ccb->rbuf.bufsync);
+        Lock_SempPost(ccb->rbuf.bufsync);
         //--TODO,maybe signal an sigpipe signal
     }
     else if(CN_TCP_FLAG_SYN & hdr->flags) //maybe the acknowledge to the syn we sent has lost
@@ -2997,7 +3005,7 @@ static bool_t __finwait1_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
         //could never to receive more data
         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKRCV);
         Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
-        semp_post(ccb->rbuf.bufsync);
+        Lock_SempPost(ccb->rbuf.bufsync);
         //--TODO,maybe signal an sigpipe signal
     }
     if(ccb->acktimes>= CN_TCP_TICK_ACK)
@@ -3052,7 +3060,7 @@ static bool_t __finwait2_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
         //could never to receive more data
         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKRCV);
         Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
-        semp_post(ccb->rbuf.bufsync);
+        Lock_SempPost(ccb->rbuf.bufsync);
         //--TODO,maybe signal an sigpipe signal
     }
     if(ccb->acktimes>= CN_TCP_TICK_ACK)
@@ -3275,7 +3283,7 @@ static struct tagSocket* __newclient(struct tagSocket *server, struct TcpHdr *hd
             result->ProtocolOps = &gTcpProto;
             Handle_SetMultiplexEvent(fd2Handle(result->sockfd), 0);
 //          memset(result, 0, sizeof(struct tagSocket));
-//          result->SockSync = mutex_init(NULL);
+//          result->SockSync = Lock_MutexCreate(NULL);
             ccb = __CreateCCB();
             if(NULL == ccb)
             {
@@ -3378,28 +3386,28 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
     portsrc = hdr->portsrc;
 
     //if any client match this pkg
-    mutex_lock(TcpHashTab.tabsync);
+    Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER);
     if((sock = __hashSocketSearch(ipdst,portdst,ipsrc,portsrc)) != NULL)
     {
         //get the communicate client
         client = sock;
-        mutex_lock(client->SockSync);
+        Lock_MutexPend(client->SockSync,CN_TIMEOUT_FOREVER);
         __dealrecvpkg(client,hdr,pkg);
-        mutex_unlock(client->SockSync);
+        Lock_MutexPost(client->SockSync);
     }
     else if((sock = __hashSocketSearch(INADDR_ANY,portdst,ipsrc,portsrc)) != NULL)
     {
         //the inaddr_any client matches
         client = sock;
-        mutex_lock(client->SockSync);
+        Lock_MutexPend(client->SockSync,CN_TIMEOUT_FOREVER);
         __dealrecvpkg(client,hdr,pkg);
-        mutex_unlock(client->SockSync);
+        Lock_MutexPost(client->SockSync);
     }
     else if((sock = __hashSocketSearch(ipdst,portdst,0,0))!= NULL)
     {
         //the specified server matches
         server = sock;
-        mutex_lock(server->SockSync);
+        Lock_MutexPend(server->SockSync,CN_TIMEOUT_FOREVER);
         client = __tcpmatchclient(server,ipsrc,portsrc);
         if(NULL == client)
         {
@@ -3413,13 +3421,13 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
         {
             __dealrecvpkg(client,hdr,pkg);
         }
-        mutex_unlock(server->SockSync);
+        Lock_MutexPost(server->SockSync);
     }
     else if((sock = __hashSocketSearch(INADDR_ANY,portdst,0,0))!= NULL)
     {
         //the inaddr_any server matches
         server = sock;
-        mutex_lock(server->SockSync);
+        Lock_MutexPend(server->SockSync,CN_TIMEOUT_FOREVER);
         client = __tcpmatchclient(server,ipsrc,portsrc);
         if(NULL == client)
         {
@@ -3433,7 +3441,7 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
         {
             __dealrecvpkg(client,hdr,pkg);
         }
-        mutex_unlock(server->SockSync);
+        Lock_MutexPost(server->SockSync);
     }
     else   //no port matches, so just reset it
     {
@@ -3442,7 +3450,7 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
             __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno),ntohl(hdr->ackno));
         }
     }
-    mutex_unlock(TcpHashTab.tabsync);
+    Lock_MutexPost(TcpHashTab.tabsync);
 
     return true;
 
@@ -3643,11 +3651,11 @@ static void __tcptick(void)
     for(i = 0; i < CFG_TCP_SOCKET_HASH_LEN; i ++)
     {
         //each hash number we will lock and unlock ,so left some time for others
-        mutex_lock(TcpHashTab.tabsync);
+        Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER);
         sock = TcpHashTab.array[i];
         while(NULL != sock)
         {
-            mutex_lock(sock->SockSync);
+            Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER);
             if(CN_SOCKET_CLIENT&sock->sockstat)//this is the client
             {
                 client = sock;
@@ -3665,7 +3673,7 @@ static void __tcptick(void)
                 {
                     __dealclienttimer(client);
                     sock = client->Nextsock;
-                    mutex_unlock(client->SockSync);
+                    Lock_MutexPost(client->SockSync);
                 }
             }//end for the client
             else//this is an server, we should deal the client hang on it
@@ -3697,7 +3705,7 @@ static void __tcptick(void)
                         SocketFree(client);  //net_free the client
                         if (scb->pendnum > 0) {
                             scb->pendnum--;
-                            semp_pendtimeout(scb->acceptsemp, 0);
+                            Lock_SempPend(scb->acceptsemp, 0);
                         }
                     }
                     else if (EN_TCP_MC_CLOSEWAIT == ccb->machinestat) {
@@ -3721,10 +3729,10 @@ static void __tcptick(void)
                 }
                 //deal the server it self
                 sock = server->Nextsock;
-                mutex_unlock(server->SockSync);
+                Lock_MutexPost(server->SockSync);
             }
         }
-        mutex_unlock(TcpHashTab.tabsync);
+        Lock_MutexPost(TcpHashTab.tabsync);
     }
 
     return;

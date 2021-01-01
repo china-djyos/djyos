@@ -674,18 +674,18 @@ bool_t ModuleInstall_Wifi(void)
     devpara.name = (char *)pDrive->devname;
     devpara.mtu = CN_ETH_MTU;
     devpara.Private = (ptu32_t)pDrive;
-    pDrive->devhandle = NetDevInstall(&devpara);
+    pDrive->devhandle = NetDev_Install(&devpara);
     if(NULL == pDrive->devhandle)
     {
         goto NetInstallFailed;
     }
 
-    NetDevRegisterEventHook(pDrive->devhandle, FnNetDevEventHookEvent);
+    NetDev_RegisterEventHook(pDrive->devhandle, FnNetDevEventHookEvent);
     info_printf("eth","%s:Install Net Device %s success\n\r",__FUNCTION__,CFG_WIFI_DEV_NAME);
     return true;
 
 RcvTaskFailed:
-    NetDevUninstall(CFG_WIFI_DEV_NAME);
+    NetDev_GetUninstall(CFG_WIFI_DEV_NAME);
 NetInstallFailed:
     Lock_MutexDelete(pDrive->protect);
     pDrive->protect = NULL;
@@ -700,36 +700,39 @@ RCVSYNC_FAILED:
 
 void dhcpd_route_add_default()
 {
-    u32 hop,net;
-    tagHostAddrV4  ipv4addr;
+    u32 hop,subnet,ip,submask,dns,dnsbak;
     tagRouterPara para;
-    //we use the static ip we like
-    memset((void *)&ipv4addr,0,sizeof(ipv4addr));
+    struct NetDev *NetDev;
+
+    NetDev = NetDev_GetHandle(CFG_WIFI_DEV_NAME);
     memset(&para,0,sizeof(para));
-    ipv4addr.ip      = inet_addr(CFG_AP_DHCPD_IPV4);
-    ipv4addr.submask = inet_addr(CFG_AP_DHCPD_SUBMASK);
-    ipv4addr.gatway  = inet_addr(CFG_AP_DHCPD_GATWAY);
-    ipv4addr.dns     = inet_addr(CFG_AP_DHCPD_DNS);
-    ipv4addr.broad   = inet_addr("255.255.255.255");
+    ip      = inet_addr(CFG_AP_DHCPD_IPV4);
+    submask = inet_addr(CFG_AP_DHCPD_SUBMASK);
+    hop     = inet_addr(CFG_AP_DHCPD_GATWAY);
+    dns     = inet_addr(CFG_AP_DHCPD_DNS);
+    dnsbak  = inet_addr(CFG_AP_DHCPD_DNSBAK);
 
-    hop = INADDR_ANY;
-    net = ipv4addr.ip & ipv4addr.submask;
+    subnet = ip & submask;
     para.ver = EN_IPV_4;
-    para.host = &ipv4addr.ip;
-    para.mask = &ipv4addr.submask;
-    para.broad = &ipv4addr.broad;
-    para.hop = &hop;
-    para.net = &net;
-    para.prior = CN_ROUT_PRIOR_UNI;
     para.ifname = CFG_WIFI_DEV_NAME;
+    para.mask = &submask;
+    para.net = &subnet;
+    para.host = &ip;
+//  para.hop = &hop;
+//  para.dns = &dns;
+//  para.dnsbak = &dnsbak;
+    para.prior = CN_ROUT_PRIOR_UNI;
+    para.flags = 0;
 
+    NetDev_SetDns(EN_IPV_4,NetDev, &dns, &dnsbak);
+    NetDev_SetGateway(EN_IPV_4,NetDev, &hop);
     if(RouterCreate(&para))
     {
-        printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_WIFI_DEV_NAME,inet_ntoa(ipv4addr.ip));
+        printk("%s CreateRout:%s success\r\n",CFG_WIFI_DEV_NAME,CFG_AP_DHCPD_IPV4);
     }
     else
     {
-        printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_WIFI_DEV_NAME,inet_ntoa(ipv4addr.ip));
+        printk("%s CreateRout:%s failed\r\n",CFG_WIFI_DEV_NAME,CFG_AP_DHCPD_IPV4);
     }
 }
 

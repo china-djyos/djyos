@@ -121,7 +121,7 @@ bool_t TPLInit(void)
     }
     memset((void *)pTplProtoTab,0,sizeof(tagTplProtoItem)*CFG_TPL_PROTONUM);
 
-    pTplProtoSync = mutex_init(NULL);
+    pTplProtoSync = Lock_MutexCreate(NULL);
     if(NULL == pTplProtoSync)
     {
         goto EXIT_SYNCFAILED;
@@ -149,7 +149,7 @@ struct TPL_ProtocalOps *TPL_GetProto(int family, int type, int protocol)
     int i = 0;
     struct TPL_ProtocalOps *result = NULL;
 
-    if((NULL!=pTplProtoTab)&&mutex_lock(pTplProtoSync))
+    if((NULL!=pTplProtoTab)&&Lock_MutexPend(pTplProtoSync,CN_TIMEOUT_FOREVER))
     {
         for(i =0; i< CFG_TPL_PROTONUM;i++)
         {
@@ -161,7 +161,7 @@ struct TPL_ProtocalOps *TPL_GetProto(int family, int type, int protocol)
             }
         }
 
-        mutex_unlock(pTplProtoSync);
+        Lock_MutexPost(pTplProtoSync);
     }
 
     return result;
@@ -183,7 +183,7 @@ bool_t TPL_RegisterProto(int family, int type, int protocol,
     bool_t result = false;
     struct TPL_ProtocalOps *tmp = NULL;
 
-    if((NULL!=pTplProtoTab)&&mutex_lock(pTplProtoSync))
+    if((NULL!=pTplProtoTab)&&Lock_MutexPend(pTplProtoSync,CN_TIMEOUT_FOREVER))
     {
         //check any one existed
         for(i =0; i< CFG_TPL_PROTONUM;i++)
@@ -212,7 +212,7 @@ bool_t TPL_RegisterProto(int family, int type, int protocol,
             }
         }
 
-        mutex_unlock(pTplProtoSync);
+        Lock_MutexPost(pTplProtoSync);
     }
 
     return result;

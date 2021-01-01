@@ -44,7 +44,7 @@
 //%$#@exclude
 //%$#@end exclude
 //%$#@include path
-//.;.\inc;.\cmsis\include;
+//.;.\inc;..\CMSIS\Include;
 //%$#@end include path
 //@#$%component end configure
 

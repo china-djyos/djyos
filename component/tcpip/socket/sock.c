@@ -121,7 +121,7 @@ struct tagSocket *SocketBuild(void)
     if(sock)
     {
         memset(sock, 0, sizeof(struct tagSocket));
-        sock->SockSync = mutex_init(NULL);
+        sock->SockSync = Lock_MutexCreate(NULL);
         SocketFile = Handle_New( );
         if(SocketFile != NULL)
         {

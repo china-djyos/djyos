@@ -79,8 +79,8 @@
 #define CN_LOOP_MTU      4*1024        //4KB
 typedef struct
 {
-    mutex_t lock;
-    u32     evttID;     //用32位数，以后事件类型ID要改为32位的
+    struct MutexLCB *lock;
+    u32    evttID;     //用32位数，以后事件类型ID要改为32位的
     struct NetDev *iface;
     struct NetPkg *pkg;
 }tagLoopCB;
@@ -89,13 +89,13 @@ static tagLoopCB gLoopCB;
 //for the tempory, we will create a loop task here
 static ptu32_t __LoopTask(void)
 {
-    struct NetPkg *pkg = NULL,*tmp;
+    struct NetPkg *pkg = NULL;
     while(1)
     {
         DJY_WaitEvttPop(DJY_GetMyEvttId(), NULL, 100 * mS);
         while(1)
         {
-            if(mutex_lock(gLoopCB.lock))
+            if(Lock_MutexPend(gLoopCB.lock,CN_TIMEOUT_FOREVER))
             {
                 pkg = gLoopCB.pkg;
                 if(pkg != NULL)
@@ -103,7 +103,7 @@ static ptu32_t __LoopTask(void)
                     gLoopCB.pkg = PkgGetNextUnit(pkg);
                     PkgSetNextUnit(pkg, NULL);
                 }
-                mutex_unlock(gLoopCB.lock);
+                Lock_MutexPost(gLoopCB.lock);
                 if(pkg != NULL)
                 {
                     Link_NetDevPush(gLoopCB.iface,pkg);
@@ -126,11 +126,11 @@ static ptu32_t __LoopTask(void)
 //static struct NetPkg * __LoopIn(struct NetDev *iface)
 //{
 //    struct NetPkg *pkg = NULL;
-//    if(mutex_lock(gLoopCB.lock))
+//    if(Lock_MutexPend(gLoopCB.lock))
 //    {
 //        pkg = gLoopCB.pkg;
 //        gLoopCB.pkg = NULL;
-//        mutex_unlock(gLoopCB.lock);
+//        Lock_MutexPost(gLoopCB.lock);
 //    }
 //    return pkg;
 //}
@@ -158,7 +158,7 @@ static bool_t __LoopOut(struct NetDev *iface,struct NetPkg *pkg,u32 netdevtask)
     if(NULL != sndpkg)
     {
         PkgCopyFrameToPkg(pkg, sndpkg);
-        if(mutex_lock(gLoopCB.lock))
+        if(Lock_MutexPend(gLoopCB.lock,CN_TIMEOUT_FOREVER))
         {
             tmp = gLoopCB.pkg;
             if(NULL == tmp)
@@ -179,7 +179,7 @@ static bool_t __LoopOut(struct NetDev *iface,struct NetPkg *pkg,u32 netdevtask)
                 PkgSetNextUnit(tmp, sndpkg);
 //                PkgSetNextUnit(sndpkg, NULL);      //PkgMalloc已经设置好
             }
-            mutex_unlock(gLoopCB.lock);
+            Lock_MutexPost(gLoopCB.lock);
             DJY_EventPop(gLoopCB.evttID,NULL,0,0,0,0);
         }
         ret = true;
@@ -200,10 +200,12 @@ bool_t LoopInit(void)
 {
     struct NetDevPara   devpara;
     u16 evttID;
+    u32 hop,subnet,ip,submask,dns,dnsbak;
+    tagRouterPara para;
 
     //do the loop device initialize
     memset(&gLoopCB,0,sizeof(gLoopCB));
-    gLoopCB.lock = mutex_init(NULL);
+    gLoopCB.lock = Lock_MutexCreate(NULL);
     evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1, __LoopTask, NULL, 0x2800, "LOOPDEV");
     if(evttID == CN_EVTT_ID_INVALID)
     {
@@ -219,11 +221,42 @@ bool_t LoopInit(void)
     devpara.mtu = CN_LOOP_MTU;
     devpara.devfunc = CN_IPDEV_ALL;
     memcpy(devpara.mac,CN_MAC_BROAD,CN_MACADDR_LEN);
-    gLoopCB.iface = NetDevInstall(&devpara);
+    gLoopCB.iface = NetDev_Install(&devpara);
     if(NULL == (void *)gLoopCB.iface)
     {
         goto EXIT_LOOPDEV;
     }
+
+    memset(&para,0,sizeof(para));
+    ip      = INADDR_LOOPBACK;
+    submask = INADDR_BROAD;
+    hop     = INADDR_LOOPBACK;
+    dns     = INADDR_LOOPBACK;
+    dnsbak  = INADDR_LOOPBACK;
+    subnet  = INADDR_LOOPBACK;
+
+    para.ver = EN_IPV_4;
+    para.ifname = CN_LOOP_DEVICE;
+    para.mask = &submask;
+    para.net = &subnet;
+    para.host = &ip;
+//  para.hop = &hop;
+//    para.dns = &dns;
+//    para.dnsbak = &dnsbak;
+    para.prior = CN_ROUT_PRIOR_LOOP;
+    para.flags = 0;
+
+    NetDev_SetDns(EN_IPV_4,gLoopCB.iface, &dns, &dnsbak);
+    NetDev_SetGateway(EN_IPV_4,gLoopCB.iface, &hop);
+    if(RouterCreate(&para))
+    {
+        printf("Create loop router success\r\n");
+    }
+    else
+    {
+        printf("Create loop router fail\r\n");
+    }
+
     //then we will create a loop rout to the stack
     RouterSetHost(EN_IPV_4,CN_LOOP_DEVICE);
     return true;

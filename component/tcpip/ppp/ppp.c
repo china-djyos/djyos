@@ -60,6 +60,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <os.h>
+#include <misc.h>
 
 #include <sys/socket.h>
 #include <netdb.h>
@@ -266,7 +267,7 @@ typedef struct {
     struct NetDev *fdnet;   //the net device
     tagDB debug;     //defines for the ppp debug
     tagRBC rbc;      //receive byte controller
-    mutex_t sndmutex;      //do the multiple thread protect
+    struct MutexLCB* sndmutex;      //do the multiple thread protect
     //the following member will be reset in machine state
     bool_t start;
     //defines for the receive and send buffer
@@ -461,7 +462,7 @@ static bool_t __IoDevOut(tagPPP *ppp, u16 proto, tagCH *chdr, u8 *buf, u16 l,
     u8 *dst;
     bool_t ret = false;
 
-    if (mutex_lock(ppp->sndmutex)) {
+    if (Lock_MutexPend(ppp->sndmutex,CN_TIMEOUT_FOREVER)) {
         TCPIP_DEBUG_INC(ppp->debug.sndframe); //do the exit here
         txbuff = &ppp->sndbuf;
         memset(txbuff, 0, sizeof(tagBuffer));
@@ -546,7 +547,7 @@ static bool_t __IoDevOut(tagPPP *ppp, u16 proto, tagCH *chdr, u8 *buf, u16 l,
 
         ret = true;
         EXIT_SND:
-        mutex_unlock(ppp->sndmutex);
+        Lock_MutexPost(ppp->sndmutex);
     }
     return ret;
 }
@@ -563,7 +564,7 @@ static bool_t __NetDevOut(struct NetDev *dev, struct NetPkg *pkg, u32 netdevtask
 
     framlen = PkgFrameDatastatistics(pkg);
     result = false;
-    ppp = (tagPPP*) NetDevPrivate(dev);
+    ppp = (tagPPP*) NetDev_GetPrivate(dev);
     if (ppp->ms.stat != EN_PPP_NETWORK) {
         return result;   //if no ppp link got ,return false
     }
@@ -633,13 +634,16 @@ static bool_t __NetDevAdd(tagPPP *ppp) {
     devpara.mtu = PPP_MTU;
     devpara.devfunc = CN_IPDEV_NONE;
     memcpy(devpara.mac, CN_MAC_BROAD, CN_MACADDR_LEN);
-    dev = NetDevInstall(&devpara);
+    dev = NetDev_Install(&devpara);
     if (NULL == dev) {
         goto EXIT_PPPDEV;
     }
+	//不可以这里设置dns, 因为ppp获取ip成功后同时获取到DNS才设置。
+    //NetDev_SetDns(EN_IPV_4, dev, &ppp->dnsaddr, &ppp->dnsaddr);
+    //NetDev_SetGateway(EN_IPV_4, dev, &ppp->dnsaddr);
     //add the event hook here
     if (NULL != ppp->fnevent) {
-        NetDevRegisterEventHook(dev, ppp->fnevent);
+        NetDev_RegisterEventHook(dev, ppp->fnevent);
     }
     //here means we are successful
     ppp->fdnet = dev;
@@ -842,7 +846,7 @@ static bool_t __LcpDeal(tagPPP *ppp, tagCH *ch, u8 *data, u16 len) {
                     RouterRemoveByHandle(ppp->routwan);
                     ppp->routwan = NULL;
                 }
-                NetDevPostEvent(ppp->fdnet, EN_NETDEVEVENT_IPRELEASE);
+                NetDev_PostEvent(ppp->fdnet, EN_NETDEVEVENT_IPRELEASE);
             }
             __ChangeMS(ppp,EN_PPP_DEAD);
             TCPIP_DEBUG_INC(ppp->debug.termreq);
@@ -918,6 +922,8 @@ static bool_t __NcpDeal(tagPPP *ppp, tagCH *ch, u8 *data, u16 len) {
     tagOpts *opts;
     tagOptItem *item;
     tagOH  *opt;
+    u32 subnet,ip,submask;
+    tagRouterPara para;
 
     ncp = &ppp->ncp;
     opts = &ncp->net;
@@ -936,39 +942,47 @@ static bool_t __NcpDeal(tagPPP *ppp, tagCH *ch, u8 *data, u16 len) {
             opt = (tagOH *)item->buf;
             memcpy(&v32,opt->v,sizeof(v32));
             ppp->ipaddr = v32;
+            
             item = __OptItemMatch(&ppp->ncp.net,NCP_OPT_DNS);  //picked out the magic
             opt = (tagOH *)item->buf;
             memcpy(&v32,opt->v,sizeof(v32));
             ppp->dnsaddr = v32;
+            
             ModemIP=ppp->ipaddr;
+			//这里同时设置dns到网卡里
+			NetDev_SetDns(EN_IPV_4, ppp->fdnet, &ppp->dnsaddr, &ppp->dnsaddr);
+			NetDev_SetGateway(EN_IPV_4, ppp->fdnet, &ppp->dnsaddr);
 //            RoutSetDefaultAddr(EN_IPV_4, ppp->ipaddr, 0xFFFFFFFF, ppp->ipaddr,ppp->dnsaddr);
             //turn to another state
-            tagHostAddrV4 addr;
-            tagRouterPara routpara;
-            memset(&addr,0,sizeof(addr));
-            memset(&routpara,0,sizeof(routpara));
+            memset(&para,0,sizeof(para));
             if(NULL != ppp->routwan)
             {
                 RouterRemoveByHandle(ppp->routwan);
             }
-            addr.host = ppp->ipaddr;
-            addr.hop = ppp->dnsaddr;
-            addr.mask = INADDR_ANY;
-            addr.net = INADDR_ANY;
-            addr.broad = INADDR_BROADCAST;
-            routpara.ver = EN_IPV_4;
-            routpara.prior = CN_ROUT_PRIOR_ANY;
-            routpara.ifname = ppp->namenet;
-            routpara.host = &addr.host;
-            routpara.hop = &addr.hop;
-            routpara.mask = &addr.mask;
-            routpara.net = &addr.net;
-            routpara.broad = &addr.broad;
-            ppp->routwan = RouterCreate(&routpara);
-            DNS_Set(EN_IPV_4,&ppp->dnsaddr,NULL);
+
+            memset(&para,0,sizeof(para));
+            ip      = ppp->ipaddr;
+            submask = INADDR_NONE;
+//          hop     = ppp->dnsaddr;
+//            dns     = ppp->dnsaddr;
+//            dnsbak  = ppp->dnsaddr;
+
+            subnet = INADDR_ANY;
+            para.ver = EN_IPV_4;
+            para.ifname = ppp->namenet;
+            para.mask = &submask;
+            para.net = &subnet;
+            para.host = &ip;
+//          para.hop = &hop;
+//          para.dns = &dns;
+//          para.dnsbak = &dnsbak;
+            para.prior = CN_ROUT_PRIOR_UNI;
+            para.flags = 0;
+
+            ppp->routwan = RouterCreate(&para);
             __ChangeMS(ppp, EN_PPP_NETWORK);
             //here we call the uplayer that the ip get here
-            NetDevPostEvent(ppp->fdnet, EN_NETDEVEVENT_IPGET);
+            NetDev_PostEvent(ppp->fdnet, EN_NETDEVEVENT_IPGET);
             break;
         case CONFNAK:
             //modify the request and resend the request
@@ -1113,7 +1127,7 @@ static void __TimeoutCheck(tagPPP *ppp) {
                         RouterRemoveByHandle(ppp->routwan);
                         ppp->routwan = NULL;
                     }
-                    NetDevPostEvent(ppp->fdnet, EN_NETDEVEVENT_IPRELEASE);
+                    NetDev_PostEvent(ppp->fdnet, EN_NETDEVEVENT_IPRELEASE);
                     TCPIP_DEBUG_INC(ppp->debug.timerst);
                 }
             }
@@ -1268,7 +1282,7 @@ static void __DataDecode(tagPPP *ppp, u8 *buf, u16 len) {
 }
 //del a ppp
 static void __PppDevDel(tagPPP *ppp) {
-    mutex_del(ppp->sndmutex);
+    Lock_MutexDelete(ppp->sndmutex);
     net_free((void *) ppp->ncp.net.tab);
     net_free((void *) ppp->lcp.peer.tab);
     net_free((void *) ppp->lcp.host.tab);
@@ -1291,7 +1305,7 @@ ptu32_t __TFTP_ClientMain(void) {
     pPPPClient = ppp;
     //we here should do the at regnet
     while (1) {
-        //here we're waiting for the at reg start command,which means
+        //here we're waiting for the at reg start commadnd,which means
         while (ppp->start == false ) {
             DJY_EventDelay(1000*mS);
         }
@@ -1300,11 +1314,11 @@ ptu32_t __TFTP_ClientMain(void) {
         //use the at command to register the module
         if (NULL != ppp->fnio2ppp) {
             if (ppp->fnio2ppp(ppp->nameio, ppp->apn)) {
-                NetDevPostEvent(ppp->fdnet, EN_NETDEVEVENT_LINKUP);
+                NetDev_PostEvent(ppp->fdnet, EN_NETDEVEVENT_LINKUP);
                 debug_printf("PPP","%s:CHANGE2PPPMODE SUCCESS\n\r", __FUNCTION__);
             }
             else {
-                NetDevPostEvent(ppp->fdnet, EN_NETDEVEVENT_LINKDOWN);
+                NetDev_PostEvent(ppp->fdnet, EN_NETDEVEVENT_LINKDOWN);
                 debug_printf("PPP","%s:CHANGE2PPPMODE FAILED\n\r", __FUNCTION__);
                 continue; //wait for another time
             }
@@ -1508,7 +1522,7 @@ bool_t PppDevAdd(char *namenet, char *nameio, const char *user,
     }
     ppp->ncp.net.len = EN_NCP_OPT_POSLAST;
 
-    ppp->sndmutex = mutex_init(NULL);
+    ppp->sndmutex = Lock_MutexCreate(NULL);
     if (NULL == ppp->sndmutex) {
         debug_printf("PPP","%s:mutex Err\n\r", __FUNCTION__);
         goto EXIT_TXBUF_MUTEX;
@@ -1541,7 +1555,7 @@ bool_t PppDevAdd(char *namenet, char *nameio, const char *user,
     }
     return result;
 
-    EXIT_PPPTASK: mutex_del(ppp->sndmutex);
+    EXIT_PPPTASK: Lock_MutexDelete(ppp->sndmutex);
     EXIT_TXBUF_MUTEX:
     net_free((void *) ppp->ncp.net.tab);
     EXIT_NCPOPTMEM:

@@ -191,7 +191,7 @@ bool_t NetHard_AddNetDev(void)
     devpara.devfunc = 0;
 
     result = false;
-    pgChkNetDev = NetDevInstall(&devpara);
+    pgChkNetDev = NetDev_Install(&devpara);
     if(pgChkNetDev != NULL)
     {
         result = true;

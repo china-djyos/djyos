@@ -948,7 +948,7 @@ static bool_t Enet_AddNetDev(void)
     devpara.name = (char *)(s_EnetConfig.name);
     devpara.mtu = CN_ETH_MTU;
     devpara.Private = (u32)NULL;
-    gEnetHandle = NetDevInstall(&devpara);
+    gEnetHandle = NetDev_Install(&devpara);
     if(0 == gEnetHandle)
     {
         goto NetInstallFailed;
@@ -960,7 +960,7 @@ static bool_t Enet_AddNetDev(void)
     return true;
 
 RcvTaskFailed:
-    NetDevUninstall(s_EnetConfig.name);
+    NetDev_GetUninstall(s_EnetConfig.name);
 NetInstallFailed:
     Lock_MutexDelete(pEnetSndSync);
     pEnetSndSync = NULL;

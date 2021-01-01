@@ -1295,6 +1295,52 @@ void *__Heap_MallocLc(ptu32_t size,u32 timeout)
 //返回：分配的内存指针，NULL表示没有内存可以分配
 //备注: 用此函数分配的内存,并不会在事件完成时被收回.
 //-----------------------------------------------------------------------------
+//#include "stm32f7xx.h"
+//#include <core_cm7.h>
+//struct recstack
+//{
+//    void * p;
+//    u32 ev;
+//    u32 who;
+//    u32 tm;
+//};
+//struct recstack rec[2000];
+//u32 recoffset = 0;
+//void recordwho(void * m)
+//{
+//    u32 *st;
+//    st = __get_PSP() + 25*4;
+//    if(recoffset < 2000)
+//    {
+//        rec[recoffset].p = m;
+//        rec[recoffset].ev = DJY_GetMyEventId();
+//        rec[recoffset].who = *st -1;
+//        rec[recoffset].tm = (u32)(DJY_GetSysTime()/1000);
+//        recoffset++;
+//    }
+//}
+//void recordfree(void * m)
+//{
+//    u32 i,j;
+//    u32 *st;
+//    st = __get_PSP() + 9*4;
+//    for(i = recoffset-1; i>0; i--)
+//    {
+//        if(rec[i].p == m)
+//        {
+//            memcpy(&rec[i],&rec[i+1],sizeof(struct recstack)*(recoffset -i-1));
+//            recoffset--;
+//        }
+//    }
+//}
+//bool_t pr(char *param)
+//{
+//    u32 i;
+//    for(i = recoffset; i>0; i--)
+//        printf("time = %10d; p = %8x; ev = %2d; call = %8x;\r\n", rec[i].tm,rec[i].p,
+//                    rec[i].ev, rec[i].who);
+//}
+
 void *__Heap_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
 {
     struct HeapCession *Cession;
@@ -1361,6 +1407,7 @@ void *__Heap_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
     }
     Lock_MutexPost(&Heap->HeapMutex);
     __Heap_CheckSTackSync( );
+//  if(result != NULL) recordwho(result);
     return result;
 }
 void *__Heap_Malloc(ptu32_t size,u32 timeout)
@@ -2122,6 +2169,7 @@ void __Heap_Free(void * pl_mem)
 {
     if( tg_pSysHeap == NULL)
         return;
+//  recordfree(pl_mem);
     __Heap_FreeHeap(pl_mem,tg_pSysHeap);
     return;
 }
@@ -2281,4 +2329,5 @@ ptu32_t  __Heap_GetFreeMem(void)
 
 ADD_TO_ROUTINE_SHELL(heapdetail,heap_spy,"显示动态内存详细分配情况");
 ADD_TO_ROUTINE_SHELL(heap,heap,"显示堆使用情况");
+//ADD_TO_ROUTINE_SHELL(pr,pr,"调试内存泄漏");
 

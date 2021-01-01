@@ -121,7 +121,7 @@
 typedef struct
 {
     struct RingBuf       *ring;
-    semp_t                rcvsync;     //the read task will pend here
+    struct SemaphoreLCB  *rcvsync;     //the read task will pend here
     int                   clientfd;    //which connect to the server
     struct objhandle     *hdl;         //which will be created by open
 }tagDevTelnetd;
@@ -166,12 +166,12 @@ static s32 __Telnet_write(struct objhandle *hdl,u8 *buf, u32 len,u32 offset, u32
 static s32 __Telnet_read(struct objhandle *hdl,u8 *buf,u32 len,u32 offset,u32 timeout)
 {
     u32 ret =0;
-    if(semp_pendtimeout(gDevTelnetd.rcvsync,timeout))
+    if(Lock_SempPend(gDevTelnetd.rcvsync,timeout))
     {
         ret = Ring_Read(gDevTelnetd.ring,buf,len);
         if(Ring_Check(gDevTelnetd.ring)) //still some data in the ring
         {
-            semp_post(gDevTelnetd.rcvsync);
+            Lock_SempPost(gDevTelnetd.rcvsync);
             fcntl(Handle2fd(gDevTelnetd.hdl),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
         }
         else
@@ -245,7 +245,7 @@ static void __Telnet_ClientEngine(int sock)
     }while(1);
 
     Ring_Write(gDevTelnetd.ring,(u8 *)opt,sizeof(tagNvtCmd));
-    semp_post(gDevTelnetd.rcvsync);
+    Lock_SempPost(gDevTelnetd.rcvsync);
     fcntl(Handle2fd(gDevTelnetd.hdl),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
     //OK,now send info here
     sendexact(sock,(u8 *)CN_CLIENT_WELCOM,strlen(CN_CLIENT_WELCOM));
@@ -256,7 +256,7 @@ static void __Telnet_ClientEngine(int sock)
         if(len == sizeof(ch))
         {
             Ring_Write(gDevTelnetd.ring,(u8 *)&ch,1);
-            semp_post(gDevTelnetd.rcvsync);
+            Lock_SempPost(gDevTelnetd.rcvsync);
             fcntl(Handle2fd(gDevTelnetd.hdl),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
         }
         else if(len == 0)
@@ -354,7 +354,7 @@ bool_t Telnet_ServiceInit(void)
         debug_printf("telnet","TELNETD RING CREATE FAILED\n\r");
         goto EXIT_RING;
     }
-    gDevTelnetd.rcvsync = semp_init(1,0,NULL);
+    gDevTelnetd.rcvsync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
     if(NULL == gDevTelnetd.rcvsync)
     {
         debug_printf("telnet","TELNETD RING CREATE FAILED\n\r");
@@ -369,7 +369,7 @@ bool_t Telnet_ServiceInit(void)
     return ret;
 
 EXIT_TASK:
-    semp_del(gDevTelnetd.rcvsync);
+    Lock_SempDelete(gDevTelnetd.rcvsync);
 EXIT_SEMP:
     Ring_Destroy(gDevTelnetd.ring);
     gDevTelnetd.ring = NULL;

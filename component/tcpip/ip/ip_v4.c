@@ -198,11 +198,10 @@ static struct NetPkg *__PHMake(u32 ipsrc,u32 ipdst,u8 proto,u32 translen,bool_t 
 bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
                 u32 devtask, u16 *chksum)
 {
-    bool_t                          ret = false;
-    u32                             devfunc;     //rout function
-    struct NetPkg                      *ippkg;       //ip header pkg
-    bool_t                          ipchksum;
-    u32                             framlen;
+    bool_t       ret = false;
+    u32            devfunc;     //rout function
+    struct NetPkg   *ippkg;       //ip header pkg
+    bool_t         ipchksum;
     u32 iphop = INADDR_ANY;
     u32 iphost = INADDR_ANY;
     tagRoutLink  rout;
@@ -249,7 +248,7 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
             {
                 iphop = ipdst;
             }
-            devfunc = NetDevFunc(rout.DevFace);
+            devfunc = NetDev_GetFunc(rout.DevFace);
             if( (devtask & CN_IPDEV_TCPOCHKSUM) && !(devfunc & CN_IPDEV_TCPOCHKSUM) )
             {
                 IpPseudoPkgLstChkSumV4(ipsrc,ipdst,proto,pkg,translen,chksum);
@@ -319,7 +318,7 @@ static bool_t __rcvhost(struct NetPkg *pkg, u32 devfunc)
     ph = (tagV4PH *)PkgGetCurrentBuffer(pkg);
 //  ph = (tagV4PH *)(pkg->buf + pkg->offset);
     hdrlen = (ph->ver_len&0x0f)*4;
-//  devfunc = NetDevFunc(iface);
+//  devfunc = NetDev_GetFunc(iface);
     if((0 ==(devfunc &CN_IPDEV_IPICHKSUM))&&\
        (0 != IpChksumSoft16(ph,hdrlen,0,true)))
     {
@@ -415,6 +414,7 @@ bool_t IpV4Process(struct NetPkg *pkg,u32 devfunc)
                 ret =__rcvhost(pkg,devfunc);
                 break;
             case EN_IPTYPE_V4_SUBNET: //if could do the forward,we will do this here--TODO,zhangqf
+                ret =__rcvhost(pkg,devfunc);
                 break;
             default:
                 break;

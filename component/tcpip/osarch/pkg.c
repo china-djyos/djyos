@@ -81,7 +81,7 @@ struct PkgHeapCB;
 //static u32  sgPkgLevlMap[CN_NETPKG_LEVEL]=  {32,64,128,256,512,1024,2048,4096,8192}; //layer size
 static u8  *pPkgMemSrc = NULL;                          //the package heap
 static u32  gPkgMemOffset = 0;                          //the package use heap offset
-static  mutex_t pPkgQueLock = NULL;                     //protect the heap and the free list
+static  struct MutexLCB* pPkgQueLock = NULL;                     //protect the heap and the free list
 static struct PkgHeapCB *pkg_heap_control;
 
 void PkgInit(struct NetPkg *pkg, u8 flag, u16 offset, u16 datalen, u8* buf)
@@ -123,7 +123,7 @@ struct NetPkg *PkgMalloc(u16 bufsize, u8 flags)
 
     result = NULL;
     pkgsize = bufsize+CN_PKG_HDRSIZE;
-    if(mutex_locktimeout(pPkgQueLock,CN_TIMEOUT_FOREVER))
+    if(Lock_MutexPend(pPkgQueLock,CN_TIMEOUT_FOREVER))
     {
         result = (struct NetPkg *)malloc(pkgsize);
 //      result = (struct NetPkg *)__PkgMalloc(pkg_heap_control,pkgsize);
@@ -140,8 +140,6 @@ struct NetPkg *PkgMalloc(u16 bufsize, u8 flags)
         }
         Lock_MutexPost(pPkgQueLock);
     }
-    if(result >= 0xc0000000)
-        i = 0;
     return result;
 }
 
@@ -152,11 +150,8 @@ struct NetPkg *PkgGetNextUnit(struct NetPkg *NextUnit)
 
 void PkgSetNextUnit(struct NetPkg *pkg,struct NetPkg *NextUnit)
 {
-    u32 i;
     if(pkg != NextUnit)
         pkg->partnext = NextUnit;
-    else
-        i = 1;
 }
 
 u8* PkgGetCurrentBuffer(struct NetPkg *pkg)
@@ -351,7 +346,7 @@ bool_t PkgTryFreePart(struct NetPkg *pkg)
 {
     if(NULL != pkg)
     {
-        if(mutex_locktimeout(pPkgQueLock,CN_TIMEOUT_FOREVER))
+        if(Lock_MutexPend(pPkgQueLock,CN_TIMEOUT_FOREVER))
         {
             if(pkg->refers == 0)
             {
@@ -379,7 +374,7 @@ bool_t PkgTryFreeQ(struct NetPkg  *pkglst)
 {
     struct NetPkg  *pkg;
     struct NetPkg  *pkgnxt;
-    if(mutex_locktimeout(pPkgQueLock,CN_TIMEOUT_FOREVER))
+    if(Lock_MutexPend(pPkgQueLock,CN_TIMEOUT_FOREVER))
     {
         pkg = pkglst;
         while(NULL != pkg)
@@ -454,7 +449,6 @@ bool_t PkgCachedLst(struct NetPkg   *pkglst)
 //bool_t PkgMemShow(char *param)
 bool_t pkgmem(char *param)
 {
-    int i =0;
     debug_printf("pkg","PkgMem:HdrSize:%d\n\r",CN_PKG_HDRSIZE);
     debug_printf("pkg","PkgMem:    TOTAL:%08d   USE:%08d  USAGE:%02d%%\n\r",\
             CFG_NETPKG_MEMSIZE,gPkgMemOffset,gPkgMemOffset*100/(CFG_NETPKG_MEMSIZE+1));
@@ -480,7 +474,7 @@ bool_t PkgModuleInit(void)
     bool_t result = false;
     //FIRST MALLOC THE MEM FROM THE HEAP
     gPkgMemOffset = 0;
-    pPkgQueLock = mutex_init(NULL);
+    pPkgQueLock = Lock_MutexCreate(NULL);
     if(NULL == pPkgQueLock)
     {
         error_printf("pkg","%s:create memory sync failed\r\n",__FUNCTION__);

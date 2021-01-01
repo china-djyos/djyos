@@ -46,6 +46,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "heap.h"
 #include "int.h"
 #include "align.h"
@@ -221,7 +222,7 @@ static u32 __GetLevel(size_t size, size_t align)
 //  u16 i = 0;
     if (size)
     {
-        const size_t aligned = align_up(align, size);
+//        const size_t aligned = align_up(align, size);
 //      scale = BlockFindFitLevel(aligned);
         for(scale=0; scale<HEAD_LIST_NUM; scale++)
         {

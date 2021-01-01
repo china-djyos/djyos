@@ -66,9 +66,7 @@
 #include "component_config_time.h"
 
 extern s64 __DjyGetSysTime(void);
-#if (!CN_USE_TICKLESS_MODE)
 extern s64  g_s64OsTicks;               //操作系统运行ticks数
-#endif
 static fnSysTimeHard32  s_fnSysTimeHard32 = NULL;
 static fnSysTimeHard64  s_fnSysTimeHard64 = NULL;
 static u32 s_u32SysTimeFreq = 1000000;  //系统时钟的输入时钟频率

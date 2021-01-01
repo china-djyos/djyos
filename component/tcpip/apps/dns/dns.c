@@ -475,7 +475,7 @@ struct hostent  *DNS_NameResolve(const char *name)
         goto EXIT_DNSMAIN;
     }
 
-    if(false == DNS_Get(EN_IPV_4,&dnsip,NULL))
+    if(false == NetDev_GetDefaultDns(EN_IPV_4,&dnsip,NULL))
     {
         goto EXIT_DNSMAIN;
     }
@@ -546,7 +546,7 @@ int DNS_NameResolveExt(const char *name, struct hostent_ext *phostent_ext)
         goto EXIT_DNSMAIN;
     }
 
-    if(false == DNS_Get(EN_IPV_4,&dnsip,NULL))
+    if(false == NetDev_GetDefaultDns(EN_IPV_4,&dnsip,NULL))
     {
         goto EXIT_DNSMAIN;
     }

@@ -133,6 +133,11 @@ void __LP_BSP_EntrySleep(u8 sleep_level, u32 pend_ticks)
     }
 }
 
+void ImmediatelyDeepSleep(void)
+{
+    bk_enter_deep_sleep_mode(&deep_sleep_param);
+}
+
 //-----------------------------------------------------------------------------
 //功能：设置从深度睡眠中唤醒条件，设置的条件可以叠加
 //参数：way, 唤醒信源，可选择：PS_DEEP_WAKEUP_GPIO、PS_DEEP_WAKEUP_RTC、PS_DEEP_WAKEUP_GPIO_RTC
@@ -142,7 +147,6 @@ void __LP_BSP_EntrySleep(u8 sleep_level, u32 pend_ticks)
 //      time，如果way == PS_DEEP_WAKEUP_RTC，用于表示休眠时间，单位 = ？
 //返回：无
 //-----------------------------------------------------------------------------
-
 void LP_BSP_ResigerGpioToWakeUpL4(PS_DEEP_WAKEUP_WAY way,u32 gpio_index,
                                   u32 gpio_edge, u32 time)
 {
@@ -188,17 +192,10 @@ u32 BekenExitSleepReCall(u32 SleepLevel)
     return true;
 }
 
-void LP_DeepSleep(void)
-{
-    LP_SetHook(BekenEntrySleepReCall,BekenExitSleepReCall);
-    LP_SetSleepLevel(CN_SLEEP_L4);
-    DJY_EventDelay(1000*1000);
-}
-
 //-----------------------------------------------------------------------------
 //功能: 安装低功耗组件，要把一些低功耗需要使用到的函数，注册到系统中
 //参数: __LP_BSP_EntrySleep：进入休眠；__LP_BSP_SaveSleepLevel：保存休眠等级；__LP_BSP_SaveRamL3：保存进入休眠等级3之前的内存，
-//		__LP_BSP_AsmSaveReg：获取含自己的返回地址在内的上下文并保存到栈中
+//      __LP_BSP_AsmSaveReg：获取含自己的返回地址在内的上下文并保存到栈中
 //返回: 无
 //-----------------------------------------------------------------------------
 void ModuleInstall_LowPower (void)

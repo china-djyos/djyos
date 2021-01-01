@@ -140,7 +140,7 @@ struct IcmpTask
 {
     struct IcmpTask             *pre;     //pre  lst
     struct IcmpTask             *nxt;     //nxt  lst
-    semp_t                       sync;     //when rcv, active it
+    struct SemaphoreLCB         *sync;     //when rcv, active it
     //the member used for specifying
     u8        type;                             //icmp type
     u8        code;                             //icmp code
@@ -166,8 +166,8 @@ static struct MutexLCB         sgIcmpTaskSync;    //icmp queue sync
 // =============================================================================
 bool_t __Icmp_TaskAdd(struct IcmpTask *task)
 {
-    task->sync = semp_init(1,0,NULL);
-    if(mutex_lock(&sgIcmpTaskSync))
+    task->sync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
+    if(Lock_MutexPend(&sgIcmpTaskSync,CN_TIMEOUT_FOREVER))
     {
         //create the semp sync
         task->pre = NULL;
@@ -177,7 +177,7 @@ bool_t __Icmp_TaskAdd(struct IcmpTask *task)
             pgIcmpTaskLst->pre = task;
         }
         pgIcmpTaskLst = task;
-        mutex_unlock(&sgIcmpTaskSync);
+        Lock_MutexPost(&sgIcmpTaskSync);
         return true;
     }
     else
@@ -196,7 +196,7 @@ bool_t __Icmp_TaskAdd(struct IcmpTask *task)
 // =============================================================================
 bool_t __Icmp_TaskDel(struct IcmpTask *task)
 {
-    if(mutex_lock(&sgIcmpTaskSync))
+    if(Lock_MutexPend(&sgIcmpTaskSync,CN_TIMEOUT_FOREVER))
     {
         if(task == pgIcmpTaskLst)
         {
@@ -220,8 +220,8 @@ bool_t __Icmp_TaskDel(struct IcmpTask *task)
             }
         }
         //del the semp sync
-        semp_del(task->sync);
-        mutex_unlock(&sgIcmpTaskSync);
+        Lock_SempDelete(task->sync);
+        Lock_MutexPost(&sgIcmpTaskSync);
         return true;
     }
     else
@@ -246,7 +246,7 @@ void __Icmp_TaskEchoActive(u32 ipsrc, u8 type, u8 code,struct NetPkg *pkg)
     struct IcmpTaskEcho     *taskdata;
     struct IcmpHdrEcho      *echodata;
 
-    if(mutex_lock(&sgIcmpTaskSync))
+    if(Lock_MutexPend(&sgIcmpTaskSync,CN_TIMEOUT_FOREVER))
     {
         tmp = pgIcmpTaskLst;
         echodata = (struct IcmpHdrEcho *)PkgGetCurrentBuffer(pkg);;
@@ -260,13 +260,13 @@ void __Icmp_TaskEchoActive(u32 ipsrc, u8 type, u8 code,struct NetPkg *pkg)
                    (taskdata->taskid ==echodata->taskid)&&\
                    (taskdata->seqno == echodata->seqno))
                 {
-                    semp_post(tmp->sync);
+                    Lock_SempPost(tmp->sync);
                     break;
                 }
             }
             tmp =tmp->nxt;
         }
-        mutex_unlock(&sgIcmpTaskSync);
+        Lock_MutexPost(&sgIcmpTaskSync);
     }
     return;
 }
@@ -326,7 +326,7 @@ bool_t Icmp_EchoRequest(u32 ipdst, u8 *data, int len,int timeout)
                     CN_IPDEV_ICMPOCHKSUM,&icmppkg->chksum);
             PkgTryFreePart(sndpkg);
             //just wait for the echo, if false, it must be timeout
-            result = semp_pendtimeout(icmptask.sync, timeout);
+            result = Lock_SempPend(icmptask.sync, timeout);
             __Icmp_TaskDel(&icmptask);
         }
     }

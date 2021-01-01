@@ -135,7 +135,7 @@ static bool_t __hashTabInit(u32 len)
     }
     memset((void *)pUdpHashTab,0,sizeof(tagUdpHashTab) + len *sizeof(struct tagSocket *));
 
-    pUdpHashTab->tabsync = mutex_init(NULL);
+    pUdpHashTab->tabsync = Lock_MutexCreate(NULL);
     if(NULL == pUdpHashTab->tabsync)
     {
         goto ERR_SYNC;
@@ -167,7 +167,7 @@ static struct tagSocket *__hashSocketSearch(u32 ip, u16 port)
     struct tagSocket *tmp;
     u32 hashKey;
 
-    if(mutex_lock(pUdpHashTab->tabsync))
+    if(Lock_MutexPend(pUdpHashTab->tabsync))
     {
         hashKey = port%pUdpHashTab->tablen;
         tmp = pUdpHashTab->array[hashKey];
@@ -184,7 +184,7 @@ static struct tagSocket *__hashSocketSearch(u32 ip, u16 port)
             }
         }
 
-        mutex_unlock(pUdpHashTab->tabsync);
+        Lock_MutexPost(pUdpHashTab->tabsync);
     }
     return result;
 }
@@ -207,7 +207,7 @@ static bool_t __hashSocketAdd(struct tagSocket *sock)
     ip = sock->element.v4.iplocal;
     port = sock->element.v4.portlocal;
     hashKey = port%pUdpHashTab->tablen;
-    if(mutex_lock(pUdpHashTab->tabsync))
+    if(Lock_MutexPend(pUdpHashTab->tabsync))
     {
         tmp = pUdpHashTab->array[hashKey];
         while(NULL != tmp)
@@ -227,7 +227,7 @@ static bool_t __hashSocketAdd(struct tagSocket *sock)
             pUdpHashTab->array[hashKey] = sock;
             result = true;
         }
-        mutex_unlock(pUdpHashTab->tabsync);
+        Lock_MutexPost(pUdpHashTab->tabsync);
     }
     return result;
 }
@@ -245,7 +245,7 @@ static bool_t __hashSocketRemove(struct tagSocket *sock)
     struct tagSocket  *tmp;
     u32         hashKey;
 
-    if(mutex_lock(pUdpHashTab->tabsync))
+    if(Lock_MutexPend(pUdpHashTab->tabsync))
     {
         hashKey = sock->element.v4.portlocal%pUdpHashTab->tablen;
         tmp = pUdpHashTab->array[hashKey];
@@ -271,7 +271,7 @@ static bool_t __hashSocketRemove(struct tagSocket *sock)
             }
         }
 
-        mutex_unlock(pUdpHashTab->tabsync);
+        Lock_MutexPost(pUdpHashTab->tabsync);
     }
     return true;
 }
@@ -288,7 +288,7 @@ static  bool_t  __UdpCbInit(int len)
     bool_t result = false;
     int i = 0;
 
-    pUcbFreeLstSync = mutex_init(NULL);
+    pUcbFreeLstSync = Lock_MutexCreate(NULL);
     if(NULL == pUcbFreeLstSync)
     {
         return result;
@@ -330,13 +330,13 @@ static  bool_t  __UdpCbFree(tagUdpCB  *cb)
     if(NULL != cb)
     {
         PkgTryFreeQ(cb->rbuf.ph);
-        semp_del(cb->rbuf.bufsync);
-        if(mutex_lock(pUcbFreeLstSync))
+        Lock_SempDelete(cb->rbuf.bufsync);
+        if(Lock_MutexPend(pUcbFreeLstSync))
         {
             memset((void *)cb,0,sizeof(tagUdpCB));
             cb->next =pUcbFreeLst;
             pUcbFreeLst = cb;
-            mutex_unlock(pUcbFreeLstSync);
+            Lock_MutexPost(pUcbFreeLstSync);
         }
     }
     return true;
@@ -352,14 +352,14 @@ static  bool_t  __UdpCbFree(tagUdpCB  *cb)
 static  tagUdpCB * __UdpCbMalloc(void )
 {
     tagUdpCB           *result = NULL;
-    if(mutex_lock(pUcbFreeLstSync))
+    if(Lock_MutexPend(pUcbFreeLstSync))
     {
         result = pUcbFreeLst;
         if(NULL != result)
         {
             pUcbFreeLst = result->next;
         }
-        mutex_unlock(pUcbFreeLstSync);
+        Lock_MutexPost(pUcbFreeLstSync);
     }
 
     if(NULL != result)
@@ -404,7 +404,7 @@ static struct tagSocket * __udpsocket(int family, int type, int protocal)
     sock = NULL;
     if(AF_INET == family)
     {
-        if(mutex_lock(pUdpHashTab->tabsync))
+        if(Lock_MutexPend(pUdpHashTab->tabsync))
         {
             getport = false;
             while(getport == false)
@@ -463,7 +463,7 @@ static struct tagSocket * __udpsocket(int family, int type, int protocal)
                     sock = NULL;
                 }
             }
-            mutex_unlock(pUdpHashTab->tabsync);
+            Lock_MutexPost(pUdpHashTab->tabsync);
         }
     }//end if AF_INET == family
     return sock;
@@ -615,7 +615,7 @@ static int __udpconnect(struct tagSocket *sock, struct sockaddr *serveraddr, int
     {
         return result;  //if para error
     }
-    if(mutex_lock(sock->SockSync))
+    if(Lock_MutexPend(sock->SockSync))
     {
         if(0 == (sock->sockstat & CN_SOCKET_CONNECT)) //make sure not connect yet
         {
@@ -624,7 +624,7 @@ static int __udpconnect(struct tagSocket *sock, struct sockaddr *serveraddr, int
             sock->sockstat |= CN_SOCKET_CONNECT;
             result = 0;
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
     return  result;
 }
@@ -644,14 +644,14 @@ static int __udpsend(struct tagSocket *sock, const void *msg, int len, int flags
     int  result= -1;
     tagUdpCB  *ucb;
 
-    if(mutex_lock(sock->SockSync))
+    if(Lock_MutexPend(sock->SockSync))
     {
         ucb = (tagUdpCB *)sock->TplCB;
         if(CN_UDP_CHANNEL_STATASND&ucb->channelstat)
         {
             result = __msgsnd(sock,msg,len,flags,NULL,0);
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
     return  result;
 }
@@ -717,9 +717,9 @@ static int __udprecv(struct tagSocket *sock, void *buf,int len, unsigned int fla
     ucb = (tagUdpCB *)sock->TplCB;
 
     timeout = ucb->rbuf.timeout;
-    if(semp_pendtimeout(ucb->rbuf.bufsync,timeout))
+    if(Lock_SempPend(ucb->rbuf.bufsync,timeout))
     {
-        if(mutex_lock(sock->SockSync))
+        if(Lock_MutexPend(sock->SockSync))
         {
             if(ucb->channelstat & CN_UDP_CHANNEL_STATARCV)
             {
@@ -741,13 +741,13 @@ static int __udprecv(struct tagSocket *sock, void *buf,int len, unsigned int fla
             if((ucb->rbuf.buflen > ucb->rbuf.triglevel)||(0 == (ucb->channelstat & CN_UDP_CHANNEL_STATARCV)))
             {
                 Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
-                semp_post(ucb->rbuf.bufsync);
+                Lock_SempPost(ucb->rbuf.bufsync);
             }
             else
             {
                 Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
             }
-            mutex_unlock(sock->SockSync);
+            Lock_MutexPost(sock->SockSync);
         }
     }
     else
@@ -777,14 +777,14 @@ static int __udpsendto(struct tagSocket *sock, const void *msg,int len, unsigned
     int  result= -1;
     tagUdpCB   *ucb;
 
-    if(mutex_lock(sock->SockSync))
+    if(Lock_MutexPend(sock->SockSync))
     {
         ucb = (tagUdpCB *)sock->TplCB;
         if(CN_UDP_CHANNEL_STATASND&ucb->channelstat)
         {
             result = __msgsnd(sock,msg,len,flags,addr,addrlen);
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
     return  result;
 }
@@ -810,9 +810,9 @@ static int __udprecvform(struct tagSocket *sock,void *buf, int len, unsigned int
 
     ucb = (tagUdpCB *)sock->TplCB;
     timeout = ucb->rbuf.timeout;
-    if(semp_pendtimeout(ucb->rbuf.bufsync,timeout))
+    if(Lock_SempPend(ucb->rbuf.bufsync,timeout))
     {
-        if(mutex_lock(sock->SockSync))
+        if(Lock_MutexPend(sock->SockSync))
         {
             if(ucb->channelstat & CN_UDP_CHANNEL_STATARCV)
             {
@@ -834,13 +834,13 @@ static int __udprecvform(struct tagSocket *sock,void *buf, int len, unsigned int
             if((ucb->rbuf.buflen > ucb->rbuf.triglevel)||(0 == (ucb->channelstat & CN_UDP_CHANNEL_STATARCV)))
             {
                 Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
-                semp_post(ucb->rbuf.bufsync);
+                Lock_SempPost(ucb->rbuf.bufsync);
             }
             else
             {
                 Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
             }
-            mutex_unlock(sock->SockSync);
+            Lock_MutexPost(sock->SockSync);
         }
     }
     else
@@ -916,7 +916,7 @@ static int __udpshutdown(struct tagSocket *sock, u32 how)
 {
     int    result=-1;
 
-    if(mutex_lock(sock->SockSync))
+    if(Lock_MutexPend(sock->SockSync))
     {
         switch(how)
         {
@@ -937,7 +937,7 @@ static int __udpshutdown(struct tagSocket *sock, u32 how)
                 result = -1;
                 break;
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
     return  result;
 }
@@ -953,7 +953,7 @@ static int __udpclose(struct tagSocket *sock)
     int result = -1;
 
     __hashSocketRemove(sock);
-    if(mutex_lock(sock->SockSync))
+    if(Lock_MutexPend(sock->SockSync))
     {
         __UdpCbFree(sock->TplCB);
         sock->TplCB = NULL;
@@ -1111,7 +1111,7 @@ static int __udpsetsockopt(struct tagSocket *sock, int level, int optname,\
 
     result = -1;
 
-    if(mutex_lock(sock->SockSync))
+    if(Lock_MutexPend(sock->SockSync))
     {
         switch(level)
         {
@@ -1126,7 +1126,7 @@ static int __udpsetsockopt(struct tagSocket *sock, int level, int optname,\
             default:
                 break;
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
 
     return  result;
@@ -1206,7 +1206,7 @@ static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, struct NetPkg *pkg, u32 devfunc)
         sock =__hashSocketSearch(INADDR_ANY,portdst); //if INADDR_ANY match
     }
 
-    if((NULL != sock)&&mutex_lock(sock->SockSync))
+    if((NULL != sock)&&Lock_MutexPend(sock->SockSync))
     {
         ucb = (tagUdpCB *)sock->TplCB;
         result = true;
@@ -1238,11 +1238,11 @@ static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, struct NetPkg *pkg, u32 devfunc)
                 if(ucb->rbuf.buflen > ucb->rbuf.triglevel)
                 {
                     Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
-                    semp_post(ucb->rbuf.bufsync);
+                    Lock_SempPost(ucb->rbuf.bufsync);
                 }
             }
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
     else
     {

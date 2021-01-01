@@ -342,7 +342,7 @@ void ended_hostent_ext(struct hostent_ext *phostent_ext)
                 break;
             }
         }
-        if(i = CN_RESULT_NUM+1) {
+        if(i == CN_RESULT_NUM+1) {
             phostent_ext->arr_addr_list[CN_RESULT_NUM] = 0;
             phostent_ext->arr_aliases[CN_RESULT_NUM] = 0;
         }

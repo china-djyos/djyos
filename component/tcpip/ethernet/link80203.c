@@ -113,7 +113,7 @@ static bool_t __Link_Out(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
     {
         hdr = (tagEthernetHdr *)PkgGetCurrentBuffer(ethpkg);
 //      hdr = (tagEthernetHdr  *)(ethpkg->buf + ethpkg->offset);
-        memcpy(hdr->macsrc, NetDevGetMac(iface), CN_MACADDR_LEN);
+        memcpy(hdr->macsrc, NetDev_GetMac(iface), CN_MACADDR_LEN);
         hdr->type_or_tpid = htons(proto);
         if(ver == EN_IPV_4)
         {
@@ -141,12 +141,12 @@ static bool_t __Link_Out(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
 //          ethpkg->datalen = CN_ETHERNET_HEADLEN;
 //          ethpkg->partnext = pkg;
 //          framlen += CN_ETHERNET_HEADLEN_UNVLAN;
-//          ret = NetDevSend(iface,ethpkg,framlen,devtask);
-            NetDevPkgsndInc(iface);
-            ret = NetDevSend(iface,ethpkg,devtask);
+//          ret = NetDev_Send(iface,ethpkg,framlen,devtask);
+            NetDev_PkgsndInc(iface);
+            ret = NetDev_Send(iface,ethpkg,devtask);
             if(ret == false)
             {
-                NetDevPkgsndErrInc(iface);
+                NetDev_PkgsndErrInc(iface);
             }
             PkgTryFreePart(ethpkg);
         }

@@ -125,8 +125,8 @@ bool_t ModuleInstall_TcpIp(void)
         goto TCPIP_INITERR;
     }
     //do the NETDEVICE LAYER initialize
-    extern bool_t NetDevInit(void);
-    ret = NetDevInit();
+    extern bool_t NetDev_Init(void);
+    ret = NetDev_Init();
     __LoadLog("NETDEV",ret);
     if(false == ret)
     {

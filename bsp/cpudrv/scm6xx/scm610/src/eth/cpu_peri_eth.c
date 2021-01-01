@@ -820,7 +820,7 @@ static ptu32_t __MacRcvTask(void)
             if(NULL != pkg)
             {
                 //maybe we have another method like the hardware
-                NetDevFlowCtrl(handle,NetDevFrameType(PkgGetCurrentBuffer(pkg),
+                NetDev_FlowCtrl(handle,NetDev_FrameType(PkgGetCurrentBuffer(pkg),
                                                       PkgGetDataLen(pkg)));
                 //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
@@ -839,7 +839,7 @@ static ptu32_t __MacRcvTask(void)
             else
             {
                   //here we still use the counter to do the time state check
-                NetDevFlowCtrl(handle,EN_NETDEV_FRAME_LAST);
+                NetDev_FlowCtrl(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
@@ -1130,7 +1130,7 @@ bool_t ModuleInstall_ETH(const char *devname, bool_t loop,u32 loopcycle)
     devpara.name = (char *)pDrive->devname;
     devpara.mtu = CN_ETH_MTU;                     //Max Transmit Unit
     devpara.Private = (ptu32_t)pDrive;
-    pDrive->devhandle = NetDevInstall(&devpara);
+    pDrive->devhandle = NetDev_Install(&devpara);
 
     if(NULL == pDrive->devhandle)
     {
@@ -1164,7 +1164,7 @@ bool_t ModuleInstall_ETH(const char *devname, bool_t loop,u32 loopcycle)
     return true;
 
 RcvTaskFailed:
-    NetDevUninstall(devname);
+    NetDev_GetUninstall(devname);
 NetInstallFailed:
     Lock_MutexDelete(pDrive->protect);
     pDrive->protect = NULL;

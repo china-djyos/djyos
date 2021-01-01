@@ -87,14 +87,14 @@ static bool_t __Link_Out(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
     bool_t ret = false;
     if((NULL != iface)&&(proto == EN_LINKPROTO_IPV4))
     {
-        NetDevPkgsndInc(iface);
-        ret = NetDevSend(iface,pkg,devtask);
+        NetDev_PkgsndInc(iface);
+        ret = NetDev_Send(iface,pkg,devtask);
 //      ret = iface->ifsend(iface,pkg,framlen,devtask);
         if(ret == false)
         {
-            NetDevPkgsndErrInc(iface);
+            NetDev_PkgsndErrInc(iface);
         }
-//      ret = NetDevSend(iface,pkg,framlen,devtask);
+//      ret = NetDev_Send(iface,pkg,framlen,devtask);
     }
     return ret;
 }

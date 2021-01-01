@@ -89,7 +89,7 @@ typedef struct
     u32 framenum;
     u32 frameunknown;
     tagRcvHookItem *list;
-    mutex_t lock;
+    struct MutexLCB *lock;
 }tagRcvHookCB;
 static tagRcvHookCB  gRcvHookCB;
 //if you specified the special device, only the same device and the same proto frame
@@ -112,18 +112,18 @@ bool_t Link_RegisterRcvHook(fnLinkProtoDealer hook,const char *ifname,u16 proto,
         return result;
     }
     memset((void *)item,0,sizeof(tagRcvHookItem));
-    item->iface = NetDevGet(ifname);
+    item->iface = NetDev_GetHandle(ifname);
     item->hook = hook;
     item->proto = proto;
     item->name = hookname;
 
-    if(mutex_lock(gRcvHookCB.lock))
+    if(Lock_MutexPend(gRcvHookCB.lock,CN_TIMEOUT_FOREVER))
     {
         item->nxt = gRcvHookCB.list;
         gRcvHookCB.list = item;
         TCPIP_DEBUG_INC(gRcvHookCB.itemtotal);
         result = true;
-        mutex_unlock(gRcvHookCB.lock);
+        Lock_MutexPost(gRcvHookCB.lock);
     }
     else
     {
@@ -145,7 +145,7 @@ bool_t Link_UnRegisterRcvHook(const char *hookname)
     tagRcvHookItem *item;
     tagRcvHookItem *nxt;
 
-    if(mutex_lock(gRcvHookCB.lock))
+    if(Lock_MutexPend(gRcvHookCB.lock,CN_TIMEOUT_FOREVER))
     {
         item = gRcvHookCB.list;
         if(0 == strcmp(item->name,hookname))
@@ -176,7 +176,7 @@ bool_t Link_UnRegisterRcvHook(const char *hookname)
                 }
             }
         }
-        mutex_unlock(gRcvHookCB.lock);
+        Lock_MutexPost(gRcvHookCB.lock);
     }
     return result;
 }
@@ -187,10 +187,10 @@ static bool_t __Link_RcvMonitor(struct NetDev *iface,u16 proto,struct NetPkg *pk
     fnLinkProtoDealer hook = NULL;
     tagRcvHookItem *item;
     //find the hook first
-    if(mutex_lock(gRcvHookCB.lock))
+    if(Lock_MutexPend(gRcvHookCB.lock,CN_TIMEOUT_FOREVER))
     {
         item = gRcvHookCB.list;
-        if(NetDevType(iface) == EN_LINK_ETHERNET)
+        if(NetDev_GetType(iface) == EN_LINK_ETHERNET)
         {
             //here we recover the link head for the ethernet(14 bytes here 6 macdst 6 macsrc 2 type)
             PkgMoveOffsetUp(pkg,14);
@@ -209,7 +209,7 @@ static bool_t __Link_RcvMonitor(struct NetDev *iface,u16 proto,struct NetPkg *pk
             }
             item = item->nxt;
         }
-        mutex_unlock(gRcvHookCB.lock);
+        Lock_MutexPost(gRcvHookCB.lock);
     }
 
     if(NULL != hook)
@@ -261,7 +261,7 @@ bool_t Link_Send(struct NetDev *DevFace,struct NetPkg *pkg,u32 devtask,u16 proto
 {
     bool_t ret = false;
     struct LinkOps *ops;
-    ops = NetDevLinkOps(DevFace);
+    ops = NetDev_GetLinkOps(DevFace);
     if(NULL != ops)
     {
         ret = ops->linkout(DevFace,pkg,devtask,proto,ver,ipdst,ipsrc);
@@ -281,7 +281,7 @@ bool_t Link_Send(struct NetDev *DevFace,struct NetPkg *pkg,u32 devtask,u16 proto
 //    enLinkType linktype;
 //    struct LinkOps *ops;
 //
-//    linktype = NetDevType(iface);
+//    linktype = NetDev_GetType(iface);
 //    ops = __Link_FindOps(linktype);
 //    if(NULL != ops)
 //    {
@@ -374,16 +374,16 @@ bool_t Link_NetDevPush(struct NetDev *iface,struct NetPkg *pkg)
     struct LinkOps *ops;
     if(NULL != iface)
     {
-        NetDevPkgrcvInc(iface);
+        NetDev_PkgrcvInc(iface);
 //      ret = LinkDeal(iface,pkg);
-        ops = NetDevLinkOps(iface);
+        ops = NetDev_GetLinkOps(iface);
         if(NULL != ops)
         {
             ret = ops->linkin(iface,pkg);
         }
         if(ret == false)
         {
-            NetDevPkgrcvErrInc(iface);
+            NetDev_PkgrcvErrInc(iface);
         }
     }
     return ret;
@@ -394,7 +394,7 @@ bool_t Link_NetDevPush(struct NetDev *iface,struct NetPkg *pkg)
 //{
 //    bool_t ret = false;
 //    struct LinkOps *ops;
-//    ops = NetDevLinkOps(iface);
+//    ops = NetDev_GetLinkOps(iface);
 //    if(NULL != ops)
 //    {
 //        ret = ops->linkin(iface,pkg);
@@ -477,7 +477,7 @@ static bool_t __Link_HookShell(void)
     tagRcvHookItem *item;
 
     debug_printf("link","LinkHookModule\n\r");
-    if(mutex_lock(gRcvHookCB.lock))
+    if(Lock_MutexPend(gRcvHookCB.lock,CN_TIMEOUT_FOREVER))
     {
         debug_printf("link","Item:Total:%d  FrameRcvTotal:%d FrameRcvUnknown:%d\n\r",\
                 gRcvHookCB.itemtotal,gRcvHookCB.framenum,gRcvHookCB.frameunknown);
@@ -491,10 +491,10 @@ static bool_t __Link_HookShell(void)
             debug_printf("link","No.%-4d   %-8s  %-8x  %-8x  %-8x  %s\n\r",\
                     i++,item->name?item->name:"NULL",\
                     item->proto,(u32)item->hook,\
-                    item->framenum,NetDevName(item->iface));
+                    item->framenum,NetDev_GetName(item->iface));
             item = item->nxt;
         }
-        mutex_unlock(gRcvHookCB.lock);
+        Lock_MutexPost(gRcvHookCB.lock);
     }
     return true;
 }
@@ -549,7 +549,7 @@ bool_t Link_Init(void)
 {
     //the gLinkHook module must be initialized
     memset((void *)&gRcvHookCB,0,sizeof(gRcvHookCB));
-    gRcvHookCB.lock = mutex_init(NULL);
+    gRcvHookCB.lock = Lock_MutexCreate(NULL);
     return true;
 }
 ADD_TO_ROUTINE_SHELL(net_link,Link_net,"usage:net_link [-t (show types)]/[-h (show hooks)]");

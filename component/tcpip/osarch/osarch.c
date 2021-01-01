@@ -58,8 +58,6 @@
 typedef struct
 {
     u32 mem;     //how many heap memory has been consumed
-    u32 lock;   //how many mutex  has been consumed
-    u32 semp;    //how many semp  has been consumed
     u32 stack;   //how much task stack has been consumed
 }tagOsCB;
 static tagOsCB gOsCB;
@@ -82,73 +80,6 @@ void net_free(void *mem)
         free(mem);
         gOsCB.mem -=M_CheckSize(mem);
     }
-    return;
-}
-
-
-//mutex
-mutex_t mutex_init(const char *name)
-{
-    gOsCB.lock++;
-    return Lock_MutexCreate(name);
-}
-bool_t mutex_lock(mutex_t mutex)
-{
-    return Lock_MutexPend(mutex,CN_TIMEOUT_FOREVER);
-}
-bool_t mutex_locktimeout(mutex_t mutex,u32 timeout)
-{
-    return Lock_MutexPend(mutex,timeout);
-}
-bool_t mutex_unlock(mutex_t mutex)
-{
-    Lock_MutexPost(mutex);
-    return true;
-}
-
-void mutex_del(mutex_t mutex)
-{
-    Lock_MutexDelete(mutex);
-    gOsCB.lock--;
-    return;
-}
-//-----------------------------------------------------------------------------
-//功能:use this function to create a semaphore
-//参数:
-//返回:the semaphore if success and NULL when failed
-//备注:
-//-----------------------------------------------------------------------------
-semp_t semp_init(u32 limit,u32 value,const char *name)
-{
-    gOsCB.semp++;
-    return Lock_SempCreate(limit,value,CN_BLOCK_FIFO,name);
-}
-//-----------------------------------------------------------------------------
-//功能:use this function to pend a semaphore
-//参数:semp, the semaphore we will pend later
-//返回:true when got the semaphore else false
-//备注:never return if not got the semaphore and the condition permit waiting
-//-----------------------------------------------------------------------------
-bool_t semp_pend(semp_t semp)
-{
-    return Lock_SempPend(semp,CN_TIMEOUT_FOREVER);
-}
-
-bool_t semp_pendtimeout(semp_t semp, u32 timeout)
-{
-    return Lock_SempPend(semp,timeout);
-}
-
-bool_t semp_post(semp_t semp)
-{
-    Lock_SempPost(semp);
-    return true;
-}
-
-void semp_del(semp_t semp)
-{
-    gOsCB.semp--;
-    Lock_SempDelete(semp);
     return;
 }
 
@@ -238,7 +169,7 @@ typedef struct
 {
     tagTickerItem *lst;
     s32            num;
-    mutex_t        lock;
+    struct MutexLCB *lock;
 }tagTikerCB;
 static tagTikerCB gTickerCB;
 //use this function to install a ticker isr
@@ -250,7 +181,7 @@ void*  NetTickerIsrInstall(const char *name,fnNetTickIsr isr,s32 cycle)
     if(NULL != item)
     {
         memset(item,0,sizeof(tagTickerItem));
-        if(mutex_lock(gTickerCB.lock))
+        if(Lock_MutexPend(gTickerCB.lock,CN_TIMEOUT_FOREVER))
         {
             //do the initialize
             item->life = cycle;
@@ -261,7 +192,7 @@ void*  NetTickerIsrInstall(const char *name,fnNetTickIsr isr,s32 cycle)
             item->nxt = gTickerCB.lst;
             gTickerCB.lst = item;
             gTickerCB.num++;
-            mutex_unlock(gTickerCB.lock);
+            Lock_MutexPost(gTickerCB.lock);
         }
     }
     return item;
@@ -274,7 +205,7 @@ bool_t  NetTickerIsrRemove(void *ticker)
 
     if(NULL != ticker)
     {
-        if(mutex_lock(gTickerCB.lock))
+        if(Lock_MutexPend(gTickerCB.lock,CN_TIMEOUT_FOREVER))
         {
             item = gTickerCB.lst;
             if((ticker == item)&&(NULL != item))
@@ -294,7 +225,7 @@ bool_t  NetTickerIsrRemove(void *ticker)
                     item = item->nxt;
                 }
             }
-            mutex_unlock(gTickerCB.lock);
+            Lock_MutexPost(gTickerCB.lock);
         }
     }
     return ret;
@@ -317,7 +248,7 @@ static ptu32_t __NetTickerTask(void)
     tagTickerItem *item;
     while(1)
     {
-        if(mutex_lock(gTickerCB.lock))
+        if(Lock_MutexPend(gTickerCB.lock,CN_TIMEOUT_FOREVER))
         {
             item = gTickerCB.lst;
             while(NULL != item)
@@ -334,7 +265,7 @@ static ptu32_t __NetTickerTask(void)
                 }
                 item = item->nxt;
             }
-            mutex_unlock(gTickerCB.lock);
+            Lock_MutexPost(gTickerCB.lock);
         }
         DJY_EventDelay(CN_NETTICK_CYCLE*mS);
     }
@@ -353,7 +284,7 @@ static ptu32_t __NetTickerTask(void)
     tagTickerItem *item;
     s32  no = 0;
 
-    if(mutex_lock(gTickerCB.lock))
+    if(Lock_MutexPend(gTickerCB.lock,CN_TIMEOUT_FOREVER))
     {
         debug_printf("osarch","NETTICK:NUM:%d PRECISION:%d MS\n\r",gTickerCB.num,CN_NETTICK_CYCLE);
         if(gTickerCB.num > 0)
@@ -369,7 +300,7 @@ static ptu32_t __NetTickerTask(void)
             no++;
             item = item->nxt;
         }
-        mutex_unlock(gTickerCB.lock);
+        Lock_MutexPost(gTickerCB.lock);
     }
     DJY_EventDelay(CN_NETTICK_CYCLE*mS);
     return ret;
@@ -381,8 +312,6 @@ bool_t tcpipmem(char *para)
 {
     debug_printf("osarch","MEMNEED  :%-8d Bytes\n\r",gOsCB.mem);
     debug_printf("osarch","TASKSTACK:%-8d Bytes\n\r",gOsCB.stack);
-    debug_printf("osarch","LOCK     :%-8d \n\r",gOsCB.lock);
-    debug_printf("osarch","SEMP     :%-8d \n\r",gOsCB.semp);
     return true;
 }
 
@@ -404,7 +333,7 @@ static bool_t NetTickerInit(void)
     bool_t ret = false;
     memset(&gTickerCB,0,sizeof(gTickerCB));
     gTickerCB.lst = NULL;
-    gTickerCB.lock = mutex_init(NULL);
+    gTickerCB.lock = Lock_MutexCreate(NULL);
     if(NULL == gTickerCB.lock)
     {
         error_printf("osarch","LOCK CREATE ERR\n\r");
@@ -419,7 +348,7 @@ static bool_t NetTickerInit(void)
     return ret;
 
 EXIT_TASK:
-    mutex_del(gTickerCB.lock);
+    Lock_MutexDelete(gTickerCB.lock);
     gTickerCB.lock = NULL;
 EXIT_LOCK:
     return ret;

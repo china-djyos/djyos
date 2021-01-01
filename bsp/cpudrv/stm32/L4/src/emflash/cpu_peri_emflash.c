@@ -49,6 +49,7 @@
 #include <device/djy_flash.h>
 #include <cpu_peri.h>
 #include <stm32l4xx_hal_flash.h>
+#include <device/unit_media.h>
 #include <int.h>
 #include <math.h>
 #include <dbug.h>
@@ -481,7 +482,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
             block = (u32)va_arg(list, u32);
             va_end(list);
 
-            if(*block <= s_ptEmbdFlash->NormalSectorsPerPlane)
+            if(block <= s_ptEmbdFlash->NormalSectorsPerPlane)
             {
                 *units = s_ptEmbdFlash->PagesPerNormalSect;;
             }

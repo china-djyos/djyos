@@ -1140,7 +1140,7 @@ bool_t ModuleInstall_Tsec(ptu32_t para)
                 devpara.name = "TsecDriver";
                 devpara.Private = devno;
 
-                pgTsecNetDev[devno] = NetDevInstall(&devpara);
+                pgTsecNetDev[devno] = NetDev_Install(&devpara);
                 if(pgTsecNetDev[devno]!= NULL)
                 {
                     result = true;

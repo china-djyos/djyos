@@ -175,7 +175,7 @@ static bool_t  __IpPushNew(struct NetDev *iface,struct NetPkg *pkg)
     TCPIP_DEBUG_INC(gIpCtrl.debug.rcvnum);
     if((NULL != iface)&& (NULL!= pkg))
     {
-        devfunc = NetDevFunc(iface);
+        devfunc = NetDev_GetFunc(iface);
         ipv = *(u8 *)PkgGetCurrentBuffer(pkg);
 //      ipv = *(u8 *)(pkg->buf + pkg->offset);
         ipv = (ipv >>4)&CN_IP_VERMASK;

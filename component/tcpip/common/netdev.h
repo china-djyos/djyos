@@ -53,11 +53,4 @@
 struct NetDev;
 struct LinkOps;
 
-//here declares the function we need from other modules,and the application also
-//needs them
-u16 NetDevMtu(struct NetDev *DevFace);
-u32 NetDevFunc(struct NetDev *DevFace);
-enum enLinkType NetDevType(struct NetDev *DevFace);
-struct LinkOps *NetDevLinkOps(struct NetDev *DevFace);
-
 #endif /* TCPIP_IFACE_H_ */

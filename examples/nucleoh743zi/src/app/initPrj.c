@@ -98,17 +98,6 @@ void Sys_ModuleInit(void)
     ModuleInstall_Wdt();
     //end watch dog
 
-    //cpu drive inner flash
-    s32 ModuleInstall_EmbededFlash(u32 doformat);
-    ModuleInstall_EmbededFlash(CFG_EFLASH_PART_FORMAT);
-    //end cpu drive inner flash
-
-    //emflash insatall xip
-    extern s32 ModuleInstall_EmFlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
-    ModuleInstall_EmFlashInstallXIP(CFG_EFLASH_XIPFSMOUNT_NAME,CFG_EFLASH_XIP_PART_START,
-    CFG_EFLASH_XIP_PART_END, CFG_EFLASH_XIP_PART_FORMAT);
-    //end emflash insatall xip
-
     //----------------------------medium----------------------------//
     //kernel
     #if(CFG_OS_TINY == flase)
@@ -154,13 +143,6 @@ void Sys_ModuleInit(void)
     extern bool_t ModuleInstall_ETH(void);
     ModuleInstall_ETH( );
     //end cpu onchip MAC
-
-    //loader
-    #if !defined (CFG_RUNMODE_BAREAPP)
-    extern bool_t ModuleInstall_XIP(void);
-    ModuleInstall_XIP( );
-    #endif
-    //end loader
 
     //----------------------------later----------------------------//
     //stdio

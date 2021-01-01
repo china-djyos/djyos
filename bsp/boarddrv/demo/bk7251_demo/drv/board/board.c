@@ -110,14 +110,14 @@
 //void p7_isr_hdr(void *args)
 //{
 //    if (p7_sem) {
-//         semp_post(p7_sem);
+//         Lock_SempPost(p7_sem);
 //    }
 //}
 //
 //int pend_p7_down(unsigned int timeout)
 //{
 //    int ret = 0;
-//    ret = semp_pendtimeout(p7_sem, timeout);
+//    ret = Lock_SempPend(p7_sem, timeout);
 //    return ret;
 //}
 //
@@ -217,8 +217,8 @@ void Board_Init(void)
     Djy_GpioInit();
     os_meminit();
     drv_model_init();
-	gpio_config(GPIO9, GMODE_OUTPUT);	//设置控制喇叭的IO为输出模式
-    gpio_output(GPIO9, 0);				//开始设置为0 关闭喇叭
+    gpio_config(GPIO9, GMODE_OUTPUT);   //设置控制喇叭的IO为输出模式
+    gpio_output(GPIO9, 0);              //开始设置为0 关闭喇叭
 //  g_dd_init();
     sctrl_init();
     icu_init();

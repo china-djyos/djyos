@@ -65,6 +65,7 @@ extern "C" {
 void LP_BSP_ResigerGpioToWakeUpL4(PS_DEEP_WAKEUP_WAY way,u32 gpio_index,
                                   u32 gpio_edge, u32 time);
 void LP_DeepSleep(void);
+void ImmediatelyDeepSleep(void);
 #ifdef __cplusplus
 }
 #endif

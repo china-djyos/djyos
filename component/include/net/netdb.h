@@ -268,10 +268,10 @@ struct addrinfo
   struct addrinfo *ai_next;      /* Pointer to next in list.  */
 };
 
-void NetDevPkgsndInc(struct NetDev *iface);
-void NetDevPkgsndErrInc(struct NetDev *iface);
-void NetDevPkgrcvInc(struct NetDev *iface);
-void NetDevPkgrcvErrInc(struct NetDev *iface);
+void NetDev_PkgsndInc(struct NetDev *iface);
+void NetDev_PkgsndErrInc(struct NetDev *iface);
+void NetDev_PkgrcvInc(struct NetDev *iface);
+void NetDev_PkgrcvErrInc(struct NetDev *iface);
 struct servent *getservbyname(const char *name, const char *proto);
 struct hostent *gethostbyname(const char *name);
 struct hostent * gethostbyname_r(const char *name,struct hostent_ext *pnew);

@@ -821,7 +821,7 @@ tagAx88796Pri *Ax88796Install(tagAx88796Para *para)
     devpara.Private = (ptu32_t)ax88796;
     devpara.linklen = 14;
     devpara.pkglen = 1500;
-    ax88796->devhandle = (void *) NetDevInstall(&devpara);
+    ax88796->devhandle = (void *) NetDev_Install(&devpara);
     if(NULL == ax88796->devhandle)
     {
         goto DEV_FAILED;

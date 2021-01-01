@@ -404,7 +404,7 @@ static bool_t __dm9000Snd(ptu32_t handle,struct NetPkg *pkg,u32 netdevtask)
     result = false;
     if((0 != handle)&&(NULL != pkg))
     {
-        dm9000 = (tagDm9000Dev  *)NetDevPrivate(handle);
+        dm9000 = (tagDm9000Dev  *)NetDev_GetPrivate(handle);
         sndlen = 0;
         tmp = pkg;
         //cout the len
@@ -651,7 +651,7 @@ static bool_t __dm9000CreateDev(tagDm9000Dev *dm9000)
     devpara.name = dm9000->devname;
     devpara.mtu = CN_ETH_MTU;
     devpara.Private = (ptu32_t)dm9000;
-    dm9000->handle = NetDevInstall(&devpara);
+    dm9000->handle = NetDev_Install(&devpara);
 
     if(0 == dm9000->handle)
     {

@@ -662,7 +662,7 @@ s32 CUSTOM_ReadMODEM(struct objhandle *hdl, u8 *pBuf, u32 dwLen, u32 offset, u32
         if(dwLen == bLen)
         {
             __CUSTOM_Jobdown();
-            return (len);
+            return (dwLen);     //应伟胜要求改
         }
 
         len = dwLen - bLen; // 剩余字节数

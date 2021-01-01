@@ -494,43 +494,57 @@ void net_wlan_remove_netif(void *mac)
 
 tagRouterPara sta_ip_settings;
 tagRouterPara uap_ip_settings;
+u32 sta_ip_hop,sta_ip_subnet,sta_ip_ip,sta_ip_submask,sta_ip_dns,sta_ip_dnsbak;
+u32 uap_ip_hop,uap_ip_subnet,uap_ip_ip,uap_ip_submask,uap_ip_dnss,uap_ip_dnsbak;
 
 //wlan_ui.c
-void ip_address_set(s32 iface, s32 dhcp, char *ip, char *mask, char*gw, char*dns)
+void ip_address_set(s32 iface, s32 dhcp, char *ip, char *mask, char *gw, char*dns)
 {
     uint32_t tmp;
-    tagRouterPara para;
-    tagHostAddrV4 v4;
-    memset(&v4, 0, sizeof(tagRouterPara));
-    if (dhcp == 1) {
-//        addr.addr_type = ADDR_TYPE_DHCP;
-    } else {
-        tmp = inet_addr((char*)ip);
-        v4.ip = (tmp);
-        tmp = inet_addr((char*)mask);
-        if (tmp == 0xFFFFFFFF)
-            tmp = 0x00FFFFFF;// if not set valid netmask, set as 255.255.255.0
-        v4.submask= (tmp);
-        tmp = inet_addr((char*)gw);
-        v4.gatway = (tmp);
 
-        v4.gatway = INADDR_ANY;
-        v4.subnet = v4.ip&v4.submask;
-        tmp = inet_addr((char*)dns);
-        v4.dns = (tmp);
+    if (dhcp == 1)
+    {
 
-        para.ver = EN_IPV_4;
-        para.mask = &v4.submask;
-        para.broad = &v4.broad;
-        para.hop = &v4.gatway;
-        para.net = &v4.subnet;
-        para.prior = CN_ROUT_PRIOR_UNI;
-        para.ifname = CFG_WIFI_DEV_NAME;
     }
-    if (iface == 1) // Station
-        memcpy(&sta_ip_settings, &para, sizeof(para));
     else
-        memcpy(&uap_ip_settings, &para, sizeof(para));
+    {
+
+        memset(&para,0,sizeof(para));
+        sta_ip_ip      = inet_addr(ip);
+        sta_ip_submask = inet_addr(mask);
+        sta_ip_hop     = inet_addr(gw);
+        sta_ip_dns     = inet_addr(dns);
+        sta_ip_dnsbak  = inet_addr(dns);
+        if (sta_ip_submask == INADDR_BROAD)
+            sta_ip_submask = 0x00FFFFFF;// if not set valid netmask, set as 255.255.255.0
+        sta_ip_subnet = sta_ip_ip & sta_ip_submask;
+        if (iface == 1) // Station
+        {
+            sta_ip_settings.ver = EN_IPV_4;
+            sta_ip_settings.ifname = CFG_WIFI_DEV_NAME;
+            sta_ip_settings.mask = &sta_ip_submask;
+            sta_ip_settings.net = &sta_ip_subnet;
+            sta_ip_settings.host = &sta_ip_ip;
+            sta_ip_settings.hop = &sta_ip_hop;
+            sta_ip_settings.dns = &sta_ip_dns;
+            sta_ip_settings.dnsbak = &sta_ip_dnsbak;
+            sta_ip_settings.prior = CN_ROUT_PRIOR_UNI;
+            sta_ip_settings.flags = 0;
+        }
+        else
+        {
+            uap_ip_settings.ver = EN_IPV_4;
+            uap_ip_settings.ifname = CFG_WIFI_DEV_NAME;
+            uap_ip_settings.mask = &sta_ip_submask;
+            uap_ip_settings.net = &sta_ip_subnet;
+            uap_ip_settings.host = &sta_ip_ip;
+            uap_ip_settings.hop = &sta_ip_hop;
+            uap_ip_settings.dns = &sta_ip_dns;
+            uap_ip_settings.dnsbak = &sta_ip_dnsbak;
+            uap_ip_settings.prior = CN_ROUT_PRIOR_UNI;
+            uap_ip_settings.flags = 0;
+        }
+    }
 }
 
 //wlan_ui.c

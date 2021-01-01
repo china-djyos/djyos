@@ -287,7 +287,7 @@ static void __UART_Stop(u8 port)
 // =============================================================================
 static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
 {
-    struct COMParam *COM;
+//    struct COMParam *COM;
     if(port < CN_UART_NUM)
     {
         phuart[port]->Init.BaudRate = COM->BaudRate;
