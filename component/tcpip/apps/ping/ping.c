@@ -177,7 +177,12 @@ bool_t PING(char *param)
     {
         return true;
     }
-    memset(buf,0x55,len);
+//  memset(buf,0x55,len);
+    //by chenws: 不可以设置为0x55, 有些服务器要求a-w重复，不然不回应。
+    //例如：ping 183.232.231.172
+    for(i=0; i<len; i++) {
+        buf[i] = 'a' + i%23;
+    }
     for(i = 0; i <times; i++)
     {
         timestart = (u32)DJY_GetSysTime();
