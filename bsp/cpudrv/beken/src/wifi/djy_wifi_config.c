@@ -509,7 +509,7 @@ void ip_address_set(s32 iface, s32 dhcp, char *ip, char *mask, char *gw, char*dn
     else
     {
 
-        memset(&para,0,sizeof(para));
+        //memset(&para,0,sizeof(para));
         sta_ip_ip      = inet_addr(ip);
         sta_ip_submask = inet_addr(mask);
         sta_ip_hop     = inet_addr(gw);

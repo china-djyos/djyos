@@ -417,6 +417,8 @@ void DhcpclientDeleteTask(const char *ifname)
 //          情况下，DHCP服务器中的IP条目仍在，申请会很快。
 //返回：成功 = true；失败 = false//
 //-----------------------------------------------------------------------------
+extern struct NetDev;
+void NetDev_SetDefault(struct NetDev *NetDev);
 bool_t DHCP_AddClientTask(const char *ifname, u32 OldIP)
 {
     bool_t ret = false;
@@ -426,7 +428,7 @@ bool_t DHCP_AddClientTask(const char *ifname, u32 OldIP)
 
     //每次添加任务前删除这个网卡的所有路由
     DhcpclientDeleteTask(ifname);
-
+    NetDev_SetDefault(NetDev_GetHandle(ifname));
     //不再添加全 0 路由
 //    memset(&addr,0,sizeof(addr));
 ////    addr.broad = INADDR_BROADCAST;
