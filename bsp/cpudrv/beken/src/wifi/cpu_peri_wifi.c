@@ -697,13 +697,16 @@ RCVSYNC_FAILED:
     return false;
 }
 
-
+extern struct NetDev;
+void NetDev_SetDefault(struct NetDev *NetDev);
 void dhcpd_route_add_default()
 {
     u32 hop,subnet,ip,submask,dns,dnsbak;
     tagRouterPara para;
     struct NetDev *NetDev;
 
+    /*设置默认网卡，不然默认网卡都是闭环网卡 */
+    NetDev_SetDefault(NetDev_GetHandle(CFG_WIFI_DEV_NAME));
     NetDev = NetDev_GetHandle(CFG_WIFI_DEV_NAME);
     memset(&para,0,sizeof(para));
     ip      = inet_addr(CFG_AP_DHCPD_IPV4);
