@@ -36,8 +36,8 @@
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //%$#@end exclude
-//%$#@include path
+//%$#@self include path
 //./;./wolfssl;./wolfssl/openssl;./wolfssl/wolfcrypt;
-//%$#@end include path
+//%$#@end self include path
 //@#$%component end configure
 

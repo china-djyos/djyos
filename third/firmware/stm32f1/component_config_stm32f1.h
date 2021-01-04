@@ -55,7 +55,7 @@
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //%$#@end exclude
-//%$#@include path
+//%$#@self include path
 //.;.\inc;..\CMSIS\Include;
-//%$#@end include path
+//%$#@end self include path
 

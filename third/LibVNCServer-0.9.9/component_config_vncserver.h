@@ -36,6 +36,6 @@
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //%$#@end exclude
-//%$#@include path
+//%$#@self include path
 //.;./common;${DJYOS_SRC_LOCATION}/third/LibVNCServer-0.9.9
-//%$#@end include path
+//%$#@end self include path

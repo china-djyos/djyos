@@ -66,9 +66,9 @@
 //./source/xdmac.c
 //./source/xdmad.c
 //%$#@end exclude
-//%$#@include path
+//%$#@self include path
 //.;.\include;
 //.;.\include\samv7;
-//%$#@end include path
+//%$#@end self include path
 //@#$%component end configure
 

@@ -39,11 +39,11 @@
 //./cmsis_drivers
 //./utilities
 //%$#@end exclude
-//%$#@include path
+//%$#@self include path
 //./drivers;
 //./xip;
 //./CMSIS/Include;
 //./utilities;
-//%$#@end include path
+//%$#@end self include path
 //@#$%component end configure
 

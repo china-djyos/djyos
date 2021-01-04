@@ -84,8 +84,8 @@
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //%$#@end exclude
-//%$#@include path
+//%$#@self include path
 //.;
-//%$#@end include path
+//%$#@end self include path
 //@#$%component end configure
 

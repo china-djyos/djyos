@@ -37,8 +37,8 @@
 //%$#@exclude
 //./docs;./examples;./jni;./test;./tools;
 //%$#@end exclude
-//%$#@include path
+//%$#@self include path
 //.;./include;./include;
-//%$#@end include path
+//%$#@end self include path
 //@#$%component end configure
 

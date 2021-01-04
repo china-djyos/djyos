@@ -44,8 +44,8 @@
 //%$#@exclude
 ///installs;/paks;/test;/src/utils;/src/goahead-openssl;
 //%$#@end exclude
-//%$#@include path
+//%$#@self include path
 ///src;/build/djyos-default/inc;/src/osdep;/src/mbedtls;
-//%$#@end include path
+//%$#@end self include path
 //@#$%component end configure
 

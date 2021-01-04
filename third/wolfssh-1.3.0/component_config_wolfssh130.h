@@ -105,8 +105,8 @@
 //./examples;./src/keygen.c;./src/misc.c;./tests;
 
 //%$#@endexclude
-//%$#@includepath
+//%$#@self include path
 //./;
-//%$#@endincludepath
+//%$#@end self include path
 //@#$%component end configure
 

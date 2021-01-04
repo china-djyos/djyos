@@ -34,8 +34,9 @@
 //%$#@free
 //#endif
 //%$#@exclude
-//%$#@include path
+//%$#@self include path
 //../jerry-core;
+//%$#@end self include path
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //@#$%component end configure
 

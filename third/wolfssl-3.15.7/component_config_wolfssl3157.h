@@ -55,8 +55,8 @@
 //./wolfcrypt/src/wolfcrypt_last.c;./wolfcrypt/src/wolfevent.c
 
 //%$#@endexclude
-//%$#@includepath
+//%$#@self include path
 //./;
-//%$#@endincludepath
+//%$#@end self include path
 //@#$%component end configure
 
