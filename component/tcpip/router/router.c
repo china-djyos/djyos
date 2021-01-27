@@ -926,7 +926,8 @@ void *RouterCreate(tagRouterPara *para)
 void RouterRemoveByHandle(struct RoutItem4 *rout)
 {
     struct NetDev *iface = NULL;
-    struct RoutItem4 *tmp;
+    struct RoutItem4 *tmp,*entry;
+    bool_t found = false;
     if (NULL == rout)
     {
         return;
@@ -937,21 +938,27 @@ void RouterRemoveByHandle(struct RoutItem4 *rout)
         while(iface != NULL)
         {
             tmp = NetDev_GetIPv4RoutEntry(iface);
+            entry = tmp;
             while(NULL != tmp)
             {
                 if(memcmp(tmp, rout, sizeof(struct RoutItem4)) == 0)
                 {
-                    __RemoveFromQueueV4(NetDev_GetIPv4RoutEntry( iface ), tmp);
+                    NetDev_SetIPv4RoutEntry(iface,__RemoveFromQueueV4(entry, tmp));
+                    net_free(tmp);
+                    found = true;
+                    break;
                 }
                 else
                 {
                     tmp = tmp->nxt;
                 }
             }
-            iface = NetDev_ForEachFromDefault(iface);
+            if(found == false)
+                iface = NetDev_ForEachFromDefault(iface);
+            else
+                break;
         }
 
-        net_free(tmp);
         Lock_MutexPost(gRoutCB.lock);
     }
     return;

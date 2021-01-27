@@ -153,14 +153,14 @@ char* mac2string(u8 *mac)
     return str;
 }
 
-#define CN_NETTICK_CYCLE  (10)
+#define CN_NETTICK_CYCLE  (10)      //网络tick运行周期，mS数
 
 typedef struct
 {
     void               *nxt;
-    s32                 life;
-    s32                 cycle;
-    u32                 runtimes;
+    s32                 life;       //倒计时计数器
+    s32                 cycle;      //定时周期，mS数
+    u32                 runtimes;   //定时次数
     fnNetTickIsr        isr;
     const char         *name;
 }tagTickerItem;

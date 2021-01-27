@@ -82,7 +82,7 @@ typedef enum
 }enDhcpClientStat;
 
 #define CN_DHCP_TICKER_CYCLE 100    //100ms run once
-#define CN_DHCP_TIMEOUT      10   //if not reply in the time, then will snd again
+#define CN_DHCP_TIMEOUT      10     //CN_DHCP_TICKER_CYCLE * CN_DHCP_TIMEOUT if not reply in the time, then will snd again
 #define CN_DHCP_CLIENTTXID   0x10000000
 //rebuild the dhcp client task
 typedef struct
@@ -326,10 +326,11 @@ static void __DHCP_DealTask(void)
 //dhcpclient ticker
 static void __DHCP_ClientTicker(void)
 {
-    s32               recvlen =0;
+    s32 recvlen =0;
     if(Lock_MutexPend(gClientCB.lock,CN_TIMEOUT_FOREVER))
     {
         do{
+            //sockfd被设置为非阻塞
             recvlen = recv(gClientCB.sockfd, (void *)&gClientCB.msg, sizeof(gClientCB.msg), 0);
             if(recvlen >0) //if any message here
             {
