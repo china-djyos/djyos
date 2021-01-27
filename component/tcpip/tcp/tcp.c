@@ -446,6 +446,7 @@ static bool_t __hashSocketAdd(struct tagSocket *sock)
 
     hashKey = v4->iplocal + v4->portlocal + v4->ipremote + v4->portremote;
     hashKey = hashKey%CFG_TCP_SOCKET_HASH_LEN;
+    printf("+++++++++++Add:%x,t=%d\r\n", sock, (u32)DJY_GetSysTime());
     if(hashKey == 7)        //lst debug
         tmp = NULL;
     tmp = TcpHashTab.array[hashKey];
@@ -1068,7 +1069,7 @@ static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *ad
        Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
     {
         scb = (struct ServerCB *)sock->TplCB;
-        result = __acceptclient(sock);
+        result = __acceptclient(sock);  //查看是否已经可接受
         waittime = scb->accepttime;
         if((NULL == result)&&(0 != waittime))
         {
@@ -3263,6 +3264,14 @@ static bool_t __dealrecvpkg(struct tagSocket *client, struct TcpHdr *hdr,struct 
     return true;
 }
 
+//------------------------------------------------------------------------------
+//功能：当server收到syn时，创建一个socket，挂在tcp的server控制块的clst下，然后发送
+//      syn+ack，待再次收到对方的ack时，进入已连接状态。
+//参数：server，证件listen的socket
+//      hdr，当前收到的tcp头
+//      ipdst,portdst,ipsrc,portsrc，地址四元组
+//返回：新创建的socket。
+//------------------------------------------------------------------------------
 static struct tagSocket* __newclient(struct tagSocket *server, struct TcpHdr *hdr,\
                           u32 ipdst,u16 portdst,u32 ipsrc, u16 portsrc)
 {

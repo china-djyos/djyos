@@ -1,0 +1,1 @@
+microPython在DIDE中编译成库使用，请参考DIDE的使用手册。

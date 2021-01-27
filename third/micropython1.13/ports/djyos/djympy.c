@@ -1,0 +1,169 @@
+#include <unistd.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <shell.h>
+#include <string.h>
+#include <systime.h>
+
+#include "py/compile.h"
+#include "py/runtime.h"
+#include "py/repl.h"
+#include "py/gc.h"
+#include "py/mperrno.h"
+#include "lib/utils/pyexec.h"
+#include "py/mpconfig.h"
+#include "lib/mp-readline/readline.h"
+
+int mp_hal_stdin_rx_chr(void);
+#if MICROPY_ENABLE_COMPILER
+void do_str(const char *src, mp_parse_input_kind_t input_kind) {
+    nlr_buf_t nlr;
+    if (nlr_push(&nlr) == 0) {
+        mp_lexer_t *lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, src, strlen(src), 0);
+        qstr source_name = lex->source_name;
+        mp_parse_tree_t parse_tree = mp_parse(lex, input_kind);
+        mp_obj_t module_fun = mp_compile(&parse_tree, source_name, true);
+        mp_call_function_0(module_fun);
+        nlr_pop();
+    } else {
+        // uncaught exception
+        mp_obj_print_exception(&mp_plat_print, (mp_obj_t)nlr.ret_val);
+    }
+}
+#endif
+
+static char *stack_top;
+#define CN_RUN_FROM_SHELL   1
+ptu32_t micropython(void)
+{
+    s32 stack_dummy;
+    char *pyfile;
+    u32 run_source;
+    stack_top = (char *)&stack_dummy;
+
+    #if MICROPY_ENABLE_GC
+    u8 *heap;
+    heap = malloc(4096);
+    if (heap != NULL)
+        gc_init(heap, heap + M_CheckSize(heap));
+    else
+    {
+        printf("内存不足，不能运行python\r\n");
+        return 1;
+    }
+    #endif
+
+    mp_init();
+
+    DJY_GetEventPara(&pyfile, &run_source);
+    if (pyfile)
+        pyexec_file(pyfile);
+    if (run_source == CN_RUN_FROM_SHELL)
+    {
+        #if MICROPY_ENABLE_COMPILER
+        printf("press CTRL-D to exit micropython\r\n");
+        #if MICROPY_REPL_EVENT_DRIVEN
+        pyexec_event_repl_init();
+        for (;;) {
+            int c = mp_hal_stdin_rx_chr();
+            if (pyexec_event_repl_process_char(c)) {
+                break;
+            }
+        }
+        #else
+        pyexec_friendly_repl();
+        #endif
+        // do_str("print('hello world!', list(x+1 for x in range(10)), end='eol\\n')", MP_PARSE_SINGLE_INPUT);
+        // do_str("for i in range(10):\r\n  print(i)", MP_PARSE_FILE_INPUT);
+        #else
+        pyexec_frozen_module("frozentest.py");
+        #endif
+    }
+    mp_deinit();
+    return 0;
+}
+
+#if MICROPY_ENABLE_GC
+void gc_collect(void) {
+    // WARNING: This gc_collect implementation doesn't try to get root
+    // pointers from CPU registers, and thus may function incorrectly.
+    void *dummy;
+    gc_collect_start();
+    gc_collect_root(&dummy, ((mp_uint_t)stack_top - (mp_uint_t)&dummy) / sizeof(mp_uint_t));
+    gc_collect_end();
+    gc_dump_info();
+}
+#endif
+
+void nlr_jump_fail(void *val) {
+    while (1) {
+        ;
+    }
+}
+
+void __fatal_error(const char *msg) {
+    while (1) {
+        ;
+    }
+}
+
+#ifndef NDEBUG
+void MP_WEAK __assert_func(const char *file, int line, const char *func, const char *expr) {
+    printf("Assertion '%s' failed, at file %s:%d\n", expr, file, line);
+    __fatal_error("Assertion failed");
+}
+#endif
+
+static u32 evtt_id = CN_EVTT_ID_INVALID;
+int ModuleInstall_Python(u32 parallel,u32 stack_size)
+{
+    evtt_id = DJY_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 1, parallel,
+                          micropython, NULL,stack_size,"micropython");
+    return 0;
+}
+int python_repl(char *param)
+{
+    //必须使用 CN_TIMEOUT_FOREVER ，这样shell不会继续运行，不然会抢终端。
+    DJY_EventPop(evtt_id, NULL, CN_TIMEOUT_FOREVER, (ptu32_t)param, CN_RUN_FROM_SHELL, 0);
+    return 1;
+}
+ADD_TO_ROUTINE_SHELL(python,python_repl,"run python");
+
+int runpython(char *param)
+{
+    if (param != NULL)
+        DJY_EventPop(evtt_id, NULL, 0, (ptu32_t)param, 0, 0);
+    return 0;
+}
+
+// Receive single character
+int mp_hal_stdin_rx_chr(void) {
+//    unsigned char c = 0;
+    #if MICROPY_MIN_USE_STDOUT
+//    int r = read(STDIN_FILENO, &c, 1);
+    int res = getchar( );
+//    (void)r;
+    #elif MICROPY_MIN_USE_STM32_MCU
+    // wait for RXNE
+    while ((USART1->SR & (1 << 5)) == 0) {
+    }
+    c = USART1->DR;
+    #endif
+    return res;
+}
+
+// Send string of given length
+void mp_hal_stdout_tx_strn(const char *str, mp_uint_t len) {
+    #if MICROPY_MIN_USE_STDOUT
+    int r = write(STDOUT_FILENO, str, len);
+    (void)r;
+    #elif MICROPY_MIN_USE_STM32_MCU
+    while (len--) {
+        // wait for TXE
+        while ((USART1->SR & (1 << 7)) == 0) {
+        }
+        USART1->DR = *str++;
+    }
+    #endif
+}

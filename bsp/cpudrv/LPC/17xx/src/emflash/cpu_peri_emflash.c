@@ -153,7 +153,6 @@ static tagIAP sIAP;
 
 
 extern u32 gc_ptIbootSize;
-extern u32 gc_ptFlashOffset;
 //-----------------------------------------------------------------------------
 //功能: 获取内置FLASH的信息
 //参数:

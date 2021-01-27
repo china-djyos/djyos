@@ -135,6 +135,7 @@ struct tagSocket *SocketBuild(void)
         else
         {
 //          errno = ENOENT;
+            Lock_MutexDelete(sock->SockSync);
             Mb_Free(s_ptSocketPool, sock);
             sock = NULL;
         }
@@ -145,6 +146,7 @@ struct tagSocket *SocketBuild(void)
 bool_t SocketFree(struct tagSocket *sock)
 {
     Handle_Delete(fd2Handle(sock->sockfd));
+    Lock_MutexDelete(sock->SockSync);
     Mb_Free(s_ptSocketPool, sock);
     return true;
 }

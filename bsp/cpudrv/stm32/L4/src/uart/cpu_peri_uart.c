@@ -390,7 +390,7 @@ static void __UART_HardInit(u8 port)
 
         HAL_UART_DeInit(phuart[port]);
         HAL_UART_Init(phuart[port]);
-        __UART_StartRecv(port);
+        __UART_Start(port);
     }
 }
 

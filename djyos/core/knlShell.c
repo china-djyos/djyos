@@ -331,7 +331,7 @@ ptu32_t kernel_spy(void)
 #if(DEBUG == 1)
     wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, fnYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
 #else
-  wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
+    wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
 #endif  //for (DEBUG != 1)
 #endif  //for (CFG_IDLE_MONITOR_CYCLE > 0)
     while(1)

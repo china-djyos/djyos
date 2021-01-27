@@ -306,7 +306,6 @@ static s32 Kinetis_PageWrite(u16 sectNo,u8 *buf)
 }
 
 extern u32 gc_ptIbootSize;
-extern u32 gc_ptFlashOffset;
 extern u32 gc_ptFlashRange;
 //-----------------------------------------------------------------------------
 //功能: 内置FLASH初始化

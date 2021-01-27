@@ -128,7 +128,6 @@ static struct EmbdFlashDescr{
 } *s_ptEmbdFlash;
 
 extern u32 gc_ptIbootSize;
-//extern u32 gc_ptFlashOffset;
 extern u32 gc_ptFlashRange;
 
 static const char *EmflashName = "emflash";      //该flash在obj在的名字

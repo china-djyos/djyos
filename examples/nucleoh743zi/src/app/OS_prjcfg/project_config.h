@@ -127,11 +127,12 @@
 #define    CFG_MODULE_ENABLE_MISC          true
 //*******************************  Configure network config  ******************************************//
 #define CFG_STATIC_IP       true            //
-#define CFG_SELECT_NETCARD  "NUCLEO_H743_ETH"   //必须与选中的网卡驱动中配置的名称相同
+#define CFG_SELECT_NETCARD  "STM32H7_ETH"   //必须与选中的网卡驱动中配置的名称相同
 #define CFG_MY_IPV4         "192.168.0.179" //
 #define CFG_MY_SUBMASK      "255.255.255.0" //
 #define CFG_MY_GATWAY       "192.168.0.1"   //
 #define CFG_MY_DNS          "192.168.0.1"   //
+#define CFG_MY_DNSBAK       "192.168.0.1"   //
 #define    CFG_MODULE_ENABLE_NETWORK_CONFIG  true
 //*******************************  Configure ppp  ******************************************//
 #define    CFG_MODULE_ENABLE_PPP           true

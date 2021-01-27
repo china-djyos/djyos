@@ -606,6 +606,7 @@ static void __Wdt_ScanWdtQueque(void)
                 result = EN_BLACKBOX_DEAL_RECORD;
             }
             //this wdt should be relocate in the queue
+            printk("wdt:%s timeout\r\n", wdt->pname);
             __Wdt_DealWdtYipResult(result,wdt);
             __Wdt_RemovefQueue(wdt);
             wdt->deadtime = wdt->cycle + timenow;
