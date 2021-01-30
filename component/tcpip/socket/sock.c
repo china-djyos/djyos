@@ -651,7 +651,7 @@ bool_t closesocket(s32 sockfd)
 //        设置套接字选项
 // 输入参数：  sockfd,目的套接字
 //        level,设置的层次，支持SOL_SOCKET、IPPROTO_TCP、IPPROTO_IP和IPPROTO_IPV6
-//        optname,需设置选项
+//        optname,需设置选项，例如 SO_NONBLOCK
 //        optval,选项参数缓冲区
 //        optlen,缓冲区长度
 // 输出参数：

@@ -56,9 +56,9 @@
 #include "dbug.h"
 #include "../../common/router.h"
 
-typedef struct
+typedef struct __tagTaskItem
 {
-    void                      *nxt;            //the task lst, for the extend fuction
+    struct __tagTaskItem      *nxt;            //the task lst, for the extend fuction
     u32                        stat;           //the task stat
     u32                        timeout;        //when timeout,do the
     u32                        transID;        //trans action ID
@@ -427,7 +427,7 @@ bool_t DHCP_AddClientTask(const char *ifname, u32 OldIP)
 //    tagHostAddrV4 addr;
 //    tagRouterPara  routpara; //use this to make the router
 
-    //每次添加任务前删除这个网卡的所有路由
+    //每次添加任务前删除这个网卡的所有dhcp任务
     DhcpclientDeleteTask(ifname);
     NetDev_SetDefault(NetDev_GetHandle(ifname));
     //不再添加全 0 路由

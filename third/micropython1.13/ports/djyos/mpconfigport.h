@@ -64,6 +64,8 @@
 
 #define MODULE_EXAMPLE_ENABLED      (1)
 
+#define MICROPY_PY_DJYIP            (1)
+
 // type definitions for the specific machine
 
 typedef intptr_t mp_int_t; // must be pointer size
@@ -71,9 +73,14 @@ typedef uintptr_t mp_uint_t; // must be pointer size
 typedef long mp_off_t;
 
 #define mp_type_fileio mp_type_djy_fileio
+extern const struct _mp_obj_module_t mp_module_usocket;
+
 // extra built in names to add to the global namespace
 #define MICROPY_PORT_BUILTINS \
     { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
+
+#define MICROPY_PORT_BUILTIN_MODULES \
+    { MP_ROM_QSTR(MP_QSTR_usocket), MP_ROM_PTR(&mp_module_usocket) },
 
 // We need to provide a declaration/definition of alloca()
 #include <alloca.h>

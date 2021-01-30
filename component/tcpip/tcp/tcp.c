@@ -446,7 +446,7 @@ static bool_t __hashSocketAdd(struct tagSocket *sock)
 
     hashKey = v4->iplocal + v4->portlocal + v4->ipremote + v4->portremote;
     hashKey = hashKey%CFG_TCP_SOCKET_HASH_LEN;
-    printf("+++++++++++Add:%x,t=%d\r\n", sock, (u32)DJY_GetSysTime());
+
     if(hashKey == 7)        //lst debug
         tmp = NULL;
     tmp = TcpHashTab.array[hashKey];
@@ -2102,31 +2102,31 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
                 ccb = (struct ClientCB *)sock->TplCB;
-                if(*(s32 *)optval>=0)
-                {
+//                if(*(s32 *)optval>=0)
+//                {
                     ccb->rbuf.timeout = *(s32 *)optval;
                     result = 0;
-                }
+//                }
             }
             else
             {
-                scb = (struct ServerCB *)sock->TplCB;
-                if(*(s32 *)optval>=0)
-                {
+//                scb = (struct ServerCB *)sock->TplCB;
+//                if(*(s32 *)optval>=0)
+//                {
                     scb->accepttime = *(s32 *)optval;
                     result = 0;
-                }
+//                }
             }
             break;
         case SO_SNDTIMEO:       // *optval ==0等效于非阻塞模式发送
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
                 ccb = (struct ClientCB *)sock->TplCB;
-                if(*(s32 *)optval>=0)
-                {
+//                if(*(s32 *)optval>=0)
+//                {
                     ccb->sbuf.timeout = *(s32 *)optval;
                     result = 0;
-                }
+//                }
             }
             break;
         case SO_REUSEADDR:

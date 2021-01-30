@@ -106,12 +106,12 @@ void FTP_ShowClient(tagFtpClient *client)
 
 //use this function to receive the specified line message here,if more message here
 //we will only storage the first few strings,len must be more than one
-int FTP_RcvLine(int sock,u8 *buf,int len)
+s32 FTP_RcvLine(s32 sock,u8 *buf,s32 len)
 {
-    int timeout = 0;
-    int rcv = 0;
+    s32 timeout = 0;
+    s32 rcv = 0;
     char c;
-    int ret = 1; //initialize the first time
+    s32 ret = 1; //initialize the first time
     memset(buf,0,len);
     while(ret&&(timeout <CN_FTPCLIENT_TRYTIMES))
     {
@@ -147,10 +147,10 @@ int FTP_RcvLine(int sock,u8 *buf,int len)
 }
 
 //create a socket and connect to the server,return the connected socket handle
-int FTP_Connect(struct in_addr *addr,u16 port)
+s32 FTP_Connect(struct in_addr *addr,u16 port)
 {
     struct sockaddr_in address;
-    int s = -1;
+    s32 s = -1;
     memset(&address, 0, sizeof(address));
     if ((s = socket(AF_INET, SOCK_STREAM, 0)) > 0 )
     {
@@ -177,13 +177,13 @@ int FTP_Connect(struct in_addr *addr,u16 port)
     return s;
 }
 //accept a connect and do the set
-int FTP_Accept(int s,struct in_addr *ipaddr,u16 *port)
+s32 FTP_Accept(s32 s,struct in_addr *ipaddr,u16 *port)
 {
     struct sockaddr_in address;
-    int addrlen;
-    int ret = -1;
-    int trytimes = 0;
-    int sockopt = 1;
+    s32 addrlen;
+    s32 ret = -1;
+    s32 trytimes = 0;
+    s32 sockopt = 1;
 
     addrlen = sizeof(struct sockaddr_in);
     memset(&address, 0, addrlen);

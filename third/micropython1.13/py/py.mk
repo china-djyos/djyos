@@ -50,6 +50,7 @@ endif
 PY_CORE_O_BASENAME = $(addprefix py/,\
   module-example.o \
   djy-fs.o \
+  modusocket.o \
 	mpstate.o \
 	nlr.o \
 	nlrx86.o \
