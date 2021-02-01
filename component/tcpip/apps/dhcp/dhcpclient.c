@@ -393,6 +393,7 @@ void DhcpclientDeleteTask(const char *ifname)
             if (strcmp(task_tmp->ifname, ifname)==0) {
                 //delete task_tmp
                 RouterRemoveByNetDev(ifname);//删除某网卡下所有路由
+                NetDev_SetGateway(EN_IPV_4,NetDev_GetHandle(ifname), INADDR_NONE);
                 if(task_tmp->sem) {
                     Lock_SempDelete(task_tmp->sem);
                     task_tmp->sem = 0;

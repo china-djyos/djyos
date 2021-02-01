@@ -2110,7 +2110,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
             }
             else
             {
-//                scb = (struct ServerCB *)sock->TplCB;
+                scb = (struct ServerCB *)sock->TplCB;
 //                if(*(s32 *)optval>=0)
 //                {
                     scb->accepttime = *(s32 *)optval;

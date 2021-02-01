@@ -92,9 +92,10 @@ STATIC mp_obj_t socket_bind(mp_obj_t self_in, mp_obj_t addr_in)
     // get address
     ipportaddr.sin_port = netutils_parse_inet_addr(addr_in, (u8*)&ipportaddr.sin_addr, NETUTILS_BIG);
     ipportaddr.sin_family = AF_INET;
-    bind(self->mysockfd, (struct sockaddr *)&ipportaddr, sizeof(ipportaddr));
-
-    return mp_const_none;
+    if(bind(self->mysockfd, (struct sockaddr *)&ipportaddr, sizeof(ipportaddr)) == -1)
+        return mp_const_false;
+    else
+        return mp_const_true;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(socket_bind_obj, socket_bind);
 

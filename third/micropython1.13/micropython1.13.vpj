@@ -2766,7 +2766,7 @@
 		<Folder Name="ports">
 			<Folder Name="djyos">
 				<F N="ports/djyos/djympy.c"/>
-				<F N="ports/djyos/module-example.c"/>
+				<F N="ports/djyos/djythread.c"/>
 				<F N="ports/djyos/mpconfigport.h"/>
 				<F N="ports/djyos/mphalport.h"/>
 				<F N="ports/djyos/qstrdefsport.h"/>
@@ -3517,6 +3517,7 @@
 			<F N="py/modthread.c"/>
 			<F N="py/moduerrno.c"/>
 			<F N="py/module-example.c"/>
+			<F N="py/modusocket.c"/>
 			<F N="py/mpconfig.h"/>
 			<F N="py/mperrno.h"/>
 			<F N="py/mphal.h"/>
