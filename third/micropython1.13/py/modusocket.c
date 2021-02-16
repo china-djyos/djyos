@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <systime.h>
 #include <net/sys/socket.h>
 #include <net/netdb.h>
 #include "py/objtuple.h"
@@ -50,10 +51,12 @@
 #define MOD_NETWORK_SOCK_DGRAM (2)
 #define MOD_NETWORK_SOCK_RAW (3)
 
+#define SOCKET_SYSBLOCK_TIME    10      //unit : mS
 typedef struct _mod_network_socket_obj_t
 {
     mp_obj_base_t base;
     s32 mysockfd;
+    mp_uint_t TimeOut;      //unit : mS
 } mod_network_socket_obj_t;
 
 /******************************************************************************/
@@ -67,6 +70,7 @@ STATIC mp_obj_t socket_make_new(const mp_obj_type_t *type, size_t n_args, size_t
     s32 family = AF_INET;           //set to default
     s32 mytype = SOCK_STREAM;         //set to default
     s32 protocol = IPPROTO_TCP;     //set to default
+    mp_uint_t timeout = 0;
     (void)type; (void)n_kw;
     if (n_args >= 1)
         family = mp_obj_get_int(args[0]);
@@ -78,7 +82,11 @@ STATIC mp_obj_t socket_make_new(const mp_obj_type_t *type, size_t n_args, size_t
     // create socket object (not bound to any NIC yet)
     mod_network_socket_obj_t *s = m_new_obj_with_finaliser(mod_network_socket_obj_t);
     s->base.type = &socket_type;
+    s->TimeOut = CN_TIMEOUT_FOREVER;
     s->mysockfd = socket(family, mytype, protocol);
+    //system IO wait time be set to SOCKET_SYSBLOCK_TIME, warning:done't change it
+    setsockopt(s->mysockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+    setsockopt(s->mysockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
     return MP_OBJ_FROM_PTR(s);
 }
@@ -115,18 +123,42 @@ STATIC mp_obj_t socket_accept(mp_obj_t self_in)
     mod_network_socket_obj_t *self = MP_OBJ_TO_PTR(self_in);
     s32 addrlen;
     struct sockaddr_in ipportaddr;
-
+    mp_uint_t limittime;
+    s64 starttime;
     // create new socket object
     mod_network_socket_obj_t *socket2 = m_new_obj_with_finaliser(mod_network_socket_obj_t);
-
-    // get address
-    socket2->mysockfd = accept(self->mysockfd, (struct sockaddr *)&ipportaddr, &addrlen);
-
-    // make the return value
     mp_obj_tuple_t *client = MP_OBJ_TO_PTR(mp_obj_new_tuple(2, NULL));
-    client->items[0] = MP_OBJ_FROM_PTR(socket2);
-    client->items[1] = netutils_format_inet_addr((u8*)&ipportaddr.sin_addr,
-                                            ipportaddr.sin_port, NETUTILS_BIG);
+
+    limittime = self->TimeOut;
+    if (limittime != CN_TIMEOUT_FOREVER)
+        starttime = DJY_GetSysTime();
+    while (1)
+    {
+        // get address
+        socket2->mysockfd = accept(self->mysockfd, (struct sockaddr *)&ipportaddr, &addrlen);
+        if (socket2->mysockfd != -1)
+            break;
+        else
+        {
+            if (limittime != CN_TIMEOUT_FOREVER)
+            {
+                if ((mp_uint_t)(DJY_GetSysTime() - starttime)/1000 >= limittime)
+                    break;
+            }
+        }
+        MICROPY_EVENT_POLL_HOOK;
+        DJY_EventDelay(SOCKET_SYSBLOCK_TIME * mS);
+    }
+
+    if (socket2->mysockfd == -1)
+        mp_raise_OSError(MP_EIO);
+    else
+    {
+        // make the return value
+        client->items[0] = MP_OBJ_FROM_PTR(socket2);
+        client->items[1] = netutils_format_inet_addr((u8*)&ipportaddr.sin_addr,
+                                                ipportaddr.sin_port, NETUTILS_BIG);
+    }
 
     return MP_OBJ_FROM_PTR(client);
 }
@@ -166,9 +198,31 @@ STATIC mp_obj_t socket_recv(mp_obj_t self_in, mp_obj_t len_in)
     mp_int_t len = mp_obj_get_int(len_in);
     vstr_t vstr;
     mp_int_t ret;
+    mp_uint_t limittime;
+    s64 starttime;
+
+    limittime = self->TimeOut;
+    if (limittime != CN_TIMEOUT_FOREVER)
+        starttime = DJY_GetSysTime();
 
     vstr_init_len(&vstr, len);
-    ret = recv(self->mysockfd, (byte *)vstr.buf,len, 0);
+    while (1)
+    {
+        ret = recv(self->mysockfd, (byte *)vstr.buf,len, 0);
+        if (ret != 0)
+            break;
+        else
+        {
+            if (limittime != CN_TIMEOUT_FOREVER)
+            {
+                if ((mp_uint_t)(DJY_GetSysTime() - starttime)/1000 >= limittime)
+                    break;
+            }
+        }
+        MICROPY_EVENT_POLL_HOOK;
+        DJY_EventDelay(SOCKET_SYSBLOCK_TIME * mS);
+    }
+
 
     if (ret == 0) {
         return mp_const_empty_bytes;
@@ -210,10 +264,30 @@ STATIC mp_obj_t socket_recvfrom(mp_obj_t self_in, mp_obj_t len_in) {
     mp_int_t ret;
     vstr_t vstr;
     s32 len =  sizeof(ipportaddr);
+    mp_uint_t limittime;
+    s64 starttime;
+    limittime = self->TimeOut;
+    if (limittime != CN_TIMEOUT_FOREVER)
+        starttime = DJY_GetSysTime();
 
     vstr_init_len(&vstr, mp_obj_get_int(len_in));
 
-    ret = recvfrom(self->mysockfd, vstr.buf, vstr.len,0,(struct sockaddr *)&ipportaddr,&len);
+    while(1)
+    {
+        ret = recvfrom(self->mysockfd, vstr.buf, vstr.len,0,(struct sockaddr *)&ipportaddr,&len);
+        if (ret != 0)
+            break;
+        else
+        {
+            if (limittime != CN_TIMEOUT_FOREVER)
+            {
+                if ((mp_uint_t)(DJY_GetSysTime() - starttime)/1000 >= limittime)
+                    break;
+            }
+        }
+        MICROPY_EVENT_POLL_HOOK;
+        DJY_EventDelay(SOCKET_SYSBLOCK_TIME * mS);
+    }
 
     mp_obj_t tuple[2];
     if (ret == 0) {
@@ -239,6 +313,7 @@ STATIC mp_obj_t socket_setsockopt(size_t n_args, const mp_obj_t *args)
     const void *optval;
     mp_uint_t optlen;
     mp_int_t val;
+
     if (mp_obj_is_integer(args[3])) {
         val = mp_obj_get_int_truncated(args[3]);
         optval = &val;
@@ -251,9 +326,14 @@ STATIC mp_obj_t socket_setsockopt(size_t n_args, const mp_obj_t *args)
         optlen = bufinfo.len;
     }
 
-    if (setsockopt(self->mysockfd, level, opt, optval, optlen) != 0)
+    if ((opt == SO_SNDTIMEO) || (opt == SO_RCVTIMEO))
+        self->TimeOut = optval;  //Prohibit change socket's over time
+    else
     {
-        mp_raise_OSError(errno);
+        if (setsockopt(self->mysockfd, level, opt, optval, optlen) != 0)
+        {
+            mp_raise_OSError(errno);
+        }
     }
 
     return mp_const_none;
@@ -277,8 +357,9 @@ STATIC mp_obj_t socket_settimeout(mp_obj_t self_in, mp_obj_t timeout_in) {
         timeout = 1000 * mp_obj_get_int(timeout_in);
         #endif
     }
-    setsockopt(self->mysockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
-    setsockopt(self->mysockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    self->TimeOut = timeout;  //Prohibit change socket's over time
+//  setsockopt(self->mysockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+//  setsockopt(self->mysockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
     return mp_const_none;
 }
@@ -318,8 +399,13 @@ mp_uint_t socket_ioctl(mp_obj_t self_in, mp_uint_t request, uintptr_t arg, int *
     if (request == MP_STREAM_CLOSE) {
         return closesocket(self->mysockfd);
     }
-    else
+    else if (request == MP_STREAM_TIMEOUT)
+    {
+        self->TimeOut = arg;
         return 0;
+    }
+    else
+        return ioctl(self->mysockfd, request, arg);
 }
 
 STATIC const mp_stream_p_t socket_stream_p = {

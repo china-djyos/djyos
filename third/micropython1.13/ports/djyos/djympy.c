@@ -15,6 +15,19 @@
 #include "py/mpconfig.h"
 #include "lib/mp-readline/readline.h"
 
+const char djyos_help_text[] =
+"Welcome to MicroPython on DJYOS!\n"
+"\n"
+"Control commands:\n"
+"  CTRL-A        -- on a blank line, enter raw REPL mode\n"
+"  CTRL-B        -- on a blank line, enter normal REPL mode\n"
+"  CTRL-C        -- interrupt a running program\n"
+"  CTRL-D        -- on a blank line, do a soft reset of the board\n"
+"  CTRL-E        -- on a blank line, enter paste mode\n"
+"\n"
+"For further help on a specific object, type help(obj)\n"
+;
+
 int mp_hal_stdin_rx_chr(void);
 #if MICROPY_ENABLE_COMPILER
 void do_str(const char *src, mp_parse_input_kind_t input_kind) {
@@ -33,14 +46,30 @@ void do_str(const char *src, mp_parse_input_kind_t input_kind) {
 }
 #endif
 
-static char *stack_top;
+STATIC u8* stack_top;
 #define CN_RUN_FROM_SHELL   1
 ptu32_t micropython(void)
 {
-    s32 stack_dummy;
     char *pyfile;
     u32 run_source;
-    stack_top = (char *)&stack_dummy;
+    struct EventInfo *EventInfo;
+    u32 stdin_time;
+
+    EventInfo = malloc(sizeof(struct EventInfo));
+    if (EventInfo == NULL)
+    {
+        printf("内存不足，不能运行python\r\n");
+        return 1;
+    }
+    stdin_time = mp_hal_stdio_init();
+
+    DJY_GetEventInfo(DJY_GetMyEventId(), EventInfo);
+    stack_top = EventInfo->StackTop;
+    // Python threading init
+    #if MICROPY_PY_THREAD
+    mp_thread_init(EventInfo->StackTop, EventInfo->StackBottom);
+    #endif
+    free(EventInfo);
 
     #if MICROPY_ENABLE_GC
     u8 *heap;
@@ -55,7 +84,6 @@ ptu32_t micropython(void)
     #endif
 
     mp_init();
-
     DJY_GetEventPara(&pyfile, &run_source);
     if (pyfile)
         pyexec_file(pyfile);
@@ -80,19 +108,27 @@ ptu32_t micropython(void)
         pyexec_frozen_module("frozentest.py");
         #endif
     }
+    mp_hal_stdio_deinit(stdin_time);
     mp_deinit();
     return 0;
 }
 
 #if MICROPY_ENABLE_GC
-void gc_collect(void) {
+void gc_collect(void)
+{
+    gc_collect_start();
+#if MICROPY_PY_THREAD
+    // trace root pointers from any threads
+    mp_thread_gc_others();
+#else
     // WARNING: This gc_collect implementation doesn't try to get root
     // pointers from CPU registers, and thus may function incorrectly.
     void *dummy;
-    gc_collect_start();
+    // gc the main thread stack
     gc_collect_root(&dummy, ((mp_uint_t)stack_top - (mp_uint_t)&dummy) / sizeof(mp_uint_t));
+#endif
     gc_collect_end();
-    gc_dump_info();
+//  gc_dump_info();
 }
 #endif
 
@@ -137,33 +173,3 @@ int runpython(char *param)
     return 0;
 }
 
-// Receive single character
-int mp_hal_stdin_rx_chr(void) {
-//    unsigned char c = 0;
-    #if MICROPY_MIN_USE_STDOUT
-//    int r = read(STDIN_FILENO, &c, 1);
-    int res = getchar( );
-//    (void)r;
-    #elif MICROPY_MIN_USE_STM32_MCU
-    // wait for RXNE
-    while ((USART1->SR & (1 << 5)) == 0) {
-    }
-    c = USART1->DR;
-    #endif
-    return res;
-}
-
-// Send string of given length
-void mp_hal_stdout_tx_strn(const char *str, mp_uint_t len) {
-    #if MICROPY_MIN_USE_STDOUT
-    int r = write(STDOUT_FILENO, str, len);
-    (void)r;
-    #elif MICROPY_MIN_USE_STM32_MCU
-    while (len--) {
-        // wait for TXE
-        while ((USART1->SR & (1 << 7)) == 0) {
-        }
-        USART1->DR = *str++;
-    }
-    #endif
-}

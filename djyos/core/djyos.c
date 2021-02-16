@@ -711,8 +711,6 @@ void DJY_CreateProcessVm(void)
 //      3.实时中断是否禁止,与调度无关.
 //      4.由于最低优先级的系统服务事件总是ready,因此本函数总是能够找到目标事件
 //-----------------------------------------------------------------------------
-u16 evrecord[150] = {0};
-u16 evoffset = 0;
 bool_t __DJY_Schedule(void)
 {
     struct EventECB *event;
@@ -733,28 +731,6 @@ bool_t __DJY_Schedule(void)
 #endif  //CFG_OS_TINY == false
         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
 
-#if(CN_KOUYUTONG == 1)
-#if(DEBUG == 1)
-        evrecord[3*evoffset] = 0;
-        evrecord[3*evoffset+1] = g_ptEventRunning->evtt_id;
-        evrecord[3 * evoffset + 2] = g_ptEventRunning->event_id;
-        evoffset++;
-        if(evoffset == 50)
-        {
-            evoffset = 0;
-        }
-extern bool_t heapadded;
-extern u32 xff8c,xff0c,xff8cnow,xff0cnow;
-    if(heapadded)
-    if(((*(u32*)0x37fff0c != xff0c) || (*(u32*)0x37fff8c != xff8c)) )
-    {
-        xff0cnow = *(u32*)0x37fff0c;
-        xff8cnow = *(u32*)0x37fff8c;
-bool_t init_jtag(char *param);      //lst test
-        init_jtag(NULL);
-    }
-#endif
-#endif
         g_ptEventRunning=g_ptEventReady;
 //        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
         Int_HalfEnableAsynSignal( );
@@ -795,28 +771,6 @@ void __DJY_ScheduleAsynSignal(void)
 #endif  //CFG_OS_TINY == false
          g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
 
-#if(CN_KOUYUTONG == 1)
-#if(DEBUG == 1)
-         evrecord[3*evoffset] = 1;
-         evrecord[3*evoffset+1] = g_ptEventRunning->evtt_id;
-         evrecord[3 * evoffset + 2] = g_ptEventRunning->event_id;
-         evoffset++;
-         if(evoffset == 50)
-         {
-             evoffset = 0;
-         }
-extern bool_t heapadded;
-extern u32 xff8c,xff0c,xff8cnow,xff0cnow;
-    if(heapadded)
-    if(((*(u32*)0x37fff0c != xff0c) || (*(u32*)0x37fff8c != xff8c)) )
-    {
-        xff0cnow = *(u32*)0x37fff0c;
-        xff8cnow = *(u32*)0x37fff8c;
-bool_t init_jtag(char *param);      //lst test
-        init_jtag(NULL);
-    }
-#endif
-#endif
          g_ptEventRunning=g_ptEventReady;
          __asm_switch_context_int(g_ptEventReady->vm,event->vm);
          g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
@@ -2508,11 +2462,10 @@ ptu32_t DJY_GetEventResult(void)
 }
 
 //----提取事件参数-------------------------------------------------------------
-//功能: 提取处理中事件的参数，规则顺序:1、高优先级的队列非空，取第一个
-//      并把它从队列中删除。2、ppara指针非空,取其值并清空。3、低优先级队列非空，
-//      取第一个并从队列删除
-//参数: time，如果非NULL，则返回所获取的参数进入队列的时间，uS数
-//返回: 事件参数指针
+//功能: 提取处理中事件的参数
+//参数: Param1，返回事件参数1，若空则不取
+//      Param2，返回事件参数2，若空则不取
+//返回: 无
 //注: 本函数只能取正在处理中的事件自己的参数
 //-----------------------------------------------------------------------------
 void DJY_GetEventPara(ptu32_t *Param1,ptu32_t *Param2)
@@ -2521,6 +2474,44 @@ void DJY_GetEventPara(ptu32_t *Param1,ptu32_t *Param2)
         *Param1 = g_ptEventRunning->param1;
     if(Param2 != NULL)
         *Param2 = g_ptEventRunning->param2;
+}
+
+//----设置事件参数-------------------------------------------------------------
+//功能: 设置事件参数，本函数非 API ，用户的事件参数应该在弹出事件时作为 DJY_EventPop
+//      函数的参数。__SetEventPara 函数只用于特定场合
+//参数: Param1，事件参数1，若空则忽略
+//      Param2，事件参数2，若空则忽略
+//返回: 无
+//注: 本函数只能设置正在处理中的事件自己的参数
+//-----------------------------------------------------------------------------
+void __SetEventPara(ptu32_t *Param1,ptu32_t *Param2)
+{
+    if(Param1 != NULL)
+        g_ptEventRunning->param1 = *Param1;
+    if(Param2 != NULL)
+        g_ptEventRunning->param2 = *Param2;
+}
+
+//----提取事件的用户数据---------------------------------------------------------
+//功能: 提取处理中事件控制块中的私有数据
+//参数: 无
+//返回: 私有数据
+//注: 本函数只能取正在处理中的事件
+//-----------------------------------------------------------------------------
+ptu32_t DJY_GetEventUserdata(void)
+{
+    return g_ptEventRunning->userdata;
+}
+
+//----设置事件的用户数据---------------------------------------------------------
+//功能: 设置处理中事件控制块中的私有数据
+//参数: userdata，待写入的数据
+//返回: 无
+//注: 本函数只能设置正在处理中的事件
+//-----------------------------------------------------------------------------
+void DJY_SetEventUserdata(ptu32_t userdata)
+{
+    g_ptEventRunning->userdata = userdata;
 }
 
 //----取自身的事件类型id-------------------------------------------------------

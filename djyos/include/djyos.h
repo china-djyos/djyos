@@ -232,6 +232,7 @@ struct EventECB
     struct EventECB *multi_next,*multi_previous;      //条件同步队列
     struct ThreadVm  *vm;               //处理本事件的线程指针
     ptu32_t param1,param2;              //事件参数,只保存最后一次弹出传入的参数
+    ptu32_t userdata;                   //提供给用户使用的数据
 //    struct ParaPCB *para_high_prio;   //高优先级参数队列
 //    struct ParaPCB *para_low_prio;    //低优先级参数队列
 //    struct ParaPCB *para_current;     //当前将要或正在处理的参数。
@@ -389,6 +390,9 @@ u16 DJY_EventPop(  u16  hybrid_id,
 u32 DJY_GetEvttPopTimes(u16 evtt_id);
 ptu32_t DJY_GetEventResult(void);
 void DJY_GetEventPara(ptu32_t *Param1,ptu32_t *Param2);
+void __SetEventPara(ptu32_t *Param1,ptu32_t *Param2);
+ptu32_t DJY_GetEventUserdata(void);
+void DJY_SetEventUserdata(ptu32_t userdata);
 void __DJY_EventExit(struct EventECB *event, u32 exit_code,u32 action);
 void DJY_EventComplete(ptu32_t result);
 u32 DJY_WakeUpFrom(void);

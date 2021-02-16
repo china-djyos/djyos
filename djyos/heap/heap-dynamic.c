@@ -2198,20 +2198,6 @@ ptu32_t __Heap_GetMaxFreeBlockHeap(struct HeapCB *Heap)
     ptu32_t result = 0,temp;
     if(Heap== NULL)
         return 0;
-#if(CN_KOUYUTONG == 1)
-#if(DEBUG == 1)
-extern bool_t heapadded;
-extern u32 xff8c,xff0c,xff8cnow,xff0cnow;
-    if(heapadded)
-    if(((*(u32*)0x37fff0c != xff0c) || (*(u32*)0x37fff8c != xff8c)) )
-    {
-        xff0cnow = *(u32*)0x37fff0c;
-        xff8cnow = *(u32*)0x37fff8c;
-bool_t init_jtag(char *param);      //lst test
-        init_jtag(NULL);
-    }
-#endif
-#endif
     if((Heap->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_PRIVATE)
     {
         result = __Heap_GetMaxFreeBlockHeapIn(Heap);

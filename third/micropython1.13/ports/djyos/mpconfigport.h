@@ -23,7 +23,7 @@
 #define MICROPY_BUILTIN_METHOD_CHECK_SELF_ARG (0)
 #define MICROPY_PY_ASYNC_AWAIT      (0)
 #define MICROPY_PY_ASSIGN_EXPR      (0)
-#define MICROPY_PY_BUILTINS_BYTEARRAY (0)
+#define MICROPY_PY_BUILTINS_BYTEARRAY (1)
 #define MICROPY_PY_BUILTINS_DICT_FROMKEYS (0)
 #define MICROPY_PY_BUILTINS_ENUMERATE (0)
 #define MICROPY_PY_BUILTINS_FILTER  (0)
@@ -31,11 +31,11 @@
 #define MICROPY_PY_BUILTINS_SET     (0)
 #define MICROPY_PY_BUILTINS_SLICE   (0)
 #define MICROPY_PY_BUILTINS_PROPERTY (0)
-#define MICROPY_PY_BUILTINS_MIN_MAX (0)
+#define MICROPY_PY_BUILTINS_MIN_MAX (1)
 #define MICROPY_PY_BUILTINS_STR_COUNT (0)
-#define MICROPY_PY_BUILTINS_STR_OP_MODULO (0)
+#define MICROPY_PY_BUILTINS_STR_OP_MODULO (1)   //支持print格式化输出
 #define MICROPY_PY___FILE__         (0)
-#define MICROPY_PY_GC               (0)
+#define MICROPY_PY_GC               (1)
 #define MICROPY_PY_ARRAY            (1)
 #define MICROPY_PY_ATTRTUPLE        (0)
 #define MICROPY_PY_COLLECTIONS      (0)
@@ -45,6 +45,7 @@
 #define MICROPY_MODULE_FROZEN_MPY   (1)
 #define MICROPY_CPYTHON_COMPAT      (0)
 #define MICROPY_PY_BUILTINS_HELP    (1)
+#define MICROPY_PY_BUILTINS_HELP_TEXT djyos_help_text
 #define MICROPY_MODULE_GETATTR      (1)
 #define MICROPY_STREAMS_POSIX_API   (1)
 #define MICROPY_PY_SYS_PLATFORM     "djyos"
@@ -58,7 +59,14 @@
 #define MICROPY_PY_IO_IOBASE        (0)
 #define MICROPY_PY_IO_FILEIO        (1)
 
+// math
+#define MICROPY_PY_CMATH            (1)
+#define MICROPY_PY_MATH_SPECIAL_FUNCTIONS (1)
+
+//utime
+#define MICROPY_PY_UTIME_MP_HAL           (1)
 #define MICROPY_FLOAT_IMPL          (MICROPY_FLOAT_IMPL_FLOAT)
+#define MICROPY_PY_UJSON            (1)
 
 #define MICROPY_VFS                 (1)
 
@@ -66,6 +74,7 @@
 
 #define MICROPY_PY_DJYIP            (1)
 
+#define MICROPY_PY_THREAD           (1)
 // type definitions for the specific machine
 
 typedef intptr_t mp_int_t; // must be pointer size
@@ -73,14 +82,20 @@ typedef uintptr_t mp_uint_t; // must be pointer size
 typedef long mp_off_t;
 
 #define mp_type_fileio mp_type_djy_fileio
+#if MICROPY_PY_DJYIP
 extern const struct _mp_obj_module_t mp_module_usocket;
-
+#endif
+extern const struct _mp_obj_module_t mp_module_utime;
+#if MICROPY_PY_UJSON
+extern const struct _mp_obj_module_t mp_module_ujson;
+#endif
 // extra built in names to add to the global namespace
 #define MICROPY_PORT_BUILTINS \
     { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
 
 #define MICROPY_PORT_BUILTIN_MODULES \
-    { MP_ROM_QSTR(MP_QSTR_usocket), MP_ROM_PTR(&mp_module_usocket) },
+    { MP_ROM_QSTR(MP_QSTR_utime), MP_ROM_PTR(&mp_module_utime) }, \
+    { MP_ROM_QSTR(MP_QSTR_usocket), MP_ROM_PTR(&mp_module_usocket) }, \
 
 // We need to provide a declaration/definition of alloca()
 #include <alloca.h>
@@ -88,11 +103,26 @@ extern const struct _mp_obj_module_t mp_module_usocket;
 #define MICROPY_HW_BOARD_NAME "DJYOS"
 #define MICROPY_HW_MCU_NAME "DJYOS"
 
-#define MICROPY_MIN_USE_STDOUT (1)
-//#define MICROPY_EMIT_THUMB (1)
-
 
 #define MP_STATE_PORT MP_STATE_VM
 
 #define MICROPY_PORT_ROOT_POINTERS \
     const char *readline_hist[8];
+
+#if MICROPY_PY_THREAD
+#define MICROPY_EVENT_POLL_HOOK \
+    do { \
+        extern void mp_handle_pending(bool); \
+        mp_handle_pending(true); \
+        MP_THREAD_GIL_EXIT(); \
+        MP_THREAD_GIL_ENTER(); \
+    } while (0);
+#else
+#define MICROPY_EVENT_POLL_HOOK \
+    do { \
+        extern void mp_handle_pending(bool); \
+        mp_handle_pending(true); \
+        rt_thread_delay(1); \
+    } while (0);
+#endif
+

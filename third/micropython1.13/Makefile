@@ -38,6 +38,9 @@ LIBS =
 
 SRC_C = \
 	$(DJYOSPORT)/djympy.c \
+	$(DJYOSPORT)/djythread.c \
+	$(DJYOSPORT)/mphalport.c \
+	lib/netutils/netutils.c \
 	lib/utils/printf.c \
 	lib/utils/stdout_helpers.c \
 	lib/utils/pyexec.c \
@@ -47,7 +50,7 @@ SRC_C = \
 
 SRC_C += lib/libc/string0.c
 
-OBJ = $(PY_CORE_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
+OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
 
 all: $(targetname).a
 

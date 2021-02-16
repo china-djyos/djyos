@@ -3,7 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Armink (armink.ztl@gmail.com)
+ * Copyright (c) 2016 Damien P. George
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,9 @@
  * THE SOFTWARE.
  */
 
-#include <djyos.h>
+#include <lock.h>
+#include "py/mpthread.h"
 
-void mp_hal_stdin_deinit(u32 time);
-u32 mp_hal_stdin_init(void);
+typedef struct MutexLCB mp_thread_mutex_t;
+
 
