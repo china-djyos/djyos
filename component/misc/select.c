@@ -138,8 +138,8 @@ s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
             {
 //                DJY_EventDelay(1*mS);
 //                waittime--;
-                DJY_EventDelay(CN_CFG_TICK_US);
-                waittime -= (CN_CFG_TICK_US/1000);
+                DJY_EventDelay(10*mS);
+                waittime -= 10;
             }
             else
             {
@@ -149,7 +149,7 @@ s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
         else
         {
             //DJY_EventDelay(1*mS);
-            DJY_EventDelay(CN_CFG_TICK_US);
+            DJY_EventDelay(10*mS);
         }
 
     }

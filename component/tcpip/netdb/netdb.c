@@ -535,7 +535,7 @@ EXIT_INFOMEM:
     return res;
 }
 //net_free the ai by getaddrinfo returned;
-void freeaddrinfo (struct addrinfo*ai)
+void freeaddrinfo (struct addrinfo *ai)
 {
     if(NULL != ai)
     {

@@ -13,3 +13,5 @@ userlib/
 /*.vpwhist
 /*.vpj
 libc.bak
+/third/micropython1.13/ports/stm32
+zephyr

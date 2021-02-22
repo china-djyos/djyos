@@ -153,6 +153,7 @@ STATIC mp_obj_t socket_accept(mp_obj_t self_in)
     MP_THREAD_GIL_EXIT();
     socket2->mysockfd = accept(self->mysockfd, (struct sockaddr *)&ipportaddr, &addrlen);
     MP_THREAD_GIL_ENTER();
+    socket2->base.type = &socket_type;
     if (socket2->mysockfd == -1)
         mp_raise_OSError(MP_EIO);
     else
@@ -504,44 +505,35 @@ STATIC const mp_obj_type_t socket_type = {
 STATIC mp_obj_t mod_usocket_getaddrinfo(mp_obj_t host_in, mp_obj_t port_in)
 {
     size_t hlen;
-    struct hostent *myhostent;
+    int ret;
     const char *host = mp_obj_str_get_data(host_in, &hlen);
     mp_int_t port = mp_obj_get_int(port_in);
-//  uint8_t out_ip[MOD_NETWORK_IPADDR_BUF_SIZE];
-    bool have_ip = false;
+    struct addrinfo hint, *res = NULL;
+    memset(&hint, 0, sizeof(hint));
 
-    if (hlen > 0) {
-        // check if host is already in IP form
-        nlr_buf_t nlr;
-        if (nlr_push(&nlr) == 0) {
-            netutils_parse_ipv4_addr(host_in, (u8*)myhostent->h_addr_list[0], NETUTILS_BIG);
-            have_ip = true;
-            nlr_pop();
-        } else {
-            // swallow exception: host was not in IP form so need to do DNS lookup
-        }
+    MP_THREAD_GIL_EXIT();
+    ret = getaddrinfo(host, NULL, &hint, &res);
+    MP_THREAD_GIL_ENTER();
+    if (ret != 0) {
+        mp_printf(&mp_plat_print, "getaddrinfo err: %d '%s'\n", ret, host);
+        nlr_raise(mp_obj_new_exception_msg(&mp_type_OSError, "no available netif"));
     }
 
-    if (!have_ip)
-    {
-        myhostent = gethostbyname(host);
-        if (myhostent != NULL)
-        {
-            have_ip = true;
-        }
-    }
-
-    if (!have_ip) {
-        mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("no available NIC"));
-    }
-
-    mp_obj_tuple_t *tuple = MP_OBJ_TO_PTR(mp_obj_new_tuple(5, NULL));
+    mp_obj_tuple_t *tuple = mp_obj_new_tuple(5, NULL);
     tuple->items[0] = MP_OBJ_NEW_SMALL_INT(MOD_NETWORK_AF_INET);
     tuple->items[1] = MP_OBJ_NEW_SMALL_INT(MOD_NETWORK_SOCK_STREAM);
     tuple->items[2] = MP_OBJ_NEW_SMALL_INT(0);
     tuple->items[3] = MP_OBJ_NEW_QSTR(MP_QSTR_);
-    tuple->items[4] = netutils_format_inet_addr(myhostent->h_addr_list[0], port, NETUTILS_BIG);
-    return mp_obj_new_list(1, (mp_obj_t *)&tuple);
+
+    mp_obj_t tuple_addr[2] = {
+            tuple_addr[0] = netutils_format_ipv4_addr((uint8_t *)((res->ai_addr->sa_data) + 2), NETUTILS_BIG),
+            tuple_addr[1] = mp_obj_new_int(port),
+    };
+
+    tuple->items[4] = mp_obj_new_tuple(2, tuple_addr);
+    freeaddrinfo(res);
+
+    return mp_obj_new_list(1, (mp_obj_t*) &tuple);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(mod_usocket_getaddrinfo_obj, mod_usocket_getaddrinfo);
 

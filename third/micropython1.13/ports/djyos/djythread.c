@@ -77,7 +77,7 @@ void mp_thread_gc_others(void)
         if (th->event_id == DJY_GetMyEventId())
         {
             uint32_t SP;
-            DJY_GetEventInfo(DJY_GetMyEventId(), &EventInfo);
+//            DJY_GetEventInfo(DJY_GetMyEventId(), &EventInfo);
             gc_collect_root((void **)&SP, ((uint32_t)MP_STATE_THREAD(stack_top)
                                            - (uint32_t)&SP) / sizeof(uint32_t));
         }
@@ -165,8 +165,12 @@ void mp_thread_start(void)
 
 void mp_thread_finish(void) {
     djy_thread_t *prev = NULL;
+    uint32_t SP;
 
     mp_thread_mutex_lock(&thread_mutex, 1);
+
+    gc_collect_root((void **)&SP, ((uint32_t)MP_STATE_THREAD(stack_top)
+                                   - (uint32_t)&SP) / sizeof(uint32_t));
     for (djy_thread_t *th = thread_root; th != NULL;prev = th, th = th->next) {
         // unlink the node from the list
         if (th->event_id == DJY_GetMyEventId()) {
