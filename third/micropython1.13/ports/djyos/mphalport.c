@@ -34,18 +34,18 @@
 #include <py/mphal.h>
 #include "mphalport.h"
 
-//void mp_hal_stdio_deinit(u32 time)
-//{
-//    fcntl(STDIN_FILENO, F_SETTIMEOUT, CN_TIMEOUT_FOREVER);
-//}
-//
-//u32 mp_hal_stdio_init(void)
-//{
-//    u32 result;
-//    result = fcntl(STDIN_FILENO, F_GETTIMEOUT);
-//    fcntl(STDIN_FILENO, F_SETTIMEOUT, 0);
-//    return result;
-//}
+void mp_hal_stdio_deinit(u32 time)
+{
+    fcntl(STDIN_FILENO, F_SETTIMEOUT, CN_TIMEOUT_FOREVER);
+}
+
+u32 mp_hal_stdio_init(void)
+{
+    u32 result;
+    fcntl(STDIN_FILENO, F_GETTIMEOUT,&result);
+    fcntl(STDIN_FILENO, F_SETTIMEOUT, 0);
+    return result;
+}
 
 // Receive single character
 // 务必先调用 mp_hal_stdio_init 把stdin阻塞时间设为0.
@@ -60,9 +60,9 @@ int mp_hal_stdin_rx_chr(void)
         else
             break;
     }
-    MP_THREAD_GIL_EXIT();
-    res = getchar( );
-    MP_THREAD_GIL_ENTER();
+//    MP_THREAD_GIL_EXIT();
+//    res = getchar( );
+//    MP_THREAD_GIL_ENTER();
     return res;
 }
 

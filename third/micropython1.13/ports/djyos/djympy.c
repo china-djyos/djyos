@@ -53,7 +53,7 @@ ptu32_t micropython(void)
     char *pyfile;
     u32 run_source;
     struct EventInfo *EventInfo;
-//    u32 stdin_time;
+    u32 stdin_time;
 
     EventInfo = malloc(sizeof(struct EventInfo));
     if (EventInfo == NULL)
@@ -61,7 +61,7 @@ ptu32_t micropython(void)
         printf("内存不足，不能运行python\r\n");
         return 1;
     }
-//    stdin_time = mp_hal_stdio_init();
+    stdin_time = mp_hal_stdio_init();
 
     DJY_GetEventInfo(DJY_GetMyEventId(), EventInfo);
     stack_top = EventInfo->StackTop;
@@ -108,7 +108,7 @@ ptu32_t micropython(void)
         pyexec_frozen_module("frozentest.py");
         #endif
     }
-//    mp_hal_stdio_deinit(stdin_time);
+    mp_hal_stdio_deinit(stdin_time);
     mp_deinit();
     return 0;
 }
