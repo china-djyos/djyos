@@ -7,7 +7,7 @@ DJYOSPORT = $(TOP)/ports/djyos
 QSTR_DEFS = $(DJYOSPORT)/qstrdefsport.h
 
 # MicroPython feature configurations
-MICROPY_ROM_TEXT_COMPRESSION ?= 1
+MICROPY_ROM_TEXT_COMPRESSION ?= 0
 
 # include py core make definitions
 include $(TOP)/py/py.mk

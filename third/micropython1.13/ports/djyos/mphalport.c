@@ -34,18 +34,19 @@
 #include <py/mphal.h>
 #include "mphalport.h"
 
-void mp_hal_stdio_deinit(u32 time)
-{
-    fcntl(STDIN_FILENO, F_SETTIMEOUT, CN_TIMEOUT_FOREVER);
-}
+//void mp_hal_stdio_deinit(u32 time)
+//{
+//    fcntl(STDIN_FILENO, F_SETTIMEOUT, CN_TIMEOUT_FOREVER);
+//}
+//
+//u32 mp_hal_stdio_init(void)
+//{
+//    u32 result;
+//    result = fcntl(STDIN_FILENO, F_GETTIMEOUT);
+//    fcntl(STDIN_FILENO, F_SETTIMEOUT, 0);
+//    return result;
+//}
 
-u32 mp_hal_stdio_init(void)
-{
-    u32 result;
-    result = fcntl(STDIN_FILENO, F_GETTIMEOUT);
-    fcntl(STDIN_FILENO, F_SETTIMEOUT, 0);
-    return result;
-}
 // Receive single character
 // 务必先调用 mp_hal_stdio_init 把stdin阻塞时间设为0.
 int mp_hal_stdin_rx_chr(void)
@@ -59,6 +60,9 @@ int mp_hal_stdin_rx_chr(void)
         else
             break;
     }
+    MP_THREAD_GIL_EXIT();
+    res = getchar( );
+    MP_THREAD_GIL_ENTER();
     return res;
 }
 
@@ -87,14 +91,17 @@ void mp_hal_delay_us(mp_uint_t us)
 
 void mp_hal_delay_ms(mp_uint_t ms)
 {
-    mp_uint_t res;
-    s64 start;
-    start = DJY_GetSysTime();
-    for (res = ms; res >0; res--)
-    {
-        DJY_EventDelay(1);
-        MICROPY_EVENT_POLL_HOOK;
-        if ((mp_uint_t)((DJY_GetSysTime() - start) / 1000) >= ms)
-            break;
-    }
+//  mp_uint_t res;
+//  s64 start;
+//  start = DJY_GetSysTime();
+//  for (res = ms; res >0; res--)
+//  {
+//      DJY_EventDelay(1);
+//      MICROPY_EVENT_POLL_HOOK;
+//      if ((mp_uint_t)((DJY_GetSysTime() - start) / 1000) >= ms)
+//          break;
+//  }
+    MP_THREAD_GIL_EXIT();
+    DJY_EventDelay(ms * mS);
+    MP_THREAD_GIL_ENTER();
 }

@@ -38,13 +38,13 @@
 #include "py/mperrno.h"
 #include "py/lexer.h"
 
-#define FILEIO_SYSBLOCK_TIME    10      //unit : mS
+//#define FILEIO_SYSBLOCK_TIME    10      //unit : mS
 
 typedef struct _djy_file_obj_t
 {
     mp_obj_base_t base;
     FILE *fp;
-    mp_uint_t TimeOut;      //unit : mS
+//    mp_uint_t TimeOut;      //unit : mS
 } djy_file_obj_t;
 
 
@@ -72,10 +72,10 @@ mp_obj_t mp_djy_open(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args)
     }
     fname = mp_obj_str_get_str(pos_args[0]);
     type = &mp_type_djy_fileio;
-    o->TimeOut = CN_TIMEOUT_FOREVER;
+//    o->TimeOut = CN_TIMEOUT_FOREVER;
     o->base.type = type;
     o->fp = fopen(fname,mode_s);
-    fcntl(o->fp->fd, F_SETTIMEOUT, FILEIO_SYSBLOCK_TIME*mS);
+//    fcntl(o->fp->fd, F_SETTIMEOUT, FILEIO_SYSBLOCK_TIME*mS);
     return MP_OBJ_FROM_PTR(o);
 }
 MP_DEFINE_CONST_FUN_OBJ_KW(mp_builtin_open_obj, 0, mp_djy_open);
@@ -96,29 +96,33 @@ STATIC mp_uint_t djy_file_obj_read(mp_obj_t self_in, void *buf, mp_uint_t size, 
 {
     djy_file_obj_t *self = MP_OBJ_TO_PTR(self_in);
     u32 sz_out;
-    mp_uint_t limittime;
-    s64 starttime;
+//  mp_uint_t limittime;
+//  s64 starttime;
+//
+//  limittime = self->TimeOut;
+//  if (limittime != CN_TIMEOUT_FOREVER)
+//      starttime = DJY_GetSysTime();
+//
+//  while (1)
+//  {
+//      sz_out = fread(buf, 1, size, self->fp);
+//      if (sz_out != 0)
+//          break;
+//      else
+//      {
+//          if (limittime != CN_TIMEOUT_FOREVER)
+//          {
+//              if ((mp_uint_t)(DJY_GetSysTime() - starttime)/1000 >= limittime)
+//                  break;
+//          }
+//      }
+//      MICROPY_EVENT_POLL_HOOK;
+//      DJY_EventDelay(FILEIO_SYSBLOCK_TIME * mS);
+//  }
 
-    limittime = self->TimeOut;
-    if (limittime != CN_TIMEOUT_FOREVER)
-        starttime = DJY_GetSysTime();
-
-    while (1)
-    {
-        sz_out = fread(buf, 1, size, self->fp);
-        if (sz_out != 0)
-            break;
-        else
-        {
-            if (limittime != CN_TIMEOUT_FOREVER)
-            {
-                if ((mp_uint_t)(DJY_GetSysTime() - starttime)/1000 >= limittime)
-                    break;
-            }
-        }
-        MICROPY_EVENT_POLL_HOOK;
-        DJY_EventDelay(FILEIO_SYSBLOCK_TIME * mS);
-    }
+    MP_THREAD_GIL_EXIT();
+    sz_out = fread(buf, 1, size, self->fp);
+    MP_THREAD_GIL_ENTER();
 
     if (sz_out == 0)
     {
@@ -133,12 +137,34 @@ STATIC mp_uint_t djy_file_obj_write(mp_obj_t self_in, const void *buf, mp_uint_t
 {
     djy_file_obj_t *self = MP_OBJ_TO_PTR(self_in);
     u32 sz_out;
+//  mp_uint_t limittime;
+//  s64 starttime;
+//  u32 completed=0;
+//
+//  limittime = self->TimeOut;
+//  if (limittime != CN_TIMEOUT_FOREVER)
+//      starttime = DJY_GetSysTime();
+//
+//  while (1)
+//  {
+//      sz_out = fwrite(buf+completed, 1, size-completed, self->fp);
+//      completed +=sz_out;
+//      if (completed < size)
+//      {
+//          if ((mp_uint_t)(DJY_GetSysTime() - starttime)/1000 >= limittime)
+//          {
+//              *errcode = errno;
+//              break;
+//          }
+//          MICROPY_EVENT_POLL_HOOK;
+//          DJY_EventDelay(FILEIO_SYSBLOCK_TIME * mS);
+//      }
+//      else
+//          break;
+//  }
+    MP_THREAD_GIL_EXIT();
     sz_out = fwrite(buf, 1, size, self->fp);
-    if (sz_out != size)
-    {
-        *errcode = errno;
-        return MP_STREAM_ERROR;
-    }
+    MP_THREAD_GIL_ENTER();
     return sz_out;
 }
 

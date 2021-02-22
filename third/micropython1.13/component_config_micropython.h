@@ -2,8 +2,8 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //****新建组件，可以copy component_config_template.txt的内容到这里。
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//  extern s32 ModuleInstall_Python(u32 parallel,u32 stack_size);
-//    ModuleInstall_Python(CFG_PARALLEL,CFG_PYTHON_STACKSIZE);
+//  extern s32 ModuleInstall_Python(u32 stack_size);
+//    ModuleInstall_Python(CFG_PYTHON_STACKSIZE);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -30,7 +30,6 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_MICROPYTHON113    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,0x10000,
-#define CFG_PARALLEL            5       //"能够同时运行的python文件数，交互式环境也算一个",
 #define CFG_PYTHON_STACKSIZE    4096    //"运行python的环境stack尺寸"
 #define CFG_PYTHON_HEAPSIZE     4096    //"运行python的环境heap尺寸"
 //%$#@enum,true,false,
