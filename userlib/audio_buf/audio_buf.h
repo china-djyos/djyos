@@ -42,26 +42,55 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-// =============================================================================
-#ifndef __CPU_PERI_FLASH_H__
-#define __CPU_PERI_FLASH_H__
+#ifndef AUDIO_BUF_H_
+#define AUDIO_BUF_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "stdint.h"
 
-int ModuleInstall_Flash(void);
-void djy_flash_erase(uint32_t address);
-void djy_flash_write(uint32_t address, const void *data, uint32_t size);
-void djy_flash_read(uint32_t address, void *data, uint32_t size);
-void djy_flash_read_crc(uint32_t address, void *data, uint32_t size);
-void SetOperFalshMode(bool_t flag);
-bool_t GetOperFalshMode(void);
+#include <stdint.h>
+#include <ring.h>
+struct Platform_AudioBufRdwr
+{
+    struct StLoopBytesMgr *RdwrMgr;
+    u8 *data_buf;
+    s32 buf_len;
+    u32 timeout;
+    s32 *err;
+
+};
+
+//struct Platform_AudioBufCtrl
+//{
+//    struct StLoopBytesMgr *CtrlMgr;
+//    ELOOPBYTES_OPT opt;
+//    void *popt;
+//    s32 optlen;
+//};
+
+struct Platform_AudioBufInit
+{
+    void *buf_addr;
+    s32 max_bytes;
+    s32 threshold_add;
+    s32 threshold_get;
+};
+
+s32 AudioRingBufferRead_Len(struct RingBuf *audio, s8 *buf, s32 len, u32 timeout);
+s32 AudioRingBufferWrite_Len(struct RingBuf *audio, s8 *buf, s32 len, u32 timeout);
+s32 AudioRingBufferRead_Time(struct RingBuf *audio, s8 *buf,
+                    u8 channels, u32 sample_rate, u8 bit_wide, u32 time, u32 timeout);
+s32 AudioRingBufferWrite_Time(struct RingBuf *audio, s8 *buf,
+                    u8 channels, u32 sample_rate, u8 bit_wide, u32 time, u32 timeout);
+struct RingBuf *AudioRingBufferInit(u32 len);
+s32 AudioRingBufferDeInit(struct RingBuf *audio);
+s32 AudioRingBufferReset(struct RingBuf *audio);
+u32 AudioRingBufferGetTotals(struct RingBuf *audio);
+u32 AudioRingBufferGetMax(struct RingBuf *audio);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__CPU_PERI_FLASH_H__
-
+#endif /* CONFIG_NET_H_ */

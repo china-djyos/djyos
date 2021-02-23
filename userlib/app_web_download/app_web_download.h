@@ -42,26 +42,19 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-// =============================================================================
-#ifndef __CPU_PERI_FLASH_H__
-#define __CPU_PERI_FLASH_H__
+#ifndef WEB_UPGRADE_H_
+#define WEB_UPGRADE_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "stdint.h"
 
-int ModuleInstall_Flash(void);
-void djy_flash_erase(uint32_t address);
-void djy_flash_write(uint32_t address, const void *data, uint32_t size);
-void djy_flash_read(uint32_t address, void *data, uint32_t size);
-void djy_flash_read_crc(uint32_t address, void *data, uint32_t size);
-void SetOperFalshMode(bool_t flag);
-bool_t GetOperFalshMode(void);
+#include <stdint.h>
+int web_check_new_versions(u8 *branch, u8 *SN);
+int web_upgrade_firmware(void *fdo);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__CPU_PERI_FLASH_H__
-
+#endif /* CONFIG_NET_H_ */

@@ -117,7 +117,7 @@ extern struct NorDescr *nordescription;
 u8 is_protect = 1;   //1 -- 有写保护，0 -- 无写保护
 extern void flash_protection_op(UINT8 mode, PROTECT_TYPE type);
 extern bool_t flash_is_install(void);
-
+extern u32 gc_ProductSn;
 extern void calc_crc(u32 *buf, u32 packet_num);
 
 extern void djy_flash_read(uint32_t address, void *data, uint32_t size);
@@ -149,13 +149,15 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
     struct umedia *um = (struct umedia *)core->vol;
     static u8 *app_head = NULL;
-    static u32 last_block = 0,block = 0;
+    static u32 last_block = 0,block = 0, iboot_sn_addr = NULL;
     struct objhandle *hdl = (struct objhandle *)core->root->child->handles.next;
     struct __icontext *cx = (struct __icontext *)hdl->context;
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
     u32 j, more, page_size, offset = Iboot_GetAppHeadSize();
     u32 unit;
     s32 check_len = (s32)bytes;
+    struct ProductInfo *p_productinfo;
+    u8 iboot_sn_buf[32];
 
     if(GetOperFalshMode() == true)
     {
@@ -172,7 +174,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
         {
             while(check_len > 0)
             {
-                if(check_len > nordescription->BytesPerPage)
+                if(check_len > (s32)nordescription->BytesPerPage)
                     page_size = nordescription->BytesPerPage;
                 else
                     page_size = check_len;
@@ -209,7 +211,21 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                     }
                     memcpy(app_head, cx->apphead, cx->Wappsize);
                     memcpy(app_head + cx->Wappsize, data, offset);
-
+                    //判断App中是否有提供SN号
+                    if(*(app_head + ((sizeof(struct AppHead) + (u32)offsetof(struct ProductInfo, ProductionTime)) / 32 * 34)) == 0xff)
+                    {
+                        iboot_sn_addr = (u32)(&gc_ProductSn) / 32 * 34;
+                        if(iboot_sn_addr)
+                        {
+                            memset(iboot_sn_buf, 0xff, sizeof(iboot_sn_buf));
+                            djy_flash_read_crc(iboot_sn_addr, iboot_sn_buf, sizeof(iboot_sn_buf));  //app未提供SN号，从iboot中获取。
+                            if(iboot_sn_buf[0] != 0xff)
+                            {   //把iboot的SN复制到app的中
+                                memcpy(app_head + ((sizeof(struct AppHead) + (u32)offsetof(struct ProductInfo, ProductionTime)) / 32 * 34),
+                                                    iboot_sn_buf, sizeof(p_productinfo->ProductionTime) + sizeof(p_productinfo->ProductionNumber));
+                            }
+                        }
+                    }
                     pos += offset;
                     data += offset;
                     bytes -= offset;
@@ -221,6 +237,23 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                     {
                         unit = pos + (core->MStart * nordescription->BytesPerPage);
                         unit = unit * 34 / 32;
+                    }
+                }
+                else
+                {
+                    if(*(cx->apphead + (sizeof(struct AppHead) + (u32)offsetof(struct ProductInfo, ProductionTime))) == 0xff)
+                    {
+                        iboot_sn_addr = (u32)(&gc_ProductSn) / 32 * 34;
+                        if(iboot_sn_addr)
+                        {
+                            memset(iboot_sn_buf, 0xff, sizeof(iboot_sn_buf));
+                            djy_flash_read_crc(iboot_sn_addr, iboot_sn_buf, sizeof(iboot_sn_buf));
+                            if(iboot_sn_buf[0] != 0xff)
+                            {   //把iboot的SN复制到app的中
+                                memcpy(cx->apphead + (sizeof(struct AppHead) + (u32)offsetof(struct ProductInfo, ProductionTime)),
+                                                    iboot_sn_buf, sizeof(p_productinfo->ProductionTime) + sizeof(p_productinfo->ProductionNumber));
+                            }
+                        }
                     }
                 }
                 if(is_protect == 1)

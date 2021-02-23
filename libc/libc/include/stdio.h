@@ -326,8 +326,8 @@ int _EXFUN(siscanf, (const char *, const char *, ...)
                _ATTRIBUTE ((__format__ (__scanf__, 2, 3))));
 int _EXFUN(snprintf, (char *__restrict, size_t, const char *__restrict, ...)
                _ATTRIBUTE ((__format__ (__printf__, 3, 4))));
-//int   _EXFUN(sniprintf, (char *, size_t, const char *, ...)
-//               _ATTRIBUTE ((__format__ (__printf__, 3, 4))));
+int   _EXFUN(sniprintf, (char *, size_t, const char *, ...)
+               _ATTRIBUTE ((__format__ (__printf__, 3, 4))));
 char *  _EXFUN(tempnam, (const char *, const char *));
 int _EXFUN(vasiprintf, (char **, const char *, __VALIST)
                _ATTRIBUTE ((__format__ (__printf__, 2, 0))));

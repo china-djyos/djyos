@@ -60,9 +60,9 @@
 #include "stdlib.h"
 #include <dbug.h>
 
-extern void AppStart(void);
-extern void Init_Cpu(void);
-extern void CPU_Reboot();
+//extern void AppStart(void);
+//extern void Init_Cpu(void);
+//extern void CPU_Reboot();
 extern void Iboot_LoadPreload(void);
 extern void * gc_pAppOffset;
 extern void __asm_bl_fun(void * fun_addr);
@@ -904,7 +904,7 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
             break;
         }
 
-        case APP_HEAD_SN:
+        case APP_HEAD_FINGER:
         {
             int type_code_len, time_len, number_len;
 
@@ -1008,7 +1008,7 @@ len_error:
 //==============================================================================
 u32 Iboot_GetAppHeadSize(void)
 {
-   return (u32)sizeof(struct AppHead);
+   return (u32)sizeof(struct AppHead) + sizeof(struct ProductInfo);
 }
 
 
@@ -1022,8 +1022,7 @@ bool_t XIP_AppFileCheckEasy(void * apphead)
     struct AppHead*  p_apphead = apphead;
     if(p_apphead->djy_flag[0]!='d' || \
        p_apphead->djy_flag[1]!='j' || \
-       p_apphead->djy_flag[2]!='y' ||\
-       p_apphead->app_head_size !=Iboot_GetAppHeadSize())
+       p_apphead->djy_flag[2]!='y')
     {
         return false;
     }
@@ -1586,30 +1585,20 @@ bool_t Iboot_GetHeadWdtReset(void)
 //参数：AppPath -- 待升级的app路径；
 //返回： true/false
 //==============================================================================
-bool_t Iboot_FillMutualUpdatePath(char* Path, int len)
+bool_t Iboot_FillMutualUpdatePath(char* info, int len)
 {
 //    u8 i;
 
-    if(len > (int)sizeof(Iboot_App_Info.update_path))
+    if(len > (int)sizeof(Iboot_App_Info.up_info))
     {
         error_printf("IAP"," len exceed MutualPathLen.\r\n");
         return false;
     }
-    memset(Iboot_App_Info.update_path, 0, MutualPathLen);
-    memcpy(Iboot_App_Info.update_path, Path, len);
-//    for(i=0; i<len; i++)
-//    {
-//        if(*Path != 0)
-//            Iboot_App_Info.update_path[i] = *Path++;
-//        else
-//        {
-//            Iboot_App_Info.update_path[i] = *Path++;
-//            break;
-//        }
-//    }
+    memset(Iboot_App_Info.up_info.info, 0, MutualPathLen);
+    memcpy(Iboot_App_Info.up_info.info, info, len);
     if(len == MutualPathLen)
     {
-        Iboot_App_Info.update_path[MutualPathLen-1] = 0;
+        Iboot_App_Info.up_info.info[MutualPathLen-1] = 0;
         return false;
     }
     return true;
@@ -1813,10 +1802,8 @@ bool_t Iboot_SetRunAppUpdateIboot()
 //参数：升级程序来源0文件 1——3待定义
 //返回值：true
 //==============================================================================
-bool_t Iboot_SetUpdateSource(char *param)
+bool_t Iboot_SetUpdateSource(enum update_source source)
 {
-    int source;
-    source = atoi(param);
     Iboot_App_Info.runflag.update_from = (u32)source;
     return true;
 }
@@ -1826,9 +1813,9 @@ bool_t Iboot_SetUpdateSource(char *param)
 //参数：无
 //返回值：升级程序来源0文件 1——3待定义
 //==============================================================================
-u32 Iboot_GetUpdateSource(void)
+enum update_source Iboot_GetUpdateSource(void)
 {
-     return Iboot_App_Info.runflag.update_from;
+     return (enum update_source)Iboot_App_Info.runflag.update_from;
 }
 //==============================================================================
 //功能：清除运行app并更新iboot标志
@@ -1915,10 +1902,10 @@ bool_t Iboot_GetHeardSetRunIboot(void)
 bool_t Iboot_GetMutualUpdatePath(char *buf, u32 buf_len)
 {
     u32 len;
-    len = sizeof(Iboot_App_Info.update_path);
+    len = sizeof(Iboot_App_Info.up_info);
     if(buf_len >= len)
     {
-        memcpy(buf, Iboot_App_Info.update_path, len);
+        memcpy(buf, Iboot_App_Info.up_info.info, len);
         return true;
     }
     else
@@ -2127,7 +2114,7 @@ static bool_t Iboot_IAP_Mode( )
 #if (CFG_RUNMODE_BAREAPP == 0)
 ADD_TO_ROUTINE_SHELL(ibootinfo,ibootinfo,NULL);
 ADD_TO_ROUTINE_SHELL(appinfo,appinfo,NULL);
-ADD_TO_ROUTINE_SHELL(filesource,Iboot_SetUpdateSource,NULL);
+//ADD_TO_ROUTINE_SHELL(filesource,Iboot_SetUpdateSource,NULL);
 #endif      //for (CFG_RUNMODE_BAREAPP == 0)
 ADD_TO_ROUTINE_SHELL(iapmode,Iboot_IAP_Mode,NULL);
 

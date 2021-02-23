@@ -90,7 +90,30 @@ enum productinfo
     APP_HEAD_BOARD_TYPE,         //板件型号
     APP_HEAD_CPU_TYPE,           //cpu型号
 
-    APP_HEAD_SN,                 //获取SN号
+    APP_HEAD_FINGER,                 //获取指纹号
+};
+//升级文件来源
+enum update_source
+{
+    SOURCE_FILE = 0,                //从文件系统
+    SOURCE_ADDR_MEMORY,         //从可寻址内存
+};
+
+union update_info{
+    struct ram_update_info {    //从可寻址内存升级时的信息结构
+        s8 *start_add;
+        u32 file_size;
+        s8 production_time[4];     //生产时间，BCD码，年+星期（3字节）.
+        s8 production_num[5];   //产品序号，
+        s8 file_name[23];
+    }ram;
+    struct file_update_info {   //从文件系统升级时的信息结构
+        s8 file_path[31];
+        s8 production_time[4];     //生产时间，BCD码，年+星期（3字节）.
+        s8 production_num[5];   //产品序号，
+    }file;
+
+    char info[40];    //
 };
 
 //#define IBOOT_APP_INFO_VER                 (1)
@@ -147,7 +170,7 @@ struct IbootAppInfo
     u8   app_ver_medium;          //app 版本 xx.__.xx
     u8   app_ver_large;           //app 版本 __.xx.xx
     char board_name[20];    //组件名
-    char update_path[40];    //待升级文件路径
+    union update_info  up_info;
 };
 
 struct AppHead
@@ -221,6 +244,7 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
 bool_t Iboot_RewriteProductInfoNumTime(void * productinfo,const char* time,const char *num);
 bool_t Rewrite_AppHead_NumTime(void * apphead,const char* time,char *num);
 bool_t XIP_AppFileCheckEasy(void * apphead);
+bool_t XIP_AppFileCheckSubsection(s8 *addr, u8 *buf, s32 len, s8 *compare_addr);
 bool_t XIP_AppFileCheck(void * apphead);
 void * XIP_GetAppStartAddr(void * apphead);
 u32  XIP_GetAppSize(void * apphead);
@@ -238,8 +262,8 @@ bool_t Iboot_SetRunIbootUpdateApp();
 bool_t Iboot_SetRunAppUpdateIboot();
 bool_t Iboot_ClearRunIbootUpdateApp();
 bool_t Iboot_ClearRunAppUpdateIboot();
-bool_t Iboot_SetUpdateSource(char *param);
-u32 Iboot_GetUpdateSource(void);
+bool_t Iboot_SetUpdateSource(enum update_source source);
+enum update_source Iboot_GetUpdateSource(void);
 bool_t Iboot_GetRestartRunApp();
 char Iboot_GetRunAppFormFile();
 char Iboot_GetRunMode(void);
@@ -263,5 +287,7 @@ bool_t Iboot_GetHeardSetRunIboot(void);
 
 bool_t  runiboot(char *param);
 bool_t  runapp(char *param);
+
+bool_t Iboot_UpdateApp(void);
 #endif
 #endif /* __IICBUS_H__ */

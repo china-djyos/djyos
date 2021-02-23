@@ -224,7 +224,7 @@ bool_t Iboot_UpdateApp(void)
     char *file;
     char percentage_last = 0, percentage = 0;
 
-    if((Iboot_GetUpdateSource() == 0) && (Iboot_GetUpdateApp() == true))
+    if((Iboot_GetUpdateSource() == SOURCE_FILE) && (Iboot_GetUpdateApp() == true))
     {
         if(!stat(CFG_FORCED_UPDATE_PATH,&test_stat))
             srcapp = fopen(CFG_FORCED_UPDATE_PATH, "r+");
@@ -485,7 +485,7 @@ bool_t ModuleInstall_UpdateIboot(void)
     char run_mode = Iboot_GetRunMode();
     if(Iboot_UserUpdateIboot(0) == false)
     {
-        if(Iboot_GetUpdateSource() == 0)
+        if(Iboot_GetUpdateSource() == SOURCE_FILE)
         {
             if(run_mode == 1)
             {
