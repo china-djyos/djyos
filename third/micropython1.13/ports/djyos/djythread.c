@@ -74,17 +74,20 @@ void mp_thread_gc_others(void)
     mp_thread_mutex_lock(&thread_mutex, 1);
     for (djy_thread_t *th = thread_root; th != NULL; th = th->next)
     {
+        DJY_GetEventInfo(DJY_GetMyEventId(), &EventInfo);
         if (th->event_id == DJY_GetMyEventId())
         {
             uint32_t SP;
-//            DJY_GetEventInfo(DJY_GetMyEventId(), &EventInfo);
-            gc_collect_root((void **)&SP, ((uint32_t)MP_STATE_THREAD(stack_top)
+//          gc_collect_root((void **)&SP, ((uint32_t)MP_STATE_THREAD(stack_top)
+//                                         - (uint32_t)&SP) / sizeof(uint32_t));
+            gc_collect_root((void **)&SP, ((uint32_t)EventInfo.StackTop
                                            - (uint32_t)&SP) / sizeof(uint32_t));
         }
         else
         {
-            DJY_GetEventInfo(DJY_GetMyEventId(), &EventInfo);
-            gc_collect_root(EventInfo.Stack, ((uint32_t)MP_STATE_THREAD(stack_top)
+//          gc_collect_root(EventInfo.Stack, ((uint32_t)MP_STATE_THREAD(stack_top)
+//                                            - EventInfo.Stack) / sizeof(uint32_t));
+            gc_collect_root(EventInfo.Stack, ((uint32_t)EventInfo.StackTop
                                               - EventInfo.Stack) / sizeof(uint32_t));
         }
     }
@@ -139,18 +142,28 @@ ptu32_t DJY_ThreadEntry(void)
 // create thread and run entry,with param arg
 void mp_thread_create(void *(*entry)(void *), void *arg, size_t *stack_size)
 {
-    u16 evtt_id,event_id;
+    static u16 evtt_id = CN_EVTT_ID_INVALID;
+    static size_t oldsize=0;
+    u16 event_id = CN_EVENT_ID_INVALID;
     if (*stack_size == 0) {
         *stack_size = 4096; // default stack size
     } else if (*stack_size < 2048) {
         *stack_size = 2048; // minimum stack size
     }
-
-    evtt_id = DJY_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 1, 1,
-                          DJY_ThreadEntry, NULL,*stack_size,NULL);
+    if (oldsize != *stack_size)
+    {
+        if (evtt_id != CN_EVTT_ID_INVALID)
+            DJY_EvttUnregist(evtt_id);
+        oldsize = *stack_size;
+        evtt_id = DJY_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 0, 5,
+                              DJY_ThreadEntry, NULL,oldsize,NULL);
+    }
     // adjust stack_size to provide room to recover from hitting the limit
     *stack_size -= 1024;
-    event_id = DJY_EventPop(evtt_id, NULL, 0, (ptu32_t)arg, (ptu32_t)entry, 0);
+    if (evtt_id != CN_EVTT_ID_INVALID)
+    {
+        event_id = DJY_EventPop(evtt_id, NULL, 0, (ptu32_t)arg, (ptu32_t)entry, 0);
+    }
     if (event_id == CN_EVENT_ID_INVALID)
     {
         nlr_raise(mp_obj_new_exception_msg(&mp_type_OSError, "can't create djyos event"));

@@ -875,10 +875,10 @@ u16 DJY_EvttRegist(enum enEventRelation relation,
     if(relation == EN_INDEPENDENCE)
     {
         //高优先级事件类型至少保留一个线程
-        if( (vpus_res == 0) && ((default_prio < 0x80)
-                              || (CFG_DYNAMIC_MEM == true) ) )
-            g_tEvttTable[evtt_offset].vpus_res = 1;
-        else
+//        if( (vpus_res == 0) && ((default_prio < 0x80)
+//                              || (CFG_DYNAMIC_MEM == true) ) )
+//            g_tEvttTable[evtt_offset].vpus_res = 1;
+//        else
             g_tEvttTable[evtt_offset].vpus_res = vpus_res;
     }else
     {
@@ -1405,14 +1405,6 @@ void __DJY_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status)
     event->event_status |= Status;
 }
 
-void DJY_Testprio(void)
-{
-    if(g_tECB_Table[0].prio != 250)
-    {
-        printk("--------prio error_no %d\r\n",DJY_GetMyEventId());
-        while(g_tECB_Table[0].prio != 250);
-    }
-}
 //----从ready事件继承优先级-----------------------------------------------------
 //功能: 如果 src_id 的优先级较高，event_id临时以 src_id 的优先级，运行，直到调用
 //      DJY_RestorePrio，否则不改变优先级。本函数专用在创建线程时，从堆中分配栈的
@@ -1448,7 +1440,6 @@ bool_t __DJY_RaiseTempPrioForStack(u16 event_id)
             __DJY_ChangeBlockQueue(pl_ecb);
         }
     }
-//    DJY_Testprio();
     return true;
 }
 
@@ -1600,7 +1591,6 @@ bool_t DJY_SetEventPrio(u16 event_id,ufast_t new_prio)
             pl_ecb->prio = new_prio;
     }
     Int_RestoreAsynSignal();
-//    DJY_Testprio();
     return true;
 }
 
@@ -1644,7 +1634,6 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio)
             pl_ecb->prio = new_prio;
     }
     Int_RestoreAsynSignal();
-//    DJY_Testprio();
     return true;
 }
 
@@ -1684,7 +1673,6 @@ bool_t DJY_RaiseTempPrio(u16 event_id)
             pl_ecb->prio = g_ptEventRunning->prio;
     }
     Int_RestoreAsynSignal();
-//    DJY_Testprio();
     return true;
 }
 
@@ -1706,7 +1694,6 @@ bool_t DJY_RestorePrio(void)
         __DJY_EventReady(g_ptEventRunning);
     }
     Int_RestoreAsynSignal();
-//    DJY_Testprio();
     return true;
 }
 
