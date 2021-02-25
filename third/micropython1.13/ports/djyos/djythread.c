@@ -45,7 +45,7 @@ typedef struct _mp_thread_t
 
 STATIC djy_thread_t thread_root_node;
 STATIC djy_thread_t *thread_root; // root pointer, handled by mp_thread_gc_others
-
+u32 ThreadNum;
 STATIC mp_thread_mutex_t thread_mutex;
 
 // the mutex controls access to the linked list
@@ -137,6 +137,7 @@ ptu32_t DJY_ThreadEntry(void)
     mp_thread_mutex_unlock(&thread_mutex);
 
     entry(arg);
+    ThreadNum--;
     return 0;
 }
 // create thread and run entry,with param arg
@@ -145,6 +146,7 @@ void mp_thread_create(void *(*entry)(void *), void *arg, size_t *stack_size)
     static u16 evtt_id = CN_EVTT_ID_INVALID;
     static size_t oldsize=0;
     u16 event_id = CN_EVENT_ID_INVALID;
+    ThreadNum++;
     if (*stack_size == 0) {
         *stack_size = 4096; // default stack size
     } else if (*stack_size < 2048) {
@@ -166,6 +168,7 @@ void mp_thread_create(void *(*entry)(void *), void *arg, size_t *stack_size)
     }
     if (event_id == CN_EVENT_ID_INVALID)
     {
+        ThreadNum--;
         nlr_raise(mp_obj_new_exception_msg(&mp_type_OSError, "can't create djyos event"));
     }
 

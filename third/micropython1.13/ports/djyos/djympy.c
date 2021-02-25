@@ -46,6 +46,7 @@ void do_str(const char *src, mp_parse_input_kind_t input_kind) {
 }
 #endif
 
+extern u32 ThreadNum;
 STATIC u8* stack_top;
 #define CN_RUN_FROM_SHELL   1
 ptu32_t micropython(void)
@@ -62,6 +63,7 @@ ptu32_t micropython(void)
         return 1;
     }
     stdin_time = mp_hal_stdio_init();
+    ThreadNum = 0;
 
     DJY_GetEventInfo(DJY_GetMyEventId(), EventInfo);
     stack_top = EventInfo->StackTop;
@@ -108,6 +110,10 @@ ptu32_t micropython(void)
     }
     mp_hal_stdio_deinit(stdin_time);
     mp_deinit();
+    while (ThreadNum != 0)
+    {
+        DJY_EventDelay(10*mS);
+    }
 #if MICROPY_ENABLE_GC
     free(heap);
 #endif
