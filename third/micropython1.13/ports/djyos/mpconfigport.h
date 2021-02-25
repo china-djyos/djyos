@@ -73,7 +73,7 @@
 #define MODULE_EXAMPLE_ENABLED      (1)
 
 #define MICROPY_PY_DJYIP            (1)
-
+#define MICROPY_PY_USELECT          (1)
 #define MICROPY_PY_THREAD           (1)
 // type definitions for the specific machine
 
