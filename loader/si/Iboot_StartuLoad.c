@@ -110,7 +110,7 @@ void Iboot_IAP_SelectLoadProgam(void)
 
     if(Iboot_IAP_IsForceIboot())//硬件设置运行iboot
     {
-        Run_Iboot(HEARD_SET_RUN_IBOOT);//填充硬件设置运行iboot信息
+        Run_Iboot(HARD_SET_RUN_IBOOT);//填充硬件设置运行iboot信息
     }
     if(XIP_IsRamIbootFlag())//ram中标记运行iboot
     {

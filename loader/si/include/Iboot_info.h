@@ -55,27 +55,36 @@
 #include <project_config.h>
 
 enum runibootmode{
-    HEARD_SET_RUN_IBOOT,
-    RAM_SET_RUN_IBOOT,
-    UPDATE_APP_RUN_IBOOT,
-    CHACK_ERROR,
+    HARD_SET_RUN_IBOOT,     //硬件标志强行运行iboot
+    RAM_SET_RUN_IBOOT,      //软件标志强行运行iboot
+    UPDATE_APP_RUN_IBOOT,   //为了升级app，运行iboot
+    CHACK_ERROR,            //运行app失败，转而运行iboot
 };
 
 enum runappmode{
-    RUN_APP_FROM_FILE,
-    RUN_APP_FROM_DIRECT,
+    RUN_APP_FROM_FILE,      //从文件中加载app
+    RUN_APP_FROM_DIRECT,    //app在片内flash中，直接运行app
     RUN_APP_FROM_UPDATE,
 };
 
 enum hardflag
 {
-    POWER_ON_FLAG,
-    HEAD_RESET_FLAG,
-    HEAD_WDT_RESET,
-    LOW_POWER_WAKEUP,
-    POWER_ON_RESET,
+    POWER_ON_FLAG,      //获取上电复位硬件标志，NO_HARD_FLAG=无此硬件；NO_FLAG=有此硬件，但无标志；
+                        //FLAG_ONLY_READ_ONE=有标志，阅后即焚；FLAG_READ_MANY=有，非阅后即焚
+    HARD_RESET_FLAG,    //硬件复位标志
+    HARD_WDT_RESET,     //硬件看门狗复位标志
+    LOW_POWER_WAKEUP,   //低功耗唤醒标志，（休眠唤醒）
+    POWER_ON_RESET,     //硬件有带上电复位标志的
 
 };
+
+enum power_on_reset_flag{
+    RESET_FLAG_NO_HARD_FLAG,       //无此硬件
+    RESET_FLAG_NO_FLAG,            //有此硬件，但无标志
+    RESET_FLAG_FLAG_ONLY_READ_ONE, //有标志，阅后即焚
+    RESET_FLAG_FLAG_READ_MANY,     //有，非阅后即焚
+};
+
 
 enum productinfo
 {
@@ -122,9 +131,10 @@ struct IbootAppInfo
 {
     #define PREVIOURESET_IBOOT   (0x12345678)//复位前运行iboot
     #define PREVIOURESET_APP     (0x87654321)//复位前运行APP
-    u32 previou_reset;//复位前运行模式
+                                             //其他值表示上电或复位
+    u32 previou_reset;                       //复位前运行模式
     struct{
-        u32 heard_set_run_iboot   :1;//硬件设置运行iboot
+        u32 hard_set_run_iboot   :1;//硬件设置运行iboot
         u32 restart_run_iboot     :1;//指示启动后运行Iboot
         u32 restart_run_app       :1;//指示启动后运行APP
         u32 runmode_iboot         :1;//当前运行模式是iboot
@@ -141,14 +151,14 @@ struct IbootAppInfo
         u32 error_app_size        :1;//app文件大小错误
         //上电复位硬件标志0=无此硬件 1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
         u32 power_on_flag         :2;
-        u32 head_wdt_reset        :1;//看门狗复位标志
+        u32 hard_wdt_reset        :1;//看门狗复位标志
         u32 soft_reset_flag       :1;//软件引起的内部复位
         u32 reboot_flag           :1;//CPU_Reboot 标志
         u32 restart_system_flag      :1;//restart_system标志
-        u32 head_reset_flag       :1;//外部硬件复位标志
+        u32 hard_reset_flag       :1;//外部硬件复位标志
         u32 low_power_wakeup      :1;//低功耗深度休眠中断唤醒标志
-        u32 call_fun_resent       :1;//1=内部复位/重启是主动调用相关函数引发的；0=异常重启
-        u32 power_on_resent_flag  :1;//上电复位标志，结合b18~19以及“上电标志”字判定
+        u32 call_fun_reset        :1;//1=内部复位/重启是主动调用相关函数引发的；0=异常重启
+        u32 power_on_reset_flag  :1;//上电复位标志，结合b18~19以及“上电标志”字判定
     }runflag; //运行标志
     u64  reserved;//保留
     u16  iboot_build_year;    /* years since 1900 */
