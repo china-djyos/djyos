@@ -99,6 +99,7 @@ STATIC mp_obj_t socket_bind(mp_obj_t self_in, mp_obj_t addr_in)
 
     // get address
     ipportaddr.sin_port = netutils_parse_inet_addr(addr_in, (u8*)&ipportaddr.sin_addr, NETUTILS_BIG);
+    ipportaddr.sin_port = htons(ipportaddr.sin_port);
     ipportaddr.sin_family = AF_INET;
     if(bind(self->mysockfd, (struct sockaddr *)&ipportaddr, sizeof(ipportaddr)) == -1)
         return mp_const_false;
@@ -161,7 +162,7 @@ STATIC mp_obj_t socket_accept(mp_obj_t self_in)
         // make the return value
         client->items[0] = MP_OBJ_FROM_PTR(socket2);
         client->items[1] = netutils_format_inet_addr((u8*)&ipportaddr.sin_addr,
-                                                ipportaddr.sin_port, NETUTILS_BIG);
+                                                ntohs(ipportaddr.sin_port), NETUTILS_BIG);
     }
 
     return MP_OBJ_FROM_PTR(client);
@@ -176,6 +177,7 @@ STATIC mp_obj_t socket_connect(mp_obj_t self_in, mp_obj_t addr_in)
 
     // get address
     ipportaddr.sin_port = netutils_parse_inet_addr(addr_in, (u8*)&ipportaddr.sin_addr, NETUTILS_BIG);
+    ipportaddr.sin_port = htons(ipportaddr.sin_port);
     ipportaddr.sin_family = AF_INET;
     MP_THREAD_GIL_EXIT();
     connect(self->mysockfd, (struct sockaddr *)&ipportaddr, sizeof(ipportaddr));
@@ -291,6 +293,7 @@ STATIC mp_obj_t socket_sendto(mp_obj_t self_in, mp_obj_t data_in, mp_obj_t addr_
 
     // get address
     ipportaddr.sin_port = netutils_parse_inet_addr(addr_in, (u8*)&ipportaddr.sin_addr, NETUTILS_BIG);
+    ipportaddr.sin_port = htons(ipportaddr.sin_port);
     ipportaddr.sin_family = AF_INET;
 
     ret = sendto(self->mysockfd, bufinfo.buf, bufinfo.len, 0, (struct sockaddr *)&ipportaddr, sizeof(ipportaddr));
@@ -341,7 +344,7 @@ STATIC mp_obj_t socket_recvfrom(mp_obj_t self_in, mp_obj_t len_in) {
         vstr.len = ret;
         tuple[0] = mp_obj_new_str_from_vstr(&mp_type_bytes, &vstr);
     }
-    tuple[1] = netutils_format_inet_addr((u8*)&ipportaddr.sin_addr, ipportaddr.sin_port, NETUTILS_BIG);
+    tuple[1] = netutils_format_inet_addr((u8*)&ipportaddr.sin_addr, ntohs(ipportaddr.sin_port), NETUTILS_BIG);
     return mp_obj_new_tuple(2, tuple);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(socket_recvfrom_obj, socket_recvfrom);
