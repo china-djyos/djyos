@@ -31,7 +31,7 @@
 
 #include "py/obj.h"
 
-#define READ_MAX 20
+#define READ_MAX 512
 typedef struct _Python_Uart
 {
     mp_obj_base_t base;

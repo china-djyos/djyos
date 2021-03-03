@@ -61,13 +61,13 @@ size_t transformation(char *str)
         return GPIO_A;
 }
 
-STATIC void pin_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
-
-    Python_Pin *self = MP_OBJ_TO_PTR(self_in);
-
-    mp_printf(print, "gpio %d get is %d",self->ppin->PORT, PIO_Get(self->ppin));
-
-}
+//STATIC void pin_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
+//
+//    Python_Pin *self = MP_OBJ_TO_PTR(self_in);
+//
+//    mp_printf(print, "gpio %d get is %d",self->ppin->PORT, PIO_Get(self->ppin));
+//
+//}
 
 mp_obj_t mp_pin_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
 
@@ -83,6 +83,7 @@ mp_obj_t mp_pin_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, 
     size_t addr_len;
 
     Python_Pin *p = m_new_obj_with_finaliser(Python_Pin);
+    p->ppin = m_new_obj_with_finaliser(Pin);
 
     if (n_args >= 1)
     {
@@ -107,11 +108,11 @@ mp_obj_t mp_pin_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, 
     if (n_args >= 4)
         af = mp_obj_get_int(args[3]);
 
-    printf("gpio port is %d\r\n",port);
-    printf("gpio pinx is %d\r\n",pinx);
-    printf("gpio mode is %d\r\n",mode);
-    printf("gpio pupd is %d\r\n",pupd);
-    printf("gpio af is %d\r\n",af);
+//    printf("gpio port is %d\r\n",port);
+//    printf("gpio pinx is %d\r\n",pinx);
+//    printf("gpio mode is %d\r\n",mode);
+//    printf("gpio pupd is %d\r\n",pupd);
+//    printf("gpio af is %d\r\n",af);
 
     p->ppin->PORT = port;
     p->ppin->Pinx = pinx;
@@ -128,21 +129,23 @@ mp_obj_t mp_pin_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, 
     return MP_OBJ_FROM_PTR(p);
 }
 
-STATIC mp_obj_t pin_obj_init(mp_obj_t self_in,mp_obj_t mode,mp_obj_t pupd) {
+STATIC mp_obj_t pin_obj_init(size_t n_args , const mp_obj_t *args) {
 
-    Python_Pin *self = MP_OBJ_TO_PTR(self_in);
+    Python_Pin *self = MP_OBJ_TO_PTR(args[0]);
 
-    self->ppin->MODER = mp_obj_get_int(mode);
-    self->ppin->PUPD = mp_obj_get_int(pupd);
+    if(n_args>=2)
+        self->ppin->MODER = mp_obj_get_int(args[1]);
+    if(n_args>=3)
+        self->ppin->PUPD = mp_obj_get_int(args[2]);
 
-    printf("gpio init moder %d pupd %d\r\n",self->ppin->MODER,self->ppin->PUPD);
+//    printf("gpio init moder %d pupd %d\r\n",self->ppin->MODER,self->ppin->PUPD);
 
     PIO_Configure(self->ppin, 1);
 
     return mp_const_true;
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_3(pin_init_obj, pin_obj_init);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pin_init_obj, 2, 3, pin_obj_init);
 
 
 STATIC mp_obj_t pin_obj_value(size_t n_args , const mp_obj_t *args) {
@@ -151,7 +154,7 @@ STATIC mp_obj_t pin_obj_value(size_t n_args , const mp_obj_t *args) {
 
     if (n_args == 1)
     {
-        return MP_OBJ_FROM_PTR(self);
+        return mp_obj_new_int(PIO_Get(self->ppin));
     }
     else
     {
@@ -159,13 +162,13 @@ STATIC mp_obj_t pin_obj_value(size_t n_args , const mp_obj_t *args) {
         if(pupd)
         {
             printf("gpio %d %d set to high\r\n",self->ppin->PORT,self->ppin->Pinx);
-            self->ppin->PUPD = GPIO_PUPD_PU;
+//            self->ppin->PUPD = GPIO_PUPD_PU;
             GPIO_SettoHigh(self->ppin->PORT,self->ppin->Pinx);
         }
          else
         {
             printf("gpio %d %d set to low\r\n",self->ppin->PORT,self->ppin->Pinx);
-            self->ppin->PUPD = GPIO_PUPD_PD;
+//            self->ppin->PUPD = GPIO_PUPD_PD;
             GPIO_SettoLow(self->ppin->PORT,self->ppin->Pinx);
         }
 
@@ -178,7 +181,7 @@ STATIC mp_obj_t pin_off(mp_obj_t self_in)
 {
     Python_Pin *self = MP_OBJ_TO_PTR(self_in);
 
-    printf("gpio %d power_off\r\n",self->ppin->PORT);
+//    printf("gpio %d power_off\r\n",self->ppin->PORT);
     GPIO_PowerOff(self->ppin->PORT);
 
     return mp_const_none;
@@ -201,7 +204,7 @@ STATIC mp_obj_t pin_low(mp_obj_t self_in)
     Python_Pin *self = MP_OBJ_TO_PTR(self_in);
 
     printf("gpio %d %d set to low\r\n",self->ppin->PORT,self->ppin->Pinx);
-    self->ppin->PUPD = GPIO_PUPD_PD;
+//    self->ppin->PUPD = GPIO_PUPD_PD;
     GPIO_SettoLow(self->ppin->PORT,self->ppin->Pinx);
 
     return mp_const_none;
@@ -213,7 +216,7 @@ STATIC mp_obj_t pin_high(mp_obj_t self_in)
     Python_Pin *self = MP_OBJ_TO_PTR(self_in);
 
     printf("gpio %d %d set to high\r\n",self->ppin->PORT,self->ppin->Pinx);
-    self->ppin->PUPD = GPIO_PUPD_PD;
+//    self->ppin->PUPD = GPIO_PUPD_PD;
     GPIO_SettoHigh(self->ppin->PORT,self->ppin->Pinx);
 
     return mp_const_none;
@@ -278,7 +281,7 @@ STATIC MP_DEFINE_CONST_DICT(pin_locals_dict, pin_locals_dict_table);
 const mp_obj_type_t pin_type = {
     { &mp_type_type },
     .name = MP_QSTR_Pin,
-    .print = pin_print,
+//    .print = pin_print,
     .make_new = mp_pin_make_new,
     .locals_dict = (mp_obj_dict_t *)&pin_locals_dict,
 };

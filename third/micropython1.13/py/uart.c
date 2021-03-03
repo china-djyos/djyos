@@ -41,7 +41,7 @@ const char *PYTHON_UART[8] = {
         "/dev/UART6",
         "/dev/UART7",
 };
-
+char data[READ_MAX]={0};
 const mp_obj_type_t uart_type;
 
 mp_obj_t mp_uart_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
@@ -65,8 +65,8 @@ mp_obj_t mp_uart_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw,
 
     u->base.type = &uart_type;
 
-    printf("u->fd is %d\r\n",u->fd);
-    printf("com.BaudRate is %d\r\n",com.BaudRate);
+//    printf("u->fd is %d\r\n",u->fd);
+//    printf("com.BaudRate is %d\r\n",com.BaudRate);
     return MP_OBJ_FROM_PTR(u);
 }
 
@@ -79,7 +79,7 @@ STATIC mp_obj_t uart_init(size_t n_args , const mp_obj_t *args)
     com.Parity=0;
 //    com.StopBits=1;
 
-    printf("bitrate  data_bit  parity_bit  stop_bit\r\n");
+//    printf("bitrate  data_bit  parity_bit  stop_bit\r\n");
 
     if (n_args >= 2)
         com.BaudRate=mp_obj_get_int(args[1]);
@@ -90,11 +90,11 @@ STATIC mp_obj_t uart_init(size_t n_args , const mp_obj_t *args)
     if (n_args >= 5)
         com.StopBits=mp_obj_get_int(args[4]);
 
-    printf("self->fd is %d\r\n",self->fd);
-    printf("com.BaudRate is %d\r\n",com.BaudRate);
-    printf("com.DataBits is %d\r\n",com.DataBits);
-    printf("com.Parity is %d\r\n",com.Parity);
-    printf("com.StopBits is %d\r\n",com.StopBits);
+//    printf("self->fd is %d\r\n",self->fd);
+//    printf("com.BaudRate is %d\r\n",com.BaudRate);
+//    printf("com.DataBits is %d\r\n",com.DataBits);
+//    printf("com.Parity is %d\r\n",com.Parity);
+//    printf("com.StopBits is %d\r\n",com.StopBits);
 
     if(self->fd<=0)
         return mp_const_false;
@@ -110,7 +110,6 @@ STATIC mp_obj_t uart_read(size_t n_args , const mp_obj_t *args)
     Python_Uart *self = MP_OBJ_TO_PTR(args[0]);
     size_t ret=0;
     size_t len=0;
-    char *data=NULL;
 
     if(self->fd<=0)
         return mp_const_false;
@@ -124,26 +123,20 @@ STATIC mp_obj_t uart_read(size_t n_args , const mp_obj_t *args)
         len=mp_obj_get_int(args[1]);
     }
 
-    data=malloc(len);
-
-    if(data == NULL)
-        return mp_const_false;
-
+    memset(data,0,READ_MAX);
     ret=Device_Read(self->fd, data, len, 0, 1000000);
-    printf("ret is %d\r\n",ret);
-    if(ret>0)
-    {
-        printf("Device Read is ");
-        for(int i=0;i<ret;i++)
-        {
-            printf("%02x ",data[i]);
-        }
-        printf("\r\n");
-    }
+//    printf("ret is %d\r\n",ret);
+//    if(ret>0)
+//    {
+//        printf("Device Read is ");
+//        for(int i=0;i<ret;i++)
+//        {
+//            printf("%02x ",data[i]);
+//        }
+//        printf("\r\n");
+//    }
 
-    free(data);
-
-    return ret;
+    return mp_obj_new_str(data,ret);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(uart_read_obj, 1, 2,uart_read);
 
@@ -160,10 +153,10 @@ STATIC mp_obj_t uart_write(mp_obj_t self_in,mp_obj_t date)
 
     ret = Device_Write(self->fd, addr_str, addr_len, 0, 1000000);
 
-    printf("ret is %d\r\n",ret);
-    printf("addr_str is %s\r\n",addr_str);
+//    printf("ret is %d\r\n",ret);
+//    printf("addr_str is %s\r\n",addr_str);
 
-    return ret;
+    return mp_obj_new_int(ret);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(uart_write_obj, uart_write);
 
