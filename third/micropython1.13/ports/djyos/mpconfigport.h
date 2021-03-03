@@ -67,6 +67,7 @@
 #define MICROPY_PY_UTIME_MP_HAL           (1)
 #define MICROPY_FLOAT_IMPL          (MICROPY_FLOAT_IMPL_FLOAT)
 #define MICROPY_PY_UJSON            (1)
+#define MICROPY_PY_MACHINE          (1)
 
 #define MICROPY_VFS                 (1)
 
@@ -89,6 +90,9 @@ extern const struct _mp_obj_module_t mp_module_utime;
 #if MICROPY_PY_UJSON
 extern const struct _mp_obj_module_t mp_module_ujson;
 #endif
+#if MICROPY_PY_MACHINE
+extern const struct _mp_obj_module_t mp_module_machine;
+#endif
 // extra built in names to add to the global namespace
 #define MICROPY_PORT_BUILTINS \
     { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
@@ -96,6 +100,7 @@ extern const struct _mp_obj_module_t mp_module_ujson;
 #define MICROPY_PORT_BUILTIN_MODULES \
     { MP_ROM_QSTR(MP_QSTR_utime), MP_ROM_PTR(&mp_module_utime) }, \
     { MP_ROM_QSTR(MP_QSTR_usocket), MP_ROM_PTR(&mp_module_usocket) }, \
+    { MP_ROM_QSTR(MP_QSTR_machine), MP_ROM_PTR(&mp_module_machine) }, \
 
 // We need to provide a declaration/definition of alloca()
 #include <alloca.h>

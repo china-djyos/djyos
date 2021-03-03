@@ -51,6 +51,9 @@ PY_CORE_O_BASENAME = $(addprefix py/,\
   module-example.o \
   djy-fs.o \
   modusocket.o \
+  machine.o \
+  pin.o \
+  uart.o \
 	mpstate.o \
 	nlr.o \
 	nlrx86.o \
