@@ -54,6 +54,7 @@ mp_obj_t mp_uart_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw,
     {
         uart=mp_obj_get_int(args[0]);
         u->fd=open(PYTHON_UART[uart], O_RDWR);
+
         if(u->fd<=0)
             return mp_const_false;
     }
@@ -61,7 +62,10 @@ mp_obj_t mp_uart_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw,
     {
         com.BaudRate=mp_obj_get_int(args[1]);
         fcntl(u->fd, CN_UART_COM_SET, &com);
+
     }
+
+    fcntl(u->fd, F_SETTIMEOUT, 1000000);
 
     u->base.type = &uart_type;
 
@@ -124,8 +128,10 @@ STATIC mp_obj_t uart_read(size_t n_args , const mp_obj_t *args)
     }
 
     memset(data,0,READ_MAX);
-    ret=Device_Read(self->fd, data, len, 0, 1000000);
-//    printf("ret is %d\r\n",ret);
+
+    ret=read(self->fd, data, len);
+
+    printf("ret is %d\r\n",ret);
 //    if(ret>0)
 //    {
 //        printf("Device Read is ");
@@ -147,24 +153,39 @@ STATIC mp_obj_t uart_write(mp_obj_t self_in,mp_obj_t date)
     size_t ret=0;
     size_t addr_len;
 
+    if(self->fd<=0)
+        return mp_const_false;
+
     const char *addr_str = mp_obj_str_get_data(date, &addr_len);
     if (addr_len == 0)
         return mp_const_none;
 
-    ret = Device_Write(self->fd, addr_str, addr_len, 0, 1000000);
+    ret = write(self->fd, addr_str, addr_len);
 
-//    printf("ret is %d\r\n",ret);
+    printf("ret is %d\r\n",ret);
 //    printf("addr_str is %s\r\n",addr_str);
 
     return mp_obj_new_int(ret);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(uart_write_obj, uart_write);
 
+
+STATIC mp_obj_t uart_close(mp_obj_t self_in)
+{
+    Python_Uart *self = MP_OBJ_TO_PTR(self_in);
+    close(self->fd);
+    self->fd=NULL;
+    return mp_const_none;
+}
+
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(uart_close_obj, uart_close);
+
 STATIC const mp_rom_map_elem_t uart_locals_dict_table[] = {
 
     { MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&uart_init_obj) },
     { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&uart_read_obj) },
     { MP_ROM_QSTR(MP_QSTR_write), MP_ROM_PTR(&uart_write_obj) },
+    { MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&uart_close_obj) },
 
 };
 
