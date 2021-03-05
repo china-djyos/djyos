@@ -345,7 +345,8 @@ bool_t Link_Push(struct NetDev  *iface,struct NetPkg *pkg,enum enLinkProto proto
                 ret = fnIPv4Deal(iface,pkg);
             }
             break;
-        case EN_LINKPROTO_IPV6:
+        case EN_LINKPROTO_IPV6: //在fnIPv4Deal(__IpPushNew)中，也有判断IP版本并分支处理
+                                //的代码，最终如何处理IPV6，待定
             if(NULL != fnIPv6Deal)
             {
                 ret = fnIPv6Deal(iface,pkg);

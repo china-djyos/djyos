@@ -1115,7 +1115,7 @@ struct Object *OBJ_MatchPath(const char *match, char **left)
                     break;
                 }
             }
-            else if(('\\' == path[1])&&('/' == path[1]))
+            else if(('\\' == path[1])||('/' == path[1]))
             {
                 path++;
                 continue;

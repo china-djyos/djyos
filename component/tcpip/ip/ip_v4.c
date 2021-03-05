@@ -293,6 +293,7 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
     return ret;
 }
 
+
 // =============================================================================
 // FUNCTION：This function is used to deal the ip mail,especially the ipv4
 // PARA  IN：pkg,which load the message, maybe an list
@@ -302,6 +303,7 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
 // INSTRUCT:
 // =============================================================================
 static bool_t __rcvhost(struct NetPkg *pkg, u32 devfunc)
+//bool_t IpV4Process(struct NetPkg *pkg,u32 devfunc)
 {
     bool_t                      ret;
     u8                          proto;
@@ -309,40 +311,28 @@ static bool_t __rcvhost(struct NetPkg *pkg, u32 devfunc)
     u32                         ipsrc;
     u32                         ipdst;
     tagV4PH                     *ph;
-//  u32                         devfunc;
     u16                         fragment;
     u16                         framlen;
     tagIpAddr                   addr;
 
     ret = true;
     ph = (tagV4PH *)PkgGetCurrentBuffer(pkg);
-//  ph = (tagV4PH *)(pkg->buf + pkg->offset);
     hdrlen = (ph->ver_len&0x0f)*4;
-//  devfunc = NetDev_GetFunc(iface);
     if((0 ==(devfunc &CN_IPDEV_IPICHKSUM))&&\
        (0 != IpChksumSoft16(ph,hdrlen,0,true)))
     {
         TCPIP_DEBUG_INC(gV4CB.rcvdrop);
         return ret;
     }
-//  memcpy(&fragment,&ph->fragment,sizeof(fragment));
     fragment = ph->fragment;
     fragment = ntohs(fragment);
-//  memcpy(&id,&ph->id,sizeof(id));
     proto = ph->protocol;
-//  memcpy(&ipdst,&ph->ipdst,sizeof(ipdst));
-//  memcpy(&ipsrc,&ph->ipsrc,sizeof(ipsrc));
     ipdst = ph->ipdst;
-//  ipdst = ntohl(ipdst);
     ipsrc = ph->ipsrc;
-//  ipsrc = ntohl(ipsrc);
-//  memcpy(&framlen,&ph->len,sizeof(framlen));
     framlen = ph->len;
     framlen = ntohs(framlen);
 
-//  pkg->offset += hdrlen;
     if(PkgGetDataLen(pkg) < framlen)
-//  if(pkg->datalen < framlen)
     {
         return ret;
     }
@@ -350,8 +340,6 @@ static bool_t __rcvhost(struct NetPkg *pkg, u32 devfunc)
     {
         PkgMoveOffsetUp(pkg,sizeof(tagV4PH));
         PkgSetDataLen(pkg, framlen - hdrlen);   //原datalen包含了以太网帧填充的数据
-//      PkgSetDataLen(pkg, framlen - hdrlen);
-//      pkg->datalen = framlen - hdrlen;
     }
     else
     {
@@ -373,24 +361,21 @@ static bool_t __rcvhost(struct NetPkg *pkg, u32 devfunc)
     return ret;
 }
 
+static bool_t __rcvsubnet(struct NetPkg *pkg, u32 devfunc)
+{
+    return false;
+}
 
 //use this to deal with the ipv4 package
 bool_t IpV4Process(struct NetPkg *pkg,u32 devfunc)
 {
     bool_t                      ret = true;
     u32                         ipdst;
-//    u32                         ipsrc;
     tagV4PH                     *ph;
 
     TCPIP_DEBUG_INC(gV4CB.rcvnum);
     ph = (tagV4PH *)PkgGetCurrentBuffer(pkg);
-//  ph = (tagV4PH *)(pkg->buf + pkg->offset);
     ipdst = ph->ipdst;
-//    ipdst = ntohl(ipdst);
-//    ipsrc = ph->ipsrc;
-//    ipsrc = ntohl(ipsrc);
-//  memcpy(&ipdst,&ph->ipdst,sizeof(ipdst));
-//  memcpy(&ipsrc,&ph->ipsrc,sizeof(ipsrc));
 
     tagRoutLink  rout;
     memset(&rout,0,sizeof(rout));
@@ -401,20 +386,20 @@ bool_t IpV4Process(struct NetPkg *pkg,u32 devfunc)
     {
         switch(rout.type)
         {
-            case EN_IPTYPE_V4_HOST:
+            case EN_IPTYPE_V4_HOST:     //目标ip是自环ip，实际上已经被本地ip统一了。
                 ret =__rcvhost(pkg,devfunc);
                 break;
-            case EN_IPTYPE_V4_LOCAL:
+            case EN_IPTYPE_V4_LOCAL:    //目标ip是本地ip
                 ret =__rcvhost(pkg,devfunc);
                 break;
-            case EN_IPTYPE_V4_BROAD:
+            case EN_IPTYPE_V4_BROAD:    //目标ip是广播ip
                 ret =__rcvhost(pkg,devfunc);
                 break;
-            case EN_IPTYPE_V4_MULTI:  //if permit the multi broad here
+            case EN_IPTYPE_V4_MULTI:    //目标ip是多播ip
                 ret =__rcvhost(pkg,devfunc);
                 break;
-            case EN_IPTYPE_V4_SUBNET: //if could do the forward,we will do this here--TODO,zhangqf
-                ret =__rcvhost(pkg,devfunc);
+            case EN_IPTYPE_V4_SUBNET:  //目标ip与本地ip处于同一个子网
+                ret =__rcvsubnet(pkg,devfunc);
                 break;
             default:
                 break;
@@ -422,7 +407,6 @@ bool_t IpV4Process(struct NetPkg *pkg,u32 devfunc)
     }
     return ret;
 }
-//static bool_t _V4Show(char *param)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"

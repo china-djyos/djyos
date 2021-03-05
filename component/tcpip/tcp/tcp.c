@@ -447,8 +447,6 @@ static bool_t __hashSocketAdd(struct tagSocket *sock)
     hashKey = v4->iplocal + v4->portlocal + v4->ipremote + v4->portremote;
     hashKey = hashKey%CFG_TCP_SOCKET_HASH_LEN;
 
-    if(hashKey == 7)        //lst debug
-        tmp = NULL;
     tmp = TcpHashTab.array[hashKey];
     if(NULL == tmp)
     {
@@ -888,11 +886,11 @@ static struct tagSocket * __tcpsocket(s32 family, s32 type, s32 protocal)
 #pragma GCC diagnostic pop
 
 // =============================================================================
-// FUNCTION:this function used to bind a address for the socket
-// PARA  IN:the parameters has the same meaning as bind
-// PARA OUT：
-// RETURN  :0 success while -1 failed
-// INSTRUCT:
+// 功能：给socket绑定一个地址，包含端口号和IP地址
+// 参数：sock，待绑定地址的socket
+//      addr：被绑定的地址
+//      addrlen：地址长度
+// 返回：0 success while -1 failed
 // =============================================================================
 static s32 __tcpbind(struct tagSocket *sock,struct sockaddr *addr, s32 addrlen)
 {
@@ -1963,6 +1961,7 @@ static s32 __closesocket(struct tagSocket *sock)
                     ccb = (struct ClientCB *)client->TplCB;
                     __ResetCCB(ccb,EN_TCP_MC_2FREE);
                     __DeleCCB(ccb);
+                    __hashSocketRemove(client);
                     SocketFree(client);
                 }
                 __ReseSCB(scb);
@@ -3393,7 +3392,6 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
     //ok,now we deal the pkg now, the pkg check success
     portdst = hdr->portdst;
     portsrc = hdr->portsrc;
-
     //if any client match this pkg
     Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER);
     if((sock = __hashSocketSearch(ipdst,portdst,ipsrc,portsrc)) != NULL)
@@ -3711,6 +3709,7 @@ static void __tcptick(void)
                         client->Nextsock = NULL;
                         __ResetCCB(ccb,EN_TCP_MC_2FREE);
                         __DeleCCB(ccb);
+                        __hashSocketRemove(client);
                         SocketFree(client);  //net_free the client
                         if (scb->pendnum > 0) {
                             scb->pendnum--;

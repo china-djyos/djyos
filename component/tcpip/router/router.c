@@ -154,9 +154,9 @@ struct RoutV4
 struct RoutItem4
 {
     struct RoutItem4    *nxt;           //point to the next rout item，NULL end
-    struct NetDev   *DevFace;       //point to the  interface binded
+    struct NetDev       *DevFace;       //point to the  interface binded
     struct RoutV4       *rout4;
-    tagRoutPro      pro;            //like the unix,we use G U R AND SO ON FLAGS
+    tagRoutPro           pro;            //like the unix,we use G U R AND SO ON FLAGS
 };
 struct RoutItem6
 {
@@ -453,8 +453,49 @@ static u8 __CheckOnes(u32 value)
     }
     return ret;
 }
-//we will match the destination
-//you also could use this function to do the address type check
+//------------------------------------------------------------------------------
+//功能：从路由表中搜索主机地址，如果该地址存在，则返回true。
+//参数：host，主机地址
+//返回：true = host存在，false= 不存在
+//------------------------------------------------------------------------------
+bool_t RouterSearchHost(struct in_addr host)
+{
+    bool_t ret = false;
+    struct RoutItem4 *tmp = NULL;
+    struct RoutV4   *v4;
+    struct NetDev *iface = NULL;
+
+    if(Lock_MutexPend(gRoutCB.lock,CN_TIMEOUT_FOREVER))
+    {
+        iface = NetDev_ForEachFromDefault(iface);
+        while(iface != NULL)
+        {
+            tmp = NetDev_GetIPv4RoutEntry(iface);
+            while(NULL != tmp)
+            {
+                v4 = tmp->rout4;
+                if(v4->host.s_addr == host.s_addr)  //主机地址
+                {
+                    ret = true;
+                    break;
+                }
+                else
+                {
+                    tmp = tmp->nxt;
+                }
+            }
+            if(NULL != tmp)
+            {
+                break;
+            }
+            else
+                iface = NetDev_ForEachFromDefault(iface);
+        }
+        Lock_MutexPost(gRoutCB.lock);
+    }
+    return ret;
+}
+
 //-----------------------------------------------------------------------------
 //功能：路由条目匹配，调用前，para的 ver 和 dst 成员必须赋值，本函数将填充 type 和
 //     iface、hop（用于发送）和hostip（用于接收处理） 成员。
@@ -493,6 +534,10 @@ bool_t RouterMatch(tagRoutLink *para)
                     tmp = NetDev_GetIPv4RoutEntry(iface);
                     while(NULL != tmp)
                     {
+                        //比较顺序：1、是否与主机地址相同，
+                        //         2、是否网络地址相同且其他位全1,=广播地址
+                        //         3、是否在同一个子网内的其他主机
+                        //todo：改为每个步骤都比较所有路由条目，再进行下一步骤比较。
                         v4 = tmp->rout4;
                         if(v4->host.s_addr == addr.s_addr)  //主机地址
                         {
@@ -515,7 +560,7 @@ bool_t RouterMatch(tagRoutLink *para)
                         }
                         else if(((~v4->mask.s_addr & addr.s_addr) == ~v4->mask.s_addr)
                                 && ((v4->mask.s_addr & addr.s_addr) == v4->net.s_addr) )
-                        {   //广播地址：除网络地址外，其他位数全1
+                        {   //广播地址：网络地址相同，其他位数全1
                             para->type = EN_IPTYPE_V4_BROAD;
                             v4 = tmp->rout4;
                             para->DevFace = tmp->DevFace;
@@ -563,9 +608,9 @@ bool_t RouterMatch(tagRoutLink *para)
                     else
                         iface = NetDev_ForEachFromDefault(iface);
                 }
-                if(NULL == tmp)     //没有找到匹配的路由，相当于匹配全0路由
+                if((NULL == tmp) && (-1 ==addr.s_addr))     //没有找到匹配的路由，检查是否广播地址
                 {
-                    para->type = EN_IPTYPE_V4_SUBNET;   //全0路由的子网
+                    para->type = EN_IPTYPE_V4_BROAD;   //全0路由的子网
                     iface = NetDev_GetDefault();
                     para->DevFace = iface;
                     if(NULL != para->HopIP)             //从默认网卡取下一跳
@@ -809,9 +854,12 @@ struct RoutItem6 *__Router_GetNextV6(struct RoutItem6 *Item)
 {
     return Item->nxt;
 }
+
 //-----------------------------------------------------------------------------
-//功能：创建并设置主机路由，即自环路由条目，自环条目虽然属于 “loop”网卡，但并不挂在网
-//     卡的 数据结构中，而是在路由控制块 gRoutCB 中。
+//功能：创建并设置主机路由，即自环路由条目，自环条目属于 “loop”网卡，除了挂在网卡的 数
+//      据结构的路由表入口外，也在路由控制块 gRoutCB 中。因为一台主机可以有多个ip（即路由
+//      条目的host），但不管给哪个host发数据，都应该是自环，使用自环条目，故把自环条目
+//      独立保存在 gRoutCB.v4host 或 gRoutCB.v6host 中。
 //参数：ver，路由条目版本，EN_IPV_4 或 EN_IPV_6
 //      ifname，已经由 NetDev_Install 安装的网卡名字
 //返回：无
@@ -837,6 +885,11 @@ void RouterSetHost(enum_ipv_t ver,const char *ifname)
 }
 
 //add a route to the hosts
+//------------------------------------------------------------------------------
+//功能：添加路由条目并把它加入到网卡的路由表中
+//参数：para，参数结构指针
+//返回：新添加的路由条目，因可能是struct RoutItem4/6，故用void*
+//------------------------------------------------------------------------------
 void *RouterCreate(tagRouterPara *para)
 {
     void *ret = NULL;
@@ -913,7 +966,7 @@ void *RouterCreate(tagRouterPara *para)
             }
             else
             {
-                //not implement yet --TODO
+                //IPv6 not implement yet
             }
             ret = newitem;
         }

@@ -834,7 +834,11 @@ static int __FTP_DomainMsgDeal(tagFtpClient* client, char *buf)
     {
         result = __FTP_DomainCmdRmdDeal(client,parameter_ptr);
     }
-
+    else if(__FTP_DomainMatchCmd(buf, "noop"))
+    {
+        __FTP_DomainSndResponse(client,CN_CMDSUCCESS,"noop command successful");
+        result = 0;
+    }
     else if(__FTP_DomainMatchCmd(buf, "QUIT"))
     {
         __FTP_DomainSndResponse(client,CN_LOGOUT,"QUIT CMD,bye");
