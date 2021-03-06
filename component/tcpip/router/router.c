@@ -527,7 +527,6 @@ bool_t RouterMatch(tagRoutLink *para)
             }
             else
             {
-//              tmp = gRoutCB.v4lst;
                 iface = NetDev_ForEachFromDefault(iface);
                 while(iface != NULL)
                 {
@@ -608,9 +607,12 @@ bool_t RouterMatch(tagRoutLink *para)
                     else
                         iface = NetDev_ForEachFromDefault(iface);
                 }
-                if((NULL == tmp) && (-1 ==addr.s_addr))     //没有找到匹配的路由，检查是否广播地址
+                if(NULL == tmp)
                 {
-                    para->type = EN_IPTYPE_V4_BROAD;   //全0路由的子网
+                    if(-1 ==addr.s_addr)
+                        para->type = EN_IPTYPE_V4_BROAD;
+                    else
+                        para->type = EN_IPTYPE_V4_UNKOWN;
                     iface = NetDev_GetDefault();
                     para->DevFace = iface;
                     if(NULL != para->HopIP)             //从默认网卡取下一跳

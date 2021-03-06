@@ -222,6 +222,9 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
             case EN_IPTYPE_V4_HOST:
                 devtask |= CN_IPDEV_IPUNI;
                 break;
+            case EN_IPTYPE_V4_UNKOWN:
+                devtask |= CN_IPDEV_IPUNI;
+                break;
             case EN_IPTYPE_V4_LOCAL:
                 devtask |= CN_IPDEV_IPUNI;
                 break;
