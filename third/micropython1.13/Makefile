@@ -35,20 +35,33 @@ CFLAGS += -fdata-sections -ffunction-sections
 endif
 
 LIBS =
+#DSRC_C = \
+#	$(DJYOSPORT)/djympy.c \
+#	$(DJYOSPORT)/djythread.c \
+#	$(DJYOSPORT)/mphalport.c \
+#	$(DJYOSPORT)/modusocket.c \
 
-SRC_C = \
+
+SRC_C = $(DSRC_C)\
 	$(DJYOSPORT)/djympy.c \
 	$(DJYOSPORT)/djythread.c \
 	$(DJYOSPORT)/mphalport.c \
+	$(DJYOSPORT)/modusocket.c \
+ 	$(DJYOSPORT)/module-example.o \
+  	$(DJYOSPORT)/djy-fs.o \
+  	$(DJYOSPORT)/machine.o \
+  	$(DJYOSPORT)/pin.o \
+  	$(DJYOSPORT)/uart.o \
 	lib/netutils/netutils.c \
 	lib/utils/printf.c \
 	lib/utils/stdout_helpers.c \
 	lib/utils/pyexec.c \
 	lib/utils/interrupt_char.c \
 	lib/mp-readline/readline.c \
-	$(BUILD)/_frozen_mpy.c \
+#	$(BUILD)/_frozen_mpy.c \
 
 SRC_C += lib/libc/string0.c
+SRC_QSTR += $(SRC_C)
 
 OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
 

@@ -47,7 +47,7 @@ def find_module_registrations(c_file):
         # No c file to match the object file, skip
         return set()
 
-    with io.open(c_file, encoding="utf-8") as c_file_obj:
+    with io.open(c_file, encoding="ansi") as c_file_obj:
         return set(re.findall(pattern, c_file_obj.read()))
 
 

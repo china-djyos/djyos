@@ -3529,6 +3529,7 @@
 			<F N="py/grammar.h"/>
 			<F N="py/lexer.c"/>
 			<F N="py/lexer.h"/>
+			<F N="py/machine.c"/>
 			<F N="py/makecompresseddata.py"/>
 			<F N="py/makemoduledefs.py"/>
 			<F N="py/makeqstrdata.py"/>
@@ -3637,6 +3638,8 @@
 			<F N="py/parsenumbase.h"/>
 			<F N="py/persistentcode.c"/>
 			<F N="py/persistentcode.h"/>
+			<F N="py/pin.c"/>
+			<F N="py/pin.h"/>
 			<F N="py/profile.c"/>
 			<F N="py/profile.h"/>
 			<F N="py/py.mk"/>
@@ -3666,6 +3669,8 @@
 			<F N="py/stackctrl.h"/>
 			<F N="py/stream.c"/>
 			<F N="py/stream.h"/>
+			<F N="py/uart.c"/>
+			<F N="py/uart.h"/>
 			<F N="py/unicode.c"/>
 			<F N="py/unicode.h"/>
 			<F N="py/vm.c"/>
@@ -5114,6 +5119,9 @@
 		<F N="component_config_micropython.h"/>
 		<F N="CONTRIBUTING.md"/>
 		<F N="LICENSE"/>
+		<F
+			N="Makefile"
+			Type="Makefile"/>
 		<F N="README.md"/>
 	</Files>
 </Project>

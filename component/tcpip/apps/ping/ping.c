@@ -160,7 +160,7 @@ bool_t PING(char *param)
         }
         else
         {
-            debug_printf("ping","%s:Unknown host:%s\n\r",__FUNCTION__,param);
+            printf("ping","%s:Unknown host:%s\n\r",__FUNCTION__,param);
             return true;
         }
     }
@@ -190,16 +190,16 @@ bool_t PING(char *param)
         {
             timeend = (u32)DJY_GetSysTime();
             timeused = (u32)(timeend - timestart);
-            debug_printf("ping","0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
+            printf("ping","0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
             DJY_EventDelay(waittime);
             numrcv++;
         }
         else
         {
-            debug_printf("ping","0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
+            printf("ping","0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
         }
     }
-        debug_printf("ping","%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
+        printf("ping","%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
     net_free(buf);
     return true;
 }
