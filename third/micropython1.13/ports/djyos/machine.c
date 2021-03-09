@@ -32,12 +32,14 @@
 
 extern const struct _mp_obj_type_t pin_type;
 extern const struct _mp_obj_type_t uart_type;
+extern const struct _mp_obj_type_t machine_timer_type;
 
 STATIC const mp_rom_map_elem_t mp_module_machine_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_machine) },
 
     { MP_ROM_QSTR(MP_QSTR_Pin), MP_ROM_PTR(&pin_type) },
     { MP_ROM_QSTR(MP_QSTR_UART), MP_ROM_PTR(&uart_type) },
+    { MP_ROM_QSTR(MP_QSTR_Timer), MP_ROM_PTR(&machine_timer_type) },
 
 };
 
