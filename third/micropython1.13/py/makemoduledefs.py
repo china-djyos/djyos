@@ -7,6 +7,7 @@
 
 from __future__ import print_function
 
+from pathlib import Path, PureWindowsPath
 import re
 import io
 import os
@@ -27,7 +28,20 @@ def find_c_file(obj_file, vpath):
     relative_c_file = os.path.splitext(obj_file)[0] + ".c"
     relative_c_file = relative_c_file.lstrip("/\\")
     for p in vpath:
-        possible_c_file = os.path.join(p, relative_c_file)
+ 
+        # 将路径转换为 Windows 格式
+        filename = PureWindowsPath(p)
+        
+        # 将路径转换为适用当前操作系统的正确格式
+        correct_path  = Path(filename)
+        
+        path_list = list(str(correct_path))      
+        if path_list[0] == '\\':
+            path_list[0]=path_list[1]
+            path_list[1]=':'
+            correct_path = ''.join(path_list)
+
+        possible_c_file = os.path.join(correct_path, relative_c_file)
         if os.path.exists(possible_c_file):
             c_file = possible_c_file
             break
@@ -97,7 +111,7 @@ def main():
     args = parser.parse_args()
 
     vpath = [p.strip() for p in args.vpath.split(",")]
-
+    
     modules = set()
     for obj_file in args.files:
         c_file = find_c_file(obj_file, vpath)
