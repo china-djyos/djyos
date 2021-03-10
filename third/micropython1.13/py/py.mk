@@ -158,7 +158,6 @@ PY_CORE_O_BASENAME = $(addprefix py/,\
 	modstruct.o \
 	modsys.o \
 	moduerrno.o \
-	modutime.o \
 	modthread.o \
 	vm.o \
 	bc.o \

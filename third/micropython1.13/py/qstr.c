@@ -113,7 +113,6 @@ const qstr_pool_t mp_qstr_const_pool = {
         #endif
     },
 };
-#define MICROPY_QSTR_EXTRA_POOL     mp_qstr_frozen_const_pool
 
 #ifdef MICROPY_QSTR_EXTRA_POOL
 extern const qstr_pool_t MICROPY_QSTR_EXTRA_POOL;

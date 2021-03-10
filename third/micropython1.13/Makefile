@@ -33,7 +33,7 @@ else
 CFLAGS += -Os -DNDEBUG
 CFLAGS += -fdata-sections -ffunction-sections
 endif
-
+#coping1234
 LIBS =
 #DSRC_C = \
 #	$(DJYOSPORT)/djympy.c \
@@ -47,11 +47,12 @@ SRC_C = $(DSRC_C)\
 	$(DJYOSPORT)/djythread.c \
 	$(DJYOSPORT)/mphalport.c \
 	$(DJYOSPORT)/modusocket.c \
- 	$(DJYOSPORT)/module-example.o \
-  	$(DJYOSPORT)/djy-fs.o \
-  	$(DJYOSPORT)/machine.o \
-  	$(DJYOSPORT)/pin.o \
-  	$(DJYOSPORT)/uart.o \
+ 	$(DJYOSPORT)/module-example.c \
+  	$(DJYOSPORT)/djy-fs.c \
+  	$(DJYOSPORT)/machine.c \
+  	$(DJYOSPORT)/pin.c \
+  	$(DJYOSPORT)/uart.c \
+  	$(DJYOSPORT)/modutime.c \
 	lib/netutils/netutils.c \
 	lib/utils/printf.c \
 	lib/utils/stdout_helpers.c \

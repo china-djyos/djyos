@@ -2765,13 +2765,19 @@
 		</Folder>
 		<Folder Name="ports">
 			<Folder Name="djyos">
+				<F N="ports/djyos/djy-fs.c"/>
 				<F N="ports/djyos/djympy.c"/>
 				<F N="ports/djyos/djythread.c"/>
+				<F N="ports/djyos/machine.c"/>
+				<F N="ports/djyos/module-example.c"/>
+				<F N="ports/djyos/modusocket.c"/>
 				<F N="ports/djyos/mpconfigport.h"/>
 				<F N="ports/djyos/mphalport.c"/>
 				<F N="ports/djyos/mphalport.h"/>
 				<F N="ports/djyos/mpthreadport.h"/>
+				<F N="ports/djyos/pin.c"/>
 				<F N="ports/djyos/qstrdefsport.h"/>
+				<F N="ports/djyos/uart.c"/>
 			</Folder>
 			<Folder Name="stm32">
 				<Folder Name="boards">
@@ -3503,7 +3509,6 @@
 			<F N="py/builtinimport.c"/>
 			<F N="py/compile.c"/>
 			<F N="py/compile.h"/>
-			<F N="py/djy-fs.c"/>
 			<F N="py/dynruntime.h"/>
 			<F N="py/dynruntime.mk"/>
 			<F N="py/emit.h"/>
@@ -3529,7 +3534,6 @@
 			<F N="py/grammar.h"/>
 			<F N="py/lexer.c"/>
 			<F N="py/lexer.h"/>
-			<F N="py/machine.c"/>
 			<F N="py/makecompresseddata.py"/>
 			<F N="py/makemoduledefs.py"/>
 			<F N="py/makeqstrdata.py"/>
@@ -3553,7 +3557,6 @@
 			<F N="py/modthread.c"/>
 			<F N="py/moduerrno.c"/>
 			<F N="py/module-example.c"/>
-			<F N="py/modusocket.c"/>
 			<F N="py/modutime.c"/>
 			<F N="py/mpconfig.h"/>
 			<F N="py/mperrno.h"/>
@@ -3638,7 +3641,6 @@
 			<F N="py/parsenumbase.h"/>
 			<F N="py/persistentcode.c"/>
 			<F N="py/persistentcode.h"/>
-			<F N="py/pin.c"/>
 			<F N="py/pin.h"/>
 			<F N="py/profile.c"/>
 			<F N="py/profile.h"/>
@@ -3669,7 +3671,6 @@
 			<F N="py/stackctrl.h"/>
 			<F N="py/stream.c"/>
 			<F N="py/stream.h"/>
-			<F N="py/uart.c"/>
 			<F N="py/uart.h"/>
 			<F N="py/unicode.c"/>
 			<F N="py/unicode.h"/>
