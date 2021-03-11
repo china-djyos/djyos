@@ -53,6 +53,7 @@ SRC_C = $(DSRC_C)\
   	$(DJYOSPORT)/pin.c \
   	$(DJYOSPORT)/uart.c \
   	$(DJYOSPORT)/modutime.c \
+  	$(DJYOSPORT)/timer.c \
 	lib/netutils/netutils.c \
 	lib/utils/printf.c \
 	lib/utils/stdout_helpers.c \

@@ -257,11 +257,17 @@ STATIC mp_uint_t djy_file_obj_ioctl(mp_obj_t o_in, mp_uint_t request, uintptr_t 
 mp_import_stat_t mp_import_stat(const char *path)
 {
     struct stat mstat;
-    stat(path, &mstat);
-    if (mstat.st_mode & S_IFREG)
-        return MP_IMPORT_STAT_FILE;
-    else  if(mstat.st_mode & S_IFDIR)
-        return MP_IMPORT_STAT_DIR;
+    s32 res;
+    res = stat(path, &mstat);
+    if (res != -1)
+    {
+        if (mstat.st_mode & S_IFREG)
+            return MP_IMPORT_STAT_FILE;
+        else  if(mstat.st_mode & S_IFDIR)
+            return MP_IMPORT_STAT_DIR;
+        else
+            return MP_IMPORT_STAT_NO_EXIST;
+    }
     else
         return MP_IMPORT_STAT_NO_EXIST;
 }
