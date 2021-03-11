@@ -262,9 +262,9 @@ $(HEADER_BUILD)/compressed.data.h: $(HEADER_BUILD)/compressed.collected
 # build a list of registered modules for py/objmodule.c.
 $(HEADER_BUILD)/moduledefs.h: $(SRC_QSTR) $(QSTR_GLOBAL_DEPENDENCIES) | $(HEADER_BUILD)/mpversion.h
 	@$(ECHO) "GEN $@"
-	$(Q)$(PYTHON) $(PY_SRC)/makemoduledefs.py --vpath="., D:\DIDE\djysrc\third\micropython1.13, $(USER_C_MODULES)" $(SRC_QSTR) > $@
+#	$(Q)$(PYTHON) $(PY_SRC)/makemoduledefs.py --vpath="., D:\DIDE\djysrc\third\micropython1.13, $(USER_C_MODULES)" $(SRC_QSTR) > $@
 # 暂且用绝对路径替代，否则生成的moduledefs.h实质上是空的。
-#	$(Q)$(PYTHON) $(PY_SRC)/makemoduledefs.py --vpath="., $(TOP), $(USER_C_MODULES)" $(SRC_QSTR) > $@
+	$(Q)$(PYTHON) $(PY_SRC)/makemoduledefs.py --vpath="., $(TOP), $(USER_C_MODULES)" $(SRC_QSTR) > $@
 
 SRC_QSTR += $(HEADER_BUILD)/moduledefs.h
 

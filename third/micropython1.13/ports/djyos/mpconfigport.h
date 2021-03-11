@@ -15,7 +15,7 @@
 #define MICROPY_COMP_CONST          (0)
 #define MICROPY_COMP_DOUBLE_TUPLE_ASSIGN (0)
 #define MICROPY_ENABLE_GC           (1)     //垃圾收集
-#define MICROPY_ENABLE_FINALISER    (0)     //析构器，用于垃圾收集
+#define MICROPY_ENABLE_FINALISER    (1)     //析构器，用于垃圾收集
 #define MICROPY_GC_ALLOC_THRESHOLD  (0)
 #define MICROPY_HELPER_REPL         (1)
 #define MICROPY_ERROR_REPORTING     (MICROPY_ERROR_REPORTING_TERSE)

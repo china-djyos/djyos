@@ -51,6 +51,8 @@ SRC_C = $(DSRC_C)\
   	$(DJYOSPORT)/djy-fs.c \
   	$(DJYOSPORT)/machine.c \
   	$(DJYOSPORT)/pin.c \
+  	$(DJYOSPORT)/pin_stem32.c \
+  	$(DJYOSPORT)/pin_beken.c \
   	$(DJYOSPORT)/uart.c \
   	$(DJYOSPORT)/modutime.c \
   	$(DJYOSPORT)/timer.c \

@@ -472,7 +472,7 @@ STATIC mp_obj_t mod_usocket_getaddrinfo(mp_obj_t host_in, mp_obj_t port_in)
     memset(&hint, 0, sizeof(hint));
 
     MP_THREAD_GIL_EXIT();
-    ret = getaddrinfo(host, NULL, &hint, &res);
+    ret = getaddrinfo(host, NULL, NULL, &res);
     MP_THREAD_GIL_ENTER();
     if (ret != 0) {
         mp_printf(&mp_plat_print, "getaddrinfo err: %d '%s'\n", ret, host);
