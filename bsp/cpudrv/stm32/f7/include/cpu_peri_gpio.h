@@ -186,4 +186,20 @@ unsigned char PIO_Get( const Pin *pin );
 }
 #endif
 
+
+#define MGPIO_PIN_IN        GPIO_MODE_IN       //普通输入模式
+#define MGPIO_PIN_OUT       GPIO_MODE_OUT       //普通输出模式
+#define MGPIO_PIN_AF        GPIO_MODE_AF       //AF功能模式
+
+#define MGPIO_PIN_PULLNONE        GPIO_PUPD_NONE       //不带上下拉
+#define MGPIO_PIN_PULLUP          GPIO_PUPD_PU       //上拉
+#define MGPIO_PIN_PULLDOWM        GPIO_PUPD_PD       //下拉
+
+void PIN_Init(void *str,char *data);
+u32 PIN_Get(void *str,char *data);
+void PIN_SettoHigh(void *str,char *data);
+void PIN_SettoLow(void *str,char *data);
+void PIN_PowerOn(void *str,char *data);
+void PIN_PowerOff(void *str,char *data);
+
 #endif /*__cpu_peri_gpio_h_*/
