@@ -33,7 +33,7 @@ else
 CFLAGS += -Os -DNDEBUG
 CFLAGS += -fdata-sections -ffunction-sections
 endif
-#coping1234
+
 LIBS =
 #DSRC_C = \
 #	$(DJYOSPORT)/djympy.c \

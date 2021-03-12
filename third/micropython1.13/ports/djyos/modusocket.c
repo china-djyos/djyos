@@ -30,6 +30,7 @@
 #include <string.h>
 #include <systime.h>
 #include <net/sys/socket.h>
+#include <sys/select.h>
 #include <net/netdb.h>
 #include "py/objtuple.h"
 #include "py/objlist.h"
@@ -193,37 +194,9 @@ STATIC mp_obj_t socket_send(mp_obj_t self_in, mp_obj_t buf_in)
 {
     mod_network_socket_obj_t *self = MP_OBJ_TO_PTR(self_in);
     mp_buffer_info_t bufinfo;
-//  mp_uint_t limittime;
     u32 sz_out;
-//  s64 starttime;
-//  u32 completed=0;
-//
-//  limittime = self->TimeOut;
-//  if (limittime != CN_TIMEOUT_FOREVER)
-//      starttime = DJY_GetSysTime();
 
     mp_get_buffer_raise(buf_in, &bufinfo, MP_BUFFER_READ);
-//  while (1)
-//  {
-//      sz_out = send(self->mysockfd, bufinfo.buf+completed, bufinfo.len-completed, 0);
-//      if (sz_out != -1)
-//      {
-//          completed +=sz_out;
-//          if (completed < bufinfo.len)
-//          {
-//              if ((mp_uint_t)(DJY_GetSysTime() - starttime)/1000 >= limittime)
-//              {
-//                  break;
-//              }
-//              MICROPY_EVENT_POLL_HOOK;
-//              DJY_EventDelay(SOCKET_SYSBLOCK_TIME * mS);
-//          }
-//          else
-//              break;
-//      }
-//      else
-//          break;
-//  }
     MP_THREAD_GIL_EXIT();
     sz_out = send(self->mysockfd, bufinfo.buf, bufinfo.len, 0);
     MP_THREAD_GIL_ENTER();
@@ -239,30 +212,8 @@ STATIC mp_obj_t socket_recv(mp_obj_t self_in, mp_obj_t len_in)
     mp_int_t len = mp_obj_get_int(len_in);
     vstr_t vstr;
     mp_int_t ret;
-//  mp_uint_t limittime;
-//  s64 starttime;
-//
-//  limittime = self->TimeOut;
-//  if (limittime != CN_TIMEOUT_FOREVER)
-//      starttime = DJY_GetSysTime();
 
     vstr_init_len(&vstr, len);
-//  while (1)
-//  {
-//      ret = recv(self->mysockfd, (byte *)vstr.buf,len, 0);
-//      if (ret != 0)
-//          break;
-//      else
-//      {
-//          if (limittime != CN_TIMEOUT_FOREVER)
-//          {
-//              if ((mp_uint_t)(DJY_GetSysTime() - starttime)/1000 >= limittime)
-//                  break;
-//          }
-//      }
-//      MICROPY_EVENT_POLL_HOOK;
-//      DJY_EventDelay(SOCKET_SYSBLOCK_TIME * mS);
-//  }
 
     MP_THREAD_GIL_EXIT();
     ret = recv(self->mysockfd, (byte *)vstr.buf,len, 0);
@@ -309,30 +260,8 @@ STATIC mp_obj_t socket_recvfrom(mp_obj_t self_in, mp_obj_t len_in) {
     mp_int_t ret;
     vstr_t vstr;
     s32 len =  sizeof(ipportaddr);
-//  mp_uint_t limittime;
-//  s64 starttime;
-//  limittime = self->TimeOut;
-//  if (limittime != CN_TIMEOUT_FOREVER)
-//      starttime = DJY_GetSysTime();
 
     vstr_init_len(&vstr, mp_obj_get_int(len_in));
-
-//  while(1)
-//  {
-//      ret = recvfrom(self->mysockfd, vstr.buf, vstr.len,0,(struct sockaddr *)&ipportaddr,&len);
-//      if (ret != 0)
-//          break;
-//      else
-//      {
-//          if (limittime != CN_TIMEOUT_FOREVER)
-//          {
-//              if ((mp_uint_t)(DJY_GetSysTime() - starttime)/1000 >= limittime)
-//                  break;
-//          }
-//      }
-//      MICROPY_EVENT_POLL_HOOK;
-//      DJY_EventDelay(SOCKET_SYSBLOCK_TIME * mS);
-//  }
 
     MP_THREAD_GIL_EXIT();
     ret = recvfrom(self->mysockfd, vstr.buf, vstr.len,0,(struct sockaddr *)&ipportaddr,&len);
@@ -442,10 +371,38 @@ STATIC const mp_rom_map_elem_t socket_locals_dict_table[] = {
 };
 
 STATIC MP_DEFINE_CONST_DICT(socket_locals_dict, socket_locals_dict_table);
+
+
+STATIC mp_uint_t socket_stream_read(mp_obj_t self_in, void *buf, mp_uint_t size, int *errcode)
+{
+    mod_network_socket_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_uint_t ret;
+
+    MP_THREAD_GIL_EXIT();
+    ret = (mp_uint_t)recv(self->mysockfd, buf,size, 0);
+    MP_THREAD_GIL_ENTER();
+    if (ret == 0)
+        *errcode = errno;
+    return ret;
+}
+
+STATIC mp_uint_t socket_stream_write(mp_obj_t self_in, const void *buf, mp_uint_t size, int *errcode)
+{
+    mod_network_socket_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_uint_t ret;
+
+    MP_THREAD_GIL_EXIT();
+    ret = (mp_uint_t)send(self->mysockfd, buf, size, 0);
+    MP_THREAD_GIL_ENTER();
+    if (ret == 0)
+        *errcode = errno;
+    return (ret);
+}
+
 STATIC mp_uint_t socket_stream_ioctl(mp_obj_t self_in, mp_uint_t request, uintptr_t arg, int *errcode) {
     mod_network_socket_obj_t *socket = MP_OBJ_TO_PTR(self_in);
     if (request == MP_STREAM_POLL) {
-#if 0
+#if 1
         fd_set rfds; FD_ZERO(&rfds);
         fd_set wfds; FD_ZERO(&wfds);
         fd_set efds; FD_ZERO(&efds);
@@ -487,8 +444,8 @@ STATIC mp_uint_t socket_stream_ioctl(mp_obj_t self_in, mp_uint_t request, uintpt
 }
 
 STATIC const mp_stream_p_t socket_stream_p = {
-//  .read = socket_stream_read,
-//  .write = socket_stream_write,
+    .read = socket_stream_read,
+    .write = socket_stream_write,
     .ioctl = socket_stream_ioctl,
     .is_text = false,
 };
@@ -515,7 +472,7 @@ STATIC mp_obj_t mod_usocket_getaddrinfo(mp_obj_t host_in, mp_obj_t port_in)
     memset(&hint, 0, sizeof(hint));
 
     MP_THREAD_GIL_EXIT();
-    ret = getaddrinfo(host, NULL, &hint, &res);
+    ret = getaddrinfo(host, NULL, NULL, &res);
     MP_THREAD_GIL_ENTER();
     if (ret != 0) {
         mp_printf(&mp_plat_print, "getaddrinfo err: %d '%s'\n", ret, host);
