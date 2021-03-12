@@ -29,6 +29,7 @@
 #include <string.h>
 #include "py/obj.h"
 #include "cpu_peri_gpio.h"
+#include "board_mp_pin.h"
 
 #define MOD_PIN_IN (0)
 #define MOD_PIN_OUT (1)
@@ -47,15 +48,58 @@ const mp_obj_type_t pin_type;
 //    mp_printf(print, "gpio %d get is %d",self->ppin->PORT, PIO_Get(self->ppin));
 //
 //}
+typedef struct _MP_PIN
+{
+    mp_obj_base_t base;
+    mp_obj_t *str;
+    char data[10];
+}MP_PIN;
 
 mp_obj_t mp_pin_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
 
-    return MP_OBJ_FROM_PTR(chip_pin_make_new(args,n_args,&pin_type));
+    mp_obj_t *addr_items;
+    size_t addr_len;
+
+    MP_PIN *p = m_new_obj_with_finaliser(MP_PIN);
+    p->str = m_new_obj_with_finaliser(mp_obj_t);
+    if (n_args >= 1)
+    {
+        mp_obj_get_array_fixed_n(args[0], 2, &addr_items);
+        const char *addr_str = mp_obj_str_get_data(addr_items[0], &addr_len);
+        if (addr_len == 0) {
+            return mp_const_none;
+        }
+        p->str = addr_str ;
+        p->data[0] = mp_obj_get_int(addr_items[1]);
+    }
+
+    if(n_args >= sizeof(p->data))
+        n_args=sizeof(p->data);
+
+    for(int i=2;i<=n_args;i++)
+    {
+        p->data[i-1] = mp_obj_get_int(args[i-1]);
+    }
+
+    p->base.type = &pin_type;
+
+    chip_pin_init(p->str,p->data);
+
+    return MP_OBJ_FROM_PTR(p);
 }
 
 STATIC mp_obj_t pin_obj_init(size_t n_args , const mp_obj_t *args) {
 
-    return chip_pin_obj_init(MP_OBJ_TO_PTR(args[0]),n_args,args);
+    MP_PIN *self = MP_OBJ_TO_PTR(args[0]);
+
+    if(n_args>=2)
+        self->data[1] = mp_obj_get_int(args[1]);
+    if(n_args>=3)
+        self->data[2] = mp_obj_get_int(args[2]);
+
+    chip_pin_init(self->str,self->data);
+
+    return mp_const_true;
 
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pin_init_obj, 2, 3, pin_obj_init);
@@ -63,32 +107,60 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pin_init_obj, 2, 3, pin_obj_init);
 
 STATIC mp_obj_t pin_obj_value(size_t n_args , const mp_obj_t *args) {
 
-    return chip_pin_obj_value(MP_OBJ_TO_PTR(args[0]),n_args,args);
+    MP_PIN *self = MP_OBJ_TO_PTR(args[0]);
+    size_t value;
+
+    if (n_args == 1)
+    {
+        return mp_obj_new_int(chip_pin_get(self->str,self->data));
+    }
+    else
+    {
+        value = mp_obj_get_int(args[1]);
+        if(value)
+        {
+            chip_pin_set_high(self->str,self->data);
+        }
+        else
+        {
+            chip_pin_set_low(self->str,self->data);
+        }
+
+    }
+    return mp_const_none;
 
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pin_value_obj, 1, 2, pin_obj_value);
 
 STATIC mp_obj_t pin_off(mp_obj_t self_in)
 {
-    return chip_pin_off(MP_OBJ_TO_PTR(self_in));
+    MP_PIN *self = MP_OBJ_TO_PTR(self_in);
+    chip_pin_power_off(self->str,self->data);
+    return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_off_obj, pin_off);
 
 STATIC mp_obj_t pin_on(mp_obj_t self_in)
 {
-    return chip_pin_on(MP_OBJ_TO_PTR(self_in));
+    MP_PIN *self = MP_OBJ_TO_PTR(self_in);
+    chip_pin_power_on(self->str,self->data);
+    return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_on_obj, pin_on);
 
 STATIC mp_obj_t pin_low(mp_obj_t self_in)
 {
-    return chip_pin_low(MP_OBJ_TO_PTR(self_in));
+    MP_PIN *self = MP_OBJ_TO_PTR(self_in);
+    chip_pin_set_low(self->str,self->data);
+    return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_low_obj, pin_low);
 
 STATIC mp_obj_t pin_high(mp_obj_t self_in)
 {
-    return chip_pin_high(MP_OBJ_TO_PTR(self_in));
+    MP_PIN *self = MP_OBJ_TO_PTR(self_in);
+    chip_pin_set_high(self->str,self->data);
+    return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_high_obj, pin_high);
 
