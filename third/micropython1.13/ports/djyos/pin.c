@@ -76,7 +76,7 @@ mp_obj_t mp_pin_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, 
 
     p->base.type = &pin_type;
 
-    PIN_Init(p->str,p->data);
+    PIN_Init(p->str,p->data,n_args);
 
     return MP_OBJ_FROM_PTR(p);
 }
@@ -90,7 +90,7 @@ STATIC mp_obj_t pin_obj_init(size_t n_args , const mp_obj_t *args) {
     if(n_args>=3)
         self->data[2] = mp_obj_get_int(args[2]);
 
-    PIN_Init(self->str,self->data);
+    PIN_Init(self->str,self->data,n_args);
 
     return mp_const_true;
 
@@ -105,18 +105,18 @@ STATIC mp_obj_t pin_obj_value(size_t n_args , const mp_obj_t *args) {
 
     if (n_args == 1)
     {
-        return mp_obj_new_int(PIN_Get(self->str,self->data));
+        return mp_obj_new_int(PIN_Get(self->str,self->data,0));
     }
     else
     {
         value = mp_obj_get_int(args[1]);
         if(value)
         {
-            PIN_SettoHigh(self->str,self->data);
+            PIN_SettoHigh(self->str,self->data,0);
         }
         else
         {
-            PIN_SettoLow(self->str,self->data);
+            PIN_SettoLow(self->str,self->data,0);
         }
 
     }
@@ -128,7 +128,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pin_value_obj, 1, 2, pin_obj_value);
 STATIC mp_obj_t pin_off(mp_obj_t self_in)
 {
     struct MP_PIN *self = MP_OBJ_TO_PTR(self_in);
-    PIN_PowerOff(self->str,self->data);
+    PIN_PowerOff(self->str,self->data,0);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_off_obj, pin_off);
@@ -136,7 +136,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_off_obj, pin_off);
 STATIC mp_obj_t pin_on(mp_obj_t self_in)
 {
     struct MP_PIN *self = MP_OBJ_TO_PTR(self_in);
-    PIN_PowerOn(self->str,self->data);
+    PIN_PowerOn(self->str,self->data,0);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_on_obj, pin_on);
@@ -144,7 +144,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_on_obj, pin_on);
 STATIC mp_obj_t pin_low(mp_obj_t self_in)
 {
     struct MP_PIN *self = MP_OBJ_TO_PTR(self_in);
-    PIN_SettoLow(self->str,self->data);
+    PIN_SettoLow(self->str,self->data,0);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_low_obj, pin_low);
@@ -152,7 +152,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_low_obj, pin_low);
 STATIC mp_obj_t pin_high(mp_obj_t self_in)
 {
     struct MP_PIN *self = MP_OBJ_TO_PTR(self_in);
-    PIN_SettoHigh(self->str,self->data);
+    PIN_SettoHigh(self->str,self->data,0);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_high_obj, pin_high);

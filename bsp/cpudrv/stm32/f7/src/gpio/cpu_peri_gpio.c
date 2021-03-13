@@ -355,10 +355,9 @@ u32 transformation(char *str)
 //       date[5],速度，如GPIO_SPEED_50M
 // 返回: 无
 // =============================================================================
-void PIN_Init(void *str,char *data)
+void PIN_Init(void *str,char *data,u32 len)
 {
     struct PIN *p = malloc(sizeof(struct PIN));
-    u32 len=strlen(data);
 
     p->PORT=GPIO_A;
     p->Pinx=PIN0;
@@ -403,7 +402,7 @@ void PIN_Init(void *str,char *data)
 
 }
 
-u32 PIN_Get(void *str,char *data)
+u32 PIN_Get(void *str,char *data,u32 len)
 {
     unsigned int reg;
 
@@ -422,27 +421,27 @@ u32 PIN_Get(void *str,char *data)
 
 }
 
-void PIN_SettoHigh(void *str,char *data)
+void PIN_SettoHigh(void *str,char *data,u32 len)
 {
     u32 port = transformation(str);
     u32 pinx = 1 << data[0];
     GPIO_SettoHigh(port,pinx);
 }
 
-void PIN_SettoLow(void *str,char *data)
+void PIN_SettoLow(void *str,char *data,u32 len)
 {
     u32 port = transformation(str);
     u32 pinx = 1 << data[0];
     GPIO_SettoLow(port,pinx);
 }
 
-void PIN_PowerOn(void *str,char *data)
+void PIN_PowerOn(void *str,char *data,u32 len)
 {
     u32 port = transformation(str);
     GPIO_PowerOn(port);
 }
 
-void PIN_PowerOff(void *str,char *data)
+void PIN_PowerOff(void *str,char *data,u32 len)
 {
     u32 port = transformation(str);
     GPIO_PowerOff(port);

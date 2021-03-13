@@ -182,3 +182,64 @@ s32 Djy_GpioInit(void)
     memset(&gpio_dev, 0, sizeof(gpio_dev));
     return 0;
 }
+
+
+void PIN_Init(void *str,char *data,u32 len)
+{
+    u32 pinx=0;
+    u32 mode=PIN_MODE_OUTPUT;
+    u32 pupd=PIN_MODE_INPUT;
+
+    if(len>=1)
+        pinx = data[0];
+    if(len>=2)
+        mode = data[1];
+    if(len>=3)
+        pupd = data[2];
+
+    if(mode == PIN_MODE_INPUT)
+    {
+        mode = pupd;
+    }
+
+    djy_gpio_mode(pinx,mode);
+
+    if(mode == PIN_MODE_OUTPUT && pupd == PIN_MODE_INPUT_PULLUP)
+    {
+        djy_gpio_write(pinx,1);
+    }
+    else if(mode == PIN_MODE_OUTPUT && pupd == PIN_MODE_INPUT_PULLDOWN)
+    {
+        djy_gpio_write(pinx,0);
+    }
+
+//    printf("str is %s\r\n",str);
+//    printf("len is %d\r\n",len);
+//    printf("pinx is %d\r\n",pinx);
+//    printf("mode is %d\r\n",mode);
+}
+
+u32 PIN_Get(void *str,char *data,u32 len)
+{
+   return djy_gpio_read(data[0]);
+}
+
+void PIN_SettoHigh(void *str,char *data,u32 len)
+{
+    djy_gpio_write(data[0],1);
+}
+
+void PIN_SettoLow(void *str,char *data,u32 len)
+{
+    djy_gpio_write(data[0],0);
+}
+
+void PIN_PowerOn(void *str,char *data,u32 len)
+{
+    printf("PIN_PowerOn\r\n");
+}
+
+void PIN_PowerOff(void *str,char *data,u32 len)
+{
+    printf("PIN_PowerOff\r\n");
+}

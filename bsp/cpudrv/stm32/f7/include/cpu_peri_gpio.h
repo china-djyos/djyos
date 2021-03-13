@@ -195,11 +195,11 @@ unsigned char PIO_Get( const Pin *pin );
 #define MGPIO_PIN_PULLUP          GPIO_PUPD_PU       //上拉
 #define MGPIO_PIN_PULLDOWM        GPIO_PUPD_PD       //下拉
 
-void PIN_Init(void *str,char *data);
-u32 PIN_Get(void *str,char *data);
-void PIN_SettoHigh(void *str,char *data);
-void PIN_SettoLow(void *str,char *data);
-void PIN_PowerOn(void *str,char *data);
-void PIN_PowerOff(void *str,char *data);
+void PIN_Init(void *str,char *data,u32 len);
+u32 PIN_Get(void *str,char *data,u32 len);
+void PIN_SettoHigh(void *str,char *data,u32 len);
+void PIN_SettoLow(void *str,char *data,u32 len);
+void PIN_PowerOn(void *str,char *data,u32 len);
+void PIN_PowerOff(void *str,char *data,u32 len);
 
 #endif /*__cpu_peri_gpio_h_*/
