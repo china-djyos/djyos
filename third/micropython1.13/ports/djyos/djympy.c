@@ -138,6 +138,14 @@ void gc_collect(void)
 //  gc_dump_info();
 }
 #endif
+bool_t shell_exec_command(char *buf);
+mp_obj_t CallShell(mp_obj_t cmd)
+{
+    char *cmdstr = mp_obj_str_get_str(cmd);
+    shell_exec_command(cmdstr);
+    return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_1(mp_builtin_shell_obj, CallShell);
 
 void nlr_jump_fail(void *val) {
     while (1) {
@@ -161,7 +169,7 @@ void MP_WEAK __assert_func(const char *file, int line, const char *func, const c
 static u32 evtt_id = CN_EVTT_ID_INVALID;
 int ModuleInstall_Python(u32 stack_size)
 {
-    evtt_id = DJY_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 1, 1,
+    evtt_id = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 1, 1,
                           micropython, NULL,stack_size,"micropython");
     return 0;
 }

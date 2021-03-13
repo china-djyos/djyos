@@ -2777,7 +2777,6 @@
 				<F N="ports/djyos/mphalport.h"/>
 				<F N="ports/djyos/mpthreadport.h"/>
 				<F N="ports/djyos/pin.c"/>
-				<F N="ports/djyos/pin.h"/>
 				<F N="ports/djyos/qstrdefsport.h"/>
 				<F N="ports/djyos/timer.c"/>
 				<F N="ports/djyos/uart.c"/>
@@ -3561,7 +3560,6 @@
 			<F N="py/modthread.c"/>
 			<F N="py/moduerrno.c"/>
 			<F N="py/module-example.c"/>
-			<F N="py/modutime.c"/>
 			<F N="py/mpconfig.h"/>
 			<F N="py/mperrno.h"/>
 			<F N="py/mphal.h"/>
@@ -3645,7 +3643,6 @@
 			<F N="py/parsenumbase.h"/>
 			<F N="py/persistentcode.c"/>
 			<F N="py/persistentcode.h"/>
-			<F N="py/pin.h"/>
 			<F N="py/profile.c"/>
 			<F N="py/profile.h"/>
 			<F N="py/py.mk"/>
@@ -3675,7 +3672,6 @@
 			<F N="py/stackctrl.h"/>
 			<F N="py/stream.c"/>
 			<F N="py/stream.h"/>
-			<F N="py/uart.h"/>
 			<F N="py/unicode.c"/>
 			<F N="py/unicode.h"/>
 			<F N="py/vm.c"/>

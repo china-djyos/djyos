@@ -270,7 +270,8 @@ STATIC mp_obj_t mod_thread_start_new_thread(size_t n_args, const mp_obj_t *args)
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_thread_start_new_thread_obj, 2, 3, mod_thread_start_new_thread);
 
-STATIC mp_obj_t mod_thread_exit(void) {
+STATIC mp_obj_t mod_thread_exit(void)
+{
     mp_raise_type(&mp_type_SystemExit);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_thread_exit_obj, mod_thread_exit);

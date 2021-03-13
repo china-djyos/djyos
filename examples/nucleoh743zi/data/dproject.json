@@ -6,6 +6,7 @@
 		"iboot":["用串口的shell终端",
 		"用串口的shell终端"]
 	},
+	"target_nodes":[],
 	"libs_checked":{
 		"app":[],
 		"iboot":[]
@@ -35,6 +36,7 @@
 		"lock",
 		"memory pool",
 		"message queue",
+		"microPython113",
 		"misc",
 		"mongoose",
 		"network config",

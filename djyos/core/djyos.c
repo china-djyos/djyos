@@ -1076,6 +1076,7 @@ const struct EventECB cn_sys_event = {
                         NULL,NULL,                  //multi_next,multi_previous
                         NULL,                       //vm
                         0,0,                        //param1,param2
+                        0,                          //userdata
                         NULL,                       //sync
                         NULL,                       //sync_head
 #if CFG_OS_TINY == false

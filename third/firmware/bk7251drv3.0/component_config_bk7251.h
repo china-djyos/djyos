@@ -53,7 +53,7 @@
 //./app/airkiss;./driver/entry;
 //./ip;
 //%$#@end exclude
-//%$#@self include path
+//%$#@API include path         ****API头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，应用本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
 //./;
 //./app;./app/config;
 //./app/standalone-ap;./app/standalone-station;
@@ -82,7 +82,7 @@
 //./func/hostapd-2.5/hostapd;./func/hostapd-2.5/src;./func/hostapd-2.5/src/ap;
 //./func/hostapd-2.5/src/common;./func/hostapd-2.5/src/drivers;./func/hostapd-2.5/src/utils;
 //./ip/umac/src/apm;./func/include;./func/joint_up;
-//./djyos/include;./func/rwnx_intf;./func/temp_detect;
+//./func/rwnx_intf;./func/temp_detect;
 //./func/uart_debug;./func/user_driver;
 //./ip/common;
 //./ip/ke;
@@ -95,9 +95,12 @@
 //./ip/umac;./ip/umac/src/me;./ip/umac/src/mesh;
 //./ip/umac/src/mfp;./ip/umac/src/rc;./ip/umac/src/rxu;./ip/umac/src/scanu;
 //./ip/umac/src/llc;./ip/umac/src/sm;./ip/umac/src/txu;
+//%$#@end API include path
+
+//%$#@self include path         ****编译自身需要的头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，编译本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
 //%$#@end self include path
 
-//%$#@library path
+//%$#@library path             ****列出本组件引用的.a库文件列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符
 //./ip/libip_7221u_sta.a;./driver/ble/libble.a
 //%$#@end library path
 

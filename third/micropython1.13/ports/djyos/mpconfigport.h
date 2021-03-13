@@ -93,9 +93,12 @@ extern const struct _mp_obj_module_t mp_module_ujson;
 #if MICROPY_PY_MACHINE
 extern const struct _mp_obj_module_t mp_module_machine;
 #endif
+extern const struct _mp_obj_fun_builtin_fixed_t mp_builtin_shell_obj;
+
 // extra built in names to add to the global namespace
 #define MICROPY_PORT_BUILTINS \
-    { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
+    { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },\
+    { MP_ROM_QSTR(MP_QSTR_shell), MP_ROM_PTR(&mp_builtin_shell_obj) },
 
 #define MICROPY_PORT_BUILTIN_MODULES \
     { MP_ROM_QSTR(MP_QSTR_utime), MP_ROM_PTR(&mp_module_utime) }, \

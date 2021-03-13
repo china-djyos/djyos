@@ -94,9 +94,9 @@
 #define CFG_INIT_STACK_SIZE     4096    //定义初始化过程使用的栈空间一般按默认值就可以了
 #define CFG_EVENT_LIMIT         15      //事件数量
 #define CFG_EVENT_TYPE_LIMIT    15      //事件类型数
-#define CFG_MAINSTACK_LIMIT     4096    //main函数运行所需的栈尺寸
 #define CFG_IDLESTACK_LIMIT     1024    //IDLE事件处理函数运行的栈尺寸一般按默认值就可以了
 #define CFG_IDLE_MONITOR_CYCLE  30      //监视IDLE事件持续低于1/16 CPU占比的时间秒数，0=不监视
+#define CFG_MAINSTACK_LIMIT     4096    //main函数运行所需的栈尺寸
 #define CFG_OS_TINY             false   //true=用于资源紧缺的场合内核会裁剪掉：事件类型名字，事件处理时间统计。
 #define    CFG_MODULE_ENABLE_KERNEL        true
 //*******************************  Configure kernel object system  ******************************************//
@@ -123,6 +123,10 @@
 #define    CFG_MODULE_ENABLE_MEMORY_POOL   true
 //*******************************  Configure message queue  ******************************************//
 #define    CFG_MODULE_ENABLE_MESSAGE_QUEUE true
+//*******************************  Configure microPython113  ******************************************//
+#define CFG_PYTHON_STACKSIZE    4096    //
+#define CFG_PYTHON_HEAPSIZE     4096    //
+#define    CFG_MODULE_ENABLE_MICROPYTHON113  true
 //*******************************  Configure misc  ******************************************//
 #define    CFG_MODULE_ENABLE_MISC          true
 //*******************************  Configure network config  ******************************************//

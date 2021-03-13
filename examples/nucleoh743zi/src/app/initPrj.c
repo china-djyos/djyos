@@ -61,6 +61,11 @@ const struct ProductInfo Djy_Product_Info __attribute__ ((section(".DjyProductIn
 
 ptu32_t __djy_main(void)
 {
+    //microPython113
+    extern s32 ModuleInstall_Python(u32 stack_size);
+    ModuleInstall_Python(CFG_PYTHON_STACKSIZE);
+    //end microPython113
+
     djy_main();
 
 	return 0;
@@ -97,6 +102,17 @@ void Sys_ModuleInit(void)
     extern bool_t ModuleInstall_Wdt(void);
     ModuleInstall_Wdt();
     //end watch dog
+
+    //cpu drive inner flash
+    s32 ModuleInstall_EmbededFlash(u32 doformat);
+    ModuleInstall_EmbededFlash(CFG_EFLASH_PART_FORMAT);
+    //end cpu drive inner flash
+
+    //emflash insatall xip
+    extern s32 ModuleInstall_EmFlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
+    ModuleInstall_EmFlashInstallXIP(CFG_EFLASH_XIPFSMOUNT_NAME,CFG_EFLASH_XIP_PART_START,
+    CFG_EFLASH_XIP_PART_END, CFG_EFLASH_XIP_PART_FORMAT);
+    //end emflash insatall xip
 
     //----------------------------medium----------------------------//
     //kernel
@@ -143,6 +159,13 @@ void Sys_ModuleInit(void)
     extern bool_t ModuleInstall_ETH(void);
     ModuleInstall_ETH( );
     //end cpu onchip MAC
+
+    //loader
+    #if !defined (CFG_RUNMODE_BAREAPP)
+    extern bool_t ModuleInstall_UpdateIboot(void);
+    ModuleInstall_UpdateIboot( );
+    #endif
+    //end loader
 
     //----------------------------later----------------------------//
     //stdio

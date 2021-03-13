@@ -580,7 +580,7 @@ static bool_t shell_help(char *param)
 // ·µ»Ø£º
 // ±¸×¢£º
 // ============================================================================
-static bool_t shell_exec_command(char *buf)
+bool_t shell_exec_command(char *buf)
 {
     bool_t result = false;
     char *cmdname,*next_param,*word,*wordbak;
