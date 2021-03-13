@@ -90,6 +90,22 @@ uint32_t djy_gpio_read( GPIO_INDEX pin);
 void djy_gpio_write(GPIO_INDEX pin, uint32_t value);
 void djy_gpio_mode( GPIO_INDEX pin, uint32_t mode);
 
+
+#define MGPIO_PIN_IN        PIN_MODE_INPUT        //普通输入模式
+#define MGPIO_PIN_OUT       PIN_MODE_OUTPUT       //普通输出模式
+#define MGPIO_PIN_AF        0                     //AF功能模式
+
+#define MGPIO_PIN_PULLNONE        PIN_MODE_INPUT       //不带上下拉
+#define MGPIO_PIN_PULLUP          PIN_MODE_INPUT_PULLUP       //上拉
+#define MGPIO_PIN_PULLDOWM        PIN_MODE_INPUT_PULLDOWN       //下拉
+
+void PIN_Init(void *str,char *data,u32 len);
+u32 PIN_Get(void *str,char *data,u32 len);
+void PIN_SettoHigh(void *str,char *data,u32 len);
+void PIN_SettoLow(void *str,char *data,u32 len);
+void PIN_PowerOn(void *str,char *data,u32 len);
+void PIN_PowerOff(void *str,char *data,u32 len);
+
 #ifdef __cplusplus
 }
 #endif

@@ -316,10 +316,136 @@ unsigned char PIO_Get( const Pin *Pin )
 
 
 
+u32 transformation(char *str)
+{
+    if(strcmp(str,"GPIO_A")==0)
+        return GPIO_A;
+    else if(strcmp(str,"GPIO_B")==0)
+        return GPIO_B;
+    else if(strcmp(str,"GPIO_C")==0)
+        return GPIO_C;
+    else if(strcmp(str,"GPIO_D")==0)
+        return GPIO_D;
+    else if(strcmp(str,"GPIO_E")==0)
+        return GPIO_E;
+    else if(strcmp(str,"GPIO_F")==0)
+        return GPIO_F;
+    else if(strcmp(str,"GPIO_G")==0)
+        return GPIO_G;
+    else if(strcmp(str,"GPIO_H")==0)
+        return GPIO_H;
+    else if(strcmp(str,"GPIO_I")==0)
+        return GPIO_I;
+    else if(strcmp(str,"GPIO_J")==0)
+        return GPIO_J;
+    else if(strcmp(str,"GPIO_K")==0)
+        return GPIO_K;
+    else
+        return GPIO_A;
+}
 
+// =============================================================================
+// 功能: GPIO引脚配置，包括引脚的模式、输入类型、速度、上下拉类型等
+// 参数: str，被操作的port编号，比如要操作MGPIOA
+//       date[0]，操作的掩码，如操作的是MPIN0
+//       date[1],模式，分为输入、输出、模拟输入、AF复用功能,如MGPIO_MODE_IN
+//       date[2] 上拉或下拉，如MGPIO_PUPD_NONE
+//       date[3],AF模式值
+//       date[4],推挽输出或开漏输出
+//       date[5],速度，如GPIO_SPEED_50M
+// 返回: 无
+// =============================================================================
+void PIN_Init(void *str,char *data,u32 len)
+{
+    struct PIN *p = malloc(sizeof(struct PIN));
 
+    p->PORT=GPIO_A;
+    p->Pinx=PIN0;
+    p->MODER=GPIO_MODE_IN;
+    p->PUPD=GPIO_PUPD_NONE;
+    p->AF=AF_NUll;
+    p->O_TYPER=GPIO_OTYPE_PP;
+    p->O_SPEEDR=GPIO_SPEED_H;
 
+//    for(int i=0;i<len;i++)
+//    {
+//        printf("data[%d] is %d\r\n",i,data[i]);
+//    }
 
+    if(len>=1)
+    {
+        p->PORT = transformation(str);
+        p->Pinx = 1 << data[0];
+    }
+    if (len >= 2)
+        p->MODER = data[1];
+    if (len >= 3)
+        p->PUPD = data[2];
+    if (len >= 4)
+        p->AF = data[3];
+    if (len >= 5)
+        p->O_TYPER = data[4];
+    if (len >= 6)
+        p->O_SPEEDR = data[5];
+
+//    printf("p->PORT is %d\r\n",p->PORT);
+//    printf("p->Pinx is %d\r\n",p->Pinx);
+//    printf("p->MODER is %d\r\n",p->MODER);
+//    printf("p->PUPD is %d\r\n",p->PUPD);
+//    printf("p->AF is %d\r\n",p->AF);
+//    printf("p->O_TYPER is %d\r\n",p->O_TYPER);
+//    printf("p->O_SPEEDR is %d\r\n",p->O_SPEEDR);
+
+    PIO_Configure(p, 1);
+
+    free(p);
+
+}
+
+u32 PIN_Get(void *str,char *data,u32 len)
+{
+    unsigned int reg;
+
+    u32 port = transformation(str);
+
+    reg= GPIO_GetData(port);
+
+    if ( (reg & (1<<data[0])) == 0 )
+    {
+        return 0 ;
+    }
+    else
+    {
+        return 1 ;
+    }
+
+}
+
+void PIN_SettoHigh(void *str,char *data,u32 len)
+{
+    u32 port = transformation(str);
+    u32 pinx = 1 << data[0];
+    GPIO_SettoHigh(port,pinx);
+}
+
+void PIN_SettoLow(void *str,char *data,u32 len)
+{
+    u32 port = transformation(str);
+    u32 pinx = 1 << data[0];
+    GPIO_SettoLow(port,pinx);
+}
+
+void PIN_PowerOn(void *str,char *data,u32 len)
+{
+    u32 port = transformation(str);
+    GPIO_PowerOn(port);
+}
+
+void PIN_PowerOff(void *str,char *data,u32 len)
+{
+    u32 port = transformation(str);
+    GPIO_PowerOff(port);
+}
 
 
 

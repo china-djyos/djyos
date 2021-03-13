@@ -29,15 +29,7 @@
 #include <string.h>
 #include "py/obj.h"
 #include "cpu_peri_gpio.h"
-#include "board_mp_pin.h"
 
-#define MOD_PIN_IN (0)
-#define MOD_PIN_OUT (1)
-#define MOD_PIN_AF (2)
-
-#define MOD_PIN_PULLNONE (0)
-#define MOD_PIN_PULLUP (1)
-#define MOD_PIN_PULLDOWN (2)
 
 const mp_obj_type_t pin_type;
 
@@ -48,24 +40,25 @@ const mp_obj_type_t pin_type;
 //    mp_printf(print, "gpio %d get is %d",self->ppin->PORT, PIO_Get(self->ppin));
 //
 //}
-typedef struct _MP_PIN
+struct MP_PIN
 {
     mp_obj_base_t base;
     mp_obj_t *str;
     char data[10];
-}MP_PIN;
+};
 
 mp_obj_t mp_pin_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
 
     mp_obj_t *addr_items;
     size_t addr_len;
+    const char *addr_str;
 
-    MP_PIN *p = m_new_obj_with_finaliser(MP_PIN);
+    struct MP_PIN *p = m_new_obj_with_finaliser(struct MP_PIN);
     p->str = m_new_obj_with_finaliser(mp_obj_t);
     if (n_args >= 1)
     {
         mp_obj_get_array_fixed_n(args[0], 2, &addr_items);
-        const char *addr_str = mp_obj_str_get_data(addr_items[0], &addr_len);
+        addr_str = mp_obj_str_get_data(addr_items[0], &addr_len);
         if (addr_len == 0) {
             return mp_const_none;
         }
@@ -83,21 +76,21 @@ mp_obj_t mp_pin_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, 
 
     p->base.type = &pin_type;
 
-    chip_pin_init(p->str,p->data);
+    PIN_Init(p->str,p->data,n_args);
 
     return MP_OBJ_FROM_PTR(p);
 }
 
 STATIC mp_obj_t pin_obj_init(size_t n_args , const mp_obj_t *args) {
 
-    MP_PIN *self = MP_OBJ_TO_PTR(args[0]);
+    struct MP_PIN *self = MP_OBJ_TO_PTR(args[0]);
 
     if(n_args>=2)
         self->data[1] = mp_obj_get_int(args[1]);
     if(n_args>=3)
         self->data[2] = mp_obj_get_int(args[2]);
 
-    chip_pin_init(self->str,self->data);
+    PIN_Init(self->str,self->data,n_args);
 
     return mp_const_true;
 
@@ -107,23 +100,23 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pin_init_obj, 2, 3, pin_obj_init);
 
 STATIC mp_obj_t pin_obj_value(size_t n_args , const mp_obj_t *args) {
 
-    MP_PIN *self = MP_OBJ_TO_PTR(args[0]);
+    struct MP_PIN *self = MP_OBJ_TO_PTR(args[0]);
     size_t value;
 
     if (n_args == 1)
     {
-        return mp_obj_new_int(chip_pin_get(self->str,self->data));
+        return mp_obj_new_int(PIN_Get(self->str,self->data,0));
     }
     else
     {
         value = mp_obj_get_int(args[1]);
         if(value)
         {
-            chip_pin_set_high(self->str,self->data);
+            PIN_SettoHigh(self->str,self->data,0);
         }
         else
         {
-            chip_pin_set_low(self->str,self->data);
+            PIN_SettoLow(self->str,self->data,0);
         }
 
     }
@@ -134,32 +127,32 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pin_value_obj, 1, 2, pin_obj_value);
 
 STATIC mp_obj_t pin_off(mp_obj_t self_in)
 {
-    MP_PIN *self = MP_OBJ_TO_PTR(self_in);
-    chip_pin_power_off(self->str,self->data);
+    struct MP_PIN *self = MP_OBJ_TO_PTR(self_in);
+    PIN_PowerOff(self->str,self->data,0);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_off_obj, pin_off);
 
 STATIC mp_obj_t pin_on(mp_obj_t self_in)
 {
-    MP_PIN *self = MP_OBJ_TO_PTR(self_in);
-    chip_pin_power_on(self->str,self->data);
+    struct MP_PIN *self = MP_OBJ_TO_PTR(self_in);
+    PIN_PowerOn(self->str,self->data,0);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_on_obj, pin_on);
 
 STATIC mp_obj_t pin_low(mp_obj_t self_in)
 {
-    MP_PIN *self = MP_OBJ_TO_PTR(self_in);
-    chip_pin_set_low(self->str,self->data);
+    struct MP_PIN *self = MP_OBJ_TO_PTR(self_in);
+    PIN_SettoLow(self->str,self->data,0);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_low_obj, pin_low);
 
 STATIC mp_obj_t pin_high(mp_obj_t self_in)
 {
-    MP_PIN *self = MP_OBJ_TO_PTR(self_in);
-    chip_pin_set_high(self->str,self->data);
+    struct MP_PIN *self = MP_OBJ_TO_PTR(self_in);
+    PIN_SettoHigh(self->str,self->data,0);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_high_obj, pin_high);
@@ -176,12 +169,12 @@ STATIC const mp_rom_map_elem_t pin_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_high),    MP_ROM_PTR(&pin_high_obj) },
 
     // class constants
-    { MP_ROM_QSTR(MP_QSTR_IN),        MP_ROM_INT(MOD_PIN_IN) },
-    { MP_ROM_QSTR(MP_QSTR_OUT),       MP_ROM_INT(MOD_PIN_OUT) },
-    { MP_ROM_QSTR(MP_QSTR_AF),       MP_ROM_INT(MOD_PIN_AF) },
-    { MP_ROM_QSTR(MP_QSTR_PULL_NONE),   MP_ROM_INT(MOD_PIN_PULLNONE) },
-    { MP_ROM_QSTR(MP_QSTR_PULL_UP),   MP_ROM_INT(MOD_PIN_PULLUP) },
-    { MP_ROM_QSTR(MP_QSTR_PULL_DOWN), MP_ROM_INT(MOD_PIN_PULLDOWN) },
+    { MP_ROM_QSTR(MP_QSTR_IN),        MP_ROM_INT(MGPIO_PIN_IN) },
+    { MP_ROM_QSTR(MP_QSTR_OUT),       MP_ROM_INT(MGPIO_PIN_OUT) },
+    { MP_ROM_QSTR(MP_QSTR_AF),       MP_ROM_INT(MGPIO_PIN_AF) },
+    { MP_ROM_QSTR(MP_QSTR_PULL_NONE),   MP_ROM_INT(MGPIO_PIN_PULLNONE) },
+    { MP_ROM_QSTR(MP_QSTR_PULL_UP),   MP_ROM_INT(MGPIO_PIN_PULLUP) },
+    { MP_ROM_QSTR(MP_QSTR_PULL_DOWN), MP_ROM_INT(MGPIO_PIN_PULLDOWM) },
 
 };
 
