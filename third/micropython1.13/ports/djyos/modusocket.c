@@ -222,6 +222,10 @@ STATIC mp_obj_t socket_recv(mp_obj_t self_in, mp_obj_t len_in)
     if (ret == 0) {
         return mp_const_empty_bytes;
     }
+    else if(ret == -1)
+    {
+        mp_raise_OSError(errno);
+    }
     else
     {
         vstr.len = ret;
@@ -381,7 +385,7 @@ STATIC mp_uint_t socket_stream_read(mp_obj_t self_in, void *buf, mp_uint_t size,
     MP_THREAD_GIL_EXIT();
     ret = (mp_uint_t)recv(self->mysockfd, buf,size, 0);
     MP_THREAD_GIL_ENTER();
-    if (ret == 0)
+    if (ret == -1)
         *errcode = errno;
     return ret;
 }
@@ -394,7 +398,7 @@ STATIC mp_uint_t socket_stream_write(mp_obj_t self_in, const void *buf, mp_uint_
     MP_THREAD_GIL_EXIT();
     ret = (mp_uint_t)send(self->mysockfd, buf, size, 0);
     MP_THREAD_GIL_ENTER();
-    if (ret == 0)
+    if (ret == -1)
         *errcode = errno;
     return (ret);
 }

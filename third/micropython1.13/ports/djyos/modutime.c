@@ -81,9 +81,10 @@ STATIC mp_obj_t time_localtime(size_t n_args, const mp_obj_t *args) {
         return mp_obj_new_tuple(8, tuple);
     } else {
         mp_int_t seconds = mp_obj_get_int(args[0]);
-        Time_LocalTime_r(seconds, &tmSt);
+        seconds += 946684800;
+        Time_LocalTime_r(&seconds, &tmSt);
         mp_obj_t tuple[8] = {
-            tuple[0] = mp_obj_new_int(tmSt.tm_year),
+            tuple[0] = mp_obj_new_int(1900 + tmSt.tm_year),
             tuple[1] = mp_obj_new_int(tmSt.tm_mon),
             tuple[2] = mp_obj_new_int(tmSt.tm_mday),
             tuple[3] = mp_obj_new_int(tmSt.tm_hour),
@@ -136,6 +137,7 @@ STATIC mp_obj_t time_time(void) {
     // fixme
     s64 ret = 0;
     Time_Time(&ret);
+    ret -= 946684800;
     return mp_obj_new_int(ret);
 }
 MP_DEFINE_CONST_FUN_OBJ_0(time_time_obj, time_time);
