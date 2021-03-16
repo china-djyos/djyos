@@ -75,7 +75,7 @@ ptu32_t micropython(void)
 
     #if MICROPY_ENABLE_GC
     u8 *heap;
-    heap = malloc(4096);
+    heap = malloc(8192);
     if (heap != NULL)
         gc_init(heap, heap + M_CheckSize(heap));
     else

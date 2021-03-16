@@ -107,7 +107,7 @@
 //%$#@num,0,65536,
 #define CFG_LCD_XSIZE   64             //"LCD宽度-像素数",
 #define CFG_LCD_YSIZE   48             //"LCD高度-像素数",
-//%$#@num,0,0,
+//%$#@num,,,
 #define CFG_LCD_XSIZE_UM   36720            //"LCD宽度-微米数",
 #define CFG_LCD_YSIZE_UM   48960            //"LCD高度-微米数",
 //%$#@enum,true,false,

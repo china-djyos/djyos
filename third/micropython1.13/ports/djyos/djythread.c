@@ -74,7 +74,7 @@ void mp_thread_gc_others(void)
     mp_thread_mutex_lock(&thread_mutex, 1);
     for (djy_thread_t *th = thread_root; th != NULL; th = th->next)
     {
-        DJY_GetEventInfo(DJY_GetMyEventId(), &EventInfo);
+        DJY_GetEventInfo(th->event_id, &EventInfo);
         if (th->event_id == DJY_GetMyEventId())
         {
             uint32_t SP;

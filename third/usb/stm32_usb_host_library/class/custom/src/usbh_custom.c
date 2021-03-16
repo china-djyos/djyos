@@ -133,6 +133,7 @@ DEVICE_TABLE[] =
     {0x15C1, 0x12D1, 0x2,  0x0, NOT_SUPPORT, "HUAWEI, ME909"},       // HUAWEI,modem¿ÚÎ´Öª
     {0x0125, 0x2C7C, 0x2,  0x3, NOT_SUPPORT, "QUECTEL, EC20 V2.0"},  // QUECTEL
     {0x9001, 0x1E0E, 0x2,  0x3, 0x0,         "SIMCOM, 7600C/E"},     // SIMCOM
+    {0x9011, 0x1E0E, 0x2,  0x3, 0x0,         "SIMCOM, A7600"},       // SIMCOM cat.1
 
     {0,      0,      0,      0,  0,          "end of table"},        // end of array
 };
