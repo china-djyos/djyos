@@ -47,6 +47,8 @@
 #include "stdint.h"
 #include "stddef.h"
 #include "mem_pub.h"
+#include "wdt_pub.h"
+#include <shell.h>
 #include "cpu_peri.h"
 #include "board.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -289,4 +291,13 @@ void stub_debug(void)
         while(1);
     Int_HighAtomEnd(atom);
 }
+bool_t init_jtag(char *param)
+{
+    (void)param;
+    sddev_control(WDT_DEV_NAME, WCMD_POWER_DOWN, 0);
+    stub_debug();
+    return true;
+}
+
+ADD_TO_ROUTINE_SHELL(initjtag,init_jtag,"重新初始化 :COMMAND:init_jtag+enter");
 
