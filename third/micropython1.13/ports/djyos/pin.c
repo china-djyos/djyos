@@ -76,9 +76,14 @@ mp_obj_t mp_pin_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, 
 
     p->base.type = &pin_type;
 
-    PIN_Init(p->str,p->data,n_args);
-
-    return MP_OBJ_FROM_PTR(p);
+    if(PIN_Init(p->str,p->data,n_args) == -1)
+    {
+        mp_raise_OSError("pin name error");
+        m_del(mp_obj_t, p, 1);
+        return(mp_const_none);
+    }
+    else
+        return MP_OBJ_FROM_PTR(p);
 }
 
 STATIC mp_obj_t pin_obj_init(size_t n_args , const mp_obj_t *args) {

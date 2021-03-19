@@ -16,9 +16,9 @@ TOP := $(patsubst %/py/mkenv.mk,%,$(THIS_MAKEFILE))
 # Makefile or in your environment. You can also use V=1 on the make command
 # line.
 
-ifeq ("$(origin V)", "command line")
+#ifeq ("$(origin V)", "command line")
 BUILD_VERBOSE=$(V)
-endif
+#endif
 ifndef BUILD_VERBOSE
 BUILD_VERBOSE = 0
 endif

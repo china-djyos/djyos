@@ -83,6 +83,78 @@ void net_free(void *mem)
     return;
 }
 
+//mutex
+//改为： Lock_MutexCreate(name);
+//mutex_t mutex_init(const char *name)
+//{
+//    gOsCB.lock++;
+//    return Lock_MutexCreate(name);
+//}
+//改为： Lock_MutexPend(mutex,CN_TIMEOUT_FOREVER);
+//bool_t mutex_lock(mutex_t mutex)
+//{
+//    return Lock_MutexPend(mutex,CN_TIMEOUT_FOREVER);
+//}
+//改为： Lock_MutexPend(mutex,timeout);
+//bool_t mutex_locktimeout(mutex_t mutex,u32 timeout)
+//{
+//    return Lock_MutexPend(mutex,timeout);
+//}
+//改为： Lock_MutexPost(mutex);
+//bool_t mutex_unlock(mutex_t mutex)
+//{
+//    Lock_MutexPost(mutex);
+//    return true;
+//}
+//改为： Lock_MutexDelete(mutex);
+//void mutex_del(mutex_t mutex)
+//{
+//    Lock_MutexDelete(mutex);
+//    gOsCB.lock--;
+//    return;
+//}
+////-----------------------------------------------------------------------------
+////功能:use this function to create a semaphore
+////参数:
+////返回:the semaphore if success and NULL when failed
+////备注:
+////-----------------------------------------------------------------------------
+//改为： Lock_SempCreate(limit,value,CN_BLOCK_FIFO,name);
+//semp_t semp_init(u32 limit,u32 value,const char *name)
+//{
+//    gOsCB.semp++;
+//    return Lock_SempCreate(limit,value,CN_BLOCK_FIFO,name);
+//}
+////-----------------------------------------------------------------------------
+////功能:use this function to pend a semaphore
+////参数:semp, the semaphore we will pend later
+////返回:true when got the semaphore else false
+////备注:never return if not got the semaphore and the condition permit waiting
+////-----------------------------------------------------------------------------
+//改为：  Lock_SempPend(semp,CN_TIMEOUT_FOREVER);
+//bool_t semp_pend(semp_t semp)
+//{
+//    return Lock_SempPend(semp,CN_TIMEOUT_FOREVER);
+//}
+//改为： Lock_SempPend(semp,timeout);
+//bool_t semp_pendtimeout(semp_t semp, u32 timeout)
+//{
+//    return Lock_SempPend(semp,timeout);
+//}
+//改为： Lock_SempPost(semp);
+//bool_t semp_post(semp_t semp)
+//{
+//    Lock_SempPost(semp);
+//    return true;
+//}
+//改为： Lock_SempDelete(semp)
+//void semp_del(semp_t semp)
+//{
+//    gOsCB.semp--;
+//    Lock_SempDelete(semp);
+//    return;
+//}
+
 //-----------------------------------------------------------------------------
 //功能:use this function to create a task
 //参数:

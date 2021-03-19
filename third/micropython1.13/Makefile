@@ -1,5 +1,5 @@
 include djyos.mk
-#include /d/mpy113/py/mkenv.mk
+V = 1
 include $(DJYOS_SRC_LOCATION)/third/micropython1.13/py/mkenv.mk
 DJYOSPORT = $(TOP)/ports/djyos
 

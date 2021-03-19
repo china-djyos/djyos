@@ -54,12 +54,12 @@
 //./ip;
 //%$#@end exclude
 //%$#@API include path         ****API头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，应用本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
-//./;
+//.;
 //./app;./app/config;
 //./app/standalone-ap;./app/standalone-station;
 //./common;
 //./demo;
-//./driver;./driver/ble;
+//./driver;./djyos/include;
 //./driver/ble;./driver/ble/ble_pub/modules/rwip/api;./driver/ble/ble_lib/ip/ble/ll/src/rwble;
 //./driver/ble/ble_lib/ip/ble/hl/inc;./driver/ble/ble_lib/ip/ble/hl/api;
 //./driver/ble/ble_pub/ip/ble/hl/inc;./driver/ble/ble_pub/plf/refip/src/arch;
