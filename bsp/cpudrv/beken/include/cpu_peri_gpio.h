@@ -99,7 +99,8 @@ void djy_gpio_mode( GPIO_INDEX pin, uint32_t mode);
 #define MGPIO_PIN_PULLUP          PIN_MODE_INPUT_PULLUP       //上拉
 #define MGPIO_PIN_PULLDOWM        PIN_MODE_INPUT_PULLDOWN       //下拉
 
-bool_t PIN_Init(void *str,char *data,u32 len);
+
+s32 PIN_Init(void *str,char *data,u32 len);
 u32 PIN_Get(void *str,char *data,u32 len);
 void PIN_SettoHigh(void *str,char *data,u32 len);
 void PIN_SettoLow(void *str,char *data,u32 len);
