@@ -99,6 +99,7 @@
 #define     CFG_DHCPD_ROUTERIP          "192.168.0.253"  //"DHCP ROUTER SERVER IP"
 #define     CFG_DHCPD_NETIP             "255.255.255.0"  //"DHCP MASK IP"
 #define     CFG_DHCPD_DNS               "192.168.0.253"  //"DHCP DNSSERVER IP"
+#define     CFG_DHCPD_DNSBAK            "192.168.0.253"  //"DHCP DNSSERVER IP"
 //%$#@string,1,32,
 #define     CFG_DHCPD_DOMAINNAME       "domain"        //"DHCP domain name"
 

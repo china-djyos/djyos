@@ -395,7 +395,7 @@ bool_t  DHCP_ServerInit(void)
     serverip = ntohl(serverip);
     ipmask = ntohl(ipmask);
     offset = (~ipmask)&serverip;
-    if(offset < CFG_DHCPD_IPNUM)  //mark it in the bitmap
+    if(offset < CFG_DHCPD_IPNUM)  //如果自身IP也在IP池内，标记之
     {
         bytes = offset/8;
         bits = offset%8;
