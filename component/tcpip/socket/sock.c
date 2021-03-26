@@ -178,22 +178,6 @@ s32 socket(s32 family, s32 type, s32 protocol)
             {
                 errno = EN_NEWLIB_NO_ERROR;
                 result = sock->sockfd;
-//              SocketFile = Handle_New( );
-//              SocketFile = OBJ_AddFile(s_ptSocketObject);
-//              if(SocketFile != NULL)
-//              {
-//                  Handle_Init(SocketFile, s_ptSocketObject, O_RDWR,(ptu32_t)sock);
-//                  Handle_SetContext(SocketFile, (ptu32_t)sock);
-//                  result = Handle2fd(SocketFile);
-//                  sock->sockfd = result;
-//                  sock->ProtocolOps = ProtocolOps;
-//                  Handle_SetMultiplexEvent(fd2Handle(sock->sockfd), sock->IoInitstat);
-//              }
-//              else
-//              {
-//                  errno = ENOENT;
-//                  closesocket(result);
-//              }
             }
         }
         else

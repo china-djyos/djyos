@@ -89,6 +89,7 @@
 #define CFG_MODULE_ENABLE_TCPIP    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,,,
 #define     CFG_NETPKG_MEMSIZE          0x4000  //"数据包缓冲区尺寸"
+#define     CFG_TPL_PROTONUM            5       //"支持的传输协议数"，占用一个 tagTplProtoItem 结构
 //%$#@select
 //%$#@free
 #endif

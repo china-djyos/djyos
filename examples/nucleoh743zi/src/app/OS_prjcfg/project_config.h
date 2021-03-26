@@ -174,6 +174,7 @@
 #define    CFG_MODULE_ENABLE_TCP           true
 //*******************************  Configure tcpip  ******************************************//
 #define     CFG_NETPKG_MEMSIZE          0x4000  //
+#define     CFG_TPL_PROTONUM            5       //占用一个 tagTplProtoItem 结构
 #define    CFG_MODULE_ENABLE_TCPIP         true
 //*******************************  Configure telnet  ******************************************//
 #define     CFG_TELNETD_ENABLE          true    //
@@ -185,9 +186,6 @@
 //*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8      //北京时间是东8区
 #define    CFG_MODULE_ENABLE_TIME          true
-//*******************************  Configure tpl  ******************************************//
-#define     CFG_TPL_PROTONUM            5       //占用一个 tagTplProtoItem 结构
-#define    CFG_MODULE_ENABLE_TPL           true
 //*******************************  Configure uart device file  ******************************************//
 #define    CFG_MODULE_ENABLE_UART_DEVICE_FILE  true
 //*******************************  Configure udp  ******************************************//
@@ -209,6 +207,7 @@
 #define    PRODUCT_VERSION_MEDIUM          0                 //版本号,xx.__.xx
 #define    PRODUCT_VERSION_SMALL           0                 //版本号,xx.xx.__
 #define    PRODUCT_PRODUCT_MODEL_CODE      ""                //产品型号编码
+#define    PRODUCT_BRANCH                  ""                //产品分支
 #define    PRODUCT_PASSWORD                ""                //产品秘钥
 #define    PRODUCT_OTA_ADDRESS             ""                //OTA服务器地址
 #define    PRODUCT_BOARD_TYPE              "NUCLEO-H743ZI"   //板件类型

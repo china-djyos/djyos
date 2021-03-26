@@ -868,7 +868,7 @@ static struct tagSocket * __tcpsocket(s32 family, s32 type, s32 protocal)
                         //initialize the sock add the sock to the hash tab
 //                      sock->IoInitstat = 0;
                         sock->sockstat |=CN_SOCKET_OPEN|CN_SOCKET_CLIENT|CN_SOCKET_PROBLOCK|CN_SOCKET_PRONAGLE;
-                        sock->ProtocolOps = &gTcpProto;
+//                        sock->ProtocolOps = &gTcpProto;
                         __hashSocketAdd(sock);
                     }
                 }

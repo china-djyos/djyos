@@ -118,7 +118,7 @@ enum EthFramType
 
 enum enLinkType
 {
-    EN_LINK_ETHERNET = 0,  //ethenet net device,ethernetII
+    EN_LINK_ETHERNET = 0,  //ethenet net device,ethernetII£¬¼´ 802.3
     EN_LINK_RAW,           //raw,just do the ip frames,no other link
     EN_LINK_80211,
     EN_LINK_LAST,

@@ -89,7 +89,7 @@ struct NetDev
     fnIfSend            ifsend;   //dev snd function
 //  fnIfRecv            ifrecv;   //dev receive function
     fnIfCtrl            ifctrl;   //dev ctrl or stat get fucntion
-    struct LinkOps     *linkops;  //dev link operations
+    struct LinkOps     *linkops;  //链路层收发函数，网卡中记录它，是为了快速查找
     fnNetDevEventHook   eventhook;//dev event hook dealer
     u32                 devfunc;  //网卡附加功能，参见netbsp.h中的 CN_IPDEV_TCPOCHKSUM 等定义
     u16                 mtu;      //dev mtu
@@ -1025,7 +1025,7 @@ bool_t  NetDev_Send(struct NetDev* handle,struct NetPkg *pkglst,u32 netdevtask)
 //-----------------------------------------------------------------------------
 //功能: 网卡控制函数，功能由 cmd 决定。
 //参数: handle，由 NetDev_Install 返回的网卡控制块指针
-//      cmd，命令码
+//      cmd，命令码, enum NetDevCmd 定义
 //      para，命令参数
 //返回: true or false
 //-----------------------------------------------------------------------------

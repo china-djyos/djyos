@@ -44,10 +44,10 @@
 //%$#@exclude       ****编译排除文件列表
 //%$#@end exclude   ****排除文件列表结束
 //%$#@API include path         ****API头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，应用本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
-//./;./ports/djyos;${ProjDirPath}/libmicroPython_App_Debug/build;${ProjDirPath}/libmicroPython_App_Release/build;
+//./;./ports/djyos;
 //%$#@end API include path
 //%$#@self include path         ****编译自身的头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，编译本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
-//./include;
+//./lib;./extmod;
 //%$#@end self include path
 //%$#@library path             ****列出本组件引用的二进制文件列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符
 //./ip/my_lib_name.a

@@ -136,6 +136,7 @@
 #define    PRODUCT_VERSION_MEDIUM          0                 //版本号,xx.__.xx
 #define    PRODUCT_VERSION_SMALL           0                 //版本号,xx.xx.__
 #define    PRODUCT_PRODUCT_MODEL_CODE      ""                //产品型号编码
+#define    PRODUCT_BRANCH                  ""                //产品分支
 #define    PRODUCT_PASSWORD                ""                //产品秘钥
 #define    PRODUCT_OTA_ADDRESS             ""                //OTA服务器地址
 #define    PRODUCT_BOARD_TYPE              "NUCLEO-H743ZI"   //板件类型

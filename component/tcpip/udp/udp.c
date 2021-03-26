@@ -476,7 +476,7 @@ static struct tagSocket * __udpsocket(int family, int type, int protocal)
                 sock->element.v4.portlocal = port;
                 //initialize the sock add the sock to the hash tab
                 sock->sockstat |=CN_SOCKET_PROBLOCK;
-                sock->ProtocolOps = &gUdpProto;
+//                sock->ProtocolOps = &gUdpProto;
 //              sock->IoInitstat = CN_SOCKET_IOWRITE;
                 sock->TplCB = ucb;
                 //add it to the socket queue
