@@ -423,6 +423,8 @@ extern struct NetDev;
 void NetDev_SetDefault(struct NetDev *NetDev);
 bool_t DHCP_AddClientTask(const char *ifname, u32 OldIP)
 {
+    if(gClientCB.sockfd == 0)
+        DHCP_ClientInit();
     bool_t ret = false;
     tagTaskItem *task;
 //    tagHostAddrV4 addr;
@@ -431,19 +433,6 @@ bool_t DHCP_AddClientTask(const char *ifname, u32 OldIP)
     //每次添加任务前删除这个网卡的所有dhcp任务
     DhcpclientDeleteTask(ifname);
     NetDev_SetDefault(NetDev_GetHandle(ifname));
-    //不再添加全 0 路由
-//    memset(&addr,0,sizeof(addr));
-////    addr.broad = INADDR_BROADCAST;
-//    //prepare the parameters
-//    memset(&routpara,0,sizeof(routpara));
-//    routpara.ifname = ifname;
-//    routpara.ver = EN_IPV_4;
-//    routpara.host = &addr.host;
-//    routpara.net = &addr.net;
-//    routpara.mask = &addr.mask;
-////    routpara.broad = &addr.broad;
-//    routpara.hop = &addr.hop;
-//    routpara.prior = CN_ROUT_PRIOR_ANY;
     task = net_malloc(sizeof(tagTaskItem));
 
     if(NULL == task) //no mem here
@@ -568,6 +557,8 @@ bool_t  DHCP_ClientInit(void)
 {
     bool_t  ret = false;
 
+    if(gClientCB.sockfd != 0)
+        return ret;
     memset(&gClientCB,0,sizeof(gClientCB));
     gClientCB.txid = CN_DHCP_CLIENTTXID;
     gClientCB.lock = Lock_MutexCreate(NULL);
