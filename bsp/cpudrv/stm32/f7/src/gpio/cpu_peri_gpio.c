@@ -341,7 +341,7 @@ u32 transformation(char *str)
     else if(strcmp(str,"GPIO_K")==0)
         return GPIO_K;
     else
-        return GPIO_A;
+        return -1;
 }
 
 // =============================================================================
@@ -355,8 +355,9 @@ u32 transformation(char *str)
 //       date[5],速度，如GPIO_SPEED_50M
 // 返回: 无
 // =============================================================================
-void PIN_Init(void *str,char *data,u32 len)
+s32 PIN_Init(void *str,char *data,u32 len)
 {
+    s32 ret =-1;
     struct PIN *p = malloc(sizeof(struct PIN));
 
     p->PORT=GPIO_A;
@@ -374,7 +375,8 @@ void PIN_Init(void *str,char *data,u32 len)
 
     if(len>=1)
     {
-        p->PORT = transformation(str);
+        ret = transformation(str);
+        p->PORT = ret;
         p->Pinx = 1 << data[0];
     }
     if (len >= 2)
@@ -388,6 +390,7 @@ void PIN_Init(void *str,char *data,u32 len)
     if (len >= 6)
         p->O_SPEEDR = data[5];
 
+//    printf("ret is %d\r\n",ret);
 //    printf("p->PORT is %d\r\n",p->PORT);
 //    printf("p->Pinx is %d\r\n",p->Pinx);
 //    printf("p->MODER is %d\r\n",p->MODER);
@@ -400,6 +403,7 @@ void PIN_Init(void *str,char *data,u32 len)
 
     free(p);
 
+    return ret;
 }
 
 u32 PIN_Get(void *str,char *data,u32 len)

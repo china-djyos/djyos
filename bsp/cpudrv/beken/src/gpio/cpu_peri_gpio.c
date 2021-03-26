@@ -184,8 +184,9 @@ s32 Djy_GpioInit(void)
 }
 
 
-bool_t PIN_Init(void *str,char *data,u32 len)
+s32 PIN_Init(void *str,char *data,u32 len)
 {
+    s32 ret = 0;
     u32 pinx=0;
     u32 mode=PIN_MODE_OUTPUT;
     u32 pupd=PIN_MODE_INPUT;
@@ -217,6 +218,8 @@ bool_t PIN_Init(void *str,char *data,u32 len)
 //    printf("len is %d\r\n",len);
 //    printf("pinx is %d\r\n",pinx);
 //    printf("mode is %d\r\n",mode);
+
+    return ret;
 }
 
 u32 PIN_Get(void *str,char *data,u32 len)
