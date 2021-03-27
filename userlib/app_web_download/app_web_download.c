@@ -161,7 +161,8 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
 }
 
 //返回：-1：下载时候 -2：下载超时
-s32 WebDownload(s8 *host, s32 port, s8 *path, void *fdo, s32 timeout_ms)
+s32 WebDownload(s8 *host, s32 port, s8 *path,
+                 fnTransAppToIboot fdo, s32 timeout_ms)
 {
 //    struct StAliyunOssMgr *pOssMgr = &gOssMgr;
     struct StDlFileData userData;
@@ -177,6 +178,7 @@ s32 WebDownload(s8 *host, s32 port, s8 *path, void *fdo, s32 timeout_ms)
     printf ("WebDownload: %s!\r\n", path);
 
 //  if (!is_wifi_connected())
+    //lst todo：由网络管理组件提供判断网络是否连通的函数 NG_ConnectIsOK
     if(mhdr_get_station_status() != RW_EVT_STA_GOT_IP)
     {
         pUserData->url[0] = 0;      //网络断开
@@ -640,7 +642,10 @@ s32 web_check_new_versions(u8 *branch, u8 *SN)
 // 返回：0：成功。-1：下载失败，-2：下载超时
 // 备注：
 // ============================================================================
-s32 web_upgrade_firmware(void *fdo)
+
+//lst todo : 升级分三步走，1、检查有没有新版本（download组件）；2、下载数据（download组件）
+//          3、升级（app update组件）
+s32 web_upgrade_firmware(fnTransAppToIboot fdo)
 {
     s32 ret = -1;
     s8 *p1 = 0;
@@ -651,6 +656,7 @@ s32 web_upgrade_firmware(void *fdo)
     p2 = 0;
     if (gupgrade_url[0]) {
         p1 = (s8*)gupgrade_url;
+        //找域名
         if (strstr((s8*)gupgrade_url, "https://") == (s8*)gupgrade_url)
         {
             p1 = p1 + strlen("https://");

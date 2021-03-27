@@ -50,8 +50,9 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+typedef int (*fnTransAppToIboot)(u8 *buf,s32 len, int fsize, int timeout) ;
 int web_check_new_versions(u8 *branch, u8 *SN);
-int web_upgrade_firmware(void *fdo);
+int web_upgrade_firmware(fnTransAppToIboot);
 
 #ifdef __cplusplus
 }
