@@ -169,14 +169,14 @@ bool_t updateapp(char *param)
     word_param = shell_inputs(param,&next_param);
     if(word_param == NULL)
     {
-        res = Iboot_FillMutualUpdatePath(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
+        res = set_upgrade_info(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
         Iboot_SetUpdateRunModet(1);      //启动后运行app
     }
     else
     {
         if(runapp_or_runiboot(word_param) == false)
         {
-            res = Iboot_FillMutualUpdatePath(word_param, strlen(word_param));
+            res = set_upgrade_info(word_param, strlen(word_param));
             word_param = shell_inputs(next_param,&next_param);
             if(word_param != NULL)
             {
@@ -190,9 +190,9 @@ bool_t updateapp(char *param)
         {
             word_param = shell_inputs(next_param,&next_param);
             if(word_param != NULL)
-                res = Iboot_FillMutualUpdatePath(word_param, strlen(word_param));
+                res = set_upgrade_info(word_param, strlen(word_param));
             else
-                res = Iboot_FillMutualUpdatePath(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
+                res = set_upgrade_info(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
         }
     }
 
@@ -342,14 +342,14 @@ bool_t Iboot_Update(char *param)
     word_param = shell_inputs(param,&next_param);
     if(word_param == NULL)
     {
-        res = Iboot_FillMutualUpdatePath(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
+        res = set_upgrade_info(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
         Iboot_SetUpdateRunModet(0);      //启动后运行iboot
     }
     else
     {
         if(runapp_or_runiboot(word_param) == false)
         {
-            res = Iboot_FillMutualUpdatePath(word_param, strlen(word_param));
+            res = set_upgrade_info(word_param, strlen(word_param));
             word_param = shell_inputs(next_param,&next_param);
             if(word_param != NULL)
             {
@@ -363,9 +363,9 @@ bool_t Iboot_Update(char *param)
         {
             word_param = shell_inputs(next_param,&next_param);
             if(word_param != NULL)
-                res = Iboot_FillMutualUpdatePath(word_param, strlen(word_param));
+                res = set_upgrade_info(word_param, strlen(word_param));
             else
-                res = Iboot_FillMutualUpdatePath(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
+                res = set_upgrade_info(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
         }
     }
 

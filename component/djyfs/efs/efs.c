@@ -232,7 +232,7 @@ static u32 __Efs_CheckFileSize(u8 *buf, u32 *location)
             break;
         else if(pick_little_32bit(buf + offset,0) == 0)//表示被改写过的大小，为全0,直接跳过
             continue;
-        else if(__EfsFileSize_verify(*(u32 *) (buf + offset)))//正反码有错
+        else if(__EfsFileSize_verify(*(u32 *) (buf + offset)))//奇偶校验有错
         {
             ret = 1;
             break;
@@ -2065,7 +2065,7 @@ static s32 Efs_Verify_Install(struct FsCore *pSuper)
             goto exit;
         }
         break;
-    case 0x00:          //主/备区域全错
+    case 0x00:          //主/备区域全对
         if(true == __Efs_CheckBlock(block_buf,loop, bakbuf, loop+blocks, efs) )
         {
             crc16_check = CRC_16(block_buf,16);

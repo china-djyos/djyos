@@ -13,8 +13,6 @@
 #include <filesystems.h>
 #include <cpu_peri_flash.h>
 
-extern u32 gc_ProductSn;
-
 //----------------------------------------------------------------------------
 //功能: 对文件系统里的文件进行校验
 //参数: path：文件路径
@@ -103,8 +101,9 @@ bool_t app_check_from_fs(const char *path)
 //功能: app发送，app的相关升级信息给iboot，
 //参数: info：升级相关信息，
 //返回: 0: 成功； -1 ： 失败.
+//原名： app_update_info_to_iboot
 //-----------------------------------------------------------------------------
-s32 app_update_info_to_iboot(struct update_app_info *info)
+s32 set_upgrade_data(struct update_app_info *info)
 {
     struct AppHead *apphead;
     u32 file_size;
@@ -112,14 +111,14 @@ s32 app_update_info_to_iboot(struct update_app_info *info)
     // s8 app_info[MutualPathLen]; //app和iboot的共享内存只留了40个字节来存升级相关信息
 //    u8 app_info_size = 0;
 
-    if((info->time_buf_len > sizeof(up_info.ram.production_time)) 
+    if((info->time_buf_len > sizeof(up_info.ram.production_time))
         || (info->prod_num_buf_len > sizeof(up_info.ram.production_num)))
     {
         info_printf("up", "param len overlong \r\n");
         return -1;
     }
-        
-    if(info->start_addr != 0)       //看是否有给出起始地址，有则是从内存里升级，无则不是
+
+    if(info->start_addr != NULL)       //看是否有给出起始地址，有则是从内存里升级，无则不是
     {
         if(info->file_name_len > sizeof(up_info.ram.file_name))
         {
@@ -128,9 +127,10 @@ s32 app_update_info_to_iboot(struct update_app_info *info)
         }
         apphead = (struct AppHead *)info->start_addr;
         file_size = info->end_addr - info->start_addr;  //计算文件大小
-        if((apphead->app_bin_size != apphead->file_size) || (apphead->file_size != file_size))
+        if(apphead->file_size != file_size)
         {
-            printk("ERROR: file size diff.apphead_appbinsize = %d, apphead_filesize = %d, file_size = %d!\r\n",apphead->app_bin_size, apphead->file_size, file_size);
+            printk("ERROR: file size diff.apphead_appbinsize = %d, apphead_filesize = %d, file_size = %d!\r\n",
+                            apphead->app_bin_size, apphead->file_size, file_size);
             return -1;
         }
 
@@ -138,7 +138,7 @@ s32 app_update_info_to_iboot(struct update_app_info *info)
         {
             printf("File check correct\r\n");
 
-            memset(up_info.info, 0, sizeof(up_info.info));
+            memset(&up_info, 0, sizeof(up_info));
             up_info.ram.start_add = info->start_addr;
             up_info.ram.file_size = file_size;
             memcpy(up_info.ram.production_time, info->time_buf, info->time_buf_len);   //生产时间
@@ -177,7 +177,7 @@ s32 app_update_info_to_iboot(struct update_app_info *info)
             return -1;
         }
     }
-    else if(info->file_name != 0)   //如果没给出start_addr，但是给出了file_namd则是从文件系统升级
+    else if(info->file_name != 0)   //如果没给出start_addr，但是给出了file_name 则是从文件系统升级
     {
         if(info->file_name_len > sizeof(up_info.file.file_path))
         {
@@ -203,7 +203,7 @@ s32 app_update_info_to_iboot(struct update_app_info *info)
             return -1;
         }
     }
-    Iboot_FillMutualUpdatePath((char *)&up_info, sizeof(up_info));
+    set_upgrade_info((char *)&up_info, sizeof(up_info));
     Iboot_SetRunIbootUpdateApp();
     Set_RunIbootFlag();
     return 0;
@@ -212,7 +212,7 @@ s32 app_update_info_to_iboot(struct update_app_info *info)
 
 
 //----------------------------------------------------------------------------
-//功能: 把app从可寻址内存写入到文件系统中
+//功能: 把app从可寻址内存写入到xip 文件系统中
 //参数: dir：待写入的目录，一般是/xpi-app，addr：内存起始地址，file_size：文件大小，file_name：文件名
 //返回: true: 成功； false ： 失败.
 //-----------------------------------------------------------------------------
@@ -279,50 +279,13 @@ static bool_t app_ram_to_fs(s8 *dir, s8 *addr,u32 file_size, s8 *file_name)
 }
 
 //----------------------------------------------------------------------------
-//功能: 把app从可寻址内存写入到文件系统中
-//参数: target_dir：app文件待待写入的目录，app_max_size：app文件的最大大小
+//功能: 把app从可寻址内存或文件写入到xip文件系统中
+//参数: app_max_size：app文件的最大大小
 //返回: true: 成功； false ： 失败.
 //-----------------------------------------------------------------------------
-static bool_t write_sn_to_iboot(s8 *time, u32 time_len, s8 *num, u32 num_len)
+s32 to_update_app(u32 app_max_size)
 {
-    u8 *iboot_sn_buf = 0;
-    u32 iboot_sn_addr = 0;
-
-    iboot_sn_buf = malloc(time_len + num_len + 1);
-    if(iboot_sn_buf == NULL)
-        return false;
-
-    iboot_sn_addr = (u32)(&gc_ProductSn) / 32 * 34;
-    if(iboot_sn_addr)
-    {
-        //直接带CRC的读出来，因为这个SN号里面不会存在CRC
-        djy_flash_read_crc(iboot_sn_addr, iboot_sn_buf, time_len + num_len);
-        if((iboot_sn_buf[0] == 0xff) && ((u8)time[0] != 0xff))
-        {   //iboot里没SN，程序里给出SN号，现在写SN
-            printf("write SN in iboot.\r\n");
-            memcpy(iboot_sn_buf, time, time_len);
-            memcpy(iboot_sn_buf + time_len, num, num_len);
-
-//            flash_protection_op(0,FLASH_PROTECT_NONE);
-            djy_flash_write(iboot_sn_addr, iboot_sn_buf, time_len + num_len);
-//            flash_protection_op(0,FLASH_PROTECT_ALL);
-        }
-    }
-
-    free(iboot_sn_buf);
-    return true;
-}
-
-
-//----------------------------------------------------------------------------
-//功能: 把app从可寻址内存写入到文件系统中
-//参数: target_dir：app文件待待写入的目录，app_max_size：app文件的最大大小
-//返回: true: 成功； false ： 失败.
-//-----------------------------------------------------------------------------
-int to_update_app(s8 *target_dir, u32 app_max_size)
-{
-    int ret = -1;
-//    char app_info[MutualPathLen];
+    s32 ret = -1;
     union update_info  up_info;
     s8 file_name[sizeof(up_info.ram.file_name)];
     struct ProductInfo p_productinfo;
@@ -331,8 +294,10 @@ int to_update_app(s8 *target_dir, u32 app_max_size)
     u32 file_size = 0;
 //    u32 iboot_sn_addr = 0;
     struct stat file_state;
-    char production_num[sizeof(p_productinfo.ProductionNumber)],production_time[sizeof(p_productinfo.ProductionTime)];
-//    u8 iboot_sn_buf[sizeof(p_productinfo.ProductionNumber) + sizeof(p_productinfo.ProductionTime)];
+    char production_num[sizeof(p_productinfo.ProductionNumber)], \
+                production_time[sizeof(p_productinfo.ProductionTime)];
+    u8 finger[sizeof(p_productinfo.ProductionNumber) + \
+                  sizeof(p_productinfo.ProductionTime) + sizeof(p_productinfo.TypeCode)];
     if(Iboot_GetUpdateApp() == true)
     {
         if(!Iboot_GetMutualUpdatePath((char *)&up_info, sizeof(up_info)))
@@ -340,6 +305,15 @@ int to_update_app(s8 *target_dir, u32 app_max_size)
             printk("app file info get fail\r\n");
             return false;
         }
+
+        read_finger_from_iboot(finger, sizeof(finger));
+        finger[sizeof(p_productinfo.TypeCode)] = 0;
+        if((finger[0] != 0xff) && (strcmp(finger, PRODUCT_PRODUCT_MODEL_CODE) != 0))
+        {
+            printk("p_productinfo type code error \r\n");
+            return false;
+        }
+
         Iboot_GetProductInfo(&p_productinfo);   //获取还没升级前的文件头里的产品信息
         //如果版本号是0.0.0就把从服务器上获取到的生产时间和产品序号写到app文件头中，
         //否则就直接用原来app文件头里面的
@@ -376,14 +350,14 @@ int to_update_app(s8 *target_dir, u32 app_max_size)
             }
         }
         else
-        {
+        {   //使用本地文件的生产时间和生产序号
             memcpy(&production_time, p_productinfo.ProductionTime, sizeof(production_time));
             printk("production_time  = %4.4s,\r\n",production_time);
 
             memcpy(&production_num, p_productinfo.ProductionNumber, sizeof(production_num));
             printk("production_num   = %5.5s,\r\n",production_num);
         }
-        if(write_sn_to_iboot((s8 *)production_time, sizeof(production_time), (s8 *)production_num, sizeof(production_num)) == false)
+        if(write_finger_to_iboot((s8 *)production_time, sizeof(production_time), (s8 *)production_num, sizeof(production_num)) == false)
             info_printf("up", "iboot sn write fail\r\n");
 
         if(Iboot_GetUpdateSource() == SOURCE_FILE)
@@ -407,7 +381,7 @@ int to_update_app(s8 *target_dir, u32 app_max_size)
             else
             {
                 printk("Start erase flash\r\n");
-                if(!File_Format((const char *)target_dir))
+                if(!File_Format((const char *)CFG_APP_SAVE_DIR))
                 {
                     Iboot_UpdateApp();
                 }
@@ -428,12 +402,12 @@ int to_update_app(s8 *target_dir, u32 app_max_size)
                 {
                     printk("File check success\r\n");
                     printf("Start erase flash\r\n");
-                    if(!File_Format((const char *)target_dir))
+                    if(!File_Format((const char *)CFG_APP_SAVE_DIR))
                     {
                         printf("Erase flash succeed\r\n");
                         //把产品序号和文件头，写入app文件头中
                         Iboot_RewriteProductInfoNumTime(start_addr + sizeof(struct AppHead), production_time, production_num);
-                        if(app_ram_to_fs(target_dir, start_addr, file_size, file_name))
+                        if(app_ram_to_fs(CFG_APP_SAVE_DIR, start_addr, file_size, file_name))
                             ret = 0;
                     }
                 }

@@ -76,7 +76,7 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CONFIG_NET    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,true,false
-#define CFG_NETC_KEY_BOARD_ENABLE           false        //"是否使用按键输入密码",
+#define CFG_NETC_USER_INPUT_ENABLE           false        //"是否使用用户输入密码",
 #define CFG_NETC_AP_ENABLE                  false       //"是否使用网页配网",
 #define CFG_NETC_AIRKISS_ENABLE             false        //"是否使用微信配网",
 #define CFG_NETC_WAVE_ENABLE                false       //"是否使用声波配网",

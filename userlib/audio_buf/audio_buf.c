@@ -52,7 +52,6 @@
 //#define NEW 0
 
 //#if NEW
-// struct MutexLCB *ring_buf_lock = NULL;
 struct SemaphoreLCB *ring_buf_write = NULL;
 struct SemaphoreLCB *ring_buf_read = NULL;
 // ============================================================================
@@ -67,9 +66,7 @@ s32 AudioRingBufferRead_Len(struct RingBuf *audio, s8 *buf, s32 len, u32 timeout
 
     if((buf) && (audio))
     {
-        // Lock_MutexPend(ring_buf_lock, CN_TIMEOUT_FOREVER);
         ret = Ring_Read(audio, (u8 *)buf, len);
-        // Lock_MutexPost(ring_buf_lock);
         Lock_SempPost(ring_buf_write);  //执行完一次读缓冲区的操作，释放信号量，通知写缓冲区的操作，现在有空间可以写
         if(ret == 0)
         {
@@ -95,10 +92,8 @@ s32 AudioRingBufferWrite_Len(struct RingBuf *audio, s8 *buf, s32 len, u32 timeou
     {
         while((write_num++ < 10) && (write_len != len))
         {
-            // Lock_MutexPend(ring_buf_lock, CN_TIMEOUT_FOREVER);
             ret = Ring_Write(audio, (u8 *)(buf+write_len), len-write_len);
             write_len += ret;
-            // Lock_MutexPost(ring_buf_lock);
             Lock_SempPost(ring_buf_read);   //执行完一次写缓冲区的操作，释放信号量，通知读缓冲区的操作，现在有数据可以读
             if((ret == 0) || (write_len != len))
             {
@@ -182,25 +177,21 @@ s32 AudioRingBufferWrite_Time(struct RingBuf *audio, s8 *buf,
 struct RingBuf *AudioRingBufferInit(u32 len)
 {
     struct RingBuf *buf;
-    // ring_buf_lock = Lock_MutexCreate("audio_ring_buf");
-    // if(ring_buf_lock)
-    // {
-        ring_buf_write = Lock_SempCreate(1, 0, CN_BLOCK_FIFO, "audio_ring_buf_write");
-        if(ring_buf_write)
+
+    ring_buf_write = Lock_SempCreate(1, 0, CN_BLOCK_FIFO, "audio_ring_buf_write");
+    if(ring_buf_write)
+    {
+        ring_buf_read = Lock_SempCreate(1, 0, CN_BLOCK_FIFO, "audio_ring_buf_write");
+        if(ring_buf_read)
         {
-            ring_buf_read = Lock_SempCreate(1, 0, CN_BLOCK_FIFO, "audio_ring_buf_write");
-            if(ring_buf_read)
-            {
-                buf = Ring_Create(len);
-                if(buf)
-                    return buf;
-                else
-                Lock_SempDelete(ring_buf_read);
-            }
-            Lock_SempDelete(ring_buf_write);
+            buf = Ring_Create(len);
+            if(buf)
+                return buf;
+            else
+            Lock_SempDelete(ring_buf_read);
         }
-        // Lock_MutexDelete(ring_buf_lock);
-    // }
+        Lock_SempDelete(ring_buf_write);
+    }
 
     return NULL;
 }
@@ -220,8 +211,6 @@ s32 AudioRingBufferDeInit(struct RingBuf *audio)
     {
         if(Ring_Destroy(audio) == -1)
             ret |= 1 << 0;
-        // if(Lock_MutexDelete(ring_buf_lock) == false)
-        //     ret |= 1 << 1;
         if(Lock_SempDelete(ring_buf_write) == false)
             ret |= 1 << 1;
         if(Lock_SempDelete(ring_buf_read) == false)
@@ -243,9 +232,7 @@ s32 AudioRingBufferReset(struct RingBuf *audio)
 {
     if(audio)
     {
-        // Lock_MutexPend(ring_buf_lock, CN_TIMEOUT_FOREVER);
         Ring_Clean(audio);
-        // Lock_MutexPost(ring_buf_lock);
         return 0;
     }
     else

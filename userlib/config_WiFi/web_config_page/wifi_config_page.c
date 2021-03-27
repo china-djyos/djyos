@@ -476,7 +476,7 @@ void ScanApCallBack(void *arg, uint8_t vif_idx)
     scan_flag = 1;
 }
 
-
+//…®√ËAP
 int scan_ap_event() {
     int secs = 5;
     while (1){

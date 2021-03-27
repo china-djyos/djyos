@@ -125,17 +125,16 @@ struct IbootAppInfo Iboot_App_Info __attribute__ ((section(".IbootAppInfo"))) ;
 __attribute__((weak))  u8  Get_Hard_flag_mode(s8 *ret)
 {
     u8 res;
-    //如果是有标志阅后即焚的话，退出该函数时，需要保证该标志真的焚了
    res = RESET_FLAG_NO_HARD_FLAG;       //实际返回什么根据具体硬件来写
-//           res = RESET_FLAG_FLAG_ONLY_READ_ONE;
-//           *ret = 1;          //有此硬件但阅后即焚的话，这里就要把标志的值写上
+   *ret = 0;                            //本标志应该来自具体硬件
+//  有此硬件但读时不自动清零的话，就要在这里把硬件寄存器清零
     return res;
 }
 //==============================================================================
 //功能：获取硬件上的标志    需要用户根据不同的环境自己编写，写在initcpuc.c文件当中
 //参数：
 //     HEAD_RESET_FLAG： 获取硬件复位标志，没有/不支持返回0
-//     HEAD_WDT_RESE： 获取硬件看门狗复位标志，没有/不支持返回0
+//     HEAD_WDT_RESET： 获取硬件看门狗复位标志，没有/不支持返回0
 //     LOW_POWER_WAKEUP： 低功耗唤醒，没有/不支持返回0
 //     POWER_ON_RESET：通过硬件获取是否上电复位
 //返回：      ret：1：是对应flag产生的复位，0：不是对方flag产生的复位   存实际的标志值，0表示上电复位，其他值表示非上电复位。若CPU有此硬件标志才调用）
@@ -659,16 +658,16 @@ static bool_t Iboot_VerificationAppInit(void *data)
 //    p_apphead->ManufacturerNameAddr      = 0xffffffffffffffff;
 //#endif
 
-    for( i=0;i<sizeof(p_productinfo->ProductionNumber);i++)
+    for( i=0;i<sizeof(p_productinfo->ProductionNumber);i++) //生产序号不参与校验
         p_productinfo->ProductionNumber[i]=0xff;
 
-    for( i=0;i<sizeof(p_productinfo->ProductionTime);i++)
+    for( i=0;i<sizeof(p_productinfo->ProductionTime);i++)   //生产时间不参与校验
         p_productinfo->ProductionTime[i]=0xff;
 
-    for( i=0;i<sizeof(p_apphead->app_name);i++)
+    for( i=0;i<sizeof(p_apphead->app_name);i++)             //app_name不参与校验
         p_apphead->app_name[i]=0xff;
 
-    for(u32 i =0;i<sizeof(p_apphead->verif_buf);i++)
+    for(u32 i =0;i<sizeof(p_apphead->verif_buf);i++)        //校验码本身不参与校验
         p_apphead->verif_buf[i]=0xff;
 
     if(p_apphead->verification == VERIFICATION_CRC)
@@ -953,7 +952,75 @@ len_error:
     return false;
 }
 
+extern u32 gc_ProductSn;
 
+//----------------------------------------------------------------------------
+//功能: 写指纹到iboot中
+//参数: time -- 生产时间缓冲区， time_len -- 生产时间缓冲区长度，num -- 生产序号缓冲区，num_len -- 生产序号缓冲区长度
+//返回: true: 成功； false ： 失败.
+//-----------------------------------------------------------------------------
+bool_t write_finger_to_iboot(s8 *time, u32 time_len, s8 *num, u32 num_len)
+{
+    u8 *iboot_sn_buf = 0;
+    u32 iboot_sn_addr = 0,len;
+    struct ProductInfo *info;
+    len = time_len + num_len + sizeof(info->TypeCode);
+    iboot_sn_buf = malloc(len + 1);
+    if(iboot_sn_buf == NULL)
+        return false;
+
+    memset(iboot_sn_buf, 0 , len + 1);
+    iboot_sn_addr = (u32)(&gc_ProductSn) / 32 * 34;
+    if(iboot_sn_addr)
+    {
+        //连同CRC区域一起读出来，但实际上SN号里面不做CRC校验
+        djy_flash_read_crc(iboot_sn_addr, iboot_sn_buf, len);
+        if((iboot_sn_buf[0] == 0xff) && ((u8)time[0] != 0xff))
+        {   //iboot里没SN，程序里给出SN号，现在写SN
+            printf("write SN in iboot.\r\n");
+            memcpy(iboot_sn_buf, PRODUCT_PRODUCT_MODEL_CODE, sizeof(info->TypeCode));
+            memcpy(iboot_sn_buf + sizeof(info->TypeCode), time, time_len);
+            memcpy(iboot_sn_buf + sizeof(info->TypeCode) + time_len, num, num_len);
+
+//            flash_protection_op(0,FLASH_PROTECT_NONE);
+            djy_flash_write(iboot_sn_addr, iboot_sn_buf, len);
+//            flash_protection_op(0,FLASH_PROTECT_ALL);
+        }
+    }
+
+    free(iboot_sn_buf);
+    return true;
+}
+
+//----------------------------------------------------------------------------
+//功能: 读iboot中的指纹
+//参数: finger -- 存指纹缓冲区，len -- 缓冲区长度
+//返回: true: 成功； false ： 失败.
+//-----------------------------------------------------------------------------
+bool_t read_finger_from_iboot(s8 *finger, u32 buf_len)
+{
+    u32 iboot_sn_addr = 0, len;
+    struct ProductInfo *info;
+
+    len = sizeof(info->ProductionTime) + sizeof(info->ProductionNumber) + sizeof(info->TypeCode);
+
+     if(buf_len < len)
+     {
+         printk("finger buf len is error .\r\n");
+
+         return false;
+     }
+
+    iboot_sn_addr = (u32)(&gc_ProductSn) / 32 * 34;
+    if(iboot_sn_addr)
+    {
+        djy_flash_read_crc(iboot_sn_addr, finger, len);
+    }
+    else
+        return false;
+
+    return true;
+}
 
 
 //char ProductSN[DjyAppHead_SN_Len];
@@ -1346,13 +1413,13 @@ bool_t Iboot_SiIbootAppInfoInit()
                (Iboot_App_Info.previou_reset != PREVIOURESET_IBOOT))
                 PowerUp = true;
             break;
-        case RESET_FLAG_NO_FLAG: break;             //1=有此硬件，但无标志；
-        case RESET_FLAG_FLAG_ONLY_READ_ONE:         //2=有标志，阅后即焚；
-            if(flag == 0)
-                PowerUp = true;
-            break;
-        case RESET_FLAG_FLAG_READ_MANY:             //3=有，非阅后即焚
-            flag = Get_Hard_flag(POWER_ON_RESET);
+        case RESET_FLAG_NO_FLAG: break;             //1=有此硬件，没有上电复位标志；
+        case RESET_FLAG_FLAG_ONLY_READ_ONE:         //2=有标志，且自动清除
+//            if(flag == 0)
+//                PowerUp = true;
+//            break;
+        case RESET_FLAG_FLAG_READ_MANY:             //3=有标志，读后自动清除
+//            flag = Get_Hard_flag(POWER_ON_RESET);
             if(flag)
                 PowerUp = true;
             break;
@@ -1361,8 +1428,9 @@ bool_t Iboot_SiIbootAppInfoInit()
             break;
     }
 #if (CFG_RUNMODE_BAREAPP == 0)
-    Iboot_GetIbootBulidTime(&Iboot_App_Info.iboot_build_year,&Iboot_App_Info.iboot_build_mon,&Iboot_App_Info.iboot_build_day,\
-    &Iboot_App_Info.iboot_build_hour,&Iboot_App_Info.iboot_build_min,&Iboot_App_Info.iboot_build_sec);
+    Iboot_GetIbootBulidTime(&Iboot_App_Info.iboot_build_year,&Iboot_App_Info.iboot_build_mon,
+            &Iboot_App_Info.iboot_build_day,&Iboot_App_Info.iboot_build_hour,
+            &Iboot_App_Info.iboot_build_min,&Iboot_App_Info.iboot_build_sec);
     Iboot_App_Info.iboot_ver_small = CFG_IBOOT_VERSION_SMALL;         //iboot 版本
     Iboot_App_Info.iboot_ver_medium = CFG_IBOOT_VERSION_MEDIUM;         //iboot 版本
     Iboot_App_Info.iboot_ver_large = CFG_IBOOT_VERSION_LARGE;         //iboot 版本
@@ -1606,9 +1674,10 @@ bool_t Iboot_GetHeadWdtReset(void)
 //==============================================================================
 //功能：填待升级文件路径到交互信息
 //参数：AppPath -- 待升级的app路径；
-//返回： true/false
+//返回： true/false/
+//原名 ： Iboot_FillMutualUpdatePath
 //==============================================================================
-bool_t Iboot_FillMutualUpdatePath(char* info, int len)
+bool_t set_upgrade_info(char* info, int len)
 {
 //    u8 i;
 

@@ -222,7 +222,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                             if(iboot_sn_buf[0] != 0xff)
                             {   //把iboot的SN复制到app的中
                                 memcpy(app_head + ((sizeof(struct AppHead) + (u32)offsetof(struct ProductInfo, ProductionTime)) / 32 * 34),
-                                                    iboot_sn_buf, sizeof(p_productinfo->ProductionTime) + sizeof(p_productinfo->ProductionNumber));
+                                                    iboot_sn_buf + sizeof(p_productinfo->TypeCode), sizeof(p_productinfo->ProductionTime) + sizeof(p_productinfo->ProductionNumber));
                             }
                         }
                     }
@@ -251,7 +251,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                             if(iboot_sn_buf[0] != 0xff)
                             {   //把iboot的SN复制到app的中
                                 memcpy(cx->apphead + (sizeof(struct AppHead) + (u32)offsetof(struct ProductInfo, ProductionTime)),
-                                                    iboot_sn_buf, sizeof(p_productinfo->ProductionTime) + sizeof(p_productinfo->ProductionNumber));
+                                                    iboot_sn_buf + sizeof(p_productinfo->TypeCode), sizeof(p_productinfo->ProductionTime) + sizeof(p_productinfo->ProductionNumber));
                             }
                         }
                     }

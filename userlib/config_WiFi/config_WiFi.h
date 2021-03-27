@@ -51,7 +51,7 @@ extern "C" {
 
 #include <stdint.h>
 
-#define NETC_KEY_BOARD      (1<<0)      //¼üÅÌÅäÍø
+#define NETC_USER_INPUT      (1<<0)      //¼üÅÌÅäÍø
 #define NETC_AP             (1<<1)      //ÍøÒ³ÅäÍø
 #define NETC_AIRKISS        (1<<2)      //Î¢ÐÅÅäÍø
 #define NETC_WAVE           (1<<3)      //Éù²¨ÅäÍø

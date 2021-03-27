@@ -189,7 +189,7 @@ s32 WebDownload(s8 *host, s32 port, s8 *path, void *fdo, s32 timeout_ms)
 
     memset(&userData, 0, sizeof(struct StDlFileData));
     pUserData = &userData;
-    pUserData->fun_net_do = fdo;
+    pUserData->fun_net_do = fdo;        //设置回调函数
 
     GetTimeStamp(&timestamp, timeout_ms);
     GTM_TIME(timestamp, GMT, sizeof(GMT));
@@ -488,8 +488,9 @@ s32 DevUpgradeQuest(const s8 *serial_num, u8 *branch, s8 *out_json, s32 len)
         return -1;
 
     Iboot_GetAPP_ProductInfo(APP_HEAD_FINGER, finger, sizeof(finger));
-    sprintf(path, "/api/version?sn=%s&branch=%s&version=%s&fingerprint%s&data=%s", serial_num, branch, VersionNum, "QMNVLX20470000M", "NULL" );
-//    sprintf(path, "/api/version?sn=%s&branch=%s&version=%s&fingerprint%s&data=%s", serial_num, branch, VersionNum, finger, "NULL" );
+//    sprintf(path, "/api/version?sn=%s&branch=%s&version=%s&fingerprint%s&data=%s",
+//                                serial_num, branch, VersionNum, "QMNVLX20470000M", "NULL" );  //测试用的
+    sprintf(path, "/api/version?sn=%s&branch=%s&version=%s&fingerprint%s&data=%s", serial_num, branch, VersionNum, finger, "NULL" );
 
     s32 ret = DevUpgradeCommon(path, out_json, len);
     printf("EXIT: %s!\r\n", __FUNCTION__);
@@ -499,6 +500,7 @@ s32 DevUpgradeQuest(const s8 *serial_num, u8 *branch, s8 *out_json, s32 len)
 static u8 gserial_num[5];
 static u8 gproduct_time[4];
 static u8 gupgrade_url[256];
+//获取服务器下发的生产时间和生产序号
 s32 GetSrvUpgradeInfo(u8 *product_time, s32 prod_time_len, u8 *serial_num, s32 ser_num_len)
 {
     if (gserial_num[0] == 0 || gproduct_time[0] == 0) return -1;
@@ -529,12 +531,6 @@ s32 DevDoUpgrade(u8 *branch, u8 *SN)            //todo：增加发送指纹，与王西配合
     cJSON*  results = 0;
     s8 *out_json = malloc(1024);
     if (out_json==0) return -1;
-
-//    memset(VersionNum, 0, sizeof(VersionNum));
-//
-//    sprintf(VersionNum, "%d.%d.%d", PRODUCT_VERSION_LARGE,
-//                    PRODUCT_VERSION_MEDIUM, PRODUCT_VERSION_SMALL);
-//    printf("              --------send VersionNumber          = %s   ",VersionNum);
     printf("\r\n SN_Num   = %s,\r\n", SN);
     memset(out_json, 0, 1024);
     //从服务器拉取升级文件的信息
@@ -650,25 +646,6 @@ s32 web_upgrade_firmware(void *fdo)
     s8 *p1 = 0;
     s8 *p2 = 0;
     s8 domain[100] = { 0 };
-
-//    memset(&gDevUpgrade, 0, sizeof(gDevUpgrade));
-//    strcpy(gDevUpgrade.host, PRODUCT_OTA_ADDRESS);
-////    UserLoad(5, gDevUpgrade.host, sizeof(gDevUpgrade.host)-1);
-//    gDevUpgrade.port = 80;
-
-//    memset(gupgrade_url, 0, sizeof(gupgrade_url));
-//    ret = DevDoUpgrade(branch, SN);
-//    if (check)
-//    {
-//        if (gupgrade_url[0] != 0)
-//        {
-//            return 1;       //有新版本。
-//        }
-//        else
-//            return -1;
-//    }
-
-
     memset(domain, 0, sizeof(domain));
     p1 = 0;
     p2 = 0;

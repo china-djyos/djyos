@@ -76,7 +76,7 @@ s32 NetcStart(struct NetcInfo *Netc)
     s32 ret = -1;
     switch(Netc->mode)
     {
-        case NETC_KEY_BOARD:
+        case NETC_USER_INPUT:
             warning_printf("netc", "KEY BOARD mode is temporarily not supported.\r\n");
         break;
 
@@ -117,7 +117,7 @@ s32 NetcEnd(s32 mode)
     s32 ret = -1;
     switch(mode)
     {
-        case NETC_KEY_BOARD:
+        case NETC_USER_INPUT:
             warning_printf("netc", "KEY BOARD mode is temporarily not supported.\r\n");
         break;
 
@@ -148,8 +148,8 @@ s32 NetcEnd(s32 mode)
 // =============================================================================
 bool_t ModuleInstall_ConfigNet(void)
 {
-    if(CFG_NETC_KEY_BOARD_ENABLE == true)
-        config_net_modes |= NETC_KEY_BOARD;
+    if(CFG_NETC_USER_INPUT_ENABLE == true)
+        config_net_modes |= NETC_USER_INPUT;
 
     if(CFG_NETC_AP_ENABLE == true)
         config_net_modes |= NETC_AP;
