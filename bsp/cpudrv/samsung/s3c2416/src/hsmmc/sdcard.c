@@ -1,8 +1,8 @@
 #include <device/card/card.h>
 #include <stdlib.h>
-#include <fs/fat/port/drivers/fat_drivers.h>
-#include <fs/fat/ff11/src/integer.h>
-#include <fs/fat/ff11/src/diskio.h>
+#include <fat/port/drivers/fat_drivers.h>
+#include <fat/ff11/src/integer.h>
+#include <fat/ff11/src/diskio.h>
 #include <systime.h>
 #include <djyfs/filesystems.h>
 #include <dbug.h>

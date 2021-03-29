@@ -57,7 +57,7 @@
 #include <djyfs/filesystems.h>
 #include <device/unit_media.h>
 #include <board.h>
-#include <fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_guts.h>
+#include <yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_guts.h>
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****

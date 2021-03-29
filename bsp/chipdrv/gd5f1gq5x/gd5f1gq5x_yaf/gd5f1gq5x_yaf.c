@@ -60,7 +60,7 @@
 #include <device/unit_media.h>
 #include <board.h>
 #include <gd5f1gq5x.h>
-#include <fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_guts.h>
+#include <yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_guts.h>
 
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面

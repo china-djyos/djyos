@@ -54,7 +54,7 @@
   * @{
   */
 
-/* Exported types ------------------------------------------------------------*/ 
+/* Exported types ------------------------------------------------------------*/
 
 /** @defgroup RCCEx_Exported_Types RCCEx Exported Types
   * @{
@@ -177,7 +177,7 @@ typedef struct
 
   uint32_t I2c3ClockSelection;     /*!< Specifies I2C3 clock source.
                                         This parameter can be a value of @ref RCCEx_I2C3_Clock_Source */
-                                        
+
 #if defined(I2C4)
 
   uint32_t I2c4ClockSelection;     /*!< Specifies I2C4 clock source.
@@ -241,8 +241,8 @@ typedef struct
 
 #if defined(CRS)
 
-/** 
-  * @brief RCC_CRS Init structure definition  
+/**
+  * @brief RCC_CRS Init structure definition
   */
 typedef struct
 {
@@ -267,8 +267,8 @@ typedef struct
 
 }RCC_CRSInitTypeDef;
 
-/** 
-  * @brief RCC_CRS Synchronization structure definition  
+/**
+  * @brief RCC_CRS Synchronization structure definition
   */
 typedef struct
 {
@@ -278,12 +278,12 @@ typedef struct
   uint32_t HSI48CalibrationValue; /*!< Specifies value loaded in HSI48 oscillator smooth trimming.
                                      This parameter must be a number between 0 and 0x3F */
 
-  uint32_t FreqErrorCapture;      /*!< Specifies the value loaded in the .FECAP, the frequency error counter 
+  uint32_t FreqErrorCapture;      /*!< Specifies the value loaded in the .FECAP, the frequency error counter
                                                                     value latched in the time of the last SYNC event.
                                     This parameter must be a number between 0 and 0xFFFF */
 
-  uint32_t FreqErrorDirection;    /*!< Specifies the value loaded in the .FEDIR, the counting direction of the 
-                                                                    frequency error counter latched in the time of the last SYNC event. 
+  uint32_t FreqErrorDirection;    /*!< Specifies the value loaded in the .FEDIR, the counting direction of the
+                                                                    frequency error counter latched in the time of the last SYNC event.
                                                                     It shows whether the actual frequency is below or above the target.
                                     This parameter must be a value of @ref RCCEx_CRS_FreqErrorDirection*/
 
@@ -460,7 +460,7 @@ typedef struct
 /**
   * @}
   */
-  
+
 #if defined(I2C4)
 /** @defgroup RCCEx_I2C4_Clock_Source I2C4 Clock Source
   * @{
@@ -471,7 +471,7 @@ typedef struct
 /**
   * @}
   */
-#endif /* I2C4 */  
+#endif /* I2C4 */
 
 /** @defgroup RCCEx_SAI1_Clock_Source SAI1 Clock Source
   * @{
@@ -666,12 +666,12 @@ typedef struct
 /** @defgroup RCCEx_CRS_ReloadValueDefault RCCEx CRS ReloadValueDefault
   * @{
   */
-#define RCC_CRS_RELOADVALUE_DEFAULT    ((uint32_t)0x0000BB7FU) /*!< The reset value of the RELOAD field corresponds 
+#define RCC_CRS_RELOADVALUE_DEFAULT    ((uint32_t)0x0000BB7FU) /*!< The reset value of the RELOAD field corresponds
                                                                     to a target frequency of 48 MHz and a synchronization signal frequency of 1 kHz (SOF signal from USB). */
 /**
   * @}
   */
-  
+
 /** @defgroup RCCEx_CRS_ErrorLimitDefault RCCEx CRS ErrorLimitDefault
   * @{
   */
@@ -683,9 +683,9 @@ typedef struct
 /** @defgroup RCCEx_CRS_HSI48CalibrationDefault RCCEx CRS HSI48CalibrationDefault
   * @{
   */
-#define RCC_CRS_HSI48CALIBRATION_DEFAULT ((uint32_t)0x00000020U) /*!< The default value is 32, which corresponds to the middle of the trimming interval. 
+#define RCC_CRS_HSI48CALIBRATION_DEFAULT ((uint32_t)0x00000020U) /*!< The default value is 32, which corresponds to the middle of the trimming interval.
                                                                       The trimming step is around 67 kHz between two consecutive TRIM steps. A higher TRIM value
-                                                                      corresponds to a higher output frequency */  
+                                                                      corresponds to a higher output frequency */
 /**
   * @}
   */
@@ -713,7 +713,7 @@ typedef struct
 /**
   * @}
   */
-  
+
 /** @defgroup RCCEx_CRS_Flags RCCEx CRS Flags
   * @{
   */
@@ -784,7 +784,7 @@ typedef struct
                    (((__PLLSAI1P__) >> 4U) << POSITION_VAL(RCC_PLLSAI1CFGR_PLLSAI1P)) | \
                    ((((__PLLSAI1Q__) >> 1U) - 1U) << POSITION_VAL(RCC_PLLSAI1CFGR_PLLSAI1Q)) | \
                    ((((__PLLSAI1R__) >> 1U) - 1U) << POSITION_VAL(RCC_PLLSAI1CFGR_PLLSAI1R)))
-                    
+
 #endif /* RCC_PLLSAI1P_DIV_2_31_SUPPORT */
 
 /**
@@ -822,7 +822,7 @@ typedef struct
 
 #define __HAL_RCC_PLLSAI1_DIVP_CONFIG(__PLLSAI1P__) \
                   MODIFY_REG(RCC->PLLSAI1CFGR, RCC_PLLSAI1CFGR_PLLSAI1PDIV, (__PLLSAI1P__) << POSITION_VAL(RCC_PLLSAI1CFGR_PLLSAI1PDIV))
-                    
+
 #else
 
 #define __HAL_RCC_PLLSAI1_DIVP_CONFIG(__PLLSAI1P__) \
@@ -926,7 +926,7 @@ typedef struct
   * @retval None
   */
 
-#if defined(RCC_PLLSAI2P_DIV_2_31_SUPPORT) 
+#if defined(RCC_PLLSAI2P_DIV_2_31_SUPPORT)
 
 #define __HAL_RCC_PLLSAI2_CONFIG(__PLLSAI2N__, __PLLSAI2P__, __PLLSAI2R__) \
                   WRITE_REG(RCC->PLLSAI2CFGR, ((__PLLSAI2N__) << POSITION_VAL(RCC_PLLSAI2CFGR_PLLSAI2N)) | \
@@ -939,7 +939,7 @@ typedef struct
                   WRITE_REG(RCC->PLLSAI2CFGR, ((__PLLSAI2N__) << POSITION_VAL(RCC_PLLSAI2CFGR_PLLSAI2N)) | \
                     (((__PLLSAI2P__) >> 4U) << POSITION_VAL(RCC_PLLSAI2CFGR_PLLSAI2P)) | \
                     ((((__PLLSAI2R__) >> 1U) - 1U) << POSITION_VAL(RCC_PLLSAI2CFGR_PLLSAI2R)))
-                    
+
 #endif /* RCC_PLLSAI2P_DIV_2_31_SUPPORT */
 
 
@@ -1063,7 +1063,7 @@ typedef struct
   *             @arg @ref RCC_SAI1CLKSOURCE_PLL  SAI1 clock  = PLL "P" clock (PLLSAI3CLK if PLLSAI2 exists, else PLLSAI2CLK)
   *             @arg @ref RCC_SAI1CLKSOURCE_PIN  SAI1 clock = External Clock (SAI1_EXTCLK)
   *
-  * @note  Despite returned values RCC_SAI1CLKSOURCE_PLLSAI1 or RCC_SAI1CLKSOURCE_PLL, HSI16 is automatically set as SAI1 
+  * @note  Despite returned values RCC_SAI1CLKSOURCE_PLLSAI1 or RCC_SAI1CLKSOURCE_PLL, HSI16 is automatically set as SAI1
   *        clock source when PLLs are disabled for devices without PLLSAI2.
   *
   */
@@ -1707,8 +1707,8 @@ typedef struct
   do {                                                      \
     __HAL_RCC_LSECSS_EXTI_ENABLE_RISING_EDGE();             \
     __HAL_RCC_LSECSS_EXTI_ENABLE_FALLING_EDGE();            \
-  } while(0)  
-  
+  } while(0)
+
 /**
   * @brief Disable the RCC LSE CSS Extended Interrupt Rising & Falling Trigger.
   * @retval None.
@@ -1717,7 +1717,7 @@ typedef struct
   do {                                                       \
     __HAL_RCC_LSECSS_EXTI_DISABLE_RISING_EDGE();             \
     __HAL_RCC_LSECSS_EXTI_DISABLE_FALLING_EDGE();            \
-  } while(0)  
+  } while(0)
 
 /**
   * @brief Check whether the specified RCC LSE CSS EXTI interrupt flag is set or not.
@@ -1854,7 +1854,7 @@ typedef struct
 
 /** @defgroup RCCEx_CRS_Extended_Features RCCEx CRS Extended Features
   * @{
-  */  
+  */
 /**
   * @brief  Enable the oscillator clock for frequency error counter.
   * @note   when the CEN bit is set the CRS_CFGR register becomes write-protected.
@@ -1883,8 +1883,8 @@ typedef struct
 
 /**
   * @brief  Macro to calculate reload value to be set in CRS register according to target and sync frequencies
-  * @note   The RELOAD value should be selected according to the ratio between the target frequency and the frequency 
-  *             of the synchronization source after prescaling. It is then decreased by one in order to 
+  * @note   The RELOAD value should be selected according to the ratio between the target frequency and the frequency
+  *             of the synchronization source after prescaling. It is then decreased by one in order to
   *             reach the expected synchronization on the zero value. The formula is the following:
   *             RELOAD = (fTARGET / fSYNC) -1
   * @param  __FTARGET__ Target frequency (value in Hz)
@@ -2198,7 +2198,7 @@ void              HAL_RCCEx_CRS_ErrorCallback(uint32_t Error);
                (((__SOURCE__) == RCC_I2C3CLKSOURCE_PCLK1) || \
                 ((__SOURCE__) == RCC_I2C3CLKSOURCE_SYSCLK)|| \
                 ((__SOURCE__) == RCC_I2C3CLKSOURCE_HSI))
-                
+
 #if defined(I2C4)
 
 #define IS_RCC_I2C4CLKSOURCE(__SOURCE__)   \
@@ -2388,7 +2388,7 @@ void              HAL_RCCEx_CRS_ErrorCallback(uint32_t Error);
 
 #define IS_RCC_CRS_SYNC_POLARITY(__POLARITY__) (((__POLARITY__) == RCC_CRS_SYNC_POLARITY_RISING) || \
                                                 ((__POLARITY__) == RCC_CRS_SYNC_POLARITY_FALLING))
-                                                
+
 #define IS_RCC_CRS_RELOADVALUE(__VALUE__)  (((__VALUE__) <= 0xFFFFU))
 
 #define IS_RCC_CRS_ERRORLIMIT(__VALUE__)   (((__VALUE__) <= 0xFFU))

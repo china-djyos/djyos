@@ -58,6 +58,7 @@
 #define MICROPY_PY_BUILTINS_HELP_MODULES (1)
 #define MICROPY_PY_IO_IOBASE        (0)
 #define MICROPY_PY_IO_FILEIO        (1)
+#define  MBEDTLS_NO_PLATFORM_ENTROPY
 
 // math
 #define MICROPY_PY_CMATH            (1)

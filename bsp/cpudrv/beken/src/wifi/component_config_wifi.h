@@ -38,12 +38,6 @@
 //%$#@string,1,100,
 #define CFG_FAST_DATA_FILE_NAME "/efs/fast_data.dat"    //"存快联信息的文件路径"
 #define CFG_MAC_DATA_FILE_NAME "/efs/mac.dat"    //"存MAC地址的文件路径"
-
-#define CFG_AP_DHCPD_IPV4      "192.168.0.253"     //"AP模式主机IP"
-#define CFG_AP_DHCPD_SUBMASK   "255.255.255.0"     //"AP模式子网掩码IP"
-#define CFG_AP_DHCPD_GATWAY    "192.168.0.1"       //"AP模式网关IP"
-#define CFG_AP_DHCPD_DNS       "192.168.0.1"       //"AP模式首选DNS IP"
-#define CFG_AP_DHCPD_DNSBAK    "192.168.0.1"       //"AP模式备用DNS IP"
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif

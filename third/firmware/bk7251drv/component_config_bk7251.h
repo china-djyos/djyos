@@ -55,7 +55,7 @@
 //./app/airkiss;./app/config;
 //./ip;
 //%$#@end exclude
-//%$#@self include path
+//%$#@API include path
 //./;
 //./app;
 //./app/standalone-ap;./app/standalone-station;
@@ -84,6 +84,9 @@
 //./ip/umac;./ip/umac/src/me;./ip/umac/src/mesh;
 //./ip/umac/src/mfp;./ip/umac/src/rc;./ip/umac/src/rxu;./ip/umac/src/scanu;
 //./ip/umac/src/llc;./ip/umac/src/sm;./ip/umac/src/txu;
+//%$#@end API include path
+
+//%$#@self include path
 //%$#@end self include path
 
 //%$#@library path

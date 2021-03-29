@@ -9,6 +9,9 @@ QSTR_DEFS = $(DJYOSPORT)/qstrdefsport.h
 # MicroPython feature configurations
 MICROPY_ROM_TEXT_COMPRESSION ?= 0
 
+MICROPY_PY_USSL=1
+MICROPY_SSL_MBEDTLS=1
+
 # include py core make definitions
 include $(TOP)/py/py.mk
 
@@ -21,7 +24,7 @@ INC += -I$(DJYOSPORT)
 
 DFU = $(TOP)/tools/dfu.py
 PYDFU = $(TOP)/tools/pydfu.py
-CFLAGS = $(INC) $(DJYOS_FLAGS) $(COPT)
+CFLAGS = $(INC) $(DJYOS_FLAGS) $(COPT) $(CFLAGS_MOD)
 LDFLAGS = -nostdlib -T stm32f405.ld -Map=$@.map --cref --gc-sections
 
 CSUPEROPT = -Os # save some code space
@@ -64,6 +67,10 @@ SRC_C = $(DSRC_C)\
 
 SRC_C += lib/libc/string0.c
 SRC_QSTR += $(SRC_C)
+
+ifeq ($(MICROPY_SSL_MBEDTLS),1)
+CFLAGS_MOD += -DMBEDTLS_CONFIG_FILE='"mbedtls/mbedtls_config.h"'
+endif
 
 OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
 

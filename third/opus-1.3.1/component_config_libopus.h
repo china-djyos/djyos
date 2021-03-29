@@ -37,8 +37,14 @@
 //%$#@exclude
 //./docs;./examples;./jni;./test;./tools;
 //%$#@end exclude
-//%$#@self include path
-//.;./include;./celt;./celt/arm;./silk;./silk/arm;./silk/fixed;./silk/fixed/arm;./src;
+
+//%$#@API include path         ****API头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，应用本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
+//./include;
+//%$#@end API include path
+
+//%$#@self include path         ****编译自身需要的头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，编译本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
+//.;./celt;./celt/arm;./silk;./silk/arm;./silk/fixed;./silk/fixed/arm;./src;
 //%$#@end self include path
+
 //@#$%component end configure
 

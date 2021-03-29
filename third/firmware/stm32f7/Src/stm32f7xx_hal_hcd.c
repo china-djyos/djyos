@@ -73,9 +73,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f7xx_hal.h"
-#include <usb/usb_record.h>
-#include <usb/stm32_usb_host_library/core/inc/usbh_def.h>
-#include <usb/stm32_usb_host_library/class/msc/inc/usbh_msc.h>
+#include <usb_record.h>
+#include <stm32_usb_host_library/core/inc/usbh_def.h>
+#include <stm32_usb_host_library/class/msc/inc/usbh_msc.h>
 
 /** @addtogroup STM32F7xx_HAL_Driver
   * @{

@@ -1272,10 +1272,10 @@
 						<F N="lib/mbedtls/include/mbedtls/padlock.h"/>
 						<F N="lib/mbedtls/include/mbedtls/pem.h"/>
 						<F N="lib/mbedtls/include/mbedtls/pk.h"/>
+						<F N="lib/mbedtls/include/mbedtls/pk_internal.h"/>
 						<F N="lib/mbedtls/include/mbedtls/pkcs11.h"/>
 						<F N="lib/mbedtls/include/mbedtls/pkcs12.h"/>
 						<F N="lib/mbedtls/include/mbedtls/pkcs5.h"/>
-						<F N="lib/mbedtls/include/mbedtls/pk_internal.h"/>
 						<F N="lib/mbedtls/include/mbedtls/platform.h"/>
 						<F N="lib/mbedtls/include/mbedtls/platform_time.h"/>
 						<F N="lib/mbedtls/include/mbedtls/platform_util.h"/>
@@ -1349,12 +1349,12 @@
 					<F N="lib/mbedtls/library/padlock.c"/>
 					<F N="lib/mbedtls/library/pem.c"/>
 					<F N="lib/mbedtls/library/pk.c"/>
+					<F N="lib/mbedtls/library/pk_wrap.c"/>
 					<F N="lib/mbedtls/library/pkcs11.c"/>
 					<F N="lib/mbedtls/library/pkcs12.c"/>
 					<F N="lib/mbedtls/library/pkcs5.c"/>
 					<F N="lib/mbedtls/library/pkparse.c"/>
 					<F N="lib/mbedtls/library/pkwrite.c"/>
-					<F N="lib/mbedtls/library/pk_wrap.c"/>
 					<F N="lib/mbedtls/library/platform.c"/>
 					<F N="lib/mbedtls/library/platform_util.c"/>
 					<F N="lib/mbedtls/library/poly1305.c"/>
@@ -1376,12 +1376,12 @@
 					<F N="lib/mbedtls/library/version.c"/>
 					<F N="lib/mbedtls/library/version_features.c"/>
 					<F N="lib/mbedtls/library/x509.c"/>
-					<F N="lib/mbedtls/library/x509write_crt.c"/>
-					<F N="lib/mbedtls/library/x509write_csr.c"/>
 					<F N="lib/mbedtls/library/x509_create.c"/>
 					<F N="lib/mbedtls/library/x509_crl.c"/>
 					<F N="lib/mbedtls/library/x509_crt.c"/>
 					<F N="lib/mbedtls/library/x509_csr.c"/>
+					<F N="lib/mbedtls/library/x509write_crt.c"/>
+					<F N="lib/mbedtls/library/x509write_csr.c"/>
 					<F N="lib/mbedtls/library/xtea.c"/>
 				</Folder>
 				<Folder Name="programs">
@@ -3818,7 +3818,6 @@
 			<F N="py/modsys.c"/>
 			<F N="py/modthread.c"/>
 			<F N="py/moduerrno.c"/>
-			<F N="py/module-example.c"/>
 			<F N="py/mpconfig.h"/>
 			<F N="py/mperrno.h"/>
 			<F N="py/mphal.h"/>

@@ -75,6 +75,7 @@
 #define     CFG_DHCPD_ROUTERIP          "192.168.0.253"  //
 #define     CFG_DHCPD_NETIP             "255.255.255.0"  //
 #define     CFG_DHCPD_DNS               "192.168.0.253"  //
+#define     CFG_DHCPD_DNSBAK            "192.168.0.253"  //
 #define     CFG_DHCPD_DOMAINNAME       "domain"        //
 #define    CFG_MODULE_ENABLE_DHCP          true
 //*******************************  Configure emflash insatall xip  ******************************************//

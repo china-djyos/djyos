@@ -7,8 +7,8 @@
 
 #include <stdlib.h>
 #include <device.h>
-#include <fs/fat/port/drivers/fat_drivers.h>
-#include <fs/fat/ff11/src/diskio.h>
+#include <fat/port/drivers/fat_drivers.h>
+#include <fat/ff11/src/diskio.h>
 #include <dbug.h>
 #include <djyfs/filesystems.h>
 #include <string.h>

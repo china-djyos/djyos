@@ -3,9 +3,9 @@
 #if 0   //todo---hemin modified for compile
 #include <stdlib.h>
 #include <cpu_peri_sdio.h>/* 来源于正点原子 */
-#include <fs/fat/port/drivers/fat_drivers.h>
-#include <fs/fat/ff11/src/integer.h>
-#include <fs/fat/ff11/src/diskio.h>
+#include <fat/port/drivers/fat_drivers.h>
+#include <fat/ff11/src/integer.h>
+#include <fat/ff11/src/diskio.h>
 //-----------------------------------------------------------------------------
 //功能:
 //参数:
