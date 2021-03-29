@@ -66,13 +66,15 @@ SRC_C = $(DSRC_C)\
 #	$(BUILD)/_frozen_mpy.c \
 
 SRC_C += lib/libc/string0.c
-SRC_QSTR += $(SRC_C)
+SRC_MOD += $(DJYOSPORT)/mbedtls/mbedtls_port.c
+SRC_QSTR += $(SRC_C) $(SRC_MOD)
 
 ifeq ($(MICROPY_SSL_MBEDTLS),1)
 CFLAGS_MOD += -DMBEDTLS_CONFIG_FILE='"mbedtls/mbedtls_config.h"'
 endif
 
 OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
+OBJ += $(addprefix $(BUILD)/, $(SRC_MOD:.c=.o))
 
 all: $(targetname).a
 
