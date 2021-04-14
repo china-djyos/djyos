@@ -709,11 +709,11 @@ void dhcpd_route_add_default()
     NetDev_SetDefault(NetDev_GetHandle(CFG_WIFI_DEV_NAME));
     NetDev = NetDev_GetHandle(CFG_WIFI_DEV_NAME);
     memset(&para,0,sizeof(para));
-    ip      = inet_addr(CFG_AP_DHCPD_IPV4);
-    submask = inet_addr(CFG_AP_DHCPD_SUBMASK);
-    hop     = inet_addr(CFG_AP_DHCPD_GATWAY);
-    dns     = inet_addr(CFG_AP_DHCPD_DNS);
-    dnsbak  = inet_addr(CFG_AP_DHCPD_DNSBAK);
+    ip      = inet_addr(CFG_DHCPD_SERVERIP);
+    submask = inet_addr(CFG_DHCPD_NETIP);
+    hop     = inet_addr(CFG_DHCPD_ROUTERIP);
+    dns     = inet_addr(CFG_DHCPD_DNS);
+    dnsbak  = inet_addr(CFG_DHCPD_DNSBAK);
 
     subnet = ip & submask;
     para.ver = EN_IPV_4;
@@ -731,11 +731,11 @@ void dhcpd_route_add_default()
     NetDev_SetGateway(EN_IPV_4,NetDev, &hop);
     if(RouterCreate(&para))
     {
-        printk("%s CreateRout:%s success\r\n",CFG_WIFI_DEV_NAME,CFG_AP_DHCPD_IPV4);
+        printk("%s CreateRout:%s success\r\n",CFG_WIFI_DEV_NAME,CFG_DHCPD_SERVERIP);
     }
     else
     {
-        printk("%s CreateRout:%s failed\r\n",CFG_WIFI_DEV_NAME,CFG_AP_DHCPD_IPV4);
+        printk("%s CreateRout:%s failed\r\n",CFG_WIFI_DEV_NAME,CFG_DHCPD_SERVERIP);
     }
 }
 
