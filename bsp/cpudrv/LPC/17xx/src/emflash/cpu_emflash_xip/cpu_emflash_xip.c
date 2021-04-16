@@ -51,7 +51,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <math.h>
-#include <misc.h>
+#include <misc/misc.h>
 #include <systime.h>
 #include <dbug.h>
 #include <djyfs/filesystems.h>

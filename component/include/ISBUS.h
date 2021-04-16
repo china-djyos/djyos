@@ -87,7 +87,7 @@ bool_t ISBUS_SlaveInit(u32 StackSize);
 struct Slave_ISBUSPort *ISBUS_SlaveRegistPort(char * dev,ISBUS_FntProtocolError fnError,u32 Timeout);
 struct ISBUS_FunctionSocket *ISBUS_SlaveRegistProtocol(struct Slave_ISBUSPort *Port, u8 Protocol,
                                                            u16 MaxRecvLen,u16 MaxSendLen, ISBUS_FntProtocolProcess fn);
-u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *Slave_FunctionSocket, u8 dst, u8 *buf, u8 len);
+u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *Slave_FunctionSocket, u8 *buf, u8 len);
 void ISBUS_SlaveSetAddress(u8 Addr);
 void ISBUS_SlaveSetMtcAddress(struct Slave_ISBUSPort *Port, u8 Addr);
 

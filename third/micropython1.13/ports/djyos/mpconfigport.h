@@ -40,7 +40,7 @@
 #define MICROPY_PY_ATTRTUPLE        (0)
 #define MICROPY_PY_COLLECTIONS      (0)
 #define MICROPY_PY_IO               (1)
-#define MICROPY_PY_STRUCT           (0)
+#define MICROPY_PY_STRUCT           (1)
 #define MICROPY_PY_SYS              (1)
 #define MICROPY_MODULE_FROZEN_MPY   (0)
 #define MICROPY_CPYTHON_COMPAT      (0)
@@ -77,6 +77,8 @@
 #define MICROPY_PY_DJYIP            (1)
 #define MICROPY_PY_USELECT          (1)
 #define MICROPY_PY_THREAD           (1)
+#define MICROPY_PY_UBINASCII        (1)
+
 // type definitions for the specific machine
 
 typedef intptr_t mp_int_t; // must be pointer size

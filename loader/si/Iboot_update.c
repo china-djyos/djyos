@@ -83,6 +83,10 @@
 extern void CPU_Reboot();
 extern void CPU_Reset();
 extern void CPU_RestartSystem(u32 key);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // ============================================================================
 // 功能：设置运行iboot
 // 参数：
@@ -385,7 +389,7 @@ bool_t Iboot_Update(char *param)
 // 备注
 // ============================================================================
 bool (*Update_and_run_mode)(char *param);
-bool_t Iboot_AppUpdateIboot(char *param)
+ptu32_t Iboot_AppUpdateIboot(void)
 {
     FILE *srciboot;
     FILE *xipiboot;
@@ -500,7 +504,7 @@ bool_t ModuleInstall_UpdateIboot(void)
 
             if(evtt_Update != CN_EVTT_ID_INVALID)
             {
-                if(DJY_EventPop(evtt_Update, NULL, 0, NULL, 0, 0) != CN_EVENT_ID_INVALID)
+                if(DJY_EventPop(evtt_Update, NULL, 0, 0, 0, 0) != CN_EVENT_ID_INVALID)
                 {
                     if(run_mode == 1)
                         info_printf("XIP","add iboot update function.\r\n");
@@ -535,6 +539,8 @@ bool_t rebootshell(char *param)
     CPU_Reboot( );
     return true;
 }
+#pragma GCC diagnostic pop
+
 //static bool_t resetshell(char *param)
 bool_t resetshell(char *param)
 {

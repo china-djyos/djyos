@@ -110,7 +110,7 @@ bool_t GDD_CreateMouseIcon( void )
     s_gMouseWinMsgLink.myTable = (struct MsgProcTable *)&s_gMouseMsgProcTable;
     sg_pMouseHwnd = GDD_CreateWindow("Mouse_Cursor", WS_CHILD, desktop->CliRect.right/2,
                                   desktop->CliRect.bottom / 2, 8, 8, NULL, 0,
-                                  CN_WINBUF_BUF, NULL, &s_gMouseWinMsgLink);
+                                  CN_WINBUF_BUF, 0, &s_gMouseWinMsgLink);
     if(sg_pMouseHwnd != NULL)
     {
        GK_SetPrio(sg_pMouseHwnd->pGkWin,CN_WINDOW_ZPRIO_MOUSE , CN_TIMEOUT_FOREVER);

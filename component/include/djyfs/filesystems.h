@@ -126,6 +126,7 @@ struct FsCore
 s32 File_RegisterFs(struct filesystem *type);
 bool_t File_GetEntirePath(struct Object *BaseObject, char * PathTail, char * EntirePath,
                      u32 BufSize);
+bool_t File_IsDirectory(struct objhandle *hdl);
 bool_t File_ObjIsMount(struct Object *obj);
 s32 File_Mount(const char *source, const char *target, const char *type, u32 flags, void *data);
 s32 File_UnMount(const char *target, const char *type);

@@ -59,6 +59,7 @@
 #include "systime.h"
 #include "object.h"
 #include "objhandle.h"
+#include "int.h"
 #include "pool.h"
 #include "lock.h"
 #include <djyos.h>

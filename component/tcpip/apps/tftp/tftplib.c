@@ -428,6 +428,8 @@ int TFTP_MakeAckMsg(u8 *buf, int buflen,u16 block)
     }
     return result;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //decode the ack message
 int TFTP_DecodeAckMsg(u8 *buf, int buflen,u16 *block)
@@ -549,6 +551,7 @@ int  TFTP_DecodeDataMsg(u8 *buf,int buflen,u16 *block)
 
     return result;
 }
+#pragma GCC diagnostic pop
 
 //show the client stat
 bool_t TFTP_ClientShow(tagTftpClient *client)

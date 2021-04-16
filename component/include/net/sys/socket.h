@@ -369,7 +369,7 @@ struct TPL_ProtocalOps
 #define SHUT_RDWR 2  //关闭读写
     int (*__shutdown)(struct tagSocket *sockfd, u32 how);
     int (*__close)(struct tagSocket *sockfd);
-    int (*isactive)(struct tagSocket *sockfd,int mode);
+//    int (*isactive)(struct tagSocket *sockfd,int mode);
     //设置套接字选项
     int (*__setsockopt)(struct tagSocket *sockfd, int level, int optname,\
                    const void *optval, int optlen);

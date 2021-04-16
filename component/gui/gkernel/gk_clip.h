@@ -83,7 +83,6 @@ void __GK_GetNewClip(struct GkWinObj *gkwin);
 struct ClipRect *__GK_GetClipLinkInts(struct ClipRect **srcclip,
                                              struct ClipRect *desclip);
 bool_t __GK_GetRedrawClipAll(struct DisplayObj *display);
-void __GK_GetClipSection( struct GkWinObj *z1,struct GkWinObj *z2);
 
 #ifdef __cplusplus
 }

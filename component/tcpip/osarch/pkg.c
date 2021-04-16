@@ -117,7 +117,6 @@ extern void __PkgFree(struct PkgHeapCB *PkgHeap,void * ptr);
 //=============================================================================
 struct NetPkg *PkgMalloc(u16 bufsize, u8 flags)
 {
-    u8 i = 0 ;
     u16  pkgsize;
     struct NetPkg *result;
 
@@ -455,7 +454,7 @@ bool_t pkgmem(char *param)
 //    debug_printf("pkg","OverLayer:%d\n\r",gPkgStatistics.overbufnum);
 //  for(i = 0; i<CN_NETPKG_LEVEL;i++)
 //  {
-//      debug_printf("pkg","layer:%04d:TOTAL:0x%08x   Free:0x%08x  Failed:0x%08x\n\r",\
+//      debug_printf("pkg","layer:%04d:TOTAL:0x%08x   Free:0x%08x  Failed:0x%08x\n\r",
 //              sgPkgLevlMap[i],gPkgStatistics.mallocnum[i],gPkgStatistics.freenum[i],gPkgStatistics.failnum[i]);
 //  }
     return true;

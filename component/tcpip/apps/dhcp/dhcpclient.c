@@ -382,6 +382,7 @@ void DhcpclientDeleteTask(const char *ifname)
 {
     tagTaskItem      *task;
     tagTaskItem      *task_tmp;
+    in_addr_t        addr= INADDR_NONE;
     if(Lock_MutexPend(gClientCB.lock,CN_TIMEOUT_FOREVER))
     {
         task = gClientCB.lst;
@@ -393,7 +394,7 @@ void DhcpclientDeleteTask(const char *ifname)
             if (strcmp(task_tmp->ifname, ifname)==0) {
                 //delete task_tmp
                 RouterRemoveByNetDev(ifname);//删除某网卡下所有路由
-                NetDev_SetGateway(EN_IPV_4,NetDev_GetHandle(ifname), INADDR_NONE);
+                NetDev_SetGateway(EN_IPV_4,NetDev_GetHandle(ifname), &addr);
                 if(task_tmp->sem) {
                     Lock_SempDelete(task_tmp->sem);
                     task_tmp->sem = 0;
@@ -419,7 +420,7 @@ void DhcpclientDeleteTask(const char *ifname)
 //          情况下，DHCP服务器中的IP条目仍在，申请会很快。
 //返回：成功 = true；失败 = false//
 //-----------------------------------------------------------------------------
-extern struct NetDev;
+struct NetDev;
 void NetDev_SetDefault(struct NetDev *NetDev);
 bool_t DHCP_AddClientTask(const char *ifname, u32 OldIP)
 {

@@ -58,6 +58,7 @@
 #include <string.h>
 #include <os.h>
 #include <osarch.h>
+#include <misc/misc.h>
 //add your own specified header here
 #include <shell.h>
 #include "dbug.h"
@@ -87,12 +88,16 @@ const char *AtDevGetDefault(void)
     return pAtDevName;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //bool_t AtDefaultDevGetShell(char *para)
 bool_t atdevget(char *para)
 {
     debug_printf("ATCOMMANDDEV","%s\n\r",AtDevGetDefault());
     return true;
 }
+#pragma GCC diagnostic pop
 
 //we use this for the at command
 //usage:we use this function to deal the at result as the args format

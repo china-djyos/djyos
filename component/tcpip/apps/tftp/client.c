@@ -54,7 +54,7 @@
 #include "tftplib.h"
 #include "dbug.h"
 #include <shell.h>
-#include <misc.h>
+#include <misc/misc.h>
 
 static u16  gRemoteServerPort = CN_TFTP_SERVERPORT_DEFAULT;
 

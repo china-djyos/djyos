@@ -68,8 +68,7 @@
 s32 deonfi(const struct NandONFI *data, struct NandDescr *onfi, u8 little)
 {
     u8 i;
-    u32 offset;
-    u8 temp[20] = {0};
+
     char signature[4] = {'O', 'N', 'F', 'I'}; // 用于识别是否是ONFI数据
 
     // ONFI标记

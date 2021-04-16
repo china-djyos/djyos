@@ -99,6 +99,8 @@ void HardExp_Init(void)
     g_u32ExpTable[CN_VECTOR_FIQ]        = (void*)__fiq_Int_EngineAll;
 }
 #else
+extern void EnJtag(void);
+extern void stub_debug(void);
 void HardExp_UndefVector(ucpu_t *sp)
 {
     volatile u32 t = 1;

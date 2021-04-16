@@ -191,7 +191,7 @@ static s8 __UTF8_IsLegal(const char* src, s32 len)
     // 判断编码是否正确
     switch(length){
     default: goto __illegal;
-        case 6: if ((a = (*--trail)) < 0x80 || a > 0xBF) goto __illegal;
+        case 6: if ((a = (*--trail)) < 0x80 || a > 0xBF) goto __illegal;        __attribute__((fallthrough));
         case 5: if ((a = (*--trail)) < 0x80 || a > 0xBF) goto __illegal;
         case 4: if ((a = (*--trail)) < 0x80 || a > 0xBF) goto __illegal;
         case 3: if ((a = (*--trail)) < 0x80 || a > 0xBF) goto __illegal;
@@ -208,11 +208,11 @@ static s8 __UTF8_IsLegal(const char* src, s32 len)
         }
 
         // 判断多字节UTF-8字符的第一个字节的范围
-        case 1: if (*src >= 0x80 && *src < 0xC0) goto __illegal;
+        case 1: if (*(u8*)src >= (u8)0x80 && *(u8*)src < (u8)0xC0) goto __illegal;
     }
 
     // 判断第一个字节
-    if (*src > 0xFD) goto __illegal;
+    if (*(u8*)src > (u8)0xFD) goto __illegal;
 
     return length;
 
@@ -270,12 +270,15 @@ s32 UTF8_MbToUcs4(u32* pwc, const char* mbs, s32 n)
 __illegal:
     return -1;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // 注释参照 charset.h-> struct Charset -> MbsToUcs4s
 s32 UTF8_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
 {
     return 0;
 }
+#pragma GCC diagnostic pop
 
 // 注释参照 charset.h-> struct Charset -> Ucs4ToMb
 s32 UTF8_Ucs4ToMb(char* mbs, u32 wc)
@@ -299,7 +302,7 @@ s32 UTF8_Ucs4ToMb(char* mbs, u32 wc)
         goto __illegal;
 
     switch(count){
-        case 6: mbs[5] = 0x80 | (wc & 0x3f); wc = wc >> 6; wc |= 0x4000000;
+        case 6: mbs[5] = 0x80 | (wc & 0x3f); wc = wc >> 6; wc |= 0x4000000;        __attribute__((fallthrough));
         case 5: mbs[4] = 0x80 | (wc & 0x3f); wc = wc >> 6; wc |= 0x200000;
         case 4: mbs[3] = 0x80 | (wc & 0x3f); wc = wc >> 6; wc |= 0x10000;
         case 3: mbs[2] = 0x80 | (wc & 0x3f); wc = wc >> 6; wc |= 0x800;
@@ -313,11 +316,15 @@ __illegal:
         return -1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // 注释参照 charset.h-> struct Charset -> Ucs4sToMbs
 s32 UTF8_Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n)
 {
     return 0;
 }
+#pragma GCC diagnostic pop
 
 //----安装utf8字符编码解析器---------------------------------------------------
 //功能: 安装utf8字符编码解析器，执行ucs4和编码和utf8编码之间转换。

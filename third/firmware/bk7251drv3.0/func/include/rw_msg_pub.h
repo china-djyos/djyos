@@ -36,7 +36,7 @@ typedef enum {
     MSG_CONN_FAIL = RW_EVT_STA_CONNECT_FAILED,
     MSG_CONN_SUCCESS = RW_EVT_STA_CONNECTED,
     MSG_GOT_IP = RW_EVT_STA_GOT_IP,
-};
+}msg_sta_states;
 #endif
 
 /** @brief Structure describing WiFi country-based regional restrictions. */

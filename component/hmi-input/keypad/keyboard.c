@@ -129,7 +129,7 @@ bool_t ModuleInstall_KeyBoard(void)
         return false;
     evtt_key = DJY_EvttRegist(EN_CORRELATIVE,130,0,0,
                                     KeyBoard_Scan,NULL,1024,"keyboard");
-    if(evtt_key == CN_EVTT_ID_INVALID)
+    if(evtt_key == (s16)CN_EVTT_ID_INVALID)
     {
         return false;
     }

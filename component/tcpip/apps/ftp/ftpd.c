@@ -53,6 +53,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <misc/misc.h>
 
 #include <dirent.h>
 #include "component_config_ftp.h"

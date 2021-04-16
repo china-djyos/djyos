@@ -58,13 +58,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <fcntl.h>
 #include <device.h>
 #include "stat.h"
 
 #include "os.h"
 #include "shell.h"
-#include <misc.h>
+#include <misc/misc.h>
+#include <misc/crc.h>
 #include "dbug.h"
 #include "ymodem.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -703,6 +705,8 @@ YMODEM_RECVEXIT:
     __Ymodem_FileOps(ym,YMODEM_FILE_CLOSE);                 //close file
     return Ret;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // ============================================================================
 // 功能：Ymodem下载文件，无参数，因为文件名已经在ymodem协议数据名里面
@@ -811,13 +815,13 @@ YMODEM_EXIT:
         return true;
     }
 }
+#pragma GCC diagnostic pop
 
 static YMRESULT __Ymodem_SendProcess(tagYmodem *ym)
 {
     YMRESULT Ret = YMODEM_OK;
     s64 CurrentTime;
     u8 Cmd[8];
-    s32 ch;
     s32 res;
     u32 temp;
     char *FileName;

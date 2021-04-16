@@ -93,7 +93,7 @@ static void __WelcomMsgShow(void)
     debug_printf("null","****************EXCEPTIONRECORDERTESTVERSION******************\n\r");
     debug_printf("null","WELCOME TO EXCEPTION RECORDER TEST\n\r");
     debug_printf("null","VERSION:%s BUILDTIME:%s:%s\n\r",CN_EXCEPTIONTEST_VERSION,__DATE__,__TIME__);
-    debug_printf("null","AUTHOR :%s:%s\n\r","Zhangqf","zhangqf1314@sznari.com");
+    debug_printf("null","AUTHOR :%s:%s\n\r","luost","lst@djyos.com");
     debug_printf("null","*************************************************************\n\r");
     return;
 }

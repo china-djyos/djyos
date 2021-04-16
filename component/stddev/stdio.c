@@ -64,6 +64,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <objhandle.h>
+#include <filesystems.h>
 #include <object.h>
 #include <device.h>
 #include <systime.h>
@@ -309,7 +310,7 @@ s32 __stdio_multi(struct objhandle *hdl, u32 acts, s32 fd)
     s32 res = -1;
 
     stdio = (struct __stdio*)handle_GetHostObjectPrivate(hdl);
-    if((!(stdio->runmode & CN_STDIO_STDIN_MULTI))&&(!stdin_multiplexset));
+    if((!(stdio->runmode & CN_STDIO_STDIN_MULTI)) && (!stdin_multiplexset))
         return (-1); // 只有输入才存在多路复用集；
 
     switch (acts)
@@ -366,6 +367,9 @@ s32 __stdio_tag(struct objhandle *hdl, u32 acts, u32 flags)
 }
 #endif
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // ============================================================================
 // 功能：查询stdio状态；
 // 参数：ob -- stdio对象；
@@ -381,6 +385,8 @@ static s32 __stdio_stat(struct Object *ob, struct stat *data)
 
     return (0);
 }
+#pragma GCC diagnostic pop
+
 //
 //// ============================================================================
 //// 功能：STDIO timeout操作

@@ -363,11 +363,14 @@ static bool_t __rcvhost(struct NetPkg *pkg, u32 devfunc)
     }
     return ret;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 static bool_t __rcvsubnet(struct NetPkg *pkg, u32 devfunc)
 {
     return false;
 }
+#pragma GCC diagnostic pop
 
 //use this to deal with the ipv4 package
 bool_t IpV4Process(struct NetPkg *pkg,u32 devfunc)

@@ -923,6 +923,9 @@ void __Lock_ShowMutex(void)
             CFG_LOCK_LIMIT,Mb_QueryFree(g_ptLockPool));
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //----互斥量文件操作函数-------------------------------------------------------
 //功能：只实现了一个功能，即：列出全部互斥量的参数和状态。
 //参数：Target，参考函数指针类型 fnObjOps 的定义
@@ -1022,4 +1025,5 @@ s32 Lock_SempObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
     return result;
 }
+#pragma GCC diagnostic pop
 

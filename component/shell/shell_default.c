@@ -44,6 +44,8 @@
 //-----------------------------------------------------------------------------
 #include <stdio.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 #include <version.h>
 #include <time.h>
 #include <systime.h>
@@ -65,13 +67,14 @@ bool_t djyos_ver(char *param)
 
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // ============================================================================
 // 功能：显示或者设置日期
 // 参数：
 // 返回：
 // 备注：
 // ============================================================================
-
 bool_t date(char *param)
 {
     s64 nowtime;
@@ -161,6 +164,7 @@ bool_t __time(char *param)
     printf("\r\n");
     return true;
 }
+#pragma GCC diagnostic pop
 
 // ============================================================================
 // 功能：显示内存，显示某地址开始的一段内存，每行显示16个单元，只显示，不能修改

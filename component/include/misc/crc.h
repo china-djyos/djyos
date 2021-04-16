@@ -43,8 +43,8 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 
-#ifndef __MISC_H__
-#define __MISC_H__
+#ifndef __CRC_H__
+#define __CRC_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,5 +63,5 @@ s32 CRC_32exit(u32 *crc);
 }
 #endif
 
-#endif // __MISC_H__
+#endif // __CRC_H__
 

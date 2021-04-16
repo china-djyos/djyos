@@ -50,6 +50,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <misc/misc.h>
 #include "dbug.h"
 #include "../../component_config_tcpip.h"
 
@@ -160,7 +161,7 @@ bool_t PING(char *param)
         }
         else
         {
-            printf("ping","%s:Unknown host:%s\n\r",__FUNCTION__,param);
+            printf("ping %s:Unknown host:%s\n\r",__FUNCTION__,param);
             return true;
         }
     }
@@ -190,16 +191,16 @@ bool_t PING(char *param)
         {
             timeend = (u32)DJY_GetSysTime();
             timeused = (u32)(timeend - timestart);
-            printf("ping","0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
+            printf("ping  0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
             DJY_EventDelay(waittime);
             numrcv++;
         }
         else
         {
-            printf("ping","0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
+            printf("ping 0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
         }
     }
-        printf("ping","%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
+        printf("ping %s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
     net_free(buf);
     return true;
 }

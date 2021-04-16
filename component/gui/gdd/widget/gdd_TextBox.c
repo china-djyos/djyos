@@ -117,7 +117,7 @@ static s16 __Widget_GetValidStrLen(struct Charset * myCharset, char *str)
 static u32 __Widget_GetCharByIndex(char *str,u8 idx)
 {
     s16 str_len=0,len=0;
-    struct FontObj* cur_font;
+//    struct FontObj* cur_font;
     struct Charset* cur_enc;
     u32 wc=0;
     u8 cnt=0;
@@ -128,7 +128,7 @@ static u32 __Widget_GetCharByIndex(char *str,u8 idx)
     if(str_len==-1)
         return false;
      //计算字符串中字符数
-    cur_font = Font_GetCurFont();
+//    cur_font = Font_GetCurFont();
     for(; str_len > 0;)
     {
        len= cur_enc->MbToUcs4(&wc, str, -1);
@@ -363,7 +363,7 @@ static s16 __Widget_CharToBytes(char *str,u8 num)
      u8 cnt=0;
      u32 wc;
      s32 len;
-     struct FontObj* cur_font;
+//     struct FontObj* cur_font;
      struct Charset* cur_enc;
      if(str==NULL)
           return -1;
@@ -373,7 +373,7 @@ static s16 __Widget_CharToBytes(char *str,u8 num)
         return -1;
      if(num==0)
          return -1;
-     cur_font = Font_GetCurFont();
+//     cur_font = Font_GetCurFont();
      for(; str_len > 0;)
      {
         len= cur_enc->MbToUcs4(&wc, str, -1);
@@ -607,6 +607,9 @@ static bool_t __Widget_TextBoxCreate(struct WindowMsg *pMsg)
     HWND hwnd;
     TextBox *pTB;
     u32 Style=0;
+
+    printf("TextBox_Create\r\n");
+
     if(pMsg==NULL)
         return false;
     hwnd =pMsg->hwnd;
@@ -622,11 +625,11 @@ static bool_t __Widget_TextBoxCreate(struct WindowMsg *pMsg)
         memset(pTB, 0, sizeof(TextBox));
         pTB->ChNum=0;
         pTB->CharNumLimit=CN_CHAR_NUM_MAX;
-        if(Style&&WS_TEXTBOX_R_O)
+        if(Style & WS_TEXTBOX_R_O)
         {
             pTB->EditProperty=WS_TEXTBOX_R_O;
         }
-        else if(Style&&WS_TEXTBOX_W_O)
+        else if(Style & WS_TEXTBOX_W_O)
         {
             pTB->EditProperty=WS_TEXTBOX_W_O;
         }
@@ -645,7 +648,7 @@ static bool_t __Widget_TextBoxCreate(struct WindowMsg *pMsg)
     return true;
 }
 // =============================================================================
-// 函数功能: 判断按键按下的字符是否为数字或者小数点字符.
+// 函数功能: 判断按键按下的字符是否为合法ASCII字符.
 // 输入参数: keyval:字符ASCII码.
 // 输出参数: 无。
 // 返回值  :是则返回true,否则返回false.
@@ -653,12 +656,14 @@ static bool_t __Widget_TextBoxCreate(struct WindowMsg *pMsg)
 static bool_t __Widget_IsValidInputKey(u8 keyval)
 {
     bool_t ret=true;
-    if(keyval<VK_NUM_0-1)
-    {
-        if(keyval!=VK_DECIMAL_POINT)
-            return false;
-    }
-    if(keyval>VK_NUM_9+1)
+//    if(keyval<VK_NUM_0-1)
+//    {
+//        if(keyval!=VK_DECIMAL_POINT)
+//            return false;
+//    }
+//    if(keyval>VK_NUM_9+1)
+//        return false;
+    if(keyval < VK_CHAR_START || keyval > VK_CHAR_END)
         return false;
     return ret;
 }
@@ -703,8 +708,8 @@ static  bool_t __Widget_TextBoxPaint(struct WindowMsg *pMsg)
    GDD_GetClientRect(hwnd,&rc);
 
    Widget_GetAttr(hwnd,ENUM_WIDGET_FILL_COLOR,&color);
-   GDD_SetFillColor(hdc,color);
-//   GDD_SetFillColor(hdc,RGB(255,0,0));
+//   GDD_SetFillColor(hdc,color);
+   GDD_SetFillColor(hdc,RGB(178,178,178));
    GDD_FillRect(hdc,&rc);
    if(hwnd->Style&WS_BORDER)
    {
@@ -727,7 +732,7 @@ static  bool_t __Widget_TextBoxPaint(struct WindowMsg *pMsg)
       }
     }
 
-//  GDD_SetTextColor(hdc,RGB(1,1,1));
+    GDD_SetTextColor(hdc,RGB(28,32,42));
     Widget_GetAttr(hwnd,ENUM_WIDGET_TEXT_COLOR,&color);
     GDD_SetTextColor(hdc,color);
     GDD_DrawText(hdc,str,count,&rc,DT_VCENTER|DT_LEFT);
@@ -744,7 +749,7 @@ static  bool_t __Widget_TextBoxPaint(struct WindowMsg *pMsg)
 // =============================================================================
 static bool_t __Widget_TextBoxKeyDown(struct WindowMsg *pMsg)
 {
-    HWND hwnd,Tmrhwnd;
+    HWND hwnd;
     u8 cursorloc,chnum,chnummax,keyval;
     TextBox *pTB;
     char tmpbuf[2];
@@ -901,7 +906,7 @@ static bool_t __Widget_TextBoxTouchDown(struct WindowMsg *pMsg)
     char *str;
     s32 tmp;
     RECT rc;
-    bool_t ret;
+
     if(pMsg==NULL)
         return false;
     hwnd =pMsg->hwnd;
@@ -934,7 +939,7 @@ static bool_t __Widget_TextBoxTouchDown(struct WindowMsg *pMsg)
     }
     else
     {
-        ret=__Widget_GetValidStrInfo(str,NULL,&CharWidth);
+        __Widget_GetValidStrInfo(str,NULL,&CharWidth);
         GDD_GetWindowRect(hwnd,&rc);
         tmp=rc.left+CharWidth;
         if(x>tmp)
@@ -957,6 +962,8 @@ static bool_t __Widget_TextBoxTouchDown(struct WindowMsg *pMsg)
 
     return true;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // =============================================================================
 // 函数功能: TextBox控件获得焦点消息响应函数。
@@ -1000,6 +1007,7 @@ static bool_t __Widget_TextBoxKillFocus(struct WindowMsg *pMsg)
 //     }
      return true;
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // 函数功能: TextBox控件获取文本内容函数。
@@ -1012,7 +1020,7 @@ static void __Widget_TextBoxGetText(HWND hwnd,char *text)
      TextBox *pTB;
      u16 len;
      char *str;
-     pTB=GDD_GetWindowPrivateData(hwnd);
+     pTB = (TextBox *)GDD_GetWindowPrivateData(hwnd);
      if(pTB==NULL)
          return ;
      str=hwnd->Text;
@@ -1078,7 +1086,17 @@ bool_t Widget_TextBoxTextCtrl(HWND hwnd,u8 ctrlcmd,ptu32_t para1)
     }
     return true;
 }
-
+bool_t TextBox_Close(HWND hwnd)
+{
+    TextBox *pTB;
+    pTB = (TextBox *)GDD_GetWindowPrivateData(hwnd);
+    if(pTB != NULL)
+    {
+        printf("this is TextBox_Close\r\n");
+        free(pTB);
+    }
+    return true;
+}
 
 //默认按钮消息处理函数表，处理用户函数表中没有处理的消息。
 static struct MsgProcTable s_gTextBoxMsgProcTable[] =

@@ -92,7 +92,7 @@ struct ScbReg volatile * const pg_scb_reg
 
 u32 g_u32ExpTable[16] __attribute__((section(".table.exceptions")));
 
-bool_t HardExp_Init(void)
+void HardExp_Init(void)
 {
     pg_scb_reg->pri12_15 |=0xff000000;    //systick设为最低优先级,=异步信号
     pg_scb_reg->pri8_11 |= 0xff000000;    //svc的优先级和异步信号相同。

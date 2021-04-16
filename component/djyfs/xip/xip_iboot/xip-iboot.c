@@ -117,6 +117,8 @@ static s32 xip_iboot_fs_install(struct FsCore *super, u32 opt, void *config);
 s32 xip_iboot_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 __attribute__((weak)) s32 xip_fs_format(void *core)
 {
@@ -256,6 +258,7 @@ static s32 xip_iboot_stat(struct Object *ob, struct stat *data)
 
     return (0);
 }
+#pragma GCC diagnostic pop
 
 // ============================================================================
 // 功能：初始化xip对media的驱动

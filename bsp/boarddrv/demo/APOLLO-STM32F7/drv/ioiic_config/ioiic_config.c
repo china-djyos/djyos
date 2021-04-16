@@ -96,7 +96,7 @@
 #define CFG_MODULE_ENABLE_IO_IIC_CONFIG    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,
 //%$#@string,1,32,
-#define CFG_IO_IIC_BUS_NAME   "Ioiic"
+#define CFG_IO_IIC_BUS_NAME   "IoIic"
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif

@@ -250,7 +250,6 @@ struct SPI_Device *SPI_DevAdd(const char *BusName ,const char *DevName,u8 cs,u8 
 {
     struct SPI_CB     *SPI;
     struct SPI_Device *NewDev;
-    struct Object *NewIicObj;
     tagSpiConfig spicfg;
 
     //查询是否该总线存在

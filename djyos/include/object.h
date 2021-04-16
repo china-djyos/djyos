@@ -223,7 +223,7 @@ ptu32_t OBJ_GetPrivate(struct Object *ob);
 void OBJ_SetPrivate(struct Object *ob, ptu32_t Private);
 fnObjOps OBJ_GetOps(struct Object *ob);
 s32 OBJ_SetOps(struct Object *ob, fnObjOps ops);
-const char *OBJ_GetName(struct Object *ob);
+char *OBJ_GetName(struct Object *ob);
 char *obj_rename(struct Object *ob,char *NewName);
 struct Object *OBJ_GetParent(struct Object *ob);
 struct Object *OBJ_GetChild(struct Object *ob);

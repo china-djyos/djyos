@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <gkernel.h>
+#include <loc_string.h>
 #include <gdd.h>
 #include <gdd_widget.h>
 #include <gui\gdd_cursor.h>
@@ -33,7 +34,6 @@ typedef struct
 
 
 static  s8 cfg_idx=0;
-static  s8 color_idx=0;
 static  s8 bBorder=FALSE;
 static  s8 bBKGND=FALSE;
 static  s8 bColor=FALSE;
@@ -56,8 +56,6 @@ static char RichTextBox_temp_str[300];
 // =============================================================================
 static s16 __Widget_GetValidStrLen(char *str)
 {
-    u8 cnt=0;
-    char ch;
     s16 str_len=0;
     if(str==NULL)
         return -1;
@@ -139,7 +137,6 @@ static s16 __Widget_CharToBytes(char *str,u8 num)
      u8 cnt=0;
      u32 wc;
      s32 len;
-     struct FontObj* cur_font;
      struct Charset* cur_enc;
      if(str==NULL)
           return -1;
@@ -148,7 +145,6 @@ static s16 __Widget_CharToBytes(char *str,u8 num)
         return -1;
      if(num==0)
          return -1;
-     cur_font = Font_GetCurFont();
      cur_enc = Charset_NlsGetCurCharset();
      for(; str_len > 0;)
      {
@@ -180,41 +176,39 @@ static s16 __Widget_CharToBytes(char *str,u8 num)
 }
 
 // =============================================================================
-// 函数功能:在RichTextBox指定字符处开始插入字符串
-// 输入参数:  hwnd,文本框窗体句柄；
-//           idx,字符编号；
-//           str,字符串指针.
+// 功能:在RichTextBox指定光标位置处开始插入字符串
+// 参数:text，原字符串
+//      add，待插入的字符串
+//      hwnd,文本框窗体句柄；
 // 输出参数: 无。
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-static s32 __Widget_RichTextBoxInsertChar(char *text,char *add,HWND hwnd)
+static char * __Widget_RichTextBoxInsertChar(char *text,char *add,HWND hwnd)
 {
-         u8 i,j;
-         RichTextBox *pRTB;
-         u8 num=0;
-         s16 str_len=0;
-         s16 len=0;
-         pRTB=hwnd->PrivateData;
-         str_len=__Widget_GetValidStrLen(text);
-         len=__Widget_CharToBytes(text,pRTB->CursorLoc);//此处修改字符串插入位置
-         if(len==-1)
-             len=0;
+    u8 i,j;
+    RichTextBox *pRTB;
+    u8 num=0;
+    s16 str_len=0;
+    s16 len=0;
+    pRTB = (RichTextBox *)hwnd->PrivateData;
+    str_len=__Widget_GetValidStrLen(text);
+    len=__Widget_CharToBytes(text,pRTB->CursorLoc);//此处修改字符串插入位置
+    if(len==-1)
+        len=0;
 
-         for(i=0,j=0;j<str_len;i++,j++)
-                 {
-                     if(i==len)
-                     {
-                        while(1)
-                        {
-                            RichTextBox_temp[i]=*(add+num);
-                            i++;
-                            num++;
-                            if(*(add+num)=='\0')
-                                break;
-                        }
-
-
-                     }
+    for(i=0,j=0;j<str_len;i++,j++)
+    {
+        if(i==len)
+        {
+           while(1)
+           {
+               RichTextBox_temp[i]=*(add+num);
+               i++;
+               num++;
+               if(*(add+num)=='\0')
+                   break;
+           }
+        }
         RichTextBox_temp[i]=*(text+j);
     }
     RichTextBox_temp[i]='\0';
@@ -230,18 +224,15 @@ static s32 __Widget_RichTextBoxInsertChar(char *text,char *add,HWND hwnd)
 // 输出参数: 无。
 // 返回值  :返回经过处理，插入了换行符的字符串指针
 // =============================================================================
-
-
-static s32 __Widget_RichTextBoxLineFeed(char *text,HWND hwnd)
+static char *__Widget_RichTextBoxLineFeed(char *text,HWND hwnd)
 {
          u8 i,j;
          s8 num=0;
          s16 str_len=0;
          RichTextBox *pRTB;
-         pRTB=hwnd->PrivateData;
 
-
-         str_len=__Widget_GetValidStrLen(text);
+         pRTB = (RichTextBox *)hwnd->PrivateData;
+         str_len = __Widget_GetValidStrLen(text);
 
          for(i=0,j=0;j<str_len;i++,j++,num++)
          {
@@ -408,8 +399,10 @@ static s16 __Widget_FindIdx(HWND hwnd,u16 x,u16 y)
             else
             {
                 if(count != 0)
+                {
                     numinline[linenum]=count+1;
                     linenum++;
+                }
                 break;
             }
         }
@@ -473,13 +466,12 @@ static s16 __Widget_FindIdx(HWND hwnd,u16 x,u16 y)
 static bool_t __Widget_RichTextBoxTouchDown(struct WindowMsg *pMsg)
 {
     HWND hwnd;
-    u32 loc,Style;;
+    u32 loc;
     u16 chnum,idx,CharWidth,x,y;
     RichTextBox *pRTB;
     char *str;
     s32 tmp;
     RECT rc;
-    bool_t ret;
 
     str=RichTextBox_text;
     hwnd =pMsg->hwnd;
@@ -501,7 +493,7 @@ static bool_t __Widget_RichTextBoxTouchDown(struct WindowMsg *pMsg)
     }
     else
     {
-        ret=__Widget_GetValidStrInfo(str,NULL,&CharWidth);
+        __Widget_GetValidStrInfo(str,NULL,&CharWidth);
         GDD_GetWindowRect(hwnd,&rc);
         tmp=rc.left+CharWidth;
         if(x>tmp)
@@ -546,7 +538,7 @@ static ptu32_t __Widget_RichTextBoxNotify(struct WindowMsg *pMsg)
         case ID_INSERT://换行
              if(event==CBN_SELECTED)
              {
-            RichTextBox_text=__Widget_RichTextBoxInsertChar(RichTextBox_text,RichTextBox_add,hwnd);
+            __Widget_RichTextBoxInsertChar(RichTextBox_text,RichTextBox_add,hwnd);
             GDD_InvalidateWindow(hwnd,FALSE);
              }
             break;
@@ -578,8 +570,6 @@ static ptu32_t __Widget_RichTextBoxCreate(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     RECT rc0;
-    u32 i;
-    struct WinTimer *timer;
     RichTextBox *pRTB;
     hwnd =pMsg->hwnd;
     cfg_idx =0;
@@ -595,8 +585,8 @@ static ptu32_t __Widget_RichTextBoxCreate(struct WindowMsg *pMsg)
         }
     GDD_GetClientRect(hwnd,&rc0);
 //    GDD_CursorInit();
-    Widget_CreateButton("插入换行",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-60,60,24,hwnd,ID_INSERT,NULL,NULL);
-    Widget_CreateButton("改变颜色",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-30,60,24,hwnd,ID_COLOR,NULL,NULL);
+    Widget_CreateButton("插入换行",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-60,60,24,hwnd,ID_INSERT,0,NULL);
+    Widget_CreateButton("改变颜色",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-30,60,24,hwnd,ID_COLOR,0,NULL);
     return true;
 }
 
@@ -661,8 +651,8 @@ static ptu32_t __Widget_RichTextBoxPaint(struct WindowMsg *pMsg)
         i |= DT_BKGND;
     }
 //    text=__Widget_RichTextBoxInsertChar(text,add);
-    RichTextBox_text=__Widget_RichTextBoxLineFeed(RichTextBox_text,hwnd);
-    GDD_DrawText(hdc,RichTextBox_text,-1,&rc,i);
+    __Widget_RichTextBoxLineFeed(RichTextBox_temp,hwnd);
+    GDD_DrawText(hdc,RichTextBox_temp_str,-1,&rc,i);
     GDD_EndPaint(hwnd,hdc);
 
     return true;

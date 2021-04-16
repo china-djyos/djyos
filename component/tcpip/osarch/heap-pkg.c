@@ -47,6 +47,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <net/osarch.h>
 #include "heap.h"
 #include "int.h"
 #include "align.h"
@@ -222,11 +223,11 @@ static u32 __GetLevel(size_t size, size_t align)
 //  u16 i = 0;
     if (size)
     {
-//        const size_t aligned = align_up(align, size);
+        const size_t aligned = align_up(align, size);
 //      scale = BlockFindFitLevel(aligned);
         for(scale=0; scale<HEAD_LIST_NUM; scale++)
         {
-            if(heap_mem_list[scale] >= size)
+            if(heap_mem_list[scale] >= aligned)
                 break;
         }
     }
@@ -538,7 +539,7 @@ struct PkgHeapCB * __PkgMenInit(void *mem,size_t size)
     u16 i=0;
     if(mem==NULL || size<=sizeof(struct block_header_t))
         return NULL;
-    PkgHeap =  net_malloc(sizeof(struct PkgHeapCB) );
+    PkgHeap =  (struct PkgHeapCB *)net_malloc(sizeof(struct PkgHeapCB) );
     if(PkgHeap == NULL)
         return NULL;
     low = Int_LowAtomStart();

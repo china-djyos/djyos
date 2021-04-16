@@ -84,6 +84,47 @@ static void __LoadLog(const char *name,bool_t ret)
 bool_t ModuleInstall_TcpIp(void)
 {
     bool_t ret;
+#if CFG_MODULE_ENABLE_EXTSTACK
+    //do the NETDEVICE LAYER initialize
+    extern bool_t NetDev_Init(void);
+    ret = NetDev_Init();
+    __LoadLog("NETDEV",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    extern bool_t RouterInit(void);
+    ret = RouterInit();
+    __LoadLog("ROUTER",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    //do the transport layer initialize
+    extern bool_t TPLInit(void);
+    ret = TPLInit();
+    __LoadLog("TPL",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    extern bool_t ExtStackInit(void);
+    ret = ExtStackInit();
+    __LoadLog("ExtStackInit",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+
+    //do the socket interface initialize
+    extern bool_t SocketInit(void);
+    ret = SocketInit();
+    __LoadLog("SOCKET",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+#else
     tcpipver(NULL);
 
     extern bool_t OsArchInit();
@@ -230,6 +271,7 @@ bool_t ModuleInstall_TcpIp(void)
     info_printf("tcpip","*********DJY TCP/IP INIT SUCCESS**********************");
 
     return ret;
+#endif
 
 TCPIP_INITERR:
     error_printf("tcpip","*********DJY TCP/IP INIT  FAILED**********************");

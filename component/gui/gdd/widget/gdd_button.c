@@ -70,6 +70,8 @@ static  s32 GDD_GetButtonType(HWND hwnd)
 {
     return hwnd->Style&BS_TYPE_MASK;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //----按钮绘制函数-------------------------------------------------------------
 //功能：这是按钮控件的MSG_PAINT消息响应函数
@@ -80,6 +82,8 @@ static  bool_t __Widget_ButtonCreate(struct WindowMsg *pMsg)
 {
     return true;
 }
+#pragma GCC diagnostic pop
+
 static  bool_t __Widget_ButtonPaint(struct WindowMsg *pMsg)
 {
     HWND hwnd;

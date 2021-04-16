@@ -156,6 +156,10 @@ s32 UART_Poll_Open(struct objhandle *hdl, u32 Mode,u32 timeout);
 s32 UART_PollAppWrite(struct objhandle *hdl,u8* src_buf,u32 len,u32 offset, u32 timeout);
 s32 UART_PollAppRead(struct objhandle *hdl,u8* dst_buf,u32 len,u32 offset, u32 timeout);
 s32 UART_PollCtrl(struct objhandle* hdl,u32 cmd,va_list *arg0);
+struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //----串口设备open函数---------------------------------------------------------
 //功能：打开串口设备时的回调函数，使文件上下文指向串口对象对应的串口控制块。
@@ -267,7 +271,7 @@ s32 UART_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 t
 
     Lock_MutexPost(UGCB->WriteMutex);
     //对多路复用的操作不允许在 Lock_MutexPost(UGCB->WriteMutex) 之前调用，因为多路复用
-	//操作内部也有互斥量，存在死锁隐患；例如 __Multiplex_Set 函数内部调用串口打印。
+    //操作内部也有互斥量，存在死锁隐患；例如 __Multiplex_Set 函数内部调用串口打印。
     if(Ring_IsFull(&UGCB->SendRingBuf))
     {
         OBJ_ClrMultiplexEvent(UartObj, CN_MULTIPLEX_SENSINGBIT_WRITE);
@@ -318,7 +322,7 @@ s32 UART_AppRead(struct objhandle *hdl,u8* dst_buf,u32 len, u32 offset, u32 time
 
     //若缓冲区中不再有数据，清掉多路复用触发状态。
     //对多路复用的操作不允许在 Lock_MutexPost(UGCB->ReadMutex) 之前调用，因为多路复用
-	//操作内部也有互斥量，存在死锁隐患；例如 __Multiplex_Set 函数内部调用串口打印。
+    //操作内部也有互斥量，存在死锁隐患；例如 __Multiplex_Set 函数内部调用串口打印。
     if(Ring_IsEmpty(&UGCB->RecvRingBuf))
     {
         //标记1。
@@ -332,6 +336,8 @@ s32 UART_AppRead(struct objhandle *hdl,u8* dst_buf,u32 len, u32 offset, u32 time
 
     return completed;
 }
+
+#pragma GCC diagnostic pop
 
 //----串口设备端口写函数-------------------------------------------------------
 //功能: 从端口写UART,由底层驱动调用,该函数实现的功能说明如下:
@@ -483,6 +489,9 @@ s32 UART_Ctrl(struct objhandle* hdl,u32 cmd, va_list *arg0)
     return result;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //----串口设备open函数---------------------------------------------------------
 //功能：打开串口设备时的回调函数，使文件上下文指向串口对象对应的串口控制块。
 //      串口设备文件，是安装串口时创建的，本函数不负责创建文件。
@@ -512,6 +521,8 @@ s32 UART_Poll_Open(struct objhandle *hdl, u32 Mode,u32 timeout)
     }
     return (0);
 }
+#pragma GCC diagnostic pop
+
 //----串口设备端口写函数-------------------------------------------------------
 //功能:  写出具到端口。不经过环形缓冲区直接写
 //参数: UCB,被操作的串口tagUartCB结构体指针.

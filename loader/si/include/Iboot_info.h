@@ -218,6 +218,7 @@ bool_t Iboot_GetLowPowerWakeup();
 #if (CFG_RUNMODE_BAREAPP == 0)
 bool_t Iboot_GetProductInfo(void * ProductInfo);
 bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_len);
+bool_t Iboot_RewriteAppHeadFileInfo(void * apphead,const char*name,u32 filesize);
 bool_t Iboot_RewriteProductInfoNumTime(void * productinfo,const char* time,const char *num);
 bool_t Rewrite_AppHead_NumTime(void * apphead,const char* time,char *num);
 bool_t XIP_AppFileCheckEasy(void * apphead);

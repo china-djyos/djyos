@@ -261,7 +261,7 @@ bool_t File_ObjIsMount(struct Object *obj)
 // 功能：新的文件系统安装
 // 参数：source -- 将要挂上的文件系统，通常是一个设备名；
 //      target -- 文件系统所要挂载的目标对象（目录）；
-//      type -- 文件系统类型；
+//      type -- 文件系统类型；由函数 File_RegisterFs 注册
 //      flags -- 文件系统读写访问标志；
 //      data -- 文件系统特有参数；
 // 返回：成功（0）；失败（-1）；还未挂载到具体的媒体上去（-2）；

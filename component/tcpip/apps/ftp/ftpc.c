@@ -57,6 +57,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <misc/misc.h>
 #include <os.h>
 #include <shell.h>
 #include "component_config_ftp.h"
@@ -847,6 +848,8 @@ static void __FTP_ClientDisConnectServer(tagFtpClient *client)
     }
     return ;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //this data for the ftp client debug
 static tagFtpClient  gFtpClientDebug;
@@ -912,6 +915,8 @@ static bool_t __FTP_ClientTest(int argc,const char *argv[])
     info_printf("ftpc","TestDone\r\n");
     return true;
 }
+#pragma GCC diagnostic pop
+
 //static bool_t __FtpcDebug(char *param)
 bool_t ftpc(char *param)
 {
@@ -1195,7 +1200,7 @@ bool_t ftpc(char *param)
                 info_printf("ftpc","%s:parafmt:test d/u host port user passwd sfile destfile filesize times\r\n",__FUNCTION__);
                 return true;
             }
-            __FTP_ClientTest(argc-1,&argv[1]);
+            __FTP_ClientTest(argc-1,(const char*)&argv[1]);
         }
         else
         {

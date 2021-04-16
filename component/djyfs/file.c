@@ -898,6 +898,7 @@ int fseeko(FILE *stream, off_t offset, int whence)
                 return (EOF);
             }
         }
+        __attribute__((fallthrough));
         case SEEK_CUR:
         {
             if(((offset < 0) && ((__File_BufUsed(stream) + offset) >= 0)) ||

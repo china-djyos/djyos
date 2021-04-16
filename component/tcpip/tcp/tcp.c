@@ -139,7 +139,7 @@ enum _EN_TCPSTATE
 //shutdown_wr makes asnd 0
 //close makes the ksnd krcv 0 arcv 0 asnd 0
 #define CN_TCP_CHANNEL_STATASND    (1<<0)  //APP COULD SND DATA
-#define CN_TCP_CHANNEL_STATARCV    (1<<1)  //APP COULD NOT SND DATA
+#define CN_TCP_CHANNEL_STATARCV    (1<<1)  //APP COULD RCV DATA
 #define CN_TCP_CHANNEL_STATKSND    (1<<2)  //STACK COULD SND DATA
 #define CN_TCP_CHANNEL_STATKRCV    (1<<3)  //STACK COULD RCV DATA
 #define CN_TCP_CHANNEL_STATCONGEST (1<<4)  //the rcv window is full or channel is bad
@@ -214,7 +214,7 @@ typedef struct SynOption
 //receive buffer
 typedef struct
 {
-    struct SemaphoreLCB      *bufsync;     //the buffer sync member
+    struct SemaphoreLCB      *bufsync;     //初始化为无信号，
     u32                       timeout;     //if block, the block time
     s32                       buflen;      //the valid data length in the buffer
     s32                       buflenlimit; //the buffer length
@@ -960,13 +960,12 @@ static s32 __tcpbind(struct tagSocket *sock,struct sockaddr *addr, s32 addrlen)
     }
     return  result;
 }
-// =============================================================================
-// FUNCTION:this function used to make the socket to listen
-// PARA  IN:the parameters has the same meaning as listen
-// PARA OUT：
-// RETURN  :0 success while -1 failed
-// INSTRUCT:this function to make the socket to become an server terminal
-// =============================================================================
+
+//------------------------------------------------------------------------------
+//功能：开启一个服务器socket，使一个端口置于监听状态，先检查该socket是否已经连接。
+//参数：sock，待监听的sock，必须是未连接的socket
+//      backlog，该服务器socket能接受的连接数量
+//返回：0=成功，-1=失败
 static s32 __tcplisten(struct tagSocket *sock, s32 backlog)
 {
     s32  result;
@@ -983,9 +982,8 @@ static s32 __tcplisten(struct tagSocket *sock, s32 backlog)
             scb = __CreateScb();
             if(NULL != scb)
             {
-                //may be we should cpy some options from the ClientCB,which set before listen
-                __DeleCCB(sock->TplCB);
                 scb->accepttime = ((struct ClientCB *)(sock->TplCB))->rbuf.timeout;
+                __DeleCCB(sock->TplCB);
                 sock->TplCB = scb;
                 scb->backlog = backlog;
                 sock->sockstat&=(~CN_SOCKET_CLIENT);
@@ -999,7 +997,11 @@ static s32 __tcplisten(struct tagSocket *sock, s32 backlog)
     return  result;
 }
 
-//find an new client which is stable in the scb client queue
+//------------------------------------------------------------------------------
+//功能：从服务器sock中取一个处于稳定连接状态的客户端
+//参数：sock，服务器socket
+//返回：找到则返回其中一个socket，找不到则返回NULL
+//------------------------------------------------------------------------------
 static struct tagSocket *__acceptclient(struct tagSocket *sock)
 {
     struct tagSocket    *result;
@@ -1247,7 +1249,7 @@ static s32 __tcpconnect(struct tagSocket *sock, struct sockaddr *serveraddr, s32
                 ccb->machinestat = EN_TCP_MC_SYNSNT;
                 ccb->timerctrl  = CN_TCP_TIMER_SYN;
                 Lock_MutexPost(sock->SockSync); //release the mutex
-                //wait the SockSync signal happens
+                //等待服务器返回 syn 标志
                 Lock_SempPend(ccb->rbuf.bufsync,ccb->rbuf.timeout);
                 //check the connection
                 Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER);
@@ -1750,8 +1752,10 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
                     }
                 }
 
-                if((ccb->rbuf.buflen > ccb->rbuf.trigerlevel)||
-                   (0 == (ccb->channelstat&CN_TCP_CHANNEL_STATKRCV)))
+//              if((ccb->rbuf.buflen > ccb->rbuf.trigerlevel)||
+//                 (0 == (ccb->channelstat&CN_TCP_CHANNEL_STATKRCV)))
+                if((ccb->rbuf.buflen > ccb->rbuf.trigerlevel) &&
+                   (0 != (ccb->channelstat&CN_TCP_CHANNEL_STATKRCV)))
                 {
                     Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
                     Lock_SempPost(ccb->rbuf.bufsync);

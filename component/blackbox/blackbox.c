@@ -62,6 +62,7 @@
 #include "arch_feature.h"
 #include "blackbox.h"
 #include "endian.h"
+#include "time.h"
 #include "blackbox_decoder.h"
 #include "blackbox_hook.h"
 #include "blackbox_osstate.h"
@@ -507,7 +508,7 @@ static bool_t __AddrInMem(u8 *addr)
     item = pMemLegalTab;
     while(NULL != item)
     {
-        start = item->start;
+        start = (u8*)item->start;
         end = start + item->len;
         if((addr >= start)&&((addr <= end))) //in mem section
         {

@@ -62,6 +62,7 @@
 #include "stdint.h"
 #include "object.h"
 #include "stdio.h"
+#include "string.h"
 #include "dbug.h"
 #include "charset.h"
 #include "component_config_NlsCharset.h"

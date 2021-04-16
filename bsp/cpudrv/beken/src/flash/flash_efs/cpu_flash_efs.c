@@ -130,6 +130,8 @@ struct __efs_media_drv EFS_EMBFLASH_DRV =
     .efs_write_media = efs_embflash_write,
     .efs_check_block_ready = efs_embflash_CheckBlockReady
 };
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // ============================================================================
 // 功能： 写数据
@@ -185,6 +187,7 @@ u32 efs_embflash_read(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags
     djy_flash_req(unlock, 0);
     return dwSize;
 }
+#pragma GCC diagnostic pop
 
 // ============================================================================
 // 功能： 擦除

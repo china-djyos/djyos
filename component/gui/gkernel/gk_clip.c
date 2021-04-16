@@ -402,7 +402,7 @@ bool_t __GK_ScanVisibleClip(struct GkWinObj *newwin)
     s32 num,rect_left,rect_top,rect_right,rect_bottom,loop,temp;
     u8 *sort_array_x,*sort_array_y;
 
-    if(tempwin->WinProperty.Visible == CN_GKWIN_HIDE)
+    if(newwin->WinProperty.Visible == CN_GKWIN_HIDE)
         return true;
     display = newwin->disp;
     num = (display->width+1)*sizeof(u8) + (display->height+1)*sizeof(u8);
@@ -1526,14 +1526,5 @@ bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
             break;
     }
     return true;
-}
-//----生成可视域---------------------------------------------------------------
-//功能: 生成z1(含)至z2(含)之间的窗口的可视域。
-//参数: z1，z轴中靠后的窗口，包含在内
-//      z2，z轴中靠前的窗口，包含在内
-//返回: 无
-//-----------------------------------------------------------------------------
-void __GK_GetClipSection( struct GkWinObj *z1,struct GkWinObj *z2)
-{
 }
 

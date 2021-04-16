@@ -485,12 +485,12 @@ void __SetMTC_Address(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src, u8 *bu
 //-----------------------------------------------------------------------------
 void __ISBUS_SetSlaveList(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 *buf,u32 len)
 {
-    struct Slave_ISBUSPort *Port;
+//    struct Slave_ISBUSPort *Port;
     u8 nearest = 255;   //小于本机地址且最接近本机地址的
     u8 least = 255;     //列表中最小地址
     u8 loop,now;
     bool_t found = false;
-    Port = ProtocolSocket->CommPort;
+//    Port = ProtocolSocket->CommPort;
     for(loop = 0;loop < len; loop++)
     {
         now = buf[loop];
@@ -513,7 +513,7 @@ void __ISBUS_SetSlaveList(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 
     }
     else
         sg_ptSlavePortHead->BoardcastPre = 0xff;    //本机不在列表中，不响应广播。
-    ISBUS_SlaveSendPkg(ProtocolSocket, 0, NULL, 0);
+    ISBUS_SlaveSendPkg(ProtocolSocket, NULL, 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -530,7 +530,7 @@ void ISBUS_CHK_SlaveSend(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 *
     Port->HostSerial = 255;         //收到重新扫描从机命令，重置以下3个参数
     Port->BoardcastPre = 255;
     Port->MTCPre = 255;
-    ISBUS_SlaveSendPkg(ProtocolSocket, 0, NULL, 0);
+    ISBUS_SlaveSendPkg(ProtocolSocket, NULL, 0);
 }
 #pragma GCC diagnostic pop
 
@@ -723,13 +723,12 @@ void __ISBUS_PushMtcPkg(struct Slave_ISBUSPort *Port)
 //      或广播的模式，则并不立即发送出去，而是释放一个信号量，等到排在前面的从机发送完毕后，
 //      由协议接收函数pend这个信号量，得到之后发送。
 // 输入参数：Slave_FunctionSocket，通信协议插口指针，为INS_RegistProtocol函数的返回值
-//        dst，对于从机：目的地址为主机地址，源地址为本板地址Slave_sg_u8Address
 //        buf，待发送的数据包，不含协议头
 //        len，发送长度
 //        times，发送次数，-1表示无限次数。
 // 返回值：  发送的数据量，只是copy到了发送buf。
 // ============================================================================
-u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 dst, u8 *buf, u8 len)
+u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 *buf, u8 len)
 {
     struct Slave_ISBUSPort *Port;
     u8 *SendBuf;
@@ -748,7 +747,7 @@ u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 ds
 //  Port->SendTimes = times;
     SendBuf = Port->SendPkgBuf;
     SendBuf[CN_OFF_START]   = 0xEB;
-    SendBuf[CN_OFF_DST]     = 0;
+    SendBuf[CN_OFF_DST]     = 0;    //目标地址是主机地址，永远是0
     SendBuf[CN_OFF_PROTO]   = ISBUS_FunctionSocket->Protocol;
     SendBuf[CN_OFF_SRC]     = sg_u8SlaveAddress;
     SendBuf[CN_OFF_LEN]     = len;

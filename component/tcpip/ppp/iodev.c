@@ -58,6 +58,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <string.h>
+#include <misc/misc.h>
 #include <os.h>
 //add your own specified header here
 #include <sys/socket.h>

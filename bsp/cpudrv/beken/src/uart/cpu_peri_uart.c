@@ -46,6 +46,7 @@
 #include "cpu_peri.h"
 #include <device/djy_uart.h>
 #include "stdlib.h"
+#include "uart/uart.h"
 #include <icu_pub.h>
 #include "arm_arch.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -158,6 +159,8 @@ static const uint8_t volatile *sUartReg[CN_UART_NUM] = {
                                             CN_UART1,
                                             CN_UART2,
 };
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, va_list *arg0);
 
 __attribute__((weak))  void Board_UartHalfDuplexSend(u8 SerialNo)
@@ -338,12 +341,12 @@ static u32 __UART_SendStart (uint8_t port)
 // 参数：串口号
 // 返回：1=成功，0=失败
 // =============================================================================
-static uint32_t djybsp_uart_rx_isr(uint32_t port, void *param)
+static void djybsp_uart_rx_isr(s32 port, void *param)
 {
     uint8_t val = 0;
-    uint8_t num = 0;
     uint8_t fifo[256];
     uint32_t fifo_status_reg = 0;
+    u32 num = 0;
 
     if(port>CN_UART2)
         return 0;
@@ -376,7 +379,7 @@ static uint32_t djybsp_uart_rx_isr(uint32_t port, void *param)
     return 1;
 }
 
-static uint32_t djybsp_uart_tx_isr(uint32_t port, void *param)
+static void djybsp_uart_tx_isr(s32 port, void *param)
 {
     uint8_t val = 0;
     if(port>CN_UART2)
@@ -397,7 +400,7 @@ static uint32_t djybsp_uart_tx_isr(uint32_t port, void *param)
     return 1;
 }
 
-static uint32_t djybsp_uart_tx_end_isr(uint32_t port, void *param)
+static void djybsp_uart_tx_end_isr(s32 port, void *param)
 {
     if(port>CN_UART2)
         return 0;
@@ -405,6 +408,7 @@ static uint32_t djybsp_uart_tx_end_isr(uint32_t port, void *param)
     Board_UartHalfDuplexRecv(port);
     return 1;
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // 功能: 初始化UART对应的中断线，并初始化中断入口函数
@@ -505,7 +509,7 @@ ptu32_t ModuleInstall_UART(u32 port)
             UART_SndBufLen = CFG_UART2_SENDBUF_LEN;
             UART_RxBufLen  = CFG_UART2_RECVBUF_LEN;
             break;
-        deault:printk("ModuleInstall_UART:port Err\r\n");break;
+        default:printk("ModuleInstall_UART:port Err\r\n");break;
     }
 
     if(port < CN_UART_NUM)

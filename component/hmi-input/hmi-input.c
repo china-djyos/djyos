@@ -142,7 +142,7 @@ bool_t ModuleInstall_HmiIn(void)
     StdinDeviceMem = M_Malloc(sizeof( struct HMI_InputDeviceObj),0);
     if(StdinDeviceMem == NULL)
     {
-        goto ExitDir;
+        goto ExitMem;
     }
     g_ptHmiInDevicePool = Mb_CreatePool((void*)StdinDeviceMem,
                                     CFG_HMIIN_DEV_LIMIT,
@@ -157,10 +157,10 @@ bool_t ModuleInstall_HmiIn(void)
     return true;
 
 ExitPool:
-    OBJ_Delete(s_ptHmiInDeviceDir);
-ExitDir:
     free(StdinDeviceMem);
 ExitMem:
+    OBJ_Delete(s_ptHmiInDeviceDir);
+ExitDir:
     HmiIn_DeleteInputMsgQ(tg_pHmiInputMsgQ);
 ExitMsgQ:
     return false;

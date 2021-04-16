@@ -214,7 +214,7 @@ __LP_BSP_AsmSaveReg:
     push    {r2}
     blx      r1                  /* 调用保存RAM到非易失存储器的函数*/
     pop     {r2}
-    mov 	r0, #0x4			/* 选择休眠方式:L3 */
+    mov     r0, #0x4            /* 选择休眠方式:L3 */
     blx      r2                  /* 调用进入SLEEP3的函数 */
     bx      lr
 
@@ -278,6 +278,7 @@ GetLR:
     mov     R0, LR
     BX      LR
 
+/*如果硬件设计时，jtag口被占用，调用本函数将恢复jtag功能，shell命令 initjtag 的底层实现 */
 .globl EnJtag
 .type EnJtag, %function
 EnJtag:

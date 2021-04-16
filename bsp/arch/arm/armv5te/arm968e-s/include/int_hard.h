@@ -92,7 +92,12 @@ void __Int_InitHard(void);
 void __Int_EngineReal(ufast_t ufl_line);
 void __Int_EngineAsynSignal(ufast_t ufl_line);
 void __Int_EngineAll(ufast_t ufl_line);
-
+void portENABLE_INT(void);
+s32 portDISABLE_INT(void);
+void portENABLE_IRQ(void);
+s32 portDISABLE_IRQ(void);
+void portENABLE_FIQ(void);
+s32 portDISABLE_FIQ(void);
 #ifdef __cplusplus
 }
 #endif

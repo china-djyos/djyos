@@ -199,7 +199,7 @@ void Exp_CInit(void)
 // 返回值     :true成功, false失败
 // 说明          ：
 // =============================================================================
-bool_t HardExp_Init(void)
+void HardExp_Init(void)
 {
     //设置异常向量表
     extern void __AsmSetExpVecTab(void);

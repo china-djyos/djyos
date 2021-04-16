@@ -54,7 +54,7 @@ void djy_audio_dac_open(uint16_t buf_len,uint16_t channel,
                                     audio_sample_rate_e freq)
 {
     if(channel>2) channel=2;
-    if(buf_len<0) buf_len=1024;
+    if(buf_len==0) buf_len=1024;
 
     aud_dac.buf = realloc(aud_dac.buf, buf_len);
     if(aud_dac.buf==0){

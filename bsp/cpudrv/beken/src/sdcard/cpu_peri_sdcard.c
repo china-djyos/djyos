@@ -470,7 +470,7 @@ static void sdcard_isr_uninitialize(void)
 // 返回:
 // 备注:
 // ============================================================================
-static void sdcard_install_event(void)
+static ptu32_t sdcard_install_event(void)
 {
     extern SDIO_Error sdcard_initialize(void);
     extern s32 ModuleInstall_FAT(const char *dir_name, u32 opt, void *data);
@@ -478,16 +478,17 @@ static void sdcard_install_event(void)
     if(!get_sdcard_is_ready())
     {
         if(sdcard_initialize() != SD_OK)
-            return ;
+            return -1;
     }
     if(OBJ_SearchChild(OBJ_GetRoot(), "SD") == NULL)
         ModuleInstall_FAT("SD", MS_INSTALLUSE, "SD");
     if(InstallDevSdcard("SD"))
-        return ;
+        return -1;
 
     djy_gpio_irq_enable(GPIO12, 0);
     djy_gpio_attach_irq(GPIO12, PIN_IRQ_MODE_RISING, (void *)sdcard_isr_uninitialize, 0);   //设置卡被拔掉时的中断响应函数
     djy_gpio_irq_enable(GPIO12, 1);
+    return 0;
 }
 // ============================================================================
 // 功能: sdcard的卸载任务

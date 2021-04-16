@@ -624,7 +624,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     {
         if(para->buf_mode == CN_WINBUF_BUF)
         {
-            return NULL;        //无帧缓冲的显示器，不允许创建缓冲桌面
+            return NULL;        //父窗口无缓冲，不允许子窗口有缓冲。
         }
         BufM = false;
     }
@@ -1932,6 +1932,8 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
     Lock_MutexPost(g_tGkChunnel.syscall_mutex);    //管道访问互斥解除
     return completed;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //----Usercall消息发送----------------------------------------------------------
 //功能: 本函数是gk_syscall_chunnle函数的逆操作函数，当gui kernel需要上层应用程序
@@ -1958,8 +1960,9 @@ bool_t  __GK_UsercallChunnel(void *pdata,u16 size,u32 timeout)
 //  memcpy(&buf[4],pdata,size);
 
 //  return  MsgQ_Send(g_tGkChunnel.usercall_msgq,pdata,size,timeout,CN_MSGQ_PRIO_NORMAL);
+    return false;
 }
-
+#pragma GCC diagnostic pop
 
 //返回: 命令长度(字节数)
 u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)

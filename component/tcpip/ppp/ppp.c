@@ -60,7 +60,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <os.h>
-#include <misc.h>
+#include <misc/misc.h>
 
 #include <sys/socket.h>
 #include <netdb.h>
@@ -551,6 +551,9 @@ static bool_t __IoDevOut(tagPPP *ppp, u16 proto, tagCH *chdr, u8 *buf, u16 l,
     }
     return ret;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //here we create a ppp net device to the stack
 static bool_t __NetDevOut(struct NetDev *dev, struct NetPkg *pkg, u32 netdevtask)
 {
@@ -638,7 +641,7 @@ static bool_t __NetDevAdd(tagPPP *ppp) {
     if (NULL == dev) {
         goto EXIT_PPPDEV;
     }
-	//不可以这里设置dns, 因为ppp获取ip成功后同时获取到DNS才设置。
+    //不可以这里设置dns, 因为ppp获取ip成功后同时获取到DNS才设置。
     //NetDev_SetDns(EN_IPV_4, dev, &ppp->dnsaddr, &ppp->dnsaddr);
     //NetDev_SetGateway(EN_IPV_4, dev, &ppp->dnsaddr);
     //add the event hook here
@@ -913,6 +916,8 @@ static bool_t __PapDeal(tagPPP *ppp, tagCH *ch, u8 *data, u16 len) {
     }
     return true;
 }
+#pragma GCC diagnostic pop
+
 static u32 ModemIP;
 //when we got a ppp frame, we use this function to deal it
 //we should know which proto and the data and datalen we got
@@ -942,16 +947,16 @@ static bool_t __NcpDeal(tagPPP *ppp, tagCH *ch, u8 *data, u16 len) {
             opt = (tagOH *)item->buf;
             memcpy(&v32,opt->v,sizeof(v32));
             ppp->ipaddr = v32;
-            
+
             item = __OptItemMatch(&ppp->ncp.net,NCP_OPT_DNS);  //picked out the magic
             opt = (tagOH *)item->buf;
             memcpy(&v32,opt->v,sizeof(v32));
             ppp->dnsaddr = v32;
-            
+
             ModemIP=ppp->ipaddr;
-			//这里同时设置dns到网卡里
-			NetDev_SetDns(EN_IPV_4, ppp->fdnet, &ppp->dnsaddr, &ppp->dnsaddr);
-			NetDev_SetGateway(EN_IPV_4, ppp->fdnet, &ppp->dnsaddr);
+            //这里同时设置dns到网卡里
+            NetDev_SetDns(EN_IPV_4, ppp->fdnet, &ppp->dnsaddr, &ppp->dnsaddr);
+            NetDev_SetGateway(EN_IPV_4, ppp->fdnet, &ppp->dnsaddr);
 //            RoutSetDefaultAddr(EN_IPV_4, ppp->ipaddr, 0xFFFFFFFF, ppp->ipaddr,ppp->dnsaddr);
             //turn to another state
             memset(&para,0,sizeof(para));

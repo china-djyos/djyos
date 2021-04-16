@@ -87,8 +87,7 @@ void mp_thread_gc_others(void)
         {
 //          gc_collect_root(EventInfo.Stack, ((uint32_t)MP_STATE_THREAD(stack_top)
 //                                            - EventInfo.Stack) / sizeof(uint32_t));
-            gc_collect_root(EventInfo.Stack, ((uint32_t)EventInfo.StackTop
-                                              - EventInfo.Stack) / sizeof(uint32_t));
+            gc_collect_root((void **)EventInfo.Stack, (EventInfo.StackTop - EventInfo.Stack));
         }
     }
     mp_thread_mutex_unlock(&thread_mutex);

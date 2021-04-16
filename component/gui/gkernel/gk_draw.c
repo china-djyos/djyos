@@ -525,7 +525,7 @@ u32 __GK_OlineSectInter(struct Rectangle *limit,s32 *x1,s32 *y1,s32 *x2,s32 *y2)
             {
                 if((c2&0x01) != 0)
                 {
-                    *y2 = *y1+(*y1-*y1)*(limit->left-*x1)/(*x1-*x1);
+                    *y2 = *y1+(*y1-*y1)*(limit->left-*x1)/(*x2-*x1);
                     *x2 = limit->left;
                     c2 = __GK_PointSect(*x2,*y2,limit);
                 }
@@ -4542,7 +4542,7 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                     {
                         MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
                         if(!MirrorDisplay->draw.FillRectToScreen(&target,&ins_rect,
-                                                       Color0,Color1,Mode) );
+                                                       Color0,Color1,Mode) )
                         {
                             __GK_GradientFillScreenRect(&MirrorDisplay->draw,&target,
                                                 &ins_rect,Color0,Color1,Mode);

@@ -157,7 +157,7 @@ bool_t SocketFree(struct tagSocket *sock)
 //参数: family，地址族，见socket.h的 AF_INET 等定义
 //      type，socket 协议类型，见socket.h的 SOCK_DGRAM 等定义
 //      protocol，具体协议，见socket.h的 IPPROTO_UDP 等定义
-//返回: 网卡控制块指针
+//返回: 套接字 fd
 //-----------------------------------------------------------------------------
 s32 socket(s32 family, s32 type, s32 protocol)
 {
@@ -531,12 +531,11 @@ s32 sendto(s32 sockfd, const void *msg,s32 len, u32 flags,\
     return  result;
 }
 // =============================================================================
-// 函数功能：  recvfrom
-//           从目的网络地址读取数据
+// 函数功能：  读取数据并记录数据源地址
 // 输入参数：  sockfd,目的套接字
 //           flags,一般为0
-//           addr,目的网络地址
-//           addrlen,目的网络地址长度
+//           addr,接收到的数据的来源地址
+//           addrlen,网络地址长度
 // 输出参数：
 //           buf,读取的数据
 //           len,信息长度
@@ -724,6 +723,14 @@ ptu32_t socket_GetUserTag(s32 sockfd)
 
     return result;
 }
+
+//------------------------------------------------------------------------------
+//功能：取 socket 的本地端口和IP地址
+//参数：sockfd，socket的文件标识符
+//      addr，接收地址的缓冲区
+//      addrlen，缓冲区长度
+//返回：0=成功
+//------------------------------------------------------------------------------
 s32 getsockname(s32 sockfd,struct sockaddr *addr,socklen_t *addrlen)
 {
     s32 result = -1;
@@ -746,6 +753,12 @@ s32 getsockname(s32 sockfd,struct sockaddr *addr,socklen_t *addrlen)
     return result;
 }
 
+//------------------------------------------------------------------------------
+//功能：取 socket 的远程端口和IP地址
+//参数：sockfd，socket的文件标识符
+//      addr，接收地址的缓冲区
+//      addrlen，缓冲区长度
+//------------------------------------------------------------------------------
 s32 getpeername(s32 sockfd,struct sockaddr *addr,socklen_t *addrlen)
 {
     s32 result = -1;

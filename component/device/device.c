@@ -76,6 +76,7 @@
 #include <pool.h>
 #include <systime.h>
 #include <multiplex.h>
+#include <filesystems.h>
 #include <../../djyos/core/component_config_core.h>
 #include <lock.h>
 #include "dbug.h"
@@ -353,6 +354,8 @@ static s32 __Device_stat(struct Object *ob, struct stat *data)
 
     return (0);
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //----设备目录操作函数---------------------------------------------------------
 //功能：实现打开和读目录的功能。
@@ -396,6 +399,7 @@ s32 Device_DirObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     }
     return result;
 }
+#pragma GCC diagnostic pop
 
 // ============================================================================
 // 功能：设备操作集
@@ -891,7 +895,6 @@ s32 Device_DeleteAtObject(struct Object *dev)
 // ============================================================================
 s32 Device_DeleteByName(const char *name)
 {
-    char *left;
     struct Object *ob;
 
     ob = OBJ_SearchChild(s_ptDeviceRoot, name); // 查找设备节点；
@@ -1122,6 +1125,9 @@ s32 Device_Write(s32 fd, void *buf, u32 len, u32 offset, u32 timeout)
     return (0);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // ============================================================================
 // 功能：控制设备.
 // 参数：fd -- 设备指针
@@ -1146,3 +1152,4 @@ s32 Device_Ctrl(s32 fd, u32 dwCmd, ptu32_t data1, ptu32_t data2)
 //
     return (-1);
 }
+#pragma GCC diagnostic pop

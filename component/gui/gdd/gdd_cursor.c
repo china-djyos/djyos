@@ -211,7 +211,7 @@ bool_t GDD_CursorInit(void)
     s_gCursorMsgLink.MsgNum = sizeof(s_gCursorMsgProcTable) / sizeof(struct MsgProcTable);
     s_gCursorMsgLink.myTable = (struct MsgProcTable *)&s_gCursorMsgProcTable;
     g_ptCursorHwnd = GDD_CreateWindow("Cursor",WS_CHILD,0,0,
-                        2, 12,NULL, 0, CN_WINBUF_PARENT,NULL,&s_gCursorMsgLink);
+                        2, 12,NULL, 0, CN_WINBUF_PARENT,0,&s_gCursorMsgLink);
     if(g_ptCursorHwnd!=NULL)
     {
          GK_SetPrio(g_ptCursorHwnd->pGkWin,CN_WINDOW_ZPRIO_CURSOR , CN_TIMEOUT_FOREVER);

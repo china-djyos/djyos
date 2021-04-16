@@ -174,6 +174,8 @@ static bool_t __Widget_CheckBoxDown(struct WindowMsg *pMsg)
      return true;
 
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //----CheckBox不选中响应函数---------------------------------------------------------
 //功能：略
@@ -184,6 +186,7 @@ static bool_t __Widget_CheckBoxUp(struct WindowMsg *pMsg)
 {
      return true;
 }
+#pragma GCC diagnostic pop
 
 //默认复选框消息处理函数表，处理用户函数表中没有处理的消息。
 static struct MsgProcTable s_gCheckBoxMsgProcTable[] =

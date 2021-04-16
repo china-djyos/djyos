@@ -51,7 +51,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <math.h>
-#include <misc.h>
+#include <misc/misc.h>
 #include <systime.h>
 #include <dbug.h>
 #include <Iboot_info.h>
@@ -149,13 +149,12 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
     struct umedia *um = (struct umedia *)core->vol;
     static u8 *app_head = NULL;
-    static u32 last_block = 0,block = 0;
     struct objhandle *hdl = (struct objhandle *)core->root->child->handles.next;
     struct __icontext *cx = (struct __icontext *)hdl->context;
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
-    u32 j, more, page_size, offset = Iboot_GetAppHeadSize();
+    u32 j, page_size, offset = Iboot_GetAppHeadSize();
     u32 unit;
-    s32 check_len = (s32)bytes;
+    u32 check_len = bytes;
 
     if(GetOperFalshMode() == true)
     {
@@ -330,9 +329,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 s32 xip_flash_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
     s64 unit;
-    u32 i;
     s32 left = bytes;
-    u8 *rbuf;
     unit = pos + (core->MStart * nordescription->BytesPerPage) * 34 / 32;
     djy_flash_req(lock, CN_TIMEOUT_FOREVER);
     if(left > 0)

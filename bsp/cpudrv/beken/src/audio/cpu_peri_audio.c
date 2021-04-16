@@ -45,9 +45,10 @@
 // =============================================================================
 #include "cpu_peri.h"
 #include "stdlib.h"
+#include "audio.h"
 #include "audio_pub.h"
 #include "component_config_audio.h"
-static AUD_DAC_CFG_ST aud_dac;
+
 
 // ============================================================================
 // 功能：初始化片音频模块
@@ -70,5 +71,6 @@ s32 ModuleInstall_Audio(void)
     audio_dac_volume_use_single_port();
 
     djy_audio_adc_open(CFG_RX_DMA_BUF_SIZE,1,CFG_AUDIO_SAMPLE_RATE,AUD_ADC_LINEIN_DETECT_PIN);
+    return 0;
 }
 

@@ -744,7 +744,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     return true;
 
 RcvTaskFailed:
-    NetDev_GetUninstall(devname);
+    NetDev_Uninstall(devname);
 NetInstallFailed:
     Lock_MutexDelete(pDrive->protect);
     pDrive->protect = NULL;

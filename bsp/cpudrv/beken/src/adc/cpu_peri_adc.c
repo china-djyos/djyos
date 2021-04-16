@@ -109,7 +109,7 @@
 
 DD_HANDLE djy_adc_open(uint8_t channel, saradc_desc_t *adcDesc, uint8_t cntOfDataBuff)
 {
-    uint8_t status;
+    u32 status;
     DD_HANDLE retHdl = DD_HANDLE_UNVALID;
 
     if (channel > 7) // TODO merlin 到底有多少个ADC？ 有12个？不确定，所以现在写死了先  SARADC_ADC_CHNL_MAX)

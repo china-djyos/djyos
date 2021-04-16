@@ -49,6 +49,7 @@
 
 #include <netbsp.h>
 #include <osarch.h>
+#include <net/arpa/inet.h>
 #include "dbug.h"
 #include <shell.h>
 #include "../component_config_tcpip.h"
@@ -86,7 +87,8 @@ struct NetDev
     struct RoutItem6   *v6lst;    //IPv6路由列表，单向NULL结束链表
     char                name[CN_TCPIP_NAMELEN]; //dev name
     enum enLinkType     iftype;   //dev type
-    fnIfSend            ifsend;   //dev snd function
+    fnIfSend            ifsend;   //提供给本地协议栈的发送函数
+    struct ExtStackOps *ExtStack; //外部协议栈网卡的操作函数
 //  fnIfRecv            ifrecv;   //dev receive function
     fnIfCtrl            ifctrl;   //dev ctrl or stat get fucntion
     struct LinkOps     *linkops;  //链路层收发函数，网卡中记录它，是为了快速查找
@@ -115,25 +117,30 @@ struct in_addr __Router_PickIPv4(struct RoutItem4 *Item);
 struct in6_addr __Router_PickIPv6(struct RoutItem6 *Item);
 struct RoutItem4 *__Router_GetNextV4(struct RoutItem4 *Item);
 struct RoutItem6 *__Router_GetNextV6(struct RoutItem6 *Item);
-
+//函数原名： NetDevPkgsndInc
 void NetDev_PkgsndInc(struct NetDev *iface)
 {
     iface->pkgsnd++;
 }
-
+//函数原名： NetDevPkgsndErrInc
 void NetDev_PkgsndErrInc(struct NetDev *iface)
 {
     iface->pkgsnderr++;
 }
-
+//函数原名：NetDevPkgrcvInc
 void NetDev_PkgrcvInc(struct NetDev *iface)
 {
     iface->pkgrcv++;
 }
-
+//函数原名：NetDevPkgrcvErrInc
 void NetDev_PkgrcvErrInc(struct NetDev *iface)
 {
     iface->pkgrcverr++;
+}
+
+struct ExtStackOps *NetDev_GetExtStackOps(struct NetDev *iface)
+{
+    return iface->ExtStack;
 }
 
 //-----------------------------------------------------------------------------
@@ -172,6 +179,7 @@ static struct NetDev* __NetDevGet(const char *name)
 //参数: DevFace，网络控制块指针
 //返回: 网卡名
 //-----------------------------------------------------------------------------
+//函数原名： NetDevName
 const char *NetDev_GetName(struct NetDev *DevFace)
 {
     if(NULL!= DevFace)
@@ -189,6 +197,7 @@ const char *NetDev_GetName(struct NetDev *DevFace)
 //参数: name，网卡名，NULL则返回第一块网卡
 //返回: 网卡指针
 //-----------------------------------------------------------------------------
+//函数原名： NetDevGet
 struct NetDev *NetDev_GetHandle(const char *ifname)
 {
     struct NetDev * ret = NULL;
@@ -204,6 +213,7 @@ struct NetDev *NetDev_GetHandle(const char *ifname)
 //参数: DevFace，网络控制块指针
 //返回: 网卡名
 //-----------------------------------------------------------------------------
+//函数原名： NetDevFunc
 u32 NetDev_GetFunc(struct NetDev *DevFace)
 {
     if(NULL!= DevFace)
@@ -216,6 +226,7 @@ u32 NetDev_GetFunc(struct NetDev *DevFace)
     }
 }
 //get the interface mtu for external module
+//函数原名： NetDevMtu
 u16 NetDev_GetMtu(struct NetDev *DevFace)
 {
     if(NULL!= DevFace)
@@ -232,6 +243,7 @@ u16 NetDev_GetMtu(struct NetDev *DevFace)
 //参数: DevFace，网络控制块指针
 //返回: 网卡类型
 //-----------------------------------------------------------------------------
+//函数原名： NetDevType
 enum enLinkType NetDev_GetType(struct NetDev *DevFace)
 {
     enum enLinkType ret = EN_LINK_LAST;
@@ -246,6 +258,7 @@ enum enLinkType NetDev_GetType(struct NetDev *DevFace)
 //参数: DevFace，网络控制块指针
 //返回: 函数集指针
 //-----------------------------------------------------------------------------
+//函数原名： NetDevLinkOps
 struct LinkOps *NetDev_GetLinkOps(struct NetDev *DevFace)
 {
     struct LinkOps *ret = NULL;
@@ -295,6 +308,7 @@ struct NetDev * NetDev_GetDefault(void)
 //参数: DevFace，网络控制块指针
 //返回: Mac地址指针
 //-----------------------------------------------------------------------------
+//函数原名： NetDevGetMac
 const u8 *NetDev_GetMac(struct NetDev *DevFace)
 {
     if(NULL!= DevFace)
@@ -611,6 +625,8 @@ struct RoutItem4 *NetDev_GetIPv4RoutEntry(struct NetDev *NetDev)
 {
     if(NetDev != NULL)
         return NetDev->v4lst;
+    else
+        return NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -633,6 +649,8 @@ struct RoutItem6 *NetDev_GetIPv6RoutEntry(struct NetDev *NetDev)
 {
     if(NetDev != NULL)
         return NetDev->v6lst;
+    else
+        return NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -651,6 +669,7 @@ void NetDev_SetIPv6RoutEntry(struct NetDev *NetDev, struct RoutItem6 *new_root)
 //参数: NetDev，网卡指针
 //返回: 无
 //-----------------------------------------------------------------------------
+struct RoutItem4 *__Add2Queue(struct RoutItem4 *queue, struct RoutItem4 *item);
 void NetDev_AddIPv4RoutItem(struct NetDev *NetDev, struct RoutItem4 *v4Item)
 {
     if(NetDev != NULL)
@@ -664,10 +683,14 @@ void NetDev_AddIPv4RoutItem(struct NetDev *NetDev, struct RoutItem4 *v4Item)
 //参数: NetDev，网卡指针
 //返回: 无
 //-----------------------------------------------------------------------------
+struct RoutItem4 * __RemoveFromQueueV4(struct RoutItem4 *queue, struct RoutItem4 *item);
 void NetDev_DelIPv4RoutItem(struct NetDev *NetDev, struct RoutItem4 *v4Item)
 {
     NetDev->v4lst = __RemoveFromQueueV4(NetDev->v4lst, v4Item);
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //-----------------------------------------------------------------------------
 //功能: 添加网卡的 IPv6 路由条目
@@ -802,12 +825,14 @@ static bool_t __NetdevEventHook(struct NetDev *iface,enum NetDevEvent event)
     }
     return true;
 }
+#pragma GCC diagnostic pop
 
 //-----------------------------------------------------------------------------
 //功能: 安装网卡。
 //参数: para，参数，见 struct NetDevPara 定义
 //返回: 网卡控制块指针
 //-----------------------------------------------------------------------------
+//函数原名： NetDevInstall
 struct NetDev* NetDev_Install(struct NetDevPara *para)
 {
     struct NetDev* iface = NULL;
@@ -853,9 +878,9 @@ struct NetDev* NetDev_Install(struct NetDevPara *para)
                 iface->rfilter[EN_NETDEV_FRAME_BROAD].en = false;
                 iface->rfilter[EN_NETDEV_FRAME_BROAD].overevent =EN_NETDEVEVENT_BROAD_OVER;
                 iface->rfilter[EN_NETDEV_FRAME_BROAD].lackevent =EN_NETDEVEVENT_BROAD_LACK;
-                iface->rfilter[EN_NETDEV_FRAME_ALL   ].en = false;
-                iface->rfilter[EN_NETDEV_FRAME_ALL   ].overevent =EN_NETDEVEVENT_FLOW_OVER;
-                iface->rfilter[EN_NETDEV_FRAME_ALL   ].lackevent =EN_NETDEVEVENT_FLOW_LACK;
+                iface->rfilter[EN_NETDEV_FRAME_ALL  ].en = false;
+                iface->rfilter[EN_NETDEV_FRAME_ALL  ].overevent =EN_NETDEVEVENT_FLOW_OVER;
+                iface->rfilter[EN_NETDEV_FRAME_ALL  ].lackevent =EN_NETDEVEVENT_FLOW_LACK;
                 //add it to the dev chain
 //              iface->NextDev = gIfaceCB.NetDevLst;
 //              gIfaceCB.NetDevLst = iface;
@@ -887,7 +912,8 @@ struct NetDev* NetDev_Install(struct NetDevPara *para)
 //参数: name，网卡名
 //返回: true  or false
 //-----------------------------------------------------------------------------
-bool_t  NetDev_GetUninstall(const char *name)
+//函数原名： NetDevUninstall
+bool_t  NetDev_Uninstall(const char *name)
 {
     struct NetDev* tmp;
     struct NetDev* bak;
@@ -937,6 +963,7 @@ bool_t  NetDev_GetUninstall(const char *name)
 //      hook，钩子函数
 //返回: true or false
 //-----------------------------------------------------------------------------
+//函数原名： NetDevRegisterEventHook
 bool_t NetDev_RegisterEventHook(struct NetDev *handle,fnNetDevEventHook hook)
 {
     bool_t result = false;
@@ -957,6 +984,7 @@ bool_t NetDev_RegisterEventHook(struct NetDev *handle,fnNetDevEventHook hook)
 //参数: handle，由 NetDev_Install 返回的网卡控制块指针
 //返回: true or false
 //-----------------------------------------------------------------------------
+//函数原名： NetDevUnRegisterEventHook
 bool_t NetDev_UnRegisterEventHook(struct NetDev * handle)
 {
     bool_t result = false;
@@ -979,6 +1007,7 @@ bool_t NetDev_UnRegisterEventHook(struct NetDev * handle)
 //      event，被抛出的网卡事件
 //返回: true or false
 //-----------------------------------------------------------------------------
+//函数原名： NetDevPostEvent
 bool_t NetDev_PostEvent(struct NetDev* handle,enum NetDevEvent event)
 {
     bool_t result = false;
@@ -1011,6 +1040,7 @@ bool_t NetDev_PostEvent(struct NetDev* handle,enum NetDevEvent event)
 //      netdevtask，需要网卡完成的任务，如 CN_IPDEV_NONE 等的定义
 //返回: true or false
 //-----------------------------------------------------------------------------
+//函数原名： NetDevSend
 bool_t  NetDev_Send(struct NetDev* handle,struct NetPkg *pkglst,u32 netdevtask)
 {
     bool_t     ret = false;
@@ -1029,6 +1059,7 @@ bool_t  NetDev_Send(struct NetDev* handle,struct NetPkg *pkglst,u32 netdevtask)
 //      para，命令参数
 //返回: true or false
 //-----------------------------------------------------------------------------
+//函数原名： NetDevCtrl
 bool_t  NetDev_Ctrl(struct NetDev* handle,enum NetDevCmd cmd, ptu32_t para)
 {
     bool_t     ret = false;
@@ -1056,6 +1087,7 @@ bool_t  NetDev_Ctrl(struct NetDev* handle,enum NetDevCmd cmd, ptu32_t para)
 //     enable :1 true while 0 false
 // 返回：true success while false failed
 // =============================================================================
+//函数原名： NetDevFlowSet
 bool_t NetDev_FlowSet(struct NetDev* handle,enum EthFramType type,\
                      u32 llimit,u32 ulimit,u32 period,s32 enable)
 {
@@ -1086,6 +1118,7 @@ bool_t NetDev_FlowSet(struct NetDev* handle,enum EthFramType type,\
 //      len，buf中有效数据长度
 // 返回：帧类型
 // =============================================================================
+//函数原名： NetDevFrameType
 enum EthFramType NetDev_FrameType(u8 *buf,u16 len)
 {
     enum EthFramType result = EN_NETDEV_FRAME_LAST;
@@ -1144,6 +1177,7 @@ static void __NetDevFlowCheck(struct NetDev* handle,tagNetDevRcvFilter *filter,s
 }
 
 //TODO：这里有个问题，只有收到数据包才调用本函数，流量下限检查将失效，可考虑去掉下限检查功能
+//函数原名： NetDevFlowCtrl
 bool_t NetDev_FlowCtrl(struct NetDev* handle,enum EthFramType type)
 {
     bool_t result = false;
@@ -1188,7 +1222,7 @@ bool_t NetDev_FlowCtrl(struct NetDev* handle,enum EthFramType type)
 //      cb_ip_got，用户提供的回调函数
 //返回：-1 = 出错；非-1 = 成功
 //------------------------------------------------------------------------------
-s32 __NetDev_DHCP_SET_GotIP_CB(const char *ifname, s32 (*cb_ip_got)(u32 *ip))
+s32 NetDev_DHCP_SET_GotIP_CB(const char *ifname, s32 (*cb_ip_got)(u32 *ip))
 {
     struct NetDev *pNetDev = NetDev_GetHandle(ifname);
     if(pNetDev==NULL) return  -1;
@@ -1220,7 +1254,7 @@ s32 __NetDev_DHCP_SET_GotIP_CB(const char *ifname, s32 (*cb_ip_got)(u32 *ip))
 //------------------------------------------------------------------------------
 s32 __NetDev_DHCP_GotIP(struct NetDev *pNetDev, u32 ip_temp)
 {
-    if (pNetDev && pNetDev->cb_ip_got && pNetDev->cb_ip_got(ip_temp)){
+    if (pNetDev && pNetDev->cb_ip_got && pNetDev->cb_ip_got(&ip_temp)){
         return 1;
     }
     else
@@ -1237,6 +1271,7 @@ const char *pFilterItemName[EN_NETDEV_FRAME_LAST]=
     "FRAME",
 };
 //we use this function to show the net device filter state
+//函数原名： NetDevFlowStat
 static bool_t NetDev_FlowStat(char *param)
 {
     bool_t      result = false;
@@ -1277,6 +1312,7 @@ static bool_t NetDev_FlowStat(char *param)
 //参数: DevFace，由 NetDev_Install 返回的网卡控制块指针
 //返回: true or false
 //-----------------------------------------------------------------------------
+//函数原名： NetDevPrivate
 void * NetDev_GetPrivate(struct NetDev *iface)
 {
     void *ret = NULL;
@@ -1325,6 +1361,7 @@ bool_t ifconfig(char *param)
 //参数: 无
 //返回: true or false
 //-----------------------------------------------------------------------------
+//函数原名： NetDevInit
 bool_t NetDev_Init(void)
 {
     bool_t ret = false;

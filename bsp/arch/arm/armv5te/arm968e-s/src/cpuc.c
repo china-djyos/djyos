@@ -53,8 +53,6 @@
 uint32_t djy_switch_interrupt_flag __attribute__ ((section(".data.interrupt")));
 uint32_t *djy_interrupt_from_thread __attribute__ ((section(".data.interrupt")));
 uint32_t *djy_interrupt_to_thread __attribute__ ((section(".data.interrupt")));
-static uint64_t gRunTicks = 0;
-static bool_t gResumeTickFlag = false;
 
 //// =============================================================================
 //// 功能：在系统起来以后需把各种标志复位

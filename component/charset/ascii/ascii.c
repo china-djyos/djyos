@@ -112,6 +112,8 @@ s32 ASCII_MbToUcs4(u32* pwc, const char* s, s32 n);
 s32 ASCII_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n);
 s32 ASCII_Ucs4ToMb(char* s, u32 wc);
 s32 ASCII_Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // ◊¢ Õ≤Œ’’ charset.h-> struct Charset -> GetOneMb
 s32 ASCII_GetOneMb(const char* mbs,s32 n)
@@ -120,7 +122,7 @@ s32 ASCII_GetOneMb(const char* mbs,s32 n)
     {
         return 0;
     }
-    else if(*mbs >= 0x80)
+    else if(*(u8*)mbs >= (u8)0x80)
         return -1;
     else if(*mbs == 0)
         return 0;
@@ -142,7 +144,7 @@ s32 ASCII_MbToUcs4(u32* pwc, const char* mbs,s32 n)
     if(c == 0)
     {
         result = 0;
-    }else if(c < 0x80)
+    }else if(c < (u8)0x80)
     {
         result = 1;
     }
@@ -152,6 +154,7 @@ s32 ASCII_MbToUcs4(u32* pwc, const char* mbs,s32 n)
         *pwc = c;
     return result;
 }
+#pragma GCC diagnostic pop
 
 // ◊¢ Õ≤Œ’’ charset.h-> struct Charset -> MbsToUcs4s
 //todo£∫¿©’πascii¬Î‘ı√¥À„?
@@ -166,7 +169,7 @@ s32 ASCII_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
         len = CN_LIMIT_SINT32;
     for(wcn = 0; wcn < len; wcn++)
     {
-        if( (mbs[wcn] == 0) || (mbs[wcn] >= 0x80) )
+        if( (mbs[wcn] == 0) || ((u8)mbs[wcn] >= (u8)0x80) )
         {
             if(pwcs != NULL)
                 pwcs[wcn] = (u32)0;

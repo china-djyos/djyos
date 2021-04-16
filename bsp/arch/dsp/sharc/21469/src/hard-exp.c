@@ -104,7 +104,7 @@ bool_t __Exp_UniversalDecoder(u32 *exp_addr,u32 exp_len);
 bool_t __Exp_SpecialDecoder(u32 *exp_addr,u32 major,u32 exp_len);
 void   __Exp_SwapCpuInfoByEndian(u32 *pAddr,u32 exp_len);
 bool_t  Exp_Harddecoder(struct ExpThrowPara *parahead, u32 endian);
-bool_t HardExp_Init(void);
+void HardExp_Init(void);
 
 bool_t Sh_SoftwareReset(char *param);
 bool_t Sh_Reboot(char *param);

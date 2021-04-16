@@ -150,8 +150,6 @@ enum NetDevEvent
     EN_NETDEVEVENT_POINT_LACK,   //means the point lack,
     EN_NETDEVEVENT_FLOW_OVER,    //means the FLOW over
     EN_NETDEVEVENT_FLOW_LACK,    //means the FLOW lack,
-    EN_NETDEVEVENT_SWITCH_IN,    //本网卡被设置成默认网卡
-    EN_NETDEVEVENT_SWITCH_OUT,   //本网卡由默认网卡变成非默认网卡
     EN_NETDEVEVENT_RESERVED,     //which means nothing
 };
 typedef bool_t (*fnNetDevEventHook)(struct NetDev* iface,enum NetDevEvent event);
@@ -272,7 +270,7 @@ bool_t PkgModuleInit(void);
 struct in_addr;
 struct in6_addr;
 struct NetDev   *NetDev_Install(struct NetDevPara *para);
-bool_t  NetDev_GetUninstall(const char *name);
+bool_t  NetDev_Uninstall(const char *name);
 const u8 *NetDev_GetMac(struct NetDev *iface);
 struct NetDev *NetDev_ForEachFromDefault(struct NetDev *Current);
 const char *NetDev_GetName(struct NetDev *iface);
@@ -292,6 +290,7 @@ bool_t NetDev_FlowSet(struct NetDev* handle,enum EthFramType type,\
                      u32 llimit,u32 ulimit,u32 period,s32 enable);
 enum EthFramType NetDev_FrameType(u8 *buf,u16 len);
 bool_t NetDev_FlowCtrl(struct NetDev* handle,enum EthFramType type);
+s32 NetDev_DHCP_SET_GotIP_CB(const char *ifname, s32 (*cb_ip_got)(u32 *ip));
 
 void   *NetDev_GetPrivate(struct NetDev *iface);
 //here declares the function we need from other modules,and the application also

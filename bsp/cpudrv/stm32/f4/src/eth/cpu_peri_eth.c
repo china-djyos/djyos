@@ -1013,7 +1013,7 @@ bool_t ModuleInstall_ETH(void)
     return true;
 
 RcvTaskFailed:
-    NetDev_GetUninstall(pDrive->devname);
+    NetDev_Uninstall(pDrive->devname);
 NetInstallFailed:
     Lock_MutexDelete(pDrive->protect);
     pDrive->protect = NULL;

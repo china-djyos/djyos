@@ -72,7 +72,10 @@ bool_t ModuleInstall_ISBUS(u32 HostStackSize,u32 SlaveStackSize)
 #if(CFG_SLAVE_ENABLE == true)
     ISBUS_SlaveInit(SlaveStackSize);
 #endif
+    return true;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 bool_t ndbgisbus(char *param)
 {
@@ -82,6 +85,8 @@ bool_t ndbgisbus(char *param)
         debug_ctrl = false;
     return true;
 }
+#pragma GCC diagnostic pop
+
 bool_t stopack(char *param)
 {
     u32 times;

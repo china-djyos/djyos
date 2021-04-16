@@ -56,7 +56,7 @@
 #include <netbsp.h>
 #include <dbug.h>
 #include <shell.h>
-#include <misc.h>
+#include <misc/misc.h>
 #include "../common/router.h"
 #include "../common/netdev.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -224,9 +224,9 @@ static bool_t __ShowTab(enum_ipv_t ver)
 //                inet_ntop(AF_INET, &rout4->host, host, CFG_IP_STRMAX);
 ////              inet_ntop(AF_INET, &rout4->hop, hop, CFG_IP_STRMAX);
 //                inet_ntop(AF_INET, &rout4->mask, mask, CFG_IP_STRMAX);
-//                debug_printf("router","%-2d %-15s %-15s %-15s %d%d%d %-3d %-3d %-4x %s\n\r", \
-//                                 i++, net, mask, host, item->pro.flag.bits.U_Active,\
-//                                 item->pro.flag.bits.G_Gateway, item->pro.flag.bits.R_Restore, item->pro.pri,\
+//                debug_printf("router","%-2d %-15s %-15s %-15s %d%d%d %-3d %-3d %-4x %s\n\r",
+//                                 i++, net, mask, host, item->pro.flag.bits.U_Active,
+//                                 item->pro.flag.bits.G_Gateway, item->pro.flag.bits.R_Restore, item->pro.pri,
 //                        item->pro.len,item->pro.mtu,NetDev_GetName(item->DevFace));
 //            }
         }
@@ -609,7 +609,7 @@ bool_t RouterMatch(tagRoutLink *para)
                 }
                 if(NULL == tmp)
                 {
-                    if(-1 ==addr.s_addr)
+                    if((u32)-1 ==addr.s_addr)
                         para->type = EN_IPTYPE_V4_BROAD;
                     else
                         para->type = EN_IPTYPE_V4_UNKOWN;
@@ -799,7 +799,7 @@ struct RoutItem4 *__Add2Queue(struct RoutItem4 *queue, struct RoutItem4 *item)
     return queue;
 }
 //return the new queue header
-static struct RoutItem4 * __RemoveFromQueueV4(struct RoutItem4 *queue, struct RoutItem4 *item) //--TODO
+struct RoutItem4 * __RemoveFromQueueV4(struct RoutItem4 *queue, struct RoutItem4 *item) //--TODO
 {
     struct RoutItem4 *tmp;
     //queue is empty now

@@ -202,6 +202,7 @@ enum SpeakerState GetSpeakerState()
 // =============================================================================
 extern UINT32 sctrl_ctrl(UINT32 cmd, void *param);
 extern void sctrl_set_cpu_clk_dco(void);
+extern void sctrl_dco_cali(UINT32 speed);
 void InitOsClk_180M(void)
 {
     u32 param;

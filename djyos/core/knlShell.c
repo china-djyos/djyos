@@ -65,6 +65,7 @@
 #include "systime.h"
 #include "djyos.h"
 #include "shell.h"
+#include "wdt_soft.h"
 #include "blackbox.h"
 #include "dbug.h"
 #include "component_config_core.h"
@@ -79,6 +80,9 @@ bool_t event(char *param);
 bool_t evtt(char *param);
 bool_t stack(char *param);
 bool_t spyk(u16 pl_ecb);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // ============================================================================
 // 功能：显示事件列表
@@ -213,6 +217,7 @@ bool_t evtt(char *param)
     u16 pl_ecb;
     u32 MemSize;
     char *name;
+
     MemSize = 0;
     printf("类型号  优先级 处理函数  栈需求   名字\r\n");
     for(pl_ecb = 0; pl_ecb < CFG_EVENT_TYPE_LIMIT; pl_ecb++)
@@ -308,11 +313,14 @@ bool_t stack(char *param)
     printf("\n\r栈指针是最后一次上下文切换时保存的值");
     return (TRUE);
 }
-u32 fnYipHook(struct Wdt *wdt)
+u32 knlYipHook(struct Wdt *wdt)
 {
     printk("--------idle wdt yit--------");
     eventk(NULL);
+    return 0;
 }
+#pragma GCC diagnostic pop
+
 // ============================================================================
 // 功能：统计一定内事件运行占用率
 // 参数：无；
@@ -329,7 +337,7 @@ ptu32_t kernel_spy(void)
     cycle *=mS;
 #if(CFG_IDLE_MONITOR_CYCLE > 0)
 #if(DEBUG == 1)
-    wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, fnYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
+    wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, knlYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
 #else
     wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
 #endif  //for (DEBUG != 1)
@@ -419,18 +427,18 @@ bool_t spy(char *param)
                     (ptu32_t)(&g_tECB_Table[pl_ecb].vm[1]),
                     (ptu32_t)(g_tECB_Table[pl_ecb].vm->stack),
                     StackSize,(loop<<2),name);
-        loop = g_tECB_Table[pl_ecb].vm->stack;
-        printf("\n\r%x: ",loop);
-        for(;loop < g_tECB_Table[pl_ecb].vm->stack_top; loop+=4)
+        stack = g_tECB_Table[pl_ecb].vm->stack;
+        printf("\n\r%x: ",(u32)stack);
+        for(;stack < g_tECB_Table[pl_ecb].vm->stack_top; stack++)
         {
-            if(loop % 32 == 0)
-                printf("\n\r%x: ",loop);
-            printf(" %08x",*(u32*)loop);
+            if((u32)stack % 32 == 0)
+                printf("\n\r%x: ",(u32)stack);
+            printf(" %08x",*stack);
         }
     }
     else
     {
-        printf("knlshell","%05d  空闲事件控制块",pl_ecb);
+        printf("%05d  空闲事件控制块",pl_ecb);
     }
     return (TRUE);
 }
@@ -472,18 +480,18 @@ bool_t spyk(u16 pl_ecb)
                     (ptu32_t)(&g_tECB_Table[pl_ecb].vm[1]),
                     (ptu32_t)(g_tECB_Table[pl_ecb].vm->stack),
                     StackSize,(loop<<2),name);
-        loop = g_tECB_Table[pl_ecb].vm->stack;
-        printk("\n\r%x: ",loop);
-        for(;loop < g_tECB_Table[pl_ecb].vm->stack_top; loop+=4)
+        stack = g_tECB_Table[pl_ecb].vm->stack;
+        printk("\n\r%x: ",(u32)stack);
+        for(;stack < g_tECB_Table[pl_ecb].vm->stack_top; stack++)
         {
-            if(loop % 32 == 0)
-                printk("\n\r%x: ",loop);
-            printk(" %08x",*(u32*)loop);
+            if((u32)stack % 32 == 0)
+                printk("\n\r%x: ",(u32)stack);
+            printk(" %08x",*stack);
         }
     }
     else
     {
-        printk("knlshell","%05d  空闲事件控制块",pl_ecb);
+        printk("%05d  空闲事件控制块",pl_ecb);
     }
     return (TRUE);
 }

@@ -30,6 +30,8 @@ bool_t pthread_mutex_destroy(struct MutexLCB *mutex)
 {
     return Lock_MutexDelete_s(mutex);
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 bool_t  pthread_cond_signal(int *cond)
 {
@@ -83,6 +85,7 @@ int exit(int no)
     }
     return 0;
 }
+#pragma GCC diagnostic pop
 
 //get the current process id
 //we has no multi process yet,so we use the current taskID to replace it

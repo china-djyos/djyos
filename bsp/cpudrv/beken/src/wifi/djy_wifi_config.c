@@ -16,6 +16,7 @@
 #include "rw_pub.h"
 #include "ctype.h"
 #include "cpu_peri.h"
+//#include "sk_intf.h"
 #include "component_config_wifi.h"
 
 #define PKG_PBUF   0
@@ -500,8 +501,6 @@ u32 uap_ip_hop,uap_ip_subnet,uap_ip_ip,uap_ip_submask,uap_ip_dnss,uap_ip_dnsbak;
 //wlan_ui.c
 void ip_address_set(s32 iface, s32 dhcp, char *ip, char *mask, char *gw, char*dns)
 {
-    uint32_t tmp;
-
     if (dhcp == 1)
     {
 

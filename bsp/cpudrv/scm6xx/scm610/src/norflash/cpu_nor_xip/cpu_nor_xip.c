@@ -51,7 +51,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <math.h>
-#include <misc.h>
+#include <misc/misc.h>
 #include <dbug.h>
 #include <systime.h>
 #include <device/djy_flash.h> // will be obsolete

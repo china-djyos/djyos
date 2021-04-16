@@ -46,6 +46,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 #include "dbug.h"
 #include <os.h>
 
@@ -90,6 +91,10 @@ CODE_BEFOREPRELOAD bool_t Core_LogCpuMsg(const char *msgname, const void *msg,u8
     }
     return ret;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //----展示注册的CPU 信息------------------------------------------------------------
 //功能：执行该函数将展示注册的CPU硬件信息
 //参数：无意义
@@ -176,6 +181,7 @@ bool_t Core_ShowCpuInfo(char *param)
         }
     return true;
 }
+#pragma GCC diagnostic pop
 
 //----获取注册的CPU 信息------------------------------------------------------------
 //功能：执行该函数将获取指定名字的cpu信息，比方固定名字的CPU签名

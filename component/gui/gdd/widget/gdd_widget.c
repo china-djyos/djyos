@@ -88,12 +88,14 @@ static bool_t __Widget_SetHyalineColor(HWND hwnd,uint32_t color)
     GDD_InvalidateWindow(hwnd,true);
     return true;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 static bool_t __Widget_GetHyalineColor(HWND hwnd,uint32_t *pcolor)
 {
-
+    return false;
 }
-
+#pragma GCC diagnostic pop
 
 static bool_t __Widget_SetTextColor(HWND hwnd,uint32_t color)
 {
@@ -173,10 +175,10 @@ bool_t Widget_GetAttr(HWND hwnd,uint8_t attrid,ptu32_t *param)
      switch(attrid)
      {
        case ENUM_WIDGET_FILL_COLOR:
-           __Widget_GetFillColor(hwnd,(u32)param);
+           __Widget_GetFillColor(hwnd,(u32 *)param);
            break;
        case ENUM_WIDGET_TEXT_COLOR:
-           __Widget_GetTextColor(hwnd,(u32)param);
+           __Widget_GetTextColor(hwnd,(u32 *)param);
            break;
 //     case ENUM_WIDGET_DRAW_COLOR:
 ////           Button_SetDrawColor(hwnd,param);

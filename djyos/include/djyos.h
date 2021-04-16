@@ -64,6 +64,7 @@ extern "C" {
 #include "stddef.h"
 #include "errno.h"
 #include "arch_feature.h"
+#include "blackbox.h"
 #include "board-config.h"
 //结构类型声明,来自其他文件定义的结构
 struct SemaphoreLCB;
@@ -207,11 +208,11 @@ struct EventInfo
     s64    consumed_time;       //事件消耗的总时间
     u32    consumed_time_second;//最近1秒消耗的时间
     u32    StackSize;
-    u32    Stack;
+    u32*   Stack;
     u32*   StackUsed;
     u32*   StackBottom;
     u32*   StackTop;
-    s8 *   EvttName;
+    char  *EvttName;
 
     u32    error_no;            //本事件执行产生的最后一个错误号
     ptu32_t event_result;       //如果本事件处理时弹出了事件，并且等待处理结果
@@ -393,7 +394,7 @@ void DJY_GetEventPara(ptu32_t *Param1,ptu32_t *Param2);
 void __SetEventPara(ptu32_t *Param1,ptu32_t *Param2);
 ptu32_t DJY_GetEventUserdata(void);
 void DJY_SetEventUserdata(ptu32_t userdata);
-void __DJY_EventExit(struct EventECB *event, u32 exit_code,u32 action);
+void __DJY_EventExit(struct EventECB *event, u32 exit_code,enum EN_BlackBoxAction action);
 void DJY_EventComplete(ptu32_t result);
 u32 DJY_WakeUpFrom(void);
 u16 DJY_GetMyEvttId(void);

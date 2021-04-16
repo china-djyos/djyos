@@ -213,6 +213,8 @@ void Heap_StaticModuleInit(void);
 void Int_Init(void);
 void critical(void);
 void SYS_Start(void);
+void __libc_init_array(void);
+void __libc_fini_array(void);
 //----操作系统内核加载程序-----------------------------------------------------
 //功能：加载所有操作系统内核代码，以及在si模式下全部应用程序代码。
 //参数: 无。
@@ -221,7 +223,7 @@ void SYS_Start(void);
 //----------------------------------------------------------------------------
 void Iboot_PreStart(void)
 {
-    extern bool_t HardExp_Init(void);
+    extern void HardExp_Init(void);
     //自此可以调用malloc族函数，用准静态堆分配算法，若要释放内存，要求严格配对
     //调用malloc-free函数，或者不调用
     Heap_StaticModuleInit();

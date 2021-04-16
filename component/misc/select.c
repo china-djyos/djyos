@@ -49,6 +49,8 @@ s32 FD_CLR(s32 fd, fd_set *sets)
     return result;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
            struct timeval *timeout)
@@ -155,6 +157,7 @@ s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
     }
     return result;
 }
+#pragma GCC diagnostic pop
 
 s32 FD_ISSET(s32 fd, fd_set *sets)
 {

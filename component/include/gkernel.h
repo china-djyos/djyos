@@ -416,6 +416,7 @@ void GK_GetArea(struct GkWinObj *gkwin, struct Rectangle *rc);
 void GK_SetName(struct GkWinObj *gkwin, const char *Name);
 char *GK_GetName(struct GkWinObj *gkwin);
 bool_t GK_IsWinVisible(struct GkWinObj *gkwin);
+u32 GK_ReadRequest(u8 *Request, u16 bufsize, u32 timeout);
 
 //色彩转换函数组
 u32 GK_ConvertPF2PF(u16 spf_type,u16 dpf_type,u32 color,ptu32_t ExColor);

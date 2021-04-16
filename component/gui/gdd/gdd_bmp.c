@@ -531,7 +531,7 @@ bool_t __GDD_DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
         bm->height =h;
         bm->linebytes =line_bytes;
         bm->ExColor =(ptu32_t)0;
-        bm->bm_bits = rd->pData + bfOffsetBits;
+        bm->bm_bits = (u8*)rd->pData + bfOffsetBits;
         GDD_DrawBitmap(hdc,x,y,bm,0,RopCode);
 
 #if 0

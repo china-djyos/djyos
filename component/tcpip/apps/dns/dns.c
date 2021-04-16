@@ -348,7 +348,7 @@ void  DNS_UnpackageDataExt(unsigned char *data, unsigned int datalen, struct StD
     tagDnsAType   atype;
     unsigned char  nDnsCNameOffset=0;
     unsigned char  nDnsINameV4Offset=0;
-    int min = 0;
+    size_t min = 0;
 
     stat= EN_DECODE_STAT_HEADER;
     p = data;
@@ -379,7 +379,7 @@ void  DNS_UnpackageDataExt(unsigned char *data, unsigned int datalen, struct StD
             case EN_DECODE_STAT_QUESTION:
                 len = strlen((const char *)p) +1;
                 min = sizeof(pOutDnsRes->arrDnsCNameAddr[nDnsCNameOffset])-1;
-                min = (min < strlen(p+1)) ? min : strlen(p+1);
+                min = (min < strlen((const char *)p+1)) ? min : strlen((const char *)p+1);
                 memcpy(pOutDnsRes->arrDnsCNameAddr[nDnsCNameOffset], p+1,  min);
                 nDnsCNameOffset++;
                 __DNS_DecodeName(p,len);
@@ -403,7 +403,7 @@ void  DNS_UnpackageDataExt(unsigned char *data, unsigned int datalen, struct StD
                 {
                     len = strlen((const char *)p) +1;
                     min = sizeof(pOutDnsRes->arrDnsCNameAddr[nDnsCNameOffset])-1;
-                    min = (min < strlen(p+1)) ? min : strlen(p+1);
+                    min = (min < strlen((const char *)p+1)) ? min : strlen((const char *)p+1);
                     memcpy(pOutDnsRes->arrDnsCNameAddr[nDnsCNameOffset], p+1,  min);
                     //gDnsCNameAddr[nDnsCNameOffset] = p+1;
                     nDnsCNameOffset++;
@@ -433,7 +433,7 @@ void  DNS_UnpackageDataExt(unsigned char *data, unsigned int datalen, struct StD
                     {
                         len = strlen((const char *)p) +1;
                         min = sizeof(pOutDnsRes->arrDnsCNameAddr[nDnsCNameOffset])-1;
-                        min = (min < strlen(p+1)) ? min : strlen(p+1);
+                        min = (min < strlen((const char *)p+1)) ? min : strlen((const char *)p+1);
                         memcpy(pOutDnsRes->arrDnsCNameAddr[nDnsCNameOffset], p+1,  min);
                         nDnsCNameOffset++;
                         __DNS_DecodeName(p,len);
@@ -580,7 +580,7 @@ int DNS_NameResolveExt(const char *name, struct hostent_ext *phostent_ext)
         struct StDnsResult *ptmp = &phostent_ext->dns_res;
         DNS_UnpackageDataExt(pnew,msglen, ptmp);
 
-        int len = sizeof(phostent_ext->arr_name)-1;
+        size_t len = sizeof(phostent_ext->arr_name)-1;
         len = (len<strlen(name))?len:strlen(name);
         memcpy(phostent_ext->h_name, name, len);
         phostent_ext->h_addrtype = AF_INET;

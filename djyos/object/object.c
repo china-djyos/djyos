@@ -285,15 +285,9 @@ static s32 __OBJ_ReadDentry(struct objhandle *directory, struct dirent *dentry)
 // ============================================================================
 static s32 __OBJ_Close(struct objhandle *hdl)
 {
-//  return Handle_Delete(hdl);
+    return Handle_Delete(hdl);
 }
 
-//static s32 __objsys_stat(struct Object *ob, struct stat *data, char *uncached)
-//{
-//    data->st_size = 0; // 安装点；
-//    data->st_mode = S_IFDIR;
-//    return (0);
-//}
 // ============================================================================
 // 功能：锁定对象系统；
 // 参数：
@@ -469,12 +463,12 @@ s32 OBJ_SetToTemp(struct Object *ob)
 // 返回：成功（对象名）；失败（NULL）；
 // 注意：
 // ============================================================================
-const char *OBJ_GetName(struct Object *ob)
+char *OBJ_GetName(struct Object *ob)
 {
     if(!ob)
         return (NULL);
 
-    return ((const char*)ob->name);
+    return (ob->name);
 }
 
 // ============================================================================
@@ -2376,7 +2370,7 @@ s32 OBJ_SetPwd(const char *Path)
 
     OBJ_SetCurrent(ob);
     closedir(dir);// 关闭目录
-     return 0;
+    return res;
 }
 //-----------------------------------------------------------------------------
 //功能: 获取当前工作路径字符串长度(含结束符)

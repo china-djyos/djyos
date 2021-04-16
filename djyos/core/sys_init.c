@@ -68,6 +68,7 @@ extern s32 Lock_CreateObject(void);
 extern s32 Mb_CreateObject(void);
 extern void Sys_ModuleInit(void);
 extern void Board_Init(void);
+extern void __DjyInitTick(void);
 
 align_type InitStack[CFG_INIT_STACK_SIZE/sizeof(align_type)] = {'d'};
 

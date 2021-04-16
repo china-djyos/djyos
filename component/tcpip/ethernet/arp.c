@@ -50,7 +50,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netbsp.h>
-#include <misc.h>
+#include <misc/misc.h>
 #include "dbug.h"
 
 #include "arp.h"
@@ -476,6 +476,9 @@ static bool_t __DealReq(struct NetDev *iface,tagArpPH *arp)
     return ret;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //deal the response frame
 static bool_t __DealRes(struct NetDev *iface,tagArpPH *arp)
 {
@@ -494,6 +497,8 @@ static bool_t __DealRes(struct NetDev *iface,tagArpPH *arp)
     }
     return result;
 }
+#pragma GCC diagnostic pop
+
 //this function used to process the arp package
 static bool_t __ArpPush(struct NetDev *iface,struct NetPkg *pkg)
 {
@@ -669,7 +674,7 @@ bool_t arp(char *param)
     u32 iphost = 0;
     int i = 0;
     int argc =14;
-    const char *argv[14];
+    char *argv[14];
     string2arg(&argc,argv,param);
     while(i <argc) //do the parameters decode
     {

@@ -373,7 +373,7 @@ ptu32_t GDD_GetWindowPrivateData(HWND hwnd)
 {
     ptu32_t data;
 
-    data=NULL;
+    data=0;
     if(__HWND_Lock(hwnd))
     {
         data = hwnd->PrivateData;
@@ -778,7 +778,7 @@ HWND    GDD_InitGddDesktop(struct GkWinObj *desktop)
 //      s_gDesktopMsgLink.MsgNum = sizeof(s_gDesktopMsgProcTable) / sizeof(struct MsgProcTable);
 //      s_gDesktopMsgLink.myTable = s_gDesktopMsgProcTable;
         pGddWin->pGkWin     = desktop;
-        pGddWin->PrivateData = NULL;
+        pGddWin->PrivateData = 0;
         pGddWin->MyMsgTableLink = (struct MsgTableLink **)\
                                            malloc(2*sizeof( struct MsgTableLink *));
 
@@ -1407,12 +1407,12 @@ HDC GDD_GetDC(HWND hwnd)
 
 }
 
-//----获得窗口客户区绘图上下文(DC)-----------------------------------------------
-//描述: 该函数获得的DC,只能在窗口客户区范围内绘图输出).
-//参数：hwnd:窗口句柄.
-//返回：DC句柄.
+//----释放窗口客户区绘图上下文(DC)-----------------------------------------------
+//描述: 释放窗口客户区绘图上下文(DC)
+//参数：hdc，句柄.
+//返回：成功=true，失败=false
 //------------------------------------------------------------------------------
-bool_t    GDD_ReleaseDC(HWND hwnd,HDC hdc)
+bool_t    GDD_ReleaseDC(HDC hdc)
 {
        return  GDD_DeleteDC(hdc);
 }
@@ -1523,7 +1523,7 @@ static ptu32_t __GDD_DefWindowProcNCPAINT(struct WindowMsg *pMsg)
             }
             __HWND_Unlock(hwnd);
         }
-        GDD_ReleaseDC(hwnd,hdc);
+        GDD_ReleaseDC(hdc);
     }
     return 0;
 }
@@ -1547,6 +1547,8 @@ static ptu32_t __GDD_DefWindowProcERASEBKGND(struct WindowMsg *pMsg)
     }
     return 0;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //----默认的窗口客户区绘制消息处理函数-------------------------------------
 //描述: 好像没什么事做，先空着。.
@@ -1563,6 +1565,8 @@ static ptu32_t __GDD_DefWindowProcSYNC(struct WindowMsg *pMsg)
     GK_SyncShow(CN_TIMEOUT_FOREVER);
     return true;
 }
+#pragma GCC diagnostic pop
+
 void __GDD_InitMsg(struct WindowMsg *msg,HWND hwnd,u32 code,u32 param1,ptu32_t param2);
 //----默认的窗口关闭消息处理函数-------------------------------------
 //描述: 关闭窗口，如果是焦点窗口或者是焦点窗口的祖先窗口，就把焦点窗口转移到桌面。
@@ -1808,7 +1812,7 @@ HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
     //创建主窗口，每个图形应用对应一个主窗口
     result = GDD_CreateWindow(AppName, WS_CAN_FOCUS|Style, rc.left, rc.top,
                                  GDD_RectW(&rc), GDD_RectH(&rc), NULL, 0x0000,
-                                 WinBuf, NULL, MyMsgLink);
+                                 WinBuf, 0, MyMsgLink);
     if(result != NULL)
     {
 

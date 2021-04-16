@@ -546,7 +546,7 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
 {
     struct EventECB *event;
     struct IntLine *ptIntLine;
-    u32 isr_result,CpuStatus;
+    u32 isr_result;
 
     g_bScheduleEnable = false;
     tg_int_global.nest_asyn_signal++;

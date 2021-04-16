@@ -181,6 +181,8 @@ bool_t __LP_BSP_SaveRamL3(void)
 {
     return true;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 u32 BekenEntrySleepReCall(u32 SleepLevel)
 {
@@ -191,6 +193,7 @@ u32 BekenExitSleepReCall(u32 SleepLevel)
 {
     return true;
 }
+#pragma GCC diagnostic pop
 
 //-----------------------------------------------------------------------------
 //功能: 安装低功耗组件，要把一些低功耗需要使用到的函数，注册到系统中

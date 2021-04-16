@@ -121,6 +121,8 @@
 //@#$%component end configure
 
 #endif
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #define cn_coordinates      0      //0=正常坐标，1=翻转坐标，即原点=(239,319)
 
@@ -226,7 +228,6 @@ void  SendDataSPI(unsigned char dat)
 
 int  SendRecvDataSPI(unsigned char *send_buf, int slen, unsigned char *recv_buf, int rlen)
 {
-   int ret = 0;
    struct spi_message spi_msg;
    ST7789V_CsActive();
    SPI_RS(0);
@@ -240,7 +241,7 @@ int  SendRecvDataSPI(unsigned char *send_buf, int slen, unsigned char *recv_buf,
    spi_msg.recv_len = rlen;
    spi_msg.send_buf = 0;
    spi_msg.send_len = 0;
-   ret = bk_spi_master_xfer(&spi_msg);
+   bk_spi_master_xfer(&spi_msg);
    ST7789V_CsInactive();
    return 0;
 }
@@ -250,7 +251,6 @@ void WriteDataBytes(unsigned char *data, int len)
     u32 param;
     ST7789V_CsActive();
     SPI_RS(1);
-    s32 result;
     struct spi_message spi_msg;
     spi_msg.recv_buf = 0;
     spi_msg.recv_len = 0;
@@ -259,7 +259,7 @@ void WriteDataBytes(unsigned char *data, int len)
 
     param = 1;
     spi_ctrl(CMD_SPI_SET_BITWIDTH, &param);
-    result = bk_spi_master_xfer(&spi_msg);
+    bk_spi_master_xfer(&spi_msg);
     param = 0;
     spi_ctrl(CMD_SPI_SET_BITWIDTH, &param);
 
@@ -696,9 +696,9 @@ void lcd_clear(u32 color)
     BlockWrite(0,CFG_LCD_XSIZE-1,0,CFG_LCD_YSIZE-1);
     n = CFG_LCD_YSIZE / ROW_TEMP;
     for (i=0; i<n; i++) {
-        WriteDataBytes(screen, sizeof(screen));
+        WriteDataBytes((u8*)screen, sizeof(screen));
     }
-    WriteDataBytes(screen, (CFG_LCD_YSIZE%ROW_TEMP)*CFG_LCD_XSIZE*COLO_DEP);
+    WriteDataBytes((u8*)screen, (CFG_LCD_YSIZE%ROW_TEMP)*CFG_LCD_XSIZE*COLO_DEP);
     if (screen) free(screen);
 }
 
@@ -978,6 +978,7 @@ bool_t __lcd_fill_rect_screen(struct Rectangle *Target,
     __ST7789V_set_window(Focus->left,Focus->top,width,height);
     printf("Focus->right = %d,Focus->left = %d\r\n",Focus->right,Focus->left);
     printf("Focus->bottom = %d,Focus->top = %d\r\n",Focus->bottom,Focus->top);
+    return true;
 }
 
 //从内存缓冲区到screen位块传送，只支持块拷贝，不支持rop操作。
@@ -986,10 +987,9 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
             struct RectBitmap *src_bitmap,s32 xsrc,s32 ysrc)
 {
     u32 width,height;
-    u32 pixel,use=0,linelen;
-    u32 j,y;
+    u32 linelen;
+    u32 y;
     u16 *line;
-    u8 x0,x1;
 
     if(src_bitmap->PixelFormat != CN_SYS_PF_RGB565)
         return false;
@@ -1033,6 +1033,7 @@ bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
     printf("__lcd_disp_ctrl\r\n");
     return true;
 }
+#pragma GCC diagnostic pop
 
 //void DispMainInterface(unsigned char *pic)
 //{

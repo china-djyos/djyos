@@ -84,7 +84,7 @@ struct Wdt
     fnYipHook       fnhook;       //狗叫善后钩子函数
     enum EN_BlackBoxAction action;       //狗叫动作
     u32             cycle;        //看门狗周期，单位：微秒
-    s16             WdtOnwer;     //看门狗所属事件ID
+    u16             WdtOnwer;     //看门狗所属事件ID
     s64             deadtime;     //看门狗喂狗截止时间，到此时间还不喂，则狗叫，单位：微秒
     s64             runtime;      //上次操作看门狗时看门狗所属任务的运行时间，单位：微秒
     u32             timeoutreason;     //看门狗狗叫原因
@@ -238,6 +238,9 @@ bool_t __Wdt_WdtExpInfoDecoder(struct BlackBoxThrowPara  *WdtinfoHead,u32 endian
     debug_printf("wdtinfo","SheduleTimeoutLimit:0x%08x\n\r",wdt->ExhaustLimit);
     return true;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // =============================================================================
 // 函数功能：硬件看门狗狗叫善后函数
@@ -697,7 +700,7 @@ bool_t wdtshow(char *param)
     return true;
 }
 
-
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // 函数功能：看门狗模块的初始化
@@ -710,7 +713,6 @@ bool_t ModuleInstall_Wdt(void)
 {
     static struct BlackBoxInfoDecoder WdtDecoder;
     static tagWdt wdtpoolbuf[CFG_WDT_LIMIT];
-    bool_t  result_bool;
     u16     evttid;
 
     ptWdtPool = Mb_CreatePool(wdtpoolbuf,CFG_WDT_LIMIT,sizeof(tagWdt),0,0,"wdt pool");
@@ -851,7 +853,7 @@ tagWdt *Wdt_Create_s(tagWdt *wdt, char *dogname,u32 yip_cycle,
 // 返回值  ：true成功，false失败
 // 说明    ：和Wdt_Create成对调用
 // =============================================================================
-tagWdt *Wdt_Get(s8 *wdt_name)
+tagWdt *Wdt_Get(char *wdt_name)
 {
     tagWdt *ret = NULL;
 

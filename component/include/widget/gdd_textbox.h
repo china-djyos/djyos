@@ -68,18 +68,9 @@ extern "C" {
 #include    "gdd.h"
 #include    "gdd_widget.h"
 
-
-typedef enum{
-    EN_R_W =0,   //可读可写
-    EN_R_O ,     //read only.
-    EN_W_O ,     //write only.
-}EN_TEXTBOX_EDIT_PROPERTY;
-
-
-
-#define WS_TEXTBOX_R_W       ((uint32_t)1<<8) //子窗口标志,控件窗口必须指定该标志.
-#define WS_TEXTBOX_R_O       ((uint32_t)1<<9) //窗口是否可见
-#define WS_TEXTBOX_W_O       ((uint32_t)1<<10) //窗口是否为禁止状态,如果指定该标志,窗口将不响应输入消息
+#define WS_TEXTBOX_R_W       ((u32)1<<8) //子窗口标志,控件窗口必须指定该标志.
+#define WS_TEXTBOX_R_O       ((u32)1<<9) //窗口是否可见
+#define WS_TEXTBOX_W_O       ((u32)1<<10) //窗口是否为禁止状态,如果指定该标志,窗口将不响应输入消息
 
 
 //文本框Text内容操作控制码
@@ -97,7 +88,7 @@ typedef struct
    u16 ChNum;                 //字符数
    u8 CharNumLimit;          //用户可在文本框中键入或粘贴的最大字符数
    u16 CharWidthSum;        //当前总的字符宽度
-   EN_TEXTBOX_EDIT_PROPERTY EditProperty;          //文本框内容是否只可读
+   u32 EditProperty;          //文本框内容是否只可读
    bool_t Visible;           //文本框是否可见
    bool_t IsMultiLines;       //是否支持多行
    u16    MaxLines;           //最大行数

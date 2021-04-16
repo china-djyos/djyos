@@ -176,8 +176,6 @@ static bool_t FT6236_Init( )
 {
     u8 temp[2];
 //    u16 chipid=0;
-    u8 i=0;
-
     FT6236_Pin_Init();
 
     FT_RST(0);    //¸´Î»

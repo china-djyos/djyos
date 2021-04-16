@@ -190,10 +190,14 @@ void LP_SetHook(u32 (*EntrySleepReCall)(u32 SleepLevel),
         g_tLowPower.ExitSleepReCall = ExitSleepReCall;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 u32 LP_EmptyReCall(u32 SleepLevel)
 {
     return 1;
 }
+
 //-----------------------------------------------------------------------------
 //功能: 注册低功耗相关的功能函数
 //参数: EntrySleep,进入低功耗状态前调用的回调函数
@@ -206,8 +210,8 @@ void Register_LowPower_Function (void (*EntrySleep)(u8 sleep_level, u32 pend_tic
                                  bool_t (*SaveSleepLevel)(u32 SleepLevel),
                                  bool_t (*SaveRamL3)(void),
                                  void (*AsmSaveReg)(struct ThreadVm *running_vm,
-                                                     bool_t (*SaveRamL3)(void),
-                                                     void (*EntrySleep)(u8 sleep_level, u32 pend_ticks)))
+                                 bool_t (*SaveRamL3)(void),
+                                 void (*EntrySleep)(u8 sleep_level, u32 pend_ticks)))
 {
     g_tLowPower.EntrySleep = EntrySleep;
     g_tLowPower.SaveSleepLevel = SaveSleepLevel;
@@ -225,3 +229,5 @@ __attribute__((weak)) bool_t __LP_BSP_SetSleepMode(ptu32_t param)
 {
     return false;
 }
+
+#pragma GCC diagnostic pop

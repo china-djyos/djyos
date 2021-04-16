@@ -46,8 +46,8 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
-#ifndef ECC_SW_H_INCLUDED
-#define ECC_SW_H_INCLUDED
+#ifndef __ECC_256_H__
+#define __ECC_256_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -87,4 +87,4 @@ uint32_t ECC_HammingVerify256x(uint8_t *puc_data, uint32_t dw_size,
 }
 #endif
 
-#endif /* ECC_SW_H_INCLUDED */
+#endif /* __ECC_256_H__ */

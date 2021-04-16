@@ -61,7 +61,7 @@
 #include <device/unit_media.h>
 #include <stdio.h>
 #include <djyfs/filesystems.h>
-#include "Iboot_info.h"
+#include <Iboot_info.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -845,6 +845,7 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
             if(position<0)
                 position = 0; // 新位置越界了
         }
+        __attribute__((fallthrough));
 
         case SEEK_SET: // 转为当前位置的SEEK的逻辑
         {
@@ -1192,10 +1193,14 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     return result;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 __attribute__((weak)) s32 xip_fs_format(void *core)
 {
     return 0;
 }
+#pragma GCC diagnostic pop
 
 // ============================================================================
 // 功能：安装xip文件系统

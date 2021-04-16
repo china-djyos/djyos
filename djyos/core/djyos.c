@@ -672,7 +672,7 @@ void __DJY_SelectEventToRun(void)
     }
     if(s_u32RRS_Slice==0)
         return;
-//    if(g_ptEventReady->prio==g_ptEventReady->next->prio \
+//    if(g_ptEventReady->prio==g_ptEventReady->next->prio
 //          && (g_ptEventReady != g_ptEventReady->next))
 //    {
 ////        gSchduleTick.RRSTicks = g_s64OsTicks + s_u32RRS_Slice;
@@ -1308,7 +1308,7 @@ void __DJY_ResumeDelay(struct EventECB *delay_event)
 void __DJY_AddToDelay(u32 u32l_uS)
 {
     struct EventECB * event;
-    u64 temp = 0;
+
     g_ptEventRunning->delay_start_tick = __DJY_GetSysTick(); //事件延时开始时间
     g_ptEventRunning->delay_end_tick = g_ptEventRunning->delay_start_tick
                   + ((s64)u32l_uS + CN_CFG_TICK_US -(u32)1)/CN_CFG_TICK_US; //闹铃时间
@@ -2719,7 +2719,7 @@ void __DJY_CutEcbFromSync(struct EventECB  *event)
 //返回: 本函数不返回
 //todo: 未完成
 //-----------------------------------------------------------------------------
-void __DJY_EventExit(struct EventECB *event, u32 exit_code,u32 action)
+void __DJY_EventExit(struct EventECB *event, u32 exit_code,enum EN_BlackBoxAction action)
 {
     struct ThreadVm *next_vm,*temp;
     struct EventECB *pl_ecb;
@@ -2729,8 +2729,9 @@ void __DJY_EventExit(struct EventECB *event, u32 exit_code,u32 action)
     char ExpStr[32];
     ucpu_t  vm_final = CN_DELETE;
 
+    DJY_SaveLastError(exit_code);
     parahead.DecoderName = NULL;
-    parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
+    parahead.BlackBoxAction = action;
     itoa(event->event_id,ExpStr,16);
     strcat(ExpStr,"事件处理意外结束");
     parahead.BlackBoxInfo = (u8*)ExpStr;
@@ -3289,6 +3290,7 @@ struct EventECB *__DJY_GetIdle(void)
 //-----------------------------------------------------------------------------
 void CleanWakeupEvent(void);
 //u64 buff[256] = {0};
+u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks);
 ptu32_t __DJY_Service(void)
 {
     u32 loop;

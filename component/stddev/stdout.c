@@ -611,6 +611,8 @@ static u32 pointer(char *TempBuf,ptu32_t Target, s32 Size, void *ptr,
     return number(TempBuf,Target, Size, (u32)ptr, 16, field_width,
               precision, flags,position, PushChar);
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //----把字符压入字符串中-------------------------------------------------------
 //功能：把一个字符推入字符串中，若超出长度，则忽略。
@@ -685,6 +687,7 @@ u32 __PushCharToFileDev(char *TempBuf,ptu32_t Target,s32 Res2,const char ch,s32 
     }
     return Position;
 }
+#pragma GCC diagnostic pop
 
 //---------------------------------------------------------------------------
 //功能: 按照格式字符串，生成输出字符串，并按照Method参数指定的方式，输出字符串。
@@ -870,6 +873,7 @@ repeat:
 
         case 'x':
             flags |= SMALL;
+            __attribute__((fallthrough));
         case 'X':
             base = 16;
             break;

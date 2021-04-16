@@ -183,6 +183,8 @@ s32 Djy_GpioInit(void)
     return 0;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 s32 PIN_Init(void *str,char *data,u32 len)
 {
@@ -246,3 +248,4 @@ void PIN_PowerOff(void *str,char *data,u32 len)
 {
     printf("PIN_PowerOff\r\n");
 }
+#pragma GCC diagnostic pop

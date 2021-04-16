@@ -59,6 +59,7 @@
 // =============================================================================
 
 #include <device.h>
+#include <stdio.h>
 #include <ring.h>
 #include <sys/socket.h>
 #include "dbug.h"
@@ -152,7 +153,6 @@ static s32 __Telnet_close(struct objhandle *hdl)
     return ret;
 }
 
-#pragma GCC diagnostic pop
 
 //install the device as an io device
 static s32 __Telnet_write(struct objhandle *hdl,u8 *buf, u32 len,u32 offset, u32 timeout)
@@ -181,6 +181,7 @@ static s32 __Telnet_read(struct objhandle *hdl,u8 *buf,u32 len,u32 offset,u32 ti
     }
     return ret;
 }
+#pragma GCC diagnostic pop
 
 #define CN_CLIENT_WELCOM   "Welcome TELNET FOR DJYOS\n\rENTER QUIT TO EXIT\n\r"
 

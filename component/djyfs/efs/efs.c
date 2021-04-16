@@ -55,6 +55,7 @@
 #include <string.h>
 #include <endian.h>
 #include <misc/ecc_256.h>
+#include <misc/crc.h>
 #include <lock.h>
 #include <djyfs/efs.h>
 #include <dbug.h>
@@ -473,7 +474,8 @@ static void __Efs_Reset_File_Size(struct EasyFS *efs, u8 *file_info_buf)
 //-----------------------------------------------------------------------------
 static bool_t __Efs_RefreshFileList(struct EasyFS *efs)
 {
-    s8 *file_name, *file_info_buf;
+    char *file_name;
+    u8 *file_info_buf;
     u32 i, filesize_no;
 
     if(efs == NULL)
@@ -482,8 +484,8 @@ static bool_t __Efs_RefreshFileList(struct EasyFS *efs)
     file_info_buf = malloc(EFS_ITEM_LIMIT);
     for(i = 1; i < CFG_EFS_MAX_OPEN_FILE_NUM; i++)
     {
-        file_name = efs->file_list_buf + (i * Ram_file_info_len);
-        if(*file_name != 0xff)
+        file_name = (char*)(efs->file_list_buf + (i * Ram_file_info_len));
+        if(*file_name != (char)0xff)
         {
             for (filesize_no = 1; filesize_no < IndexesNum; filesize_no++)
             {
@@ -500,7 +502,7 @@ static bool_t __Efs_RefreshFileList(struct EasyFS *efs)
         }
 
     }
-    free(EFS_ITEM_LIMIT);
+    free(file_info_buf);
     return true;
 }
 

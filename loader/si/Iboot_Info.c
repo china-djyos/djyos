@@ -1689,7 +1689,7 @@ static bool_t __RunApp(void * apphead)
     }
     Iboot_App_Info.runflag.runmode_iboot        = 0;
     Iboot_App_Info.runflag.runmode_app     = 1;
-    __asm_bl_fun((u32)p_apphead+sizeof(struct AppHead)+sizeof(struct ProductInfo));
+    __asm_bl_fun((void*)((u32)p_apphead+sizeof(struct AppHead)+sizeof(struct ProductInfo)));
     return true;
 }
 
@@ -1716,7 +1716,7 @@ bool_t Run_App(enum runappmode mode)
     return false;
 }
 
-
+extern void CPU_Reset(void);
 //=============================================================================
 //功能：文件升级后根据升级标志执行相应的iboot或APP
 //参数：无

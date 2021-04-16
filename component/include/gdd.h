@@ -399,7 +399,7 @@ HWND    GDD_InitGddDesktop(struct GkWinObj *desktop);
 //DC²Ù×÷º¯Êý
 HDC     GDD_GetWindowDC(HWND hwnd);
 HDC     GDD_GetDC(HWND hwnd);
-bool_t    GDD_ReleaseDC(HWND hwnd,HDC hdc);
+bool_t    GDD_ReleaseDC(HDC hdc);
 HDC     GDD_BeginPaint(HWND hwnd);
 bool_t    GDD_EndPaint(HWND hwnd,HDC hdc);
 
@@ -418,6 +418,12 @@ bool_t    GDD_IsWindowVisible(HWND hwnd);
 bool_t    GDD_InvalidateWindow(HWND hwnd,bool_t bErase);
 bool_t    GDD_SetWindowShow(HWND hwnd);
 bool_t    GDD_SetWindowHide(HWND hwnd);
+bool_t GDD_SetWindowRopCode(HWND hwnd, struct RopGroup RopCode);
+bool_t GDD_SetWindowHyalineColor(HWND hwnd,u32 HyalineColor);
+bool_t GDD_SetWindowFillColor(HWND hwnd,u32 FillColor);
+bool_t GDD_GetWindowFillColor(HWND hwnd,u32 *pFillColor);
+bool_t GDD_SetWindowTextColor(HWND hwnd,u32 TextColor);
+bool_t GDD_GetWindowTextColor(HWND hwnd,u32 *pTextColor);
 bool_t    EnableWindow(HWND hwnd,bool_t bEnable);
 HWND    GDD_GetWindowParent(HWND hwnd);
 HWND GDD_GetWindowChild(HWND hwnd);

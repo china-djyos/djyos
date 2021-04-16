@@ -87,7 +87,7 @@ typedef struct{
 //参数：pMsg，消息指针
 //返回：固定true
 //-----------------------------------------------------------------------------
-static bool_t __Widget_ListBoxCreate(struct WindowMsg *pMsg)
+static ptu32_t __Widget_ListBoxCreate(struct WindowMsg *pMsg)
 {
      HWND hwnd;
      LISTBOX_DATA *pLB;
@@ -115,11 +115,11 @@ static bool_t __Widget_ListBoxCreate(struct WindowMsg *pMsg)
 //返回：列表项
 //-----------------------------------------------------------------------------
 
-static  LISTBOX_ITEM*   __Widget_ListBoxGetItem(LISTBOX_DATA *pLB,u32 idx)
+static  LISTBOX_ITEM*   __Widget_ListBoxGetItem(LISTBOX_DATA *pLB,s32 idx)
 {
     LISTBOX_ITEM *item=NULL;
     list_t *n;
-    u32 i;
+    s32 i;
 
     if(idx<pLB->ItemNum)
     {
@@ -146,7 +146,7 @@ static  LISTBOX_ITEM*   __Widget_ListBoxGetItem(LISTBOX_DATA *pLB,u32 idx)
     return item;
 }
 //添加字符串
-static  bool_t  __Widget_ListBoxAddString(struct WindowMsg *pMsg)
+static  ptu32_t  __Widget_ListBoxAddString(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     LISTBOX_DATA *pLB;
@@ -211,7 +211,7 @@ static  bool_t  __Widget_ListBoxAddString(struct WindowMsg *pMsg)
 
 
 //删除字符串
-static  bool_t __Widget_ListBoxDelString(struct WindowMsg *pMsg)
+static  ptu32_t __Widget_ListBoxDelString(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     LISTBOX_DATA *pLB;
@@ -255,7 +255,7 @@ static  bool_t __Widget_ListBoxDelString(struct WindowMsg *pMsg)
 
 
 //重置内容
-static  bool_t __Widget_ListBoxResetContent(struct WindowMsg *pMsg)
+static  ptu32_t __Widget_ListBoxResetContent(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     LISTBOX_DATA *pLB;
@@ -292,7 +292,7 @@ static  u32 Widget_ListBoxSetCurSel(struct WindowMsg *pMsg)
     LISTBOX_DATA *pLB;
     hwnd =pMsg->hwnd;
     pLB=(LISTBOX_DATA*)GDD_GetWindowPrivateData(hwnd);
-    u32 idx;
+    s32 idx;
     idx=pMsg->Param1;
 
     if(pLB->ItemNum>0)
@@ -315,7 +315,7 @@ static  u32 Widget_ListBoxSetCurSel(struct WindowMsg *pMsg)
     return pLB->CurSel;
 }
 //
-static ptu32_t __Widget_ListBoxSetCurSel(HWND hwnd,LISTBOX_DATA *pLB,u32 idx)
+static ptu32_t __Widget_ListBoxSetCurSel(HWND hwnd,LISTBOX_DATA *pLB,s32 idx)
 {
     if(pLB->ItemNum>0)
     {
@@ -377,7 +377,7 @@ static  ptu32_t Widget_ListBoxSetTopIndex(struct WindowMsg *pMsg)
 }
 
 //设置头指针
-static ptu32_t __Widget_ListBoxSetTopIndex(LISTBOX_DATA *pLB,u32 idx)
+static ptu32_t __Widget_ListBoxSetTopIndex(LISTBOX_DATA *pLB,s32 idx)
 {
     if(idx<pLB->ItemNum)
     {
@@ -396,7 +396,7 @@ static ptu32_t __Widget_ListBoxGetTopIndex(struct WindowMsg *pMsg)
 }
 
 //设置项的行高
-static  bool_t __Widget_ListBoxSetItemHeight(struct WindowMsg *pMsg)
+static  ptu32_t __Widget_ListBoxSetItemHeight(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     LISTBOX_DATA *pLB;
@@ -417,7 +417,7 @@ static ptu32_t __Widget_ListBoxGetItemHeight(struct WindowMsg *pMsg)
 }
 
 //设置项的数据
-static  bool_t __Widget_ListBoxSetItemData(struct WindowMsg *pMsg)
+static  ptu32_t __Widget_ListBoxSetItemData(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     LISTBOX_DATA *pLB;
@@ -454,7 +454,7 @@ static  ptu32_t __Widget_ListBoxGetItemData(struct WindowMsg *pMsg)
     return 0;
 }
 //窗口客户区绘制
-static  bool_t __Widget_ListBoxPaint(struct WindowMsg *pMsg)
+static  ptu32_t __Widget_ListBoxPaint(struct WindowMsg *pMsg)
 {
     HDC hdc;
     HWND hwnd;
@@ -542,7 +542,7 @@ static  bool_t __Widget_ListBoxPaint(struct WindowMsg *pMsg)
 }
 
 //列表框左键按下
-static  bool_t    __Widget_ListBoxLbuttonDown(struct WindowMsg *pMsg)
+static  ptu32_t    __Widget_ListBoxLbuttonDown(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     LISTBOX_DATA *pLB;
@@ -586,7 +586,7 @@ static  bool_t    __Widget_ListBoxLbuttonDown(struct WindowMsg *pMsg)
     return true;
 }
 //列表框移动
-static  bool_t    __Widget_ListBoxMouseMove(struct WindowMsg *pMsg)
+static  ptu32_t    __Widget_ListBoxMouseMove(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     LISTBOX_DATA *pLB;
@@ -636,26 +636,26 @@ static  ptu32_t __Widget_ListBoxGetTextLen(struct WindowMsg *pMsg)
     HWND hwnd;
     LISTBOX_DATA *pLB;
     LISTBOX_ITEM *item;
-    u32 idx;
+    s32 idx;
     hwnd =pMsg->hwnd;
     pLB=(LISTBOX_DATA*)GDD_GetWindowPrivateData(hwnd);
-    idx=pMsg->Param1;
+    idx=(s32)pMsg->Param1;
     item =__Widget_ListBoxGetItem(pLB,idx);
     return strlen(item->szText)+1;
 
 }
 
 //获取文本
-static  bool_t    __Widget_ListBoxGetText(struct WindowMsg *pMsg)
+static  ptu32_t    __Widget_ListBoxGetText(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     LISTBOX_DATA *pLB;
     LISTBOX_ITEM *item;
     char *buf;
-    u32 idx;
+    s32 idx;
     hwnd =pMsg->hwnd;
     pLB=(LISTBOX_DATA*)GDD_GetWindowPrivateData(hwnd);
-    idx=pMsg->Param1;
+    idx=(s32)pMsg->Param1;
     buf=(char*)pMsg->Param2;
     if(buf!=NULL)
     {

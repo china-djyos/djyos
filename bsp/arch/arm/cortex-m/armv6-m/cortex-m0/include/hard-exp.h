@@ -83,7 +83,7 @@ extern "C" {
 #define CN_SYSVECT_PENDSV           14
 #define CN_SYSVECT_SYSTICK          15
 
-bool_t HardExp_Init(void);
+void HardExp_Init(void);
 void HardExp_ConnectNmi(void (*esr)(void));
 
 #ifdef __cplusplus

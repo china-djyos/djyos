@@ -960,7 +960,7 @@ static bool_t Enet_AddNetDev(void)
     return true;
 
 RcvTaskFailed:
-    NetDev_GetUninstall(s_EnetConfig.name);
+    NetDev_Uninstall(s_EnetConfig.name);
 NetInstallFailed:
     Lock_MutexDelete(pEnetSndSync);
     pEnetSndSync = NULL;
