@@ -29,7 +29,7 @@
 //attribute:bsp                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                     //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                  //初始化时机，可选值：early，medium，later。
+//init time:medium                  //初始化时机，可选值：early，medium，later, pre-main。
                                     //表示初始化时间，分别是早期、中期、后期
 //dependence:"time","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //选中该组件时，被依赖组件将强制选中，
@@ -202,7 +202,7 @@ bool_t RTC_GetTime(s64 *time)
     dtm.tm_min  = min;
     dtm.tm_sec  = sec;
 
-    *time = (s64)(1000000 * Tm_MkTime(&dtm)+tim_us);
+    *time = (s64)(1000000 * Time_MkTime(&dtm)+tim_us);
     return true;
 }
 
@@ -238,7 +238,7 @@ static bool_t __Rtc_SetTime(s64 time)
     u32 timeValSet = 0;
 
     time_s = time/1000000;
-    Tm_LocalTime_r(&time_s,&dtm);
+    Time_LocalTime_r(&time_s,&dtm);
 
 
 
@@ -379,7 +379,7 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
     if(NULL == pRtcSemp)
         return false;
 
-    evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
+    evtt = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
                             Rtc_UpdateTime,NULL,800,
                                 "RTC Update Event");
     //登记一个事件类型：关联型时间类型，优先级130，入口函数Rtc_UpdateTime，栈尺寸800
@@ -390,7 +390,7 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
         return false;
     }
 
-    Djy_EventPop(evtt,NULL,0,NULL,0,0);
+    DJY_EventPop(evtt,NULL,0,NULL,0,0);
     //弹出事件
 
     RTC_GetTime(&rtc_time);  //从RTC设备中读取RTC时间，单位是us,

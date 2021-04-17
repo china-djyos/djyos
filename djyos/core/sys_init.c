@@ -58,15 +58,17 @@
 #include "component_config_core.h"
 
 extern void __InitTimeBase(void);
-extern void __InitSys(void);
+extern void __DJY_InitSys(void);
 extern ptu32_t __InitMB(void);
-extern void __StartOs(void);
+extern void __DJY_StartOs(void);
 extern ptu32_t __InitLock(void);
-extern s32 obj_ModuleInit(void);
-extern s32 handle_ModuleInit(void);
+extern s32 OBJ_ModuleInit(void);
+extern s32 Handle_ModuleInit(void);
 extern s32 Lock_CreateObject(void);
 extern s32 Mb_CreateObject(void);
 extern void Sys_ModuleInit(void);
+extern void Board_Init(void);
+extern void __DjyInitTick(void);
 
 align_type InitStack[CFG_INIT_STACK_SIZE/sizeof(align_type)] = {'d'};
 
@@ -97,20 +99,22 @@ void _fini(void)
 //参数：无
 //返回：无
 //---------------------------------------------------------------------------
-void Sys_Start(void)
+void SYS_Start(void)
 {
-    __InitTimeBase();
-    __InitSys( );
+//  __InitTimeBase();
+    __DjyInitTick();
+    __DJY_InitSys( );
     __InitMB();
     // Mb_ModuleInit函数需要创建信号量，调用ModuleInstall_Lock之前，创建信号量是允许的，
     // 但不能对其做Post和pend操作。而ModuleInstall_Lock需要创建内存池，则只能在调用
     __InitLock();
-    obj_ModuleInit();
-    handle_ModuleInit();          // 对象句柄体系初始化；
+    OBJ_ModuleInit();
+    Handle_ModuleInit();          // 对象句柄体系初始化；
     Lock_CreateObject();    // lock体系；
     Mb_CreateObject();      // memory block体系；
+    Board_Init();
     Sys_ModuleInit();
     // 黑客们注意,此两函数间不要企图插入什么代码,一切后果自负.
-    __StartOs();
+    __DJY_StartOs();
 }
 

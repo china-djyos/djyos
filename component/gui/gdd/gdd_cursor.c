@@ -59,8 +59,8 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include <stdint.h>
-#include <gui/gdd/gdd_private.h>
-#include <gui\gdd_cursor.h>
+#include "gdd_private.h"
+#include <gui/gdd_cursor.h>
 
 
 #define CN_CURSOR_FLASH_TIME     800            //光标闪烁时间（ms）
@@ -72,7 +72,7 @@ struct WinTimer* sg_tpCursorTimer;
 //参数：pMsg，消息指针
 //返回：固定true
 //-----------------------------------------------------------------------------
-static bool_t Cursor_Create(struct WindowMsg *pMsg)
+static bool_t __GDD_CursorCreate(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     s32 x,y;
@@ -83,17 +83,17 @@ static bool_t Cursor_Create(struct WindowMsg *pMsg)
     hwnd=pMsg->hwnd;
     if(hwnd==NULL)
          return false;
-    hdc =BeginPaint(hwnd);
+    hdc =GDD_BeginPaint(hwnd);
     if(NULL!=hdc)
     {
-        GetClientRect(hwnd,&rc);
-        x=RectW(&rc);
-        y=RectH(&rc);
-        SetFillColor(hdc,RGB(255,0,0));
-        FillRect(hdc,&rc);
-        SetDrawColor(hdc,RGB(1,1,1));
-        DrawLine(hdc,x/2,0,x/2,y);
-        EndPaint(hwnd,hdc);
+        GDD_GetClientRect(hwnd,&rc);
+        x=GDD_RectW(&rc);
+        y=GDD_RectH(&rc);
+        GDD_SetFillColor(hdc,RGB(255,0,0));
+        GDD_FillRect(hdc,&rc);
+        GDD_SetDrawColor(hdc,RGB(1,1,1));
+        GDD_DrawLine(hdc,x/2,0,x/2,y);
+        GDD_EndPaint(hwnd,hdc);
     }
     return true;
 }
@@ -103,7 +103,7 @@ static bool_t Cursor_Create(struct WindowMsg *pMsg)
 //参数：hwnd，待检查的窗口
 //返回：true = 显示光标，false = 不显示光标
 //-----------------------------------------------------------------------------
-bool_t Cursor_CheckStatus(HWND hwnd)
+bool_t GDD_CursorCheckStatus(HWND hwnd)
 {
    if(hwnd->Style & WS_SHOW_CURSOR)
        return true;
@@ -116,17 +116,21 @@ bool_t Cursor_CheckStatus(HWND hwnd)
 //参数：pMsg，消息指针
 //返回：固定true
 //-----------------------------------------------------------------------------
-static bool_t Cursor_Flash(struct WindowMsg *pMsg)
+static bool_t __GDD_CursorFlash(struct WindowMsg *pMsg)
 {
-    if(IsWindowVisible(g_ptCursorHwnd))
+    if(g_ptCursorHwnd != NULL)
     {
-         SetWindowHide(g_ptCursorHwnd);
-         UpdateDisplay(CN_TIMEOUT_FOREVER);
-    }
-    else
-    {
-         SetWindowShow(g_ptCursorHwnd);
-         UpdateDisplay(CN_TIMEOUT_FOREVER);
+        if(GDD_IsWindowVisible(g_ptCursorHwnd))
+        {
+             GDD_SetWindowHide(g_ptCursorHwnd);
+//           GDD_UpdateDisplay(CN_TIMEOUT_FOREVER);
+        }
+        else
+        {
+             GDD_SetWindowShow(g_ptCursorHwnd);
+//           GDD_UpdateDisplay(CN_TIMEOUT_FOREVER);
+        }
+        GDD_UpdateDisplay(pMsg->hwnd);
     }
     return true;
 }
@@ -136,10 +140,13 @@ static bool_t Cursor_Flash(struct WindowMsg *pMsg)
 //参数：
 //返回：
 //-----------------------------------------------------------------------------
-void Cursor_SetShow( void )
+void GDD_CursorSetShow( void )
 {
-    SetWindowShow(g_ptCursorHwnd);
-    GDD_StartTimer( sg_tpCursorTimer );
+    if(g_ptCursorHwnd != NULL)
+    {
+        GDD_SetWindowShow(g_ptCursorHwnd);
+        GDD_StartTimer( sg_tpCursorTimer );
+    }
 }
 
 //----隐藏光标-----------------------------------------------------------------
@@ -147,10 +154,13 @@ void Cursor_SetShow( void )
 //参数：
 //返回：
 //-----------------------------------------------------------------------------
-void Cursor_SetHide( void )
+void GDD_CursorSetHide( void )
 {
-    SetWindowHide(g_ptCursorHwnd);
-    GDD_StopTimer( sg_tpCursorTimer );
+    if(g_ptCursorHwnd != NULL)
+   {
+         GDD_SetWindowHide(g_ptCursorHwnd);
+         GDD_StopTimer( sg_tpCursorTimer );
+    }
 }
 
 //----移动光标-----------------------------------------------------------------
@@ -158,9 +168,10 @@ void Cursor_SetHide( void )
 //参数：deltaX，deltaY：坐标增量值。
 //返回：无
 //-----------------------------------------------------------------------------
-void Cursor_Offset( s32 deltaX , s32 deltaY )
+void GDD_CursorOffset( s32 deltaX , s32 deltaY )
 {
-    OffsetWindow(g_ptCursorHwnd, deltaX, deltaY);
+    if(g_ptCursorHwnd != NULL)
+        GDD_OffsetWindow(g_ptCursorHwnd, deltaX, deltaY);
 }
 
 //----移动光标-----------------------------------------------------------------
@@ -168,9 +179,10 @@ void Cursor_Offset( s32 deltaX , s32 deltaY )
 //参数：absX，absY，新的坐标
 //返回：无
 //-----------------------------------------------------------------------------
-void Cursor_Move( s32 absX , s32 absY )
+void GDD_CursorMove( s32 absX , s32 absY )
 {
-    MoveWindow(g_ptCursorHwnd, absX, absY);
+    if(g_ptCursorHwnd != NULL)
+        GDD_MoveWindow(g_ptCursorHwnd, absX, absY);
 }
 
 //----设置光标的宿主窗口-------------------------------------------------------
@@ -178,27 +190,28 @@ void Cursor_Move( s32 absX , s32 absY )
 //参数：HostWin，新的宿主窗口
 //返回：无
 //-----------------------------------------------------------------------------
-void Cursor_SetHost(HWND HostWin)
+void GDD_CursorSetHost(HWND HostWin)
 {
-    GK_AdoptWin(g_ptCursorHwnd->pGkWin, HostWin->pGkWin);
+    if(g_ptCursorHwnd != NULL)
+        GK_AdoptWin(g_ptCursorHwnd->pGkWin, HostWin->pGkWin);
 }
 //光标消息处理函数链表
 static struct MsgProcTable s_gCursorMsgProcTable[]=
 {
-    {MSG_CREATE,Cursor_Create},
-    {MSG_TIMER,Cursor_Flash},
+    {MSG_CREATE,__GDD_CursorCreate},
+    {MSG_TIMER,__GDD_CursorFlash},
 };
 
 static struct MsgTableLink  s_gCursorMsgLink;
 
-bool_t Cursor_Init(void)
+bool_t GDD_CursorInit(void)
 {
     struct RopGroup RopCode;
 
     s_gCursorMsgLink.MsgNum = sizeof(s_gCursorMsgProcTable) / sizeof(struct MsgProcTable);
     s_gCursorMsgLink.myTable = (struct MsgProcTable *)&s_gCursorMsgProcTable;
-    g_ptCursorHwnd = CreateWindow("Cursor",WS_CHILD,0,0,
-                        2, 12,NULL, 0, CN_WINBUF_PARENT,NULL,&s_gCursorMsgLink);
+    g_ptCursorHwnd = GDD_CreateWindow("Cursor",WS_CHILD,0,0,
+                        2, 12,NULL, 0, CN_WINBUF_PARENT,0,&s_gCursorMsgLink);
     if(g_ptCursorHwnd!=NULL)
     {
          GK_SetPrio(g_ptCursorHwnd->pGkWin,CN_WINDOW_ZPRIO_CURSOR , CN_TIMEOUT_FOREVER);
@@ -209,10 +222,10 @@ bool_t Cursor_Init(void)
          GDD_StartTimer(sg_tpCursorTimer);
          if(sg_tpCursorTimer == NULL)
          {
-             DestroyWindow(g_ptCursorHwnd);
+             GDD_DestroyWindow(g_ptCursorHwnd);
              return false;
          }
-         SetWindowHide(g_ptCursorHwnd);
+         GDD_SetWindowHide(g_ptCursorHwnd);
          return true;
      }
     return false;

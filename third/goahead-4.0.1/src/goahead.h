@@ -15,8 +15,8 @@
 
 /************************************ Includes ********************************/
 
-#include    "me.h"
-#include    "osdep.h"
+#include    "build/djyos-default/me.h"
+#include    "osdep/osdep.h"
 
 /************************************ Defaults ********************************/
 

@@ -1,0 +1,6 @@
+{
+	"cores":[{
+		"resetAddr":"0x00400000",
+		"type":"arm"
+	}]
+}

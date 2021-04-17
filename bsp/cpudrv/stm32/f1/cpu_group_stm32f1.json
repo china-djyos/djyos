@@ -1,0 +1,8 @@
+{
+	"cores":[{
+		"name":"cortex-m3",
+		"arch":"armv7-m",
+		"type":"arm",
+		"family":"cortex-m3"
+	}]
+}

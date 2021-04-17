@@ -50,6 +50,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netbsp.h>
+#include <misc/misc.h>
 #include "dbug.h"
 
 #include "arp.h"
@@ -74,7 +75,7 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"tcpip" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -156,22 +157,19 @@ typedef struct
    u8  timeout;
    u8  pro;
 #define CN_ARP_SYNC_TIME         (1*1000*mS) //anyway,we should at most 1 seconds
-   semp_t semp;                //use this semp to sync all the task waiting for the same arp
+   struct SemaphoreLCB* semp;                //use this semp to sync all the task waiting for the same arp
    u32 reffers;        //means how many times reffered, if none and the timeout is up
                        //this arp item will be deleted,each cycle will reset
 }tagArpItem;
 typedef struct
 {
-    mutex_t lock;
+    struct MutexLCB* lock;
     tagArpItem **hashtab;
 }tagArpCB;
 static tagArpCB gArpCB;
 #define CN_ARPITEM_PRO_DYNAMIC (1<<0)         //set by the hand
 #define CN_ARPITEM_PRO_STABLE  (1<<1)         //which means the mac could be use
 #define CN_ARPITEM_PRO_NONE    (0)            //no property
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //use this function to match an item in the arp tab with specified ip address
 static tagArpItem *__ItemMatch(u32 ippeer)
@@ -192,6 +190,7 @@ static tagArpItem *__ItemMatch(u32 ippeer)
     }
     return ret;
 }
+
 //use this function to net_malloc mem and insert an arpitem to the arp item tab
 static tagArpItem *__ItemCreate(u32 ippeer,u32 iphost,struct NetDev  *iface)
 {
@@ -202,7 +201,7 @@ static tagArpItem *__ItemCreate(u32 ippeer,u32 iphost,struct NetDev  *iface)
     if(NULL != ret)
     {
         memset((void *)ret,0,sizeof(tagArpItem));
-        ret->semp= semp_init(0X7fffffff,0,NULL); //almost unlimited
+        ret->semp= Lock_SempCreate(0X7fffffff,0,CN_BLOCK_FIFO,NULL); //almost unlimited
         if(NULL != ret->semp)
         {
             //add this arp item to the hash tab
@@ -243,7 +242,7 @@ static bool_t __ItemDel(u32 ippeer)
             {
                 bak->nxt = tmp->nxt;
             }
-            semp_del(tmp->semp);
+            Lock_SempDelete(tmp->semp);
             net_free((void *)tmp);
             ret = true;
             break;
@@ -262,7 +261,7 @@ static bool_t __ItemUpdate(u32 ip,u8 *mac)
     bool_t      result = false;
     tagArpItem *tmp;
 
-    if(mutex_lock(gArpCB.lock))
+    if(Lock_MutexPend(gArpCB.lock,CN_TIMEOUT_FOREVER))
     {
         tmp = __ItemMatch(ip);
         if((NULL != tmp)&&(tmp->pro &CN_ARPITEM_PRO_DYNAMIC))
@@ -273,10 +272,10 @@ static bool_t __ItemUpdate(u32 ip,u8 *mac)
             //post all the task pend on the arp
             while(Lock_SempCheckBlock(tmp->semp))
             {
-                semp_post(tmp->semp);
+                Lock_SempPost(tmp->semp);
             }
         }
-        mutex_unlock(gArpCB.lock);
+        Lock_MutexPost(gArpCB.lock);
     }
     return result;
 }
@@ -292,7 +291,7 @@ static bool_t __TabClean(void)
     bool_t      ret = false;
     tagArpItem *tmp;
     u32 offset;
-    if(mutex_lock(gArpCB.lock))
+    if(Lock_MutexPend(gArpCB.lock,CN_TIMEOUT_FOREVER))
     {
         for(offset =0; offset < CFG_ARP_HASHLEN;offset ++)
         {
@@ -300,12 +299,12 @@ static bool_t __TabClean(void)
             while(NULL != tmp)
             {
                 gArpCB.hashtab[offset] = tmp->nxt;
-                semp_del(tmp->semp);
+                Lock_SempDelete(tmp->semp);
                 net_free((void *)tmp);
                 tmp = gArpCB.hashtab[offset];
             }
         }
-        mutex_unlock(gArpCB.lock);
+        Lock_MutexPost(gArpCB.lock);
         ret = true;
     }
     return ret;
@@ -318,7 +317,7 @@ static bool_t __TabShow(void)
     u32         num = 0;
     tagArpItem *tmp;
     struct in_addr  addr;
-    if(mutex_lock(gArpCB.lock))
+    if(Lock_MutexPend(gArpCB.lock,CN_TIMEOUT_FOREVER))
     {
         OsPrintSplit('*',100);
         debug_printf("arp","ArpItem:\r\n");
@@ -337,7 +336,7 @@ static bool_t __TabShow(void)
                 num++;
             }
         }
-        mutex_unlock(gArpCB.lock);
+        Lock_MutexPost(gArpCB.lock);
 
         debug_printf("arp","ArpTotal:%d :hashlen:%d\n\r",num,CFG_ARP_HASHLEN);
         OsPrintSplit('*',100);
@@ -405,19 +404,19 @@ static bool_t __SndReq(u32 ippeer,u32 iphost,struct NetDev *iface)
     u8                *macto;
     u8                *macfrom;
 
-    macfrom = (u8 *)NetDevGetMac(iface);
+    macfrom = (u8 *)NetDev_GetMac(iface);
     macto = (u8 *)CN_MAC_BROAD;
     pkg = __BuildArppH(macto,macfrom,ippeer,iphost,macto,macfrom,CN_ARP_OP_REQUEST);
     if(NULL != pkg)
     {
-        NetDevPkgsndInc(iface);
-        ret = NetDevSend(iface, pkg, CN_IPDEV_NONE);
+        NetDev_PkgsndInc(iface);
+        ret = NetDev_Send(iface, pkg, CN_IPDEV_NONE);
         if(ret == false)
         {
-            NetDevPkgsndErrInc(iface);
+            NetDev_PkgsndErrInc(iface);
         }
-//      ret = NetDevSend(iface, pkg, PkgGetDataLen(pkg), CN_IPDEV_NONE);
-//      ret = NetDevSend(iface, pkg, pkg->datalen, CN_IPDEV_NONE);
+//      ret = NetDev_Send(iface, pkg, PkgGetDataLen(pkg), CN_IPDEV_NONE);
+//      ret = NetDev_Send(iface, pkg, pkg->datalen, CN_IPDEV_NONE);
         PkgTryFreePart(pkg);
         ret = true;
     }
@@ -431,19 +430,19 @@ static bool_t __SndRes(u32 ippeer,u32 iphost,u8 *macpeer,struct NetDev *iface)
     u8                *macto;
     u8                *macfrom;
 
-    macfrom = (u8 *)NetDevGetMac(iface);
+    macfrom = (u8 *)NetDev_GetMac(iface);
     macto = macpeer;
     pkg = __BuildArppH(macto,macfrom,ippeer,iphost,macto,macfrom,CN_ARP_OP_RESPONSE);
     if(NULL != pkg)
     {
-//      ret =NetDevSend(iface,pkg,pkg->datalen,CN_IPDEV_NONE);
-//      ret =NetDevSend(iface,pkg,PkgGetDataLen(pkg),CN_IPDEV_NONE);
-        NetDevPkgsndInc(iface);
-        ret = NetDevSend(iface, pkg, CN_IPDEV_NONE);
+//      ret =NetDev_Send(iface,pkg,pkg->datalen,CN_IPDEV_NONE);
+//      ret =NetDev_Send(iface,pkg,PkgGetDataLen(pkg),CN_IPDEV_NONE);
+        NetDev_PkgsndInc(iface);
+        ret = NetDev_Send(iface, pkg, CN_IPDEV_NONE);
 //      ret =iface->ifsend(iface,pkg,PkgGetDataLen(pkg),CN_IPDEV_NONE);
         if(ret == false)
         {
-            NetDevPkgsndErrInc(iface);
+            NetDev_PkgsndErrInc(iface);
         }
         PkgTryFreePart(pkg);
         ret = true;
@@ -477,6 +476,9 @@ static bool_t __DealReq(struct NetDev *iface,tagArpPH *arp)
     return ret;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //deal the response frame
 static bool_t __DealRes(struct NetDev *iface,tagArpPH *arp)
 {
@@ -495,6 +497,8 @@ static bool_t __DealRes(struct NetDev *iface,tagArpPH *arp)
     }
     return result;
 }
+#pragma GCC diagnostic pop
+
 //this function used to process the arp package
 static bool_t __ArpPush(struct NetDev *iface,struct NetPkg *pkg)
 {
@@ -536,7 +540,7 @@ static void  __ArpTicker(void)
     //timeout we should process all the timeout arp item
     for(offset =0; offset < CFG_ARP_HASHLEN;offset ++)
     {
-        if(mutex_lock(gArpCB.lock))
+        if(Lock_MutexPend(gArpCB.lock,CN_TIMEOUT_FOREVER))
         {
             tmp = gArpCB.hashtab[offset];
             while(NULL != tmp)
@@ -562,7 +566,7 @@ static void  __ArpTicker(void)
                 }
                 tmp = bak;
             }
-            mutex_unlock(gArpCB.lock);
+            Lock_MutexPost(gArpCB.lock);
         }
     }
     return ;
@@ -588,7 +592,7 @@ static void  __ArpTicker(void)
 bool_t ResolveMacByArp(u32 ippeer,u32 iphost,struct NetDev *iface,u8 *macbuf)
 {
     bool_t      ret = false;
-    tagArpItem *tmp;
+    tagArpItem *tmp=NULL;
 
     if(ippeer==INADDR_BROAD)
     {
@@ -597,7 +601,7 @@ bool_t ResolveMacByArp(u32 ippeer,u32 iphost,struct NetDev *iface,u8 *macbuf)
         ret = true;
         return ret;
     }
-    if(mutex_lock(gArpCB.lock))
+    if(Lock_MutexPend(gArpCB.lock,CN_TIMEOUT_FOREVER))
     {
         tmp = __ItemMatch(ippeer);
         if(NULL == tmp)
@@ -624,13 +628,13 @@ bool_t ResolveMacByArp(u32 ippeer,u32 iphost,struct NetDev *iface,u8 *macbuf)
                 __SndReq(ippeer,iphost,iface);  //do an arp request
             }
         }
-        mutex_unlock(gArpCB.lock);
+        Lock_MutexPost(gArpCB.lock);
     }
     if((false == ret)&&(NULL != tmp))
     {
-        semp_pendtimeout(tmp->semp,CN_ARP_SYNC_TIME);   //等待ARP响应
+        Lock_SempPend(tmp->semp,CN_ARP_SYNC_TIME);   //等待ARP响应
         //check once more
-        if(mutex_lock(gArpCB.lock))
+        if(Lock_MutexPend(gArpCB.lock,CN_TIMEOUT_FOREVER))
         {
             if(tmp->pro &CN_ARPITEM_PRO_STABLE)
             {
@@ -638,7 +642,7 @@ bool_t ResolveMacByArp(u32 ippeer,u32 iphost,struct NetDev *iface,u8 *macbuf)
                 tmp->reffers++;
                 ret = true;
             }
-            mutex_unlock(gArpCB.lock);
+            Lock_MutexPost(gArpCB.lock);
         }
     }
     return ret;
@@ -670,7 +674,7 @@ bool_t arp(char *param)
     u32 iphost = 0;
     int i = 0;
     int argc =14;
-    const char *argv[14];
+    char *argv[14];
     string2arg(&argc,argv,param);
     while(i <argc) //do the parameters decode
     {
@@ -686,7 +690,7 @@ bool_t arp(char *param)
         }
         else if(0 == strcmp(argv[i],"-i"))
         {
-             iface = NetDevGet(argv[i+1]);
+             iface = NetDev_GetHandle(argv[i+1]);
              i = i+2;
         }
         else if(0 == strcmp(argv[i],"-p"))
@@ -707,10 +711,10 @@ bool_t arp(char *param)
     switch(action)
     {
         case EN_ITEM_ACTION_ADD:
-            if(mutex_lock(gArpCB.lock))
+            if(Lock_MutexPend(gArpCB.lock,CN_TIMEOUT_FOREVER))
             {
                 __ItemCreate(ippeer,iphost,iface);
-                mutex_unlock(gArpCB.lock);
+                Lock_MutexPost(gArpCB.lock);
             }
             break;
         case EN_ITEM_ACTION_DEL:
@@ -720,10 +724,10 @@ bool_t arp(char *param)
             }
             else
             {
-                if(mutex_lock(gArpCB.lock))
+                if(Lock_MutexPend(gArpCB.lock,CN_TIMEOUT_FOREVER))
                 {
                     ret = __ItemDel(ippeer);
-                    mutex_unlock(gArpCB.lock);
+                    Lock_MutexPost(gArpCB.lock);
                 }
             }
             break;
@@ -744,7 +748,7 @@ bool_t arp(char *param)
 bool_t ArpInit(void)
 {
     bool_t ret = false;
-    gArpCB.lock = mutex_init(NULL);
+    gArpCB.lock = Lock_MutexCreate(NULL);
     if(NULL == gArpCB.lock)
     {
         debug_printf("arp","LOCK CREATE ERR\n\r");
@@ -758,14 +762,14 @@ bool_t ArpInit(void)
     }
     memset((void *)gArpCB.hashtab,0,CFG_ARP_HASHLEN*sizeof(void *));
     //we now register the arp receive function to the linker to deal arp frames
-    LinkPushRegister(EN_LINKPROTO_ARP,__ArpPush);
+    Link_PushRegister(EN_LINKPROTO_ARP,__ArpPush);
     //also need to register the ticker to the netticker queue
     NetTickerIsrInstall("ARPTICKER",__ArpTicker,30*1000); //30 SECOND
 
 
     return true;
 EXIT_ITEMTAB:
-    mutex_del(gArpCB.lock);
+    Lock_MutexDelete(gArpCB.lock);
     gArpCB.lock = NULL;
 EXIT_ITEMMUTEX:
     return ret;
@@ -773,4 +777,3 @@ EXIT_ITEMMUTEX:
 
 ADD_TO_ROUTINE_SHELL(arp,arp,"usage:arp [-a]/[-d] [-i interface] [-p peeraddr] [-h hostaddr]");
 
-#pragma GCC diagnostic pop

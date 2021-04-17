@@ -63,7 +63,8 @@
 #include "arch_feature.h"
 //#include "stm32f4xx.h"
 //#include "core_cmFunc.h"
-#include "project_config.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
 #ifndef __CHECK_DEVICE_DEFINES
 #define __CHECK_DEVICE_DEFINES
@@ -123,18 +124,18 @@ void Init_Cpu(void)
     SRAM_Init();
 
 #if (CFG_RUNMODE_BAREAPP == 1)
-    Load_Preload();
+    Iboot_LoadPreload();
 #else
-    IAP_SelectLoadProgam();
+    Iboot_IAP_SelectLoadProgam();
 #endif
 }
 
-extern void Load_Preload(void);
+extern void Iboot_LoadPreload(void);
 void AppStart(void)
 {
     __set_MSP((uint32_t)msp_top);
     __set_PSP((uint32_t)msp_top);
-    Load_Preload();
+    Iboot_LoadPreload();
 }
 
 //-----------------------------------------------------------------
@@ -175,7 +176,7 @@ void IAP_GpioPinInit(void)
 //      加载的函数，特别是库函数。
 //      本函数必须提供，如果没有设置相应硬件，可以简单返回false。
 //-----------------------------------------------------------------
-bool_t IAP_IsForceIboot(void)
+bool_t Iboot_IAP_IsForceIboot(void)
 {
     /*
     u32 flag;

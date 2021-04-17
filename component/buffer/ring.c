@@ -63,7 +63,7 @@
 #include <int.h>
 #include <string.h>
 #include <stdlib.h>
-#include "./include/ring.h"
+#include "ring.h"
 #include "component_config_buffer.h"
 
 //----建立环形缓冲区----------------------------------------------------------
@@ -140,6 +140,10 @@ u32 Ring_Write(struct RingBuf *ring,u8 *buffer,u32 len)
     atom_bak = Int_LowAtomStart();
     ring->len += wr_len;
     Int_LowAtomEnd(atom_bak);
+//    if(ring->len > ring->max_len)
+//    {
+//        stub_debug();
+//    }
     return wr_len;
 }
 
@@ -206,6 +210,10 @@ u32    Ring_Read(struct RingBuf *ring,u8 *buffer,u32 len)
     ring->len -= wr_len;
     Int_LowAtomEnd(atom_bak);
     return wr_len;
+//    if(ring->len > ring->max_len)
+//    {
+//        stub_debug();
+//    }
 }
 
 //----检查缓冲区数据量----------------------------------------------------------

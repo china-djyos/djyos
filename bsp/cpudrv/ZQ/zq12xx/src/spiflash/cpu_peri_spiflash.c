@@ -49,14 +49,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <device.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <cpu_peri.h>
 #include <djyos.h>
 #include <math.h>
 #include "stm32f7xx_hal_conf.h"
 #include <dbug.h>
-#include <filesystems.h>
-#include <device/include/unit_media.h>
+#include <djyfs/filesystems.h>
+#include <device/unit_media.h>
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
 
@@ -73,12 +73,12 @@
 //attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                       //初始化时机，可选值：early，medium，later。
+//init time:early                       //初始化时机，可选值：early，medium，later, pre-main。
                                         //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
-//weakdependence:"xip_app","xip_iboot"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"xip app file system","xip iboot file system"  //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件不会被强制选中，
                                         //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                          //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -393,7 +393,7 @@ int32_t djybsp_spiflash_init(void)
 }
 
 /////////////////////////////////////////IAP FS/////////////////////////////////////////////
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 
 
 //flash 信息描述
@@ -628,13 +628,13 @@ s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
     struct FsCore *super;
     s32 res,BlockNum;
 
-    targetobj = obj_matchpath(fs, &notfind);
+    targetobj = OBJ_MatchPath(fs, &notfind);
     if(notfind)
     {
         error_printf("spiflash"," not found need to install file system.");
         return -1;
     }
-    super = (struct FsCore *)obj_GetPrivate(targetobj);
+    super = (struct FsCore *)OBJ_GetPrivate(targetobj);
     super->MediaInfo = sipflash_umedia;
     super->MediaDrv = mediadrv;
 
@@ -654,7 +654,7 @@ s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
     FullPath = malloc(res);
     memset(FullPath, 0, res);
     sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,SpiFlashName);      //获取设备的全路径
-    FsBeMedia(FullPath,fs);     //往该设备挂载文件系统
+    File_BeMedia(FullPath,fs);     //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, dwStart, dwEnd);
@@ -698,7 +698,7 @@ s32 ModuleInstall_SpiFlash(u32 doformat)
     sipflash_umedia->type = nand;
     sipflash_umedia->ubuf = (u8*)sipflash_umedia + sizeof(struct umedia);
 
-    if(!dev_Create((const char*)SpiFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)sipflash_umedia)))
+    if(!Device_Create((const char*)SpiFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)sipflash_umedia)))
     {
         printf("\r\n: erro : device : %s addition failed.", SpiFlashName);
         free(sipflash_umedia);

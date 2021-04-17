@@ -56,7 +56,7 @@
 #include "errno.h"
 #include "systime.h"
 #include "cpu_peri.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "int.h"
 #include "djyos.h"
 #include "cpu_peri_uart.h"
@@ -99,7 +99,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","uart device file","heap","cpu onchip dma"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -387,12 +387,10 @@ static void __UART_GpioConfig(u8 SerialNo)
 //        data,结构体tagCOMParam类型的指针数值
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
 {
-    struct COMParam *COM;
-    if((data == 0) || (Reg == NULL))
+    if((COM == NULL) || (Reg == NULL))
         return;
-    COM = data;
     __UART_BaudSet(Reg,port,COM->BaudRate);
 
     Reg->CR1 &= ~(1);//禁止串口
@@ -580,7 +578,7 @@ static void __UART_HardInit(u8 SerialNo)
     tg_UART_Reg[SerialNo]->CR2 = 0x0;
     tg_UART_Reg[SerialNo]->CR3 = 0x0000;
     __UART_BaudSet(tg_UART_Reg[SerialNo],SerialNo,115200);
-    Djy_DelayUs(100);//
+    DJY_DelayUs(100);//
     tg_UART_Reg[SerialNo]->ICR|=(1<<4);
     Board_UartHalfDuplexRecv(SerialNo);
 }
@@ -596,7 +594,7 @@ bool_t __uart_dma_timeout(bool_t sending)
     while((sending == true)&& (timeout > 0))//超时
     {
         timeout--;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
     if(timeout == 0)
         return true;
@@ -654,7 +652,7 @@ u32 __UART_DMA_SendStart(u32 port)     //uart5没有对应DMA
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
+static u32 __UART_SendStart (tagUartReg *Reg)
 {
     u8 port;
 
@@ -865,7 +863,6 @@ void __UART_SetDmaUnUsed(u32 port)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-u32 CN1=0,CN2=0,CN3=0,CN4=0,CN5=0;
 static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
 {
     ptu32_t result = 0;
@@ -900,8 +897,9 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
             break;
         case CN_UART_SET_BAUD:  //设置Baud
         {
-            len = va_arg(*args, u32);
-             __UART_BaudSet(Reg,port, len);
+            u32 data;
+            data = va_arg(*args, u32);
+             __UART_BaudSet(Reg,port, data);
             break;
         }
         case CN_UART_EN_RTS:
@@ -962,7 +960,6 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
                               break;
                        default:  break;
                     }
-                    CN1++;
                     break;
                 case 2:
                     switch (pUartPollCB[port]->NowRecvbuf)
@@ -989,7 +986,6 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
                                break;
                        default:  break;
                     }
-                    CN2++;
                     break;
                 case 3:
                     switch (pUartPollCB[port]->NowRecvbuf)
@@ -1026,7 +1022,6 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
                                break;
                        default:  break;
                         }
-                    CN3++;
                     break;
                 case 4:
                     switch (pUartPollCB[port]->NowRecvbuf)
@@ -1073,7 +1068,6 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
                                break;
                        default:  break;
                         }
-                    CN4++;
                         break;
                 case 5:
                     switch (pUartPollCB[port]->NowRecvbuf)
@@ -1130,7 +1124,6 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
                                break;
                     default:                break;
                 }
-                CN5++;
                 break;
                 default:    break;
             }
@@ -1193,7 +1186,7 @@ uint32_t UART_Poll_DmaTx_ISR(ptu32_t port)
 
     DMA_ClearIntFlag(UartDmaTxChannel[port]);
     s_UART_DmaSending[port] = false;
-    UART_Poll_PortRead(pUartCB[port]);
+    UART_PollPortRead(pUartCB[port]);
     //todo:为了提高切换的速度这里不判断TC中断完成
     //进IDLE中断的时间可满足4M波特率一个字节
     Board_UartHalfDuplexRecv(port);
@@ -1278,7 +1271,7 @@ uint32_t UART_Poll_DmaRx_ISR(ptu32_t port)
     }
 
     pUartPollCB[port]->RcvBufLen[RcvBufNum] = recvs;
-    num = UART_Poll_PortWrite(pUartCB[port],recvs);
+    num = UART_PollPortWrite(pUartCB[port],recvs);
     if(num != recvs)
     {
         UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
@@ -1516,7 +1509,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;
@@ -1526,7 +1519,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
     while((PutStrDirectReg->ISR &(1<<6))!=(1<<6))
     {
         timeout -=10;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
         if(timeout < 10)
            break;
     }

@@ -64,6 +64,7 @@ extern "C" {
 #include "stddef.h"
 #include "errno.h"
 #include "arch_feature.h"
+#include "blackbox.h"
 #include "board-config.h"
 //结构类型声明,来自其他文件定义的结构
 struct SemaphoreLCB;
@@ -128,14 +129,12 @@ enum _KNL_ERROR_CODE_
 
 //事件优先级名称定义
 #define CN_PRIO_CRITICAL    (100)
-#define CN_PRIO_RLYMAIN     (110)
-#define CN_PRIO_RECORD      (112)
 #define CN_PRIO_REAL        (130)
 #define CN_PRIO_RRS         (200)
 #define CN_PRIO_WDT         (1)
 #define CN_PRIO_SYS_SERVICE (250)
 #define CN_PRIO_INVALID     (255)   //非法优先级
-
+#define CFG_GUI_RUN_PRIO    (131)
 struct ProcessVm       //进程
 {
     u8  res;
@@ -205,13 +204,16 @@ struct ThreadVm          //线程数据结构
 //};
 struct EventInfo
 {
-#if (CN_USE_TICKLESS_MODE)
-    u64    EventStartCnt;      //事件发生时间，uS
-    u64    consumed_cnt;       //事件消耗的总时间
-#else
     s64    EventStartTime;      //事件发生时间，uS
     s64    consumed_time;       //事件消耗的总时间
-#endif
+    u32    consumed_time_second;//最近1秒消耗的时间
+    u32    StackSize;
+    u32*   Stack;
+    u32*   StackUsed;
+    u32*   StackBottom;
+    u32*   StackTop;
+    char  *EvttName;
+
     u32    error_no;            //本事件执行产生的最后一个错误号
     ptu32_t event_result;       //如果本事件处理时弹出了事件，并且等待处理结果
                                 //(即调用pop函数时，timeout !=0)，且正常返回，这
@@ -231,6 +233,7 @@ struct EventECB
     struct EventECB *multi_next,*multi_previous;      //条件同步队列
     struct ThreadVm  *vm;               //处理本事件的线程指针
     ptu32_t param1,param2;              //事件参数,只保存最后一次弹出传入的参数
+    ptu32_t userdata;                   //提供给用户使用的数据
 //    struct ParaPCB *para_high_prio;   //高优先级参数队列
 //    struct ParaPCB *para_low_prio;    //低优先级参数队列
 //    struct ParaPCB *para_current;     //当前将要或正在处理的参数。
@@ -241,30 +244,20 @@ struct EventECB
                                         //返回时从该同步队列取出事件
 
 #if CFG_OS_TINY == false
-#if (CN_USE_TICKLESS_MODE)
-    u64    EventStartCnt;              //事件发生时间，uS
-    u64    consumed_cnt;               //事件消耗的总时间
-    u32    consumed_cnt_second;        //最近1秒消耗的时间
-    u32    consumed_cnt_record;        //上次整秒时，消耗的时间快照
-#else
     s64    EventStartTime;              //事件发生时间，uS
     s64    consumed_time;               //事件消耗的总时间
     u32    consumed_time_second;        //最近1秒消耗的时间
     u32    consumed_time_record;        //上次整秒时，消耗的时间快照
-#endif
 #endif  //CFG_OS_TINY == false
-#if (CN_USE_TICKLESS_MODE)
-    u64    delay_start_cnt;    //设定闹铃时间
-    u64    delay_end_cnt;      //闹铃响时间
-#else
     s64    delay_start_tick;    //设定闹铃时间
     s64    delay_end_tick;      //闹铃响时间
-#endif
     u32    error_no;            //本事件执行产生的最后一个错误号
     ptu32_t event_result;       //如果本事件处理时弹出了事件，并且等待处理结果
                                 //(即调用pop函数时，timeout !=0)，且正常返回，这
                                 //里保存该事件处理结果。
     u32    wait_mem_size;       //等待分配的内存数量.
+    u32    HeapSize;            //本线程从heap中分配的内存总量
+    u32    HeapSizeMax;         //本线程从heap中分配的内存总量的历史最大值
     //以下两行参见CN_STS_EVENT_READY系列定义
     u32 wakeup_from;            //用于查询事件进入就绪态的原因,todo,直接返回状态
     u32 event_status;           //当前状态,本变量由操作系统内部使用,
@@ -362,11 +355,11 @@ struct EventType
 extern struct EventECB  *g_ptEventReady;
 extern struct EventECB  *g_ptEventRunning;   //当前正在执行的事件
 extern bool_t g_bScheduleEnable;
-void Djy_ScheduleIsr(u32 inc_ticks);
-void Djy_SetRRS_Slice(u32 slices);
-u32 Djy_GetRRS_Slice(void);
-void Djy_CreateProcessVm(void);
-u16 Djy_EvttRegist(enum enEventRelation relation,
+void DJY_ScheduleIsr(u32 inc_ticks);
+void DJY_SetRRS_Slice(u32 slices);
+u32 DJY_GetRRS_Slice(void);
+void DJY_CreateProcessVm(void);
+u16 DJY_EvttRegist(enum enEventRelation relation,
                         ufast_t default_prio,
                         u16 vpu_res,
                         u16 vpus_limit,
@@ -375,40 +368,45 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
                         void *Stack,
                         u32 stack_size,
                         char *evtt_name);
-u32 Djy_GetRunMode(void);
-u16 Djy_GetEvttId(char *evtt_name);
-bool_t Djy_EvttUnregist(u16 evtt_id);
-bool_t Djy_QuerySch(void);
-bool_t Djy_IsMultiEventStarted(void);
-bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio);
-bool_t Djy_RaiseTempPrio(u16 event_id);
-bool_t Djy_RestorePrio(void);
-u32 Djy_EventDelay(u32 u32l_uS);
-s64 Djy_EventDelayTo(s64 s64l_uS);
-u32 Djy_WaitEventCompleted(u16 event_id,u32 timeout);
-u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout);
-u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout);
-u16 Djy_EventPop(  u16  hybrid_id,
+u32 DJY_GetRunMode(void);
+u16 DJY_GetEvttId(char *evtt_name);
+bool_t DJY_EvttUnregist(u16 evtt_id);
+bool_t DJY_QuerySch(void);
+bool_t DJY_IsMultiEventStarted(void);
+bool_t DJY_SetEventPrio(u16 event_id,ufast_t new_prio);
+bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio);//修改成DJY_SetEventPrio函数后和C库有冲突，copy了一份，改了C库之后删掉
+bool_t DJY_RaiseTempPrio(u16 event_id);
+bool_t DJY_RestorePrio(void);
+u32 DJY_EventDelay(u32 u32l_uS);
+s64 DJY_EventDelayTo(s64 s64l_uS);
+u32 DJY_WaitEventCompleted(u16 event_id,u32 timeout);
+u32 DJY_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout);
+u32 DJY_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout);
+u16 DJY_EventPop(  u16  hybrid_id,
                     u32 *pop_result,
                     u32 timeout,
                     ptu32_t PopPrarm1,
                     ptu32_t PopPrarm2,
                     ufast_t prio);
-u32 Djy_GetEvttPopTimes(u16 evtt_id);
-ptu32_t Djy_GetEventResult(void);
-void Djy_GetEventPara(ptu32_t *Param1,ptu32_t *Param2);
-void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action);
-void Djy_EventComplete(ptu32_t result);
-u32 Djy_WakeUpFrom(void);
-u16 Djy_MyEvttId(void);
-u16 Djy_MyEventId(void);
-void Djy_ApiStart(u32 api_no);
-void Djy_DelayUs(u32 time);
-void Djy_DelayNano(u32 time);
+u32 DJY_GetEvttPopTimes(u16 evtt_id);
+ptu32_t DJY_GetEventResult(void);
+void DJY_GetEventPara(ptu32_t *Param1,ptu32_t *Param2);
+void __SetEventPara(ptu32_t *Param1,ptu32_t *Param2);
+ptu32_t DJY_GetEventUserdata(void);
+void DJY_SetEventUserdata(ptu32_t userdata);
+void __DJY_EventExit(struct EventECB *event, u32 exit_code,enum EN_BlackBoxAction action);
+void DJY_EventComplete(ptu32_t result);
+u32 DJY_WakeUpFrom(void);
+u16 DJY_GetMyEvttId(void);
+u16 DJY_GetMyEventId(void);
+u16 Djy_MyEventId(void); //修改成DJY_GetMyEventId函数后和C库有冲突，copy了一份，改了C库之后删掉
+void DJY_ApiStart(u32 api_no);
+void DJY_DelayUs(u32 time);
+void DJY_DelayNano(u32 time);
 
-bool_t Djy_GetEventInfo(u16 id, struct EventInfo *info);
-bool_t Djy_GetEvttName(u16 evtt_id, char *dest, u32 len);
-bool_t Djy_RegisterHook(u16 EvttID,SchHookFunc HookFunc);
+bool_t DJY_GetEventInfo(u16 id, struct EventInfo *info);
+bool_t DJY_GetEvttName(u16 evtt_id, char *dest, u32 len);
+bool_t DJY_RegisterHook(u16 EvttID,SchHookFunc HookFunc);
 
 #ifdef __cplusplus
 }

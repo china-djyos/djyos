@@ -100,7 +100,7 @@ typedef struct EthernetHdr
 //备注:
 //作者:zhangqf@下午8:55:19/2016年12月28日
 //-----------------------------------------------------------------------------
-static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
+static bool_t __Link_Out(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
                            u16 proto,enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc)
 {
     bool_t            ret;
@@ -113,7 +113,7 @@ static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
     {
         hdr = (tagEthernetHdr *)PkgGetCurrentBuffer(ethpkg);
 //      hdr = (tagEthernetHdr  *)(ethpkg->buf + ethpkg->offset);
-        memcpy(hdr->macsrc, NetDevGetMac(iface), CN_MACADDR_LEN);
+        memcpy(hdr->macsrc, NetDev_GetMac(iface), CN_MACADDR_LEN);
         hdr->type_or_tpid = htons(proto);
         if(ver == EN_IPV_4)
         {
@@ -141,12 +141,12 @@ static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
 //          ethpkg->datalen = CN_ETHERNET_HEADLEN;
 //          ethpkg->partnext = pkg;
 //          framlen += CN_ETHERNET_HEADLEN_UNVLAN;
-//          ret = NetDevSend(iface,ethpkg,framlen,devtask);
-            NetDevPkgsndInc(iface);
-            ret = NetDevSend(iface,ethpkg,devtask);
+//          ret = NetDev_Send(iface,ethpkg,framlen,devtask);
+            NetDev_PkgsndInc(iface);
+            ret = NetDev_Send(iface,ethpkg,devtask);
             if(ret == false)
             {
-                NetDevPkgsndErrInc(iface);
+                NetDev_PkgsndErrInc(iface);
             }
             PkgTryFreePart(ethpkg);
         }
@@ -192,7 +192,7 @@ static bool_t  __LinkIn(struct NetDev *iface,struct NetPkg *pkg)
 
 //      pkg->offset += CN_ETHERNET_HEADLEN;
 //      pkg->datalen -= CN_ETHERNET_HEADLEN;
-        ret = LinkPush(iface,pkg,(enum enLinkProto)proto);
+        ret = Link_Push(iface,pkg,(enum enLinkProto)proto);
     }
     return ret;
 }
@@ -210,8 +210,8 @@ bool_t LinkEthernetInit(void)
     struct LinkOps   ops;
     memset(&(ops),0,sizeof(ops));
     ops.linkin = __LinkIn;
-    ops.linkout =__LinkOut;
-    ret = LinkRegister(EN_LINK_ETHERNET,"ETHERNET",&ops);
+    ops.linkout =__Link_Out;
+    ret = Link_Register(EN_LINK_ETHERNET,"ETHERNET",&ops);
 
     return ret;
 }

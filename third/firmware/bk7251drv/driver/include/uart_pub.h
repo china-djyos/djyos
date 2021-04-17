@@ -2,6 +2,8 @@
 #define _UART_PUB_H
 
 #include <stdio.h>
+#include "common/typedef.h"     //lst
+
 #if CFG_SUPPORT_ALIOS
 #include "hal/soc/soc.h"
 #endif
@@ -15,13 +17,13 @@
 #ifdef KEIL_SIMULATOR
 #define os_printf                       os_null_printf
 #else
-#define os_printf                       printf
+#define os_printf                       os_null_printf
 #endif // KEIL_SIMULATOR
 #endif // CFG_BACKGROUND_PRINT
 #endif // CFG_RELEASE_FIRMWARE
 
-#define warning_prf                    printf
-#define fatal_prf                      printf
+#define warning_prf                    os_null_printf
+#define fatal_prf                      os_null_printf
 #define null_prf                       os_null_printf
 //#define bk_printf                      printf
 
@@ -33,8 +35,8 @@
 
 #define UART_CMD_MAGIC               (0xC124000)
 
-#define UART1_PORT				0
-#define UART2_PORT				1
+#define UART1_PORT              0
+#define UART2_PORT              1
 
 enum
 {
@@ -44,8 +46,8 @@ enum
     CMD_RX_PEEK,
     CMD_UART_INIT,
     CMD_UART_SET_RX_CALLBACK,
-    CMD_UART_SET_TX_CALLBACK,   
-    CMD_SET_STOP_END,    
+    CMD_UART_SET_TX_CALLBACK,
+    CMD_SET_STOP_END,
     CMD_UART_SET_TX_FIFO_NEEDWR_CALLBACK,
     CMD_SET_TX_FIFO_NEEDWR_INT,
 };

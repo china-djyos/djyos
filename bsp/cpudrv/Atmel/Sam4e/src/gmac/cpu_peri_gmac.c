@@ -76,7 +76,7 @@
 //attribute:bsp                                                                  //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                                                               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                                                                  //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                                                               //初始化时机，可选值：early，medium，later。
+//init time:medium                                                               //初始化时机，可选值：early，medium，later, pre-main。
                                                                                  //表示初始化时间，分别是早期、中期、后期
 //dependence:"int","tcpip","heap","lock","AtmelSam4E","cpu drver Power management"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                                                                  //选中该组件时，被依赖组件将强制选中，
@@ -803,7 +803,7 @@ static bool_t GMAC_SendPacket(tagNetDev *dev,struct NetPkg * pkg, u32 netdevtask
         temp = GCIRC_SPACE(GtxTd.head, GtxTd.tail, GTX_BUFFERS);
         if(temp >= pkgnum)
             break;
-        Djy_EventDelay(1*mS);
+        DJY_EventDelay(1*mS);
     }while(SendBdWaitTime-- > 0);
 
     if(SendBdWaitTime == 0)
@@ -851,7 +851,7 @@ static bool_t GMAC_SendPacket(tagNetDev *dev,struct NetPkg * pkg, u32 netdevtask
         {
             break;
         }
-        Djy_EventDelay(1*mS);
+        DJY_EventDelay(1*mS);
     }while(SendBdWaitTime-- > 0);
 
     pTxTd = GtxTd.td + GtxTd.tail;
@@ -873,7 +873,7 @@ static ptu32_t GMAC_Rcv(void)
     struct NetPkg *pkg;
     tagNetDev *NetCard = ptNetDev;
 
-//    Djy_GetEventPara(NetCard,NULL);
+//    DJY_GetEventPara(NetCard,NULL);
     while(1)
     {
         Lock_SempPend(&GMAC_RcvSemp,CN_TIMEOUT_FOREVER);
@@ -897,11 +897,11 @@ static bool_t GMAC_RcvTask(tagNetDev *NetCard)
     u16 evttID;
     u16 eventID;
 
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_CRITICAL, 0, 1,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_CRITICAL, 0, 1,
         (ptu32_t (*)(void))GMAC_Rcv,NULL, 0x1000, "GMACRcvTask");
     if (evttID != CN_EVTT_ID_INVALID)
     {
-        eventID=Djy_EventPop(evttID, NULL,  0,(ptu32_t)NetCard, 0, 0);
+        eventID=DJY_EventPop(evttID, NULL,  0,(ptu32_t)NetCard, 0, 0);
         if(eventID != CN_EVENT_ID_INVALID)
         {
             result = true;
@@ -909,7 +909,7 @@ static bool_t GMAC_RcvTask(tagNetDev *NetCard)
         }
         else
         {
-            Djy_EvttUnregist(evttID);
+            DJY_EvttUnregist(evttID);
         }
     }
     return result;
@@ -1013,7 +1013,7 @@ bool_t GMAC_Send(u8 *buf,u32 len)
         temp = GCIRC_SPACE(GtxTd.head, GtxTd.tail, GTX_BUFFERS);
         if(temp >= pkgnum)
             break;
-        Djy_EventDelay(1*mS);
+        DJY_EventDelay(1*mS);
     }while(SendBdWaitTime-- > 0);
 
     SendBuf = (u8*)TxBuffer;
@@ -1052,7 +1052,7 @@ bool_t GMAC_Send(u8 *buf,u32 len)
         {
             break;
         }
-        Djy_EventDelay(1*mS);
+        DJY_EventDelay(1*mS);
     }while(SendBdWaitTime-- > 0);
 
     pTxTd = GtxTd.td + GtxTd.tail;

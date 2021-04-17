@@ -1,0 +1,42 @@
+{
+	"board_name":"APOLLO-STM32F7",
+	"cpus":{
+		"stm32f767xx":{
+			"clocks":{
+				
+			},
+			"chips":["ls88e6060",
+			"touchscreen FT5X26",
+			"IIC to 8gpio pcf8574",
+			"ethernet phy lan8720"],
+			"peripherals":["cpu_peri_bkpsram",
+			"cpu_peri_can",
+			"cpu_peri_emflash",
+			"cpu_peri_eth",
+			"cpu_peri_gpio",
+			"cpu_peri_iic",
+			"cpu_peri_lcd",
+			"cpu_peri_lowpwer",
+			"nand",
+			"cpu_peri_rtc",
+			"cpu_peri_sdmmc",
+			"cpu_peri_spi",
+			"cpu_peri_systime",
+			"cpu_peri_Temprate",
+			"cpu_peri_timer",
+			"cpu_peri_uart",
+			"usbh_conf"],
+			"mian_freq":0,
+			"memories":{
+				"memory1":{
+					"size":"0x2000000",
+					"type":"RAM",
+					"start_addr":"0xc0000000"
+				}
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

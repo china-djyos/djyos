@@ -60,14 +60,19 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include "stdint.h"
-#include <gui/gkernel/gk_display.h>
-#include    <gui/gdd/gdd_private.h>
+#include <gui/gk_display.h>
+#include    "gdd_private.h"
 #include    <gui/gdd_timer.h>
 #include "list.h"
+#include "pool.h"
 #include "component_config_gdd.h"
 
-extern HWND    InitGddDesktop(struct GkWinObj *desktop);
-extern bool_t Cursor_Init(void);
+extern HWND    GDD_InitGddDesktop(struct GkWinObj *desktop);
+extern bool_t GDD_CursorInit(void);
+
+#define CN_HWND_INIT_CAPACITAL 10
+struct MemCellPool *g_ptHwndPool;
+static struct WINDOW s_tHwndInitPool[CN_HWND_INIT_CAPACITAL];
 /*============================================================================*/
 
 static  struct MutexLCB *gdd_mutex_lock=NULL;
@@ -104,36 +109,49 @@ void ModuleInstall_GDD(struct GkWinObj *desktop)
     if(gdd_mutex_lock == NULL)
         return;
 
-    pGddWin=InitGddDesktop(desktop);
+    g_ptHwndPool = Mb_CreatePool(s_tHwndInitPool,CN_HWND_INIT_CAPACITAL,
+                    sizeof(struct WINDOW), 16, 1000, "hwnd");
+    pGddWin=GDD_InitGddDesktop(desktop);
     GDD_WindowInit();
     GDD_TimerInit();
     GDD_InputDevInit( );
-    if(pGddWin != NULL)
-    {
-        if(Cursor_Init())
-            SetFocusWindow(pGddWin);
-    }
-    ////gdd_input
-    evtt = Djy_EvttRegist(  EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
-                          GDD_TimerScan, NULL,2048,"gdd timer");
+    GDD_SetFocusWindow(pGddWin);
+    //gdd定时器扫描
+    evtt = DJY_EvttRegist(  EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0,
+                          GDD_TimerScan, NULL,1024,"gdd timer");
     if (evtt != CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(evtt, NULL, 0, 0, 0, 0);
+        DJY_EventPop(evtt, NULL, 0, 0, 0, 0);
     }
+
+
+//以下代码是用于响应从gkernel回送的消息，暂时空着。
+//  evtt = DJY_EvttRegist(  EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0,
+//                        GDD_GetGK_Message, NULL,2048,"wait gk task");
+//  if (evtt != CN_EVTT_ID_INVALID)
+//  {
+//      DJY_EventPop(evtt, NULL, 0, 0, 0, 0);
+//  }
 
 }
 
 void ModuleInstall_Gdd_AND_Desktop(void)
 {
     struct GkWinObj *desktop;
-    desktop = GK_CreateDesktop(CFG_DISPLAY_NAME,CFG_DESKTOP_NAME,
-                            (s32)CFG_DESKTOP_WIDTH,(s32)CFG_DESKTOP_HEIGHT,
-                            (u32)CFG_FILL_COLOR,(u32)CN_WINBUF_PARENT,
-                            (u16)CFG_DESKTOP_FORMAT,(u32)CFG_GRAY_BASE_COLOR);
+    if(CFG_DESKTOP_BUF == true)
+        desktop = GK_CreateDesktop(CFG_DISPLAY_NAME,CFG_DESKTOP_NAME,
+                                (s32)CFG_DESKTOP_WIDTH,(s32)CFG_DESKTOP_HEIGHT,
+                                (u32)CFG_FILL_COLOR, (u32)CN_WINBUF_BUF,
+                                (u16)CFG_DESKTOP_FORMAT,(u32)CFG_GRAY_BASE_COLOR);
+    else
+        desktop = GK_CreateDesktop(CFG_DISPLAY_NAME,CFG_DESKTOP_NAME,
+                                (s32)CFG_DESKTOP_WIDTH,(s32)CFG_DESKTOP_HEIGHT,
+                                (u32)CFG_FILL_COLOR, (u32)CN_WINBUF_NONE,
+                                (u16)CFG_DESKTOP_FORMAT,(u32)CFG_GRAY_BASE_COLOR);
     if(desktop == NULL)
     {
         printf("创建桌面出错");
-        while( 1 );             //初始化时出错，死循环即可
+//      while( 1 );             //初始化时出错，死循环即可
     }
     else
     {

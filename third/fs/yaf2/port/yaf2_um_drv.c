@@ -49,7 +49,7 @@
 
 #include <lock.h>
 #include <stdlib.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include "../yaffs2-583dbd9/yaffs2-583dbd9/direct/yportenv.h"
 #include "../yaffs2-583dbd9/yaffs2-583dbd9/yaffs_guts.h"
 

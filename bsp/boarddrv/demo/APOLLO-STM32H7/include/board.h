@@ -48,7 +48,7 @@
 
 //#include "./include/ctiic.h"
 #include "cpu_peri.h"
-
+#include "IoIicBus.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -89,7 +89,7 @@ extern "C" {
 #define RS485_RE_IO     6       //RS485_RE引脚        P6
 #define ETH_RESET_IO    7       //以太网复位引脚       P7
 /*************************************************************************************/
-void Board_GpioInit(void);
+void Board_Init(void);
 void FT5206_RST(bool_t flag);
 void Board_UartHalfDuplexSend(u8 SerialNo);
 void Board_UartHalfDuplexRecv(u8 SerialNo);
@@ -115,7 +115,7 @@ bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level);
 //bool_t ModuleInstall_Touch_FT5206(struct GkWinObj *desktop,\
 //        const char *touch_dev_name );
 //
-//bool_t ModuleInstall_Keyboard(const char *dev_name);
+//bool_t ModuleInstall_KeyBoardHal(const char *dev_name);
 //u32 keyboard_scan(void);
 //
 //bool_t lan8720Init(void);

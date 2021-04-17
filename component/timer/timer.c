@@ -76,7 +76,7 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"message queue"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -93,10 +93,10 @@
 //#warning  " Software_Timers  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_SOFTWARE_TIMERS    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,0,100,
+//%$#@num,0,2000,
 #define CFG_TIMERS_LIMIT        5       //"定时器数量",可创建的定时器数量（不包含图形界面的定时器）
 //%$#@enum,true,false,
-#define CFG_TIMER_SOUCE_HARD    true    //"硬件定时器提供时钟源",选择专用硬件还是tick/tickless做时钟源
+#define CFG_TIMER_SOUCE_HARD    true    //"硬件定时器提供时钟源",选择专用硬件还是tick做时钟源
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -113,7 +113,7 @@ struct Timer
     char          *name;
     u32           cycle;        //定时器周期 (单位是微秒)
     fnTimerRecall isr;          //定时器定时时间节点钩子函数
-    u32           stat;         //定时器状态标志，参见CN_TIMER_ENCOUNT等常数
+    u32           stat;         //定时器状态标志，参见 CN_TIMER_ENCOUNT 等常数
     ptu32_t       TimerTag;     //私有标签
     s64           deadline;     //定时器定时时间(单位是微秒)
 };
@@ -132,7 +132,6 @@ static u32 s_u32TimerFreq;          //所用的硬件定时器频率
 //static bool_t  sbUsingHardTimer = false;
 static tagTimer* ptTimerHead = NULL;                 //软定时器队列头
 static tagTimer* ptTimerTail = NULL;                 //软件定时器队尾
-static tagTimer           *ptTimerMem = NULL;        //动态分配内存
 static struct MemCellPool  *ptTimerMemPool = NULL;    //内存池头指针。
 static struct MutexLCB     *ptTimerQSync =NULL;       //API资源竞争锁
 
@@ -164,7 +163,7 @@ typedef struct
 // =============================================================================
 bool_t __Timer_Get64Time(s64 *time)
 {
-    *time = DjyGetSysTime();
+    *time = DJY_GetSysTime();
     return true;
 }
 // =============================================================================
@@ -329,7 +328,7 @@ u32 __Timer_DealTimeout(void)
     {
         if(timer->stat &CN_TIMER_ENCOUNT)
         {
-            timenow = DjyGetSysTime();     //使用系统64位不停表的定时器，可消除
+            timenow = DJY_GetSysTime();     //使用系统64位不停表的定时器，可消除
                                         //定时器中断启停之间产生的积累误差
             if(__Timer_ChkTimeout(timer, timenow))
             {
@@ -341,6 +340,7 @@ u32 __Timer_DealTimeout(void)
                 }
                 else
                 {
+                    timer->stat &= (~CN_TIMER_ENCOUNT);
                     timer->deadline = CN_TIMER_ALARMNEVER;
                     __Timer_AddLast(timer);
                 }
@@ -372,6 +372,9 @@ u32 __GetTclkCycle(u32 waittime)
         result = s_u32Precision2Tclk;
     return result;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // 函数功能：Timer_ISR
 //          定时器中断服务HOOK
@@ -399,6 +402,7 @@ u32 Timer_ISR(ptu32_t irq_no)
 
     return 0;
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // 函数功能：Timer_Create_s
@@ -417,7 +421,6 @@ tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
 {
     tagTimer*      result = NULL;
     u32                waittime;
-    tagTimerMsg    msg;
     if(NULL == timer)  //参数检查
     {
         result =NULL;
@@ -453,6 +456,7 @@ tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
         }
 #else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
+            tagTimerMsg    msg;
             timer->name = (char*)name;
             timer->cycle = cycle;
             timer->isr = isr;
@@ -481,7 +485,7 @@ tagTimer* Timer_Delete_s(tagTimer* timer)
 {
     tagTimer*      result = NULL;
     u32                waittime;
-    tagTimerMsg    msg;
+
     if(NULL == timer)  //参数检查
     {
         result =NULL;
@@ -511,6 +515,7 @@ tagTimer* Timer_Delete_s(tagTimer* timer)
         }
 #else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
+            tagTimerMsg    msg;
             msg.timer = timer;
             msg.type = EN_TIMERSOFT_REMOVE;
             if(MsgQ_Send(ptTimerMsgQ,(u8 *)&msg, sizeof(msg),\
@@ -551,6 +556,27 @@ tagTimer* Timer_Create(const char *name, u32 cycle,fnTimerRecall isr)
     }
     return result;
 }
+
+//-----------------------------------------------------------------------------
+//功能：查看定时器是否在运行状态
+//参数：Timer，待查看的定时器
+//返回：true = running，false= stop
+//-----------------------------------------------------------------------------
+bool_t Timer_IsRunning(tagTimer *Timer)
+{
+    if(Timer == NULL)
+    {
+        return false;
+    }
+    else
+    {
+        if(Timer->stat & CN_TIMER_ENCOUNT)
+            return true;
+        else
+            return false;
+    }
+}
+
 // =============================================================================
 // 函数功能：Timer_Delete
 //           删除一个定时器
@@ -588,7 +614,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
     bool_t  result = false;
     u32     waittime;
     s64     timenow;               //当前时间
-    tagTimerMsg msg;
+
     if(timer)                      //参数检查
     {
 #if CFG_TIMER_SOUCE_HARD == true        //由硬件计时器提供时钟源
@@ -604,14 +630,14 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
                     if(0 ==(CN_TIMER_ENCOUNT & timer->stat))    //本来未使能
                     {
                         timer->stat |= CN_TIMER_ENCOUNT;
-                        timenow = DjyGetSysTime(); //使用系统64位不停表的定时器，可消除
+                        timenow = DJY_GetSysTime(); //使用系统64位不停表的定时器，可消除
                                                 //定时器中断启停之间产生的积累误差
                         timer->deadline = timenow + timer->cycle;
                         __Timer_Remove(timer);
                         __Timer_Add(timer);
                     }
                     break;
-                case EN_TIMER_SOFT_PAUSE:
+                case EN_TIMER_SOFT_STOP:
                     if(CN_TIMER_ENCOUNT & timer->stat)          //本来在运行态
                     {
                         timer->stat &= (~CN_TIMER_ENCOUNT);
@@ -624,7 +650,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
                     timer->cycle = para;
                     if(CN_TIMER_ENCOUNT&timer->stat)
                     {
-                        timenow = DjyGetSysTime(); //使用系统64位不停表的定时器，可消除
+                        timenow = DJY_GetSysTime(); //使用系统64位不停表的定时器，可消除
                                                 //定时器中断启停之间产生的积累误差
                         timer->deadline = timenow + timer->cycle;
                         __Timer_Remove(timer);
@@ -657,6 +683,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
         }
 #else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
+            tagTimerMsg msg;
             msg.timer = timer;
             msg.type = opcode;
             msg.para = para;
@@ -701,14 +728,14 @@ ptu32_t  Timer_VMTask(void)
                     if(0 ==(CN_TIMER_ENCOUNT & timer->stat))    //本来未使能
                     {
                         timer->stat |= CN_TIMER_ENCOUNT;
-                        timenow = DjyGetSysTime(); //使用系统64位不停表的定时器，可消除
+                        timenow = DJY_GetSysTime(); //使用系统64位不停表的定时器，可消除
                                                 //错过tick中断产生的积累误差
                         timer->deadline = timenow + timer->cycle;
                         __Timer_Remove(timer);
                         __Timer_Add(timer);
                     }
                     break;
-                case EN_TIMER_SOFT_PAUSE:
+                case EN_TIMER_SOFT_STOP:
                     if(CN_TIMER_ENCOUNT & timer->stat)      //本来在运行态
                     {
                         timer->stat &= (~CN_TIMER_ENCOUNT);
@@ -721,7 +748,7 @@ ptu32_t  Timer_VMTask(void)
                     timer->cycle = para;
                     if(CN_TIMER_ENCOUNT&timer->stat)
                     {
-                        timenow = DjyGetSysTime(); //使用系统64位不停表的定时器，可消除
+                        timenow = DJY_GetSysTime(); //使用系统64位不停表的定时器，可消除
                                                 //错过tick中断产生的积累误差
                         timer->deadline = timenow + timer->cycle;
                         __Timer_Remove(timer);
@@ -809,8 +836,6 @@ char *Timer_GetName(tagTimer* timer)
 bool_t ModuleInstall_Timer(void)
 {
     static tagTimer ptTimerMem[CFG_TIMERS_LIMIT];
-    u16 u16EvttId;
-    u16 u16EventId;
     printk("Timer:Init Start....\n\r");
     ptTimerMemPool = Mb_CreatePool(ptTimerMem,CFG_TIMERS_LIMIT,
                                 sizeof(tagTimer),0,0,"Timer");
@@ -842,6 +867,8 @@ bool_t ModuleInstall_Timer(void)
         HardTimer_Ctrl(sgHardTimerDefault,EN_TIMER_ENINT,(ptu32_t)NULL);
         HardTimer_Ctrl(sgHardTimerDefault,EN_TIMER_SETRELOAD,(ptu32_t)false);
 #else   //CFG_TIMER_SOUCE_HARD == true      由tick提供时钟源
+        u16 u16EvttId;
+        u16 u16EventId;
 
         //建立通信用的消息队列
         ptTimerMsgQ = MsgQ_Create(CN_TIMERSOFT_MSGLEN, \
@@ -852,8 +879,8 @@ bool_t ModuleInstall_Timer(void)
         }
         else
         {
-            u16EvttId = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS-2,0,0,
-                                   Timer_VMTask,NULL,0x400,NULL);
+            u16EvttId = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS-2,0,0,
+                                   Timer_VMTask,NULL,0x1000,NULL);
             if(CN_EVTT_ID_INVALID == u16EvttId)
             {
                 MsgQ_Delete(ptTimerMsgQ);
@@ -863,12 +890,12 @@ bool_t ModuleInstall_Timer(void)
             else
             {
                 s_u32TimerPrecision = CN_CFG_TICK_US;   //精度=1个tick
-                u16EventId = Djy_EventPop(u16EvttId,NULL,0,0,0,0);
+                u16EventId = DJY_EventPop(u16EvttId,NULL,0,0,0,0);
                 if(CN_EVENT_ID_INVALID == u16EventId)
                 {
                     MsgQ_Delete(ptTimerMsgQ);
                     ptTimerMsgQ = NULL;
-                    Djy_EvttUnregist(u16EventId);
+                    DJY_EvttUnregist(u16EventId);
                     goto EXIT_TIMERFAILED;
                 }
             }
@@ -882,7 +909,6 @@ EXIT_TIMERFAILED:
     Mb_DeletePool(ptTimerMemPool);
 EXIT_POOLFAILED:
     free(ptTimerMem);
-EXIT_MEMFAILED:
     printk("Timer:Init Failed\n\r");
     return false;
 }

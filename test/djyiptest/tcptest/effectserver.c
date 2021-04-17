@@ -211,16 +211,16 @@ ptu32_t tcptstserver(void)
             sndopt = CN_RCVBUF_LEN;
             if(0 == setsockopt(clientfd,SOL_SOCKET ,SO_RCVBUF,&sndopt,4))
             {
-                printf("Client:set client sndbuf success!\n\r");
+                printf("Client:set client rcvbuf success!\n\r");
             }
             else
             {
-                printf("Client:set client sndbuf failed!\n\r");
+                printf("Client:set client rcvbuf failed!\n\r");
             }
             //TEST RCV
 //          rcvtotal = 0;
 //          rcvbuf = M_Malloc(CN_RCVBUF_LEN,CN_TIMEOUT_FOREVER);
-//          rcvtimestart = DjyGetSysTime();
+//          rcvtimestart = DJY_GetSysTime();
 //          while(1)
 //          {
 //              rcvlen = recv(clientfd,rcvbuf,CN_RCVBUF_LEN,0);
@@ -235,7 +235,7 @@ ptu32_t tcptstserver(void)
 //              }
 //              if(0==rcvtimes%1000)
 //              {
-//                  rcvtimeend = DjyGetSysTime();
+//                  rcvtimeend = DJY_GetSysTime();
 //                  nrcvtime = (u32)(rcvtimeend - rcvtimestart);
 //                  printf("Rcv: Len =0x%08x MBytes,Time = 0x%08x us\n\r",\
 //                                rcvtotal/1024/1024,nrcvtime);
@@ -262,7 +262,7 @@ ptu32_t tcptstserver(void)
                 sndlen = send(clientfd,sndbuf,CN_SNDBUF_LEN,0);
                 sgSndTimes++;
 
-                Djy_EventDelay(1000*mS);
+                DJY_EventDelay(1000*mS);
             }
 
 
@@ -318,7 +318,7 @@ ptu32_t tcptstserver(void)
             }
 
             sndtotal = 0;
-            sndtimestart = (u32)DjyGetSysTime();
+            sndtimestart = (u32)DJY_GetSysTime();
             while(1)
             {
                 multiid = Multiplex_Wait(writesets,NULL, CN_TIMEOUT_FOREVER);
@@ -332,13 +332,13 @@ ptu32_t tcptstserver(void)
                         if(0 == sndprint%10000)
                         {
                             sndkbytes = sndtotal /1024;
-                            sndtimetest = (u32)DjyGetSysTime();
+                            sndtimetest = (u32)DJY_GetSysTime();
                             sndtimetest -= sndtimestart;
                             sndspeed = (sndtotal*1000)/sndtimetest;
                             printf("Send Msg:%d kbytes--speed = %d KB/S\n\r",\
                                            sndkbytes,sndspeed);
                         }
-//                      Djy_EventDelay(1000*mS);
+//                      DJY_EventDelay(1000*mS);
                     }
                     else
                     {
@@ -366,11 +366,11 @@ ptu32_t tcptstserver(void)
 bool_t TcpEffectTest(char *param)
 {
    u16   evtt_id = CN_EVTT_ID_INVALID;
-   evtt_id = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS-4, 0, 1,
+   evtt_id = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS-4, 0, 1,
         (ptu32_t (*)(void))tcptstserver,NULL, 0x1000, "TCPEffectServer");
     if (evtt_id != CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(evtt_id, NULL, 0, NULL, 0, 0);
+        DJY_EventPop(evtt_id, NULL, 0, NULL, 0, 0);
     }
     return true;
 }

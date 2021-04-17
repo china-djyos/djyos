@@ -65,6 +65,8 @@ extern "C" {
 
 void djy_audio_adc_open(uint16_t buf_len,uint16_t channel,
                 audio_sample_rate_e freq,uint32_t linein_detect_pin);
+void djy_linein_adc_open(uint16_t buf_len,uint16_t channel,
+                audio_sample_rate_e freq,uint32_t linein_detect_pin);
 uint32_t djy_audio_adc_read(char *user_buf, uint32_t count);
 void djy_audio_adc_control( uint32_t cmd, void *args);
 void djy_audio_adc_close(void);

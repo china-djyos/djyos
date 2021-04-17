@@ -58,9 +58,9 @@
 #include <list.h>
 #include <stdarg.h>
 #include <xip.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <stdio.h>
-#include "../../filesystems.h"
+#include <djyfs/filesystems.h>
 #include "Iboot_info.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -78,7 +78,7 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"file system"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //如果依赖多个组件，则依次列出
@@ -112,10 +112,18 @@ u64 FileNowPos = 0;
 //static const char *xip_iboot_target = "xip-iboot";
 // 底层接口函数
 //
-extern s32 xip_fs_format(struct __icore *core);
+//extern s32 xip_fs_format(void *core);
 static s32 xip_iboot_fs_install(struct FsCore *super, u32 opt, void *config);
 s32 xip_iboot_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+__attribute__((weak)) s32 xip_fs_format(void *core)
+{
+    return 0;
+}
 
 //==========================================================================
 // 功能：文件上锁
@@ -150,41 +158,42 @@ static inline void xip_iboot_unlock(struct __icore *core)
 static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *uncached)
 {
     struct objhandle *hdl = NULL;
-    struct __icore *core = (struct __icore*)corefs(ob);
-    mode_t mode;
+    struct __icore *core = (struct __icore*)File_Core(ob);
+//    mode_t mode;
 
-    if(test_writeable(flags) == 0)
+    if((Handle_FlagIsWriteable(flags) == 0) || (Handle_FlagIsDirectory(flags) == 1))
     {
+        printf("\r\n: error :cannot open the xip-iboot directory and the files in it only support write mode.");
         return (NULL);    //xip-iboot只支持写模式
     }
 
     xip_iboot_lock(core);
 
-//    if(strcmp(obj_name(ob),EN_XIP_IBOOT_TARGET) == 0)      //判断访问的路径是不是xip-iboot，如果不是则直接返回NULL
+//    if(strcmp(OBJ_GetName(ob),EN_XIP_IBOOT_TARGET) == 0)      //判断访问的路径是不是xip-iboot，如果不是则直接返回NULL
 //    {
         xip_fs_format(core);        //擦除iboot所在的flash区域
 
-        if(!obj_newchild(core->root, xip_iboot_ops, (ptu32_t)0, uncached))
-        {
-            xip_iboot_unlock(core);
-            return (NULL);
-        }
+//        if(!OBJ_NewChild(core->root, xip_iboot_ops, (ptu32_t)0, uncached))
+//        {
+//            xip_iboot_unlock(core);
+//            return (NULL);
+//        }
 
-        hdl = handle_new();
+        hdl = Handle_New();
         if(!hdl)
         {
             return (NULL);
         }
 
-        handle_init(hdl, NULL, flags, 0);
+        Handle_Init(hdl, NULL, flags, 0);
 
         if(hdl)
         {
             //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
-            mode = S_IALLUGO | S_IFREG;     //建立的路径，属性是目录。
+//            mode = S_IALLUGO | S_IFREG;     //建立的路径，属性是目录。
             //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
-            ob = obj_buildpath(ob, xip_iboot_ops, mode,uncached);
-            obj_LinkHandle(hdl, ob);
+            ob = OBJ_BuildTempPath(ob, xip_iboot_ops, (ptu32_t)0,uncached);
+            OBJ_LinkHandle(hdl, ob);
         }
 //    }
     xip_iboot_unlock(core);
@@ -200,7 +209,7 @@ static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *unca
 static s32 xip_iboot_close(struct objhandle *hdl)
 {
     FileNowPos = 0;
-    handle_Delete(hdl);
+//  Handle_Delete(hdl);
     return (0);
 }
 
@@ -215,7 +224,7 @@ static s32 xip_iboot_close(struct objhandle *hdl)
 static s32 xip_iboot_write(struct objhandle *hdl, u8 *data, u32 size)
 {
     s32 res;
-    struct __icore *core = (struct __icore*)corefs(handle_GetHostObj(hdl));
+    struct __icore *core = (struct __icore*)File_Core(Handle_GetHostObj(hdl));
     xip_iboot_lock(core);
     res = core->drv->xip_write_media(core,data,size,FileNowPos);
     if(-1 == res)
@@ -249,6 +258,7 @@ static s32 xip_iboot_stat(struct Object *ob, struct stat *data)
 
     return (0);
 }
+#pragma GCC diagnostic pop
 
 // ============================================================================
 // 功能：初始化xip对media的驱动
@@ -375,7 +385,6 @@ s32 xip_iboot_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
     return result;
 }
-
 // ============================================================================
 // 功能：安装xip文件系统
 // 参数： opt -- 文件系统配置选项；如MS_INSTALLCREAT
@@ -395,29 +404,29 @@ s32 ModuleInstall_XIP_FS(u32 opt, void *data,char * xip_target)
         typeXIPIBOOT->fileOps = xip_iboot_ops;
         typeXIPIBOOT->install = xip_iboot_fs_install;
         typeXIPIBOOT->pType = "XIP-IBOOT";
-        typeXIPIBOOT->format = NULL;
+        typeXIPIBOOT->format = xip_fs_format;
         typeXIPIBOOT->uninstall = NULL;
     }
-    res = regfs(typeXIPIBOOT);
+    res = File_RegisterFs(typeXIPIBOOT);
     if(-1==res)
     {
-        printf("\r\n: dbug : module : cannot register \"XIP-APP\"(file system type).");
+        printf("\r\n: dbug : module : cannot register \"xip-iboot\"(file system type).");
         return (-1); // 失败;
     }
 
-    mountobj = obj_newchild(obj_root(), __mount_ops, 0, xip_target);
+    mountobj = OBJ_NewChild(OBJ_GetRoot(), __File_MountOps, 0, xip_target);
     if(NULL == mountobj)
     {
         printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", xip_target);
         return (-1);
     }
-//    __InuseUpFullPath(mountobj);
+//    OBJ_DutyUp(mountobj);
     opt |= MS_DIRECTMOUNT;      //直接挂载不用备份
-    res = mountfs(NULL, xip_target, "XIP-IBOOT", opt, data);
+    res = File_Mount(NULL, xip_target, "XIP-IBOOT", opt, data);
     if(res == -1)
     {
         printf("\r\n: dbug : module : mount \"XIP-IBOOT\" failed, cannot install.");
-        obj_Delete(mountobj);
+        OBJ_Delete(mountobj);
         return (-1);
     }
     return (0);

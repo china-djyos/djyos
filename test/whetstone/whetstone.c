@@ -1128,7 +1128,7 @@ SPDP dtime(void)
 {
     SPDP q;
 
-    q = (SPDP)DjyGetSysTime() * 1.0e-06;
+    q = (SPDP)DJY_GetSysTime() * 1.0e-06;
 
     return q;
 }

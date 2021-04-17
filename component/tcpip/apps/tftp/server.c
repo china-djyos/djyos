@@ -55,7 +55,7 @@
 
 static u16  gLocalSeverPort = CN_TFTP_SERVERPORT_DEFAULT; //could be specified the port
 
-ptu32_t TftpServer(void)
+ptu32_t TFTP_Server(void)
 {
     int serverfd;
     struct sockaddr_in  addr;
@@ -111,28 +111,28 @@ ptu32_t TftpServer(void)
            oblksize = CN_TFTP_BLKSIZE_DEFAULT;
            otimeout = CN_TFTP_TIMEOUT_DEFAULT;
            otsize= 0;
-           DecodeRequestMsg(tmpbuf,msglen,&filename,&mode,&oblksize,&otimeout,&otsize);
+           TFTP_DecodeRequestMsg(tmpbuf,msglen,&filename,&mode,&oblksize,&otimeout,&otsize);
            if((reqmod == TFTP_RRQ)||(reqmod == TFTP_WRQ))
            {
-               errcode = CreateClient(filename,mode,reqmod,&addr,oblksize,otimeout,otsize,true,&client);
+               errcode = TFTP_CreateClient(filename,mode,reqmod,&addr,oblksize,otimeout,otsize,true,&client);
                if(NULL == client)
                {
-                   msglen = MakeErrMsg(buf,CN_TFTPSERVER_BUFLEN,\
-                           errcode,TftpErrMsg(errcode));
+                   msglen = TFTP_MakeErrMsg(buf,CN_TFTPSERVER_BUFLEN,\
+                           errcode,TFTP_ErrMsg(errcode));
                    sendto(serverfd,buf,msglen,0,(struct sockaddr*)&addr,addrlen);
                }
                else
                {
                    //create the client engine here
                    //let the engine do the left work
-                   TftpTransEngine(client);
+                   TFTP_TransEngine(client);
                }
            }
            else
            {
                errcode = EN_TFTPERR_INVALIDOPERATION;
-               msglen = MakeErrMsg(buf,CN_TFTPSERVER_BUFLEN,\
-                       errcode,TftpErrMsg(errcode));
+               msglen = TFTP_MakeErrMsg(buf,CN_TFTPSERVER_BUFLEN,\
+                       errcode,TFTP_ErrMsg(errcode));
                sendto(serverfd,buf,msglen,0,(struct sockaddr*)&addr,addrlen);
            }
         }
@@ -150,11 +150,11 @@ EXIT_BUF:
     return 0;
 }
 
-bool_t TftpServerShell(void)
+bool_t TFTP_ServerShell(void)
 {
 
     bool_t ret;
-    ret = taskcreate("TFTPD",0x1000,CN_PRIO_RRS,TftpServer,NULL);
+    ret = taskcreate("TFTPD",0x1000,CN_PRIO_RRS,TFTP_Server,NULL);
     if (ret == false) {
         error_printf("tftp","TFTPD:TASK CREATE ERR\n\r");
     }

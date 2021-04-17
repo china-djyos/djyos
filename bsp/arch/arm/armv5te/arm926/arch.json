@@ -1,0 +1,11 @@
+{
+	"compile-option":{
+		
+	},
+	"fpu-type":"fpv4-sp-d16",
+	"name":"arm9",
+	"mcpu":"arm9",
+	"vendor-option":{
+		
+	}
+}

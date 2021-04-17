@@ -52,7 +52,7 @@
 #include "dbug.h"
 
 
-void makeDhcpRequestMsg(tagDhcpMsg *msg,tagDhcpRequestPara *para)
+void DHCP_MakeDhcpRequestMsg(tagDhcpMsg *msg,tagDhcpRequestPara *para)
 {
     char *p;
     u32 data32;
@@ -113,12 +113,13 @@ void makeDhcpRequestMsg(tagDhcpMsg *msg,tagDhcpRequestPara *para)
         memcpy(&((tagDhcpOpt *)p)->data[0],&data32,4);
         p += sizeof(tagDhcpOpt) + ((tagDhcpOpt *)p)->len;
 
-        ((tagDhcpOpt *)p)->type = dhcpServerIdentifier;
-        ((tagDhcpOpt *)p)->len = 4;
-        data32 = para->dhcpserver;
-        memcpy(&((tagDhcpOpt *)p)->data[0],&data32,4);
-        p += sizeof(tagDhcpOpt) + ((tagDhcpOpt *)p)->len;
-
+        if(para->dhcpserver) {
+            ((tagDhcpOpt *)p)->type = dhcpServerIdentifier;
+            ((tagDhcpOpt *)p)->len = 4;
+            data32 = para->dhcpserver;
+            memcpy(&((tagDhcpOpt *)p)->data[0],&data32,4);
+            p += sizeof(tagDhcpOpt) + ((tagDhcpOpt *)p)->len;
+        }
     }
     //dhcp parameter request
     ((tagDhcpOpt *)p)->type = dhcpParamRequest;
@@ -141,7 +142,7 @@ void makeDhcpRequestMsg(tagDhcpMsg *msg,tagDhcpRequestPara *para)
 //end of the options
     ((tagDhcpOpt *)p)->type = endOption;
 }
-void showDhcpRequestMsg(tagDhcpRequestPara *para)
+void DHCP_ShowDhcpRequestMsg(tagDhcpRequestPara *para)
 {
     debug_printf("dhcp","DHCPDISREQ:\n\r");
     debug_printf("dhcp","          :operation type:%d\n\r",para->optype);
@@ -154,7 +155,7 @@ void showDhcpRequestMsg(tagDhcpRequestPara *para)
     return;
 }
 
-bool_t pasteDhcpReplyMsg(tagDhcpReplyPara *para,tagDhcpMsg *msg)
+bool_t DHCP_PasteDhcpReplyMsg(tagDhcpReplyPara *para,tagDhcpMsg *msg)
 {
     unsigned char *p;
     tagDhcpOpt *item;
@@ -264,7 +265,7 @@ bool_t pasteDhcpReplyMsg(tagDhcpReplyPara *para,tagDhcpMsg *msg)
 
     return result;
 }
-void showDhcpReplyMsg(tagDhcpReplyPara *para)
+void DHCP_ShowDhcpReplyMsg(tagDhcpReplyPara *para)
 {
     debug_printf("dhcp","DHCPOFFSERACK:\n\r");
     debug_printf("dhcp","          :operation type:%d\n\r",para->optype);
@@ -289,7 +290,7 @@ void showDhcpReplyMsg(tagDhcpReplyPara *para)
 }
 
 //paset the client request message
-bool_t pasteDhcpRequestMsg(tagDhcpRequestPara *para,tagDhcpMsg *msg)
+bool_t DHCP_PasteDhcpRequestMsg(tagDhcpRequestPara *para,tagDhcpMsg *msg)
 {
     unsigned char *p;
     tagDhcpOpt *item;
@@ -337,7 +338,7 @@ bool_t pasteDhcpRequestMsg(tagDhcpRequestPara *para,tagDhcpMsg *msg)
     return result;
 }
 
-void makeDhcpReplyMsg(tagDhcpMsg *msg,tagDhcpReplyPara *para)
+void DHCP_MakeDhcpReplyMsg(tagDhcpMsg *msg,tagDhcpReplyPara *para)
 {
 
     char *p;

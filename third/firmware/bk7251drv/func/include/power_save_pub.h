@@ -1,7 +1,8 @@
 #ifndef _POWER_SAVE_PUB_H_
 #define _POWER_SAVE_PUB_H_
 
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
+#include "common/typedef.h"     //lst
 //#include "rtos_pub.h"
 //#include "rw_pub.h"
 //#include "wlan_ui_pub.h"
@@ -22,17 +23,17 @@
 
 #define   PS_DTIM_WITH_NORMAL 0
 
-typedef enum { 
-	PS_BMSG_IOCTL_RF_ENABLE = 0,
-	PS_BMSG_IOCTL_RF_DISANABLE = 1, 
-	PS_BMSG_IOCTL_MCU_ENABLE = 2, 
-	PS_BMSG_IOCTL_MCU_DISANABLE = 3,	
-	PS_BMSG_IOCTL_RF_USER_WKUP = 4,
-	PS_BMSG_IOCTL_RF_KP_SET = 5,
-	PS_BMSG_IOCTL_RF_TD_SET = 6,
-	PS_BMSG_IOCTL_RF_KP_HANDLER = 7,
-	PS_BMSG_IOCTL_RF_TD_HANDLER = 8,
-	PS_BMSG_IOCTL_RF_KP_STOP = 9,
+typedef enum {
+    PS_BMSG_IOCTL_RF_ENABLE = 0,
+    PS_BMSG_IOCTL_RF_DISANABLE = 1,
+    PS_BMSG_IOCTL_MCU_ENABLE = 2,
+    PS_BMSG_IOCTL_MCU_DISANABLE = 3,
+    PS_BMSG_IOCTL_RF_USER_WKUP = 4,
+    PS_BMSG_IOCTL_RF_KP_SET = 5,
+    PS_BMSG_IOCTL_RF_TD_SET = 6,
+    PS_BMSG_IOCTL_RF_KP_HANDLER = 7,
+    PS_BMSG_IOCTL_RF_TD_HANDLER = 8,
+    PS_BMSG_IOCTL_RF_KP_STOP = 9,
 } PS_BMSG_IOCTL_CMD;
 
 #define ICU_BASE                                     (0x00802000)
@@ -50,28 +51,28 @@ enum
     NEED_ME_DISABLE = 1,
     NEED_REBOOT = 2,
 };
-#define NEED_DISABLE_BIT            CO_BIT(NEED_DISABLE) 
-#define NEED_ME_DISABLE_BIT         CO_BIT(NEED_ME_DISABLE) 
-#define NEED_REBOOT_BIT             CO_BIT(NEED_REBOOT) 
+#define NEED_DISABLE_BIT            CO_BIT(NEED_DISABLE)
+#define NEED_ME_DISABLE_BIT         CO_BIT(NEED_ME_DISABLE)
+#define NEED_REBOOT_BIT             CO_BIT(NEED_REBOOT)
 
-typedef enum { 
-	PS_FORBID_NO_ON = 1,
-	PS_FORBID_PREVENT = 2, 
-	PS_FORBID_VIF_PREVENT = 3, 
-	PS_FORBID_IN_DOZE = 4,	
-	PS_FORBID_KEEVT_ON = 5,
-	PS_FORBID_BMSG_ON = 6,
-	PS_FORBID_TXING = 7, 
-	PS_FORBID_HW_TIMER = 8, 
+typedef enum {
+    PS_FORBID_NO_ON = 1,
+    PS_FORBID_PREVENT = 2,
+    PS_FORBID_VIF_PREVENT = 3,
+    PS_FORBID_IN_DOZE = 4,
+    PS_FORBID_KEEVT_ON = 5,
+    PS_FORBID_BMSG_ON = 6,
+    PS_FORBID_TXING = 7,
+    PS_FORBID_HW_TIMER = 8,
 } PS_FORBID_STATUS;
 
-typedef enum { 
-	PS_NO_PS_MODE = 0,
-	PS_STANDBY_PS_MODE = 1, 
-	PS_MCU_PS_MODE = 2,	
-	PS_DTIM_PS_MODE = 3, 
-	PS_DTIM_PS_OPENING = 4,	
-	PS_DTIM_PS_CLOSING = 5, 	
+typedef enum {
+    PS_NO_PS_MODE = 0,
+    PS_STANDBY_PS_MODE = 1,
+    PS_MCU_PS_MODE = 2,
+    PS_DTIM_PS_MODE = 3,
+    PS_DTIM_PS_OPENING = 4,
+    PS_DTIM_PS_CLOSING = 5,
 } PS_MODE_STATUS;
 
 
@@ -97,7 +98,7 @@ extern void ps_set_data_prevent(void);
 extern void txl_cntrl_dec_pck_cnt(void);
 extern void txl_cntrl_inc_pck_cnt(void);
 extern int bmsg_is_empty(void);
-extern int net_if_is_up(void); 
+extern int net_if_is_up(void);
 extern void power_save_beacon_len_set(UINT16 );
 extern void power_save_beacon_state_update(void);
 extern void power_save_cal_bcn_liston_int(UINT16);
@@ -147,7 +148,7 @@ extern void power_save_set_keep_timer_time(UINT32);
 
 #define CHECK_OPERATE_RF_REG_IF_IN_SLEEP_END()                          \
     GLOBAL_INT_RESTORE();                                               \
-    } while(0)                                                          
+    } while(0)
 /***************************************************************************/
 
 #endif // _POWER_SAVE_PUB_H_

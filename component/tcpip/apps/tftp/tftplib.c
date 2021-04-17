@@ -68,7 +68,7 @@ static char *gTftpErrMsg[] =
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //get the err message
-char *TftpErrMsg(u16 errcode)
+char *TFTP_ErrMsg(u16 errcode)
 {
     if(errcode < EN_TFTPERR_LAST)
     {
@@ -91,7 +91,7 @@ char *TftpErrMsg(u16 errcode)
 //}
 
 //bool_t TftpSetWorkSpace(char *path)
-bool_t tftppathset(char *path)
+bool_t TFTP_PathSet(char *path)
 {
     if(NULL != path)
     {
@@ -102,14 +102,16 @@ bool_t tftppathset(char *path)
 }
 
 //bool_t TftpWorkSpaceShow(char *param)
-bool_t tftppath(char *param)
+bool_t TFTP_Path(char *param)
 {
     info_printf("tftp","%s:%s\n\r",__FUNCTION__,gTftpWorkSpace);
     return true;
 }
 
+#pragma GCC diagnostic pop
+
 //make the request message
-int MakeRequestMsg(u8 *buf, int buflen,u16 opcode,char *filename,char *mode,\
+int TFTP_MakeRequestMsg(u8 *buf, int buflen,u16 opcode,char *filename,char *mode,\
                    int blksize,int timeout,int tsize)
 {
     int    len = 0;
@@ -179,7 +181,7 @@ int MakeRequestMsg(u8 *buf, int buflen,u16 opcode,char *filename,char *mode,\
 }
 
 //decode the request message
-int DecodeRequestMsg(u8 *buf, int buflen, char **filename, char **mode,\
+int TFTP_DecodeRequestMsg(u8 *buf, int buflen, char **filename, char **mode,\
                      int *blksize,int *timeout, int *tsize)
 {
     int i =0;
@@ -263,7 +265,7 @@ int DecodeRequestMsg(u8 *buf, int buflen, char **filename, char **mode,\
 }
 
 //make the optional message
-int MakeOAckMsg(u8 *buf, int buflen,int blksize,int timeout,int tsize)
+int TFTP_MakeOptAckMsg(u8 *buf, int buflen,int blksize,int timeout,int tsize)
 {
     u16    opcode;
     int    len = 0;
@@ -324,14 +326,14 @@ int MakeOAckMsg(u8 *buf, int buflen,int blksize,int timeout,int tsize)
 }
 
 //decode the optional message
-int DecodeOAckMsg(u8 *buf, int buflen,int *blksize,int *timeout, int *tsize)
+int TFTP_DecodeOptAckMsg(u8 *buf, int buflen,int *blksize,int *timeout, int *tsize)
 {
     int i =0;
     int len;
 
-    int otimeout;
-    int oblksize;
-    int otsize;
+    int otimeout=0;
+    int oblksize=0;
+    int otsize=0;
 
     i =0;
     while(i < buflen)
@@ -399,7 +401,7 @@ int DecodeOAckMsg(u8 *buf, int buflen,int *blksize,int *timeout, int *tsize)
 }
 
 //make the ack message
-int MakeAckMsg(u8 *buf, int buflen,u16 block)
+int TFTP_MakeAckMsg(u8 *buf, int buflen,u16 block)
 {
     int len = 0;
     int result = 0;
@@ -426,9 +428,11 @@ int MakeAckMsg(u8 *buf, int buflen,u16 block)
     }
     return result;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //decode the ack message
-int DecodeAckMsg(u8 *buf, int buflen,u16 *block)
+int TFTP_DecodeAckMsg(u8 *buf, int buflen,u16 *block)
 {
     u16 blockmsg;
     int result;
@@ -446,7 +450,7 @@ int DecodeAckMsg(u8 *buf, int buflen,u16 *block)
 }
 
 //make the err message
-int MakeErrMsg(u8 *buf,int buflen,u16 errcode,char *msg)
+int TFTP_MakeErrMsg(u8 *buf,int buflen,u16 errcode,char *msg)
 {
     int len = 0;
     int result = 0;
@@ -480,7 +484,7 @@ int MakeErrMsg(u8 *buf,int buflen,u16 errcode,char *msg)
 }
 
 //decode the err message
-int DecodeErrMsg(u8 *buf, int buflen,tagTftpClient *client)
+int TFTP_DecodeErrMsg(u8 *buf, int buflen,tagTftpClient *client)
 {
     u16 errcode;
     memcpy((void *)&errcode,(void *)buf,sizeof(errcode));
@@ -493,7 +497,7 @@ int DecodeErrMsg(u8 *buf, int buflen,tagTftpClient *client)
 }
 
 //make the date message
-int MakeDataMsg(tagTftpClient  *client)
+int TFTP_MakeDataMsg(tagTftpClient  *client)
 {
     u8 *buf;
     int len = 0;
@@ -531,7 +535,7 @@ int MakeDataMsg(tagTftpClient  *client)
 }
 
 //decode the data message
-int  DecodeDataMsg(u8 *buf,int buflen,u16 *block)
+int  TFTP_DecodeDataMsg(u8 *buf,int buflen,u16 *block)
 {
     u16 blocknum;
     int result;
@@ -547,9 +551,10 @@ int  DecodeDataMsg(u8 *buf,int buflen,u16 *block)
 
     return result;
 }
+#pragma GCC diagnostic pop
 
 //show the client stat
-bool_t ClientShow(tagTftpClient *client)
+bool_t TFTP_ClientShow(tagTftpClient *client)
 {
     info_printf("tftp","Result:\n\r");
     info_printf("tftp","FileName    :%s   MsgMode:%s\n\r",client->filename,client->mode);
@@ -574,7 +579,7 @@ bool_t ClientShow(tagTftpClient *client)
 // RETURN  :The request package len
 // INSTRUCT:Rcv an file, the data will be dealt by the hook
 // =============================================================================
-static int __WriteData(struct TftpClient *client,u8 *buf, int count)
+static int __TFTP_WriteData(struct TftpClient *client,u8 *buf, int count)
 {
     int result;
     result =write(client->fd,buf,count);
@@ -583,7 +588,7 @@ static int __WriteData(struct TftpClient *client,u8 *buf, int count)
 }
 
 //read data from the file system
-static int __ReadData(struct TftpClient *client,u8 *buf, int count)
+static int __TFTP_ReadData(struct TftpClient *client,u8 *buf, int count)
 {
     int ret = -1;
     u32 offset;
@@ -615,7 +620,7 @@ static int __ReadData(struct TftpClient *client,u8 *buf, int count)
 
 
 //create the client, including all the resource needed by the client
-int CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netaddr,\
+int TFTP_CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netaddr,\
                  int oblksize,int otimeout,int otsize,bool_t server,tagTftpClient **tftpclient)
 {
     int errcode;
@@ -723,8 +728,8 @@ int CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netadd
         }
     }
 
-    client->readdata=__ReadData;
-    client->writedata =__WriteData;
+    client->readdata=__TFTP_ReadData;
+    client->writedata =__TFTP_WriteData;
     goto EXIT_CLIENT;              //create the client success
 
 EXIT_FILESTAT:
@@ -743,7 +748,7 @@ EXIT_CLIENT:
 }
 
 //delete the client and net_free all the resource in the client
-bool_t DeleteClient(tagTftpClient *client)
+bool_t TFTP_DeleteClient(tagTftpClient *client)
 {
     if(NULL != client)
     {
@@ -755,7 +760,7 @@ bool_t DeleteClient(tagTftpClient *client)
     return true;
 }
 
-int TftpTransEngine(tagTftpClient *client)
+int TFTP_TransEngine(tagTftpClient *client)
 {
     u16  block     = 0;
     u16  opcode    = 0;
@@ -767,18 +772,18 @@ int TftpTransEngine(tagTftpClient *client)
     u32     timeouttimes = 0;
     s64     tmp;
 
-    client->timestart = DjyGetSysTime();
+    client->timestart = DJY_GetSysTime();
     //OK, let us do the client engine now,
     //first send the optionnal
     if(client->server)
     {
         //as the server, we should send the optional ack first
-        sndmsglen = MakeOAckMsg(client->buf,client->buflen,client->blksize,client->timeout,client->tsize);
+        sndmsglen = TFTP_MakeOptAckMsg(client->buf,client->buflen,client->blksize,client->timeout,client->tsize);
     }
     else
     {
         //as the client, we should send the request first
-        sndmsglen = MakeRequestMsg(client->buf,client->buflen,client->reqmode,client->filename,client->mode,\
+        sndmsglen = TFTP_MakeRequestMsg(client->buf,client->buflen,client->reqmode,client->filename,client->mode,\
                                     client->blksize,client->timeout,client->tsize);
     }
     sendto(client->sock,client->buf,sndmsglen,0,(struct sockaddr *)&client->netaddr,client->addrlen);
@@ -799,8 +804,8 @@ int TftpTransEngine(tagTftpClient *client)
             switch(opcode)
             {
                 case TFTP_RRQ:
-                    sndmsglen = MakeErrMsg(client->buf,client->buflen,\
-                            EN_TFTPERR_INVALIDOPERATION,TftpErrMsg(EN_TFTPERR_INVALIDOPERATION));
+                    sndmsglen = TFTP_MakeErrMsg(client->buf,client->buflen,\
+                            EN_TFTPERR_INVALIDOPERATION,TFTP_ErrMsg(EN_TFTPERR_INVALIDOPERATION));
                     sendto(client->sock,client->buf,sndmsglen,0,\
                            (struct sockaddr *)&client->netaddr,client->addrlen);
                     rcvloop = false;
@@ -808,8 +813,8 @@ int TftpTransEngine(tagTftpClient *client)
                     break;
 
                 case TFTP_WRQ:
-                    sndmsglen = MakeErrMsg(client->buf,client->buflen,\
-                            EN_TFTPERR_INVALIDOPERATION,TftpErrMsg(EN_TFTPERR_INVALIDOPERATION));
+                    sndmsglen = TFTP_MakeErrMsg(client->buf,client->buflen,\
+                            EN_TFTPERR_INVALIDOPERATION,TFTP_ErrMsg(EN_TFTPERR_INVALIDOPERATION));
                     sendto(client->sock,client->buf,sndmsglen,0,\
                            (struct sockaddr *)&client->netaddr,client->addrlen);
                     rcvloop = false;
@@ -820,7 +825,7 @@ int TftpTransEngine(tagTftpClient *client)
                     if(((client->reqmode == TFTP_RRQ)&&(client->server == false))||\
                        ((client->reqmode == TFTP_WRQ)&&(client->server == true)))
                     {
-                        len = DecodeDataMsg(buf,rcvmsglen,&block);
+                        len = TFTP_DecodeDataMsg(buf,rcvmsglen,&block);
                         buf += len;
                         rcvmsglen -= len;
                         if(block == (u16)(client->block +1))
@@ -837,14 +842,14 @@ int TftpTransEngine(tagTftpClient *client)
                                 client->lastblock = true;
                                 rcvloop = false;
                             }
-                            sndmsglen = MakeAckMsg(client->buf,client->buflen,block);
+                            sndmsglen = TFTP_MakeAckMsg(client->buf,client->buflen,block);
                             sendto(client->sock,client->buf,sndmsglen,0,\
                                    (struct sockaddr *)&client->netaddr,client->addrlen);
                         }
                         else
                         {
                             block = (u16)client->block;
-                            sndmsglen = MakeAckMsg(client->buf,client->buflen,block);
+                            sndmsglen = TFTP_MakeAckMsg(client->buf,client->buflen,block);
                             sendto(client->sock,client->buf,sndmsglen,0,\
                                    (struct sockaddr *)&client->netaddr,client->addrlen);
                         }
@@ -852,8 +857,8 @@ int TftpTransEngine(tagTftpClient *client)
                     else
                     {
                         //for we are the request to upload data,not receive data
-                        sndmsglen = MakeErrMsg(client->buf,client->buflen,\
-                                EN_TFTPERR_INVALIDOPERATION,TftpErrMsg(EN_TFTPERR_INVALIDOPERATION));
+                        sndmsglen = TFTP_MakeErrMsg(client->buf,client->buflen,\
+                                EN_TFTPERR_INVALIDOPERATION,TFTP_ErrMsg(EN_TFTPERR_INVALIDOPERATION));
                         sendto(client->sock,client->buf,sndmsglen,0,\
                                (struct sockaddr *)&client->netaddr,client->addrlen);
                         rcvloop = false;
@@ -864,7 +869,7 @@ int TftpTransEngine(tagTftpClient *client)
                     if(((client->reqmode == TFTP_WRQ)&&(client->server == false))||\
                        ((client->reqmode == TFTP_RRQ)&&(client->server == true)))
                     {
-                        len = DecodeAckMsg(buf,rcvmsglen,&block);
+                        len = TFTP_DecodeAckMsg(buf,rcvmsglen,&block);
                         buf +=len;
                         rcvmsglen -=len;
 
@@ -878,7 +883,7 @@ int TftpTransEngine(tagTftpClient *client)
                             {
                                 //send more data;
                                 client->block++;
-                                sndmsglen = MakeDataMsg(client);
+                                sndmsglen = TFTP_MakeDataMsg(client);
                                 sendto(client->sock,client->buf,sndmsglen,0,\
                                        (struct sockaddr *)&client->netaddr,client->addrlen);
                                 client->sntlen += (sndmsglen-4);
@@ -888,7 +893,7 @@ int TftpTransEngine(tagTftpClient *client)
                         else
                         {
                             //the remote did not receive the last frame. so retrans it
-                            sndmsglen = MakeDataMsg(client);
+                            sndmsglen = TFTP_MakeDataMsg(client);
                             sendto(client->sock,client->buf,sndmsglen,0,\
                                    (struct sockaddr *)&client->netaddr,client->addrlen);
                             client->retrans++;
@@ -897,8 +902,8 @@ int TftpTransEngine(tagTftpClient *client)
                     else
                     {
                         //for we are the request to upload data,not receive data
-                        sndmsglen = MakeErrMsg(client->buf,client->buflen,\
-                                EN_TFTPERR_INVALIDOPERATION,TftpErrMsg(EN_TFTPERR_INVALIDOPERATION));
+                        sndmsglen = TFTP_MakeErrMsg(client->buf,client->buflen,\
+                                EN_TFTPERR_INVALIDOPERATION,TFTP_ErrMsg(EN_TFTPERR_INVALIDOPERATION));
                         sendto(client->sock,client->buf,sndmsglen,0,\
                                (struct sockaddr *)&client->netaddr,client->addrlen);
                         rcvloop = false;
@@ -907,12 +912,12 @@ int TftpTransEngine(tagTftpClient *client)
                     break;
 
                 case TFTP_ERR:
-                    DecodeErrMsg(buf,rcvmsglen,client);
+                    TFTP_DecodeErrMsg(buf,rcvmsglen,client);
                     rcvloop = false;
                     error_printf("tftp","%s:got errcode:%d:msg:%s\n\r",__FUNCTION__,client->errcode,client->errmsg);
                     break;
                 case TFTP_OACK:  //the server may do this:specified the blksize
-                    DecodeOAckMsg(buf,rcvmsglen,&client->oblksize,&client->otimeout,&client->otsize);
+                    TFTP_DecodeOptAckMsg(buf,rcvmsglen,&client->oblksize,&client->otimeout,&client->otsize);
                     if(client->blksize<client->oblksize)
                     {
                         //if this happens, so exit
@@ -924,7 +929,7 @@ int TftpTransEngine(tagTftpClient *client)
                        ((client->server==false)&&(client->reqmode == TFTP_RRQ)))
                     {
                         block = (u16)client->block;
-                        sndmsglen = MakeAckMsg(client->buf,client->buflen,block);
+                        sndmsglen = TFTP_MakeAckMsg(client->buf,client->buflen,block);
                         sendto(client->sock,client->buf,sndmsglen,0,\
                                (struct sockaddr *)&client->netaddr,client->addrlen);
                     }
@@ -932,15 +937,15 @@ int TftpTransEngine(tagTftpClient *client)
                     {
                         //send the data now
                         client->block =1;
-                        sndmsglen = MakeDataMsg(client);
+                        sndmsglen = TFTP_MakeDataMsg(client);
                         sendto(client->sock,client->buf,sndmsglen,0,\
                                (struct sockaddr *)&client->netaddr,client->addrlen);
                         client->sntlen += (sndmsglen-4);
                     }
                     break;
                 default:
-                    sndmsglen = MakeErrMsg(client->buf,client->buflen,\
-                            EN_TFTPERR_INVALIDOPERATION,TftpErrMsg(EN_TFTPERR_INVALIDOPERATION));
+                    sndmsglen = TFTP_MakeErrMsg(client->buf,client->buflen,\
+                            EN_TFTPERR_INVALIDOPERATION,TFTP_ErrMsg(EN_TFTPERR_INVALIDOPERATION));
                     sendto(client->sock,client->buf,sndmsglen,0,\
                            (struct sockaddr *)&client->netaddr,client->addrlen);
                     rcvloop = false;
@@ -973,7 +978,7 @@ int TftpTransEngine(tagTftpClient *client)
             rcvloop = false;
         }
     }
-    client->timestop = DjyGetSysTime();
+    client->timestop = DJY_GetSysTime();
     client->timeused = (u32)(client->timestop - client->timestart);
     if(((client->reqmode == TFTP_RRQ)&&(client->server==false))||\
        ((client->reqmode == TFTP_WRQ)&&(client->server==true))    )
@@ -986,13 +991,13 @@ int TftpTransEngine(tagTftpClient *client)
         tmp = client->sntlen*1000;
         client->sndspeed = (u32)(tmp/(client->timeused+1));
     }
-    ClientShow(client);
+    TFTP_ClientShow(client);
     //now delete the client
-    DeleteClient(client);
+    TFTP_DeleteClient(client);
 
     return 0;
 }
 
-ADD_TO_ROUTINE_SHELL(tftppath,tftppath,"usage:tftppath");
-ADD_TO_ROUTINE_SHELL(tftppathset,tftppathset,"usage:tftppathset workpath");
-#pragma GCC diagnostic pop
+ADD_TO_ROUTINE_SHELL(tftppath,TFTP_Path,"usage:tftppath");
+ADD_TO_ROUTINE_SHELL(tftppathset,TFTP_PathSet,"usage:tftppathset workpath");
+

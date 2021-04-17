@@ -60,7 +60,7 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include    "gdd.h"
-#include  <gui/gdd/gdd_private.h>
+#include    "../gdd_private.h"
 #include    <gdd_widget.h>
 
 /*============================================================================*/
@@ -70,30 +70,30 @@
 // 输出参数: 无。
 // 返回值  :无。
 // =============================================================================
-static  bool_t LabelPaint(struct WindowMsg *pMsg)
+static  bool_t __Widget_LabelPaint(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     HDC hdc;
     RECT rc;
     hwnd=pMsg->hwnd;
-    hdc =BeginPaint(hwnd);
+    hdc =GDD_BeginPaint(hwnd);
     if(NULL!=hdc)
     {
-        GetClientRect(hwnd,&rc);
-        SetFillColor(hdc,RGB(255,0,0));
-        FillRect(hdc,&rc);
+        GDD_GetClientRect(hwnd,&rc);
+        GDD_SetFillColor(hdc,RGB(255,0,0));
+        GDD_FillRect(hdc,&rc);
         if(hwnd->Style&WS_BORDER)
         {
-             SetDrawColor(hdc,RGB(169,169,169));
-             DrawLine(hdc,0,0,0,RectH(&rc)-1);      //L
-             DrawLine(hdc,0,0,RectW(&rc)-1,0);      //U
-             DrawLine(hdc,RectW(&rc)-1,0,RectW(&rc)-1,RectH(&rc)-1); //R
-             DrawLine(hdc,0,RectH(&rc)-1,RectW(&rc)-1,RectH(&rc)-1); //D
+             GDD_SetDrawColor(hdc,RGB(169,169,169));
+             GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1);      //L
+             GDD_DrawLine(hdc,0,0,GDD_RectW(&rc)-1,0);      //U
+             GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //R
+             GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
         }
 
-        SetTextColor(hdc,RGB(1,1,1));
-        DrawText(hdc,hwnd->Text,-1,&rc,DT_VCENTER|DT_LEFT);
-        EndPaint(hwnd,hdc);
+        GDD_SetTextColor(hdc,RGB(1,1,1));
+        GDD_DrawText(hdc,hwnd->Text,-1,&rc,DT_VCENTER|DT_LEFT);
+        GDD_EndPaint(hwnd,hdc);
       }
     return true;
 }
@@ -101,23 +101,23 @@ static  bool_t LabelPaint(struct WindowMsg *pMsg)
 //默认标签消息处理函数表，处理用户函数表中没有处理的消息。
 static struct MsgProcTable s_gLabelMsgProcTable[] =
 {
-    {MSG_PAINT,LabelPaint}
+    {MSG_PAINT,__Widget_LabelPaint}
 };
 
 static struct MsgTableLink  s_gLabelMsgLink;
 
-HWND CreateLabel(  const char *Text,u32 Style,
+HWND Widget_CreateLabel(  const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,void *pdata,
+                    HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
     s_gLabelMsgLink.MsgNum = sizeof(s_gLabelMsgProcTable) / sizeof(struct MsgProcTable);
     s_gLabelMsgLink.myTable =(struct MsgProcTable *)&s_gLabelMsgProcTable;
-    pGddWin = CreateWindow(Text, WS_CHILD | Style, x, y, w, h, hParent, WinId,
+    pGddWin = GDD_CreateWindow(Text, WS_CHILD | Style, x, y, w, h, hParent, WinId,
                             CN_WINBUF_PARENT, pdata, &s_gLabelMsgLink);
 
     if(UserMsgTableLink != NULL)
-        AddProcFuncTable(pGddWin,UserMsgTableLink);
+        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }

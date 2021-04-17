@@ -50,15 +50,13 @@
 //#include "../core/inc/usbh_core.h"
 #include "cpu_peri_int_line.h"
 #include <int.h>
-#include <usb/usbh_lowlevel.h>
+#include <usbh_lowlevel.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_USB(const char *TargetFs,u8 controller);
-//    ModuleInstall_USB(CFG_USB_UDISK_FS,CFG_USB_CONTROLLER);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -67,7 +65,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"int","time","lock","heap","stm32usb"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -583,7 +581,7 @@ void __USBH_Delay(uint32_t Delay)
   osDelay(Delay);
 #else
   // HAL_Delay(Delay);
-  Djy_EventDelay(Delay);
+  DJY_EventDelay(Delay);
 #endif
 }
 #endif
@@ -631,13 +629,13 @@ u32 OTG_FS_IRQHandler(u32 dwData)
     static s64 times;
 
     if(dwRawControl & 0x1)
-        times = DjyGetSysTime();
+        times = DJY_GetSysTime();
 
     HAL_HCD_IRQHandler(&HHCD_FS);
 
     if(dwRawControl & 0x1)
     {
-        times = DjyGetSysTime() - times;
+        times = DJY_GetSysTime() - times;
         if((times > 0) && (times > qwRecordMaxFS))
             qwRecordMaxFS = times; // 记录中断处理最大时间
     }
@@ -708,7 +706,7 @@ USBH_StatusTypeDef __USBH_LL_Resume(USBH_HandleTypeDef *pHost)
     regHPRT = USBx_HPRT0;
     USBH_UsrLog("resume(USB) : register HPRT <%xH>\r\n", regHPRT);
 
-    Djy_DelayUs(50000); // NOTE: 必须满足USB的唤醒时序
+    DJY_DelayUs(50000); // NOTE: 必须满足USB的唤醒时序
     settings = (1<<12); //
     USBx_HPRT0 = settings;
     USBH_UsrLog("resume(USB) : set register HPRT <%xH>\r\n", settings);
@@ -719,7 +717,7 @@ USBH_StatusTypeDef __USBH_LL_Resume(USBH_HandleTypeDef *pHost)
     settings = (1<<12) | (1<<6); //
     USBx_HPRT0 = settings;
 
-    Djy_DelayUs(50000); // NOTE: 必须满足USB的唤醒时序
+    DJY_DelayUs(50000); // NOTE: 必须满足USB的唤醒时序
     settings = (1<<12); //
     USBx_HPRT0 = settings;
 #endif

@@ -101,11 +101,11 @@ bool_t SH_USB_Log(const char *pParam)
         }
 
         gStatus = IDLE;
-        thread = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+        thread = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
                             USB_LogThread, NULL, 0x2000, "USB log service");
         if(CN_EVTT_ID_INVALID != thread)
         {
-            Djy_EventPop(thread, NULL, 0, 0, 0, 0);
+            DJY_EventPop(thread, NULL, 0, 0, 0, 0);
             return (TRUE);
         }
 
@@ -593,7 +593,7 @@ static u32 USB_LogThread(void)
         {
         case IDLE:
         case CONFIG_DONE:
-            Djy_EventDelay(10000000); //
+            DJY_EventDelay(10000000); //
             break;
 
         case FLUSH:

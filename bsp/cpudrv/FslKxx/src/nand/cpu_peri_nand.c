@@ -56,13 +56,13 @@
 #include <stdlib.h>
 #include <djyos.h>
 #include <MKxxF12.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <include/device.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
 #include <dbug.h>
-#include <filesystems.h>
+#include <djyfs/filesystems.h>
 #include <math.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -80,7 +80,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","file system"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -280,7 +280,7 @@ s32  K70_PageProgram(u32 PageNo, const u8 *Data, u32 Flags)
         if (NULL == Spare)
         {
             Lock_MutexPost(NandFlashLock);
-            TraceDrv(FLASH_TRACE_ERROR, "chip buffer do not exist!\r\n");
+            error_printf("nand driver", "chip buffer do not exist!\r\n");
             return (-1);
         }
     }
@@ -431,7 +431,7 @@ s32  K70_PageRead(u32 PageNo, u8 *Data, u32 Flags)
 
         if (EccStatus & ECC_STATUS_MASK)
         {
-            TraceDrv(FLASH_TRACE_ERROR,"Page %d ECC failed\r\n", PageNo);
+            error_printf("nand driver", "Page %d ECC failed\r\n", PageNo);
 #if 0
         PrintBuf((u8 *)NFC_BASE, (2300));/* 测试 */
         printk("\r\nECC STATUS: %x\r\n", EccStatus);/* 测试 */
@@ -443,7 +443,7 @@ s32  K70_PageRead(u32 PageNo, u8 *Data, u32 Flags)
             u8 EccCnt;
             EccCnt = EccStatus & ECC_ERR_COUNT;
             if (0 != EccCnt)
-                TraceDrv(FLASH_TRACE_DEBUG,"Page %d: ECC: %d bit fixed\r\n", PageNo, EccCnt);
+                debug_printf("nand driver", "Page %d: ECC: %d bit fixed\r\n", PageNo, EccCnt);
         }
     }
 
@@ -624,7 +624,7 @@ static s32 K70_GetNandDescr(struct NandDescr *Descr)
     OnfiBuf = malloc (OnfiSize);
     if (NULL == OnfiBuf)
     {
-        TraceDrv(FLASH_TRACE_ERROR, "内存不足\r\n");
+        error_printf("nand driver", "内存不足\r\n");
         return (-1);
     }
 
@@ -715,7 +715,7 @@ s32 ModuleInstall_NAND(u32 doformat)
     nand_umedia->type = nand;
     nand_umedia->ubuf = (u8*)nand_umedia + sizeof(struct umedia);
 
-    if(!dev_Create((const char*)NandFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
+    if(!Device_Create((const char*)NandFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
     {
         printf("\r\n: erro : device : %s addition failed.", NandFlashName);
         free(nand_umedia);
@@ -792,7 +792,7 @@ static s32 __Status(void)
     ISR = NFC->ISR;// 测试
     if (NFC->SR2 & NANDFLASH_STATUS_ERR)
     {
-        TraceDrv(FLASH_TRACE_ERROR,"NAND操作失败\r\n");
+        error_printf("nand driver", "NAND操作失败\r\n");
         return (-1);
     }
     else
@@ -1303,13 +1303,13 @@ s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
     struct Object *targetobj;
     struct FsCore *super;
     s32 res,BlockNum;
-    targetobj = obj_matchpath(fs, &notfind);
+    targetobj = OBJ_MatchPath(fs, &notfind);
     if(notfind)
     {
         error_printf("nand"," not found need to install file system.");
         return -1;
     }
-    super = (struct FsCore *)obj_GetPrivate(targetobj);
+    super = (struct FsCore *)OBJ_GetPrivate(targetobj);
     super->MediaInfo = nand_umedia;
     super->MediaDrv = mediadrv;
 
@@ -1329,7 +1329,7 @@ s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
     FullPath = malloc(res);
     memset(FullPath, 0, res);
     sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,NandFlashName); //获取该设备的全路径
-    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
+    File_BeMedia(FullPath,fs); //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);

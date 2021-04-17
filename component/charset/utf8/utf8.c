@@ -108,7 +108,7 @@ Rule
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"Nls Charset"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -133,20 +133,22 @@ Rule
 #endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
-s32 Utf8MbToUcs4(u32* pwc, const char* s, s32 n);
-s32 Utf8MbsToUcs4s(u32* pwcs, const char* mbs, s32 n);
-s32 Utf8Ucs4ToMb(char* s, u32 wc);
-s32 Utf8Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n);
+s32 UTF8_MbToUcs4(u32* pwc, const char* s, s32 n);
+s32 UTF8_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n);
+s32 UTF8_Ucs4ToMb(char* s, u32 wc);
+s32 UTF8_Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n);
 
 //计算给定首字节的UTF-8编码字符字节数
 #define utf8_len(c)\
-    (((u8)c < 0x80) ? 1 : \
-        (((u8)c < 0xc2) ? 0 : \
-            (((u8)c < 0xe0) ? 2 : \
-                (((u8)c < 0xf0) ? 3 : \
-                    (((u8)c < 0xf8) ? 4 : \
-                        (((u8)c < 0xfc) ? 5 : \
-                            (((u8)c < 0xfe) ? 6 : 0)\
+    (((u8)c == 0x00) ? 0 : \
+        (((u8)c < 0x80) ? 1 : \
+            (((u8)c < 0xc2) ? 0 : \
+                (((u8)c < 0xe0) ? 2 : \
+                    (((u8)c < 0xf0) ? 3 : \
+                        (((u8)c < 0xf8) ? 4 : \
+                            (((u8)c < 0xfc) ? 5 : \
+                                (((u8)c < 0xfe) ? 6 : 7)\
+                            )\
                         )\
                     )\
                 )\
@@ -158,24 +160,30 @@ s32 Utf8Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n);
 //功能: 判断给定的UTF-8字节序列是否合法
 //参数: src 字节序列指针
 //      len 字节序列的长度
-//返回: 0, 非法UTF-8字符
+//返回: 0, 字符串结束
+//      -1, 非法UTF-8字符
 //      合法字符返回第一个UTF-8字符的字节数
 //-----------------------------------------------------------------
-static u8 Utf8IsLegal(const char* src, s32 len)
+static s8 __UTF8_IsLegal(const char* src, s32 len)
 {
     u8 a;
     const char *trail;
     s32 length;
 
-    if(len <= 0 /*|| src == NULL*/)
-        goto __illegal;
+//  if(len <= 0 /*|| src == NULL*/)
+//      goto __illegal;
 
     // 计算合法UTF-8字符的字节数
     length = utf8_len(*src);
 
     // 判断长度
-    if(length > len)
+    if((length > len) && (len >0))
         goto __illegal;
+
+    if(length == 0)
+        return 0;
+    if(length >= 6)
+        return -1;
 
     // 指向最后一个字节的后一个字节
     trail = (src + length);
@@ -183,7 +191,7 @@ static u8 Utf8IsLegal(const char* src, s32 len)
     // 判断编码是否正确
     switch(length){
     default: goto __illegal;
-        case 6: if ((a = (*--trail)) < 0x80 || a > 0xBF) goto __illegal;
+        case 6: if ((a = (*--trail)) < 0x80 || a > 0xBF) goto __illegal;        __attribute__((fallthrough));
         case 5: if ((a = (*--trail)) < 0x80 || a > 0xBF) goto __illegal;
         case 4: if ((a = (*--trail)) < 0x80 || a > 0xBF) goto __illegal;
         case 3: if ((a = (*--trail)) < 0x80 || a > 0xBF) goto __illegal;
@@ -200,44 +208,41 @@ static u8 Utf8IsLegal(const char* src, s32 len)
         }
 
         // 判断多字节UTF-8字符的第一个字节的范围
-        case 1: if (*src >= 0x80 && *src < 0xC0) goto __illegal;
+        case 1: if (*(u8*)src >= (u8)0x80 && *(u8*)src < (u8)0xC0) goto __illegal;
     }
 
     // 判断第一个字节
-    if (*src > 0xFD) goto __illegal;
+    if (*(u8*)src > (u8)0xFD) goto __illegal;
 
     return length;
 
 __illegal:
-    return 0;
+    return -1;
 }
 
 // 注释参照 charset.h-> struct Charset -> GetOneMb
-s32 Utf8GetOneMb(const char* mbs,s32 n)
+s32 UTF8_GetOneMb(const char* mbs,s32 n)
 {
     s32 count;
 
     if(mbs == NULL)
         return -1;
     if(*mbs == 0)
-        return 1;       //串结束符也是合法字符
-    count = Utf8IsLegal(mbs, n);
-    if(count == 0)
-        return -1;
-    else
-        return count;
+        return 0;
+    count = __UTF8_IsLegal(mbs, n);
+    return count;
 
 }
 
 // 注释参照 charset.h-> struct Charset -> MbToUcs4
-s32 Utf8MbToUcs4(u32* pwc, const char* mbs, s32 n)
+s32 UTF8_MbToUcs4(u32* pwc, const char* mbs, s32 n)
 {
     s32 count, len;
     u32 wc;
 
     if(mbs == NULL)
         return -1;
-    if(!(count = Utf8IsLegal(mbs, n)))
+    if((count = __UTF8_IsLegal(mbs, n)) == -1)
         goto __illegal;
 
     if(count == 1)
@@ -265,15 +270,18 @@ s32 Utf8MbToUcs4(u32* pwc, const char* mbs, s32 n)
 __illegal:
     return -1;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // 注释参照 charset.h-> struct Charset -> MbsToUcs4s
-s32 Utf8MbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
+s32 UTF8_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
 {
     return 0;
 }
+#pragma GCC diagnostic pop
 
 // 注释参照 charset.h-> struct Charset -> Ucs4ToMb
-s32 Utf8Ucs4ToMb(char* mbs, u32 wc)
+s32 UTF8_Ucs4ToMb(char* mbs, u32 wc)
 {
     s32 count;
 
@@ -294,7 +302,7 @@ s32 Utf8Ucs4ToMb(char* mbs, u32 wc)
         goto __illegal;
 
     switch(count){
-        case 6: mbs[5] = 0x80 | (wc & 0x3f); wc = wc >> 6; wc |= 0x4000000;
+        case 6: mbs[5] = 0x80 | (wc & 0x3f); wc = wc >> 6; wc |= 0x4000000;        __attribute__((fallthrough));
         case 5: mbs[4] = 0x80 | (wc & 0x3f); wc = wc >> 6; wc |= 0x200000;
         case 4: mbs[3] = 0x80 | (wc & 0x3f); wc = wc >> 6; wc |= 0x10000;
         case 3: mbs[2] = 0x80 | (wc & 0x3f); wc = wc >> 6; wc |= 0x800;
@@ -308,11 +316,15 @@ __illegal:
         return -1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // 注释参照 charset.h-> struct Charset -> Ucs4sToMbs
-s32 Utf8Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n)
+s32 UTF8_Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n)
 {
     return 0;
 }
+#pragma GCC diagnostic pop
 
 //----安装utf8字符编码解析器---------------------------------------------------
 //功能: 安装utf8字符编码解析器，执行ucs4和编码和utf8编码之间转换。
@@ -325,18 +337,18 @@ bool_t ModuleInstall_CharsetUtf8(void)
 
     encoding.max_len = 6;
     encoding.EOC_Size = 1;
-    encoding.GetOneMb = Utf8GetOneMb;
-    encoding.MbToUcs4 = Utf8MbToUcs4;
-    encoding.Ucs4ToMb = Utf8Ucs4ToMb;
-    encoding.MbsToUcs4s = Utf8MbsToUcs4s;
-    encoding.Ucs4sToMbs = Utf8Ucs4sToMbs;
+    encoding.GetOneMb = UTF8_GetOneMb;
+    encoding.MbToUcs4 = UTF8_MbToUcs4;
+    encoding.Ucs4ToMb = UTF8_Ucs4ToMb;
+    encoding.MbsToUcs4s = UTF8_MbsToUcs4s;
+    encoding.Ucs4sToMbs = UTF8_Ucs4sToMbs;
     if( Charset_NlsInstallCharset(&encoding, CN_NLS_CHARSET_UTF8))
     {
         debug_printf("utf8","utf8 encoding install sucess\n\r");
         return true;
     }else
     {
-        Djy_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
         debug_printf("utf8","utf8 encoding install fail\n\r");
         return false;
     }

@@ -8,9 +8,9 @@
 // Instructions:
 
 // cpu basic init
-void CpuInit(void)
+void CPU_CpuInit(void)
 {
-	extern void P1020ElbcInit();
-	P1020ElbcInit();	
+	extern void CPU_P1020ElbcInit();
+	CPU_P1020ElbcInit();	
 	return;
 }

@@ -49,12 +49,12 @@
 #include <stm32f7xx_hal.h>
 #include <stdlib.h>
 #include <device.h>
-#include <fs/fat/port/drivers/fat_drivers.h>
-#include <fs/fat/ff11/src/integer.h>
-#include <fs/fat/ff11/src/diskio.h>
+#include <fat/port/drivers/fat_drivers.h>
+#include <fat/ff11/src/integer.h>
+#include <fat/ff11/src/diskio.h>
 #include <stm32f7xx_hal_mmc.h>
 #include <systime.h>
-#include <filesystems.h>
+#include <djyfs/filesystems.h>
 #include <dbug.h>
 #include <string.h>
 #include <stdbool.h>
@@ -74,7 +74,7 @@
 //attribute:bsp                      //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                   //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                      //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                    //初始化时机，可选值：early，medium，later。
+//init time:early                    //初始化时机，可选值：early，medium，later, pre-main。
                                      //表示初始化时间，分别是早期、中期、后期
 //dependence:"fat file system","device file system","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                      //选中该组件时，被依赖组件将强制选中，
@@ -183,7 +183,7 @@ void EMMC_Wakeup(void)
         return ;
     }
 
-    Djy_EventDelay(1000); // 等待唤醒
+    DJY_EventDelay(1000); // 等待唤醒
 
     res = SDMMC_CmdSelDesel(handleMMC.Instance, (uint32_t)(((uint32_t)handleMMC.MmcCard.RelCardAdd) << 16));
     if(res != HAL_MMC_ERROR_NONE)
@@ -241,7 +241,7 @@ int _MMC_Read(BYTE *pBuf, DWORD qwSector, UINT dwCount)
     {   // 查询设备完成，即是否完成
         while(1)
         {
-            Djy_EventDelay(1);
+            DJY_EventDelay(1);
             if(count++ == SDMMC_MAX_TRIAL)
             {
                 ret = -1;
@@ -295,7 +295,7 @@ int _MMC_Write(BYTE *pBuf, DWORD qwSector, UINT dwCount)
         // 查询设备是否ready，即是否完成
         while(1)
         {
-            Djy_EventDelay(1);
+            DJY_EventDelay(1);
             if(count++ == SDMMC_MAX_TRIAL)
             {
                 ret = -1;
@@ -420,7 +420,7 @@ s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed)
         return (-1);
     }
 
-    if(!dev_Create((const char*)defaultName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)defaultName)))
+    if(!Device_Create((const char*)defaultName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)defaultName)))
     {
         printk("\r\nMODULE : INSTALL : \"%s\" initialization failed.\r\n", defaultName);
         return (-1); // 失败
@@ -432,18 +432,18 @@ s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed)
         {
             printk("\r\nMODULE : INSTALL : \"%s\" format failed during initialization.\r\n", defaultName);
         }
-        Djy_EventDelay(3000000); // 等待一段时间
+        DJY_EventDelay(3000000); // 等待一段时间
     }
 
     if(targetfs != NULL)
     {
-        targetobj = obj_matchpath(targetfs, &notfind);
+        targetobj = OBJ_MatchPath(targetfs, &notfind);
         if(notfind)
         {
             error_printf("mmc"," not found need to install file system.");
             return -1;
         }
-        super = (struct FsCore *)obj_GetPrivate(targetobj);
+        super = (struct FsCore *)OBJ_GetPrivate(targetobj);
         super->MediaInfo = defaultName;
         if(strcmp(super->pFsType->pType, "FAT") == 0)      //这里的"FAT"为文件系统的类型名，在文件系统的filesystem结构中
         {
@@ -458,7 +458,7 @@ s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed)
 
         FullPath = malloc(strlen(defaultName)+strlen(s_ptDeviceRoot->name));  //获取msc的完整路径
         sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,defaultName);
-        FsBeMedia(FullPath,targetfs);     //在msc上挂载文件系统
+        File_BeMedia(FullPath,targetfs);     //在msc上挂载文件系统
         free(FullPath);
     }
     else
@@ -499,7 +499,7 @@ s32 MMC_Erase(s32 dwArgC, ...)
             printk("\r\nEMMC : debug : erase failed.\r\n");
         }
         Lock_MutexPost(pOperationMutex);
-        Djy_EventDelay(3000000); // 等待一段时间
+        DJY_EventDelay(3000000); // 等待一段时间
     }
 
     return (res);
@@ -647,7 +647,7 @@ void LOCAL_Test(void)
     }
 
     {
-    Djy_EventDelay(30000000);
+    DJY_EventDelay(30000000);
     printk("LOCAL TEST : result : strategy 1 has %d errors\r\n", error);
     printk("LOCAL TEST : result : strategy 2 has %d errors\r\n", error2);
 

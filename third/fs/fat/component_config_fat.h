@@ -58,9 +58,9 @@
 //attribute:third                    //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                    //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                       //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                    //初始化时机，可选值：early，medium，later。
+//init time:early                    //初始化时机，可选值：early，medium，later, pre-main。
                                       //表示初始化时间，分别是早期、中期、后期
-//dependence:"file system"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"file system","Nls Charset"    //该组件的依赖组件名（可以是none，表示无依赖组件），
                                       //选中该组件时，被依赖组件将强制选中，
                                       //如果依赖多个组件，则依次列出
 //weakdependence:"none"               //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -73,14 +73,14 @@
 //%$#@configue      ****参数配置开始
 #if ( CFG_MODULE_ENABLE_FAT_FILE_SYSTEM == false )
 //#warning  " fat_file_system  组件参数未配置，使用默认配置"
-//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@target = cmdline           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_FAT_FILE_SYSTEM    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@enum,"MS_INSTALLUSE",
-#define CFG_FAT_MS_INSTALLUSE       MS_INSTALLUSE       //使用时才发生安装动作
-//%$#@enum,"MSC","EMMC",
-#define CFG_FAT_MEDIA_KIND          "MSC"      //"name",媒体所属类别（ "MSC", "EMMC"）
+//%$#@enum,MS_INSTALLUSE,MS_INSTALLCREAT
+#define CFG_FAT_MS_INSTALLUSE       MS_INSTALLUSE   //"选项",参考filesystem.h中的MS_INSTALLUSE等定义
+//%$#@enum,"RAM","NAND","CF","SD", "MSC", "EMMC"
+#define CFG_FAT_MEDIA_KIND          "MSC"      //"媒体所属类别",（如"RAM","NAND","CF","SD", "MSC", "EMMC"）
 //%$#@string,1,10,
-#define CFG_FAT_MOUNT_POINT         "fat"      //"name",FAT文件系统安装目录
+#define CFG_FAT_MOUNT_POINT         "fat"      //"安装路径",FAT文件系统安装目录
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
@@ -88,5 +88,14 @@
 
 //%$#@exclude       ****编译排除文件列表
 //%$#@end exclude   ****组件描述结束
+
+//%$#@API include path         ****API头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，应用本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
+//..;
+//%$#@end API include path
+
+//%$#@self include path         ****编译自身需要的头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，编译本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
+//%$#@end self include path
+
+//@#$%component end configure
 
 //@#$%component end configure

@@ -35,7 +35,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"int","tcpip","heap","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -802,7 +802,7 @@ static ptu32_t __MacRcvTask(void)
     tagMacDriver      *pDrive;
     pDrive = &gMacDriver;
 
-    Djy_GetEventPara((ptu32_t *)&handle,NULL);
+    DJY_GetEventPara((ptu32_t *)&handle,NULL);
 
     while(1)
     {
@@ -820,7 +820,7 @@ static ptu32_t __MacRcvTask(void)
             if(NULL != pkg)
             {
                 //maybe we have another method like the hardware
-                NetDevFlowCtrl(handle,NetDevFrameType(PkgGetCurrentBuffer(pkg),
+                NetDev_FlowCtrl(handle,NetDev_FrameType(PkgGetCurrentBuffer(pkg),
                                                       PkgGetDataLen(pkg)));
                 //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
@@ -831,7 +831,7 @@ static ptu32_t __MacRcvTask(void)
                 }
                 else
                 {
-                    NetDevPush(handle,pkg);  //丢给协议栈
+                    Link_NetDevPush(handle,pkg);  //丢给协议栈
                 }
                 PkgTryFreePart(pkg);
                 pDrive->debuginfo.rcvPkgTimes++;
@@ -839,7 +839,7 @@ static ptu32_t __MacRcvTask(void)
             else
             {
                   //here we still use the counter to do the time state check
-                NetDevFlowCtrl(handle,EN_NETDEV_FRAME_LAST);
+                NetDev_FlowCtrl(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
@@ -860,18 +860,18 @@ static bool_t __CreateRcvTask(struct NetDev *handle)
     u16 evttID;
     u16 eventID;
 
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_REAL, 0, 1,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_REAL, 0, 1,
         (ptu32_t (*)(void))__MacRcvTask,NULL, 0x800, "GMACRcvTask");
     if (evttID != CN_EVTT_ID_INVALID)
     {
-        eventID=Djy_EventPop(evttID, NULL,  0,(ptu32_t)handle, 0, 0);
+        eventID=DJY_EventPop(evttID, NULL,  0,(ptu32_t)handle, 0, 0);
         if(eventID != CN_EVENT_ID_INVALID)
         {
             result = true;
         }
         else
         {
-            Djy_EvttUnregist(evttID);
+            DJY_EvttUnregist(evttID);
         }
     }
     return result;
@@ -892,7 +892,7 @@ bool_t mac(char *param)
     tagMacDriver      *pDrive;
     pDrive = &gMacDriver;
 
-    time = DjyGetSysTime();
+    time = DJY_GetSysTime();
     timeS = time/(1000*1000);
     if(timeS == 0)
     {
@@ -1130,7 +1130,7 @@ bool_t ModuleInstall_ETH(const char *devname, bool_t loop,u32 loopcycle)
     devpara.name = (char *)pDrive->devname;
     devpara.mtu = CN_ETH_MTU;                     //Max Transmit Unit
     devpara.Private = (ptu32_t)pDrive;
-    pDrive->devhandle = NetDevInstall(&devpara);
+    pDrive->devhandle = NetDev_Install(&devpara);
 
     if(NULL == pDrive->devhandle)
     {
@@ -1164,7 +1164,7 @@ bool_t ModuleInstall_ETH(const char *devname, bool_t loop,u32 loopcycle)
     return true;
 
 RcvTaskFailed:
-    NetDevUninstall(devname);
+    NetDev_Uninstall(devname);
 NetInstallFailed:
     Lock_MutexDelete(pDrive->protect);
     pDrive->protect = NULL;

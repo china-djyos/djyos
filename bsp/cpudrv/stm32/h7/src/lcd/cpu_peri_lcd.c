@@ -66,7 +66,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"heap","graphical kernel"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -438,7 +438,7 @@ bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
     while((DMA2D->ISR&(1<<1))==0)   //等待传输完成
     {
       timeout+=10;
-      Djy_DelayUs(10);
+      DJY_DelayUs(10);
       if(timeout>lcd.Dma2dTimeOut)
       {
           flag=false;
@@ -729,7 +729,7 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,\
 
     struct HeapCB *heap;
     Ltdc_Lcd_Config(&lcd);
-    heap =M_FindHeap(HeapName);
+    heap =Heap_FindHeap(HeapName);
     if(heap==NULL)
         return NULL;
     //多申请64字节如果显存不是64字节对齐描点的时候会有闪屏的现象
@@ -750,8 +750,8 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,\
     lcd_display.frame_buffer =&frame_win;
     lcd_display.framebuf_direct = true;
 
-    lcd_display.xmm = 0;
-    lcd_display.ymm = 0;
+    tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
+    tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
     lcd_display.width = CFG_LCD_XSIZE;
     lcd_display.height = CFG_LCD_YSIZE;
     lcd_display.pixel_format = lcd.LcdPixelFormat;

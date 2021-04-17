@@ -47,84 +47,129 @@
 #include "djyos.h"
 #include "int.h"
 #include "blackbox.h"
-
+#include "hard-exp.h"
+#include "exp_vector.h"
 #include "board-config.h"
+#include "project_config.h"
+void* g_u32ExpTable[8] __attribute__ ((section(".data.ExpTable")));
 
-extern struct IntMasterCtrl  tg_int_global;
-extern uint32_t *isr_vector;
+void Init_Cpu(void);
+void AppStart(void);
+void __irq_Int_EngineAll(ufast_t intStatus);
+void __fiq_Int_EngineAll(ufast_t intStatus);
 
-void (*user_systick)(u32 inc_ticks) = NULL;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
-static void __Exp_TableSet(void)
+#if(CFG_RUNMODE == CN_RUNMODE_IBOOT)
+void HardExp_UndefVector(ucpu_t *sp)
 {
-    uint32_t *temp = isr_vector;
-    temp = *(&temp);
+    return;
 }
-
-
-void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
+void HardExp_SwiVector(ucpu_t *sp)
 {
-    user_systick = tick;
+    return;
 }
-
-void Exp_SystickTickHandler(void)
+void HardExp_PrefectVector(ucpu_t *sp)
 {
-    tg_int_global.en_asyn_signal_counter = 1;
-    if(!DjyGetUpdateTickFlag())
-        DjyUpdateTicks(1);
-    else
-        DjySetUpdateTickFlag(false);
-    if(user_systick!=NULL)
-        user_systick(1);
-    tg_int_global.en_asyn_signal_counter = 0;
+    return;
 }
-
+void HardExp_DataAbortVector(ucpu_t *sp)
+{
+    return;
+}
+void HardExp_NotUseVector(ucpu_t *sp)
+{
+    return;
+}
+//-----------------------------------------------------------------------------
+//功能：初始化异常向量表
+//参数：无
+//返回：无
+//-----------------------------------------------------------------------------
 void HardExp_Init(void)
 {
-    __Exp_TableSet();
+    g_u32ExpTable[CN_VECTOR_RESET]      = (void*)Init_Cpu;
+    g_u32ExpTable[CN_VECTOR_UND]        = (void*)HardExp_UndefVector;
+    g_u32ExpTable[CN_VECTOR_SWI]        = (void*)HardExp_SwiVector;
+    g_u32ExpTable[CN_VECTOR_PABT]       = (void*)HardExp_PrefectVector;
+    g_u32ExpTable[CN_VECTOR_DABT]       = (void*)HardExp_DataAbortVector;
+    g_u32ExpTable[CN_VECTOR_NOTUSE]     = (void*)HardExp_NotUseVector;
+    g_u32ExpTable[CN_VECTOR_IRQ]        = (void*)__irq_Int_EngineAll;
+    g_u32ExpTable[CN_VECTOR_FIQ]        = (void*)__fiq_Int_EngineAll;
 }
-
-enum EN_BlackBoxAction Exp_MemManageFaultHandler(u32 fpu_used,u32 *core_info)
+#else
+extern void EnJtag(void);
+extern void stub_debug(void);
+void HardExp_UndefVector(ucpu_t *sp)
 {
-    return EN_BLACKBOX_DEAL_IGNORE;
+    volatile u32 t = 1;
+    EnJtag();
+    if(t)
+        while(1);
+    return;
 }
-
-enum EN_BlackBoxAction Exp_HardFaultHandler(u32 fpu_used,u32 *core_info)
+void HardExp_SwiVector(ucpu_t *sp)
 {
-    return EN_BLACKBOX_DEAL_IGNORE;
+    volatile u32 t = 1;
+    EnJtag();
+    if(t)
+        while(1);
+    return;
 }
-
-enum EN_BlackBoxAction Exp_DebugFaultHandler(u32 fpu_used,u32 *core_info)
+void HardExp_PrefectVector(ucpu_t *sp)
 {
-    return EN_BLACKBOX_DEAL_IGNORE;
+    volatile u32 t = 1;
+    EnJtag();
+    if(t)
+        while(1);
+    return;
 }
-
-enum EN_BlackBoxAction Exp_BusFaultHandler(u32 fpu_used,u32 *core_info)
+void HardExp_DataAbortVector(ucpu_t *sp)
 {
-    return EN_BLACKBOX_DEAL_IGNORE;
+    volatile u32 t = 1;
+    EnJtag();
+    if(t)
+        while(1);
+    return;
 }
-
-enum EN_BlackBoxAction Exp_UsageFaultHandler(u32 fpu_used,u32 *core_info)
+void HardExp_NotUseVector(ucpu_t *sp)
 {
-    return EN_BLACKBOX_DEAL_IGNORE;
+    volatile u32 t = 1;
+    EnJtag();
+    if(t)
+        while(1);
+    return;
 }
-
-bool_t  HardExp_Analysis(struct ExpThrowPara *parahead, u32 endian)
+//-----------------------------------------------------------------------------
+//功能：初始化异常向量表
+//参数：无
+//返回：无
+//-----------------------------------------------------------------------------
+void HardExp_Init(void)
 {
-    return true;
+#if(CFG_RUNMODE == CN_RUNMODE_BOOTSELF)
+    g_u32ExpTable[CN_VECTOR_RESET]      = (void*)Init_Cpu;
+#else
+    g_u32ExpTable[CN_VECTOR_RESET]      = (void*)AppStart;
+#endif
+    g_u32ExpTable[CN_VECTOR_UND]        = (void*)HardExp_UndefVector;
+    g_u32ExpTable[CN_VECTOR_SWI]        = (void*)HardExp_SwiVector;
+    g_u32ExpTable[CN_VECTOR_PABT]       = (void*)HardExp_PrefectVector;
+    g_u32ExpTable[CN_VECTOR_DABT]       = (void*)HardExp_DataAbortVector;
+    g_u32ExpTable[CN_VECTOR_NOTUSE]     = (void*)HardExp_NotUseVector;
+    g_u32ExpTable[CN_VECTOR_IRQ]        = (void*)__irq_Int_EngineAll;
+    g_u32ExpTable[CN_VECTOR_FIQ]        = (void*)__fiq_Int_EngineAll;
 }
-
-bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
-{
-    return true;
-}
+#endif
 
 bool_t HardExp_InfoDecoderInit(void)
 {
     return true;
 }
-
-bool_t HardExp_Trap_c(uint32_t *regs)
-{
-
-}
+//
+//bool_t HardExp_Trap_c(uint32_t *regs)
+//{
+//
+//}
+#pragma GCC diagnostic pop

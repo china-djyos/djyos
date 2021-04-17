@@ -364,74 +364,102 @@ ghttp_prepare(ghttp_request *a_request)
 ghttp_status
 ghttp_process(ghttp_request *a_request)
 {
-  int l_rv = 0;
+    int l_rv = 0;
 
-  if (a_request->proc == ghttp_proc_none)
-    a_request->proc = ghttp_proc_request;
-  if (a_request->proc == ghttp_proc_request)
+    if (a_request->proc == ghttp_proc_none)
+        a_request->proc = ghttp_proc_request;
+
+    if (a_request->proc == ghttp_proc_request)
     {
-      if (a_request->connected == 0)
-	{
-	  if (http_trans_connect(a_request->conn) < 0)
-	    {
-	      if (a_request->conn->error_type == http_trans_err_type_errno)
-		a_request->errstr = strerror(a_request->conn->error);
-	      else if(a_request->conn->error_type == http_trans_err_type_host)
-		a_request->errstr = http_trans_get_host_error(h_errno);
-	      return ghttp_error;
-	    }
-	  a_request->connected = 1;
-	}
-      l_rv = http_req_send(a_request->req, a_request->conn);
-      if (l_rv == HTTP_TRANS_ERR)
-	return ghttp_error;
-      if (l_rv == HTTP_TRANS_NOT_DONE)
-	return ghttp_not_done;
-      if (l_rv == HTTP_TRANS_DONE)
-	{
-	  a_request->proc = ghttp_proc_response_hdrs;
-	  if (a_request->conn->sync == HTTP_TRANS_ASYNC)
-	    return ghttp_not_done;
-	}
+        if (a_request->connected == 0)
+        {
+            if (http_trans_connect(a_request->conn) < 0)
+            {
+                if (a_request->conn->error_type == http_trans_err_type_errno)
+                    a_request->errstr = strerror(a_request->conn->error);
+                else if(a_request->conn->error_type == http_trans_err_type_host)
+                    a_request->errstr = http_trans_get_host_error(h_errno);
+
+                return ghttp_error;
+            }
+            a_request->connected = 1;
+        }
+
+        l_rv = http_req_send(a_request->req, a_request->conn);
+
+        if (l_rv == HTTP_TRANS_ERR)
+        {
+            return ghttp_error;
+        }
+
+        if (l_rv == HTTP_TRANS_NOT_DONE)
+        {
+            return ghttp_not_done;
+        }
+
+        if (l_rv == HTTP_TRANS_DONE)
+        {
+            a_request->proc = ghttp_proc_response_hdrs;
+            if (a_request->conn->sync == HTTP_TRANS_ASYNC)
+                return ghttp_not_done;
+        }
     }
-  if (a_request->proc == ghttp_proc_response_hdrs)
+
+    if (a_request->proc == ghttp_proc_response_hdrs)
     {
-      l_rv = http_resp_read_headers(a_request->resp, a_request->conn);
-      if (l_rv == HTTP_TRANS_ERR)
-	return ghttp_error;
-      if (l_rv == HTTP_TRANS_NOT_DONE)
-	return ghttp_not_done;
-      if (l_rv == HTTP_TRANS_DONE)
-	{
-	  a_request->proc = ghttp_proc_response;
-	  if (a_request->conn->sync == HTTP_TRANS_ASYNC)
-	    return ghttp_not_done;
-	}
+        l_rv = http_resp_read_headers(a_request->resp, a_request->conn);
+
+        if (l_rv == HTTP_TRANS_ERR)
+        {
+            return ghttp_error;
+        }
+
+        if (l_rv == HTTP_TRANS_NOT_DONE)
+        {
+            return ghttp_not_done;
+        }
+
+        if (l_rv == HTTP_TRANS_DONE)
+        {
+            a_request->proc = ghttp_proc_response;
+            if (a_request->conn->sync == HTTP_TRANS_ASYNC)
+            {
+                return ghttp_not_done;
+            }
+        }
     }
-  if (a_request->proc == ghttp_proc_response)
+
+    if (a_request->proc == ghttp_proc_response)
     {
-      l_rv = http_resp_read_body(a_request->resp,
-				 a_request->req,
-				 a_request->conn);
-      if (l_rv == HTTP_TRANS_ERR)
-	{
-	  /* make sure that the connected flag is fixed and stuff */
-	  if (a_request->conn->sock == -1)
-	    a_request->connected = 0;
-	  return ghttp_error;
-	}
-      if (l_rv == HTTP_TRANS_NOT_DONE)
-	return ghttp_not_done;
-      if (l_rv == HTTP_TRANS_DONE)
-	{
-	/* make sure that the connected flag is fixed and stuff */
-	  if (a_request->conn->sock == -1)
-	    a_request->connected = 0;
-	  a_request->proc = ghttp_proc_none;
-	  return ghttp_done;
-	}
+        l_rv = http_resp_read_body(a_request->resp,
+        a_request->req,
+        a_request->conn);
+        if (l_rv == HTTP_TRANS_ERR)
+        {
+            /* make sure that the connected flag is fixed and stuff */
+            if (a_request->conn->sock == -1)
+                a_request->connected = 0;
+
+            return ghttp_error;
+        }
+
+        if (l_rv == HTTP_TRANS_NOT_DONE)
+        {
+            return ghttp_not_done;
+        }
+
+        if (l_rv == HTTP_TRANS_DONE)
+        {
+            /* make sure that the connected flag is fixed and stuff */
+            if (a_request->conn->sock == -1)
+                a_request->connected = 0;
+
+            a_request->proc = ghttp_proc_none;
+            return ghttp_done;
+        }
     }
-  return ghttp_error;
+
+    return ghttp_error;
 }
 
 ghttp_current_status

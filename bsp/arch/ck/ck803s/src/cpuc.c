@@ -54,7 +54,7 @@
 
 extern s64  g_s64OsTicks;             //操作系统运行ticks数
 extern void Init_Cpu(void);
-extern void Load_Preload(void);
+extern void Iboot_LoadPreload(void);
 
 static uint64_t gRunTicks = 0;
 static bool_t gResumeTickFlag = false;
@@ -96,7 +96,7 @@ __attribute__((weak)) void __InitTimeBase(void)
 // =============================================================================
 __attribute__((weak)) void __DjyInitTick(void)
 {
-    HardExp_ConnectSystick(Djy_ScheduleIsr);
+    HardExp_ConnectSystick(DJY_ScheduleIsr);
     CORET->LOAD = CN_CFG_FCLK/CN_CFG_TICK_HZ;
     CORET->VAL =CN_CFG_FCLK/CN_CFG_TICK_HZ;
     CORET->CTRL = CORET_CTRL_CLKSOURCE_Msk |
@@ -132,9 +132,8 @@ __attribute__((weak))   uint64_t __DjyGetSysTime(void)
     return (uint64_t)time;
 }
 
-extern void Load_Preload(void);
+extern void Iboot_LoadPreload(void);
 #include <blackbox.h>
-#include <osboot.h>
 #include <Iboot_info.h>
 //extern tagIapVar pg_IapVar;
 
@@ -148,7 +147,7 @@ extern void Load_Preload(void);
 // 参数：无
 // 返回：无
 // =============================================================================
-void reboot()
+void CPU_Reboot()
 {
 
 
@@ -157,7 +156,7 @@ void reboot()
         ((void (*)(void))(InitCpu_Addr))();
 }
 
-void reset( )
+void CPU_Reset( )
 {
     u32 InitCpu_Addr;
     InitCpu_Addr = *(u32*)0x02160000;
@@ -165,9 +164,9 @@ void reset( )
 
 }
 
-void restart_system(u32 key)
+void CPU_RestartSystem(u32 key)
 {
-    Load_Preload();
+    Iboot_LoadPreload();
 }
 
 

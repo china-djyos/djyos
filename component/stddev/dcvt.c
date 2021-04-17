@@ -43,7 +43,7 @@ _DEFUN(print_nan,(buffer, value, precision),
        double value _AND
        int precision)
 {
-  size_t  i;
+  int  i;
   
   if (isnan(value))
     {
@@ -428,7 +428,8 @@ _DEFUN(_cvtf,(in),
   
 }
 
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 char *
 _DEFUN(_dcvt,(buffer, invalue, precision, width, type, dot),
@@ -526,6 +527,7 @@ _DEFUN(_dcvt,(buffer, invalue, precision, width, type, dot),
   return buffer;
 }
 
+#pragma GCC diagnostic pop
 
 char *
 _DEFUN(fcvtbuf,(invalue,ndigit,decpt,sign, fcvt_buf),

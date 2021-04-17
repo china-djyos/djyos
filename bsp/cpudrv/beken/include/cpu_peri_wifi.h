@@ -74,9 +74,7 @@ void DjyWifi_ApOpen(char *ap_ssid, char *ap_key);
 void DjyWifi_ApClose(void);
 void DjyWifi_StartScan(FUNC_2PARAM_PTR ind_cb);
 uint32_t DjyWifi_GetScanResult(struct sta_scan_res **scan_result);
-bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
-                          bool_t loop,u32 loopcycle,\
-                          bool_t (*rcvHook)(u8 *buf, u16 len));
+bool_t ModuleInstall_Wifi(void);
 
 
 #ifdef __cplusplus

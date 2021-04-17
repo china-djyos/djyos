@@ -16,7 +16,7 @@ SECTIONS
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-         KEEP(*(.IbootAppInfo .IbootAppInfo.*)) 
+         KEEP(*(.IbootAppInfo .IbootAppInfo.*))
     }>RAM1
 
     stack_rRAM1_lRAM1 (NOLOAD) :
@@ -103,16 +103,16 @@ SECTIONS
        . = ALIGN(0x08);
         * (.bss .bss.* COMMON)
     }>RAM1
-    
+
      routine_shell_data_section :
-	{
-   		 KEEP(* (.ro_shell_data))
- 	 }>RAM1 AT>InnerFlash
- 	
+        {
+                 KEEP(* (.ro_shell_data))
+         }>RAM1 AT>InnerFlash
+
     expand_shell_data_section :
-	{
- 	     KEEP(* (.ex_shell_data))
- 	 }>RAM1 AT>InnerFlash
+        {
+             KEEP(* (.ex_shell_data))
+         }>RAM1 AT>InnerFlash
 
     preload_cp_table :
     {
@@ -158,17 +158,17 @@ SECTIONS
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
-        
+
         LONG(LOADADDR(routine_shell_data_section))
-		LONG(ADDR(routine_shell_data_section))
-		LONG(SIZEOF(routine_shell_data_section))
-		LONG(1)
-		
-		LONG(LOADADDR(expand_shell_data_section))
-		LONG(ADDR(expand_shell_data_section))
-		LONG(SIZEOF(expand_shell_data_section))
-		LONG(1)
-	
+                LONG(ADDR(routine_shell_data_section))
+                LONG(SIZEOF(routine_shell_data_section))
+                LONG(1)
+
+                LONG(LOADADDR(expand_shell_data_section))
+                LONG(ADDR(expand_shell_data_section))
+                LONG(SIZEOF(expand_shell_data_section))
+                LONG(1)
+
     }>InnerFlash
 
     heap_rRAM1_lRAM1 (NOLOAD) :
@@ -184,7 +184,7 @@ SECTIONS
         ram2_heap_bottom = .;
     }>RAM2
     ram2_heap_top = InnerRam2Start + InnerRam2Size;
-    
+
     heap_rextram_lextram (NOLOAD) :
     {
         . = ALIGN(0x08);
@@ -224,7 +224,7 @@ SECTIONS
         BYTE(0x6d)                  /*'m'*/
         BYTE(0x32)                  /*'2'*/
         BYTE(0)                     /*串结束，"extram"是堆的名字*/
-        
+
         . = ALIGN(0x04);
         LONG(1)                     /*表示该堆由1段内存组成*/
         LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
@@ -266,7 +266,7 @@ SECTIONS
         gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
         LONG( restore + IbootSize)
         . += 256;
-        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */ 
+        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */
         LONG( restore + IbootSize + 256)
         . += 256;
         gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址*/
@@ -277,32 +277,32 @@ SECTIONS
 
 
     shell_config_section :
-	{
-   		KEEP(*(.shellconfig))
- 	}>InnerFlash
-    
+        {
+                KEEP(*(.shellconfig))
+        }>InnerFlash
+
     routine_shell_section :
-	{
-   		 KEEP(* (.ro_shell_cmd))
-   		 KEEP(* (.ro_shell_data))
- 	}>InnerFlash
- 	
+        {
+                 KEEP(* (.ro_shell_cmd))
+                 KEEP(* (.ro_shell_data))
+        }>InnerFlash
+
     expand_shell_section :
-	{
- 	     KEEP(* (.ex_shell_cmd))
- 	     KEEP(* (.ex_shell_data))
- 	      . = ALIGN(0x08);
- 	}>InnerFlash
- 	
- 	Shell_Info :
+        {
+             KEEP(* (.ex_shell_cmd))
+             KEEP(* (.ex_shell_data))
+              . = ALIGN(0x08);
+        }>InnerFlash
+
+        Shell_Info :
     {
         p_shell_info = .;
-        LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-    }>InnerFlash 
-	
-    
-    
+        LONG(restore) /* 该bin文件的起始地址*/
+        LONG(IbootSize) /* 该bin文件允许大小*/
+    }>InnerFlash
+
+
+
 
 }
 /**** The End ****/

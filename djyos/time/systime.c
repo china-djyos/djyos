@@ -66,9 +66,7 @@
 #include "component_config_time.h"
 
 extern s64 __DjyGetSysTime(void);
-#if (!CN_USE_TICKLESS_MODE)
 extern s64  g_s64OsTicks;               //操作系统运行ticks数
-#endif
 static fnSysTimeHard32  s_fnSysTimeHard32 = NULL;
 static fnSysTimeHard64  s_fnSysTimeHard64 = NULL;
 static u32 s_u32SysTimeFreq = 1000000;  //系统时钟的输入时钟频率
@@ -94,7 +92,7 @@ static u32 s_u32BakCounter = 0;         //计数值的备份
 // 返回值  ：
 // 说明：该函数务必在系统初始化的时候调用，务必不能在系统启动后再调用
 // =============================================================================
-void SysTimeConnect(fnSysTimeHard32 GetSysTime32,fnSysTimeHard64 GetSysTime64,
+void DJY_SysTimeConnect(fnSysTimeHard32 GetSysTime32,fnSysTimeHard64 GetSysTime64,
                     u32 Freq,u32 Cycle)
 {
     //不要判GetSysTime32和GetSysTime64是否为NULL，NULL也是一个正确选项。
@@ -110,7 +108,7 @@ void SysTimeConnect(fnSysTimeHard32 GetSysTime32,fnSysTimeHard64 GetSysTime64,
 // 输出参数：
 // 返回值  ：获取的系统运行时间，uS
 // =============================================================================
-s64 DjyGetSysTime(void)
+s64 DJY_GetSysTime(void)
 {
     u32 CurrentTime;
     s64 s64sysTimeMajorBak;
@@ -148,7 +146,7 @@ s64 DjyGetSysTime(void)
 // 输出参数：
 // 返回值  ：获取的系统运行时间，周期数
 // =============================================================================
-s64 DjyGetSysTimeCycle(void)
+s64 DJY_GetSysTimeCycle(void)
 {
     u32 CurrentTime;
     s64 s64sysTimeMajorBak;
@@ -180,7 +178,7 @@ s64 DjyGetSysTimeCycle(void)
 // 输出参数：
 // 返回值  ：获取的系统运行时间，周期数
 // =============================================================================
-void __DjyMaintainSysTime(void)
+void __DJY_MaintainSysTime(void)
 {
     u32 CurrentTime;
     if(s_fnSysTimeHard32 != NULL)
@@ -199,19 +197,18 @@ void __DjyMaintainSysTime(void)
 // 输出参数：
 // 返回值  ：时钟频率，如果用ticks，则固定返回1Mhz
 // =============================================================================
-u32 DjyGetSysTimeFreq(void)
+u32 DJY_GetSysTimeFreq(void)
 {
     return s_u32SysTimeFreq;
 }
 //----读取当前ticks-------------------------------------------------------------
-//功能：读取操作系统时钟ticks数
+//功能：读取操作系统时钟ticks数，截至上一次tick时钟中断。
 //      g_s64OsTicks 为64位变量，非64位系统中，读取 g_s64OsTicks 需要超过1个
 //      周期,需要使用原子操作。
 //参数：无
 //返回：当前时钟
 //-----------------------------------------------------------------------------
-#if (!CN_USE_TICKLESS_MODE)
-s64 __DjyGetSysTick(void)
+s64 __DJY_GetSysTick(void)
 {
     s64 time;
 #if (64 > CN_CPU_BITS)
@@ -220,7 +217,7 @@ s64 __DjyGetSysTick(void)
     atom_low = Int_LowAtomStart();
 #endif
 
-    time = __DjyGetTicks();
+    time = g_s64OsTicks;
 
 #if (64 > CN_CPU_BITS)
     //若处理器字长不是64位,需要多个周期才能读取os_ticks,该过程不能被时钟中断打断.
@@ -228,5 +225,4 @@ s64 __DjyGetSysTick(void)
 #endif
     return time;
 }
-#endif
 

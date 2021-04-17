@@ -62,6 +62,7 @@
 #include "stdint.h"
 #include "object.h"
 #include "stdio.h"
+#include "string.h"
 #include "dbug.h"
 #include "charset.h"
 #include "component_config_NlsCharset.h"
@@ -80,7 +81,7 @@ bool_t  Charset_NlsInstallCharset(struct Charset *encoding,const char* name)
     if(s_ptCharsetDir == NULL)
         return (FALSE);       // 字符集目录未创建
 
-    encoding->HostObj = obj_newchild(s_ptCharsetDir,(fnObjOps)-1,(ptu32_t)encoding,name);
+    encoding->HostObj = OBJ_NewChild(s_ptCharsetDir,(fnObjOps)-1,(ptu32_t)encoding,name);
     if(!encoding->HostObj)
     {
         return (FALSE);
@@ -105,11 +106,11 @@ bool_t  Charset_NlsInstallCharset(struct Charset *encoding,const char* name)
 //----字符集模块初始化-------------------------------------------------------
 //功能: 初始化字符集管理模块
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_Charset(ptu32_t para)
+ptu32_t ModuleInstall_Charset(void)
 {
     s_ptCurCharset = NULL;
     // 创建字符集目录
-    s_ptCharsetDir = obj_newchild(obj_root(),(fnObjOps)-1,0,CN_CHAR_ENCODING_RSC_TREE);
+    s_ptCharsetDir = OBJ_NewChild(OBJ_GetRoot(),(fnObjOps)-1,0,CN_CHAR_ENCODING_RSC_TREE);
     if(s_ptCharsetDir)
     {
         return 1;
@@ -146,7 +147,7 @@ struct Charset* Charset_NlsSetCurCharset(struct Charset* encoding)
     if(s_ptCharsetDir == NULL)
         return NULL;       //字符集目录未创建
     Me = encoding->HostObj;
-    if(s_ptCharsetDir==obj_parent(Me)) // 字符集确已安装到s_ptCharsetDir目录
+    if(s_ptCharsetDir==OBJ_GetParent(Me)) // 字符集确已安装到s_ptCharsetDir目录
     {
         s_ptCurCharset = (struct Charset*)encoding;
         g_bUserSetCharset = true;
@@ -166,9 +167,9 @@ struct Charset* Charset_NlsSearchCharset(const char* name)
     if(s_ptCharsetDir == NULL)
         return NULL;       //字符资源树未创建
 
-    CharsetObj = obj_search_child(s_ptCharsetDir,name);
+    CharsetObj = OBJ_SearchChild(s_ptCharsetDir,name);
     if(CharsetObj != NULL)
-        return (struct Charset*)obj_GetPrivate(CharsetObj);
+        return (struct Charset*)OBJ_GetPrivate(CharsetObj);
     else
         return NULL;
 }

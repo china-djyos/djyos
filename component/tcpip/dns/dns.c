@@ -54,44 +54,6 @@
 #include <arpa/inet.h>
 #include "dbug.h"
 
-static struct in_addr gDnsV4[2];  //dns and its bak for v4
-bool_t DnsGet(enum_ipv_t ver,void *addr,void *addrbak)
-{
-    bool_t ret = false;
-    if(ver == EN_IPV_4)
-    {
-        if(NULL != addr)
-        {
-            memcpy(addr,&gDnsV4[0],sizeof(struct in_addr));
-        }
-        if(NULL != addrbak)
-        {
-            memcpy(addr,&gDnsV4[1],sizeof(struct in_addr));
-        }
-        ret = true;
-    }
-    return ret;
-}
-bool_t DnsSet(enum_ipv_t ver,void *addr,void *addrbak)
-{
-    bool_t ret = false;
-    if(ver == EN_IPV_4)
-    {
-        if(NULL != addr)
-        {
-            memcpy(&gDnsV4[0],addr,sizeof(struct in_addr));
-            debug_printf("dns","DNSSET:1:%s\n\r",inet_ntoa(*(struct in_addr*)addr));
-        }
-        if(NULL != addrbak)
-        {
-            memcpy(&gDnsV4[1],addrbak,sizeof(struct in_addr));
-            debug_printf("dns","DNSSET:2:%s\n\r",inet_ntoa(*(struct in_addr*)addrbak));
-        }
-        ret = true;
-    }
-    return ret;
-}
-
 
 
 

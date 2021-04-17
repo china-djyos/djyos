@@ -149,7 +149,7 @@ ptu32_t TcpServer_BlockSend(void)
 
             while(1)
             {
-//              apptimestart = DjyGetSysTime();
+//              apptimestart = DJY_GetSysTime();
                 sndlen = send(client,sBlockSendBuf,CN_SNDBUF_LEN,0);
                 if(sndlen > 0)
                 {
@@ -161,11 +161,11 @@ ptu32_t TcpServer_BlockSend(void)
 //                  closesocket(client);
                     break;
                 }
-//              apptimeend = DjyGetSysTime();
+//              apptimeend = DJY_GetSysTime();
 //              apptimeused = (u32)(apptimeend - apptimestart);
 //              printk("%s:apptime:No.%d used = %d us\n\r",__FUNCTION__,\
 //                      appsndtimes++,apptimeused);
-//              Djy_EventDelay(1000*mS);
+//              DJY_EventDelay(1000*mS);
             }
         }
         else
@@ -184,14 +184,14 @@ bool_t TcpServer_BlockSendTest(char *param)
 {
     u16  evttID;
     u16  eventID;
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1,\
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1,\
         (ptu32_t (*)(void))TcpServer_BlockSend,NULL, 0x1000, "TcpServer_BlockSend");
     if (evttID != CN_EVTT_ID_INVALID)
     {
-        eventID = Djy_EventPop(evttID, NULL, 0, 0, 0, 0);
+        eventID = DJY_EventPop(evttID, NULL, 0, 0, 0, 0);
         if(eventID == CN_EVENT_ID_INVALID)
         {
-            Djy_EvttUnregist(evttID);
+            DJY_EvttUnregist(evttID);
             printk("%s:BlockSendTask  Create Failed\n\r",__FUNCTION__);
         }
         else

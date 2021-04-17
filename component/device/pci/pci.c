@@ -66,7 +66,7 @@
  */
 //------------------------------------------------------
 #include "stdint.h"
-#include "../include/pci.h"
+#include "device/pci.h"
 #include <stdio.h>
 #include "dbug.h"
 #include <shell.h>

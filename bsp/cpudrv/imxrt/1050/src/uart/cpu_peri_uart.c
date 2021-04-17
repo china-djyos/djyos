@@ -57,7 +57,7 @@
 #include "systime.h"
 #include "cpu_peri.h"
 #include "cpu_peri_int_line.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "device.h"
 #include "int.h"
 #include "djyos.h"
@@ -103,7 +103,7 @@
 //attribute:bsp                  //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                  //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                //初始化时机，可选值：early，medium，later。
+//init time:early                //初始化时机，可选值：early，medium，later, pre-main。
                                  //表示初始化时间，分别是早期、中期、后期
 //dependence:"uart device file","heap","lock","int"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                  //选中该组件时，被依赖组件将强制选中，
@@ -197,7 +197,7 @@ static lpuart_config_t tg_UART_Config[CN_UART_NUM];
 #define CN_UART_TX_RMPTY        2U
 #define CN_UART_TX_COMPLETE     3U
 
-static struct UartCB *pUartCB[CN_UART_NUM];
+static struct UartGeneralCB *pUartCB[CN_UART_NUM];
 static u8 sUartInited = 0;
 __attribute__((weak))  void Board_UartHalfDuplexSend(u8 port)
 {
@@ -364,15 +364,14 @@ static void __UART_BaudSet(u8 port,u32 baud)
 //        data,结构体tagCOMParam类型的指针数值
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile * reg,u8 port,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile * reg,u8 port,struct COMParam *COM)
 {
     struct COMParam *COM;
 
     if(tg_UART_Reg[port]!=reg)
         return;
-    if(data == 0)
+    if(COM == NULL)
         return;
-     COM = (struct COMParam *)data;
 
      LPUART_GetDefaultConfig(&tg_UART_Config[port]);
      tg_UART_Config[port].baudRate_Bps = COM->BaudRate;
@@ -492,7 +491,7 @@ static void __UART_HardInit(u8 port)
 // 参数: port:串口号.
 // 返回:
 // =============================================================================
-static u32 __UART_SendStart (tagUartReg *reg,u32 timeout)
+static u32 __UART_SendStart (tagUartReg *reg)
 {
     u8 port=0;
     //u32 delay=0;
@@ -533,7 +532,7 @@ static u32 __UART_SendStart (tagUartReg *reg,u32 timeout)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-static ptu32_t __UART_Ctrl(tagUartReg *reg,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(tagUartReg *reg,u32 cmd, va_list *arg0)
 {
     u8 port=0;
     ptu32_t result = 0;
@@ -565,7 +564,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *reg,u32 cmd, u32 data1,u32 data2)
             __UART_Disable(port);
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-             __UART_BaudSet(port, data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(port, data);
+        }
             break;
         case CN_UART_EN_RTS:
             tg_UART_Config[port].enableRxRTS = true;
@@ -592,7 +595,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *reg,u32 cmd, u32 data1,u32 data2)
             break;
 */
         case CN_UART_COM_SET:
-            __UART_ComConfig(reg,port,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(Reg,port,COM);
+        }
             break;
         default: break;
     }
@@ -609,7 +616,7 @@ static ptu32_t __UART_Ctrl(tagUartReg *reg,u32 cmd, u32 data1,u32 data2)
 // =============================================================================
 u32 UART_ISR(ptu32_t port)
 {
-    struct UartCB *UCB;
+    struct UartGeneralCB *UCB;
     u32 num;
     u8 ch;
 
@@ -791,7 +798,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;
@@ -801,7 +808,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
     while(!__UART_TxTranComplete(PutStrDirectReg))
     {
         timeout -=10;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
         if(timeout < 10)
            break;
     }
@@ -825,7 +832,7 @@ char Uart_GetCharDirect(void)
             (kLPUART_TxDataRegEmptyInterruptEnable|kLPUART_TransmissionCompleteInterruptEnable));//disable send INT
     while(__UART_RxHadChar(GetCharDirectReg) == false)
     {
-        Djy_EventDelay(5*mS);
+        DJY_EventDelay(5*mS);
     }
     result=LPUART_ReadByte(GetCharDirectReg);
     LPUART_EnableInterrupts(GetCharDirectReg,CR_Bak); //restore send INT

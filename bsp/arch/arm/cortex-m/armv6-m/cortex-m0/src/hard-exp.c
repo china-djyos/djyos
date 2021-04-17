@@ -82,7 +82,7 @@ extern   void HardExp_NmiHandler(void);
 
 extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
-extern void __Djy_ScheduleAsynSignal(void);
+extern void __DJY_ScheduleAsynSignal(void);
 void (*user_systick)(u32 inc_ticks);
 
 struct SystickReg volatile * const pg_systick_reg
@@ -92,7 +92,7 @@ struct ScbReg volatile * const pg_scb_reg
 
 u32 g_u32ExpTable[16] __attribute__((section(".table.exceptions")));
 
-bool_t HardExp_Init(void)
+void HardExp_Init(void)
 {
     pg_scb_reg->pri12_15 |=0xff000000;    //systick设为最低优先级,=异步信号
     pg_scb_reg->pri8_11 |= 0xff000000;    //svc的优先级和异步信号相同。
@@ -119,29 +119,6 @@ bool_t HardExp_Init(void)
 void HardExp_ConnectNmi(void (*esr)(void))
 {
 }
-
-void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
-{
-    user_systick = tick;
-}
-
-void HardExp_EsrTick(void)
-{
-    if((pg_systick_reg->ctrl & bm_systick_ctrl_tickint) == 0)
-        return;
-    g_bScheduleEnable = false;
-    tg_int_global.nest_asyn_signal++;
-    if(!DjyGetUpdateTickFlag())
-        DjyUpdateTicks(1);
-    else
-        DjySetUpdateTickFlag(false);
-    user_systick((CN_USE_TICKLESS_MODE==1)?0:1);
-    tg_int_global.nest_asyn_signal--;
-    if(g_ptEventReady != g_ptEventRunning)
-        __Djy_ScheduleAsynSignal();       //执行中断内调度
-    g_bScheduleEnable = true;
-}
-
 
 //异常处理
 

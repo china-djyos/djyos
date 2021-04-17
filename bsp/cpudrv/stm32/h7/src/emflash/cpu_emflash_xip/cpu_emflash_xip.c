@@ -51,12 +51,12 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <math.h>
-#include <misc.h>
+#include <misc/misc.h>
 #include <systime.h>
 #include <dbug.h>
-#include <filesystems.h>
-#include <device/flash/flash.h> // will be obsolete
-#include <device/include/unit_media.h>
+#include <djyfs/filesystems.h>
+#include <device/djy_flash.h> // will be obsolete
+#include <device/unit_media.h>
 #include <xip.h>
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
@@ -73,12 +73,12 @@
 //attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                       //初始化时机，可选值：early，medium，later。
+//init time:early                       //初始化时机，可选值：early，medium，later, pre-main。
                                         //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","lock","cpu drive inner flash"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
-//weakdependence:"xip_app","xip_iboot"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"xip app file system","xip iboot file system"  //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件不会被强制选中，
                                         //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -92,7 +92,7 @@
 #define CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,-1,12,
 #define CFG_EFLASH_XIP_PART_START      6          //分区起始，填写块号，块号从0开始计算
-#define CFG_EFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块
+#define CFG_EFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块，如果结束块是6，起始块是0，则该分区使用的块为0，1，2，3，4，5块
 //%$#@enum,true,false,
 #define CFG_EFLASH_XIP_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
 //%$#@string,1,32,
@@ -140,43 +140,40 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
     struct umedia *um = (struct umedia *)core->vol;
     struct uesz esz = {0};
-    u32 j, offset, once, more = 1;
+    struct uopt opt = {0};
+    u32 j, offset, once, more;
     s32 left;
     s64 unit;
     u32 block = 0;
 
     left = bytes;
-    unit = (pos >> um->usz) + core->MStart;
-    offset = pos & ((1 << um->usz)-1); // unit内偏移
+    unit = (pos / core->bufsz) + core->MStart;
+    offset = pos & (core->bufsz-1); // unit内偏移
     __embed_req(lock, CN_TIMEOUT_FOREVER);
     while(left>0)
     {
+#if 0
         // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
         // (page+1)用于防止格式化了不属于xip的空间
-        if(pos !=0)
+        __embed_req(remain, (ptu32_t)&more, &unit);
+        if(!more)
         {
-            __embed_req(remain, (ptu32_t)&more, &unit);
-            if(!more)
+            // +1是表示当前unit的后面一个
+            if(((unit-um->ustart+1)<<um->usz)<um->asz)
             {
-                // +1是表示当前unit的后面一个
-                if(((unit-core->MStart+1)<<um->usz) >= core->ASize)
-                {
-                    return (-2);
-                }
-                esz.block = 1;
-        //        esz->unit = 0;
-                __embed_req(whichblock, (ptu32_t)&block, &unit);
-                //block是当前页所在的块号，block+1是为了擦除下一个块（block+1是要擦除的块，擦到block+1+1块就不擦了）
-                __embed_req(format, block, block+1, &esz);
+                struct uesz sz = {0};
+                sz.unit = 1;
+                __embed_erase(unit+1, sz); // 不管有没有擦除成功，因为如果后续写入的话，会有回读校验
             }
         }
-        if(__embed_read(unit, um->ubuf, um->opt))
+#endif
+        if(__embed_read(unit, um->ubuf, opt))
         {
             __embed_req(unlock, 0); //
             return (-1);
         }
 
-        once = 1<<um->usz;
+        once = core->bufsz;
         if(left<(s32)once)
             once = left;
 
@@ -193,7 +190,7 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
         }
 
         memcpy((um->ubuf + offset), data, once);
-        if(__embed_write(unit, um->ubuf, um->opt))
+        if(__embed_write(unit, um->ubuf, opt))
         {
             __embed_req(unlock, 0);
             return (-1);
@@ -204,9 +201,25 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
         data += once;
         if(left)
             unit++;
-
-
     }
+
+    // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
+    // (page+1)用于防止格式化了不属于xip的空间
+    __embed_req(remain, (ptu32_t)&more, &unit);
+    if(!more)
+    {
+        // +1是表示当前unit的后面一个
+        if(((unit-core->MStart+1)* core->bufsz) >= core->ASize)
+        {
+            return (-2);
+        }
+        esz.block = 1;
+//        esz->unit = 0;
+        __embed_req(whichblock, (ptu32_t)&block, &unit);
+        //block是当前页所在的块号，block+1是为了擦除下一个块（block+1是要擦除的块，擦到block+1+1块就不擦了）
+        __embed_req(format, block+1, block+1+1, &esz);
+    }
+
     __embed_req(unlock, 0); //
     return (0);
 }
@@ -223,17 +236,18 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 s32 xip_emflash_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
     struct umedia *um = (struct umedia *)core->vol;
+    struct uopt opt = {0};
     s64 unit;
     u32 offset;
     s32 left = bytes, once;
 
-    unit = (pos >> um->usz) + core->MStart;
-    offset = pos & ((1 << um->usz) - 1); // unit内偏移
+    unit = (pos / core->bufsz) + core->MStart;
+    offset = pos & (core->bufsz - 1); // unit内偏移
     __embed_req(lock, CN_TIMEOUT_FOREVER);
     while(left>0)
     {
-        once = MIN(((1 << um->usz) - offset), left);
-        if(__embed_read(unit, um->ubuf, um->opt))
+        once = MIN((core->bufsz - offset), left);
+        if(__embed_read(unit, um->ubuf, opt))
         {
             __embed_req(unlock, 0); //
             return (-1);
@@ -253,26 +267,25 @@ s32 xip_emflash_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 // ============================================================================
 // 功能：擦除数据
 // 参数：core -- xip文件系统管理信息
-//       dwBytes -- 字节数
-//       dwAddr -- 数据地址
+//       bytes -- 字节数
+//       pos -- 数据地址
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
 s32 xip_emflash_erase(struct __icore *core, u32 bytes, u32 pos)
 {
-    struct umedia *um = (struct umedia *)core->vol;
     struct uesz esz = {0};
     s64 unit;
     u32 erases, offset;
     s32 left = bytes;
 
     esz.unit = 1;
-    unit = (pos >> um->usz) + core->MStart;
-    offset = pos & ((1 << um->usz)-1); // unit内偏移
+    unit = (pos / core->bufsz) + core->MStart;
+    offset = pos & (core->bufsz-1); // unit内偏移
     __embed_req(lock, CN_TIMEOUT_FOREVER);
     while(left>0)
     {
-        if(__embed_req(remain, (ptu32_t)&erases, (ptu32_t)&unit))
+        if(__embed_req(remain, (ptu32_t)&erases, (ptu32_t)&unit))       //获取当前页在所在块中的位置
         {
             printf("\r\n: erro : xipfs  : erase unit %lld failed, cannot get remain.", unit);
             return (-1);
@@ -285,8 +298,8 @@ s32 xip_emflash_erase(struct __icore *core, u32 bytes, u32 pos)
         }
 
         erases++; // 擦除增一，表示包括当前的unit
-        left -= ((erases << um->usz) - offset);
-        unit += erases;
+        left -= ((erases * core->bufsz) - offset);
+        unit += erases;     //加erases等于下一块的第一页
         offset = 0;
     }
 
@@ -300,13 +313,14 @@ s32 xip_emflash_erase(struct __icore *core, u32 bytes, u32 pos)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 xip_fs_format(struct __icore *core)
+s32 xip_fs_format(void *core)
 {
+    struct __icore *xip_core = core;
     u32 remainunit = 0,block = 0,endunit = 0;
-    s64 startunit = core->MStart;
+    s64 startunit = xip_core->MStart;
     struct uesz esz = {0};
     esz.block = 1;
-    endunit = (core->ASize/core->bufsz) + startunit;
+    endunit = (xip_core->ASize/xip_core->bufsz) + startunit;
     __embed_req(whichblock, (ptu32_t)&block, (ptu32_t)&startunit);
     if(__embed_erase(block, esz))
     {
@@ -357,13 +371,13 @@ bool_t ModuleInstall_EmFlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend
                     warning_printf("xip"," Format failure.");
                 }
             }
-            targetobj = obj_matchpath(TargetFs, &notfind);
+            targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
                 error_printf("EmFlash"," not found need to install file system.");
                 return false;
             }
-            super = (struct FsCore *)obj_GetPrivate(targetobj);
+            super = (struct FsCore *)OBJ_GetPrivate(targetobj);
             if((strcmp(super->pFsType->pType, "XIP-APP") == 0) || (strcmp(super->pFsType->pType, "XIP-IBOOT") == 0))
             {
                 if(__embed_FsInstallInit(TargetFs,bstart,bend,&XIP_EMFLASH_DRV) == 0)

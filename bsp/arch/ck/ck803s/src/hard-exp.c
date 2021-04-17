@@ -58,7 +58,7 @@
 #define VIC_TSPR  0xE000EC10
 
 extern struct IntMasterCtrl  tg_int_global;          
-extern void __Djy_ScheduleAsynSignal(void);
+extern void __DJY_ScheduleAsynSignal(void);
 extern   void Init_Cpu(void);
 extern   void HardExp_HardfaultHandler(void);
 extern   void CK_Trap0ISR(void);
@@ -108,7 +108,7 @@ void Exp_SystickTickHandler(void)
 //    tg_int_global.en_asyn_signal = true;
     tg_int_global.en_asyn_signal_counter = 0;
 //  if(g_ptEventReady != g_ptEventRunning)
-//      __Djy_ScheduleAsynSignal();       
+//      __DJY_ScheduleAsynSignal();       
     g_bScheduleEnable = true;
 }
 

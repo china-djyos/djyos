@@ -8,11 +8,13 @@
 #include "schedule_pub.h"
 #include "rtos_pub.h"
 #include "error.h"
-
+#include "sys_ctrl_pub.h"
+#include "drv_model_pub.h"
 #include "arm_arch.h"
 
 #if CFG_RX_SENSITIVITY_TEST
 beken_timer_t rx_sens_tmr = {0};
+beken_timer_t rx_sens_ble_tmr = {0};
 UINT32 g_rxsens_start = 0;
 #endif
 
@@ -28,6 +30,18 @@ void rxsens_ct_hdl(void *param)
         ASSERT(kNoErr == err);
     }   
 #endif // CFG_RX_SENSITIVITY_TEST
+}
+
+void rxsens_ble_ct_hdl(void *param)
+{
+#if CFG_RX_SENSITIVITY_TEST
+    OSStatus err;
+    rx_get_ble_rx_result();
+    if(rx_sens_ble_tmr.handle != NULL) {
+        err = rtos_reload_timer(&rx_sens_ble_tmr);
+        ASSERT(kNoErr == err);
+    }
+#endif
 }
 
 void rxsens_ct_show_hdl(void *param)

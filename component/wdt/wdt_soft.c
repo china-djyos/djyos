@@ -63,59 +63,16 @@
 
 #include <os.h>
 #include <wdt_soft.h>
-#include <wdt_hal.h>
 #include <blackbox.h>
 #include "dbug.h"
 #include <shell.h>
 #include "board-config.h"
-#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
-                                //允许是个空文件，所有配置将按默认值配置。
-
-//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
-//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
-//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_Wdt(void);
-//    ModuleInstall_Wdt();
-//%$#@end initcode  ****初始化代码结束
-
-//%$#@describe      ****组件描述开始
-//component name:"watch dog"//系统看门狗组件
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
-                                //表示初始化时间，分别是早期、中期、后期
-//dependence:"message queue","black box"//该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //选中该组件时，被依赖组件将强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                //选中该组件时，被依赖组件不会被强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
-                                //如果与多个组件互斥，则依次列出，用“,”分隔
-//%$#@end describe  ****组件描述结束
-
-//%$#@configue      ****参数配置开始
-#if ( CFG_MODULE_ENABLE_WATCH_DOG == false )
-//#warning  " watch_dog  组件参数未配置，使用默认配置"
-//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#define CFG_MODULE_ENABLE_WATCH_DOG    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,1,100,
-#define CFG_WDT_LIMIT           10      //"看门狗数量",允许养狗数量
-#define CFG_WDTMSG_LIMIT        3       //"消息队列长度"，操作看门狗的消息队列的最大长度
-//%$#@enum,true,false,
-//%$#@string,1,10,
-//%$#select,        ***从列出的选项中选择若干个定义成宏
-//%$#@free,
-#endif
-//%$#@end configue  ****参数配置结束
-//@#$%component end configure
+#include "component_config_wdt.h"
 
 
 #define CN_WDT_YIP_NEVER      CN_LIMIT_SINT64     //当timeout为该时间时表示该看门狗暂停状态
 #define CN_WDT_YIP_PRECISION  CN_CFG_TICK_US      //软件看门狗模块的狗叫时间精度
-
+#define CN_WDTMSG_LIMIT       5                   //看门狗操作消息队列长度
 //struct Wdt;
 //typedef u32 (* fnYipHook)(struct Wdt *wdt);
 //the struct of the wdt
@@ -127,7 +84,7 @@ struct Wdt
     fnYipHook       fnhook;       //狗叫善后钩子函数
     enum EN_BlackBoxAction action;       //狗叫动作
     u32             cycle;        //看门狗周期，单位：微秒
-    s16             WdtOnwer;     //看门狗所属事件ID
+    u16             WdtOnwer;     //看门狗所属事件ID
     s64             deadtime;     //看门狗喂狗截止时间，到此时间还不喂，则狗叫，单位：微秒
     s64             runtime;      //上次操作看门狗时看门狗所属任务的运行时间，单位：微秒
     u32             timeoutreason;     //看门狗狗叫原因
@@ -273,7 +230,7 @@ bool_t __Wdt_WdtExpInfoDecoder(struct BlackBoxThrowPara  *WdtinfoHead,u32 endian
     __Wdt_SwapWdtInfoByEndian(wdt, endian);
     debug_printf("wdtinfo","name               :%s\n\r",    wdtinfo->wdtname);
     debug_printf("wdtinfo","Owner              :0x%04x\n\r",wdt->WdtOnwer);
-    debug_printf("wdtinfo","Action             :%s\n\r",BlackBoxActionName(wdt->action));
+    debug_printf("wdtinfo","Action             :%s\n\r",BlackBox_ActionName(wdt->action));
     debug_printf("wdtinfo","Cycle              :%d(us)\n\r",wdt->cycle);
     debug_printf("wdtinfo","Reason             :%s\n\r",WdtYipReasonName(wdt->timeoutreason));
     debug_printf("wdtinfo","OwnerTimeLevel     :0x%08x(us)\n\r",wdt->ExhaustLevelSet);
@@ -281,6 +238,9 @@ bool_t __Wdt_WdtExpInfoDecoder(struct BlackBoxThrowPara  *WdtinfoHead,u32 endian
     debug_printf("wdtinfo","SheduleTimeoutLimit:0x%08x\n\r",wdt->ExhaustLimit);
     return true;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // =============================================================================
 // 函数功能：硬件看门狗狗叫善后函数
@@ -419,7 +379,7 @@ static void __Wdt_DealMsg(tagWdtMsg *msg)
         //更新WDT线程拥有者最后一次操作WDT时间
         if(CN_EVENT_ID_INVALID != wdt->WdtOnwer)
         {
-            if(Djy_GetEventInfo(wdt->WdtOnwer, &eventinfo))
+            if(DJY_GetEventInfo(wdt->WdtOnwer, &eventinfo))
             {
 #if (CN_USE_TICKLESS_MODE)
                 wdt->runtime = eventinfo.consumed_cnt;
@@ -432,7 +392,7 @@ static void __Wdt_DealMsg(tagWdtMsg *msg)
         wdt->shyiptimes = 0;
         wdt->timeoutreason = EN_WDT_NOYIP;
 
-        ostime = DjyGetSysTime();
+        ostime = DJY_GetSysTime();
         switch (opcode)
         {
             case EN_WDTCMD_ADD:
@@ -580,7 +540,7 @@ static void __Wdt_AnalyzeYipReason(tagWdt *wdt)
     u32    Tm_TimeRun;
     struct EventInfo wdt_event_info;
 
-    if( Djy_GetEventInfo((u16)wdt->WdtOnwer, &wdt_event_info))
+    if( DJY_GetEventInfo((u16)wdt->WdtOnwer, &wdt_event_info))
     {
 #if (CN_USE_TICKLESS_MODE)
         Tm_TimeRun = (u32)(wdt_event_info.consumed_cnt - wdt->runtime);
@@ -625,7 +585,7 @@ static void __Wdt_ScanWdtQueque(void)
     wdt = ptWdtHead;
     while(NULL != wdt)//处理所有在叫的狗
     {
-        timenow = DjyGetSysTime();//实时更新时间
+        timenow = DJY_GetSysTime();//实时更新时间
 
         if((timenow + CN_WDT_YIP_PRECISION)>= wdt->deadtime) // the wdt has been timeout
         {
@@ -649,6 +609,7 @@ static void __Wdt_ScanWdtQueque(void)
                 result = EN_BLACKBOX_DEAL_RECORD;
             }
             //this wdt should be relocate in the queue
+//            printk("wdt:%s timeout\r\n", wdt->pname);
             __Wdt_DealWdtYipResult(result,wdt);
             __Wdt_RemovefQueue(wdt);
             wdt->deadtime = wdt->cycle + timenow;
@@ -679,9 +640,9 @@ static ptu32_t Wdt_Service(void)
     u32           waittime;
     tagWdtMsg     wdtmsg;
     //将硬件狗从裸狗中接管过来
-    WdtHal_BootEnd();
+//  WdtHal_BootEnd();
     // deal all the msg cached in the msgbox
-    timenow = DjyGetSysTime();
+    timenow = DJY_GetSysTime();
     while(MsgQ_Receive(ptWdtMsgBox,(u8 *)&wdtmsg,sizeof(tagWdtMsg),0))
     {
         __Wdt_DealMsg(&wdtmsg); //all the wdt will be queued in the wdt queue
@@ -698,7 +659,7 @@ static ptu32_t Wdt_Service(void)
         }
         else
         {
-            timenow = DjyGetSysTime();
+            timenow = DJY_GetSysTime();
             waittime = (u32)(wdt->deadtime - timenow);
         }
         //ok, now we wait the msg box during the expect time
@@ -729,7 +690,7 @@ bool_t wdtshow(char *param)
     wdt = ptWdtHead;
     debug_printf("WDT","\n\r");
     debug_printf("WDT","%-4s%-16s%-9s%-9s%-9s%-9s%-9s\n\r",
-            "No","NAME","FUNCTION","ACTION","CYCLE","OWNER","DEADLINE");
+            "No","NAME","hook    ","ACTION","CYCLE","OWNER","DEADLINE");
     while(NULL != wdt)
     {
         debug_printf("WDT","%-4d%-16s%-8x %-8x %-8x %-8x %llx\n\r",\
@@ -739,7 +700,7 @@ bool_t wdtshow(char *param)
     return true;
 }
 
-
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // 函数功能：看门狗模块的初始化
@@ -752,7 +713,6 @@ bool_t ModuleInstall_Wdt(void)
 {
     static struct BlackBoxInfoDecoder WdtDecoder;
     static tagWdt wdtpoolbuf[CFG_WDT_LIMIT];
-    bool_t  result_bool;
     u16     evttid;
 
     ptWdtPool = Mb_CreatePool(wdtpoolbuf,CFG_WDT_LIMIT,sizeof(tagWdt),0,0,"wdt pool");
@@ -762,30 +722,18 @@ bool_t ModuleInstall_Wdt(void)
     ptWdtHard = NULL;
 
     //create the msg box for the api to snd msg to the wdt service task
-    ptWdtMsgBox = MsgQ_Create(CFG_WDTMSG_LIMIT,sizeof(tagWdtMsg),CN_MSGQ_TYPE_FIFO);
+    ptWdtMsgBox = MsgQ_Create(CN_WDTMSG_LIMIT,sizeof(tagWdtMsg),CN_MSGQ_TYPE_FIFO);
 
     //create the main service
-    evttid = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_WDT,0,0,Wdt_Service,
+    evttid = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_WDT,0,0,Wdt_Service,
                                 NULL,0x400,"wdt service");
     if(evttid == CN_EVTT_ID_INVALID)
         return false;
-    if( Djy_EventPop(evttid,NULL,0,0,0,0) == CN_EVENT_ID_INVALID)
+    if( DJY_EventPop(evttid,NULL,0,0,0,0) == CN_EVENT_ID_INVALID)
     {
         debug_printf("WDT","POP SERVICE FAILED!\n\r");
-        Djy_EvttUnregist(evttid);
+        DJY_EvttUnregist(evttid);
         return false;
-    }
-
-    //create the soft wdt match the hard wdt
-    struct WdtHalChipInfo hardpara;
-    result_bool = WdtHal_GetChipPara(&hardpara);
-    if(true == result_bool)//存在硬件看门狗，则创建硬件看门狗
-    {
-        fnWdtHardFeed = hardpara.wdtchip_feed;
-        ptWdtHard = Wdt_Create(hardpara.wdtchip_name,\
-                               hardpara.wdtchip_cycle,\
-                               __Wdt_HardWdtYipHook,\
-                               EN_BLACKBOX_DEAL_IGNORE, 0,0);
     }
 
     WdtDecoder.MyDecoder = __Wdt_WdtExpInfoDecoder;
@@ -844,7 +792,7 @@ tagWdt *Wdt_Create(char *dogname,u32 yip_cycle,\
     return result;
 }
 // =============================================================================
-// 函数功能：创建虚拟看门狗
+// 函数功能：创建看门狗，wdt控制块使用用户提供的。
 // 输入参数：
 //          wdt,用户自己提供的存储空间
 //          dogname,看门狗名字
@@ -879,7 +827,7 @@ tagWdt *Wdt_Create_s(tagWdt *wdt, char *dogname,u32 yip_cycle,
         wdt->action = yip_action;
         wdt->ExhaustLevelSet = ExhaustLevelSet;
         wdt->ExhaustLimit = ExhaustLimit;
-        wdt->WdtOnwer = Djy_MyEventId( );
+        wdt->WdtOnwer = DJY_GetMyEventId( );
 
         //snd the msg to the service task
         wdtmsg.pwdt = wdt;
@@ -896,6 +844,34 @@ tagWdt *Wdt_Create_s(tagWdt *wdt, char *dogname,u32 yip_cycle,
     }
 
     return result;
+}
+
+// =============================================================================
+// 函数功能：获取看门狗控制卡
+// 输入参数:wat_name：想获取的看门狗名字
+// 输出参数：NULL：未找到指定看门狗，其它：找到看门狗的地址
+// 返回值  ：true成功，false失败
+// 说明    ：和Wdt_Create成对调用
+// =============================================================================
+tagWdt *Wdt_Get(char *wdt_name)
+{
+    tagWdt *ret = NULL;
+
+    if(ptWdtHead != NULL)
+    {
+        ret = ptWdtHead;
+        while(ret != NULL)
+        {
+            if(strcmp(ret->pname, wdt_name) == 0)
+            {
+                break;
+            }
+            ret = ret->pnxt;
+        }
+
+    }
+
+    return (ret);
 }
 
 // =============================================================================
@@ -964,7 +940,7 @@ bool_t Wdt_Clean(tagWdt *wdt)
         if(ptWdtHead != wdt)
         {
             //可以直接修改wdtqueue
-            ostime = DjyGetSysTime();
+            ostime = DJY_GetSysTime();
             __Wdt_RemovefQueue(wdt);
             wdt->deadtime = wdt->cycle + ostime;
             wdt->shyiptimes = 0;
@@ -1010,5 +986,25 @@ bool_t Wdt_Ctrl(tagWdt *wdt, u32 type, ptu32_t para)
     }
     return result;
 }
+
+// =============================================================================
+// 功能：WdtHal_RegisterWdtChip
+//          注册硬件看门狗芯片
+// 参数：chipname,芯片名字
+//       yipcycle,WDT芯片狗叫周期，填芯片手册中的最小值即可，函数内部留了20%裕量。
+//       wdtchip_feed,硬件看门狗的喂狗方法
+// 返回值 ：true成功 false失败
+// 说明   ：失败一定是参数不正确，name存储的地方一定是const型，千万别是局部变量
+// =============================================================================
+bool_t WdtHal_RegisterWdtChip(char *chipname, u32 yipcycle,\
+                              bool_t (*wdtchip_feed)(void))
+{
+    fnWdtHardFeed = wdtchip_feed;
+    //喂狗周期调整为溢出周期的80%
+    ptWdtHard = Wdt_Create(chipname,yipcycle*4/5,__Wdt_HardWdtYipHook,
+                            EN_BLACKBOX_DEAL_IGNORE, 0,0);
+    return true;
+}
+
 ADD_TO_ROUTINE_SHELL(wdtshow,wdtshow,"usage:wdtshow");
 

@@ -19,7 +19,7 @@
 #include "cpu_peri.h"
 #include "os.h"
 #include "board-config.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 
 //坐标系说明,描述了显存偏移地址与屏上像素点的坐标映射关系,注意单色和灰度显示器
 //每字节可能包含不止一个像素点,图中没有加以区分.
@@ -50,7 +50,7 @@
 //attribute:bsp                        //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                     //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                        //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                     //初始化时机，可选值：early，medium，later。
+//init time:medium                     //初始化时机，可选值：early，medium，later, pre-main。
                                        //表示初始化时间，分别是早期、中期、后期
 //dependence:"graphical kernel","touch"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                        //选中该组件时，被依赖组件将强制选中，
@@ -72,8 +72,7 @@
 #define CFG_LCD_YSIZE   128             //"LCD高度",
 //%$#@enum,true,false,
 //%$#@string,1,10,
-#define CFG_DISPLAY_NAME               "UC1698"   //"触摸设备名称",
-#define CFG_DESKTOP_NAME               "UC1698"   //"触摸所在桌面的名称",
+#define CFG_DISPLAY_NAME               "UC1698"   //"显示器名称",
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -123,7 +122,7 @@ void InitUC1698(void)
     PatchF7Bug_ClearA0;
     ContrastLevel = CN_TONTRAST_LEVEL_DEFAULT;
     *CmdPort = 0xE2;                    // 设置温度补偿系数-0.05%/C
-    Djy_EventDelay(100*mS);
+    DJY_EventDelay(100*mS);
     *CmdPort=0x31;                     //set advanced program control
     *CmdPort=0x08;
     *CmdPort=0x2b;                     //internal power control  (13nF<LCD<=22nF)
@@ -198,7 +197,7 @@ void InitUC1698(void)
 //    *CmdPort = 0x00; *CmdPort = 0x10;           // 设置起始列地址
 //    *CmdPort = 0x60; *CmdPort = 0x70;           // 设置起始行地址
 
-    Djy_EventDelay(50*mS);
+    DJY_EventDelay(50*mS);
 }
 
 
@@ -241,9 +240,9 @@ void LCD_BackLight(bool_t OnOff)
 void LCD_Reset(void)
 {
      PIO_Clear(LCD_RST);
-     Djy_EventDelay(100*mS);
+     DJY_EventDelay(100*mS);
      PIO_Set(LCD_RST);
-     Djy_EventDelay(500*mS);
+     DJY_EventDelay(500*mS);
 }
 
 
@@ -472,7 +471,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     if(realxsrc%2 == 0)
     {
         offset = ysrc * src_bitmap->linebytes + realxsrc/2;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
         PatchF7Bug_SetA0;
         for(loopy = 0; loopy < dst_rect->bottom - dst_rect->top; loopy++)
         {
@@ -510,7 +509,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
 
 
             *CmdPort = 0xE2;                    // 设置温度补偿系数-0.05%/C
-            Djy_EventDelay(100*mS);
+            DJY_EventDelay(100*mS);
             *CmdPort=0x31;                     //set advanced program control
             *CmdPort=0x08;
             *CmdPort=0x2b;  //ok                   //internal power control  (13nF<LCD<=22nF)
@@ -584,7 +583,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
 
 
             offset = ysrc * src_bitmap->linebytes + realxsrc/2;
-            Djy_DelayUs(1);
+            DJY_DelayUs(1);
             PatchF7Bug_SetA0;
             for(loopy = 0; loopy < dst_rect->bottom - dst_rect->top; loopy++)
             {
@@ -642,7 +641,7 @@ ptu32_t ModuleInstall_UC1698(void)
     static struct GkWinObj frame_win;
     static struct RectBitmap FrameBitmap;
 
-    Djy_EventDelay(10*mS);
+    DJY_EventDelay(10*mS);
     LCD_BackLight(1);
     LCD_Reset();
     InitUC1698( );
@@ -658,12 +657,11 @@ ptu32_t ModuleInstall_UC1698(void)
     frame_win.wm_bitmap = &FrameBitmap;
     tg_lcd_display.frame_buffer = &frame_win;
 
-    tg_lcd_display.xmm = 0;
-    tg_lcd_display.ymm = 0;
+    tg_lcd_display.width_um = 0;
+    tg_lcd_display.height_um = 0;
     tg_lcd_display.width = CFG_LCD_XSIZE;
     tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_GRAY4;
-    tg_lcd_display.reset_clip = false;
     tg_lcd_display.framebuf_direct = false;
     //无须初始化frame_buffer和desktop，z_topmost三个成员
 

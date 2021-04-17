@@ -75,7 +75,7 @@
 //attribute:bsp                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                     //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                  //初始化时机，可选值：early，medium，later。
+//init time:medium                  //初始化时机，可选值：early，medium，later, pre-main。
                                     //表示初始化时间，分别是早期、中期、后期
 //dependence:"iicbus","int","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //选中该组件时，被依赖组件将强制选中，
@@ -163,7 +163,7 @@ static void __IIC_GenerateStop(volatile tagI2CReg *reg)
 
     while((reg->IICSTAT & IICSTAT_BSY_MASK) && (timeout > 0))
     {
-        Djy_EventDelay(100);
+        DJY_EventDelay(100);
         timeout -= 100;
     }
 }
@@ -252,7 +252,7 @@ static bool_t __IIC_AckReceived(volatile tagI2CReg *Reg)
 
     while((!(Reg->IICCON & IICCON_INTPENDINGFLAG_MASK)) && (timeout > 0))
     {
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
         timeout -=1;
     }
     if(timeout == 0)
@@ -303,7 +303,7 @@ static bool_t __IIC_GenerateWriteStart(volatile tagI2CReg *Reg,
 
     while((Reg->IICSTAT & IICSTAT_BSY_MASK) &&(timeout > 0))    //check if busy
     {
-        Djy_EventDelay(100);
+        DJY_EventDelay(100);
         timeout -= 100;
     }
     if(timeout == 0)
@@ -376,7 +376,7 @@ static bool_t __IIC_GenerateReadStart( volatile tagI2CReg *Reg,
 
     while((Reg->IICSTAT & IICSTAT_BSY_MASK) &&(timeout > 0))    //check if busy
     {
-        Djy_EventDelay(100);
+        DJY_EventDelay(100);
         timeout -= 100;
     }
     if(timeout == 0)
@@ -438,7 +438,7 @@ static void __IIC_GenerateEnd(volatile tagI2CReg *Reg)
         return;
 
     __IIC_IntDisable(Reg);
-    Djy_EventDelay(100);
+    DJY_EventDelay(100);
     __IIC_GenerateStop(Reg);
 }
 

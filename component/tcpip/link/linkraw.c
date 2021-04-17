@@ -81,23 +81,25 @@
 //备注:
 //作者:zhangqf@下午8:55:19/2016年12月28日
 //-----------------------------------------------------------------------------
-static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
+static bool_t __Link_Out(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
         u16 proto,enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc)
 {
     bool_t ret = false;
     if((NULL != iface)&&(proto == EN_LINKPROTO_IPV4))
     {
-        NetDevPkgsndInc(iface);
-        ret = NetDevSend(iface,pkg,devtask);
+        NetDev_PkgsndInc(iface);
+        ret = NetDev_Send(iface,pkg,devtask);
 //      ret = iface->ifsend(iface,pkg,framlen,devtask);
         if(ret == false)
         {
-            NetDevPkgsndErrInc(iface);
+            NetDev_PkgsndErrInc(iface);
         }
-//      ret = NetDevSend(iface,pkg,framlen,devtask);
+//      ret = NetDev_Send(iface,pkg,framlen,devtask);
     }
     return ret;
 }
+
+#pragma GCC diagnostic pop
 
 //-----------------------------------------------------------------------------
 //功能:the link layer will call this function to deal the loop in package
@@ -106,32 +108,33 @@ static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
 //备注:
 //作者:zhangqf@上午9:18:35/2016年12月29日
 //-----------------------------------------------------------------------------
-static bool_t  __LinIn(struct NetDev *iface,struct NetPkg *pkg)
+static bool_t  __Link_LinIn(struct NetDev *iface,struct NetPkg *pkg)
 {
-    return LinkPush(iface,pkg,EN_LINKPROTO_IPV4);
+    return Link_Push(iface,pkg,EN_LINKPROTO_IPV4);
 }
 
 //-----------------------------------------------------------------------------
-//功能:
+//功能: 注册链路层协议，每个网卡都有对应的链路层协议，IP层调用它发送，硬件驱动调用它
+//      往上层推送数据。网卡都会对应唯一的链路层类型 enum enLinkType ，每个链路层类
+//      型对应一个链路层协议，由 pLinkHal 数组指向
 //参数:
 //返回:
 //备注:
 //作者:zhangqf@上午9:26:04/2016年12月29日
 //-----------------------------------------------------------------------------
-bool_t LinkRawInit(void)
+bool_t Link_RawInit(void)
 {
     bool_t ret;
     //first we will register a loop link type to the link hal
     struct LinkOps   ops;
     memset(&(ops),0,sizeof(ops));
-    ops.linkin = __LinIn;
-    ops.linkout =__LinkOut;
-    ret = LinkRegister(EN_LINK_RAW,CN_LINKRAW_NAME,&ops);
+    ops.linkin = __Link_LinIn;
+    ops.linkout =__Link_Out;
+    ret = Link_Register(EN_LINK_RAW,CN_LINKRAW_NAME,&ops);
     if(ret == false)
     {
         debug_printf("LINRAW","REGISTER ERR\n\r");
     }
     return ret;
 }
-#pragma GCC diagnostic pop
 

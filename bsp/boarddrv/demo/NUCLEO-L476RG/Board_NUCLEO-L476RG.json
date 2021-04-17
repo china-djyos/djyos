@@ -1,0 +1,27 @@
+{
+	"board_name":"NUCLEO-L476RG",
+	"cpus":{
+		"stm32l476xx":{
+			"clocks":{
+				
+			},
+			"chips":["EEPROM at24c02"],
+			"peripherals":["cpu_peri_emflash",
+			"cpu_peri_iic",
+			"cpu_peri_lowpower",
+			"cpu_peri_spi",
+			"cpu_peri_systime",
+			"cpu_peri_timer",
+			"cpu_peri_uart",
+			"cpu_peri_wwdg",
+			"cpu_peri_hal"],
+			"mian_freq":0,
+			"memories":{
+				
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

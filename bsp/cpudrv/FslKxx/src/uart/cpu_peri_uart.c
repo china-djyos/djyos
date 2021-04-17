@@ -53,7 +53,7 @@
 
 #include "cpu_peri.h"
 #include "stdio.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "string.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -94,7 +94,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","lock","uart device file","cpu onchip xdma","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -349,12 +349,10 @@ static void __UART_GpioConfig(u8 SerialNo)
 //        data,结构体tagCOMParam类型的指针数值
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile *Reg,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,struct COMParam *COM)
 {
-    struct COMParam *COM;
-    if((data == 0) || (Reg == NULL))
+    if((COM == NULL) || (Reg == NULL))
         return;
-    COM = (struct COMParam *)data;
     __UART_BaudSet(Reg,COM->BaudRate);
 
     switch(COM->DataBits)               // data bits
@@ -454,7 +452,7 @@ static void __UART_HardInit(u8 SerialNo)
 //        while((false == __UART_TxTranEmpty(Reg))&& (timeout > 0))
 //        {
 //            timeout--;
-//            Djy_DelayUs(1);
+//            DJY_DelayUs(1);
 //        }
 //        if(timeout == 0)
 //            break;
@@ -469,7 +467,7 @@ static void __UART_HardInit(u8 SerialNo)
 // 参数: PrivateTag,被操作的串口设备指针数值.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
+static u32 __UART_SendStart (tagUartReg *Reg)
 {
     u8 fifodep=1,num,ch[8],port;
 
@@ -505,7 +503,7 @@ static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
 //      data,含义依cmd而定
 //返回: 无意义.
 //-----------------------------------------------------------------------------
-static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 {
 
     switch(cmd)
@@ -525,7 +523,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-            __UART_BaudSet(Reg,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(Reg, data);
+        }
             break;
         case CN_UART_RX_PAUSE:      //暂停接收
             __UART_RxIntDisable(Reg);
@@ -538,7 +540,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
             Reg->TWFIFO = data2;    //写触发水平
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(Reg,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(Reg,COM);
+        }
             break;
         default: break;
     }
@@ -745,7 +751,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;

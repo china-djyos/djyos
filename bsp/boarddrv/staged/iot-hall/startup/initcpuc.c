@@ -75,7 +75,7 @@ extern void __set_PRIMASK(uint32_t priMask);
 extern void __set_FAULTMASK(uint32_t faultMask);
 extern void __set_CONTROL(uint32_t control);
 
-extern void Load_Preload(void);
+extern void Iboot_LoadPreload(void);
 
 //FreescaleK60芯片在复位后，Flash中的内容会被锁定，内核可以操作访问Flash，但是jlink
 //和Ezport不能访问，需要修改Flash中的内容，只能将整片擦除。因此，在调试阶段，先将锁
@@ -109,7 +109,7 @@ void Init_Cpu(void)
     extern void SRAM_Init(void);
 //    SRAM_Init();
 
-    Load_Preload();
+    Iboot_LoadPreload();
 }
 
 

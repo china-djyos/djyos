@@ -78,7 +78,7 @@ void  Menuitem_func(struct menu_item *menuitem)
   for(i=0;i<3;i++)
   {
       printf("wait_%d second\n",i);
-      Djy_EventDelay(1000*mS);
+      DJY_EventDelay(1000*mS);
   }
   return;
 }
@@ -131,7 +131,7 @@ void  CheckEquipment(struct menu_item *menuitem)//查看装置信息
 
     for ( ; ; )
     {
-//      input_msg = (struct InputDeviceMsg *)Djy_GetEventPara(NULL,NULL);
+//      input_msg = (struct InputDeviceMsg *)DJY_GetEventPara(NULL,NULL);
         if(HmiIn_ReadDefaultMsg(&input_msg,20*mS))
         {
             //查看是否单点触摸屏
@@ -162,7 +162,7 @@ void  CheckEquipment(struct menu_item *menuitem)//查看装置信息
             }
 //          Djy_ParaUsed(0);
         }
-//      Djy_WaitEvttPop(Djy_MyEvttId(),1,20*mS);
+//      DJY_WaitEvttPop(DJY_GetMyEvttId(),1,20*mS);
     }
 
     GK_DestroyWin(&CheckWin_text);

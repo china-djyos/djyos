@@ -1,0 +1,17 @@
+{
+	"cpu_name":"stm32f103xe",
+	"cores":[{
+		"memories":{
+			"memory1":{
+				"size":"512k",
+				"type":"FLASH",
+				"startAddr":"0x08000000"
+			},
+			"memory2":{
+				"size":"64k",
+				"type":"RAM",
+				"startAddr":"0x20000000"
+			}
+		}
+	}]
+}

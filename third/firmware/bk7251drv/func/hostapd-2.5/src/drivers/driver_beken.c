@@ -1458,9 +1458,20 @@ static void wpa_driver_deinit(void *priv)
 
 void wpa_handler_signal(void *arg, u8 vif_idx)
 {
-	int sig = (int)arg;
-	
-	eloop_handle_signal(sig);
+    int ret;
+    int sig = (int)arg;
+
+    if (!eloop_get_signal_count())
+    {
+        os_printf("wpa_handler_signal err failed\r\n");
+        return;
+    }
+
+    ret = eloop_handle_signal(sig);
+    if(ret)
+    {
+        os_printf("eloop_handle_signal failed\r\n");
+    }
 
     wpa_hostapd_queue_poll((uint32_t)vif_idx);
 }

@@ -18,5 +18,7 @@ typedef enum
 }enDHCPStatus;
 
 enDHCPStatus DHCP_ConnetStatus(enDHCPCmd cmd,enDHCPStatus status);
+s32 DHCP_WaitDhcpDone(char *ifname, u32 timeout);
+void DhcpclientDeleteAllTask(void);
 
 #endif

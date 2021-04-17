@@ -64,7 +64,7 @@
 #include "gkernel.h"
 #include "gk_win.h"
 #include "heap.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include <string.h>
 
 //----安装显示器---------------------------------------------------------------
@@ -85,10 +85,11 @@ bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name)
     if(display == NULL)
         return false;
     display->desktop = NULL;
+    display->z_topmost = NULL;
     display->reset_clip = false;
     //用户没有指定显存专用的堆，则使用系统堆。
     if(display->DisplayHeap == NULL)
-        display->DisplayHeap = M_FindHeap(CN_SYS_HEAP_NAME);
+        display->DisplayHeap = Heap_FindHeap(CN_SYS_HEAP_NAME);
     frame_buffer = display->frame_buffer;
     if(frame_buffer != NULL)
     {
@@ -139,8 +140,8 @@ bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name)
         frame_buffer->limit_right = frame_bitmap->width;
         frame_buffer->limit_bottom = frame_bitmap->height;
     }
-    Obj = obj_search_child(obj_root(), "display");     //取显示器目录
-    Obj = obj_newchild(Obj, (fnObjOps)-1, (ptu32_t)display, name);
+    Obj = OBJ_SearchChild(OBJ_GetRoot(), "display");     //取显示器目录
+    Obj = OBJ_NewChild(Obj, (fnObjOps)-1, (ptu32_t)display, name);
     if(NULL != Obj)
     {
         display->HostObj = Obj;
@@ -164,7 +165,7 @@ bool_t GK_InstallDisplayMirror(struct DisplayObj *base_display,
                                struct DisplayObj *mirror_display,char *name)
 {
     struct Object *Obj;
-    Obj = obj_newchild(base_display->HostObj, (fnObjOps)-1, (ptu32_t)mirror_display, name);
+    Obj = OBJ_NewChild(base_display->HostObj, (fnObjOps)-1, (ptu32_t)mirror_display, name);
     if(NULL != Obj)
     {
         mirror_display->HostObj = Obj;
@@ -182,17 +183,20 @@ bool_t GK_InstallDisplayMirror(struct DisplayObj *base_display,
 bool_t GK_SetDefaultDisplay(const char *name)
 {
     struct Object *Obj;
-    Obj = obj_search_child(obj_root(), "display");     //取显示器目录
-    Obj = obj_search_child(Obj,name);     //找到被操作的显示器对象
+    Obj = OBJ_SearchChild(OBJ_GetRoot(), "display");     //取显示器目录
+    Obj = OBJ_SearchChild(Obj,name);     //找到被操作的显示器对象
     if(Obj == NULL)
     {
         return false;
     }else
     {
-        obj_move2head(Obj);          //资源树中的队列头结点就是默认显示器
+        OBJ_MoveToHead(Obj);          //资源树中的队列头结点就是默认显示器
         return true;
     }
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //----取显示器的默认显示设置---------------------------------------------------
 //功能: 取一个显示器的默认显示设置，实际上就是桌面窗口的资源节点
@@ -227,4 +231,4 @@ struct RectBitmap *GK_CreateFrameBuffer(struct DisplayObj *display)
     return NULL;
 }
 
-
+#pragma GCC diagnostic pop

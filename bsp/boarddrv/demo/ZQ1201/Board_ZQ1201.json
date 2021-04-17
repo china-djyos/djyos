@@ -1,0 +1,24 @@
+{
+	"board_name":"zq1201",
+	"cpus":{
+		"zq1201":{
+			"clocks":{
+				
+			},
+			"chips":[],
+			"peripherals":["cpu_peri_gpio",
+			"cpu_peri_iic",
+			"cpu_peri_rtc",
+			"cpu_peri_spi",
+			"cpu_peri_timer",
+			"cpu_peri_uart"],
+			"mian_freq":0,
+			"memories":{
+				
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

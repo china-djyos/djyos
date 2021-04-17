@@ -67,7 +67,7 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"tcpip" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -103,13 +103,13 @@ typedef struct tagSocket  tagItemCB; //each socket is a item
 static struct Object *s_ptSocketObject;
 static struct MemCellPool *s_ptSocketPool;  //socket控制块内存池头指针
 
-static struct tagSocket *__Fd2Sock(s32 fd)
+struct tagSocket *__Fd2Sock(s32 fd)
 {
     struct objhandle *hdl;
     struct tagSocket *sock;
 
     hdl = fd2Handle(fd);
-    sock = (struct tagSocket *)handle_context(hdl);
+    sock = (struct tagSocket *)Handle_GetContext(hdl);
     return sock;
 }
 
@@ -121,20 +121,21 @@ struct tagSocket *SocketBuild(void)
     if(sock)
     {
         memset(sock, 0, sizeof(struct tagSocket));
-        sock->SockSync = mutex_init(NULL);
-        SocketFile = handle_new( );
+        sock->SockSync = Lock_MutexCreate(NULL);
+        SocketFile = Handle_New( );
         if(SocketFile != NULL)
         {
-            handle_init(SocketFile, s_ptSocketObject, O_RDWR,(ptu32_t)sock);
+            Handle_Init(SocketFile, s_ptSocketObject, O_RDWR,(ptu32_t)sock);
             sock->sockfd = Handle2fd(SocketFile);
 //          sock = Handle2fd(SocketFile);
 //          sock->sockfd = sock;
 //          sock->ProtocolOps = ProtocolOps;
-//          handle_SetMultiplexEvent(SocketFile, sock->IoInitstat);
+//          Handle_SetMultiplexEvent(SocketFile, sock->IoInitstat);
         }
         else
         {
 //          errno = ENOENT;
+            Lock_MutexDelete(sock->SockSync);
             Mb_Free(s_ptSocketPool, sock);
             sock = NULL;
         }
@@ -144,7 +145,8 @@ struct tagSocket *SocketBuild(void)
 
 bool_t SocketFree(struct tagSocket *sock)
 {
-    handle_Delete(fd2Handle(sock->sockfd));
+    Handle_Delete(fd2Handle(sock->sockfd));
+    Lock_MutexDelete(sock->SockSync);
     Mb_Free(s_ptSocketPool, sock);
     return true;
 }
@@ -155,7 +157,7 @@ bool_t SocketFree(struct tagSocket *sock)
 //参数: family，地址族，见socket.h的 AF_INET 等定义
 //      type，socket 协议类型，见socket.h的 SOCK_DGRAM 等定义
 //      protocol，具体协议，见socket.h的 IPPROTO_UDP 等定义
-//返回: 网卡控制块指针
+//返回: 套接字 fd
 //-----------------------------------------------------------------------------
 s32 socket(s32 family, s32 type, s32 protocol)
 {
@@ -176,22 +178,6 @@ s32 socket(s32 family, s32 type, s32 protocol)
             {
                 errno = EN_NEWLIB_NO_ERROR;
                 result = sock->sockfd;
-//              SocketFile = handle_new( );
-//              SocketFile = OBJ_AddFile(s_ptSocketObject);
-//              if(SocketFile != NULL)
-//              {
-//                  handle_init(SocketFile, s_ptSocketObject, O_RDWR,(ptu32_t)sock);
-//                  handle_SetContext(SocketFile, (ptu32_t)sock);
-//                  result = Handle2fd(SocketFile);
-//                  sock->sockfd = result;
-//                  sock->ProtocolOps = ProtocolOps;
-//                  handle_SetMultiplexEvent(fd2Handle(sock->sockfd), sock->IoInitstat);
-//              }
-//              else
-//              {
-//                  errno = ENOENT;
-//                  closesocket(result);
-//              }
             }
         }
         else
@@ -324,7 +310,15 @@ s32 connect(s32 sockfd, struct sockaddr *addr, s32 addrlen)
         result = sock->ProtocolOps->__connect(sock, addr, addrlen);
         if(errno < 0)
         {
-            errno = ECONNREFUSED;
+            if ((sock->sockstat & CN_SOCKET_PROBLOCK) == 0 &&
+                (sock->sockstat & CN_SOCKET_PROCONNECT)){//非阻塞, TCP
+                //printf("connect noblock, EAGAIN\r\n");
+                errno = EAGAIN;
+            }
+            else
+            {
+                errno = ECONNREFUSED;
+            }
         }
         else
         {
@@ -537,12 +531,11 @@ s32 sendto(s32 sockfd, const void *msg,s32 len, u32 flags,\
     return  result;
 }
 // =============================================================================
-// 函数功能：  recvfrom
-//           从目的网络地址读取数据
+// 函数功能：  读取数据并记录数据源地址
 // 输入参数：  sockfd,目的套接字
 //           flags,一般为0
-//           addr,目的网络地址
-//           addrlen,目的网络地址长度
+//           addr,接收到的数据的来源地址
+//           addrlen,网络地址长度
 // 输出参数：
 //           buf,读取的数据
 //           len,信息长度
@@ -641,7 +634,7 @@ bool_t closesocket(s32 sockfd)
 //        设置套接字选项
 // 输入参数：  sockfd,目的套接字
 //        level,设置的层次，支持SOL_SOCKET、IPPROTO_TCP、IPPROTO_IP和IPPROTO_IPV6
-//        optname,需设置选项
+//        optname,需设置选项，例如 SO_NONBLOCK
 //        optval,选项参数缓冲区
 //        optlen,缓冲区长度
 // 输出参数：
@@ -730,6 +723,14 @@ ptu32_t socket_GetUserTag(s32 sockfd)
 
     return result;
 }
+
+//------------------------------------------------------------------------------
+//功能：取 socket 的本地端口和IP地址
+//参数：sockfd，socket的文件标识符
+//      addr，接收地址的缓冲区
+//      addrlen，缓冲区长度
+//返回：0=成功
+//------------------------------------------------------------------------------
 s32 getsockname(s32 sockfd,struct sockaddr *addr,socklen_t *addrlen)
 {
     s32 result = -1;
@@ -752,6 +753,12 @@ s32 getsockname(s32 sockfd,struct sockaddr *addr,socklen_t *addrlen)
     return result;
 }
 
+//------------------------------------------------------------------------------
+//功能：取 socket 的远程端口和IP地址
+//参数：sockfd，socket的文件标识符
+//      addr，接收地址的缓冲区
+//      addrlen，缓冲区长度
+//------------------------------------------------------------------------------
 s32 getpeername(s32 sockfd,struct sockaddr *addr,socklen_t *addrlen)
 {
     s32 result = -1;
@@ -796,7 +803,7 @@ bool_t sockallinfo(char *param)
     struct objhandle *Current = NULL;
     while(1)
     {
-        Current = obj_ForeachHandle(Current, s_ptSocketObject);
+        Current = OBJ_ForeachHandle(Current, s_ptSocketObject);
         if(Current != NULL)
             sockinfo(Handle2fd(Current), param);
         else
@@ -873,7 +880,7 @@ bool_t SocketInit(void)
         printf("%s:分配socket控制块内存不足\n\r",__FUNCTION__);
         goto EXIT_SOCKMEM;
     }
-    s_ptSocketObject = obj_newchild(obj_root(),Socket_ObjOps, 0, "socket");
+    s_ptSocketObject = OBJ_NewChild(OBJ_GetRoot(),Socket_ObjOps, 0, "socket");
     if(s_ptSocketObject == NULL)
     {
         printf("%s:创建socket文件失败\n\r",__FUNCTION__);

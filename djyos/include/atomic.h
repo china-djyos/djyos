@@ -61,16 +61,16 @@
 extern "C" {
 #endif
 
-void atom_set32(u32 *base, u32 value);
-void atom_set64(u64 *base, u64 value);
-void atom_uadd32(u32 *base, u32 inc);
-void atom_usub32(u32 *base, u32 sub);
-void atom_sadd32(s32 *base, s32 inc);
-void atom_ssub32(s32 *base, s32 sub);
-void atom_uadd64(u64 *base, u64 inc);
-void atom_usub64(u64 *base, u64 sub);
-void atom_sadd64(s64 *base, s64 inc);
-void atom_ssub64(s64 *base, s64 sub);
+void Atom_Set32(u32 *base, u32 value);
+void Atom_Set64(u64 *base, u64 value);
+void Atom_UADD32(u32 *base, u32 inc);
+void Atom_USUBb2(u32 *base, u32 sub);
+void Atom_SADD32(s32 *base, s32 inc);
+void Atom_SSUB32(s32 *base, s32 sub);
+void Atom_UADD64(u64 *base, u64 inc);
+void Atom_USUB64(u64 *base, u64 sub);
+void Atom_SADD64(s64 *base, s64 inc);
+void Atom_SSUB64(s64 *base, s64 sub);
 
 #ifdef __cplusplus
 }

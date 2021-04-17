@@ -12,4 +12,3 @@
 #endif
 
 #endif // _SYS_RTOS_H_
-

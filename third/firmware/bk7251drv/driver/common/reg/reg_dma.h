@@ -4,12 +4,15 @@
 #include "co_int.h"
 #include "_reg_dma.h"
 #include "compiler.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 #include "reg_access.h"
 
 #define REG_DMA_COUNT 49
 
 #define REG_DMA_DECODING_MASK 0x000000FF
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 /**
  * @brief CH_LLI_ROOT register definition
@@ -97,6 +100,8 @@ __INLINE uint32_t dma_dma_status_get(void)
 __INLINE void dma_dma_status_unpack(uint8_t *downstreambsy, uint8_t *upstreambsy, uint8_t *arbq3valid, uint8_t *arbq2valid, uint8_t *arbq1valid, uint8_t *arbq0valid, uint8_t *requeststate, uint8_t *ch3stopped, uint8_t *ch2stopped, uint8_t *ch1stopped, uint8_t *ch0stopped, uint16_t *oftfree)
 {
 }
+
+#pragma GCC diagnostic pop
 
 __INLINE uint8_t dma_dma_status_down_stream_bsy_getf(void)
 {
@@ -197,6 +202,9 @@ __INLINE uint32_t dma_int_rawstatus_get(void)
 #define DMA_CH0_EOT_RST    0x0
 #define DMA_ERROR_RST      0x0
 #define DMA_LLI_IRQ_RST    0x0
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 __INLINE void dma_int_rawstatus_unpack(uint8_t *ch3eot, uint8_t *ch2eot, uint8_t *ch1eot, uint8_t *ch0eot, uint8_t *error, uint16_t *lliirq)
 {
@@ -855,6 +863,7 @@ __INLINE void dma_dummy_setf(uint8_t dummy)
 {
 }
 
+#pragma GCC diagnostic pop
 
 #endif // _REG_DMA_H_
 

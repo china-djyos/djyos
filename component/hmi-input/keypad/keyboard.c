@@ -71,6 +71,7 @@
 #include "object.h"
 #include "hmi-input.h"
 #include "systime.h"
+#include "shell.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -82,17 +83,17 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"key board"//键盘
+//component name:"key board"    //键盘
 //parent:"human machine interface"      //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"human machine interface"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"graphical decorate development"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -124,18 +125,18 @@ ptu32_t KeyBoard_Scan(void);
 bool_t ModuleInstall_KeyBoard(void)
 {
     s16 evtt_key;
-    if(!obj_search_child(obj_root(),"hmi input device"))   //标准输入设备未初始化
+    if(!OBJ_SearchChild(OBJ_GetRoot(),"hmi input device"))   //标准输入设备未初始化
         return false;
-    evtt_key = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
-                                    KeyBoard_Scan,NULL,512,"keyboard");
-    if(evtt_key == CN_EVTT_ID_INVALID)
+    evtt_key = DJY_EvttRegist(EN_CORRELATIVE,130,0,0,
+                                    KeyBoard_Scan,NULL,1024,"keyboard");
+    if(evtt_key == (s16)CN_EVTT_ID_INVALID)
     {
         return false;
     }
-    if(Djy_EventPop(evtt_key,NULL,0,0,0,0)
+    if(DJY_EventPop(evtt_key,NULL,0,0,0,0)
                         == (uint16_t)CN_EVENT_ID_INVALID)
     {
-        Djy_EvttUnregist(evtt_key);
+        DJY_EvttUnregist(evtt_key);
         return false;
     }
     return true;
@@ -172,17 +173,17 @@ ptu32_t KeyBoard_Scan(void)
     struct Object *ob;
     struct KeyBoardMsg key_msg;
     u32 keyvalue;
-    ob = obj_search_child(obj_root(),"hmi input device");
-    StdinObj = (struct HMI_InputDeviceObj *)obj_GetPrivate(ob);
+    ob = OBJ_SearchChild(OBJ_GetRoot(),"hmi input device");
+    StdinObj = (struct HMI_InputDeviceObj *)OBJ_GetPrivate(ob);
     while(1)
     {
         KeyboardObj = StdinObj;
         while(1)
         {
-            ob = obj_foreach_scion(StdinObj->HostObj,KeyboardObj->HostObj);
-            KeyboardObj = (struct HMI_InputDeviceObj*)obj_GetPrivate(ob);
-            if(KeyboardObj == NULL)
+            ob = OBJ_ForeachScion(StdinObj->HostObj,KeyboardObj->HostObj);
+            if(ob == NULL)
                 break;
+            KeyboardObj = (struct HMI_InputDeviceObj*)OBJ_GetPrivate(ob);
             if(KeyboardObj->input_type != EN_HMIIN_KEYBOARD)
                 continue;
             keyboard_pr = (struct KeyBoardPrivate*)KeyboardObj->stdin_private;
@@ -219,11 +220,10 @@ ptu32_t KeyBoard_Scan(void)
                         && (key_byte[2] != key)
                         && (key_byte[3] != key) )
                     {
-                        key_msg.time = DjyGetSysTime();
+                        key_msg.time = DJY_GetSysTime();
                         key_msg.key_value[1] = 0;
                         key_msg.key_value[0] = key;
-                        HmiIn_InputMsg(KeyboardObj->device_id,
-                                            (u8*)&key_msg,sizeof(key_msg));
+                        HmiIn_InputMsg(KeyboardObj->device_id,(u8*)&key_msg);
                     }
                 }
 
@@ -244,17 +244,16 @@ ptu32_t KeyBoard_Scan(void)
                         && (key_byte[3] != key) )
                     {
 
-                        key_msg.time = DjyGetSysTime();
+                        key_msg.time = DJY_GetSysTime();
                         key_msg.key_value[1] = CN_BREAK_CODE;
                         key_msg.key_value[0] = key;
-                        HmiIn_InputMsg(KeyboardObj->device_id,
-                                            (u8*)&key_msg,sizeof(key_msg));
+                        HmiIn_InputMsg(KeyboardObj->device_id,(u8*)&key_msg);
                     }
                 }
                 keyboard_pr->key_bak = keyboard_pr->key_now;
             }
         }
-        Djy_EventDelay(10*mS);
+        DJY_EventDelay(10*mS);
     }
 }
 

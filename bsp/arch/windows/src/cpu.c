@@ -118,7 +118,7 @@ u32 switch_context(ptu32_t line)
 }
 
 void Heap_StaticModuleInit(void);
-void Sys_Start(void);
+void SYS_Start(void);
 
 void main(int argc, char *argv[])
 {
@@ -147,12 +147,12 @@ void main(int argc, char *argv[])
     Int_SettoAsynSignal(cn_int_line_switch_context); //tick中断被设为异步信号
     Int_RestoreAsynLine(cn_int_line_switch_context);
 //    printf("VC 编译器版本：%d\n\r",_MSC_VER);
-    Sys_Start();
+    SYS_Start();
 // 主消息循环:
-    while (GetMessage(&msg, NULL, 0, 0))
+    while (GDD_GetMessage(&msg, NULL, 0, 0))
     {
         TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        GDD_DispatchMessage(&msg);
     }
     return ;
 }
@@ -186,7 +186,7 @@ ATOM RegisterWinClass(HINSTANCE hInstance,WNDPROC *func,TCHAR *title)
 //返回：新创建的线程的虚拟机指针
 //注: 移植敏感函数
 //-----------------------------------------------------------------------------
-struct ThreadVm *__CreateThread(struct EventType *evtt,u32 *stack_size)
+struct ThreadVm *__DJY_CreateThread(struct EventType *evtt,u32 *stack_size)
 {
     struct ThreadVm  *result;
     //stack_size和cn_kernel_stack在windows版本中并没有用到，windows的线程栈是自己维护
@@ -220,7 +220,7 @@ struct ThreadVm *__CreateThread(struct EventType *evtt,u32 *stack_size)
 //返回：新创建的线程指针
 //注: 移植敏感函数
 //-----------------------------------------------------------------------------
-struct ThreadVm *__CreateStaticThread(struct EventType *evtt,void *Stack,
+struct ThreadVm *__DJY_CreateStaticThread(struct EventType *evtt,void *Stack,
                                     u32 StackSize)
 {
     struct ThreadVm  *result;
@@ -341,14 +341,14 @@ void __asm_switch_context_int(struct ThreadVm *new_vm,struct ThreadVm *old_vm)
     ResumeThread((HANDLE )new_vm->stack_top);
 }
 
-void __Djy_VmEngine(ptu32_t (*thread_routine)(void));
+void __DJY_VmEngine(ptu32_t (*thread_routine)(void));
 
 u32 WINAPI win_engine( LPVOID lpParameter )
 {
     void (*thread_routine)(void);
 
     thread_routine = (void (*)(void)) lpParameter;
-    __Djy_VmEngine(thread_routine);
+    __DJY_VmEngine(thread_routine);
     return 0;
 }
 
@@ -414,7 +414,7 @@ void __DjyInitTick(void)
 //      周期,需要使用原子操作。
 //参数：无
 //返回：当前时钟
-//说明: 这是一个桩函数,被rtc.c文件的 DjyGetSysTime 函数调用
+//说明: 这是一个桩函数,被rtc.c文件的 DJY_GetSysTime 函数调用
 //-----------------------------------------------------------------------------
 s64 __DjyGetSysTime(void)
 {
@@ -437,12 +437,12 @@ void __asm_reset_cpu(void)
 void __asm_reset_cpu_hot(void)
 {
 }
-void restart_system(void)
+void CPU_RestartSystem(void)
 {
 }
-void reboot(void)
+void CPU_Reboot(void)
 {
 }
-void reset(void)
+void CPU_Reset(void)
 {
 }

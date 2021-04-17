@@ -65,8 +65,7 @@
 #include "string.h"
 #include "object.h"
 #include "gkernel.h"
-#include "gk_display.h"
-#include "gk_syscall.h"
+#include <gui/gk_display.h>
 #include "gk_win.h"
 #include "gk_draw.h"
 #include "gk_clip.h"
@@ -526,7 +525,7 @@ u32 __GK_OlineSectInter(struct Rectangle *limit,s32 *x1,s32 *y1,s32 *x2,s32 *y2)
             {
                 if((c2&0x01) != 0)
                 {
-                    *y2 = *y1+(*y1-*y1)*(limit->left-*x1)/(*x1-*x1);
+                    *y2 = *y1+(*y1-*y1)*(limit->left-*x1)/(*x2-*x1);
                     *x2 = limit->left;
                     c2 = __GK_PointSect(*x2,*y2,limit);
                 }
@@ -1387,7 +1386,7 @@ void __GK_SetPixel(struct GkscParaSetPixel *para)
                                 pf_color,para->Rop2Code);      //绘制像素
         }
         __GK_ShadingPixel(pixelwin,para->x,para->y);//标志像素的changed_msk
-    }else
+    }else       //无win buffer，或直接写屏属性为true
     {
         clip = pixelwin->visible_clip;
         if(clip == NULL)        //可视域为空，直接返回
@@ -2089,12 +2088,12 @@ void __GK_SetPixelScreen(struct DisplayObj *display,s32 x,s32 y,
     display->draw.SetPixelToScreen(x,y,color,Rop2Code);//在screen上画点
     mirror = display->HostObj;
 
-    current = obj_child(mirror);
+    current = OBJ_GetChild(mirror);
     while(current != NULL)
     {
-        MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
+        MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
         MirrorDisplay->draw.SetPixelToScreen(x,y,color,Rop2Code);
-        current = obj_foreach_child(mirror, current);
+        current = OBJ_ForeachChild(mirror, current);
     }
 }
 
@@ -2194,12 +2193,12 @@ void __GK_LinetoScreen(struct DisplayObj *display,struct Rectangle *limit,
         }
     }
     mirror = display->HostObj;
-    current = obj_child(mirror);
+    current = OBJ_GetChild(mirror);
     while(current != NULL)
     {
-        MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
+        MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
         MirrorDisplay->draw.LineToScreen(limit, x1, y1, x2, y2, color,Rop2Code);
-        current = obj_foreach_child(mirror,current);
+        current = OBJ_ForeachChild(mirror,current);
     }
 }
 //----传送bitmap到screen-------------------------------------------------------
@@ -2263,12 +2262,12 @@ void __GK_BltBmToScreen(struct DisplayObj *display,struct Rectangle *rect,
         }
     }
     mirror = display->HostObj;
-    current = obj_child(mirror);
+    current = OBJ_GetChild(mirror);
     while(current != NULL)
     {
-        MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
+        MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
         MirrorDisplay->draw.CopyBitmapToScreen(rect,bitmap,x,y);
-        current = obj_foreach_child(mirror,current);
+        current = OBJ_ForeachChild(mirror,current);
     }
 }
 
@@ -3018,12 +3017,12 @@ void __GK_DrawCircleScreen(struct DisplayObj *display,struct Rectangle *limit,
     }
     //镜像显示
     mirror = display->HostObj;
-    current = obj_child(mirror);
+    current = OBJ_GetChild(mirror);
     while(current != NULL)
     {//存在镜像显示器
         x = 0;
         y = r;
-        MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
+        MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
         if(flag)
         {//整个圆都在limit内，利用圆的八分特性，只需要计算八分之一个圆的坐标
             while(x <= y)
@@ -3085,7 +3084,7 @@ void __GK_DrawCircleScreen(struct DisplayObj *display,struct Rectangle *limit,
                 x++;
             }
         }
-        current = obj_foreach_child(mirror,current);
+        current = OBJ_ForeachChild(mirror,current);
     }
 }
 //----画圆---------------------------------------------------------------------
@@ -3112,20 +3111,17 @@ void __GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
 //    my_draw_fun = &cirwin->disp->draw;
     //说明有win buffer，且直接写屏属性为false
 //todo 修改by zhb 20160602
-    if(cirwin->wm_bitmap!=NULL)
-    {
-        if((cirwin->wm_bitmap->bm_bits!=NULL)&&(cirwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
-      {   //处理方法:在win buffer中绘图，标志changed_msk
+    if((cirwin->wm_bitmap!=NULL)&&(cirwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+    {   //处理方法:在win buffer中绘图，标志changed_msk
         limit.left = 0;
         limit.top = 0;
         limit.right = cirwin->wm_bitmap->width;
         limit.bottom = cirwin->wm_bitmap->height;
         //以硬件加速不支持圆的绘制考虑，用软件实现
         __GK_DrawCircleBm(cirwin,&limit,para->x0,para->y0,para->r,
-                                    para->color,para->Rop2Code);
-        }
+                para->color,para->Rop2Code);
     }
-    else
+    else       //无win buffer，或直接写屏属性为true
     {
         clip = cirwin->visible_clip;
         if(clip == NULL)
@@ -3298,7 +3294,7 @@ void __GK_Bezier(struct GkscParaBezier *para)
         __GK_BezierBm(bzrwin,&limit,para->x1,para->y1,para->x2,para->y2,
                             para->x3,para->y3,para->x4,para->y4,
                             para->color,para->Rop2Code);
-    }else
+    }else       //无win buffer，或直接写屏属性为true
     {
         clip = bzrwin->visible_clip;
         if(clip == NULL)
@@ -3375,7 +3371,7 @@ void __GK_Lineto(struct GkscParaLineto *para)
                                 para->x1,para->y1,para->x2,para->y2);
         }
     }
-    else
+    else       //无win buffer，或直接写屏属性为true
     {
         clip = lintowin->visible_clip;
         if(clip == NULL)
@@ -3475,7 +3471,7 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
             }
 
         }
-        else
+        else       //无win buffer，或直接写屏属性为true
         {
             clip = lintoiewin->visible_clip;
             if(clip == NULL)
@@ -3552,7 +3548,7 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
                                 para->x1,para->y1,para->x2,para->y2+1);
             }
         }
-        else
+        else       //无win buffer，或直接写屏属性为true
         {
             clip = lintoiewin->visible_clip;
             if(clip == NULL)
@@ -3642,7 +3638,7 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
             }
 
         }
-        else
+        else       //无win buffer，或直接写屏属性为true
         {
             clip = lintoiewin->visible_clip;
             if(clip == NULL)
@@ -3740,6 +3736,7 @@ void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
     bitmap_para.RopCode.HyalineEn = 1;
     bitmap_para.RopCode.Rop2Mode = para->Rop2Code;
     bitmap_para.bitmap.ExColor = para->color;
+    bitmap_para.bitmap.reversal = false;
     dbuf = NULL;
     size_bak = 0;
     for(; ;)
@@ -3790,7 +3787,7 @@ void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
                 bitmap_para.bitmap.bm_bits = dbuf;
             }
             cur_font->GetBitmap(wc,0,0,&(bitmap_para.bitmap));
-            __GK_DrawBitMapt(&bitmap_para);
+            __GK_DrawBitMap(&bitmap_para);
 
             bitmap_para.x += bitmap_para.bitmap.width;
         }
@@ -3811,7 +3808,7 @@ void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
 //      rop_code，光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
+void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
 {
 //    u32 HyalineColor;
     s32 x_src,y_src,x_dst,y_dst;
@@ -3828,7 +3825,7 @@ void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
 //    HyalineColor = para->HyalineColor;
     DstBitmap = DstGkwin->wm_bitmap;
     SrcBitmap = &para->bitmap;
-    SrcBitmap->reversal=true;
+//    SrcBitmap->reversal=true;
     //待绘制的位图要绘制的位置相对于目标窗口的坐标
     SrcRect.left = 0;
     SrcRect.top = 0;
@@ -3874,22 +3871,38 @@ void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
         {
             //驱动不支持 BltBitmapToBitmap 绘制，改由代码实现
             y_dst= DstRect.top;
-            for(y_src= 0;
-                y_src < DstRect.bottom-DstRect.top;
-                y_src++)
+            if(SrcBitmap->reversal == true)
             {
-                x_dst = DstRect.left;
-                for(x_src = 0;
-                    x_src < DstRect.right-DstRect.left;
-                    x_src++)
+                for(y_src= SrcBitmap->height - SrcRect.top;
+                            y_src > SrcBitmap->height - SrcRect.bottom;y_src--)
                 {
-                    __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
-                                            x_dst,y_dst,SrcRect.left+x_src,
-                                            SrcRect.top+y_src,
-                                            para->RopCode,para->HyalineColor);
-                    x_dst++;
+                    x_dst = DstRect.left;
+                    for(x_src = 0;x_src < DstRect.right-DstRect.left;x_src++)
+                    {
+                        __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
+                                                x_dst,y_dst,SrcRect.left+x_src,
+                                                y_src,
+                                                para->RopCode,para->HyalineColor);
+                        x_dst++;
+                    }
+                    y_dst++;
                 }
-                y_dst++;
+            }
+            else
+            {
+                for(y_src= 0;y_src < DstRect.bottom-DstRect.top;y_src++)
+                {
+                    x_dst = DstRect.left;
+                    for(x_src = 0;x_src < DstRect.right-DstRect.left;x_src++)
+                    {
+                        __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
+                                                x_dst,y_dst,SrcRect.left+x_src,
+                                                SrcRect.top+y_src,
+                                                para->RopCode,para->HyalineColor);
+                        x_dst++;
+                    }
+                    y_dst++;
+                }
             }
         }
         __GK_ShadingRect(DstGkwin,&DstRect);    //设置绘制部分的changed_msk
@@ -3922,8 +3935,8 @@ void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
                 {
                     SrcRect.left = InsRect.left-InsOffset.x;
                     SrcRect.top = InsRect.top-InsOffset.y;
-                    SrcRect.right = InsRect.left-InsOffset.x;
-                    SrcRect.bottom = InsRect.top-InsOffset.y;
+                    SrcRect.right = InsRect.right-InsOffset.x;
+                    SrcRect.bottom = InsRect.bottom-InsOffset.y;
                     if(!fb_gkwin->disp->draw.BltBitmapToBitmap(
                                         DstBitmap,&InsRect,
                                         SrcBitmap,&SrcRect,
@@ -3937,40 +3950,85 @@ void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
                                 && (para->RopCode.HyalineEn == 0)
                                 && (para->RopCode.Rop2Mode == CN_R2_COPYPEN ) )
                         {
-                            for(y_src= InsRect.top-DstRect.top;
-                                y_src < InsRect.bottom-DstRect.top;
-                                y_src++)
+                            if(SrcBitmap->reversal == true)
                             {
-                                x_dst = InsRect.left;
-                                for(x_src = InsRect.left-DstRect.left;
-                                    x_src < InsRect.right-DstRect.left;
-                                    x_src++)
+                                for(y_src= SrcBitmap->height - SrcRect.top;
+                                    y_src > SrcBitmap->height - SrcRect.bottom;
+                                    y_src--)
                                 {
-                                    __GK_CopyPixelBm(DstBitmap,SrcBitmap,
-                                                     x_dst,y_dst,x_src, y_src);
-                                    x_dst++;
+                                    x_dst = InsRect.left;
+                                    for(x_src = InsRect.left-DstRect.left;
+                                        x_src < InsRect.right-DstRect.left;
+                                        x_src++)
+                                    {
+                                        __GK_CopyPixelBm(DstBitmap,SrcBitmap,
+                                                         x_dst,y_dst,x_src, y_src);
+                                        x_dst++;
+                                    }
+                                    y_dst++;
                                 }
-                                y_dst++;
+
+                            }
+                            else
+                            {
+                                for(y_src= InsRect.top-DstRect.top;
+                                    y_src < InsRect.bottom-DstRect.top;
+                                    y_src++)
+                                {
+                                    x_dst = InsRect.left;
+                                    for(x_src = InsRect.left-DstRect.left;
+                                        x_src < InsRect.right-DstRect.left;
+                                        x_src++)
+                                    {
+                                        __GK_CopyPixelBm(DstBitmap,SrcBitmap,
+                                                         x_dst,y_dst,x_src, y_src);
+                                        x_dst++;
+                                    }
+                                    y_dst++;
+                                }
                             }
                         }
                         else
                         {
-                            for(y_src= InsRect.top-DstRect.top;
-                                y_src < InsRect.bottom-DstRect.top;
-                                y_src++)
+                            if(SrcBitmap->reversal == true)
                             {
-                                x_dst = InsRect.left;
-                                for(x_src = InsRect.left-DstRect.left;
-                                    x_src < InsRect.right-DstRect.left;
-                                    x_src++)
+                                for(y_src= SrcBitmap->height - SrcRect.top;
+                                    y_src > SrcBitmap->height - SrcRect.bottom;
+                                    y_src--)
                                 {
-                                    __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
-                                                        x_dst,y_dst,x_src,
-                                                        y_src,para->RopCode,
-                                                        para->HyalineColor);
-                                    x_dst++;
+                                    x_dst = InsRect.left;
+                                    for(x_src = InsRect.left-DstRect.left;
+                                        x_src < InsRect.right-DstRect.left;
+                                        x_src++)
+                                    {
+                                        __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
+                                                            x_dst,y_dst,x_src,
+                                                            y_src,para->RopCode,
+                                                            para->HyalineColor);
+                                        x_dst++;
+                                    }
+                                    y_dst++;
                                 }
-                                y_dst++;
+                            }
+                            else
+                            {
+                                for(y_src= InsRect.top-DstRect.top;
+                                    y_src < InsRect.bottom-DstRect.top;
+                                    y_src++)
+                                {
+                                    x_dst = InsRect.left;
+                                    for(x_src = InsRect.left-DstRect.left;
+                                        x_src < InsRect.right-DstRect.left;
+                                        x_src++)
+                                    {
+                                        __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
+                                                            x_dst,y_dst,x_src,
+                                                            y_src,para->RopCode,
+                                                            para->HyalineColor);
+                                        x_dst++;
+                                    }
+                                    y_dst++;
+                                }
                             }
                         }
                     }
@@ -3984,7 +4042,7 @@ void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
         //带rop操作的位图不支持直接写屏，无win buffer，也无frame buffer，
         //或者直接写屏属性为true的情况，将退化为GK_DrawBitMap的功能
         {
-            //为与可视域坐标保持一致，将待位图要绘制的位置的
+            //为与可视域坐标保持一致，将位图要绘制的位置的
             //坐标调整成以screen原点为原点的坐标
             DstRect.left += DstGkwin->absx0;
             DstRect.right += DstGkwin->absx0;
@@ -4297,7 +4355,7 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
             __GK_FillRect(bitmap,Rect,Color);
         }
         __GK_ShadingRect(Gkwin,Rect);//着色填充区域的changed_msk
-    }else
+    }else       //无win buffer，或直接写屏属性为true
     {
         clip = Gkwin->visible_clip;
         if(clip == NULL)                //窗口可视域为空，直接返回
@@ -4348,10 +4406,10 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
                                     &ins_rect,Color,0,CN_FILLRECT_MODE_N);
                     }
                     mirror = Gkwin->disp->HostObj;
-                    current = obj_child(mirror);
+                    current = OBJ_GetChild(mirror);
                     while(current != NULL)
                     {
-                        MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
+                        MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
                         //硬件加速不支持填充位图，则用软件实现
                         if(!MirrorDisplay->draw.FillRectToScreen(Rect,&ins_rect,
                                               Color,0,CN_FILLRECT_MODE_N))
@@ -4359,7 +4417,7 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
                             __GK_GradientFillScreenRect(&MirrorDisplay->draw,Rect,
                                     &ins_rect,Color,0,CN_FILLRECT_MODE_N);
                         }
-                        current = obj_foreach_child(mirror,current);
+                        current = OBJ_ForeachChild(mirror,current);
                     }
                 }
                 clip = clip->next;
@@ -4429,7 +4487,7 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
             __GK_GradientFillRectSoft(bitmap,&target,&target,Color0,Color1,Mode);
         }
         __GK_ShadingRect(fpwwin,&para->rect);//着色填充区域的changed_msk
-    }else
+    }else       //无win buffer，或直接写屏属性为true
     {
         clip = fpwwin->visible_clip;
         if(clip == NULL)                //窗口可视域为空，直接返回
@@ -4479,17 +4537,17 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                                                 &ins_rect,Color0,Color1,Mode);
                     }
                     mirror = fpwwin->disp->HostObj;
-                    current = obj_child(mirror);
+                    current = OBJ_GetChild(mirror);
                     while(current != NULL)
                     {
-                        MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
+                        MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
                         if(!MirrorDisplay->draw.FillRectToScreen(&target,&ins_rect,
-                                                       Color0,Color1,Mode) );
+                                                       Color0,Color1,Mode) )
                         {
                             __GK_GradientFillScreenRect(&MirrorDisplay->draw,&target,
                                                 &ins_rect,Color0,Color1,Mode);
                         }
-                        current = obj_foreach_child(mirror,current);
+                        current = OBJ_ForeachChild(mirror,current);
                     }
                 }
                 clip = clip->next;
@@ -4513,7 +4571,6 @@ void __GK_FillWin(struct GkscParaFillWin *para)
     struct RectBitmap *bitmap;
 
     struct DispDraw *my_draw_fun;
-
     fpwin = para->gkwin;
     bitmap = fpwin->wm_bitmap;
     my_draw_fun = &fpwin->disp->draw;
@@ -4532,7 +4589,7 @@ void __GK_FillWin(struct GkscParaFillWin *para)
         }
         fpwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
     }
-    else
+    else       //无win buffer，或直接写屏属性为true
     {
         clip = fpwin->visible_clip;
         if(clip == NULL)
@@ -4572,10 +4629,10 @@ void __GK_FillWin(struct GkscParaFillWin *para)
                                             para->color,0,CN_FILLRECT_MODE_N);
                 }
                 mirror = fpwin->disp->HostObj;
-                current = obj_child(mirror);
+                current = OBJ_GetChild(mirror);
                 while(current != NULL)
                 {
-                    MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
+                    MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
                     if(!MirrorDisplay->draw.FillRectToScreen(&rect,&clip->rect,
                                             para->color,0,CN_FILLRECT_MODE_N))
                     {
@@ -4585,7 +4642,7 @@ void __GK_FillWin(struct GkscParaFillWin *para)
                                                     para->color,
                                                     0,CN_FILLRECT_MODE_N);
                     }
-                    current = obj_foreach_child(mirror,current);
+                    current = OBJ_ForeachChild(mirror,current);
                 }
                 clip = clip->next;
             }while(clip != fpwin->visible_clip);

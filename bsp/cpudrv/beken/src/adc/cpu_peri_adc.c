@@ -59,13 +59,17 @@
 #include "drv_model_pub.h"
 #include "sys_ctrl_pub.h"
 #include "saradc_pub.h"
-
+#include <lock.h>
+#include <string.h>
+#include <stdio.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//extern void ModuleInstall_ADC(void);
+//  ModuleInstall_ADC( );
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -74,7 +78,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"cpu onchip gpio"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //如果依赖多个组件，则依次列出
@@ -105,7 +109,7 @@
 
 DD_HANDLE djy_adc_open(uint8_t channel, saradc_desc_t *adcDesc, uint8_t cntOfDataBuff)
 {
-    uint8_t status;
+    u32 status;
     DD_HANDLE retHdl = DD_HANDLE_UNVALID;
 
     if (channel > 7) // TODO merlin 到底有多少个ADC？ 有12个？不确定，所以现在写死了先  SARADC_ADC_CHNL_MAX)
@@ -136,9 +140,9 @@ DD_HANDLE djy_adc_open(uint8_t channel, saradc_desc_t *adcDesc, uint8_t cntOfDat
 
 void djy_adc_fill_buffer(DD_HANDLE handle, saradc_desc_t *adcDescOpened, uint32_t delayUs)
 {
-    s64 startTimeUs = 0;
-    s64 tmpDelayUs = delayUs;
-    uint32_t hasDelayMs = 0;
+//    s64 startTimeUs = 0;
+//    s64 tmpDelayUs = delayUs;
+//    uint32_t hasDelayMs = 0;
     uint32_t cmd;
     uint8_t run_stop;
 
@@ -154,8 +158,8 @@ void djy_adc_fill_buffer(DD_HANDLE handle, saradc_desc_t *adcDescOpened, uint32_
     run_stop = 1;
     ddev_control(handle, cmd, &run_stop);
 
-//    startTimeUs = DjyGetSysTime();
-//    while ((DjyGetSysTime()-startTimeUs) < tmpDelayUs)
+//    startTimeUs = DJY_GetSysTime();
+//    while ((DJY_GetSysTime()-startTimeUs) < tmpDelayUs)
 //    {
 //        if (adcDescOpened->current_sample_data_cnt == adcDescOpened->data_buff_size)
 //        {
@@ -174,18 +178,30 @@ void djy_adc_close(DD_HANDLE handle)
 
 
 // 这个ADC系统不能重入，同一时刻只能只有一个ADC通道在运行
-#define ADC_TEMP_BUFFER_SIZE 2
-static saradc_desc_t tmp_single_desc;
-static UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
-static volatile DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
+//#define ADC_TEMP_BUFFER_SIZE 2
+//static saradc_desc_t tmp_single_desc;
+//static UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
+//static volatile DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
 
-uint32_t djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
+struct MutexLCB *adc_mutex = NULL;
+
+int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
 {
+    if (adc_mutex == NULL) {
+        adc_mutex = Lock_MutexCreate("adc_mutex");
+    }
+
+#define ADC_TEMP_BUFFER_SIZE 2
+    saradc_desc_t tmp_single_desc;
+    UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
+    volatile DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
     int tryTimes = 1000;
     UINT32 status;
     UINT32 cmd;
     UINT8 run_stop;
-    uint32_t tmpData = 0xFFFFFFFF;
+    u16 ad_date;
+    int tmpData = 0xFFFFFFFF;
+    float voltage = 0.0;
 
     if (channel > 7) // TODO merlin 到底有多少个ADC？ 有12个？不确定，所以现在写死了先  SARADC_ADC_CHNL_MAX)
     {
@@ -204,6 +220,9 @@ uint32_t djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
     memset(tmp_single_buff, 0, sizeof(tmp_single_buff));
     tmp_single_desc.pData = &tmp_single_buff[0];
 
+    if (adc_mutex)
+        Lock_MutexPend(adc_mutex, 0xffffffff);
+
     tmp_single_hdl = ddev_open(SARADC_DEV_NAME, &status, (UINT32)&tmp_single_desc);
 
     cmd = SARADC_CMD_RUN_OR_STOP_ADC;
@@ -212,31 +231,37 @@ uint32_t djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
 
     while (tryTimes--)
     {
+        DJY_EventDelay(10);
         if (tmp_single_desc.current_sample_data_cnt == tmp_single_desc.data_buff_size)
         {
             ddev_close(tmp_single_hdl);
 
-            tmpData = 0;
+            ad_date = 0;
             for (int i=0; i<tmp_single_desc.current_sample_data_cnt; i++)
             {
-                tmpData += tmp_single_desc.pData[i];
+                ad_date += tmp_single_desc.pData[i];
             }
-            tmpData /= tmp_single_desc.current_sample_data_cnt;
-
+            ad_date /= tmp_single_desc.current_sample_data_cnt;
+            voltage = saradc_calculate(ad_date);
+            tmpData = voltage * 1000;
             break;
         }
     }
-
+    if (tryTimes <= 0) {
+        ddev_close(tmp_single_hdl);
+    }
+    if (adc_mutex)
+        Lock_MutexPost(adc_mutex);
 
     return tmpData;
 }
-
+#if 0
 static void temp_single_detect_handler2(void)
 {
     if(tmp_single_desc.current_sample_data_cnt >= tmp_single_desc.data_buff_size)
     {
         #if (CFG_SOC_NAME != SOC_BK7231)
-        UINT32 sum = 0, sum1, sum2;
+        UINT32 sum = 0, sum1, sum2=0;
         //turnon_PA_in_temp_dect();
 //        temp_single_get_disable();
         printf("buff:%p,%d,%d,%d,%d,%d\r\n", tmp_single_desc.pData,
@@ -261,7 +286,27 @@ static void temp_single_detect_handler2(void)
 //        rtos_set_semaphore(&tmp_single_semaphore);
     }
 }
+#endif
 
+
+
+
+int vbat_voltage_get(void)
+{
+    int i, j = 0, Vbat = 0, AverageVbat = 0;
+    for(i = 0; i < 10; i++)
+    {
+        Vbat = djy_adc_read(0);
+        Vbat = Vbat * 2;
+        if((Vbat > 2700) && (Vbat < 4400))  //去掉一些错误电压
+        {
+            AverageVbat += Vbat;
+            j++;
+        }
+    }
+    AverageVbat = AverageVbat / j;
+    return AverageVbat;
+}
 static void temp_single_get_desc_init(void)
 {
 //    os_memset(&tmp_single_buff[0], 0, sizeof(tmp_single_buff));
@@ -275,6 +320,7 @@ static void temp_single_get_desc_init(void)
 
 void ModuleInstall_ADC(void)
 {
+    saradc_init();
 //    GLOBAL_INT_DECLARATION();
 
 //    temp_single_get_desc_init();

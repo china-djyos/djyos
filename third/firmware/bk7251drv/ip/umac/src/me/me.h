@@ -49,6 +49,7 @@
 #define DEFAULT_ASSOCRSP_TIMEOUT        (200 * TU_DURATION)
 #define DEFAULT_AUTHRSP_TIMEOUT         (200 * TU_DURATION)
 
+
 /**
  * STRUCTURES/TYPES DEFINITION
  ****************************************************************************************

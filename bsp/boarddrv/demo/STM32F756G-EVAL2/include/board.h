@@ -49,7 +49,7 @@
 extern "C" {
 #endif
 
-void Board_GpioInit(void);
+void Board_Init(void);
 void LTDC_MspInit(void);
 void Board_UartHalfDuplexSend(u8 SerialNo);
 void Board_UartHalfDuplexRecv(u8 SerialNo);

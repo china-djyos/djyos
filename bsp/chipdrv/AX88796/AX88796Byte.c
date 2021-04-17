@@ -52,7 +52,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"lock","tcpip","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -212,7 +212,7 @@ void SetRegMAC(tagAx88796Pri  *pri,u8 iReg,u8 iValue)
 void Net_ChipRST(tagAx88796Pri  *pri)
 {
     Net_GetNetReg(pri,0x1f);
-    Djy_DelayUs(5000);
+    DJY_DelayUs(5000);
 }
 //****************************************************************************/
 // 清网卡中断
@@ -473,7 +473,7 @@ bool_t Net_PCToNIC(tagAx88796Pri *pri,u16 length,u8 *Buffer)
             else
             {
                 timeout++;
-                Djy_DelayUs(1); //每次延时1us
+                DJY_DelayUs(1); //每次延时1us
             }
 
         }
@@ -611,7 +611,7 @@ static ptu32_t __DevRcvMain(void)
     u8              *dst;
     struct NetPkg       *pkg;
     tagAx88796Pri   *pri = NULL;
-    Djy_GetEventPara((ptu32_t *)&pri,NULL);
+    DJY_GetEventPara((ptu32_t *)&pri,NULL);
     if(NULL != pri)
     {
         fnHook = pri->fnRcvDealer;
@@ -655,7 +655,7 @@ static ptu32_t __DevRcvMonitor(void)
     tagAx88796Pri  *pri = NULL;
     u32             chippacks;
 
-    Djy_GetEventPara((ptu32_t *)&pri,NULL);
+    DJY_GetEventPara((ptu32_t *)&pri,NULL);
     if(NULL == pri)
     {
         goto MONITOR_EXIT;
@@ -663,7 +663,7 @@ static ptu32_t __DevRcvMonitor(void)
     while(1)
     {
         chippacks = pri->monitorRcv;
-        Djy_EventDelay(CN_DEV_MONITOR_CYCLE);
+        DJY_EventDelay(CN_DEV_MONITOR_CYCLE);
         if(Lock_MutexPend(pri->devsync,CN_TIMEOUT_FOREVER))
         {
             if(chippacks == pri->monitorRcv) //no pack rcved any more, reset the dev
@@ -683,15 +683,15 @@ static u16 __taskCreate(char *name,u32 prior,void *routine,u32 stacksize,ptu32_t
 
     u16 evttID;
     u16 eventID = CN_EVENT_ID_INVALID;
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, prior, 0, 1,\
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, prior, 0, 1,\
                             (ptu32_t (*)(void))routine,NULL, stacksize, name);
 
     if (evttID != CN_EVTT_ID_INVALID)
     {
-        eventID=Djy_EventPop(evttID, NULL, 0, (ptu32_t)para, 0, 0);
+        eventID=DJY_EventPop(evttID, NULL, 0, (ptu32_t)para, 0, 0);
         if(eventID == CN_EVENT_ID_INVALID)
         {
-            Djy_EvttUnregist(evttID);
+            DJY_EvttUnregist(evttID);
         }
     }
     return eventID;
@@ -821,7 +821,7 @@ tagAx88796Pri *Ax88796Install(tagAx88796Para *para)
     devpara.Private = (ptu32_t)ax88796;
     devpara.linklen = 14;
     devpara.pkglen = 1500;
-    ax88796->devhandle = (void *) NetDevInstall(&devpara);
+    ax88796->devhandle = (void *) NetDev_Install(&devpara);
     if(NULL == ax88796->devhandle)
     {
         goto DEV_FAILED;

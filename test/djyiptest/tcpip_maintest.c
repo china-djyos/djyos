@@ -70,7 +70,7 @@
 //u32  spider_data_test __attribute__((section(".Cached_datasec")));
 //void code_test() __attribute__((section(".Cached_textsec")));
 
-extern void   reset(void);
+extern void   CPU_Reset(void);
 extern bool_t TcpServer_SndTask(char *param);
 extern bool_t TcpServer_BlockSendTest(char *param);
 extern bool_t UdpServer_SndTask(char *param);
@@ -88,6 +88,6 @@ ADD_TO_ROUTINE_SHELL(tcpserversnd,TcpServer_SndTask,"tcpserver发送测试");
 ADD_TO_ROUTINE_SHELL(tcpserverblocksnd,TcpServer_BlockSendTest,"tcpserverblock发送测试");
 ADD_TO_ROUTINE_SHELL(udpserversnd,UdpServer_SndTask,"udpserver发送测试");
 ADD_TO_ROUTINE_SHELL(udpserverrcv,UdpServer_RcvTask,"udpserver接收测试");
-ADD_TO_ROUTINE_SHELL(reset,reset,"重启机器");
+ADD_TO_ROUTINE_SHELL(reset,CPU_Reset,"重启机器");
 
 

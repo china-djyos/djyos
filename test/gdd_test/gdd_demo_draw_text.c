@@ -77,12 +77,12 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     hwnd =pMsg->hwnd;
     cfg_idx =0;
 
-    GetClientRect(hwnd,&rc0);
-    CreateButton("关闭",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,RectW(&rc0)-64,RectH(&rc0)+4,60,24,hwnd,ID_CLOSE,NULL,NULL);
-    i=RectH(&rc0)-(3*30);
-    CreateButton("绘制边框",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+0*32,128,24,hwnd,ID_BORDER,NULL,NULL);
-    CreateButton("绘制背景",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+1*32,128,24,hwnd,ID_BKGND,NULL,NULL);
-    CreateButton("改变颜色",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+2*32,128,24,hwnd,ID_COLOR,NULL,NULL);
+    GDD_GetClientRect(hwnd,&rc0);
+    Widget_CreateButton("关闭",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)+4,60,24,hwnd,ID_CLOSE,NULL,NULL);
+    i=GDD_RectH(&rc0)-(3*30);
+    Widget_CreateButton("绘制边框",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+0*32,128,24,hwnd,ID_BORDER,NULL,NULL);
+    Widget_CreateButton("绘制背景",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+1*32,128,24,hwnd,ID_BKGND,NULL,NULL);
+    Widget_CreateButton("改变颜色",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+2*32,128,24,hwnd,ID_COLOR,NULL,NULL);
     timer = GDD_CreateTimer(hwnd,1,3000);
     GDD_StartTimer(timer);
     timer = GDD_CreateTimer(hwnd,2,1000);
@@ -106,9 +106,9 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
             case ID_CLOSE://关闭
                     if(event==MSG_BTN_UP)
                         {
-                            PostMessage(hwnd,MSG_CLOSE,0,0);
+                            GDD_PostMessage(hwnd,MSG_CLOSE,0,0);
                         }
-                        InvalidateWindow(hwnd,FALSE);
+                        GDD_InvalidateWindow(hwnd,FALSE);
                     break;
             case ID_BORDER ://绘制边框
                     if(event==CBN_SELECTED)
@@ -119,7 +119,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
                         {
                             bBorder =FALSE;
                         }
-                        InvalidateWindow(hwnd,FALSE);
+                        GDD_InvalidateWindow(hwnd,FALSE);
                     break;
             case ID_BKGND://绘制背景
                     if(event==CBN_SELECTED)
@@ -130,7 +130,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
                         {
                             bBKGND =FALSE;
                         }
-                        InvalidateWindow(hwnd,FALSE);
+                        GDD_InvalidateWindow(hwnd,FALSE);
                     break;
             case ID_COLOR://改变颜色
                 if(event==CBN_SELECTED)
@@ -141,7 +141,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
                     {
                         bColor =FALSE;
                     }
-                    InvalidateWindow(hwnd,FALSE);
+                    GDD_InvalidateWindow(hwnd,FALSE);
                     break;
             default:break;
         }
@@ -156,16 +156,16 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     u32 i;
     hwnd =pMsg->hwnd;
 
-    hdc = BeginPaint(hwnd);
-    GetClientRect(hwnd,&rc0);
+    hdc = GDD_BeginPaint(hwnd);
+    GDD_GetClientRect(hwnd,&rc0);
 
-    SetRect(&rc,2,10,RectW(&rc0)-2*2,90);
-    SetFillColor(hdc,RGB(000,200,200));
-    FillRect(hdc,&rc);
+    GDD_SetRect(&rc,2,10,GDD_RectW(&rc0)-2*2,90);
+    GDD_SetFillColor(hdc,RGB(000,200,200));
+    GDD_FillRect(hdc,&rc);
 
-    SetTextColor(hdc,DrawText_Color_Tbl[color_idx].text_color);
-    SetDrawColor(hdc,DrawText_Color_Tbl[color_idx].bd_color);
-    SetFillColor(hdc,DrawText_Color_Tbl[color_idx].bk_color);
+    GDD_SetTextColor(hdc,DrawText_Color_Tbl[color_idx].text_color);
+    GDD_SetDrawColor(hdc,DrawText_Color_Tbl[color_idx].bd_color);
+    GDD_SetFillColor(hdc,DrawText_Color_Tbl[color_idx].bk_color);
 
     i=DrawText_Cfg_Tbl[cfg_idx].flag;
     if(bBorder)
@@ -176,8 +176,8 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     {
         i |= DT_BKGND;
     }
-    DrawText(hdc,DrawText_Cfg_Tbl[cfg_idx].text,-1,&rc,i);
-    EndPaint(hwnd,hdc);
+    GDD_DrawText(hdc,DrawText_Cfg_Tbl[cfg_idx].text,-1,&rc,i);
+    GDD_EndPaint(hwnd,hdc);
 
     return true;
 }
@@ -191,9 +191,9 @@ static ptu32_t HmiErasebkgnd(struct WindowMsg *pMsg)
 
     hwnd =pMsg->hwnd;
     hdc =(HDC)pMsg->Param1;
-    GetClientRect(hwnd,&rc0);
-    SetFillColor(hdc,RGB(200,200,200));
-    FillRect(hdc,&rc0);
+    GDD_GetClientRect(hwnd,&rc0);
+    GDD_SetFillColor(hdc,RGB(200,200,200));
+    GDD_FillRect(hdc,&rc0);
 
     return true;
 }
@@ -214,7 +214,7 @@ static  u32 HmiTimer(struct WindowMsg *pMsg)
                    {
                        cfg_idx=0;
                    }
-                   InvalidateWindow(hwnd,true);
+                   GDD_InvalidateWindow(hwnd,true);
                    break;
                    /////
            case    2:
@@ -225,7 +225,7 @@ static  u32 HmiTimer(struct WindowMsg *pMsg)
                        {
                            color_idx=0;
                        }
-                       InvalidateWindow(hwnd,true);
+                       GDD_InvalidateWindow(hwnd,true);
                    }
                    break;
            default:break;

@@ -157,6 +157,7 @@ typedef struct CAN_Frame
 }CanFarmeDef;
 #pragma pack()
 
+struct CANBusCB;
 // =============================================================================
 // 功能：CAN控制器将一帧CAN报文发送到CAN总线上。
 // 参数：Frame,CAN帧结构体指针。

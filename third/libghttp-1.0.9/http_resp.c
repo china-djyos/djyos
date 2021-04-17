@@ -84,283 +84,298 @@ http_resp_destroy(http_resp *a_resp)
 int
 http_resp_read_headers(http_resp *a_resp, http_trans_conn *a_conn)
 {
-  char          *l_start_body = NULL;
-  int            l_rv = 0;
-  int            l_done = 0;
-  int            l_return = HTTP_TRANS_DONE;
-  char          *l_start_header = NULL;
-  int            l_header_len = 0;
-  char          *l_last_header = NULL;
-  int            l_last_header_len = 0;
-  char          *l_start_value = NULL;
-  int            l_value_len = 0;
-  char          *l_cur_ptr = NULL;
-  char          *l_ptr = NULL;
-  header_state   l_state = reading_header;
+    char          *l_start_body = NULL;
+    int            l_rv = 0;
+    int            l_done = 0;
+    int            l_return = HTTP_TRANS_DONE;
+    char          *l_start_header = NULL;
+    int            l_header_len = 0;
+    char          *l_last_header = NULL;
+    int            l_last_header_len = 0;
+    char          *l_start_value = NULL;
+    int            l_value_len = 0;
+    char          *l_cur_ptr = NULL;
+    char          *l_ptr = NULL;
+    header_state   l_state = reading_header;
 
-  /* check to see if we need to jump in somewhere */
-  if (a_conn->sync == HTTP_TRANS_ASYNC)
+    /* check to see if we need to jump in somewhere */
+    if (a_conn->sync == HTTP_TRANS_ASYNC)
     {
-      if (a_resp->header_state == http_resp_reading_header)
-	goto http_resp_reading_header_jump;
+        if (a_resp->header_state == http_resp_reading_header)
+            goto http_resp_reading_header_jump;
     }
-  /* start reading headers */
-  do
-    {
-      a_resp->header_state = http_resp_reading_header;
-    http_resp_reading_header_jump:
-      /* read in the buffer */
-      l_rv = http_trans_read_into_buf(a_conn);
-      /* check for an error */
-      if (l_rv == HTTP_TRANS_ERR)
-	{
-	  a_conn->errstr = "Failed to read http response line";
-	  l_return = HTTP_TRANS_ERR;
-	  goto ec;
-	}
-      /* check to see if the end of headers string is in the buffer */
-      l_start_body = http_trans_buf_has_patt(a_conn->io_buf,
-					     a_conn->io_buf_alloc,
-					     "\r\n\r\n", 4);
-      if (l_start_body != NULL)
-	l_done = 1;
-      if ((l_done == 0) && (a_conn->sync == HTTP_TRANS_ASYNC) && (l_rv == HTTP_TRANS_NOT_DONE))
-	return HTTP_TRANS_NOT_DONE;
-      /* yes, that !l_done is ther because in the case of a 100
-         continue we well get back up to this loop without doing a
-         successful read. */
-      if ((!l_done) && (l_rv == HTTP_TRANS_DONE) && (a_conn->last_read == 0))
-	{
-	  a_conn->errstr = "Short read while reading http response headers";
-	  return HTTP_TRANS_ERR;
-	}
-    } while (l_done == 0);
-  /* parse out the response header */
-  /* check to make sure that there's enough that came back */
-  if ((a_conn->io_buf_alloc) < 14)
-    {
-      a_conn->errstr = "The http response line was too short.";
-      l_return = HTTP_TRANS_ERR;
-      goto ec;
-    }
-  l_ptr = a_conn->io_buf;
-  /* can you say PARANOID?  I thought you could. */
-  if (strncmp(l_ptr, "HTTP", 4) != 0)
-    {
-      a_conn->errstr = "The http response line did not begin with \"HTTP\"";
-      l_return = HTTP_TRANS_ERR;
-      goto ec;
-    }
-  if ((isdigit(l_ptr[5]) == 0) || /* http ver */
-      (l_ptr[6] != '.') ||
-      (isdigit(l_ptr[7]) == 0) ||
-      (l_ptr[8] != ' ') ||        /* space */
-      (isdigit(l_ptr[9]) == 0) || /* code */
-      (isdigit(l_ptr[10]) == 0) ||
-      (isdigit(l_ptr[11]) == 0) ||
-      (l_ptr[12] != ' '))          /* space */
-    {
-      a_conn->errstr = "Error parsing http response line";
-      l_return = HTTP_TRANS_ERR;
-      goto ec;
-    }
-  /* convert char into int */
-  a_resp->http_ver = (l_ptr[5] - 0x30);
-  a_resp->http_ver += ((l_ptr[7] - 0x30) / 10.0);
-  /* convert the response into an int */
-  a_resp->status_code = ((l_ptr[9] - 0x30)*100);
-  a_resp->status_code += ((l_ptr[10] - 0x30)*10);
-  a_resp->status_code += (l_ptr[11] - 0x30);
-  /* get the length of the reason_phrase */
-  l_cur_ptr = &l_ptr[13];
-  /* you can't overrun this because you already know that
-     there has to be a '\r' above from searching from the
-     end of the headers */
-  while (*l_cur_ptr != '\r')
-    l_cur_ptr++;
-  /* make sure to free the buffer if it's already allocated */
-  if (a_resp->reason_phrase) {
-    free(a_resp->reason_phrase);
-    a_resp->reason_phrase = NULL;
-  }
-  /* allocate space for the reason phrase */
-  a_resp->reason_phrase =
-    malloc((l_cur_ptr - (&l_ptr[13])) + 1);
-  memset(a_resp->reason_phrase, 0,
-	 ((l_cur_ptr - (&l_ptr[13])) + 1));
-  memcpy(a_resp->reason_phrase,
-	 &l_ptr[13], (l_cur_ptr - (&l_ptr[13])));
-  /* see if there are any headers.  If there aren't any headers
-     then the end of the reason phrase is the same as the start body
-     as above.  If that's the case then skip reading any headers. */
-  if (l_cur_ptr == l_start_body)
-    l_done = 1;
-  else
-    l_done = 0;
-  /* make sure that it's not a continue. */
-  if (a_resp->status_code == 100)
-    {
-      /* look for the next \r\n\r\n and cut it off */
-      char *l_end_continue = http_trans_buf_has_patt(a_conn->io_buf,
-						     a_conn->io_buf_alloc,
-						     "\r\n\r\n", 4);
-      if (!l_end_continue)
-	return HTTP_TRANS_ERR;
-      http_trans_buf_clip(a_conn, l_end_continue + 4);
-      l_start_body = NULL;
-      a_resp->status_code = 0;
-      l_done = 0;
-      if (a_conn->sync == HTTP_TRANS_ASYNC)
-	return HTTP_TRANS_NOT_DONE;
-      else
-	goto http_resp_reading_header_jump;
-    }
-  /* set the start past the end of the reason phrase,
-     checking if there's a CRLF after it. */
-  while ((*l_cur_ptr == '\r') ||
-	 (*l_cur_ptr == '\n'))
-    l_cur_ptr++;
 
-  /* start parsing out the headers */
-  /* start at the beginning */
-  l_start_header = l_cur_ptr;
-  while (l_done == 0)
+    /* start reading headers */
+    s64 startST = DJY_GetSysTime();
+    do
     {
-      /* check to see if we're at the end of the
-	 headers as determined above by the _patt() call */
-      if (l_cur_ptr == (l_start_body + 1))
-	break;
-      /* reading the header name */
-      if (l_state == reading_header)
-	{
-	  /* check to see if there's leading whitespace.
-	     If that's the case then it needs to be combined
-	     from the previous header */
-	  if (l_header_len == 0)
-	    {
-	      if ((*l_cur_ptr == ' ') || (*l_cur_ptr == '\t'))
-		{
-		  /* bomb if it's the first header.  That's not valid */
-		  if ((l_last_header == NULL) || (l_last_header_len == 0))
-		    {
-		      a_conn->errstr = "The first http response header began with whitespace";
-		      l_return = HTTP_TRANS_ERR;
-		      goto ec;
-		    }
-		  l_cur_ptr++;
-		  /* set it reading sep.  sep will eat all of the write space */
-		  l_state = reading_sep;
-		  continue;
-		}
-	    }
-	  if (*l_cur_ptr == ':')
-	    {
-	      /* make sure that there's some header there */
-	      if (l_header_len == 0)
-		{
-		  a_conn->errstr = "An http response header was zero length";
-		  l_return = HTTP_TRANS_ERR;
-		  goto ec;
-		}
-	      /* start reading the seperator */
-	      l_state = reading_sep;
-	      l_cur_ptr++;
-	    }
-	  /* make sure there's a seperator in
-	     there somewhere */
-	  else if (*l_cur_ptr == '\r')
-	    {
-	      a_conn->errstr = "Failed to find seperator in http response headers";
-	      l_return = HTTP_TRANS_ERR;
-	      goto ec;
-	    }
-	  else
-	    {
-	      l_cur_ptr++;
-	      l_header_len++;
-	    }
-	}
-      /* read the seperator */
-      else if(l_state == reading_sep)
-	{
-	  /* walk until you get a non-whitespace character */
-	  if ((*l_cur_ptr == ' ') || (*l_cur_ptr == '\t'))
-	    l_cur_ptr++;
-	  else
-	    {
-	      l_state = reading_value;
-	      l_start_value = l_cur_ptr;
-	      l_value_len = 0;
-	    }
-	}
-      /* read the value */
-      else if(l_state == reading_value)
-	{
-	  /* check to see if we've reached the end of the
-	     value */
-	  if ((*l_cur_ptr == '\r') || (*l_cur_ptr == '\n'))
-	    {
-	      /* check to see if this is a continuation of the last
-		 header. If the header len is 0 and we've gotten to
-		 this point then that's the case */
-	      if (l_header_len == 0)
-		{
-		  http_hdr_set_value_no_nts(a_resp->headers,
-					    l_last_header,
-					    l_last_header_len,
-					    l_start_value,
-					    l_value_len);
-		}
-	      else
-		{
-		  http_hdr_set_value_no_nts(a_resp->headers,
-					    l_start_header,
-					    l_header_len,
-					    l_start_value,
-					    l_value_len);
-		  
-		  /* set the last header and the length so that a new line
-		     that starts with spaces can figure out what header it
-		     applies to */
-		  l_last_header = l_start_header;
-		  l_last_header_len = l_header_len;
-		}
-	      /* start eating the end of line */
-	      l_state = reading_eol;
-	    }
-	  else
-	    {
-	      l_cur_ptr++;
-	      l_value_len++;
-	    }
-	}
-      /* read the eof */
-      else if(l_state == reading_eol)
-	{
-	  /* eat the eol */
-	  if ((*l_cur_ptr == '\r') || (*l_cur_ptr == '\n'))
-	    l_cur_ptr++;
- 	  else
-	    {
-	      /* start reading a new header again. */
-	      l_state = reading_header;
-	      l_start_header = l_cur_ptr;
-	      l_header_len = 0;
-	    }
-	}
-      /* what state is this? */
-      else
-	{
-	  a_conn->errstr = "Unknown state while reading http response headers";
-	  l_return = HTTP_TRANS_ERR;
-	  goto ec;
-	}
+        a_resp->header_state = http_resp_reading_header;
+http_resp_reading_header_jump:
+        /* read in the buffer */
+        l_rv = http_trans_read_into_buf(a_conn);
+        /* check for an error */
+        if (l_rv == HTTP_TRANS_ERR)
+        {
+            a_conn->errstr = "Failed to read http response line";
+            l_return = HTTP_TRANS_ERR;
+            goto ec;
+        }
+        /* check to see if the end of headers string is in the buffer */
+        l_start_body = http_trans_buf_has_patt( a_conn->io_buf,
+                    a_conn->io_buf_alloc,
+                    "\r\n\r\n", 4);
+        if (l_start_body != NULL)
+        {
+            l_done = 1;
+        }
+
+        if ((l_done == 0) && (a_conn->sync == HTTP_TRANS_ASYNC) && (l_rv == HTTP_TRANS_NOT_DONE))
+        {
+            return HTTP_TRANS_NOT_DONE;
+        }
+
+        /* yes, that !l_done is ther because in the case of a 100
+        continue we well get back up to this loop without doing a
+        successful read. */
+        if ((!l_done) && (l_rv == HTTP_TRANS_DONE) && (a_conn->last_read == 0))
+        {
+            a_conn->errstr = "Short read while reading http response headers";
+            return HTTP_TRANS_ERR;
+        }
+    } while ((l_done == 0) && ((DJY_GetSysTime()-startST) < 5*1000*1000));
+
+    /* parse out the response header */
+    /* check to make sure that there's enough that came back */
+    if ((a_conn->io_buf_alloc) < 14)
+    {
+        a_conn->errstr = "The http response line was too short.";
+        l_return = HTTP_TRANS_ERR;
+        goto ec;
     }
-  /* clip the buffer */
-  http_trans_buf_clip(a_conn, l_start_body + 4);
- ec:
-  a_resp->header_state = http_resp_header_start;
-  return l_return;
+    l_ptr = a_conn->io_buf;
+    /* can you say PARANOID?  I thought you could. */
+    if (strncmp(l_ptr, "HTTP", 4) != 0)
+    {
+        a_conn->errstr = "The http response line did not begin with \"HTTP\"";
+        l_return = HTTP_TRANS_ERR;
+        goto ec;
+    }
+    if ((isdigit(l_ptr[5]) == 0) || /* http ver */
+        (l_ptr[6] != '.') ||
+        (isdigit(l_ptr[7]) == 0) ||
+        (l_ptr[8] != ' ') ||        /* space */
+        (isdigit(l_ptr[9]) == 0) || /* code */
+        (isdigit(l_ptr[10]) == 0) ||
+        (isdigit(l_ptr[11]) == 0) ||
+        (l_ptr[12] != ' '))          /* space */
+    {
+        a_conn->errstr = "Error parsing http response line";
+        l_return = HTTP_TRANS_ERR;
+        goto ec;
+    }
+    /* convert char into int */
+    a_resp->http_ver = (l_ptr[5] - 0x30);
+    a_resp->http_ver += ((l_ptr[7] - 0x30) / 10.0);
+    /* convert the response into an int */
+    a_resp->status_code = ((l_ptr[9] - 0x30)*100);
+    a_resp->status_code += ((l_ptr[10] - 0x30)*10);
+    a_resp->status_code += (l_ptr[11] - 0x30);
+    /* get the length of the reason_phrase */
+    l_cur_ptr = &l_ptr[13];
+
+    /* you can't overrun this because you already know that
+    there has to be a '\r' above from searching from the
+    end of the headers */
+    while (*l_cur_ptr != '\r')
+        l_cur_ptr++;
+
+    /* make sure to free the buffer if it's already allocated */
+    if (a_resp->reason_phrase) {
+        free(a_resp->reason_phrase);
+        a_resp->reason_phrase = NULL;
+    }
+    /* allocate space for the reason phrase */
+    a_resp->reason_phrase =
+            malloc((l_cur_ptr - (&l_ptr[13])) + 1);
+    memset(a_resp->reason_phrase, 0,
+            ((l_cur_ptr - (&l_ptr[13])) + 1));
+    memcpy(a_resp->reason_phrase,
+            &l_ptr[13], (l_cur_ptr - (&l_ptr[13])));
+    /* see if there are any headers.  If there aren't any headers
+    then the end of the reason phrase is the same as the start body
+    as above.  If that's the case then skip reading any headers. */
+    if (l_cur_ptr == l_start_body)
+        l_done = 1;
+    else
+        l_done = 0;
+    /* make sure that it's not a continue. */
+    if (a_resp->status_code == 100)
+    {
+        /* look for the next \r\n\r\n and cut it off */
+        char *l_end_continue = http_trans_buf_has_patt(a_conn->io_buf,
+                                                        a_conn->io_buf_alloc,
+                                                        "\r\n\r\n", 4);
+        if (!l_end_continue)
+        {
+            return HTTP_TRANS_ERR;
+        }
+
+        http_trans_buf_clip(a_conn, l_end_continue + 4);
+        l_start_body = NULL;
+        a_resp->status_code = 0;
+        l_done = 0;
+        if (a_conn->sync == HTTP_TRANS_ASYNC)
+            return HTTP_TRANS_NOT_DONE;
+        else
+            goto http_resp_reading_header_jump;
+    }
+    /* set the start past the end of the reason phrase,
+    checking if there's a CRLF after it. */
+    while ((*l_cur_ptr == '\r') ||
+            (*l_cur_ptr == '\n'))
+        l_cur_ptr++;
+
+    /* start parsing out the headers */
+    /* start at the beginning */
+    l_start_header = l_cur_ptr;
+    while (l_done == 0)
+    {
+        /* check to see if we're at the end of the
+        headers as determined above by the _patt() call */
+        if (l_cur_ptr == (l_start_body + 1))
+            break;
+        /* reading the header name */
+        if (l_state == reading_header)
+        {
+            /* check to see if there's leading whitespace.
+            If that's the case then it needs to be combined
+            from the previous header */
+            if (l_header_len == 0)
+            {
+                if ((*l_cur_ptr == ' ') || (*l_cur_ptr == '\t'))
+                {
+                    /* bomb if it's the first header.  That's not valid */
+                    if ((l_last_header == NULL) || (l_last_header_len == 0))
+                    {
+                        a_conn->errstr = "The first http response header began with whitespace";
+                        l_return = HTTP_TRANS_ERR;
+                        goto ec;
+                    }
+                    l_cur_ptr++;
+                    /* set it reading sep.  sep will eat all of the write space */
+                    l_state = reading_sep;
+                    continue;
+                }
+            }
+            if (*l_cur_ptr == ':')
+            {
+                /* make sure that there's some header there */
+                if (l_header_len == 0)
+                {
+                    a_conn->errstr = "An http response header was zero length";
+                    l_return = HTTP_TRANS_ERR;
+                    goto ec;
+                }
+                /* start reading the seperator */
+                l_state = reading_sep;
+                l_cur_ptr++;
+            }
+            /* make sure there's a seperator in
+            there somewhere */
+            else if (*l_cur_ptr == '\r')
+            {
+                a_conn->errstr = "Failed to find seperator in http response headers";
+                l_return = HTTP_TRANS_ERR;
+                goto ec;
+            }
+            else
+            {
+                l_cur_ptr++;
+                l_header_len++;
+            }
+        }
+        /* read the seperator */
+        else if(l_state == reading_sep)
+        {
+            /* walk until you get a non-whitespace character */
+            if ((*l_cur_ptr == ' ') || (*l_cur_ptr == '\t'))
+                l_cur_ptr++;
+            else
+            {
+                l_state = reading_value;
+                l_start_value = l_cur_ptr;
+                l_value_len = 0;
+            }
+        }
+        /* read the value */
+        else if(l_state == reading_value)
+        {
+            /* check to see if we've reached the end of the
+            value */
+            if ((*l_cur_ptr == '\r') || (*l_cur_ptr == '\n'))
+            {
+                /* check to see if this is a continuation of the last
+                header. If the header len is 0 and we've gotten to
+                this point then that's the case */
+                if (l_header_len == 0)
+                {
+                    http_hdr_set_value_no_nts(a_resp->headers,
+                        l_last_header,
+                        l_last_header_len,
+                        l_start_value,
+                        l_value_len);
+                }
+                else
+                {
+                    http_hdr_set_value_no_nts(a_resp->headers,
+                        l_start_header,
+                        l_header_len,
+                        l_start_value,
+                        l_value_len);
+
+                    /* set the last header and the length so that a new line
+                    that starts with spaces can figure out what header it
+                    applies to */
+                    l_last_header = l_start_header;
+                    l_last_header_len = l_header_len;
+                }
+                /* start eating the end of line */
+                l_state = reading_eol;
+            }
+            else
+            {
+                l_cur_ptr++;
+                l_value_len++;
+            }
+        }
+        /* read the eof */
+        else if(l_state == reading_eol)
+        {
+            /* eat the eol */
+            if ((*l_cur_ptr == '\r') || (*l_cur_ptr == '\n'))
+                l_cur_ptr++;
+            else
+            {
+                /* start reading a new header again. */
+                l_state = reading_header;
+                l_start_header = l_cur_ptr;
+                l_header_len = 0;
+            }
+        }
+        /* what state is this? */
+        else
+        {
+            a_conn->errstr = "Unknown state while reading http response headers";
+            l_return = HTTP_TRANS_ERR;
+            goto ec;
+        }
+    }
+    /* clip the buffer */
+    http_trans_buf_clip(a_conn, l_start_body + 4);
+ec:
+    a_resp->header_state = http_resp_header_start;
+
+    return l_return;
 }
 
 int

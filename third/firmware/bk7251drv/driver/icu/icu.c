@@ -23,7 +23,7 @@ void icu_init(void)
     param = PCLK_POSI;
     #else
     param = PCLK_POSI_UART1 | PCLK_POSI_UART2
-            | PCLK_POSI_SARADC | PCLK_POSI_PWMS | PCLK_POSI_SDIO
+            | PCLK_POSI_PWMS | PCLK_POSI_SDIO
             | PCLK_POSI_I2C1 | PCLK_POSI_I2C2;
     #endif // (CFG_SOC_NAME == SOC_BK7231)
     icu_ctrl(CMD_CONF_PCLK_26M, &param);

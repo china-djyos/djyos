@@ -64,8 +64,8 @@
 
 extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
-extern void __Djy_ScheduleAsynSignal(void);
-void __Djy_EventReady(struct EventECB *event_ready);
+extern void __DJY_ScheduleAsynSignal(void);
+void __DJY_EventReady(struct EventECB *event_ready);
 
 struct IntReg volatile * const pg_int_reg
                         = (struct IntReg *)0xe000e100;
@@ -75,6 +75,33 @@ void (*fg_vect_table[CN_INT_LINE_LAST+1])(void)
 
 void __start_asyn_signal(void);
 void __start_real(void);
+
+
+//----原子状态检测--------------------------------------------------------------
+//功能：根据 Int_LowAtomStart 函数返回值，测试在调用该函数前的低级原子操作状态
+//参数：AtomStatus，Int_LowAtomStart 函数返回值
+//返回：true = 调用 Int_LowAtomStart 前已经处于原子操作状态，false 反之
+//-----------------------------------------------------------------------------
+bool_t Int_IsLowAtom(atom_low_t AtomStatus)
+{
+    if(AtomStatus != 0xff)
+        return false;
+    else
+        return true;
+}
+
+//----原子状态检测--------------------------------------------------------------
+//功能：根据 Int_HighAtomStart 函数返回值，测试在调用该函数前的低级原子操作状态
+//参数：AtomStatus，Int_HighAtomStart 函数返回值
+//返回：true = 调用 Int_HighAtomStart 前已经处于原子操作状态，false 反之
+//-----------------------------------------------------------------------------
+bool_t Int_IsHighAtom(atom_high_t AtomStatus)
+{
+    if(AtomStatus != 1)
+        return false;
+    else
+        return true;
+}
 
 //----接通异步信号开关---------------------------------------------------------
 //功能：接通异步信号开关,如果总开关接通且中断线开关接通,该中断将被允许
@@ -612,18 +639,18 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
     if(event != NULL)   //看同步指针中有没有事件(注：单个事件，不是队列)
     {
         event->event_result = isr_result;
-        __Djy_EventReady(event);   //把该事件放到ready队列
+        __DJY_EventReady(event);   //把该事件放到ready队列
         ptIntLine->sync_event = NULL;   //解除同步
     }
     if(ptIntLine->my_evtt_id != CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(ptIntLine->my_evtt_id,
+        DJY_EventPop(ptIntLine->my_evtt_id,
                         NULL,0,(ptu32_t)isr_result, (ptu32_t)ufl_line,0);
     }
     tg_int_global.nest_asyn_signal = 0;
 
     if(g_ptEventReady != g_ptEventRunning)
-        __Djy_ScheduleAsynSignal();       //执行中断内调度
+        __DJY_ScheduleAsynSignal();       //执行中断内调度
     g_bScheduleEnable = true;
     return;
 }

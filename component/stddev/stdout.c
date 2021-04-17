@@ -92,7 +92,7 @@ s32 skip_atoi(const char **s);
 // 返回：是（1）；不是（0）；
 // 备注：
 // ============================================================================
-extern s32 isvalid(FILE* stream);
+extern s32 File_IsValid(FILE* stream);
 
 //----输出一个字符到stdout-----------------------------------------------------
 //功能：输出一个字符到stdout，stdout可以是设备，也可以是文件
@@ -286,7 +286,7 @@ static void cropzeros(char *buffer)
     stop = buffer--;
     while (*buffer == '0') buffer--;
     if (*buffer == '.') buffer--;
-    while (*++buffer = *stop++);
+    while (*(++buffer) = *stop++);
   }
 }
 #include <stdlib.h>
@@ -392,7 +392,7 @@ static void cfltcvt(double value, char *buffer, char fmt, int precision)
 
 static u32 flt(char *TempBuf, ptu32_t Target, s32 Size, double num,
         int size, int precision, char fmt,int flags,u32 position,
-        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,u32 position))
+        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,s32 position))
 {
   char tmp[80];
   char c, sign;
@@ -470,7 +470,7 @@ static u32 flt(char *TempBuf, ptu32_t Target, s32 Size, double num,
 
 static u32 number(char *TempBuf,ptu32_t Target, s32 Size, u64  num,\
         s32 base, s32 size, s32 precision, s32 type, u32 position,\
-        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,u32 position))
+        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,s32 position))
 {
     /* we are called with base 8, 10 or 16, only, thus don't need "G..."  */
     static const char digits[ ] = "0123456789ABCDEF";
@@ -578,7 +578,7 @@ static u32 number(char *TempBuf,ptu32_t Target, s32 Size, u64  num,\
 
 static u32 string(char *TempBuf,ptu32_t Target, s32 Size, char *s, s32 field_width,
         s32 precision, s32 flags, u32 position,
-        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,u32 position))
+        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,s32 position))
 {
     s32 len, i;
 
@@ -601,7 +601,7 @@ static u32 string(char *TempBuf,ptu32_t Target, s32 Size, char *s, s32 field_wid
 }
 static u32 pointer(char *TempBuf,ptu32_t Target, s32 Size, void *ptr,
         s32 field_width, s32 precision, s32 flags, u32 position,
-        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,u32 position))
+        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,s32 position))
 {
     flags |= SMALL;
     if (field_width == -1) {
@@ -611,6 +611,8 @@ static u32 pointer(char *TempBuf,ptu32_t Target, s32 Size, void *ptr,
     return number(TempBuf,Target, Size, (u32)ptr, 16, field_width,
               precision, flags,position, PushChar);
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //----把字符压入字符串中-------------------------------------------------------
 //功能：把一个字符推入字符串中，若超出长度，则忽略。
@@ -621,7 +623,7 @@ static u32 pointer(char *TempBuf,ptu32_t Target, s32 Size, void *ptr,
 //      Position，Buf的偏移量
 //返回：Position的新位置。
 //-----------------------------------------------------------------------------
-u32 __PushCharToString(char *TempBuf,ptu32_t Target,s32 Size,const char ch,u32 Position)
+u32 __PushCharToString(char *TempBuf,ptu32_t Target,s32 Size,const char ch,s32 Position)
 {
     if(Position < (Size-1))
     {
@@ -640,7 +642,7 @@ u32 __PushCharToString(char *TempBuf,ptu32_t Target,s32 Size,const char ch,u32 P
 //      Position，Buf的偏移量
 //返回：Position的新位置。
 //-----------------------------------------------------------------------------
-u32 __PushCharDirect(char *TempBuf,ptu32_t Target,s32 Size,const char ch,u32 Position)
+u32 __PushCharDirect(char *TempBuf,ptu32_t Target,s32 Size,const char ch,s32 Position)
 {
     if(Position >= CN_BUF_LENGTH)
     {
@@ -670,7 +672,7 @@ u32 __PushCharDirect(char *TempBuf,ptu32_t Target,s32 Size,const char ch,u32 Pos
 //      Position，Buf的偏移量
 //返回：Position的新位置。
 //-----------------------------------------------------------------------------
-u32 __PushCharToFileDev(char *TempBuf,ptu32_t Target,s32 Res2,const char ch,u32 Position)
+u32 __PushCharToFileDev(char *TempBuf,ptu32_t Target,s32 Res2,const char ch,s32 Position)
 {
     if(Position >= CN_BUF_LENGTH)
     {
@@ -685,6 +687,7 @@ u32 __PushCharToFileDev(char *TempBuf,ptu32_t Target,s32 Res2,const char ch,u32 
     }
     return Position;
 }
+#pragma GCC diagnostic pop
 
 //---------------------------------------------------------------------------
 //功能: 按照格式字符串，生成输出字符串，并按照Method参数指定的方式，输出字符串。
@@ -705,9 +708,9 @@ u32 __PushCharToFileDev(char *TempBuf,ptu32_t Target,s32 Res2,const char ch,u32 
 static s32 __vsnprintf(char *TempBuf,ptu32_t Target, s32 Size,
                        u32 Method, const char *fmt,va_list args)
 {
-    u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,u32 position);
+    u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,s32 position);
     u64 num;
-    u32 position;
+    s32 position;
     s32 base;
     s32 flags;          //显示数字时的标志
 
@@ -719,7 +722,7 @@ static s32 __vsnprintf(char *TempBuf,ptu32_t Target, s32 Size,
                         // 'z' changed to 'Z' --davidm 1/25/99
                         // 't' added for ptrdiff_t
     position = 0;
-    if(Djy_IsMultiEventStarted() == false)//如果调度并未开始,采用直接发送方式
+    if(DJY_IsMultiEventStarted() == false)//如果调度并未开始,采用直接发送方式
     {
         if (Method == PRINT_TO_FILE_OR_DEV)
             Method = PRINT_TO_DIRECT;
@@ -870,6 +873,7 @@ repeat:
 
         case 'x':
             flags |= SMALL;
+            __attribute__((fallthrough));
         case 'X':
             base = 16;
             break;
@@ -973,7 +977,7 @@ s32 vprintf (const char *fmt, va_list args)
     char TempBuf[CN_BUF_LENGTH];
 
     // if (stdout == StdNotInit)
-    if(!isvalid(stdout))
+    if(!File_IsValid(stdout))
         i = __vsnprintf (TempBuf, (ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
     else
         i =  __vsnprintf (TempBuf, (ptu32_t)stdout, 0, PRINT_TO_FILE_OR_DEV, fmt, args);
@@ -998,7 +1002,7 @@ s32 printf(const char *fmt, ...)
     va_start (args, fmt);
 
     // if (stdout == StdNotInit)
-    if(!isvalid(stdout))
+    if(!File_IsValid(stdout))
         i = __vsnprintf (TempBuf,(ptu32_t)NULL,0,PRINT_TO_DIRECT, fmt, args);
     else
         i =  __vsnprintf (TempBuf,(ptu32_t)stdout, 0,PRINT_TO_FILE_OR_DEV, fmt, args);
@@ -1048,12 +1052,12 @@ s32 fprintf(FILE *fp, const char *fmt, ...)
     char TempBuf[CN_BUF_LENGTH];
     if (fp == NULL)
     {
-        Djy_SaveLastError(EN_FS_READFILE_EOF);
+        DJY_SaveLastError(EN_FS_READFILE_EOF);
         return -1;
     }
     va_start (args, fmt);
     // if (fp == StdNotInit)
-    if(!isvalid(fp))
+    if(!File_IsValid(fp))
         i = __vsnprintf (TempBuf,(ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
     else
         i = __vsnprintf (TempBuf,(ptu32_t)fp, 0, PRINT_TO_FILE_OR_DEV, fmt, args);

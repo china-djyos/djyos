@@ -60,7 +60,7 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include    "gdd.h"
-#include    <gui/gdd/gdd_private.h>
+#include    "../gdd_private.h"
 #include    <gdd_widget.h>
 
 
@@ -69,7 +69,7 @@
 //参数：pMsg，消息指针
 //返回：固定true
 //-----------------------------------------------------------------------------
-static  bool_t CheckBox_Paint(struct WindowMsg *pMsg)
+static  bool_t __Widget_CheckBoxPaint(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     HDC hdc;
@@ -77,69 +77,69 @@ static  bool_t CheckBox_Paint(struct WindowMsg *pMsg)
     RECT rc0;
 
     hwnd=pMsg->hwnd;
-    hdc =BeginPaint(hwnd);
+    hdc =GDD_BeginPaint(hwnd);
     if(NULL!=hdc)
     {
-        GetClientRect(hwnd,&rc0);
+        GDD_GetClientRect(hwnd,&rc0);
 
-        SetTextColor(hdc,RGB(1,1,1));
-        SetDrawColor(hdc,RGB(40,40,40));
-        SetFillColor(hdc,RGB(200,200,200));
+        GDD_SetTextColor(hdc,RGB(1,1,1));
+        GDD_SetDrawColor(hdc,RGB(40,40,40));
+        GDD_SetFillColor(hdc,RGB(200,200,200));
 
-        FillRect(hdc,&rc0);
+        GDD_FillRect(hdc,&rc0);
 
         if(hwnd->Style&CBS_SELECTED)
         {
-            CopyRect(&rc,&rc0);
-            rc.right =rc.left+RectH(&rc0);
+            GDD_CopyRect(&rc,&rc0);
+            rc.right =rc.left+GDD_RectH(&rc0);
 
-            InflateRect(&rc,-2,-2);
-            SetDrawColor(hdc,RGB(70,70,70));
-            DrawRect(hdc,&rc);
+            GDD_InflateRect(&rc,-2,-2);
+            GDD_SetDrawColor(hdc,RGB(70,70,70));
+            GDD_DrawRect(hdc,&rc);
 
-            InflateRect(&rc,-1,-1);
-            SetDrawColor(hdc,RGB(110,110,110));
-            DrawRect(hdc,&rc);
+            GDD_InflateRect(&rc,-1,-1);
+            GDD_SetDrawColor(hdc,RGB(110,110,110));
+            GDD_DrawRect(hdc,&rc);
 
-            InflateRect(&rc,-1,-1);
-            SetFillColor(hdc,RGB(240,240,240));
-            FillRect(hdc,&rc);
+            GDD_InflateRect(&rc,-1,-1);
+            GDD_SetFillColor(hdc,RGB(240,240,240));
+            GDD_FillRect(hdc,&rc);
 
-            InflateRect(&rc,-4,-4);
-            SetDrawColor(hdc,RGB(150,150,240));
-            DrawRect(hdc,&rc);
-            InflateRect(&rc,-1,-1);
-            SetDrawColor(hdc,RGB(100,100,220));
-            DrawRect(hdc,&rc);
+            GDD_InflateRect(&rc,-4,-4);
+            GDD_SetDrawColor(hdc,RGB(150,150,240));
+            GDD_DrawRect(hdc,&rc);
+            GDD_InflateRect(&rc,-1,-1);
+            GDD_SetDrawColor(hdc,RGB(100,100,220));
+            GDD_DrawRect(hdc,&rc);
 
-            InflateRect(&rc,-1,-1);
-            SetFillColor(hdc,RGB(50,50,200));
-            FillRect(hdc,&rc);
+            GDD_InflateRect(&rc,-1,-1);
+            GDD_SetFillColor(hdc,RGB(50,50,200));
+            GDD_FillRect(hdc,&rc);
         }
         else
         {
-            CopyRect(&rc,&rc0);
-            rc.right =rc.left+RectH(&rc0);
+            GDD_CopyRect(&rc,&rc0);
+            rc.right =rc.left+GDD_RectH(&rc0);
 
-            InflateRect(&rc,-2,-2);
-            SetDrawColor(hdc,RGB(100,100,100));
-            DrawRect(hdc,&rc);
+            GDD_InflateRect(&rc,-2,-2);
+            GDD_SetDrawColor(hdc,RGB(100,100,100));
+            GDD_DrawRect(hdc,&rc);
 
-            InflateRect(&rc,-1,-1);
-            SetDrawColor(hdc,RGB(160,160,160));
-            DrawRect(hdc,&rc);
+            GDD_InflateRect(&rc,-1,-1);
+            GDD_SetDrawColor(hdc,RGB(160,160,160));
+            GDD_DrawRect(hdc,&rc);
 
-            InflateRect(&rc,-1,-1);
-            SetFillColor(hdc,RGB(220,220,220));
-            FillRect(hdc,&rc);
+            GDD_InflateRect(&rc,-1,-1);
+            GDD_SetFillColor(hdc,RGB(220,220,220));
+            GDD_FillRect(hdc,&rc);
 
         }
 
-        CopyRect(&rc,&rc0);
-        InflateRectEx(&rc,-RectH(&rc),0,0,0);
+        GDD_CopyRect(&rc,&rc0);
+        GDD_InflateRectEx(&rc,-GDD_RectH(&rc),0,0,0);
 
-        DrawText(hdc,hwnd->Text,-1,&rc,DT_LEFT|DT_VCENTER);
-        EndPaint(hwnd,hdc);
+        GDD_DrawText(hdc,hwnd->Text,-1,&rc,DT_LEFT|DT_VCENTER);
+        GDD_EndPaint(hwnd,hdc);
     }
 
     return true;
@@ -152,64 +152,67 @@ static  bool_t CheckBox_Paint(struct WindowMsg *pMsg)
 //参数：pMsg，消息指针
 //返回：固定true
 //-----------------------------------------------------------------------------
-static bool_t CheckBox_Down(struct WindowMsg *pMsg)
+static bool_t __Widget_CheckBoxDown(struct WindowMsg *pMsg)
 {
      HWND hwnd;
      hwnd =pMsg->hwnd;
      if(hwnd->Style&CBS_SELECTED)
      {
         hwnd->Style &= ~CBS_SELECTED;
-//      InvalidateWindow(hwnd,FALSE);   //父窗口消息处理可能导致按钮被删除，
+//      GDD_InvalidateWindow(hwnd,FALSE);   //父窗口消息处理可能导致按钮被删除，
 //                                      //InvalidateWindow不能在SendMessage之后调用
-        SendMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,(CBN_UNSELECTED<<16)|(hwnd->WinId),(ptu32_t)hwnd);
+        GDD_SendMessage(GDD_GetWindowParent(hwnd),MSG_NOTIFY,(CBN_UNSELECTED<<16)|(hwnd->WinId),(ptu32_t)hwnd);
      }
      else
      {
         hwnd->Style |=  CBS_SELECTED;
-        PostMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,(CBN_SELECTED<<16)|(hwnd->WinId),(ptu32_t)hwnd);
+        GDD_PostMessage(GDD_GetWindowParent(hwnd),MSG_NOTIFY,(CBN_SELECTED<<16)|(hwnd->WinId),(ptu32_t)hwnd);
      }
 
-     InvalidateWindow(hwnd,FALSE);   //父窗口消息处理可能导致按钮被删除，
+     GDD_InvalidateWindow(hwnd,FALSE);   //父窗口消息处理可能导致按钮被删除，
                                      //InvalidateWindow不能在SendMessage之后调用
      return true;
 
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //----CheckBox不选中响应函数---------------------------------------------------------
 //功能：略
 //参数：pMsg，消息指针
 //返回：固定true
 //-----------------------------------------------------------------------------
-static bool_t CheckBox_Up(struct WindowMsg *pMsg)
+static bool_t __Widget_CheckBoxUp(struct WindowMsg *pMsg)
 {
      return true;
 }
+#pragma GCC diagnostic pop
 
 //默认复选框消息处理函数表，处理用户函数表中没有处理的消息。
 static struct MsgProcTable s_gCheckBoxMsgProcTable[] =
 {
-    {MSG_LBUTTON_DOWN,CheckBox_Down},
-    {MSG_LBUTTON_UP,CheckBox_Up},
-    {MSG_PAINT,CheckBox_Paint},
-    {MSG_TOUCH_DOWN,CheckBox_Down},
-    {MSG_TOUCH_UP,CheckBox_Up}
+    {MSG_LBUTTON_DOWN,__Widget_CheckBoxDown},
+    {MSG_LBUTTON_UP,__Widget_CheckBoxUp},
+    {MSG_PAINT,__Widget_CheckBoxPaint},
+    {MSG_TOUCH_DOWN,__Widget_CheckBoxDown},
+    {MSG_TOUCH_UP,__Widget_CheckBoxUp}
 };
 
 static struct MsgTableLink  s_gCheckBoxMsgLink;
 
-HWND CreateCheckBox(  const char *Text,u32 Style,
+HWND Widget_CreateCheckBox(  const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,void *pdata,
+                    HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
 
     s_gCheckBoxMsgLink.MsgNum = sizeof(s_gCheckBoxMsgProcTable) / sizeof(struct MsgProcTable);
     s_gCheckBoxMsgLink.myTable = (struct MsgProcTable *)&s_gCheckBoxMsgProcTable;
-    pGddWin=CreateWindow(Text,WS_CHILD | WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
+    pGddWin=GDD_CreateWindow(Text,WS_CHILD | WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
                             CN_WINBUF_PARENT,pdata,&s_gCheckBoxMsgLink);
     if(UserMsgTableLink != NULL)
-        AddProcFuncTable(pGddWin,UserMsgTableLink);
+        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }
 

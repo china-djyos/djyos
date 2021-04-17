@@ -1,0 +1,17 @@
+{
+	"cpu_name":"ATSAM4E16xx",
+	"cores":[{
+		"memories":{
+			"memory1":{
+				"size":"1024k",
+				"type":"FLASH",
+				"startAddr":"0x00400000"
+			},
+			"memory2":{
+				"size":"128k",
+				"type":"RAM",
+				"startAddr":"0x20000000"
+			}
+		}
+	}]
+}

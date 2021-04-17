@@ -1,6 +1,7 @@
 /.svn
-user
-*.mk
+bsp/boarddrv/user/
+userlib/
+*.P
 *.o
 *.d
 *.lst
@@ -11,4 +12,6 @@ user
 /*.vpw
 /*.vpwhist
 /*.vpj
-draft-prj
+libc.bak
+/third/micropython1.13/ports/stm32
+zephyr

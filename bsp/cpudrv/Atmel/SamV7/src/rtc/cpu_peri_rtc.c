@@ -31,7 +31,7 @@
 //attribute:bsp                      //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                   //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                      //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                   //初始化时机，可选值：early，medium，later。
+//init time:medium                   //初始化时机，可选值：early，medium，later, pre-main。
                                      //表示初始化时间，分别是早期、中期、后期
 //dependence:"int","lock","time"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                      //如果依赖多个组件，则依次列出
@@ -89,7 +89,7 @@ bool_t RTC_GetTime(s64 *time)
     dtm.tm_min  = BcdToHex(min);
     dtm.tm_sec  = BcdToHex(sec);
 
-    *time = 1000000 * Tm_MkTime(&dtm);
+    *time = 1000000 * Time_MkTime(&dtm);
     return true;
 }
 
@@ -117,7 +117,7 @@ static bool_t __Rtc_SetTime(s64 time)
     u32 dtime,timout = 1500*mS;
 
     time_s = time/1000000;
-    Tm_LocalTime_r(&time_s,&dtm);
+    Time_LocalTime_r(&time_s,&dtm);
 
     if((dtm.tm_year > 2000) && (dtm.tm_year < 2099))
     {
@@ -125,7 +125,7 @@ static bool_t __Rtc_SetTime(s64 time)
 
         while((RTC->RTC_SR & RTC_SR_ACKUPD) != RTC_SR_ACKUPD)
         {
-            Djy_EventDelay(100*mS);
+            DJY_EventDelay(100*mS);
             timout -= 100*mS;
             if(timout <= 0)
             {
@@ -198,7 +198,7 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
     if(NULL == pRtcSemp)
         return false;
 
-    evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
+    evtt = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
                             Rtc_UpdateTime,NULL,800,
                                 "RTC Update Event");
 
@@ -207,7 +207,7 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
         free(pRtcSemp);
         return false;
     }
-    Djy_EventPop(evtt,NULL,0,NULL,0,0);
+    DJY_EventPop(evtt,NULL,0,NULL,0,0);
     RTC_GetTime(&rtc_time);
 
     tv.tv_sec = rtc_time/1000000;//us ---> s

@@ -116,7 +116,7 @@ struct GkscParaCreateDesktop
 struct GkscParaCreateGkwin
 {
     struct GkWinObj *parent_gkwin;   //新窗口的父窗口
-    struct GkWinObj *gkwin;          //新窗口,由调用者分配结构体
+//  struct GkWinObj *gkwin;          //新窗口,由调用者分配结构体
     struct GkWinObj **result;        //用于返回结果
     s32 left,top,right,bottom;          //新窗口的位置，相对于父窗口的坐标
     u32 color;                          //创建窗口时填充的颜色
@@ -125,10 +125,11 @@ struct GkscParaCreateGkwin
     //以下成员只在buf_mode=true时有效，否则忽略之。
     u16 PixelFormat;                //像素格式，不允许用编号大于CN_GKWIN_PF_LIMIT的格式
     u16 rsv;                        //保留用于4字节对齐
-    u32  HyalineColor;                  //透明色，gkwin中的rop_code允许透明色时有用
+    u32  HyalineColor;              //透明色，gkwin中的rop_code允许透明色时有用
     u32 BaseColor  ;                //灰度图基色(当pf_type == CN_SYS_PF_GRAY1 ~8)
                                     //pf_type取其他值时不需要此参数
     struct RopGroup RopCode;        //窗口的光栅属性，在windows的光栅操作码的基础上有扩展
+    bool_t unfill;                  //true表示新建窗口不填充。
 };
 struct GkscParaFillWin
 {
@@ -169,7 +170,7 @@ struct GkscParaDrawBitmapRop
 {
     struct GkWinObj *gkwin;         //绘制的目标窗口
     struct RectBitmap bitmap;       //待绘制的位图
-    u32 HyalineColor;                   //透明色,与bitmap相同格式
+    u32 HyalineColor;               //透明色,与bitmap相同格式
     s32 x,y;                        //绘制位置的左上角坐标
     struct RopGroup RopCode;        //光栅操作码
 };

@@ -1,6 +1,7 @@
 #ifndef _SYS_CONFIG_H_
 #define _SYS_CONFIG_H_
-
+#include <stddef.h>
+#include "project_config.h"
 #define CFG_SUPPORT_BOOTLOADER                     0
 
 /*SUMMARY: macro--1: OPEN; --0:CLOSE*/
@@ -15,20 +16,21 @@
 #define CFG_IEEE80211N                             1
 
 /*section 1-----OS macro config-----*/
-#define CFG_OS_FREERTOS                            1
+#define CFG_OS_FREERTOS                            0
+#define CFG_SUPPORT_DJYOS                          1
 
-#if CFG_OS_FREERTOS
-#define THD_APPLICATION_PRIORITY                   3
-#define THD_CORE_PRIORITY                          2
+#if CFG_OS_FREERTOS | CFG_SUPPORT_DJYOS
+#define THD_APPLICATION_PRIORITY                   133
+#define THD_CORE_PRIORITY                          132
 #define THD_UMP3_PRIORITY                          4
 #define THD_UBG_PRIORITY                           5
 #define THD_LWIP_PRIORITY                          4
 #define THD_INIT_PRIORITY                          4
 #define THD_RECONNECT_PRIORITY                     4
-#define THD_MEDIA_PRIORITY						   4
-#define THD_WPAS_PRIORITY                          5
+#define THD_MEDIA_PRIORITY                         4
+#define THD_WPAS_PRIORITY                          135
 #define THD_HOSTAPD_PRIORITY                       5
-#define THDD_KEY_SCAN_PRIORITY					   7
+#define THDD_KEY_SCAN_PRIORITY                     7
 #endif // CFG_OS_FREERTOS
 
 /*section 2-----function macro config-----*/
@@ -129,9 +131,13 @@
 
 /*section 19-----for SDCARD HOST*/
 #define CFG_USE_SDCARD_HOST                        1
+//select SD or SD1
+#define SD_HOST_INTF                                0
+#define SD1_HOST_INTF                               1
+#define CFG_SD_HOST_INTF                            SD1_HOST_INTF
 
 /*section 20 ----- support mp3 decoder*/
-#define CONFIG_APP_MP3PLAYER 			           0
+#define CONFIG_APP_MP3PLAYER                       0
 
 /*section 21 ----- support ota*/
 #if CFG_SUPPORT_BOOTLOADER
@@ -156,5 +162,12 @@
 #define CFG_USE_AUD_DAC                            1
 #define CFG_USE_AUD_ADC                            1
 
+/*section 26 ----- general spi master/slave */
+#define CFG_USE_SPI_MASTER                         1
+#define CFG_USE_SPI_MST_FLASH                      0
+#define CFG_USE_SPI_MST_PSRAM                      0
+#define CFG_USE_SPI_SLAVE                          0
+
+#define CFG_USE_QSPI                               1
 
 #endif // _SYS_CONFIG_H_

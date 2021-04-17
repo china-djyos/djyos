@@ -62,7 +62,7 @@
 #include "cpu_peri.h"
 #include "int.h"
 #include "djyos.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "string.h"
 #include "cpu_peri_uart.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -91,7 +91,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","lock","uart device file"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -217,7 +217,7 @@ bool_t __UART_TxTranEmpty(struct UART_REG *Reg)
 //参数: reg,被操作的寄存器组指针
 //返回: 无
 //-----------------------------------------------------------------------------
-void __UART_SetBaud(struct UART_REG *Reg,u32 baud)
+void __UART_BaudSet(struct UART_REG *Reg,u32 baud)
 {
     volatile int i;
 
@@ -355,7 +355,7 @@ bool_t __UART_SendDirectly(struct UART_REG *Reg,u8 *send_buf,u32 len,u32 timeout
         while((false == __UART_TxTranEmpty(Reg))&& (timeout > 0))//超时或者发送缓冲为空时退出
         {
             timeout--;
-            Djy_DelayUs(1);
+            DJY_DelayUs(1);
         }
         if(timeout == 0)
             break;
@@ -371,7 +371,7 @@ bool_t __UART_SendDirectly(struct UART_REG *Reg,u8 *send_buf,u32 len,u32 timeout
 //参数: uart_dev,被操作的串口设备指针.
 //返回: 发送的个数
 //-----------------------------------------------------------------------------
-u32 __UART_SendStart(struct UART_REG *Reg,u32 timeout)
+u32 __UART_SendStart(struct UART_REG *Reg)
 {
     u8 trans,num,ch[UART_TX_FIFO_SIZE],sending_num,port;
     struct Object *UCB;
@@ -419,7 +419,7 @@ u32 __UART_SendStart(struct UART_REG *Reg,u32 timeout)
 //      data,含义依cmd而定
 //返回: 无意义.
 //-----------------------------------------------------------------------------
-ptu32_t __UART_Ctrl(struct UART_REG *Reg,u32 cmd, u32 data1,u32 data2)
+ptu32_t __UART_Ctrl(struct UART_REG *Reg,u32 cmd, va_list *arg0)
 {
     u32  port;
 
@@ -449,7 +449,11 @@ ptu32_t __UART_Ctrl(struct UART_REG *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-            __UART_SetBaud(Reg,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(Reg, data);
+        }
             break;
         case CN_UART_RX_PAUSE:      //暂停接收
             __UART_SubIntDisable(port,SUB_RXD_FLG);
@@ -459,8 +463,10 @@ ptu32_t __UART_Ctrl(struct UART_REG *Reg,u32 cmd, u32 data1,u32 data2)
             break;
         case CN_UART_SEND_HARD_LEVEL:    //设置发送fifo触发水平
         {
+            u32 data;
+            data = va_arg(*arg0, u32);
             Reg->UFCON &= 0x3f;
-            switch (data1)
+            switch (data)
             {
                 case 0:
                     break;
@@ -769,7 +775,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(Reg))&& (timeout > 0))
         {
             timeout--;
-            Djy_DelayUs(1);
+            DJY_DelayUs(1);
         }
         if(timeout == 0)
             break;
@@ -824,7 +830,7 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
         __UART_IntConfig(port_stdio);
 
         __UART_DefaultConfig(reg_stdio);
-        __UART_SetBaud(reg_stdio,115200);
+        __UART_BaudSet(reg_stdio,115200);
 
         PutStrDirect = Uart_PutStrDirect;
         GetCharDirect = Uart_GetCharDirect;

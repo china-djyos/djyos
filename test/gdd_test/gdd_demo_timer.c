@@ -65,21 +65,21 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
         timer_count[i] =0;
         timer_run[i]    =FALSE;
     }
-    GetClientRect(hwnd,&rc0);
-    CreateButton("关闭",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,RectW(&rc0)-64,RectH(&rc0)-28,60,24,hwnd,ID_CLOSE,NULL,NULL);
-    ClientToScreen(hwnd,(POINT *)&rc0,2);
+    GDD_GetClientRect(hwnd,&rc0);
+    Widget_CreateButton("关闭",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-28,60,24,hwnd,ID_CLOSE,NULL,NULL);
+    GDD_ClientToScreen(hwnd,(POINT *)&rc0,2);
     y=20+rc0.top;
     x=128+8;
-    CreateButton("run1",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+0*28,45,24,hwnd,ID_START_1,NULL,NULL);
-    CreateButton("run2",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+1*28,45,24,hwnd,ID_START_2,NULL,NULL);
-    CreateButton("run3",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_START_3,NULL,NULL);
-    CreateButton("run4",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_START_4,NULL,NULL);
+    Widget_CreateButton("run1",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+0*28,45,24,hwnd,ID_START_1,NULL,NULL);
+    Widget_CreateButton("run2",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+1*28,45,24,hwnd,ID_START_2,NULL,NULL);
+    Widget_CreateButton("run3",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_START_3,NULL,NULL);
+    Widget_CreateButton("run4",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_START_4,NULL,NULL);
 
     x=128+8+49;
-    CreateButton("reset1",WS_CHILD|WS_VISIBLE,x,y+0*28,45,24,hwnd,ID_CLR_1,NULL,NULL);
-    CreateButton("reset2",WS_CHILD|WS_VISIBLE,x,y+1*28,45,24,hwnd,ID_CLR_2,NULL,NULL);
-    CreateButton("reset3",WS_CHILD|WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_CLR_3,NULL,NULL);
-    CreateButton("reset4",WS_CHILD|WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_CLR_4,NULL,NULL);
+    Widget_CreateButton("reset1",WS_CHILD|WS_VISIBLE,x,y+0*28,45,24,hwnd,ID_CLR_1,NULL,NULL);
+    Widget_CreateButton("reset2",WS_CHILD|WS_VISIBLE,x,y+1*28,45,24,hwnd,ID_CLR_2,NULL,NULL);
+    Widget_CreateButton("reset3",WS_CHILD|WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_CLR_3,NULL,NULL);
+    Widget_CreateButton("reset4",WS_CHILD|WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_CLR_4,NULL,NULL);
 
     GDD_CreateTimer(hwnd,0,timer_interval[0]);
     GDD_CreateTimer(hwnd,1,timer_interval[1]);
@@ -97,7 +97,7 @@ static ptu32_t HmiTimer(struct WindowMsg *pMsg)
     hwnd =pMsg->hwnd;
     i =pMsg->Param1&0xFF;
     timer_count[i]++;
-    InvalidateWindow(hwnd,FALSE);
+    GDD_InvalidateWindow(hwnd,FALSE);
 
     return true;
 }
@@ -126,7 +126,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
             {
                 i =id&0xF;
                 timer_count[i] =0;
-                InvalidateWindow(hwnd,TRUE);
+                GDD_InvalidateWindow(hwnd,TRUE);
             }
             break;
             ////
@@ -134,7 +134,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
         case MSG_BTN_UP:    //按钮弹起
             if(id==ID_CLOSE)
             {
-                PostMessage(hwnd,MSG_CLOSE,0,0);
+                GDD_PostMessage(hwnd,MSG_CLOSE,0,0);
             }
 
             if(id>=ID_START_1 && id<=ID_START_4)
@@ -157,9 +157,9 @@ static ptu32_t HmiErasebkgnd(struct WindowMsg *pMsg)
     hwnd =pMsg->hwnd;
     hdc =(HDC)pMsg->Param1;
 
-    GetClientRect(hwnd,&rc);
-    SetFillColor(hdc,RGB(100,100,100));
-    FillRect(hdc,&rc);
+    GDD_GetClientRect(hwnd,&rc);
+    GDD_SetFillColor(hdc,RGB(100,100,100));
+    GDD_FillRect(hdc,&rc);
 
     return true;
 }
@@ -173,36 +173,36 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     u32 i;
 
     hwnd =pMsg->hwnd;
-    hdc =BeginPaint(hwnd);
-    SetRect(&rc,4,20,128,24);
+    hdc =GDD_BeginPaint(hwnd);
+    GDD_SetRect(&rc,4,20,128,24);
     for(i=0;i<4;i++)
     {
-        SetTextColor(hdc,DrawText_Color_Tbl[i].text_color);
-        SetDrawColor(hdc,DrawText_Color_Tbl[i].bd_color);
-        SetFillColor(hdc,DrawText_Color_Tbl[i].bk_color);
+        GDD_SetTextColor(hdc,DrawText_Color_Tbl[i].text_color);
+        GDD_SetDrawColor(hdc,DrawText_Color_Tbl[i].bd_color);
+        GDD_SetFillColor(hdc,DrawText_Color_Tbl[i].bk_color);
         sprintf(wbuf," time %d: %d",i+1,timer_count[i]);
 
         if(timer_run[i]!=FALSE)
         {
-            DrawText(hdc,wbuf,-1,&rc,DT_LEFT|DT_VCENTER|DT_BORDER|DT_BKGND);
+            GDD_DrawText(hdc,wbuf,-1,&rc,DT_LEFT|DT_VCENTER|DT_BORDER|DT_BKGND);
         }
         else
         {
             if(timer_count[7]&0x01)
             {
-                DrawText(hdc,wbuf,-1,&rc,DT_LEFT|DT_VCENTER|DT_BORDER|DT_BKGND);
+                GDD_DrawText(hdc,wbuf,-1,&rc,DT_LEFT|DT_VCENTER|DT_BORDER|DT_BKGND);
 
             }
             else
             {
-                DrawText(hdc,wbuf,-1,&rc,DT_LEFT|DT_VCENTER|DT_BKGND);
+                GDD_DrawText(hdc,wbuf,-1,&rc,DT_LEFT|DT_VCENTER|DT_BKGND);
             }
         }
 
-        OffsetRect(&rc,0,28);
+        GDD_OffsetRect(&rc,0,28);
 
     }
-    EndPaint(hwnd,hdc);
+    GDD_EndPaint(hwnd,hdc);
     return true;
 }
 //消息处理函数表

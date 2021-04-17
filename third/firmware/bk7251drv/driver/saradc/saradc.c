@@ -20,8 +20,10 @@
 #endif
 
 saradc_desc_t *saradc_desc = NULL;
-
-saradc_calibrate_val saradc_val = {0x55, 0x354};
+/*0 ~ 1024*/
+//saradc_calibrate_val saradc_val = {0x55, 0x354};
+/*0 ~ 4096*/
+saradc_calibrate_val saradc_val = {0x14f,0x0d98};
 
 static DD_OPERATIONS saradc_op = {
             saradc_open,
@@ -97,32 +99,31 @@ static void saradc_gpio_config(void)
 	        sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
             break;
         }
-#if (SOC_BK7221U == CFG_SOC_NAME)
-        case 4:
+		case 4:
         {
             param = GFUNC_MODE_ADC4;
-            sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+	        sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
             break;
         }
-        case 5:
+		case 5:
         {
             param = GFUNC_MODE_ADC5;
-            sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+	        sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
             break;
         }
-        case 6:
+		case 6:
         {
             param = GFUNC_MODE_ADC6;
-            sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+	        sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
             break;
         }
-        case 7:
+		case 7:
         {
             param = GFUNC_MODE_ADC7;
-            sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+	        sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
             break;
         }
-#endif
+		
         default:    
             break;
     }
@@ -174,7 +175,8 @@ static UINT32 saradc_open(UINT32 op_flag)
 
 #if (CFG_SOC_NAME != SOC_BK7231)    
     value = SARADC_ADC_SAT_ENABLE 
-        | ((0x01 & SARADC_ADC_SAT_CTRL_MASK) << SARADC_ADC_SAT_CTRL_POSI);
+       //| ((0x01 & SARADC_ADC_SAT_CTRL_MASK) << SARADC_ADC_SAT_CTRL_POSI);
+	   | ((0x03 & SARADC_ADC_SAT_CTRL_MASK) << SARADC_ADC_SAT_CTRL_POSI);
     REG_WRITE(SARADC_ADC_SATURATION_CFG, value);
 #endif
     
@@ -340,6 +342,7 @@ static UINT32 saradc_set_calibrate_val(saradc_cal_val_t *p_cal)
     }
     else
     {
+        GLOBAL_INT_RESTORE();
         return SARADC_FAILURE;
     }
     GLOBAL_INT_RESTORE();
@@ -433,6 +436,11 @@ void saradc_isr(void)
         {
             saradc_desc->pData[saradc_desc->current_sample_data_cnt++] = dac_val;
             saradc_desc->has_data = 1;
+
+            if(saradc_desc->current_sample_data_cnt == saradc_desc->data_buff_size) 
+            {
+                saradc_close();
+            }
         }
        
         value = REG_READ(SARADC_ADC_CONFIG);

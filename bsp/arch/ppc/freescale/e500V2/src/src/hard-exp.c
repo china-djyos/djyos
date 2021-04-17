@@ -66,7 +66,7 @@ extern struct IntMasterCtrl  tg_int_global;         //定义并初始化总中断控制结构
 //int
 extern void __Int_EngineReal(ufast_t ufl_line);
 extern void __Int_EngineAsynSignal(ufast_t ufl_line);
-extern void __Djy_ScheduleAsynSignal(void);
+extern void __DJY_ScheduleAsynSignal(void);
 // =============================================================================
 // 函数功能：Exp_DTimer  系统TICK中断
 // 输入参数：
@@ -74,7 +74,7 @@ extern void __Djy_ScheduleAsynSignal(void);
 // 返回值  ：true 成功 false失败
 // 说明    ：在E500核心下，该部分作为系统的TICK进行处理
 // =============================================================================
-void (*user_systick)(void) = NULL_func;
+void (*user_systick)(void) = DJY_NullFunc;
 void HardExp_ConnectSystick(void (*tick)(void))
 {
     user_systick = tick;
@@ -85,7 +85,7 @@ extern struct EventECB  *g_ptEventRunning;    //当前正在执行的事件
 extern struct EventECB  *g_ptEventDelay;      //闹钟同步队列表头
 extern bool_t  g_bScheduleEnable;                 //系统当前运行状态是否允许调
 extern struct IntLine *tg_pIntLineTable[CN_INT_LINE_LAST+1];
-extern void __Djy_EventReady(struct EventECB *event_ready);
+extern void __DJY_EventReady(struct EventECB *event_ready);
 
 void Exp_DTimer(void)
 {
@@ -94,7 +94,7 @@ void Exp_DTimer(void)
     user_systick();
 
     if(g_ptEventReady != g_ptEventRunning)
-        __Djy_ScheduleAsynSignal();       //执行中断内调度
+        __DJY_ScheduleAsynSignal();       //执行中断内调度
     g_bScheduleEnable = true;
     tg_int_global.nest_asyn_signal = 0;
 }
@@ -139,18 +139,18 @@ void Exp_EInt(void)
             if(event != NULL)   //看同步指针中有没有事件(注：单个事件，不是队列)
             {
                 event->event_result = isr_result[0];
-                __Djy_EventReady(event);   //把该事件放到ready队列
+                __DJY_EventReady(event);   //把该事件放到ready队列
                 ptIntLine->sync_event = NULL;   //解除同步
             }
             if(ptIntLine->my_evtt_id != CN_EVTT_ID_INVALID)
             {
                 isr_result[1] = (u32)ufl_line;
-                Djy_EventPop(ptIntLine->my_evtt_id,
+                DJY_EventPop(ptIntLine->my_evtt_id,
                                 NULL,0,0,0,0);
             }
 
             if(g_ptEventReady != g_ptEventRunning)
-                __Djy_ScheduleAsynSignal();       //执行中断内调度
+                __DJY_ScheduleAsynSignal();       //执行中断内调度
             g_bScheduleEnable = true;
             tg_int_global.nest_asyn_signal = 0;
     }
@@ -199,7 +199,7 @@ void Exp_CInit(void)
 // 返回值     :true成功, false失败
 // 说明          ：
 // =============================================================================
-bool_t HardExp_Init(void)
+void HardExp_Init(void)
 {
     //设置异常向量表
     extern void __AsmSetExpVecTab(void);

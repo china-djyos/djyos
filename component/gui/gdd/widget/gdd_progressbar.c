@@ -61,11 +61,11 @@
 //------------------------------------------------------
 
 #include    "gdd.h"
-#include    <gui/gdd/gdd_private.h>
+#include    "../gdd_private.h"
 #include    <gdd_widget.h>
 
 
-bool_t    MakeProgressRect(RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MODE mode)
+bool_t    Widget_MakeProgressRect(RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MODE mode)
 {
     s32 a0,a1;
 
@@ -111,8 +111,8 @@ bool_t    MakeProgressRect(RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MOD
     switch(mode)
     {
         case    PBM_LEFT:
-                a0 =(Val*RectW(src))/Range;
-                a1 =RectW(src)-a0;
+                a0 =(Val*GDD_RectW(src))/Range;
+                a1 =GDD_RectW(src)-a0;
 
                 dst[0].left =src->left;
                 dst[0].top =src->top;
@@ -126,8 +126,8 @@ bool_t    MakeProgressRect(RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MOD
                 return TRUE;
                 ////
         case    PBM_RIGHT:
-                a0 =(Val*RectW(src))/Range;
-                a1 =RectW(src)-a0;
+                a0 =(Val*GDD_RectW(src))/Range;
+                a1 =GDD_RectW(src)-a0;
 
                 dst[0].left =src->left+a1;
                 dst[0].top =src->top;
@@ -141,8 +141,8 @@ bool_t    MakeProgressRect(RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MOD
                 return TRUE;
                 ////
         case    PBM_TOP:
-                a0 =(Val*RectH(src))/Range;
-                a1 =RectH(src)-a0;
+                a0 =(Val*GDD_RectH(src))/Range;
+                a1 =GDD_RectH(src)-a0;
 
                 dst[0].left =src->left;
                 dst[0].top =src->top;
@@ -157,8 +157,8 @@ bool_t    MakeProgressRect(RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MOD
                 ////
 
         case    PBM_BOTTOM:
-                a0 =(Val*RectH(src))/Range;
-                a1 =RectH(src)-a0;
+                a0 =(Val*GDD_RectH(src))/Range;
+                a1 =GDD_RectH(src)-a0;
 
                 dst[0].left =src->left;
                 dst[0].top =src->top+a1;
@@ -184,7 +184,7 @@ bool_t    MakeProgressRect(RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MOD
 //参数：pMsg，消息指针
 //返回：固定true//HWND hwnd,PROGRESSBAR_DATA *pPB)//todo 参数传递不一致
 //-----------------------------------------------------------------------------
-static  bool_t ProgressBar_Paint(struct WindowMsg *pMsg)
+static  bool_t __Widget_ProgressBarPaint(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     HDC hdc;
@@ -194,20 +194,20 @@ static  bool_t ProgressBar_Paint(struct WindowMsg *pMsg)
     PROGRESSBAR_DATA *pPB;
     hwnd =pMsg->hwnd;
     pPB=(PROGRESSBAR_DATA*)hwnd->PrivateData;
-    hdc =BeginPaint(hwnd);
+    hdc =GDD_BeginPaint(hwnd);
     if(NULL!=hdc)
     {
-        GetClientRect(hwnd,&rc0);
+        GDD_GetClientRect(hwnd,&rc0);
         if(hwnd->Style&PBS_VER)
         {
             gfill_mode =CN_FILLRECT_MODE_LR;
             if(pPB->Flag&PBF_ORG_BOTTOM)
             {
-                MakeProgressRect(m_rc,&rc0,pPB->Range,pPB->Pos,PBM_BOTTOM);
+                Widget_MakeProgressRect(m_rc,&rc0,pPB->Range,pPB->Pos,PBM_BOTTOM);
             }
             else
             {
-                MakeProgressRect(m_rc,&rc0,pPB->Range,pPB->Pos,PBM_TOP);
+                Widget_MakeProgressRect(m_rc,&rc0,pPB->Range,pPB->Pos,PBM_TOP);
             }
         }
         else
@@ -215,42 +215,49 @@ static  bool_t ProgressBar_Paint(struct WindowMsg *pMsg)
             gfill_mode =CN_FILLRECT_MODE_UD;
             if(pPB->Flag&PBF_ORG_RIGHT)
             {
-                MakeProgressRect(m_rc,&rc0,pPB->Range,pPB->Pos,PBM_RIGHT);
+                Widget_MakeProgressRect(m_rc,&rc0,pPB->Range,pPB->Pos,PBM_RIGHT);
             }
             else
             {
-                MakeProgressRect(m_rc,&rc0,pPB->Range,pPB->Pos,PBM_LEFT);
+                Widget_MakeProgressRect(m_rc,&rc0,pPB->Range,pPB->Pos,PBM_LEFT);
             }
         }
 
         if(hwnd->Style&PBS_FLAT)
         {
-            SetFillColor(hdc,pPB->FGColor);
-            FillRect(hdc,&m_rc[0]);
-            SetFillColor(hdc,pPB->BGColor);
-            FillRect(hdc,&m_rc[1]);
+            GDD_SetFillColor(hdc,pPB->FGColor);
+            GDD_FillRect(hdc,&m_rc[0]);
+            GDD_SetFillColor(hdc,pPB->BGColor);
+            GDD_FillRect(hdc,&m_rc[1]);
         }
         else
         {
 
-            GradientFillRect(hdc,&m_rc[0],
-                            AlphaBlendColor(pPB->FGColor,RGB(250,250,250),100),
-                            AlphaBlendColor(pPB->FGColor,RGB(10,10,10),160),
+            GDD_GradientFillRect(hdc,&m_rc[0],
+                            GDD_AlphaBlendColor(pPB->FGColor,RGB(250,250,250),100),
+                            GDD_AlphaBlendColor(pPB->FGColor,RGB(10,10,10),160),
                             gfill_mode);
 
-            GradientFillRect(hdc,&m_rc[1],
-                            AlphaBlendColor(pPB->BGColor,RGB(250,250,250),100),
-                            AlphaBlendColor(pPB->BGColor,RGB(10,10,10),160),
+            GDD_GradientFillRect(hdc,&m_rc[1],
+                            GDD_AlphaBlendColor(pPB->BGColor,RGB(250,250,250),100),
+                            GDD_AlphaBlendColor(pPB->BGColor,RGB(10,10,10),160),
                             gfill_mode);
 
         }
 
         if(pPB->Flag&PBF_SHOWTEXT)
         {
-            SetTextColor(hdc,pPB->TextColor);
-            DrawText(hdc,hwnd->Text,-1,&rc0,pPB->DrawTextFlag);
+            GDD_SetTextColor(hdc,pPB->TextColor);
+            if(pPB->text != NULL)
+            {
+                GDD_DrawText(hdc,(char*)pPB->text,-1,&rc0,pPB->DrawTextFlag);
+            }
+            else
+            {
+                GDD_DrawText(hdc,hwnd->Text,-1,&rc0,pPB->DrawTextFlag);
+            }
         }
-        EndPaint(hwnd,hdc);
+        GDD_EndPaint(hwnd,hdc);
         return true;
     }
     return false;
@@ -261,7 +268,7 @@ static  bool_t ProgressBar_Paint(struct WindowMsg *pMsg)
 //参数：pMsg，消息指针
 //返回：成功则返回true，失败则返回false.
 //--------------------------------------------------------------------------
-static bool_t ProgressBar_Create(struct WindowMsg *pMsg)
+static bool_t __Widget_ProgressBarCreate(struct WindowMsg *pMsg)
 {
      HWND hwnd;
      hwnd =pMsg->hwnd;
@@ -270,6 +277,8 @@ static bool_t ProgressBar_Create(struct WindowMsg *pMsg)
      if(pMsg->Param1==0)
      {
          pPB =(PROGRESSBAR_DATA*)malloc(sizeof(PROGRESSBAR_DATA));
+         //todo:此处加空指针判断
+         memset(pPB, 0, sizeof(PROGRESSBAR_DATA));
          pMsg->Param1=(ptu32_t)pPB;
          pPB->Flag =0;
          pPB->Range =100;
@@ -278,7 +287,8 @@ static bool_t ProgressBar_Create(struct WindowMsg *pMsg)
          pPB->BGColor =RGB(0,0,200);
          pPB->DrawTextFlag =DT_VCENTER|DT_CENTER;
      }
-     SetWindowPrivateData(hwnd,(void*)pMsg->Param1);
+     GDD_SetWindowPrivateData(hwnd,(ptu32_t)pMsg->Param1);
+     GDD_InvalidateWindow(hwnd,FALSE);
      return true;
 
 }
@@ -288,18 +298,18 @@ static bool_t ProgressBar_Create(struct WindowMsg *pMsg)
 //参数：pMsg，消息指针
 //返回：成功则返回true，失败则返回false.
 //-----------------------------------------------------------------------------
-static bool_t ProgressBar_SetData(struct WindowMsg *pMsg)
+static bool_t __Widget_ProgressBarSetData(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     hwnd =pMsg->hwnd;
     PROGRESSBAR_DATA *pPB;
     if(pMsg->Param1!=0)
     {
-        pPB =(PROGRESSBAR_DATA*)GetWindowPrivateData(hwnd);
+        pPB =(PROGRESSBAR_DATA*)GDD_GetWindowPrivateData(hwnd);
         if(pPB!=NULL)
         {
             memcpy(pPB,(char*)pMsg->Param1,sizeof(PROGRESSBAR_DATA));
-            InvalidateWindow(pMsg->hwnd,FALSE);
+            GDD_InvalidateWindow(pMsg->hwnd,FALSE);
             return true;
         }
     }
@@ -311,18 +321,18 @@ static bool_t ProgressBar_SetData(struct WindowMsg *pMsg)
 //参数：pMsg，消息指针
 //返回：成功则返回true，失败则返回false.
 //-----------------------------------------------------------------------------
-static bool_t ProgressBar_GetData(struct WindowMsg *pMsg)
+static bool_t __Widget_ProgressBarGetData(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     hwnd =pMsg->hwnd;
     PROGRESSBAR_DATA *pPB;
     if(pMsg->Param1!=0)
     {
-        pPB =(PROGRESSBAR_DATA*)GetWindowPrivateData(hwnd);
+        pPB =(PROGRESSBAR_DATA*)GDD_GetWindowPrivateData(hwnd);
         if(pPB!=NULL)
         {
             memcpy((char*)pMsg->Param1,pPB,sizeof(PROGRESSBAR_DATA));
-            InvalidateWindow(pMsg->hwnd,FALSE);
+            GDD_InvalidateWindow(pMsg->hwnd,FALSE);
             return true;
         }
     }
@@ -334,16 +344,16 @@ static bool_t ProgressBar_GetData(struct WindowMsg *pMsg)
 //参数：pMsg，消息指针
 //返回：成功则返回true，失败则返回false.
 //-----------------------------------------------------------------------------
-static bool_t ProgressBar_SetRange(struct WindowMsg *pMsg)
+static bool_t __Widget_ProgressBarSetRange(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     hwnd =pMsg->hwnd;
     PROGRESSBAR_DATA *pPB;
-    pPB =(PROGRESSBAR_DATA*)GetWindowPrivateData(hwnd);
+    pPB =(PROGRESSBAR_DATA*)GDD_GetWindowPrivateData(hwnd);
     if(pPB!=NULL)
     {
         pPB->Range =(u32)pMsg->Param1;
-        InvalidateWindow(pMsg->hwnd,FALSE);
+        GDD_InvalidateWindow(pMsg->hwnd,FALSE);
         return true;
     }
     return false;
@@ -354,12 +364,12 @@ static bool_t ProgressBar_SetRange(struct WindowMsg *pMsg)
 //参数：pMsg，消息指针
 //返回：成功则返回范围值，失败则返回0.
 //-----------------------------------------------------------------------------
-static u32 ProgressBar_GetRange(struct WindowMsg *pMsg)
+static u32 __Widget_ProgressBarGetRange(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     hwnd =pMsg->hwnd;
     PROGRESSBAR_DATA *pPB;
-    pPB =(PROGRESSBAR_DATA*)GetWindowPrivateData(hwnd);
+    pPB =(PROGRESSBAR_DATA*)GDD_GetWindowPrivateData(hwnd);
     if(pPB!=NULL)
     {
         return pPB->Range;
@@ -372,16 +382,16 @@ static u32 ProgressBar_GetRange(struct WindowMsg *pMsg)
 //参数：pMsg，消息指针
 //返回：成功则返回true，失败则返回false.
 //-----------------------------------------------------------------------------
-static bool_t ProgressBar_SetPos(struct WindowMsg *pMsg)
+static bool_t __Widget_ProgressBarSetPos(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     hwnd =pMsg->hwnd;
     PROGRESSBAR_DATA *pPB;
-    pPB =(PROGRESSBAR_DATA*)GetWindowPrivateData(hwnd);
+    pPB =(PROGRESSBAR_DATA*)GDD_GetWindowPrivateData(hwnd);
     if(pPB!=NULL)
     {
         pPB->Pos =(u32)pMsg->Param1;
-        InvalidateWindow(pMsg->hwnd,FALSE);
+        GDD_InvalidateWindow(pMsg->hwnd,FALSE);
         return true;
     }
     return false;
@@ -392,12 +402,12 @@ static bool_t ProgressBar_SetPos(struct WindowMsg *pMsg)
 //参数：pMsg，消息指针
 //返回：成功则返回范围值，失败则返回0.
 //-----------------------------------------------------------------------------
-static u32 ProgressBar_GetPos(struct WindowMsg *pMsg)
+static u32 __Widget_ProgressBarGetPos(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     hwnd =pMsg->hwnd;
     PROGRESSBAR_DATA *pPB;
-    pPB =(PROGRESSBAR_DATA*)GetWindowPrivateData(hwnd);
+    pPB =(PROGRESSBAR_DATA*)GDD_GetWindowPrivateData(hwnd);
     if(pPB!=NULL)
     {
         return pPB->Pos;
@@ -409,31 +419,31 @@ static u32 ProgressBar_GetPos(struct WindowMsg *pMsg)
 //默认进度条消息处理函数表，处理用户函数表中没有处理的消息。
 static struct MsgProcTable s_gProgressBarMsgProcTable[] =
 {
-    {MSG_ProcessBar_SETDATA,ProgressBar_SetData},
-    {MSG_ProcessBar_GETDATA,ProgressBar_GetData},
-    {MSG_ProcessBar_SETRANGE,ProgressBar_SetRange},
-    {MSG_ProcessBar_GETRANGE,ProgressBar_GetRange},
-    {MSG_ProcessBar_SETPOS,ProgressBar_SetPos},
-    {MSG_ProcessBar_GETPOS,ProgressBar_GetPos},
-    {MSG_CREATE,ProgressBar_Create},
-    {MSG_PAINT,ProgressBar_Paint}
+    {MSG_ProcessBar_SETDATA,__Widget_ProgressBarSetData},
+    {MSG_ProcessBar_GETDATA,__Widget_ProgressBarGetData},
+    {MSG_ProcessBar_SETRANGE,__Widget_ProgressBarSetRange},
+    {MSG_ProcessBar_GETRANGE,__Widget_ProgressBarGetRange},
+    {MSG_ProcessBar_SETPOS,__Widget_ProgressBarSetPos},
+    {MSG_ProcessBar_GETPOS,__Widget_ProgressBarGetPos},
+    {MSG_CREATE,__Widget_ProgressBarCreate},
+    {MSG_PAINT,__Widget_ProgressBarPaint}
 };
 
 
 static struct MsgTableLink  s_gProgressBarMsgLink;
 
-HWND CreateProgressBar(  const char *Text,u32 Style,
+HWND Widget_CreateProgressBar(  const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,void *pdata,
+                    HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
     s_gProgressBarMsgLink.MsgNum = sizeof(s_gProgressBarMsgProcTable) / sizeof(struct MsgProcTable);
     s_gProgressBarMsgLink.myTable = (struct MsgProcTable *)&s_gProgressBarMsgProcTable;
-    pGddWin = CreateWindow(Text,WS_CHILD|Style,x,y,w,h,hParent,WinId,
+    pGddWin = GDD_CreateWindow(Text,WS_CHILD|Style,x,y,w,h,hParent,WinId,
                                 CN_WINBUF_PARENT,pdata,&s_gProgressBarMsgLink);
     if(UserMsgTableLink != NULL)
-        AddProcFuncTable(pGddWin,UserMsgTableLink);
+        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }
 

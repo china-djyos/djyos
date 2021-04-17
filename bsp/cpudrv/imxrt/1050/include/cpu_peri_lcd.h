@@ -60,7 +60,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 #include "gkernel.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 
 #define CN_RGB_565      1U
 #define CN_RGB_666      2U

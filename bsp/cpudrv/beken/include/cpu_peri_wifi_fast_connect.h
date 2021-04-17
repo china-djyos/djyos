@@ -8,7 +8,6 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-#define FLASH_FAST_DATA_ADDR        (0x1FF000)
 
 struct wlan_fast_connect
 {
@@ -16,7 +15,9 @@ struct wlan_fast_connect
     unsigned char bssid[6];
     unsigned char channel;
     unsigned char security;
+    unsigned char md5_passphrase[16];//md5 of passphrase(ascii)
     unsigned char psk[32];
+    uint32_t crc;
 };
 typedef struct wlan_fast_connect wlan_fast_connect_t;
 

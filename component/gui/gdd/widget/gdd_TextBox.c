@@ -60,7 +60,7 @@
 //---------------------------------
 
 #include  "gdd.h"
-#include  <gui/gdd/gdd_private.h>
+#include  "../gdd_private.h"
 #include  <font/font.h>
 #include  <gdd_widget.h>
 
@@ -75,14 +75,14 @@
 // 输出参数: 无。
 // 返回值  :获取到有效字符字节数。
 // =============================================================================
-static s16 __GetValidStrLen(char *str)
+static s16 __Widget_GetValidStrLen(struct Charset * myCharset, char *str)
 {
     u8 cnt=0;
     char ch;
     s16 str_len=0;
     if(str==NULL)
         return -1;
-    cnt=GetStrLineCount(str);
+    cnt=GDD_GetStrLineCount(myCharset,str);
     if(cnt>1)
     {
         while(1)
@@ -114,21 +114,21 @@ static s16 __GetValidStrLen(char *str)
 // 输出参数:
 // 返回值  :ucs4字符
 // =============================================================================
-static u32 __GetCharByIndex(char *str,u8 idx)
+static u32 __Widget_GetCharByIndex(char *str,u8 idx)
 {
     s16 str_len=0,len=0;
-    struct FontObj* cur_font;
+//    struct FontObj* cur_font;
     struct Charset* cur_enc;
     u32 wc=0;
     u8 cnt=0;
     if(str==NULL)
         return false;
-    str_len=__GetValidStrLen(str);
+    cur_enc = Charset_NlsGetCurCharset();
+    str_len=__Widget_GetValidStrLen(cur_enc, str);
     if(str_len==-1)
         return false;
      //计算字符串中字符数
-    cur_font = Font_GetCurFont();
-    cur_enc = Charset_NlsGetCurCharset();
+//    cur_font = Font_GetCurFont();
     for(; str_len > 0;)
     {
        len= cur_enc->MbToUcs4(&wc, str, -1);
@@ -163,7 +163,7 @@ static u32 __GetCharByIndex(char *str,u8 idx)
 // 输出参数: 无。
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-static bool_t __GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
+static bool_t __Widget_GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
 {
     u16 cnt=0,chwidthsum=0;
     s16 str_len=0;
@@ -173,12 +173,12 @@ static bool_t __GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
     u32 wc;
     if(str==NULL)
         return false;
-    str_len=__GetValidStrLen(str);
+    cur_enc = Charset_NlsGetCurCharset();
+    str_len=__Widget_GetValidStrLen(cur_enc, str);
     if(str_len==-1)
         return false;
      //计算字符串中字符数
      cur_font = Font_GetCurFont();
-     cur_enc = Charset_NlsGetCurCharset();
      for(; str_len > 0;)
      {
         len= cur_enc->MbToUcs4(&wc, str, -1);
@@ -220,7 +220,7 @@ static bool_t __GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
 // 输出参数: 无。
 // 返回值  :字符像素总宽度.
 // =============================================================================
-static s16 __GetStrWidth(char *str,u16 idx)
+static s16 __Widget_GetStrWidth(char *str,u16 idx)
 {
     struct FontObj* cur_font;
     struct Charset* cur_enc;
@@ -230,14 +230,14 @@ static s16 __GetStrWidth(char *str,u16 idx)
     s16 str_len=0;
     if(str==NULL)
          return -1;
-    str_len=__GetValidStrLen(str);
+    cur_enc = Charset_NlsGetCurCharset();
+    str_len=__Widget_GetValidStrLen(cur_enc, str);
     if(str_len==-1)
          return -1;
     if(idx==0)
         return 0;
     //计算字符串中字符数
     cur_font = Font_GetCurFont();
-    cur_enc = Charset_NlsGetCurCharset();
     for(; str_len > 0;)
     {
         len= cur_enc->MbToUcs4(&wc, str, -1);
@@ -272,7 +272,7 @@ static s16 __GetStrWidth(char *str,u16 idx)
 // 输出参数: 无。
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-static bool_t __MoveCursor(HWND hwnd,u8 idx)
+static bool_t __Widget_MoveCursor(HWND hwnd,u8 idx)
 {
     //内部调用，无需进行参数检查
     TextBox *pTB;
@@ -280,10 +280,10 @@ static bool_t __MoveCursor(HWND hwnd,u8 idx)
     RECT rc;
     u16 width;
     s32 x,y;
-    pTB=(TextBox *)GetWindowPrivateData(hwnd);
+    pTB=(TextBox *)GDD_GetWindowPrivateData(hwnd);
     if(pTB==NULL)
         return false;
-    GetClientRectToScreen(hwnd,&rc);
+    GDD_GetClientRectToScreen(hwnd,&rc);
     str=hwnd->Text;
     if(str==NULL)
         return false;
@@ -293,14 +293,15 @@ static bool_t __MoveCursor(HWND hwnd,u8 idx)
     }
     else
     {
-        width=__GetStrWidth(str,idx);
+        width=__Widget_GetStrWidth(str,idx);
         x=rc.left+width+1;
     }
     y=rc.top;
-    Cursor_Move(x,y);
+    GDD_CursorMove(x,y);
 
-//    MoveWindow(g_CursorHwnd,x,y);
-    UpdateDisplay(CN_TIMEOUT_FOREVER);
+//    GDD_MoveWindow(g_CursorHwnd,x,y);
+    GDD_UpdateDisplay(hwnd);
+//  GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
     return true;
 }
 // =============================================================================
@@ -311,7 +312,7 @@ static bool_t __MoveCursor(HWND hwnd,u8 idx)
 // 输出参数: 无。
 // 返回值  :文本框中字符编号.
 // =============================================================================
-static s16 __FindIdx(HWND hwnd,u16 x,u16 y)
+static s16 __Widget_FindIdx(HWND hwnd,u16 x,u16 y)
 {
     char *str;
     TextBox *pTB;
@@ -321,14 +322,14 @@ static s16 __FindIdx(HWND hwnd,u16 x,u16 y)
     str=hwnd->Text;
     if(str==NULL)
         return -1;
-    pTB=(TextBox *)GetWindowPrivateData(hwnd);
+    pTB=(TextBox *)GDD_GetWindowPrivateData(hwnd);
     if(pTB==NULL)
         return -1;
     chnum=pTB->ChNum;
-    GetClientRectToScreen(hwnd,&rc);
+    GDD_GetClientRectToScreen(hwnd,&rc);
     for(idx=1;idx<chnum;idx++)
     {
-        width=__GetStrWidth(str, idx);
+        width=__Widget_GetStrWidth(str, idx);
         tmp=rc.left+width;
         if(tmp>x)
         {
@@ -336,7 +337,7 @@ static s16 __FindIdx(HWND hwnd,u16 x,u16 y)
         }
     }
     val1=tmp-x;
-    width=__GetStrWidth(str, idx-1);
+    width=__Widget_GetStrWidth(str, idx-1);
     tmp=rc.left+width;
     val2=x-tmp;
     if(val1>val2)
@@ -355,24 +356,24 @@ static s16 __FindIdx(HWND hwnd,u16 x,u16 y)
 // 输出参数: 无
 // 返回值  :指定字符地址.
 // =============================================================================
-static s16 __CharToBytes(char *str,u8 num)
+static s16 __Widget_CharToBytes(char *str,u8 num)
 {
      u16 bytes=0;
      s16 str_len=0;
      u8 cnt=0;
      u32 wc;
      s32 len;
-     struct FontObj* cur_font;
+//     struct FontObj* cur_font;
      struct Charset* cur_enc;
      if(str==NULL)
           return -1;
-     str_len=__GetValidStrLen(str);
+     cur_enc = Charset_NlsGetCurCharset();
+     str_len=__Widget_GetValidStrLen(cur_enc, str);
      if(str_len==-1)
         return -1;
      if(num==0)
          return -1;
-     cur_font = Font_GetCurFont();
-     cur_enc = Charset_NlsGetCurCharset();
+//     cur_font = Font_GetCurFont();
      for(; str_len > 0;)
      {
         len= cur_enc->MbToUcs4(&wc, str, -1);
@@ -409,7 +410,7 @@ static s16 __CharToBytes(char *str,u8 num)
 // 输出参数: 无。
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-static bool_t TextBox_AddChar(HWND hwnd,char *str )
+static bool_t __Widget_TextBoxAddChar(HWND hwnd,char *str )
 {
      char *text;
      s16 len=0,str_len=0;
@@ -422,21 +423,21 @@ static bool_t TextBox_AddChar(HWND hwnd,char *str )
         return false;
      if(str==NULL)
         return false;
-     pTB=(TextBox *)GetWindowPrivateData(hwnd);
+     pTB=(TextBox *)GDD_GetWindowPrivateData(hwnd);
      if(pTB==NULL)
         return false;
     //检查文本框编辑属性
      if(pTB->EditProperty==WS_TEXTBOX_R_O)
         return false;
      text=hwnd->Text;
-     len=__GetValidStrLen(text);
+     len=__Widget_GetValidStrLen(Charset_NlsGetCurCharset(), text);
      if(len==-1)
           return false;
      //检查一下str的合法性
-      str_len=__GetValidStrLen(str);
+      str_len=__Widget_GetValidStrLen(Charset_NlsGetCurCharset(), str);
       if(str_len==-1)
           return false;
-      ret=__GetValidStrInfo(str,&num,NULL);
+      ret=__Widget_GetValidStrInfo(str,&num,NULL);
       if(!ret)
           return false;
       //字符串原有的字符数
@@ -445,7 +446,7 @@ static bool_t TextBox_AddChar(HWND hwnd,char *str )
       {
            num=CN_CHAR_NUM_MAX-cnt;
       }
-      bytes=__CharToBytes(str, num);
+      bytes=__Widget_CharToBytes(str, num);
       //将字符串加在原来字符串后面
       for(i=0;i<bytes;i++)
       {
@@ -463,7 +464,7 @@ static bool_t TextBox_AddChar(HWND hwnd,char *str )
 // 输出参数: 无。
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-static bool_t TextBox_DeleteChar(HWND hwnd,u8 idx,u8 count)
+static bool_t __Widget_TextBoxDeleteChar(HWND hwnd,u8 idx,u8 count)
 {
      char *text;
      char temp_str[2*CN_CHAR_NUM_MAX+1];
@@ -474,14 +475,14 @@ static bool_t TextBox_DeleteChar(HWND hwnd,u8 idx,u8 count)
      TextBox *pTB;
      if(hwnd==NULL)
          return false;
-     pTB=(TextBox *)GetWindowPrivateData(hwnd);
+     pTB=(TextBox *)GDD_GetWindowPrivateData(hwnd);
      if(pTB==NULL)
          return false;
      if(pTB->EditProperty==WS_TEXTBOX_R_O)
          return false;
      text=hwnd->Text;
      cnt=pTB->ChNum;
-     str_len=__GetValidStrLen(text);
+     str_len=__Widget_GetValidStrLen(Charset_NlsGetCurCharset(), text);
      if(str_len==-1)
          return false;
      if(count>idx)
@@ -497,7 +498,7 @@ static bool_t TextBox_DeleteChar(HWND hwnd,u8 idx,u8 count)
          }
          else
          {
-             len=__CharToBytes(text,idx);
+             len=__Widget_CharToBytes(text,idx);
              last_len=str_len-len;
              for(i=0;i<last_len;i++)
              {
@@ -510,14 +511,14 @@ static bool_t TextBox_DeleteChar(HWND hwnd,u8 idx,u8 count)
          }
      }
 
-     f_len=__CharToBytes(text,tmp);
+     f_len=__Widget_CharToBytes(text,tmp);
      for(i=0;i<f_len;i++)
      {
         temp_str[i]=*(text+i);
      }
      if(idx!=cnt)
      {
-        len=__CharToBytes(text,idx);
+        len=__Widget_CharToBytes(text,idx);
         last_len=str_len-len;
         for(i=0;i<last_len;i++)
         {
@@ -538,7 +539,7 @@ static bool_t TextBox_DeleteChar(HWND hwnd,u8 idx,u8 count)
 // 输出参数: 无。
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-static bool_t TextBox_InsertChar(HWND hwnd,u8 idx,char *str)
+static bool_t __Widget_TextBoxInsertChar(HWND hwnd,u8 idx,char *str)
 {
      char temp_str[2*CN_CHAR_NUM_MAX+1];
      char *text;
@@ -552,17 +553,17 @@ static bool_t TextBox_InsertChar(HWND hwnd,u8 idx,char *str)
         return false;
      if(str==NULL)
         return false;
-     pTB=(TextBox *)GetWindowPrivateData(hwnd);
+     pTB=(TextBox *)GDD_GetWindowPrivateData(hwnd);
      if(pTB==NULL)
         return false;
      //检查文本框编辑属性
      if(pTB->EditProperty==WS_TEXTBOX_R_O)
         return false;
      text=hwnd->Text;
-     str_len=__GetValidStrLen(text);
+     str_len=__Widget_GetValidStrLen(Charset_NlsGetCurCharset(), text);
      if(str_len==-1)
         return false;
-     ret=__GetValidStrInfo(str,&num,NULL);
+     ret=__Widget_GetValidStrInfo(str,&num,NULL);
      if(!ret)
          return false;
     //字符串原有的字符数
@@ -571,8 +572,8 @@ static bool_t TextBox_InsertChar(HWND hwnd,u8 idx,char *str)
      {
           num=CN_CHAR_NUM_MAX-cnt;
      }
-     bytes=__CharToBytes(str, num);
-     f_len=__CharToBytes(text,idx);
+     bytes=__Widget_CharToBytes(str, num);
+     f_len=__Widget_CharToBytes(text,idx);
 
      for(i=0;i<f_len;i++)
      {
@@ -601,11 +602,14 @@ static bool_t TextBox_InsertChar(HWND hwnd,u8 idx,char *str)
 // 输出参数: 无。
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-static bool_t TextBox_Create(struct WindowMsg *pMsg)
+static bool_t __Widget_TextBoxCreate(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     TextBox *pTB;
     u32 Style=0;
+
+    printf("TextBox_Create\r\n");
+
     if(pMsg==NULL)
         return false;
     hwnd =pMsg->hwnd;
@@ -618,13 +622,14 @@ static bool_t TextBox_Create(struct WindowMsg *pMsg)
         pTB=(TextBox *)malloc(sizeof(TextBox));
         if(pTB==NULL)
             return false;
+        memset(pTB, 0, sizeof(TextBox));
         pTB->ChNum=0;
         pTB->CharNumLimit=CN_CHAR_NUM_MAX;
-        if(Style&&WS_TEXTBOX_R_O)
+        if(Style & WS_TEXTBOX_R_O)
         {
             pTB->EditProperty=WS_TEXTBOX_R_O;
         }
-        else if(Style&&WS_TEXTBOX_W_O)
+        else if(Style & WS_TEXTBOX_W_O)
         {
             pTB->EditProperty=WS_TEXTBOX_W_O;
         }
@@ -637,26 +642,28 @@ static bool_t TextBox_Create(struct WindowMsg *pMsg)
         pTB->IsMultiLines=false;
         pTB->MaxLines=1;
         pTB->CharWidthSum=0;
-        SetWindowPrivateData(hwnd,(void *)pTB);
+        GDD_SetWindowPrivateData(hwnd,(ptu32_t)pTB);
     }
 
     return true;
 }
 // =============================================================================
-// 函数功能: 判断按键按下的字符是否为数字或者小数点字符.
+// 函数功能: 判断按键按下的字符是否为合法ASCII字符.
 // 输入参数: keyval:字符ASCII码.
 // 输出参数: 无。
 // 返回值  :是则返回true,否则返回false.
 // =============================================================================
-static bool_t __IsValidInputKey(u8 keyval)
+static bool_t __Widget_IsValidInputKey(u8 keyval)
 {
     bool_t ret=true;
-    if(keyval<VK_NUM_0-1)
-    {
-        if(keyval!=VK_DECIMAL_POINT)
-            return false;
-    }
-    if(keyval>VK_NUM_9+1)
+//    if(keyval<VK_NUM_0-1)
+//    {
+//        if(keyval!=VK_DECIMAL_POINT)
+//            return false;
+//    }
+//    if(keyval>VK_NUM_9+1)
+//        return false;
+    if(keyval < VK_CHAR_START || keyval > VK_CHAR_END)
         return false;
     return ret;
 }
@@ -666,7 +673,7 @@ static bool_t __IsValidInputKey(u8 keyval)
 // 输出参数: 无。
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-static  bool_t TextBox_Paint(struct WindowMsg *pMsg)
+static  bool_t __Widget_TextBoxPaint(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     HDC hdc;
@@ -681,10 +688,10 @@ static  bool_t TextBox_Paint(struct WindowMsg *pMsg)
     hwnd =pMsg->hwnd;
     if(hwnd==NULL)
         return false;
-    pTB=(TextBox *)GetWindowPrivateData(hwnd);
+    pTB=(TextBox *)GDD_GetWindowPrivateData(hwnd);
     if(pTB==NULL)
         return false;
-    hdc =BeginPaint(hwnd);
+    hdc =GDD_BeginPaint(hwnd);
     if(NULL==hdc)
         return false;
     //由于TextBox只能显示单行信息,因此先判断一下字符串是否包含多行,若为多行,则
@@ -692,44 +699,44 @@ static  bool_t TextBox_Paint(struct WindowMsg *pMsg)
     if(!pTB->IsMultiLines)
     {
         str=hwnd->Text;
-        ret=__GetValidStrInfo(str,&count,NULL);
+        ret=__Widget_GetValidStrInfo(str,&count,NULL);
         if(!ret)
             return false;
     }
 
 
-   GetClientRect(hwnd,&rc);
+   GDD_GetClientRect(hwnd,&rc);
 
    Widget_GetAttr(hwnd,ENUM_WIDGET_FILL_COLOR,&color);
-   SetFillColor(hdc,color);
-//   SetFillColor(hdc,RGB(255,0,0));
-   FillRect(hdc,&rc);
+//   GDD_SetFillColor(hdc,color);
+   GDD_SetFillColor(hdc,RGB(178,178,178));
+   GDD_FillRect(hdc,&rc);
    if(hwnd->Style&WS_BORDER)
    {
       if(hwnd->Style&BORDER_FIXED3D)
       {
-         SetDrawColor(hdc,RGB(173,173,173));
-         DrawLine(hdc,0,0,0,RectH(&rc)-1); //L
-         SetDrawColor(hdc,RGB(234,234,234));
-         DrawLine(hdc,0,0,RectW(&rc)-1,0);   //U
-         DrawLine(hdc,RectW(&rc)-1,0,RectW(&rc)-1,RectH(&rc)-1); //R
-         DrawLine(hdc,0,RectH(&rc)-1,RectW(&rc)-1,RectH(&rc)-1); //D
+         GDD_SetDrawColor(hdc,RGB(173,173,173));
+         GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1); //L
+         GDD_SetDrawColor(hdc,RGB(234,234,234));
+         GDD_DrawLine(hdc,0,0,GDD_RectW(&rc)-1,0);   //U
+         GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //R
+         GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
       }
       else
       {
-         SetDrawColor(hdc,RGB(169,169,169));
-         DrawLine(hdc,0,0,0,RectH(&rc)-1); //L
-         DrawLine(hdc,0,0,RectW(&rc)-1,0);   //U
-         DrawLine(hdc,RectW(&rc)-1,0,RectW(&rc)-1,RectH(&rc)-1); //R
-         DrawLine(hdc,0,RectH(&rc)-1,RectW(&rc)-1,RectH(&rc)-1); //D
+         GDD_SetDrawColor(hdc,RGB(169,169,169));
+         GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1); //L
+         GDD_DrawLine(hdc,0,0,GDD_RectW(&rc)-1,0);   //U
+         GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //R
+         GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
       }
     }
 
-//  SetTextColor(hdc,RGB(1,1,1));
+    GDD_SetTextColor(hdc,RGB(28,32,42));
     Widget_GetAttr(hwnd,ENUM_WIDGET_TEXT_COLOR,&color);
-    SetTextColor(hdc,color);
-    DrawText(hdc,str,count,&rc,DT_VCENTER|DT_LEFT);
-    EndPaint(hwnd,hdc);
+    GDD_SetTextColor(hdc,color);
+    GDD_DrawText(hdc,str,count,&rc,DT_VCENTER|DT_LEFT);
+    GDD_EndPaint(hwnd,hdc);
 
     return true;
 }
@@ -740,9 +747,9 @@ static  bool_t TextBox_Paint(struct WindowMsg *pMsg)
 // 输出参数: 无。
 // 返回值  :成功返回true,失败则返回false。
 // =============================================================================
-static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
+static bool_t __Widget_TextBoxKeyDown(struct WindowMsg *pMsg)
 {
-    HWND hwnd,Tmrhwnd;
+    HWND hwnd;
     u8 cursorloc,chnum,chnummax,keyval;
     TextBox *pTB;
     char tmpbuf[2];
@@ -759,17 +766,17 @@ static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
     hwnd =pMsg->hwnd;
     if(hwnd==NULL)
         return false;
-    ret=IsFocusWindow(hwnd);
+    ret=GDD_IsFocusWindow(hwnd);
     if(!ret)
         return false;
     keyval=(u8)pMsg->Param1;
     tmpbuf[0]=(char)keyval;
     tmpbuf[1]='\0';
-    pTB=(TextBox *)GetWindowPrivateData(hwnd);
+    pTB=(TextBox *)GDD_GetWindowPrivateData(hwnd);
     cursorloc=pTB->CursorLoc;
     chnum=pTB->ChNum;
     chnummax=pTB->CharNumLimit;
-    ret=__IsValidInputKey( keyval);
+    ret=__Widget_IsValidInputKey( keyval);
     if(ret)
     {
          if(chnum!=chnummax)
@@ -778,17 +785,17 @@ static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
             cur_enc = Charset_NlsGetCurCharset();
             cur_enc->MbToUcs4(&wc, tmpbuf, -1);
             chwidth=cur_font->GetCharWidth(wc);
-            GetClientRect(hwnd,&rc);
-            width=RectW(&rc);
+            GDD_GetClientRect(hwnd,&rc);
+            width=GDD_RectW(&rc);
             if(width>=pTB->CharWidthSum+chwidth)
             {
                 if(chnum!=cursorloc)
                 {
-                    TextBox_InsertChar(hwnd, cursorloc, tmpbuf);
+                    __Widget_TextBoxInsertChar(hwnd, cursorloc, tmpbuf);
                 }
                 else
                 {
-                    TextBox_AddChar(hwnd, tmpbuf);
+                    __Widget_TextBoxAddChar(hwnd, tmpbuf);
                 }
                 cur_font = Font_GetCurFont();
                 cur_enc = Charset_NlsGetCurCharset();
@@ -797,8 +804,8 @@ static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
                 pTB->ChNum++;
                 pTB->CursorLoc++;
                 pTB->CharWidthSum+=chwidth;
-                InvalidateWindow( hwnd, true);
-                __MoveCursor(hwnd,pTB->CursorLoc);
+                GDD_InvalidateWindow( hwnd, true);
+                __Widget_MoveCursor(hwnd,pTB->CursorLoc);
              }
          }
     }
@@ -808,7 +815,7 @@ static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
          {
                case VK_ENTER_CHAR:
                {
-                   Cursor_SetHide( );
+                   GDD_CursorSetHide( );
                    break;
                }
                case VK_DEL_CHAR:
@@ -818,16 +825,16 @@ static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
                      if(cursorloc!=0)
                      {
                         str=hwnd->Text;
-                        ch=__GetCharByIndex(str,pTB->CursorLoc);
+                        ch=__Widget_GetCharByIndex(str,pTB->CursorLoc);
                         cur_font = Font_GetCurFont();
                         chwidth=cur_font->GetCharWidth(ch);
-                        TextBox_DeleteChar(hwnd, cursorloc,1);
+                        __Widget_TextBoxDeleteChar(hwnd, cursorloc,1);
                         pTB->ChNum--;
                         pTB->CursorLoc--;
                         pTB->CharWidthSum-=chwidth;
                      }
-                     InvalidateWindow( hwnd, true);
-                     __MoveCursor(hwnd,pTB->CursorLoc);
+                     GDD_InvalidateWindow( hwnd, true);
+                     __Widget_MoveCursor(hwnd,pTB->CursorLoc);
                    }
                    break;
                }
@@ -841,7 +848,7 @@ static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
          }
     }
 
-    SetWindowPrivateData( hwnd, (void *)pTB);
+    GDD_SetWindowPrivateData( hwnd, (ptu32_t)pTB);
     return true;
 }
 
@@ -890,7 +897,7 @@ static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
 // 输出参数: 无。
 // 返回值  :成功返回true,失败则返回false。
 // =============================================================================
-static bool_t TextBox_TouchDown(struct WindowMsg *pMsg)
+static bool_t __Widget_TextBoxTouchDown(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     u32 loc,Style;;
@@ -899,13 +906,13 @@ static bool_t TextBox_TouchDown(struct WindowMsg *pMsg)
     char *str;
     s32 tmp;
     RECT rc;
-    bool_t ret;
+
     if(pMsg==NULL)
         return false;
     hwnd =pMsg->hwnd;
     if(hwnd==NULL)
         return false;
-    pTB=(TextBox *)GetWindowPrivateData(hwnd);
+    pTB=(TextBox *)GDD_GetWindowPrivateData(hwnd);
     if(pTB==NULL)
         return false;
     //不可编辑的文本框(Lable不响应该事件)
@@ -915,7 +922,7 @@ static bool_t TextBox_TouchDown(struct WindowMsg *pMsg)
     str=hwnd->Text;
     if(str!=NULL)
     {
-       __GetValidStrInfo(str,&chnum,&CharWidth);
+       __Widget_GetValidStrInfo(str,&chnum,&CharWidth);
     }
     pTB->ChNum=chnum;
     pTB->CharWidthSum=CharWidth;
@@ -928,33 +935,35 @@ static bool_t TextBox_TouchDown(struct WindowMsg *pMsg)
     if(str==NULL)
     {
          pTB->CursorLoc=0;
-        __MoveCursor(hwnd,0);
+        __Widget_MoveCursor(hwnd,0);
     }
     else
     {
-        ret=__GetValidStrInfo(str,NULL,&CharWidth);
-        GetWindowRect(hwnd,&rc);
+        __Widget_GetValidStrInfo(str,NULL,&CharWidth);
+        GDD_GetWindowRect(hwnd,&rc);
         tmp=rc.left+CharWidth;
         if(x>tmp)
         {
             pTB->CursorLoc=chnum;
-            __MoveCursor(hwnd,chnum);
+            __Widget_MoveCursor(hwnd,chnum);
         }
         else
         {
-           idx=__FindIdx(hwnd,x,y);
+           idx=__Widget_FindIdx(hwnd,x,y);
            pTB->CursorLoc=idx;
-           __MoveCursor(hwnd,idx);
+           __Widget_MoveCursor(hwnd,idx);
         }
     }
-    SetWindowPrivateData(hwnd,(void *)pTB);
+    GDD_SetWindowPrivateData(hwnd,(ptu32_t)pTB);
 
-    Cursor_SetHost(hwnd);
+    GDD_CursorSetHost(hwnd);
 
-    SetFocusWindow(hwnd);
+    GDD_SetFocusWindow(hwnd);
 
     return true;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // =============================================================================
 // 函数功能: TextBox控件获得焦点消息响应函数。
@@ -962,7 +971,7 @@ static bool_t TextBox_TouchDown(struct WindowMsg *pMsg)
 // 输出参数: 无。
 // 返回值  :成功返回true,失败则返回false。
 // ======================================================================
-static bool_t TextBox_SetFocus(struct WindowMsg *pMsg)
+static bool_t __Widget_TextBoxSetFocus(struct WindowMsg *pMsg)
 {
 //    HWND hwnd,Tmrhwnd;
 //    if(pMsg==NULL)
@@ -970,10 +979,10 @@ static bool_t TextBox_SetFocus(struct WindowMsg *pMsg)
 //    hwnd =pMsg->hwnd;
 //    if(hwnd==NULL)
 //        return false;
-//    Tmrhwnd=GetDesktopWindow();
+//    Tmrhwnd=GDD_GetDesktopWindow();
 //    if(Tmrhwnd!=NULL)
 //    {
-//       PostMessage(Tmrhwnd,MSG_TIMER_START,CN_CURSOR_TIMER_ID,(ptu32_t)hwnd);
+//       GDD_PostMessage(Tmrhwnd,MSG_TIMER_START,CN_CURSOR_TIMER_ID,(ptu32_t)hwnd);
 //    }
     return true;
 }
@@ -983,7 +992,7 @@ static bool_t TextBox_SetFocus(struct WindowMsg *pMsg)
 // 输出参数: 无。
 // 返回值  :成功返回true,失败则返回false。
 // ======================================================================
-static bool_t TextBox_KillFocus(struct WindowMsg *pMsg)
+static bool_t __Widget_TextBoxKillFocus(struct WindowMsg *pMsg)
 {
 //     HWND hwnd,Tmrhwnd;
 //     if(pMsg==NULL)
@@ -991,13 +1000,14 @@ static bool_t TextBox_KillFocus(struct WindowMsg *pMsg)
 //     hwnd =pMsg->hwnd;
 //     if(hwnd==NULL)
 //          return false;
-//     Tmrhwnd=GetDesktopWindow();
+//     Tmrhwnd=GDD_GetDesktopWindow();
 //     if(Tmrhwnd!=NULL)
 //     {
-//         PostMessage(Tmrhwnd,MSG_TIMER_STOP,CN_CURSOR_TIMER_ID,(ptu32_t)hwnd);
+//         GDD_PostMessage(Tmrhwnd,MSG_TIMER_STOP,CN_CURSOR_TIMER_ID,(ptu32_t)hwnd);
 //     }
      return true;
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // 函数功能: TextBox控件获取文本内容函数。
@@ -1005,12 +1015,12 @@ static bool_t TextBox_KillFocus(struct WindowMsg *pMsg)
 // 输出参数: 无。
 // 返回值  :无。
 // =============================================================================
-static void __TextBox_GetText(HWND hwnd,char *text)
+static void __Widget_TextBoxGetText(HWND hwnd,char *text)
 {
      TextBox *pTB;
      u16 len;
      char *str;
-     pTB=GetWindowPrivateData(hwnd);
+     pTB = (TextBox *)GDD_GetWindowPrivateData(hwnd);
      if(pTB==NULL)
          return ;
      str=hwnd->Text;
@@ -1025,7 +1035,7 @@ static void __TextBox_GetText(HWND hwnd,char *text)
 // 输出参数: 无。
 // 返回值  :无。
 // =============================================================================
-static void __TextBox_SetText(HWND hwnd,char *str)
+static void __Widget_TextBoxSetText(HWND hwnd,char *str)
 {
      u16 len;
      char *dst;
@@ -1033,7 +1043,7 @@ static void __TextBox_SetText(HWND hwnd,char *str)
      len=strlen(str);
      memcpy(dst,str,len);
      *(dst+len)='\0';
-     InvalidateWindow(hwnd, true);
+     GDD_InvalidateWindow(hwnd, true);
 }
 
 // =============================================================================
@@ -1042,10 +1052,10 @@ static void __TextBox_SetText(HWND hwnd,char *str)
 // 输出参数: 无。
 // 返回值  :无。
 // =============================================================================
-static void __TextBox_DeleteText(HWND hwnd)
+static void __Widget_TextBoxDeleteText(HWND hwnd)
 {
      hwnd->Text='\0';
-     InvalidateWindow(hwnd, true);
+     GDD_InvalidateWindow(hwnd, true);
 }
 // =============================================================================
 // 函数功能: TextBox控件显示内容控制函数
@@ -1056,37 +1066,47 @@ static void __TextBox_DeleteText(HWND hwnd)
 //          输入字符串指针.
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-bool_t TextBox_TextCtrl(HWND hwnd,u8 ctrlcmd,u32 para1,ptu32_t para2)
+bool_t Widget_TextBoxTextCtrl(HWND hwnd,u8 ctrlcmd,ptu32_t para1)
 {
     if(hwnd==NULL)
         return false;
     switch(ctrlcmd)
     {
         case EN_GET_TEXT:
-            __TextBox_GetText(hwnd,(char *)para2);
+            __Widget_TextBoxGetText(hwnd,(char *)para1);
             break;
         case EN_SET_TEXT:
-            __TextBox_SetText(hwnd,(char *)para2);
+            __Widget_TextBoxSetText(hwnd,(char *)para1);
             break;
         case EN_DELETE_TEXT:
-            __TextBox_DeleteText(hwnd);
+            __Widget_TextBoxDeleteText(hwnd);
             break;
         default:
             break;
     }
     return true;
 }
-
+bool_t TextBox_Close(HWND hwnd)
+{
+    TextBox *pTB;
+    pTB = (TextBox *)GDD_GetWindowPrivateData(hwnd);
+    if(pTB != NULL)
+    {
+        printf("this is TextBox_Close\r\n");
+        free(pTB);
+    }
+    return true;
+}
 
 //默认按钮消息处理函数表，处理用户函数表中没有处理的消息。
 static struct MsgProcTable s_gTextBoxMsgProcTable[] =
 {
-    {MSG_KEY_DOWN,TextBox_KeyDown},
-    {MSG_PAINT,TextBox_Paint},
-    {MSG_CREATE,TextBox_Create},
-    {MSG_TOUCH_DOWN,TextBox_TouchDown},
-    {MSG_SETFOCUS,TextBox_SetFocus},
-    {MSG_KILLFOCUS,TextBox_KillFocus}
+    {MSG_KEY_DOWN,__Widget_TextBoxKeyDown},
+    {MSG_PAINT,__Widget_TextBoxPaint},
+    {MSG_CREATE,__Widget_TextBoxCreate},
+    {MSG_TOUCH_DOWN,__Widget_TextBoxTouchDown},
+    {MSG_SETFOCUS,__Widget_TextBoxSetFocus},
+    {MSG_KILLFOCUS,__Widget_TextBoxKillFocus}
 };
 
 static struct MsgTableLink  s_gTextBoxMsgLink;
@@ -1105,19 +1125,19 @@ static struct MsgTableLink  s_gTextBoxMsgLink;
 // 输出参数: 无。
 // 返回值  :成功则返回文本框句柄，失败则返回NULL。
 // =============================================================================
-HWND CreateTextBox(const char *Text,u32 Style,
+HWND Widget_CreateTextBox(const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,void *pdata,
+                    HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
     s_gTextBoxMsgLink.MsgNum = sizeof(s_gTextBoxMsgProcTable) / sizeof(struct MsgProcTable);
     s_gTextBoxMsgLink.myTable = (struct MsgProcTable *)&s_gTextBoxMsgProcTable;
-    pGddWin = CreateWindow(Text, WS_CHILD | WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,
+    pGddWin = GDD_CreateWindow(Text, WS_CHILD | WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,
                                 x, y, w, h, hParent, WinId, CN_WINBUF_PARENT,
                                 pdata, &s_gTextBoxMsgLink);
     if(UserMsgTableLink != NULL)
-        AddProcFuncTable(pGddWin,UserMsgTableLink);
+        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }
 

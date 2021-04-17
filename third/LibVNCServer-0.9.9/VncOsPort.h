@@ -21,6 +21,6 @@ bool_t MutexDelete(tagMutexCB *mutex);
 bool_t MutexWait(tagMutexCB *mutex);
 void MutexPost(tagMutexCB *mutex);
 
-#define delay(x)       Djy_EventDelay(x*1000)  //都统一到毫秒延时
+#define delay(x)       DJY_EventDelay(x*1000)  //都统一到毫秒延时
 
 #endif /* __VNC_THREAD_H__ */

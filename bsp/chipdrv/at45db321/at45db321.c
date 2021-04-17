@@ -60,15 +60,15 @@
 #include "at45db321.h"
 #include "spibus.h"
 #include "board-config.h"
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include "os.h"
 #include "systime.h"
 #include <math.h>
 #include <stdlib.h>
 #include <dbug.h>
-#include <filesystems.h>
+#include <djyfs/filesystems.h>
 #include <device.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -85,7 +85,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"lock","spi bus","heap","cpu onchip spi"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -219,7 +219,7 @@ bool_t _at45db321_cs_active(void)
 void _at45db321_cs_inactive(void)
 {
     SPI_CsInactive(s_ptAT45_Dev);
-    Djy_DelayUs(20);
+    DJY_DelayUs(20);
 }
 bool_t _at45db321_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen)
 {
@@ -562,7 +562,7 @@ bool_t AT45_Page_Erase(u32 Address)
 
     _at45db321_cs_inactive();
 
-    Djy_EventDelay(50000);
+    DJY_EventDelay(50000);
     Lock_MutexPost(pAT45_Lock);
     return true;
 }
@@ -643,7 +643,7 @@ bool_t AT45_Chip_Erase(void)
 
     _at45db321_cs_inactive();
 
-    Djy_EventDelay(100000000);
+    DJY_EventDelay(100000000);
     Lock_MutexPost(pAT45_Lock);
 
     return true;
@@ -850,7 +850,7 @@ bool_t at45db321_Wait_Ready(u32 Time_Out)
         _at45db321_cs_inactive();
 
         Time_Out -= 2;
-        Djy_DelayUs(2);
+        DJY_DelayUs(2);
         if(Time_Out == 0)
         {
             result = false;
@@ -876,7 +876,7 @@ bool_t at45db321_Wait_Ready_erase(u32 Time_Out)
         _at45db321_cs_inactive();
 
         Time_Out -= 1000;
-        Djy_EventDelay(1*mS);
+        DJY_EventDelay(1*mS);
         if(Time_Out == 0)
         {
             result = false;
@@ -921,7 +921,7 @@ u32 AT45_FLASH_Read(u32 Address,u8 *data,u32 data_len)
 
     _at45db321_Continuous_Array_Read(page_addr,byte_offset_addr,data,data_len);
 
-//    Djy_EventDelay(10000);
+//    DJY_EventDelay(10000);
     Lock_MutexPost(pAT45_Lock);
 
     return data_len;
@@ -1019,7 +1019,7 @@ u32 AT45_FLASH_Write(u32 Address,u8 *data,u32 data_len)
         data    += wsize;
         temp -= wsize;
     }
-    Djy_EventDelay(10000);
+    DJY_EventDelay(10000);
     Lock_MutexPost(pAT45_Lock);
     return data_len - temp;
 }
@@ -1110,7 +1110,7 @@ bool_t ModuleInstall_at45db321(void)
     at45_umedia->type = nor;
     at45_umedia->ubuf = (u8*)at45_umedia + sizeof(struct umedia);
 
-    if(!dev_Create((const char*)At45Name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)at45_umedia)))
+    if(!Device_Create((const char*)At45Name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)at45_umedia)))
     {
         printf("\r\n: erro : device : %s addition failed.", At45Name);
         free(at45_umedia);
@@ -1320,7 +1320,7 @@ s32 __at45_write(u32 unit, void *data, struct uopt opt)
 //                        res = nordescription->BytesPerPage;
                 }
                 _at45db321_cs_inactive();
-//                Djy_EventDelay(4000);// 延时切出. 4ms
+//                DJY_EventDelay(4000);// 延时切出. 4ms
 //                if(true == at45db321_Wait_Ready(500000))       //查忙，若超时则返回false
 //                {
                 Lock_MutexPost(pAT45_Lock);
@@ -1356,13 +1356,13 @@ s32 __AT45_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd, void *mediadrv)
     if(mediadrv == NULL)
         return -1;
 
-    targetobj = obj_matchpath(fs, &notfind);    //根据mount点名字找mount点的obj
+    targetobj = OBJ_MatchPath(fs, &notfind);    //根据mount点名字找mount点的obj
     if(notfind)
     {
         error_printf("at45"," not found need to install file system.");
         return -1;
     }
-    super = (struct FsCore *)obj_GetPrivate(targetobj); //获取obj的私有数据
+    super = (struct FsCore *)OBJ_GetPrivate(targetobj); //获取obj的私有数据
     super->MediaInfo = at45_umedia;
     super->MediaDrv = mediadrv;
 
@@ -1382,7 +1382,7 @@ s32 __AT45_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd, void *mediadrv)
     FullPath = malloc(res);
     memset(FullPath, 0, res);
     sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,At45Name);      //获取设备的全路径
-    FsBeMedia(FullPath,fs);     //往该设备挂载文件系统
+    File_BeMedia(FullPath,fs);     //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, dwStart, dwEnd);

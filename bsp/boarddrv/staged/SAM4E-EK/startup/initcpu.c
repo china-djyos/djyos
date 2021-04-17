@@ -68,7 +68,8 @@
 #endif
 
 #include "core_cm4.h"
-#include "project_config.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
 extern   uint32_t   msp_top[ ];
 extern void __set_PSP(uint32_t topOfProcStack);
@@ -76,7 +77,7 @@ extern void __set_PRIMASK(uint32_t priMask);
 extern void __set_FAULTMASK(uint32_t faultMask);
 extern void __set_CONTROL(uint32_t control);
 
-extern void Load_Preload(void);
+extern void Iboot_LoadPreload(void);
 struct ScbReg volatile * const startup_scb_reg
                         = (struct ScbReg *)0xe000ed00;
 void Startup_NMI(void)
@@ -120,13 +121,13 @@ void Init_Cpu(void)
     System_ClkInit();
 
 #if (CFG_RUNMODE_BAREAPP == 1)
-    Load_Preload();
+    Iboot_LoadPreload();
 #else
-    IAP_SelectLoadProgam();
+    Iboot_IAP_SelectLoadProgam();
 #endif
 }
 
-extern void Load_Preload(void);
+extern void Iboot_LoadPreload(void);
 //-----------------------------------------------------------------
 //功能：APP应用程序的入口函数，iboot程序中不调用，app的lds文件中，须将该函数
 //     的链接地址放在IbootSize + 512的起始位置。该函数配置栈指针并加载程序
@@ -137,7 +138,7 @@ void AppStart(void)
 {
     __set_MSP((uint32_t)msp_top);
     __set_PSP((uint32_t)msp_top);
-    Load_Preload();
+    Iboot_LoadPreload();
 }
 
 #define EEFC_FMR_Val    0x00000500      // 0x00000000
@@ -269,7 +270,7 @@ void IAP_GpioPinInit(void)
 //      加载的函数，特别是库函数。
 //      本函数必须提供，如果没有设置相应硬件，可以简单返回false。
 //-----------------------------------------------------------------
-bool_t IAP_IsForceIboot(void)
+bool_t Iboot_IAP_IsForceIboot(void)
 {
 //    u32 flag;
 //    IAP_GpioPinInit( );

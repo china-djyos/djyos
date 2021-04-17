@@ -1,0 +1,37 @@
+{
+	"board_name":"STM32F756G-EVAL2",
+	"cpus":{
+		"stm32f756xx":{
+			"clocks":{
+				
+			},
+			"chips":["EEPROM at24c02"],
+			"peripherals":["cpu_peri_bksram",
+			"cpu_peri_can",
+			"cpu_peri_dma",
+			"cpu_peri_emflash",
+			"cpu_peri_eth",
+			"cpu_peri_gpio",
+			"cpu_peri_iic",
+			"cpu_peri_lcd",
+			"cpu_peri_lowpower",
+			"cpu_peri_nand",
+			"cpu_peri_rtc",
+			"cpu_peri_emmc",
+			"cpu_peri_spi",
+			"cpu_peri_systime",
+			"cpu_peri_Temprate",
+			"cpu_peri_timer",
+			"cpu_peri_uart",
+			"usbh_conf",
+			"cpu_peri_hal"],
+			"mian_freq":0,
+			"memories":{
+				
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

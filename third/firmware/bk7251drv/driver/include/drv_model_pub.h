@@ -1,5 +1,6 @@
 #ifndef _DRV_MODEL_PUB_H_
 #define _DRV_MODEL_PUB_H_
+#include "common/typedef.h"     //lst
 
 #define DRV_FAILURE                  ((UINT32)-5)
 #define DRV_SUCCESS                  (0)

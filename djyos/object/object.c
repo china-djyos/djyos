@@ -144,20 +144,20 @@
 
 #define CN_OBJ_NAME_LIMIT               255 // 对象名最大长度；
 
-static inline s32 __checkname(const char *name);
-static inline struct Object *__newobj(void);
-static inline void __freeobj(struct Object *ob);
+static inline s32 __OBJ_CheckName(const char *name);
+static inline struct Object *__OBJ_NewObj(void);
+static inline void __OBJ_FreeObj(struct Object *ob);
 
 static struct MemCellPool s_tObjectPool;
 static struct Object s_tObjectInitPool[CFG_OBJECT_LIMIT];
 static struct Object *s_ptRootObject, *s_ptCurrentObject; // 逻辑上，应该是每一个进程一个；
 static struct MutexLCB s_tObjectMutex;
 static const char *__uname_obj = "un_named";
-inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
+inline static s32 __OBJ_DefaultOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                                 ptu32_t OpsArgs2, ptu32_t OpsArgs3);
-static struct objhandle *__objsys_open(struct Object *ob, u32 flags, char *uncached);
-static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentry);
-static s32 __objsys_close(struct objhandle *hdl);
+static struct objhandle *__OBJ_Open(struct Object *ob, u32 flags, char *uncached);
+static s32 __OBJ_ReadDentry(struct objhandle *directory, struct dirent *dentry);
+static s32 __OBJ_Close(struct objhandle *hdl);
 
 struct __statics
 {
@@ -173,7 +173,7 @@ struct __statics
 // 返回：固定返回 CN_OBJ_CMD_UNSUPPORT
 // 备注：
 // ============================================================================
-inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
+inline static s32 __OBJ_DefaultOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                                 ptu32_t OpsArgs2, ptu32_t OpsArgs3)
 {
     s32 result = CN_OBJ_CMD_EXECUTED;
@@ -182,7 +182,7 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = __objsys_open((struct Object *)opsTarget,
+            hdl = __OBJ_Open((struct Object *)opsTarget,
                                 (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
@@ -193,7 +193,7 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
             struct objhandle *hdl = (struct objhandle*)OpsArgs3;
             struct dirent *ret = (struct dirent *)OpsArgs1;
 
-            if((ptu32_t)__objsys_readdentry(hdl, ret) == 0)
+            if((ptu32_t)__OBJ_ReadDentry(hdl, ret) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -202,7 +202,7 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
 
         case CN_OBJ_CMD_CLOSE:
         {
-            if(__objsys_close((struct objhandle*)opsTarget) == 0)
+            if(__OBJ_Close((struct objhandle*)opsTarget) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -217,7 +217,7 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
             break;
         }
     }
-	
+
     return (result);
 }
 
@@ -231,18 +231,18 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
 // 返回：成功申请（新对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-static struct objhandle *__objsys_open(struct Object *ob, u32 flags, char *uncached)
+static struct objhandle *__OBJ_Open(struct Object *ob, u32 flags, char *uncached)
 {
-	struct objhandle *hdl;
+    struct objhandle *hdl;
 
-	hdl = handle_new();
-	if(!hdl)
+    hdl = Handle_New();
+    if(!hdl)
     {
         printf("\r\n : erro : efs    : open failed(memory out).");
         return (NULL);
     }
-	handle_init(hdl, ob, flags, (ptu32_t)NULL);     //将obj和hdl关联起来
-    return (hdl);	
+    Handle_Init(hdl, ob, flags, (ptu32_t)NULL);     //将obj和hdl关联起来
+    return (hdl);
 }
 #pragma GCC diagnostic pop
 
@@ -253,27 +253,27 @@ static struct objhandle *__objsys_open(struct Object *ob, u32 flags, char *uncac
 // 返回：全部读完（1）；读了一项（0）；
 // 备注：
 // ============================================================================
-static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentry)
+static s32 __OBJ_ReadDentry(struct objhandle *directory, struct dirent *dentry)
 {
     struct Object *ob = (struct Object *)dentry->d_ino;
-	if(!ob) // 第一次读；
+    if(!ob) // 第一次读；
     {
-        ob = obj_child(handle_GetHostObj(directory));
+        ob = OBJ_GetChild(Handle_GetHostObj(directory));
         if(!ob)
             return (1); // 没有子项目；
     }
     else // 后续读；
     {
-        ob = obj_next(ob);
-        if(ob==obj_child(handle_GetHostObj(directory)))
+        ob = OBJ_GetNext(ob);
+        if(ob==OBJ_GetChild(Handle_GetHostObj(directory)))
             return (1); // 全部读完；
     }
-	if(!obj_GetPrivate(ob))
+    if(!OBJ_GetPrivate(ob))
         dentry->d_type = DIRENT_IS_DIR;
     else
         dentry->d_type = DIRENT_IS_REG;
-	
-    strcpy(dentry->d_name, obj_name(ob));
+
+    strcpy(dentry->d_name, OBJ_GetName(ob));
     dentry->d_ino = (long)ob;
     return (0);
 }
@@ -283,24 +283,18 @@ static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentr
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __objsys_close(struct objhandle *hdl)
+static s32 __OBJ_Close(struct objhandle *hdl)
 {
-    return handle_Delete(hdl);
+    return Handle_Delete(hdl);
 }
 
-//static s32 __objsys_stat(struct Object *ob, struct stat *data, char *uncached)
-//{
-//    data->st_size = 0; // 安装点；
-//    data->st_mode = S_IFDIR;
-//    return (0);
-//}
 // ============================================================================
 // 功能：锁定对象系统；
 // 参数：
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-bool_t obj_lock(void)
+bool_t OBJ_Lock(void)
 {
     return Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER);
 
@@ -312,7 +306,7 @@ bool_t obj_lock(void)
 // 返回：
 // 备注：
 // ============================================================================
-void obj_unlock(void)
+void OBJ_Unlock(void)
 {
     Lock_MutexPost(&s_tObjectMutex);
 }
@@ -323,7 +317,7 @@ void obj_unlock(void)
 // 返回：成功申请（新对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-static inline struct Object *__newobj(void)
+static inline struct Object *__OBJ_NewObj(void)
 {
     struct Object *ob;
 
@@ -342,7 +336,7 @@ static inline struct Object *__newobj(void)
 // 返回：无；
 // 备注：
 // ============================================================================
-static inline void __freeobj(struct Object *ob)
+static inline void __OBJ_FreeObj(struct Object *ob)
 {
     Mb_Free(&s_tObjectPool, ob);
     __objsys_statics.fress++;
@@ -355,7 +349,7 @@ static inline void __freeobj(struct Object *ob)
 // 返回：合法（0）；非法（-1）；
 // 备注：
 // ============================================================================
-static inline s32 __checkname(const char *name)
+static inline s32 __OBJ_CheckName(const char *name)
 {
     u16 i;
 
@@ -377,7 +371,7 @@ static inline s32 __checkname(const char *name)
 // 返回：对象的值；
 // 备注：
 // ============================================================================
-ptu32_t obj_GetPrivate(struct Object *ob)
+ptu32_t OBJ_GetPrivate(struct Object *ob)
 {
     if(ob)
         return (ob->ObjPrivate);
@@ -392,7 +386,7 @@ ptu32_t obj_GetPrivate(struct Object *ob)
 // 返回：无；
 // 备注：
 // ============================================================================
-void obj_SetPrivate(struct Object *ob, ptu32_t Private)
+void OBJ_SetPrivate(struct Object *ob, ptu32_t Private)
 {
     if(ob)
         ob->ObjPrivate = Private;
@@ -404,7 +398,7 @@ void obj_SetPrivate(struct Object *ob, ptu32_t Private)
 // 返回：成功（对象操作）；失败（NULL）；
 // 备注：
 // ============================================================================
-fnObjOps obj_GetOps(struct Object *ob)
+fnObjOps OBJ_GetOps(struct Object *ob)
 {
     if(!ob)
         return (NULL);
@@ -419,7 +413,7 @@ fnObjOps obj_GetOps(struct Object *ob)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 obj_SetOps(struct Object *ob, fnObjOps ops)
+s32 OBJ_SetOps(struct Object *ob, fnObjOps ops)
 {
     if(!ob)
         return (-1);
@@ -429,17 +423,52 @@ s32 obj_SetOps(struct Object *ob, fnObjOps ops)
 }
 
 // ============================================================================
+// 功能：设置对象为临时对象，临时对象在close时，只要引用数是0，即被删除。注意，如果子孙
+//      对象中存在非临时对象，则不能设置为临时对象。
+// 参数：ob -- 对象；
+// 返回：成功（0）；失败（-1）；
+// 备注：次函数没有逆操作，临时对象属性不能清除
+// ============================================================================
+s32 OBJ_SetToTemp(struct Object *ob)
+{
+    struct Object *current;
+    bool_t temp = true;
+    if(ob != NULL)
+    {
+        current = ob;
+        current = OBJ_ForeachScion(ob,current);
+        while(current)
+        {
+            if(!current->BitFlag.temporary)
+            {
+                temp = false;
+                break;
+            }
+            else
+                current = OBJ_ForeachScion(ob,current);
+        }
+    }
+    if(temp == true)
+    {
+        ob->BitFlag.temporary = 1;
+        return 0;
+    }
+    else
+        return -1;
+}
+
+// ============================================================================
 // 功能：获取对象名；
 // 参数：ob -- 对象；
 // 返回：成功（对象名）；失败（NULL）；
 // 注意：
 // ============================================================================
-const char *obj_name(struct Object *ob)
+char *OBJ_GetName(struct Object *ob)
 {
     if(!ob)
         return (NULL);
 
-    return ((const char*)ob->name);
+    return (ob->name);
 }
 
 // ============================================================================
@@ -448,7 +477,7 @@ const char *obj_name(struct Object *ob)
 // 返回: 成功（父节点），失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_parent(struct Object *ob)
+struct Object *OBJ_GetParent(struct Object *ob)
 {
     if(!ob)
         return (NULL);
@@ -462,7 +491,7 @@ struct Object *obj_parent(struct Object *ob)
 // 返回：成功（子对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_child(struct Object *ob)
+struct Object *OBJ_GetChild(struct Object *ob)
 {
     if(!ob)
         return (NULL);
@@ -476,7 +505,7 @@ struct Object *obj_child(struct Object *ob)
 // 返回：成功（前一个对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_prev(struct Object *ob)
+struct Object *OBJ_GetPrev(struct Object *ob)
 {
     if(!ob)
         return (NULL);
@@ -490,7 +519,7 @@ struct Object *obj_prev(struct Object *ob)
 // 返回：成功（后一个对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_next(struct Object *ob)
+struct Object *OBJ_GetNext(struct Object *ob)
 {
     if(!ob)
         return (NULL);
@@ -504,7 +533,7 @@ struct Object *obj_next(struct Object *ob)
 // 返回：成功（后一个对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_head(struct Object *ob)
+struct Object *OBJ_GetHead(struct Object *ob)
 {
     if(!ob)
         return (NULL);
@@ -522,7 +551,7 @@ struct Object *obj_head(struct Object *ob)
 // 备注：根表示0级，根的子关系对象表示1级，根的子关系对象的子关系对象表示2级；......
 //      目前限定深度不大于256，考虑的原因是，大于256时，实际上路径也是可能表示不出来的；
 // ============================================================================
-s32 obj_level(struct Object *ob)
+s32 OBJ_GetLevel(struct Object *ob)
 {
     u32 level = 0;
     struct Object *pl_node = ob;
@@ -530,7 +559,7 @@ s32 obj_level(struct Object *ob)
     if(pl_node==NULL)
         return (-1);
 
-    obj_lock();
+    OBJ_Lock();
 
     while(pl_node->parent!=s_ptRootObject)
     {
@@ -545,12 +574,12 @@ s32 obj_level(struct Object *ob)
 
         if(level++>256) // 防止数据被破坏，死锁；
         {
-            obj_unlock();
+            OBJ_Unlock();
             return (-1);
         }
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (level);
 }
 
@@ -560,7 +589,7 @@ s32 obj_level(struct Object *ob)
 // 返回：对象的位置；出错（-1）；
 // 备注：链表头为0；链表的第二个成员为1；......
 // ============================================================================
-u32 obj_order(struct Object *ob)
+u32 OBJ_GetOrder(struct Object *ob)
 {
     u32 order;
     struct Object *tmp;
@@ -571,7 +600,7 @@ u32 obj_order(struct Object *ob)
     if(ob==s_ptRootObject)
         return (0);
 
-    obj_lock();
+    OBJ_Lock();
 
     order = 0;
     tmp = ob->parent->child;
@@ -581,7 +610,7 @@ u32 obj_order(struct Object *ob)
         tmp = tmp->next;
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (order);
 }
 
@@ -599,7 +628,7 @@ u32 obj_order(struct Object *ob)
 //参数：Current，当前遍历位置，初始为NULL。
 //返回：下一个文件指针，遍历完成则返回NULL
 //-----------------------------------------------------------------------------
-struct objhandle* obj_ForeachHandle(struct objhandle *Current, struct Object *Object)
+struct objhandle* OBJ_ForeachHandle(struct objhandle *Current, struct Object *Object)
 {
     struct objhandle *result;
     struct dListNode *List;
@@ -623,7 +652,7 @@ struct objhandle* obj_ForeachHandle(struct objhandle *Current, struct Object *Ob
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 obj_LinkHandle(struct objhandle *hdl, struct Object *ob)
+s32 OBJ_LinkHandle(struct objhandle *hdl, struct Object *ob)
 {
     if((!ob)||(!hdl))
         return (-1);
@@ -639,21 +668,21 @@ s32 obj_LinkHandle(struct objhandle *hdl, struct Object *ob)
 // 返回：成功（0
 // 备注：
 // ============================================================================
-s32 obj_ModuleInit(void)
+s32 OBJ_ModuleInit(void)
 {
     Lock_MutexCreate_s(&s_tObjectMutex, "obj sys");
 
     Mb_CreatePool_s(&s_tObjectPool, s_tObjectInitPool,
             CFG_OBJECT_LIMIT, sizeof(struct Object), 16, 16384, "object");
-    s_ptRootObject = __newobj();
+    s_ptRootObject = __OBJ_NewObj();
 
     __OBJ_LIST_INIT(s_ptRootObject);
     s_ptRootObject->name = "";
 //  s_ptRootObject->rights = S_IRWXUGO;       //根的默认权限是拥有所有权限
     s_ptRootObject->parent = NULL;
-    s_ptRootObject->ops = (fnObjOps)__objsys_default_ops;
-    s_ptRootObject->inuse = 2;  //从1开始计数，正常的成对“open-close”调用不会被删掉。
-                                //被设为当前目录，故初始化为2
+    s_ptRootObject->ops = (fnObjOps)__OBJ_DefaultOps;
+    s_ptRootObject->BitFlag.temporary = 0;
+    s_ptRootObject->BitFlag.inuse = 1;  //被设为当前目录，故初始化为1
     s_ptCurrentObject = s_ptRootObject;
     return (0);
 }
@@ -664,7 +693,7 @@ s32 obj_ModuleInit(void)
 // 返回：是（1）；否（0）；
 // 备注：
 // ============================================================================
-s32 obj_ishead(struct Object *ob)
+s32 OBJ_IsHead(struct Object *ob)
 {
     if(!ob)
         return (0);
@@ -681,7 +710,7 @@ s32 obj_ishead(struct Object *ob)
 // 返回：是（1）；否（0）；
 // 备注：
 // ============================================================================
-s32 obj_islast(struct Object *ob)
+s32 OBJ_IsLast(struct Object *ob)
 {
     if(!ob)
         return (0);
@@ -698,12 +727,12 @@ s32 obj_islast(struct Object *ob)
 // 返回：文件使用中（1）；文件未使用（0）
 // 备注：
 // ============================================================================
-s32 obj_isonduty(struct Object *ob)
+s32 OBJ_IsOnDuty(struct Object *ob)
 {
     if(!ob)
         return (0);
 
-    if((ob->inuse) || (ob->child))
+    if((ob->BitFlag.inuse) || (ob->child))
         return (1);
     else
         return (0);
@@ -716,19 +745,19 @@ s32 obj_isonduty(struct Object *ob)
 //// 返回：成功（0）；失败（-1）；
 //// 备注：
 //// ============================================================================
-//s32 obj_lock(struct Object *ob)
+//s32 OBJ_Lock(struct Object *ob)
 //{
-//    if(obj_lock())
+//    if(OBJ_Lock())
 //        return (-1);
 //
 //    if(ob->rights.lock) // 已经上锁
 //    {
-//        obj_unlock();
+//        OBJ_Unlock();
 //        return (-1);
 //    }
 //
 //    ob->rights.lock = 1;
-//    obj_unlock();
+//    OBJ_Unlock();
 //    return (0);
 //}
 //
@@ -738,13 +767,13 @@ s32 obj_isonduty(struct Object *ob)
 //// 返回：成功（0）；失败（-1）；
 //// 备注：INLINE
 //// ============================================================================
-//s32 obj_unlock(struct Object *ob)
+//s32 OBJ_Unlock(struct Object *ob)
 //{
-//    if(obj_lock())
+//    if(OBJ_Lock())
 //        return (-1);
 //
 //    ob->rights.lock = 0;
-//    obj_unlock();
+//    OBJ_Unlock();
 //    return (0);
 //}
 
@@ -800,7 +829,7 @@ s32 obj_isonduty(struct Object *ob)
 //u32 obj_InuseUp(struct Object *Obj)
 //{
 //    u32 result;
-//    obj_lock();
+//    OBJ_Lock();
 //    if(Obj == NULL)
 //        result = 0;
 //    else
@@ -809,7 +838,7 @@ s32 obj_isonduty(struct Object *ob)
 //            Obj->inuse++;
 //        result = Obj->inuse;
 //    }
-//    obj_unlock();
+//    OBJ_Unlock();
 //    return result;
 //}
 
@@ -824,17 +853,17 @@ s32 obj_isonduty(struct Object *ob)
 //void obj_InuseUpRange(struct Object *start, struct Object *end)
 //{
 //    struct Object *temp = end;
-//    obj_lock();
+//    OBJ_Lock();
 //    if((start != NULL) && (end != NULL))
 //    {
-//        while((temp != start) && (temp != obj_root()))
+//        while((temp != start) && (temp != OBJ_GetRoot()))
 //        {
 //            if(temp->inuse != CN_LIMIT_UINT32)
 //                temp->inuse++;
 //            temp = temp->parent;
 //        }
 //    }
-//    obj_unlock();
+//    OBJ_Unlock();
 //    return;
 //}
 
@@ -845,12 +874,12 @@ s32 obj_isonduty(struct Object *ob)
 // 返回：无
 // 备注：有引用后则不可删除
 // ============================================================================
-void __InuseUpFullPath(struct Object *Obj)
+void OBJ_DutyUp(struct Object *Obj)
 {
     while(Obj != NULL)
     {
-        if(Obj->inuse != CN_LIMIT_UINT32)
-            Obj->inuse++;
+        if(Obj->BitFlag.inuse != 0xffffff)
+            Obj->BitFlag.inuse++;
         Obj = Obj->parent;
     }
     return;
@@ -867,17 +896,17 @@ void __InuseUpFullPath(struct Object *Obj)
 //void obj_InuseDownRange(struct Object *start, struct Object *end)
 //{
 //    struct Object *temp = end;
-//    obj_lock();
+//    OBJ_Lock();
 //    if((start != NULL) && (end != NULL))
 //    {
-//        while((temp != start) && (temp != obj_root()))
+//        while((temp != start) && (temp != OBJ_GetRoot()))
 //        {
 //            if(temp->inuse != 0)
 //                temp->inuse--;
 //            temp = temp->parent;
 //        }
 //    }
-//    obj_unlock();
+//    OBJ_Unlock();
 //    return ;
 //}
 
@@ -890,7 +919,7 @@ void __InuseUpFullPath(struct Object *Obj)
 //u32 obj_InuseDown(struct Object *Obj)
 //{
 //    u32 result;
-//    obj_lock();
+//    OBJ_Lock();
 //    if(Obj == NULL)
 //        result = 0;
 //    else
@@ -900,7 +929,7 @@ void __InuseUpFullPath(struct Object *Obj)
 //        result = Obj->inuse;
 //    }
 //
-//    obj_unlock();
+//    OBJ_Unlock();
 //    return result;
 //}
 //
@@ -908,15 +937,15 @@ void __InuseUpFullPath(struct Object *Obj)
 // 功能：沿路径减对象引用计数；关闭一次文件，则从根开始沿到被打开的文件，沿途所有对象
 //      的引用次数均减 1
 // 参数：ob -- 对象；
-// 返回：减少后的对象引用次数；
+// 返回：无
 // 备注：有引用后则不可删除
 // ============================================================================
-void __InuseDownFullPath(struct Object *Obj)
+void OBJ_DutyDown(struct Object *Obj)
 {
     while(Obj != NULL)
     {
-        if(Obj->inuse != 0)
-            Obj->inuse--;
+        if(Obj->BitFlag.inuse != 0)
+            Obj->BitFlag.inuse--;
         Obj = Obj->parent;
     }
     return ;
@@ -928,33 +957,34 @@ void __InuseDownFullPath(struct Object *Obj)
 // 返回：成功（0），失败（-1）；
 // 备注：
 // ============================================================================
-s32 obj_Delete(struct Object *ob)
+s32 OBJ_Delete(struct Object *Obj)
 {
-    if(!ob)
+    if(!Obj)
         return (-1);
 
-    obj_lock();
+    OBJ_Lock();
 
-    if(obj_isonduty(ob))
+    if(OBJ_IsOnDuty(Obj))
     {
-        obj_unlock();
+        OBJ_Unlock();
         return (-1); // 正在使用
     }
 
-    if(ob->next==ob) // 说明该节点没有兄弟节点.
+    if(Obj->next==Obj) // 说明该节点没有兄弟节点.
     {
-        ob->parent->child = NULL;
+        Obj->parent->child = NULL;
     }
     else
     {
-        if(ob->parent->child==ob)
-            ob->parent->child = ob->next; // 说明该节点是队列头节点,需要改变队列头节点
+        if(Obj->parent->child==Obj)
+            Obj->parent->child = Obj->next; // 说明该节点是队列头节点,需要改变队列头节点
 
-        __OBJ_LIST_REMOVE(ob);
+        __OBJ_LIST_REMOVE(Obj);
     }
-
-    __freeobj(ob);
-    obj_unlock();
+    if(Obj->name != __uname_obj)
+       free(Obj->name);
+    __OBJ_FreeObj(Obj);
+    OBJ_Unlock();
     return (0);
 }
 
@@ -964,14 +994,14 @@ s32 obj_Delete(struct Object *ob)
 // 返回：成功（被分离的对象分支）;失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_detach(struct Object *branch)
+struct Object *OBJ_Detach(struct Object *branch)
 {
     struct Object *ob;
 
     if(!branch)
         return (NULL);
 
-    obj_lock();
+    OBJ_Lock();
 
     if(branch->next==branch)   //说明该节点没有兄弟节点.
     {
@@ -988,7 +1018,7 @@ struct Object *obj_detach(struct Object *branch)
     }
 
     ob = branch;
-    obj_unlock();
+    OBJ_Unlock();
     return (ob);
 }
 
@@ -998,12 +1028,12 @@ struct Object *obj_detach(struct Object *branch)
 // 返回：合法（0）；非法（-1）；
 // 备注：检查规则：不允许存在'/'、'\'字符，长度不允许超过规定；
 // ============================================================================
-inline s32 obj_checkname(const char *name)
+inline s32 OBJ_CheckName(const char *name)
 {
     if(name)
         return (-1);
 
-    return (__checkname(name));
+    return (__OBJ_CheckName(name));
 }
 
 //----沿路径匹配对象名---------------------------------------------------------
@@ -1014,7 +1044,7 @@ inline s32 obj_checkname(const char *name)
 // 返回：匹配路径所能检索到的最终对象。
 // 备注：
 //-----------------------------------------------------------------------------
-struct Object *obj_matchpath(const char *match, char **left)
+struct Object *OBJ_MatchPath(const char *match, char **left)
 {
     char *path = (char*)match;
     char *ResultName;
@@ -1026,16 +1056,17 @@ struct Object *obj_matchpath(const char *match, char **left)
         return NULL;
     if('\0' == *path)
         return NULL;
-    obj_lock();
+    OBJ_Lock();
 
     if(('/' == *path) || ('\\' == *path))
     {
-        Base = obj_root();          // 绝对路径
+        Base = OBJ_GetRoot();          // 绝对路径
         result = Base;              //根目录是第一个匹配项
     }
     else
     {
-        Base = obj_current();   // 其他都是相对路径
+        Base = OBJ_GetCurrent();   // 其他都是相对路径
+        result = Base;              //根目录是第一个匹配项
     }
     current = Base;
     *left = (char*)match;
@@ -1052,14 +1083,14 @@ struct Object *obj_matchpath(const char *match, char **left)
         {
             if('.' == path[1])  //看是否要返回上一级目录
             {
-                if(Base == obj_root())
+                if(Base == OBJ_GetRoot())
                 {
                     result = NULL;
                     *left = path;
                     return NULL;
                 }
                 result = Base;
-                Base = obj_parent(Base);        // ".."字符，表示上一级目录
+                Base = OBJ_GetParent(Base);        // ".."字符，表示上一级目录
                 current = Base;
                 if(('\\' == path[2])||('/' == path[2]))
                 {
@@ -1078,7 +1109,7 @@ struct Object *obj_matchpath(const char *match, char **left)
                     break;
                 }
             }
-            else if(('\\' == path[1])&&('/' == path[1]))
+            else if(('\\' == path[1])||('/' == path[1]))
             {
                 path++;
                 continue;
@@ -1097,13 +1128,13 @@ struct Object *obj_matchpath(const char *match, char **left)
 
         while(current)
         {
-            current = obj_foreach_child(Base, current);
+            current = OBJ_ForeachChild(Base, current);
             if(current == NULL)         //匹配结束
             {
                 Base = NULL;
                 break;
             }
-            ResultName = (char*)obj_name(current);
+            ResultName = (char*)OBJ_GetName(current);
             i = strlen(ResultName);
             if(memcmp(ResultName, path, i) == 0)
             {
@@ -1131,7 +1162,7 @@ struct Object *obj_matchpath(const char *match, char **left)
 
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (result);
 }
 
@@ -1144,17 +1175,17 @@ struct Object *obj_matchpath(const char *match, char **left)
 // 返回：新创建的最低一级的对象；
 // 备注：这里新建时，有对重名做判断；
 // ============================================================================
-struct Object *obj_buildpath(struct Object *begin, fnObjOps ops,
+struct Object *OBJ_BuildTempPath(struct Object *begin, fnObjOps ops,
                             ptu32_t Private, char *path)
 {
-    char *segst, *name;
+    char *segst, *name=NULL;
     struct Object *current, *find;
     u16 i, seglen;
 
     if(!path)
         return (begin);
 
-    obj_lock();
+    OBJ_Lock();
 
     current = begin;
     while('\0' != *path)
@@ -1171,7 +1202,7 @@ struct Object *obj_buildpath(struct Object *begin, fnObjOps ops,
         if(!name)
         {
             printf("\r\n: dbug : object : memory out(%s). ", __FUNCTION__);
-            obj_unlock();
+            OBJ_Unlock();
             return (NULL);
         }
 
@@ -1179,7 +1210,7 @@ struct Object *obj_buildpath(struct Object *begin, fnObjOps ops,
             name[i] = segst[i];
 
         name[seglen] = '\0';
-        find = obj_search_child(current, name);
+        find = OBJ_SearchChild(current, name);
         if(find)
         {
             current = find; // child已经存在；
@@ -1188,17 +1219,18 @@ struct Object *obj_buildpath(struct Object *begin, fnObjOps ops,
         {
             // 这里的ops和represent是一个继承关系，即继承父节点的
             // current = OBJ_AddChild(current, current->ops, current->represent, (const char*)name);
-            current = obj_newchild(current, ops, Private, (const char*)name);
+            current = OBJ_NewChild(current, ops, Private, (const char*)name);
             if(!current)
             {
                 printf("\r\n: dbug : object :  memory out(%s). ", __FUNCTION__);
-                obj_unlock();
+                OBJ_Unlock();
                 return (NULL);
             }
+            OBJ_SetToTemp(current);
         }
     }
     free(name);
-    obj_unlock();
+    OBJ_Unlock();
     return (current);
 }
 
@@ -1208,20 +1240,21 @@ struct Object *obj_buildpath(struct Object *begin, fnObjOps ops,
 // 返回：释放了的对象数量；
 // 备注：
 // ============================================================================
-s32 obj_releasepath(struct Object *start)
+s32 OBJ_ReleaseTempPath(struct Object *start)
 {
     s32 dels = 0;
     struct Object *parent, *current = start;
 
-    obj_lock();
+    OBJ_Lock();
 
     while(1)
     {
-        if(!current->inuse) // 无人使用
+        if((current->BitFlag.temporary == 1)
+                && (current->BitFlag.inuse == 0)) // 无人使用,且是临时对象
         {
-            parent = obj_parent(current);
-            obj_Delete(current);
-            __freeobj(current);
+            parent = OBJ_GetParent(current);
+            OBJ_Delete(current);
+//          __OBJ_FreeObj(current);
             current = parent;
             dels++;
         }
@@ -1231,7 +1264,7 @@ s32 obj_releasepath(struct Object *start)
         }
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (dels);
 }
 
@@ -1241,7 +1274,7 @@ s32 obj_releasepath(struct Object *start)
 // 返回：对象系统的当前对象；
 // 备注：
 // ============================================================================
-struct Object * obj_current(void)
+struct Object * OBJ_GetCurrent(void)
 {
     return (s_ptCurrentObject);
 }
@@ -1252,11 +1285,11 @@ struct Object * obj_current(void)
 // 返回：无；
 // 备注：
 // ============================================================================
-void obj_setcurrent(struct Object *ob)
+void OBJ_SetCurrent(struct Object *ob)
 {
-    __InuseDownFullPath(s_ptCurrentObject);
+    OBJ_DutyDown(s_ptCurrentObject);
     s_ptCurrentObject = ob;
-    __InuseUpFullPath(ob);
+    OBJ_DutyUp(ob);
 }
 
 // ============================================================================
@@ -1265,7 +1298,7 @@ void obj_setcurrent(struct Object *ob)
 // 返回：对象系统的根对象；
 // 备注：
 // ============================================================================
-struct Object *obj_root(void)
+struct Object *OBJ_GetRoot(void)
 {
     return (s_ptRootObject);
 }
@@ -1290,7 +1323,7 @@ struct Object *obj_root(void)
 // 返回：成功（对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_newprev(struct Object *loc, fnObjOps ops,
+struct Object *OBJ_NewPrev(struct Object *loc, fnObjOps ops,
                             ptu32_t represent, const char *name)
 {
     struct Object *prev;
@@ -1301,12 +1334,12 @@ struct Object *obj_newprev(struct Object *loc, fnObjOps ops,
 
     if(name)
     {
-        if(__checkname(name))
+        if(__OBJ_CheckName(name))
           return (NULL);
 
         if(loc->parent)
         {
-            if(obj_search_child(loc->parent, name))
+            if(OBJ_SearchChild(loc->parent, name))
               return (NULL); // child已经存在；
         }
 
@@ -1321,20 +1354,22 @@ struct Object *obj_newprev(struct Object *loc, fnObjOps ops,
         cname = (char*)__uname_obj; // 系统默认名；
     }
 
-    prev = __newobj();
+    prev = __OBJ_NewObj();
     if(!prev)
         return (NULL);
 
-    obj_lock();
-
+    OBJ_Lock();
     prev->parent = loc->parent;
     prev->child = NULL;
     prev->ObjPrivate = represent;
-    prev->inuse = 1;
+    prev->BitFlag.temporary = 0;
+    prev->BitFlag.inuse = 0;
+
+
     if(ops)
     {
         if(-1==(s32)ops)
-            prev->ops = (fnObjOps)__objsys_default_ops;
+            prev->ops = (fnObjOps)__OBJ_DefaultOps;
         else
             prev->ops = ops;
     }
@@ -1343,7 +1378,7 @@ struct Object *obj_newprev(struct Object *loc, fnObjOps ops,
         if(prev->parent)
             prev->ops = prev->parent->ops;
         else
-            prev->ops = (fnObjOps)__objsys_default_ops;
+            prev->ops = (fnObjOps)__OBJ_DefaultOps;
     }
 
 //  prev->rights = prev->parent->rights;
@@ -1357,7 +1392,7 @@ struct Object *obj_newprev(struct Object *loc, fnObjOps ops,
 
     dListInit(&prev->handles);
     __OBJ_LIST_INS_BEFORE(loc, prev);
-    obj_unlock();
+    OBJ_Unlock();
     return (prev);
 }
 
@@ -1370,7 +1405,7 @@ struct Object *obj_newprev(struct Object *loc, fnObjOps ops,
 // 返回：成功（对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_newnext(struct Object *loc, fnObjOps ops,
+struct Object *OBJ_NewNext(struct Object *loc, fnObjOps ops,
                         ptu32_t represent, const char *name)
 {
     struct Object *next;
@@ -1381,12 +1416,12 @@ struct Object *obj_newnext(struct Object *loc, fnObjOps ops,
 
     if(name)
     {
-        if(__checkname(name))
+        if(__OBJ_CheckName(name))
             return (NULL);
 
         if(loc->parent)
         {
-            if(NULL != obj_search_child(loc->parent, name))
+            if(NULL != OBJ_SearchChild(loc->parent, name))
                 return (NULL); // child已经存在；
         }
 
@@ -1401,20 +1436,21 @@ struct Object *obj_newnext(struct Object *loc, fnObjOps ops,
         cname = (char*)__uname_obj; // 系统默认名；
     }
 
-    next = __newobj();
+    next = __OBJ_NewObj();
     if(!next)
         return (NULL);
 
-    obj_lock();
+    OBJ_Lock();
 
     next->parent = loc->parent;
     next->child = NULL;
     next->ObjPrivate = represent;
-    next->inuse = 1;
+    next->BitFlag.temporary = 0;
+    next->BitFlag.inuse = 0;
     if(ops)
     {
         if(-1==(s32)ops)
-            next->ops = (fnObjOps)__objsys_default_ops;
+            next->ops = (fnObjOps)__OBJ_DefaultOps;
         else
             next->ops = ops;
     }
@@ -1423,7 +1459,7 @@ struct Object *obj_newnext(struct Object *loc, fnObjOps ops,
         if(next->parent)
             next->ops = next->parent->ops;
         else
-            next->ops = (fnObjOps)__objsys_default_ops;
+            next->ops = (fnObjOps)__OBJ_DefaultOps;
     }
 
 //  next->rights = next->parent->rights;
@@ -1437,7 +1473,7 @@ struct Object *obj_newnext(struct Object *loc, fnObjOps ops,
 //      next->set = NULL;
 
     __OBJ_LIST_INS_AFTER(loc, next);
-    obj_unlock();
+    OBJ_Unlock();
     return (next);
 
 }
@@ -1451,7 +1487,7 @@ struct Object *obj_newnext(struct Object *loc, fnObjOps ops,
 // 返回：成功（新建子对象）；失败（NULL）；
 // 备注：新建的子对象，放置在子对象链的末尾；
 // ============================================================================
-struct Object *obj_newchild(struct Object *parent, fnObjOps ops,
+struct Object *OBJ_NewChild(struct Object *parent, fnObjOps ops,
                             ptu32_t ObjPrivate, const char *name)
 {
     struct Object *child;
@@ -1462,10 +1498,10 @@ struct Object *obj_newchild(struct Object *parent, fnObjOps ops,
 
     if(name)
     {
-        if(__checkname(name))
+        if(__OBJ_CheckName(name))
             return (NULL);
 
-        if(NULL != obj_search_child(parent, name))
+        if(NULL != OBJ_SearchChild(parent, name))
             return (NULL); // child已经存在；
 
         cname = malloc(strlen(name)+1);
@@ -1479,21 +1515,22 @@ struct Object *obj_newchild(struct Object *parent, fnObjOps ops,
         cname = (char*)__uname_obj; // 系统默认名；
     }
 
-    child = __newobj();
+    child = __OBJ_NewObj();
     if(!child)
         return (NULL);
 
-    obj_lock();
+    OBJ_Lock();
 
     child->parent = parent;
     child->child = NULL;
     child->ObjPrivate = ObjPrivate;
-    child->inuse = 1;
+    child->BitFlag.temporary = 0;
+    child->BitFlag.inuse = 0;
 
     if(ops)
     {
         if(-1==(s32)ops)
-            child->ops = (fnObjOps)__objsys_default_ops;
+            child->ops = (fnObjOps)__OBJ_DefaultOps;
         else
             child->ops = ops;
     }
@@ -1518,7 +1555,7 @@ struct Object *obj_newchild(struct Object *parent, fnObjOps ops,
         __OBJ_LIST_INS_BEFORE(parent->child, child);
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (child);
 }
 // ============================================================================
@@ -1529,7 +1566,7 @@ struct Object *obj_newchild(struct Object *parent, fnObjOps ops,
 // 返回：成功（新建子对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_newhead(struct Object *loc, fnObjOps ops,
+struct Object *OBJ_NewHead(struct Object *loc, fnObjOps ops,
                            ptu32_t ObjPrivate, const char *name)
 {
     struct Object *head;
@@ -1540,12 +1577,12 @@ struct Object *obj_newhead(struct Object *loc, fnObjOps ops,
 
     if(name)
     {
-        if(__checkname(name))
+        if(__OBJ_CheckName(name))
             return (NULL);
 
         if(loc->parent)
         {
-            if(NULL != obj_search_child(loc->parent, name))
+            if(NULL != OBJ_SearchChild(loc->parent, name))
                 return (NULL); // child已经存在；
         }
 
@@ -1560,20 +1597,21 @@ struct Object *obj_newhead(struct Object *loc, fnObjOps ops,
         cname = (char*)__uname_obj; // 系统默认名；
     }
 
-    head = __newobj();
+    head = __OBJ_NewObj();
     if(!head)
         return (NULL);
 
-    obj_lock();
+    OBJ_Lock();
 
     head->parent = loc->parent;
     head->child = NULL;
     head->ObjPrivate = ObjPrivate;
-    head->inuse = 1;
+    head->BitFlag.temporary = 0;
+    head->BitFlag.inuse = 0;
     if(ops)
     {
         if(-1==(s32)ops)
-            head->ops = (fnObjOps)__objsys_default_ops;
+            head->ops = (fnObjOps)__OBJ_DefaultOps;
         else
             head->ops = ops;
     }
@@ -1582,7 +1620,7 @@ struct Object *obj_newhead(struct Object *loc, fnObjOps ops,
         if(head->parent)
             head->ops = head->parent->ops;
         else
-            head->ops = (fnObjOps)__objsys_default_ops;
+            head->ops = (fnObjOps)__OBJ_DefaultOps;
     }
 
 //  head->rights = head->parent->rights;
@@ -1611,39 +1649,8 @@ struct Object *obj_newhead(struct Object *loc, fnObjOps ops,
         __OBJ_LIST_INS_BEFORE(loc, head); // 不存在父对象，则就将新对象放到当前对象前
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (head);
-}
-
-// ============================================================================
-// 功能：将队列child插入到对象loc下，成为其子对象；
-// 参数：loc -- 被插入对象；
-//      child -- 将插入的对象；
-// 返回：成功（被插入的对象）；失败（NULL）；
-// 备注：
-// ============================================================================
-struct Object *obj_insert2child(struct Object *loc, struct Object *child)
-{
-    if((loc==NULL)||(child==NULL))
-        return (NULL);
-
-    obj_lock();
-
-    obj_detach(child); // 就对象从原对象树中分离；
-    child->parent = loc;
-    if(loc->child==NULL)
-    {
-        loc->child = child;
-        __OBJ_LIST_INIT(child);
-    }
-    else
-    {
-        __OBJ_LIST_INS_BEFORE(loc->child, child);
-        loc->child = child;
-    }
-
-    obj_unlock();
-    return (child);
 }
 
 #if 0
@@ -1660,7 +1667,7 @@ s32 OBJ_MoveToBranch(struct Object *pParent,struct Object *ob)
         return (-1);
 
     low_atom = Int_LowAtomStart();
-    obj_detach(ob);
+    OBJ_Detach(ob);
     ob->parent = pParent;
     if(pParent->child == NULL)
     {
@@ -1683,14 +1690,14 @@ s32 OBJ_MoveToBranch(struct Object *pParent,struct Object *ob)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 obj_move2last(struct Object *ob)
+s32 obj_MoveToLast(struct Object *ob)
 {
     struct Object *head;
 
     if((!ob)||(!ob->parent))
         return (-1);
 
-    obj_lock();
+    OBJ_Lock();
 
     head = ob->parent->child;
     if(head==ob) // 本对象时队列头
@@ -1703,7 +1710,7 @@ s32 obj_move2last(struct Object *ob)
         __OBJ_LIST_INS_BEFORE(head, ob);
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (0);
 }
 
@@ -1713,14 +1720,14 @@ s32 obj_move2last(struct Object *ob)
 // 返回：成功（0），失败（-1）；
 // 备注：
 // ============================================================================
-s32 obj_move2head(struct Object *ob)
+s32 OBJ_MoveToHead(struct Object *ob)
 {
     struct Object *head;
 
     if((!ob)||(!ob->parent))
         return (-1);
 
-    obj_lock();
+    OBJ_Lock();
 
     head = ob->parent->child;
     if(head->prev==ob)
@@ -1734,8 +1741,39 @@ s32 obj_move2head(struct Object *ob)
         ob->parent->child = ob;
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (0);
+}
+
+// ============================================================================
+// 功能：将队列child插入到对象loc下，成为其子对象；
+// 参数：loc -- 被插入对象；
+//      child -- 将插入的对象；
+// 返回：成功（被插入的对象）；失败（NULL）；
+// 备注：
+// ============================================================================
+struct Object *OBJ_InsertToChild(struct Object *loc, struct Object *child)
+{
+    if((loc==NULL)||(child==NULL))
+        return (NULL);
+
+    OBJ_Lock();
+
+    OBJ_Detach(child); // 就对象从原对象树中分离；
+    child->parent = loc;
+    if(loc->child==NULL)
+    {
+        loc->child = child;
+        __OBJ_LIST_INIT(child);
+    }
+    else
+    {
+        __OBJ_LIST_INS_BEFORE(loc->child, child);
+        loc->child = child;
+    }
+
+    OBJ_Unlock();
+    return (child);
 }
 
 // ============================================================================
@@ -1745,13 +1783,13 @@ s32 obj_move2head(struct Object *ob)
 // 返回：成功（0），失败（-1）；
 // 备注：
 // ============================================================================
-s32 obj_insert2next(struct Object *loc, struct Object *next)
+s32 OBJ_InsertToNext(struct Object *loc, struct Object *next)
 {
 
     if((loc==NULL)||(next==NULL)||(loc==next))
         return (-1);
 
-    obj_lock();
+    OBJ_Lock();
 
     if(loc->next!=next) // 看是否已经符合要求
     {
@@ -1773,7 +1811,7 @@ s32 obj_insert2next(struct Object *loc, struct Object *next)
         next->parent = loc->parent;
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (0);
 }
 
@@ -1784,12 +1822,12 @@ s32 obj_insert2next(struct Object *loc, struct Object *next)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 obj_insert2prev(struct Object *loc, struct Object *prev)
+s32 OBJ_InsertToPrev(struct Object *loc, struct Object *prev)
 {
     if((loc==NULL)||(prev==NULL)||(loc==prev))
         return (-1);
 
-    obj_lock();
+    OBJ_Lock();
 
     if(loc->prev!=prev) // 看是否已经符合要求
     {
@@ -1811,7 +1849,7 @@ s32 obj_insert2prev(struct Object *loc, struct Object *prev)
         prev->parent = loc->parent;
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (0);
 }
 
@@ -1821,17 +1859,17 @@ s32 obj_insert2prev(struct Object *loc, struct Object *prev)
 // 返回：成功（0），失败（-1）；
 // 备注：
 // ============================================================================
-s32 obj_child_move2prev(struct Object *parent)
+s32 OBJ_ChildMoveToOrev(struct Object *parent)
 {
     if(!parent)
         return (-1);
 
-    obj_lock();
+    OBJ_Lock();
 
     if(parent->child)
         parent->child = parent->child->prev;
 
-    obj_unlock();
+    OBJ_Unlock();
     return (0);
 }
 
@@ -1841,17 +1879,17 @@ s32 obj_child_move2prev(struct Object *parent)
 // 返回：成功（0），失败（-1）；
 // 备注：
 // ============================================================================
-s32 obj_child_move2next(struct Object *parent)
+s32 OBJ_ChildMoveToNext(struct Object *parent)
 {
     if(!parent)
         return (-1);
 
-    obj_lock();
+    OBJ_Lock();
 
     if(parent->child)
         parent->child = parent->child->next;
 
-    obj_unlock();
+    OBJ_Unlock();
     return (0);
 }
 
@@ -1864,14 +1902,14 @@ s32 obj_child_move2next(struct Object *parent)
 //     在子窗口的gui窗口时,就需要用到删除整个树枝的操作.
 //     TODO: 旧的逻辑，在概念和逻辑上都不完整；不建议使用；
 // ============================================================================
-struct Object *obj_twig(struct Object *ob)
+struct Object *OBJ_GetTwig(struct Object *ob)
 {
     struct Object *result = NULL, *current;
 
     if(!ob)
         return (NULL);
 
-    obj_lock();
+    OBJ_Lock();
 
     current = ob;
     while(current->child != NULL)
@@ -1884,7 +1922,7 @@ struct Object *obj_twig(struct Object *ob)
     else
         result = current;
 
-    obj_unlock();
+    OBJ_Unlock();
     return (result);
 }
 
@@ -1941,12 +1979,12 @@ char *obj_getpath(struct Object *ob, char *path, u32 limit)
 //      如果初始化为父对象，则遍历全部队列成员；
 //      如果data初始化为是某个子对象链表成员，则只遍历其到队列结束，而不是全部队列成员；
 // ============================================================================
-struct Object *obj_foreach_child(struct Object *parent, struct Object *current)
+struct Object *OBJ_ForeachChild(struct Object *parent, struct Object *current)
 {
     if((parent==NULL)||(current==NULL))
         return (NULL);
 
-    obj_lock();
+    OBJ_Lock();
 
     if((current==parent)||(current->parent!=parent))
     {
@@ -1959,7 +1997,7 @@ struct Object *obj_foreach_child(struct Object *parent, struct Object *current)
             current = NULL;
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (current);
 }
 
@@ -1974,7 +2012,7 @@ struct Object *obj_foreach_child(struct Object *parent, struct Object *current)
 //      本函数按父、子、孙、曾孙....的顺序搜索，先搜直系，再搜旁系，确保所有子孙
 //      节点都能够访问到，如果对访问顺序有特殊要求，不能使用本函数；
 // ============================================================================
-struct Object *obj_foreach_scion(struct Object *ancester, struct Object *current)
+struct Object *OBJ_ForeachScion(struct Object *ancester, struct Object *current)
 {
     struct Object *result = NULL, *current_copy;
     bool_t up = FALSE;
@@ -1982,7 +2020,7 @@ struct Object *obj_foreach_scion(struct Object *ancester, struct Object *current
     if((ancester==NULL)||(current==NULL))
         return (NULL);
 
-    obj_lock();
+    OBJ_Lock();
 
     if((current != ancester)||ancester->child)
     {
@@ -2007,7 +2045,7 @@ struct Object *obj_foreach_scion(struct Object *ancester, struct Object *current
         }while(current_copy != ancester);
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (result);
 }
 
@@ -2018,14 +2056,14 @@ struct Object *obj_foreach_scion(struct Object *ancester, struct Object *current
 // 返回：成功（名为name的对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_search_sibling(struct Object *ob, const char *name)
+struct Object *OBJ_SearchSibling(struct Object *ob, const char *name)
 {
     struct Object *tmp, *result = NULL;
 
     if((ob==NULL)||(name==NULL))
         return (NULL);
 
-    obj_lock();
+    OBJ_Lock();
 
     tmp = ob;
     do
@@ -2038,7 +2076,7 @@ struct Object *obj_search_sibling(struct Object *ob, const char *name)
         tmp = tmp->next;
     }while (tmp != ob);
 
-    obj_unlock();
+    OBJ_Unlock();
     return (result);
 }
 
@@ -2049,14 +2087,14 @@ struct Object *obj_search_sibling(struct Object *ob, const char *name)
 // 返回：成功（名为name的对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_search_child(struct Object *parent, const char *name)
+struct Object *OBJ_SearchChild(struct Object *parent, const char *name)
 {
     struct Object *tmp, *result = NULL;
 
     if((name == NULL) || (parent == NULL))
         return (NULL);
 
-    obj_lock();
+    OBJ_Lock();
 
     tmp = parent->child;
     if(tmp == NULL)
@@ -2076,7 +2114,7 @@ struct Object *obj_search_child(struct Object *parent, const char *name)
         }while (tmp != parent->child);
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (result);
 }
 
@@ -2087,17 +2125,17 @@ struct Object *obj_search_child(struct Object *parent, const char *name)
 // 返回：成功（名为name的对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_search_scion(struct Object *ancester, const char *name)
+struct Object *OBJ_SearchScion(struct Object *ancester, const char *name)
 {
     struct Object *current, *tmp, *result = NULL;
 
     if((ancester == NULL)||(name == NULL))
         return (NULL);
 
-    obj_lock();
+    OBJ_Lock();
 
     current = ancester;
-    while((tmp = obj_foreach_scion(ancester, current)) != NULL)
+    while((tmp = OBJ_ForeachScion(ancester, current)) != NULL)
     {
         if(strcmp(tmp->name, name) == 0)
         {
@@ -2107,7 +2145,7 @@ struct Object *obj_search_scion(struct Object *ancester, const char *name)
         current = tmp;
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return (result);
 }
 
@@ -2118,7 +2156,7 @@ struct Object *obj_search_scion(struct Object *ancester, const char *name)
 // 返回：成功（路径结束的对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *obj_search_path(struct Object *start, const char *path)
+struct Object *OBJ_SearchPath(struct Object *start, const char *path)
 {
 #if 0
     const char *path_name;
@@ -2130,14 +2168,14 @@ struct Object *obj_search_path(struct Object *start, const char *path)
     if((path == NULL) || (start == NULL))
         return (NULL);
 
-    if(obj_lock())
+    if(OBJ_Lock())
         return (NULL);
 
 
     current = start->child;
     if(current == NULL)
     {
-        obj_unlock();
+        OBJ_Unlock();
         return (NULL);
     }
 
@@ -2193,7 +2231,7 @@ struct Object *obj_search_path(struct Object *start, const char *path)
             break;
     }
 
-    obj_unlock();
+    OBJ_Unlock();
     return result;
 #else
     char *segment;
@@ -2203,7 +2241,7 @@ struct Object *obj_search_path(struct Object *start, const char *path)
     if((!current)||(!path))
         return (NULL);
 
-    obj_lock();
+    OBJ_Lock();
 
     while(current)
     {
@@ -2217,7 +2255,7 @@ __SEARCH_NEXT:
         if(('.' == path[0]) && ('.' == path[1])
            && (('\\' == path[3]) || ('/' == path[3]) || ('\0' == path[3])))
         {
-            current = obj_parent(current);
+            current = OBJ_GetParent(current);
             path += 2; // ".."字符，表示上一级
             continue;
         }
@@ -2232,7 +2270,7 @@ __SEARCH_NEXT:
         if(!head)
             break;
 
-        segment = (char*)obj_name(head);
+        segment = (char*)OBJ_GetName(head);
         for(i=0; i<CN_OBJ_NAME_LIMIT; i++) // 对象名长度限制
         {
             if('\0' == segment[i])
@@ -2266,7 +2304,7 @@ __SEARCH_NEXT:
 
         __OBJ_LIST_FOR_EACH_BROTHERS(current, head)
         {
-            segment = (char*)obj_name(current);
+            segment = (char*)OBJ_GetName(current);
             for(i=0; i<CN_OBJ_NAME_LIMIT; i++) // 对象名长度限制
             {
                 if('\0' == segment[i])
@@ -2297,12 +2335,12 @@ __SEARCH_NEXT:
             }
         }
 
-        current = obj_parent(current); // 当前节点与路径不匹配，退回上上以及节点
+        current = OBJ_GetParent(current); // 当前节点与路径不匹配，退回上上以及节点
         break; // 未找到节点
     }
 
 __SEARCH_DONE:
-   obj_unlock();
+   OBJ_Unlock();
    return (current);
 #endif
 }
@@ -2313,7 +2351,7 @@ __SEARCH_DONE:
 //返回: 0 -- 成功; -1 -- 对象找不到;
 //备注:
 //-----------------------------------------------------------------------------
-s32 SetPWD(const char *Path)
+s32 OBJ_SetPwd(const char *Path)
 {
     DIR *dir;
     s32 res = 0;
@@ -2329,12 +2367,10 @@ s32 SetPWD(const char *Path)
     ob = hdl->HostObj;      // 目录的节点
     if(NULL == ob)
         res = -1;
-    else if(ob->inuse == CN_LIMIT_UINT32)
-        res = -2;
 
-    obj_setcurrent(ob);
+    OBJ_SetCurrent(ob);
     closedir(dir);// 关闭目录
-     return 0;
+    return res;
 }
 //-----------------------------------------------------------------------------
 //功能: 获取当前工作路径字符串长度(含结束符)
@@ -2342,7 +2378,7 @@ s32 SetPWD(const char *Path)
 //返回: 非零-- 成功; 零 -- 失败，未设置当前工作路径;
 //备注:
 //-----------------------------------------------------------------------------
-s32 CurWorkPathLen(void)
+s32 OBJ_CurWorkPathLen(void)
 {
     u32 PathLen = 0;
     struct Object *ob;
@@ -2351,10 +2387,10 @@ s32 CurWorkPathLen(void)
     while(1)
     {
         PathLen++;
-        PathLen += strlen(obj_name(ob));
-        if(obj_parent(ob) == NULL)
+        PathLen += strlen(OBJ_GetName(ob));
+        if(OBJ_GetParent(ob) == NULL)
             break;
-        ob = obj_parent(ob);
+        ob = OBJ_GetParent(ob);
     }
 
     return PathLen;
@@ -2368,16 +2404,16 @@ s32 CurWorkPathLen(void)
 //      -4 -- 其他;
 //备注:
 //-----------------------------------------------------------------------------
-s32 CurWorkPath(char *Buf, u32 BufSize)
+s32 OBJ_CurWorkPath(char *Buf, u32 BufSize)
 {
     struct Object *Obj;
     u32 ObjNameLen, Offset;
-    char *PathTemp, *ObjName;
+    char *PathTemp=NULL, *ObjName;
     s32 Ret = 0;
 
-    obj_lock();// 进互斥(防止操作过程当前工作路径被更改)
+    OBJ_Lock();// 进互斥(防止操作过程当前工作路径被更改)
 
-    Offset = CurWorkPathLen();
+    Offset = OBJ_CurWorkPathLen();
     if((NULL == Buf) || (BufSize < Offset))
     {
         Ret = -2; // 参数错误
@@ -2397,7 +2433,7 @@ s32 CurWorkPath(char *Buf, u32 BufSize)
 
     for(;;)
     {
-        ObjName = (char *)obj_name(Obj);
+        ObjName = (char *)OBJ_GetName(Obj);
         ObjNameLen = strlen(ObjName);
         Offset = Offset - ObjNameLen;
         memcpy((PathTemp + Offset), ObjName, ObjNameLen);
@@ -2414,7 +2450,7 @@ s32 CurWorkPath(char *Buf, u32 BufSize)
             strcpy(Buf, PathTemp);
             break; // 结束
         }
-        Obj = obj_parent(Obj);
+        Obj = OBJ_GetParent(Obj);
         if(NULL == Obj)
         {
             Ret = -4;
@@ -2425,7 +2461,7 @@ s32 CurWorkPath(char *Buf, u32 BufSize)
 FAIL:
     if(PathTemp)
         free(PathTemp);
-    obj_unlock(); // 出互斥
+    OBJ_Unlock(); // 出互斥
     return (Ret);
 }
 // ============================================================================
@@ -2448,10 +2484,10 @@ FAIL:
 //
 //    if(name)
 //    {
-//        if(__checkname(name))
+//        if(__OBJ_CheckName(name))
 //            return (NULL);
 //
-//        if(NULL != obj_search_child(parent, name))
+//        if(NULL != OBJ_SearchChild(parent, name))
 //            return (NULL); // child已经存在；
 //
 //        cname = malloc(strlen(name)+1);
@@ -2465,11 +2501,11 @@ FAIL:
 //        cname = (char*)__uname_obj; // 系统默认名；
 //    }
 //
-//    child_set = __newobj();
+//    child_set = __OBJ_NewObj();
 //    if(!child_set)
 //        return (NULL);
 //
-//    obj_lock();
+//    OBJ_Lock();
 //
 //    child_set->parent = parent;
 //    child_set->child = NULL;
@@ -2477,7 +2513,7 @@ FAIL:
 //    if(ops)
 //    {
 //        if(-1==(s32)ops)
-//            child_set->ops = (fnObjOps)__objsys_default_ops;
+//            child_set->ops = (fnObjOps)__OBJ_DefaultOps;
 //        else
 //            child_set->ops = ops;
 //    }
@@ -2501,7 +2537,7 @@ FAIL:
 //        __OBJ_LIST_INS_BEFORE(parent->child, child_set);
 //    }
 //
-//    obj_unlock();
+//    OBJ_Unlock();
 //    return (child_set);
 //}
 

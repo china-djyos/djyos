@@ -440,7 +440,7 @@ void uart1_init(void)
     UINT32 intr_status;
 
     ddev_register_dev(UART1_DEV_NAME, &uart1_op);
-
+//
     intc_service_register(IRQ_UART1, PRI_IRQ_UART1, uart1_isr);
 
     param = PWD_UART1_CLK_BIT;

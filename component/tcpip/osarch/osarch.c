@@ -58,17 +58,12 @@
 typedef struct
 {
     u32 mem;     //how many heap memory has been consumed
-    u32 lock;   //how many mutex  has been consumed
-    u32 semp;    //how many semp  has been consumed
     u32 stack;   //how much task stack has been consumed
 }tagOsCB;
 static tagOsCB gOsCB;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 //use this function for the statistics
-void *net_malloc(int size)
+void *net_malloc(s32 size)
 {
     void *ret;
     ret = malloc(size);
@@ -88,72 +83,77 @@ void net_free(void *mem)
     return;
 }
 
-
 //mutex
-mutex_t mutex_init(const char *name)
-{
-    gOsCB.lock++;
-    return Lock_MutexCreate(name);
-}
-bool_t mutex_lock(mutex_t mutex)
-{
-    return Lock_MutexPend(mutex,CN_TIMEOUT_FOREVER);
-}
-bool_t mutex_locktimeout(mutex_t mutex,u32 timeout)
-{
-    return Lock_MutexPend(mutex,timeout);
-}
-bool_t mutex_unlock(mutex_t mutex)
-{
-    Lock_MutexPost(mutex);
-    return true;
-}
-
-void mutex_del(mutex_t mutex)
-{
-    Lock_MutexDelete(mutex);
-    gOsCB.lock--;
-    return;
-}
-//-----------------------------------------------------------------------------
-//功能:use this function to create a semaphore
-//参数:
-//返回:the semaphore if success and NULL when failed
-//备注:
-//-----------------------------------------------------------------------------
-semp_t semp_init(u32 limit,u32 value,const char *name)
-{
-    gOsCB.semp++;
-    return Lock_SempCreate(limit,value,CN_BLOCK_FIFO,name);
-}
-//-----------------------------------------------------------------------------
-//功能:use this function to pend a semaphore
-//参数:semp, the semaphore we will pend later
-//返回:true when got the semaphore else false
-//备注:never return if not got the semaphore and the condition permit waiting
-//-----------------------------------------------------------------------------
-bool_t semp_pend(semp_t semp)
-{
-    return Lock_SempPend(semp,CN_TIMEOUT_FOREVER);
-}
-
-bool_t semp_pendtimeout(semp_t semp, unsigned int timeout)
-{
-    return Lock_SempPend(semp,timeout);
-}
-
-bool_t semp_post(semp_t semp)
-{
-    Lock_SempPost(semp);
-    return true;
-}
-
-void semp_del(semp_t semp)
-{
-    gOsCB.semp--;
-    Lock_SempDelete(semp);
-    return;
-}
+//改为： Lock_MutexCreate(name);
+//mutex_t mutex_init(const char *name)
+//{
+//    gOsCB.lock++;
+//    return Lock_MutexCreate(name);
+//}
+//改为： Lock_MutexPend(mutex,CN_TIMEOUT_FOREVER);
+//bool_t mutex_lock(mutex_t mutex)
+//{
+//    return Lock_MutexPend(mutex,CN_TIMEOUT_FOREVER);
+//}
+//改为： Lock_MutexPend(mutex,timeout);
+//bool_t mutex_locktimeout(mutex_t mutex,u32 timeout)
+//{
+//    return Lock_MutexPend(mutex,timeout);
+//}
+//改为： Lock_MutexPost(mutex);
+//bool_t mutex_unlock(mutex_t mutex)
+//{
+//    Lock_MutexPost(mutex);
+//    return true;
+//}
+//改为： Lock_MutexDelete(mutex);
+//void mutex_del(mutex_t mutex)
+//{
+//    Lock_MutexDelete(mutex);
+//    gOsCB.lock--;
+//    return;
+//}
+////-----------------------------------------------------------------------------
+////功能:use this function to create a semaphore
+////参数:
+////返回:the semaphore if success and NULL when failed
+////备注:
+////-----------------------------------------------------------------------------
+//改为： Lock_SempCreate(limit,value,CN_BLOCK_FIFO,name);
+//semp_t semp_init(u32 limit,u32 value,const char *name)
+//{
+//    gOsCB.semp++;
+//    return Lock_SempCreate(limit,value,CN_BLOCK_FIFO,name);
+//}
+////-----------------------------------------------------------------------------
+////功能:use this function to pend a semaphore
+////参数:semp, the semaphore we will pend later
+////返回:true when got the semaphore else false
+////备注:never return if not got the semaphore and the condition permit waiting
+////-----------------------------------------------------------------------------
+//改为：  Lock_SempPend(semp,CN_TIMEOUT_FOREVER);
+//bool_t semp_pend(semp_t semp)
+//{
+//    return Lock_SempPend(semp,CN_TIMEOUT_FOREVER);
+//}
+//改为： Lock_SempPend(semp,timeout);
+//bool_t semp_pendtimeout(semp_t semp, u32 timeout)
+//{
+//    return Lock_SempPend(semp,timeout);
+//}
+//改为： Lock_SempPost(semp);
+//bool_t semp_post(semp_t semp)
+//{
+//    Lock_SempPost(semp);
+//    return true;
+//}
+//改为： Lock_SempDelete(semp)
+//void semp_del(semp_t semp)
+//{
+//    gOsCB.semp--;
+//    Lock_SempDelete(semp);
+//    return;
+//}
 
 //-----------------------------------------------------------------------------
 //功能:use this function to create a task
@@ -165,12 +165,12 @@ void semp_del(semp_t semp)
 bool_t taskcreate(const char *name,u16 stacksize,u8 prior,ptu32_t (*fnTask)(void),void *para)
 {
     u16 evttID,eventID;
-    evttID= Djy_EvttRegist(EN_INDEPENDENCE, prior, 0, 1,fnTask,NULL, stacksize,(char *)name);
+    evttID= DJY_EvttRegist(EN_INDEPENDENCE, prior, 0, 1,fnTask,NULL, stacksize,(char *)name);
     if(evttID == CN_EVTT_ID_INVALID)
     {
         goto EXIT_EVTTFAILED;
     }
-    eventID = Djy_EventPop(evttID, NULL, 0,(ptu32_t)para, 0, 0);
+    eventID = DJY_EventPop(evttID, NULL, 0,(ptu32_t)para, 0, 0);
     if(eventID == CN_EVENT_ID_INVALID)
     {
         goto EXIT_EVENTFAILED;
@@ -179,103 +179,10 @@ bool_t taskcreate(const char *name,u16 stacksize,u8 prior,ptu32_t (*fnTask)(void
     return true;
 
 EXIT_EVENTFAILED:
-    Djy_EvttUnregist(evttID);
+    DJY_EvttUnregist(evttID);
 EXIT_EVTTFAILED:
     return false;
 }
-
-//this function is used to format the char string to the argc mode
-//this function will changed the original string, used it carefully
-int string2arg(int *argc, char *argv[],char *string)
-{
-    int argvlen = 0;
-    int paramnum = 0;
-    char *tmp = NULL;
-    char bak;
-    int len;
-
-    argvlen = *argc;
-    *argc = paramnum;
-    if(NULL == string)
-    {
-        return 1;
-    }
-
-    //use the '\0' to replace the ' '
-    len = strlen(string);
-    tmp = string;
-    while(tmp < (string + len))
-    {
-        if(*tmp == ' ')
-        {
-            *tmp = '\0';
-        }
-        tmp++;
-    }
-    bak = '\0';
-    tmp = string;
-    while(tmp < (string + len))
-    {
-        if((*tmp != '\0')&&(bak =='\0'))
-        {
-            if(paramnum < argvlen)
-            {
-                argv[paramnum] = tmp;
-                paramnum++;
-            }
-        }
-        bak = *tmp;
-        tmp++;
-    }
-    *argc = paramnum;
-
-    return 0;
-}
-
-//usage:use this function to change the string to the args
-int getargs(int argc, char *argv[],char *string)
-{
-    int argvlen = 0;
-    int paramnum = 0;
-    char *tmp = NULL;
-    char bak;
-    int len;
-
-    argvlen = argc;
-    if(NULL == string)
-    {
-        return paramnum;
-    }
-
-    //use the '\0' to replace the ' '
-    len = strlen(string);
-    tmp = string;
-    while(tmp < (string + len))
-    {
-        if(*tmp == ' ')
-        {
-            *tmp = '\0';
-        }
-        tmp++;
-    }
-    bak = '\0';
-    tmp = string;
-    while(tmp < (string + len))
-    {
-        if((*tmp != '\0')&&(bak =='\0'))
-        {
-            if(paramnum < argvlen)
-            {
-                argv[paramnum] = tmp;
-                paramnum++;
-            }
-        }
-        bak = *tmp;
-        tmp++;
-    }
-    return paramnum;
-}
-
 
 
 //this is an function tools, used to make the string to mac address
@@ -283,10 +190,10 @@ int getargs(int argc, char *argv[],char *string)
 bool_t string2mac(char *str,u8 *mac)
 {
     bool_t result = false;
-    int num = 0;
-    int i =0;
+    s32 num = 0;
+    s32 i =0;
 
-    unsigned int data[6];
+    u32 data[6];
 
     num = sscanf(str,"%x-%x-%x-%x-%x-%x",&data[0],&data[1],&data[2],&data[3],&data[4],&data[5]);
     if(num == 6)
@@ -295,7 +202,7 @@ bool_t string2mac(char *str,u8 *mac)
         //cpy the mac
         for(i=0;i<6;i++)
         {
-            mac[i] = (unsigned char)data[i];
+            mac[i] = (u8)data[i];
         }
     }
 
@@ -303,14 +210,14 @@ bool_t string2mac(char *str,u8 *mac)
 }
 char* mac2string(u8 *mac)
 {
-    int i =0;
+    s32 i =0;
     static char  str[30];
 
-    unsigned int data[6];
+    u32 data[6];
 
     for(i = 0;i <6;i++)
     {
-        data[i] = (unsigned int)mac[i];
+        data[i] = (u32)mac[i];
     }
     memset(str,0,30);
     sprintf(str,"%02x-%02x-%02x-%02x-%02x-%02x",data[0],data[1],data[2],data[3],data[4],data[5]);
@@ -318,14 +225,14 @@ char* mac2string(u8 *mac)
     return str;
 }
 
-#define CN_NETTICK_CYCLE  (10)
+#define CN_NETTICK_CYCLE  (10)      //网络tick运行周期，mS数
 
 typedef struct
 {
     void               *nxt;
-    int                 life;
-    int                 cycle;
-    u32                 runtimes;
+    s32                 life;       //倒计时计数器
+    s32                 cycle;      //定时周期，mS数
+    u32                 runtimes;   //定时次数
     fnNetTickIsr        isr;
     const char         *name;
 }tagTickerItem;
@@ -333,20 +240,20 @@ typedef struct
 typedef struct
 {
     tagTickerItem *lst;
-    int            num;
-    mutex_t        lock;
+    s32            num;
+    struct MutexLCB *lock;
 }tagTikerCB;
 static tagTikerCB gTickerCB;
 //use this function to install a ticker isr
 //unit:ms
-void*  NetTickerIsrInstall(const char *name,fnNetTickIsr isr,int cycle)
+void*  NetTickerIsrInstall(const char *name,fnNetTickIsr isr,s32 cycle)
 {
     tagTickerItem *item;
     item = malloc(sizeof(tagTickerItem));
     if(NULL != item)
     {
         memset(item,0,sizeof(tagTickerItem));
-        if(mutex_lock(gTickerCB.lock))
+        if(Lock_MutexPend(gTickerCB.lock,CN_TIMEOUT_FOREVER))
         {
             //do the initialize
             item->life = cycle;
@@ -357,7 +264,7 @@ void*  NetTickerIsrInstall(const char *name,fnNetTickIsr isr,int cycle)
             item->nxt = gTickerCB.lst;
             gTickerCB.lst = item;
             gTickerCB.num++;
-            mutex_unlock(gTickerCB.lock);
+            Lock_MutexPost(gTickerCB.lock);
         }
     }
     return item;
@@ -370,7 +277,7 @@ bool_t  NetTickerIsrRemove(void *ticker)
 
     if(NULL != ticker)
     {
-        if(mutex_lock(gTickerCB.lock))
+        if(Lock_MutexPend(gTickerCB.lock,CN_TIMEOUT_FOREVER))
         {
             item = gTickerCB.lst;
             if((ticker == item)&&(NULL != item))
@@ -390,7 +297,7 @@ bool_t  NetTickerIsrRemove(void *ticker)
                     item = item->nxt;
                 }
             }
-            mutex_unlock(gTickerCB.lock);
+            Lock_MutexPost(gTickerCB.lock);
         }
     }
     return ret;
@@ -413,7 +320,7 @@ static ptu32_t __NetTickerTask(void)
     tagTickerItem *item;
     while(1)
     {
-        if(mutex_lock(gTickerCB.lock))
+        if(Lock_MutexPend(gTickerCB.lock,CN_TIMEOUT_FOREVER))
         {
             item = gTickerCB.lst;
             while(NULL != item)
@@ -430,12 +337,15 @@ static ptu32_t __NetTickerTask(void)
                 }
                 item = item->nxt;
             }
-            mutex_unlock(gTickerCB.lock);
+            Lock_MutexPost(gTickerCB.lock);
         }
-        Djy_EventDelay(CN_NETTICK_CYCLE*mS);
+        DJY_EventDelay(CN_NETTICK_CYCLE*mS);
     }
     return 0;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //this is the nettick shell function:use it for the debug
 //static bool_t  __NetTickShell(char *param)
@@ -444,9 +354,9 @@ static ptu32_t __NetTickerTask(void)
 {
     bool_t ret = true;
     tagTickerItem *item;
-    int  no = 0;
+    s32  no = 0;
 
-    if(mutex_lock(gTickerCB.lock))
+    if(Lock_MutexPend(gTickerCB.lock,CN_TIMEOUT_FOREVER))
     {
         debug_printf("osarch","NETTICK:NUM:%d PRECISION:%d MS\n\r",gTickerCB.num,CN_NETTICK_CYCLE);
         if(gTickerCB.num > 0)
@@ -462,9 +372,9 @@ static ptu32_t __NetTickerTask(void)
             no++;
             item = item->nxt;
         }
-        mutex_unlock(gTickerCB.lock);
+        Lock_MutexPost(gTickerCB.lock);
     }
-    Djy_EventDelay(CN_NETTICK_CYCLE*mS);
+    DJY_EventDelay(CN_NETTICK_CYCLE*mS);
     return ret;
 }
 
@@ -474,11 +384,10 @@ bool_t tcpipmem(char *para)
 {
     debug_printf("osarch","MEMNEED  :%-8d Bytes\n\r",gOsCB.mem);
     debug_printf("osarch","TASKSTACK:%-8d Bytes\n\r",gOsCB.stack);
-    debug_printf("osarch","LOCK     :%-8d \n\r",gOsCB.lock);
-    debug_printf("osarch","SEMP     :%-8d \n\r",gOsCB.semp);
     return true;
 }
 
+#pragma GCC diagnostic pop
 
 __attribute__((weak))  const u8 CN_NETTICKER_PRIOR = CN_PRIO_RRS;
 __attribute__((weak))  const u32 CN_NETTICKER_STACKSIZE = 0x800;
@@ -496,7 +405,7 @@ static bool_t NetTickerInit(void)
     bool_t ret = false;
     memset(&gTickerCB,0,sizeof(gTickerCB));
     gTickerCB.lst = NULL;
-    gTickerCB.lock = mutex_init(NULL);
+    gTickerCB.lock = Lock_MutexCreate(NULL);
     if(NULL == gTickerCB.lock)
     {
         error_printf("osarch","LOCK CREATE ERR\n\r");
@@ -511,15 +420,15 @@ static bool_t NetTickerInit(void)
     return ret;
 
 EXIT_TASK:
-    mutex_del(gTickerCB.lock);
+    Lock_MutexDelete(gTickerCB.lock);
     gTickerCB.lock = NULL;
 EXIT_LOCK:
     return ret;
 }
 
-void OsPrintSplit(char c,int num)
+void OsPrintSplit(char c,s32 num)
 {
-    int i = 0;
+    s32 i = 0;
     for(i = 0;i<num;i++)
     {
         printf("%c",c);
@@ -549,5 +458,4 @@ bool_t OsArchInit()
 ADD_TO_ROUTINE_SHELL(tcpipmem,tcpipmem,"usage:tcpipmem");
 ADD_TO_ROUTINE_SHELL(netticker,netticker,"usage:netticker");
 
-#pragma GCC diagnostic pop
 

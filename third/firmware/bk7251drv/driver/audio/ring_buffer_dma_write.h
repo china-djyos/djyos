@@ -2,7 +2,7 @@
 #define __RING_BUFFER_DMA_WR_H__
 
 
-typedef struct rb_dma_rd_st
+typedef struct rb_dma_wr_st
 {
     UINT8 *address;     
     UINT32 capacity;    /**< memory capacity in bytes */

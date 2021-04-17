@@ -1,6 +1,6 @@
 #include "include.h"
 #include "ring_buffer_dma_read.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 //#include "mem_pub.h"
 #include "drv_model_pub.h"
 #include "uart_pub.h"
@@ -11,10 +11,10 @@
 #define RWP_SAFE_INTERVAL           (4)
 
 #define RB_DMA_RD_MEMCPY                   os_memcpy
-#define RB_DMA_RD_INT_DECLARATION()        
-#define RB_DMA_RD_INT_DISABLE()            
+#define RB_DMA_RD_INT_DECLARATION()
+#define RB_DMA_RD_INT_DISABLE()
 #define RB_DMA_RD_INT_RESTORE()
-#define RB_DMA_RD_PRT                      //os_printf                   
+#define RB_DMA_RD_PRT                      //os_printf
 
 void rb_init_dma_read(RB_DMA_RD_PTR rb, UINT8 *addr, UINT32 capacity, UINT32 ch)
 {
@@ -38,9 +38,9 @@ void rb_init_dma_read(RB_DMA_RD_PTR rb, UINT8 *addr, UINT32 capacity, UINT32 ch)
 void rb_clear_dma_read(RB_DMA_RD_PTR rb)
 {
     GDMA_CFG_ST en_cfg;
-    RB_DMA_RD_INT_DECLARATION();    
- 
-    RB_DMA_RD_INT_DISABLE();   
+    RB_DMA_RD_INT_DECLARATION();
+
+    RB_DMA_RD_INT_DISABLE();
     rb->wp    = 0;
     rb->rp    = 0;
     RB_DMA_RD_INT_RESTORE();
@@ -58,10 +58,10 @@ UINT32 rb_write_dma_read(RB_DMA_RD_PTR rb, UINT8 *buffer, UINT32 size, UINT32 co
     UINT32 write_bytes = size * count;
     UINT32 rp;
     GDMA_CFG_ST en_cfg;
-    
+
     RB_DMA_RD_INT_DECLARATION();
-    
-    if(write_bytes == 0) 
+
+    if(write_bytes == 0)
         return 0;
 
     en_cfg.channel = rb->dma_ch;

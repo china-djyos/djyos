@@ -65,19 +65,19 @@ void testCpuInfo(void)
     static u32 romsize = 2*1024*1024;
 
 
-    LogCpuMsg("CLKIN",&cpuinclk,sizeof(cpuinclk),EN_CPU_MSGTYPE_FREQUENCY);
-    LogCpuMsg("PERICLK",&periclk,sizeof(periclk),EN_CPU_MSGTYPE_FREQUENCY);
-    LogCpuMsg("CPUCLK",&cpuclk,sizeof(cpuclk),EN_CPU_MSGTYPE_FREQUENCY);
-    LogCpuMsg("TICK",&tick,sizeof(tick),EN_CPU_MSGTYPE_FREQUENCY);
+    Core_LogCpuMsg("CLKIN",&cpuinclk,sizeof(cpuinclk),EN_CPU_MSGTYPE_FREQUENCY);
+    Core_LogCpuMsg("PERICLK",&periclk,sizeof(periclk),EN_CPU_MSGTYPE_FREQUENCY);
+    Core_LogCpuMsg("CPUCLK",&cpuclk,sizeof(cpuclk),EN_CPU_MSGTYPE_FREQUENCY);
+    Core_LogCpuMsg("TICK",&tick,sizeof(tick),EN_CPU_MSGTYPE_FREQUENCY);
 
-    LogCpuMsg("CPUSIG",&cpumagic,sizeof(cpumagic),EN_CPU_MSGTYPE_MULTIBYTES);
-    LogCpuMsg("CPUVER",cpuver,strlen(cpuver),EN_CPU_MSGTYPE_STRING);
-    LogCpuMsg("COREVER",corever,strlen(corever),EN_CPU_MSGTYPE_STRING);
+    Core_LogCpuMsg("CPUSIG",&cpumagic,sizeof(cpumagic),EN_CPU_MSGTYPE_MULTIBYTES);
+    Core_LogCpuMsg("CPUVER",cpuver,strlen(cpuver),EN_CPU_MSGTYPE_STRING);
+    Core_LogCpuMsg("COREVER",corever,strlen(corever),EN_CPU_MSGTYPE_STRING);
 
-    LogCpuMsg("CACHESIZE",&cachelsize,sizeof(cachelsize),EN_CPU_MSGTYPE_SIZE);
-    LogCpuMsg("CACHELINE",&cacheline,sizeof(cacheline),EN_CPU_MSGTYPE_SIZE);
-    LogCpuMsg("RAMSIZE",&ramsize,sizeof(ramsize),EN_CPU_MSGTYPE_SIZE);
-    LogCpuMsg("ROMSIZE",&romsize,sizeof(romsize),EN_CPU_MSGTYPE_SIZE);
+    Core_LogCpuMsg("CACHESIZE",&cachelsize,sizeof(cachelsize),EN_CPU_MSGTYPE_SIZE);
+    Core_LogCpuMsg("CACHELINE",&cacheline,sizeof(cacheline),EN_CPU_MSGTYPE_SIZE);
+    Core_LogCpuMsg("RAMSIZE",&ramsize,sizeof(ramsize),EN_CPU_MSGTYPE_SIZE);
+    Core_LogCpuMsg("ROMSIZE",&romsize,sizeof(romsize),EN_CPU_MSGTYPE_SIZE);
 
     return ;
 }

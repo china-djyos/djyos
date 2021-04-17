@@ -58,13 +58,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <fcntl.h>
 #include <device.h>
 #include "stat.h"
 
 #include "os.h"
 #include "shell.h"
-#include <misc.h>
+#include <misc/misc.h>
+#include <misc/crc.h>
 #include "dbug.h"
 #include "ymodem.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -78,12 +80,12 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"ymodem"//ymodem
+//component name:"ymodem"       //ymodem
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","file system","lock","stdio"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -265,7 +267,7 @@ static u32 __Ymodem_Gets(u8 *buf,u32 len)
     u32 res, bytesToGet = len;
     s64 end, log;
 
-    log = DjyGetSysTime();
+    log = DJY_GetSysTime();
     end = log + (s64)CFG_YMODEM_PKG_TIMEOUT;
 
     while(1)
@@ -275,7 +277,7 @@ static u32 __Ymodem_Gets(u8 *buf,u32 len)
         if(!bytesToGet)
             break;
 
-        if(DjyGetSysTime() > end)
+        if(DJY_GetSysTime() > end)
             break;
 
         buf += res;
@@ -384,7 +386,7 @@ static bool_t __Ymodem_PackCheck(u8* buf, u32 pack_len)
         write_char(CN_YMODEM_NAK, s_s32gYmodemDevOut);     //应答nak，请求重发
         return false;
     }
-    checksum = crc16(buf+3, pack_len);
+    checksum = CRC_16(buf+3, pack_len);
     if(CN_CFG_BYTE_ORDER == CN_CFG_LITTLE_ENDIAN)
     {
         check = (buf[pack_len+3]<<8) + buf[pack_len+4];
@@ -406,7 +408,7 @@ static void __Ymodem_WriteCrc16(u8 *package, u32 pack_len)
 {
     u16 checksum;
 
-    checksum = crc16(package+3, pack_len);
+    checksum = CRC_16(package+3, pack_len);
     if(CN_CFG_BYTE_ORDER == CN_CFG_LITTLE_ENDIAN)
     {
         package[3+pack_len] = (checksum >> 8) & 0xFF;
@@ -612,7 +614,7 @@ static YMRESULT __Ymodem_ReceiveProcess(tagYmodem *ym)
             __Ymodem_CancelTrans();
             break;
         }
-        CurrentTime = DjyGetSysTime();                  //总超时处理
+        CurrentTime = DJY_GetSysTime();                  //总超时处理
         if(CurrentTime - ym->StartTime >= ym->TimeOut)
         {
             Ret = YMODEM_TIMEOUT;
@@ -703,6 +705,8 @@ YMODEM_RECVEXIT:
     __Ymodem_FileOps(ym,YMODEM_FILE_CLOSE);                 //close file
     return Ret;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // ============================================================================
 // 功能：Ymodem下载文件，无参数，因为文件名已经在ymodem协议数据名里面
@@ -765,7 +769,7 @@ bool_t downloadym(char *Param)
     }
     pYmodem->PkgBuf[0] = (u8)res;
     pYmodem->PkgBufCnt = 1;
-    pYmodem->StartTime = DjyGetSysTime();
+    pYmodem->StartTime = DJY_GetSysTime();
     fcntl(s_s32gYmodemDevIn, F_SETTIMEOUT, CFG_YMODEM_PKG_TIMEOUT);
     Ret = __Ymodem_ReceiveProcess(pYmodem);
 
@@ -811,13 +815,13 @@ YMODEM_EXIT:
         return true;
     }
 }
+#pragma GCC diagnostic pop
 
 static YMRESULT __Ymodem_SendProcess(tagYmodem *ym)
 {
     YMRESULT Ret = YMODEM_OK;
     s64 CurrentTime;
     u8 Cmd[8];
-    s32 ch;
     s32 res;
     u32 temp;
     char *FileName;
@@ -837,7 +841,7 @@ static YMRESULT __Ymodem_SendProcess(tagYmodem *ym)
             break;
         }
         Cmd[0] = (u8)res;
-        CurrentTime = DjyGetSysTime();              //总超时处理
+        CurrentTime = DJY_GetSysTime();              //总超时处理
         if(CurrentTime - ym->StartTime >= ym->TimeOut)
         {
             Ret = YMODEM_TIMEOUT;
@@ -1024,7 +1028,7 @@ bool_t uploadym(char *Param)
     pYmodem->PkgBuf[0] = (u8)res;
 
     pYmodem->PkgBufCnt = 1;
-    pYmodem->StartTime = DjyGetSysTime();
+    pYmodem->StartTime = DJY_GetSysTime();
     fcntl(s_s32gYmodemDevIn, F_SETTIMEOUT, CFG_YMODEM_PKG_TIMEOUT);
     Ret = __Ymodem_SendProcess(pYmodem);
 

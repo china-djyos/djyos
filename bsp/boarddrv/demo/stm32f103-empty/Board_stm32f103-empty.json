@@ -1,0 +1,34 @@
+{
+	"board_name":"stm32f103-empty",
+	"cpus":{
+		"stm32f103xe":{
+			"clocks":{
+				
+			},
+			"chips":["EEPROM at24c02",
+			"LCD driver ili9325",
+			"stmpe811"],
+			"peripherals":["cpu_peri_dma",
+			"cpu_peri_emflash",
+			"cpu_peri_gpio",
+			"cpu_peri_hal",
+			"cpu_peri_iic",
+			"cpu_peri_lowpwer",
+			"cpu_peri_rtc",
+			"cpu_peri_timer",
+			"cpu_peri_uart",
+			"cpu_peri_wdt"],
+			"mian_freq":0,
+			"memories":{
+				"memory1":{
+					"size":"0x400000",
+					"type":"RAM",
+					"start_addr":"0x60000000"
+				}
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

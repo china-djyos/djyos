@@ -70,7 +70,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"time"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -118,7 +118,7 @@
 //    dtm.tm_sec  = BcdToHex(rBCDSEC);
 //    rRTCCON &= ~1 ;     //RTC read and write disable
 //
-//    Tm_SetDateTime(&dtm); // 向OS的Clock模块传递新的时间值
+//    Time_SetDateTime(&dtm); // 向OS的Clock模块传递新的时间值
 //    return 0;
 //}
 
@@ -135,7 +135,7 @@ bool_t RTC_SetTime(s64 time)
     s64 time_s;
 
     time_s = time/1000000;
-    Tm_LocalTime_r(&time_s,&dtm);
+    Time_LocalTime_r(&time_s,&dtm);
 
     if((dtm.tm_year > 2000) && (dtm.tm_year < 2099))
     {
@@ -172,7 +172,7 @@ bool_t RTC_GetTime(s64 *time)
     dtm.tm_us   = 0;
     rRTCCON &= ~1 ;     //RTC read and write disable
 
-    *time = 1000000 * Tm_MkTime(&dtm);
+    *time = 1000000 * Time_MkTime(&dtm);
     return true;
 }
 
@@ -202,7 +202,7 @@ ptu32_t ModuleInstall_RTC(ptu32_t para)
         DateTime.tm_mon  = 1;
         DateTime.tm_year = 2000;
         RTC_SetTime(&DateTime);
-        Tm_SetDateTime(&DateTime);
+        Time_SetDateTime(&DateTime);
     }
     Rtc_RegisterDev(RTC_GetTime,RTC_SetTime);
     return true;

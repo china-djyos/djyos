@@ -1,4 +1,4 @@
-ENTRY(AppStart)  
+ENTRY(AppStart)
 
 INCLUDE  ../src/lds/memory.lds
 
@@ -9,22 +9,23 @@ SECTIONS
     /*地址填充区域，Release版本下载起始地址实质上是0x0040 0000 + IbootSize + 256*/
     /*因此在此处填充section内，将InnerFlash地址偏移，使生成的bin文件起始地址为0x00440100*/
     /*切勿在填充section内填写数据（例如LONG( . + 256)），否则生成的bin文件中会包含此段*/
-    Iboot_IbootFill :        
+    Iboot_IbootFill :
     {
         gc_IbootStart = .;
-        . += IbootSize;  
+        . += IbootSize;
     }>InnerFlash
-	
-	Iboot_Apphead :
+
+        Iboot_Apphead :
     {
-        gc_AppStart = .;          
-        KEEP(*(.DjyAppHead .DjyAppHead.*))    
+        gc_AppStart = .;
+        KEEP(*(.DjyAppHead .DjyAppHead.*))
+        KEEP(*(.DjyProductInfo .DjyProductInfo.*))
     }>InnerFlash
-	
-	Iboot_RevRam (NOLOAD):
+
+        Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IbootAppInfo .IbootAppInfo.*))    
+        KEEP(*(.IbootAppInfo .IbootAppInfo.*))
     }>RAM1
 
     stack_rRAM1_lRAM1 (NOLOAD) :
@@ -113,16 +114,16 @@ SECTIONS
         * (.bss .bss.* COMMON)
     }>RAM1
 
-	routine_shell_data_section :
-	{
-   		 KEEP(* (.ro_shell_data))
- 	 }>RAM1 AT>InnerFlash
- 	
+        routine_shell_data_section :
+        {
+                 KEEP(* (.ro_shell_data))
+         }>RAM1 AT>InnerFlash
+
     expand_shell_data_section :
-	{
- 	     KEEP(* (.ex_shell_data))
- 	 }>RAM1 AT>InnerFlash
- 	 
+        {
+             KEEP(* (.ex_shell_data))
+         }>RAM1 AT>InnerFlash
+
     preload_cp_table :
     {
        . = ALIGN(0x08);
@@ -167,12 +168,12 @@ SECTIONS
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
-        	                
+
         LONG(LOADADDR(routine_shell_data_section))
         LONG(ADDR(routine_shell_data_section))
         LONG(SIZEOF(routine_shell_data_section))
         LONG(1)
-        
+
         LONG(LOADADDR(expand_shell_data_section))
         LONG(ADDR(expand_shell_data_section))
         LONG(SIZEOF(expand_shell_data_section))
@@ -185,7 +186,7 @@ SECTIONS
         sys_heap_bottom = .;
     }>RAM1
     sys_heap_top = InnerRam1Start + InnerRam1Size;
-    
+
     heap_rRAM2_lRAM2 (NOLOAD) :
     {
         . = ALIGN(0x08);
@@ -213,7 +214,7 @@ SECTIONS
         BYTE(0x73)                  /*'s'*/
         BYTE(0)                     /*串结束，"sys"是堆的名字*/
         . = ALIGN(0x04);
-        
+
         LONG(1)                     /*表示该堆由1段内存组成*/
         LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
         LONG(0)                     /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
@@ -247,31 +248,31 @@ SECTIONS
         LONG(InnerFlashRange - IbootSize)
     }>InnerFlash
 
-	    
-    shell_config_section :
-	{
-   		KEEP(*(.shellconfig))
- 	}>InnerFlash
-    
-    routine_shell_section :
-	{
-   		 KEEP(* (.ro_shell_cmd))
-   		 KEEP(* (.ro_shell_data))
- 	}>InnerFlash
- 	
-    expand_shell_section :
-	{
- 	     KEEP(* (.ex_shell_cmd))
- 	     KEEP(* (.ex_shell_data))
- 	      . = ALIGN(0x08);
- 	}>InnerFlash
 
- 	Shell_Info :
+    shell_config_section :
+        {
+                KEEP(*(.shellconfig))
+        }>InnerFlash
+
+    routine_shell_section :
+        {
+                 KEEP(* (.ro_shell_cmd))
+                 KEEP(* (.ro_shell_data))
+        }>InnerFlash
+
+    expand_shell_section :
+        {
+             KEEP(* (.ex_shell_cmd))
+             KEEP(* (.ex_shell_data))
+              . = ALIGN(0x08);
+        }>InnerFlash
+
+        Shell_Info :
     {
         p_shell_info = .;
-        LONG(gc_AppStart) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG( LENGTH(InnerFlash)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/   
-    }>InnerFlash 
+        LONG(gc_AppStart) /* 该bin文件的起始地址*/
+        LONG( LENGTH(InnerFlash)-IbootSize) /* 该bin文件允许大小*/
+    }>InnerFlash
 
 }
 /**** The End ****/

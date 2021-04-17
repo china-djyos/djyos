@@ -176,7 +176,7 @@
 
 //typedef int socklen_t;
 #define socklen_t int
-#define CN_INVALID_FD  -1
+//#define CN_INVALID_FD  -1
 
 
 //bsd socket type and addr type defines
@@ -185,16 +185,16 @@ typedef uint16_t in_port_t;
 typedef uint32_t in_addr_t;
 
 struct sockaddr {
-      sa_family_t sa_family;       /* Address family */
-      char sa_data[14];            /* protocol-specific address */
+      sa_family_t sa_family;       // Address family
+      char sa_data[14];            // protocol-specific address
 };
 struct in_addr  {
     in_addr_t s_addr;                    /* IPv4 address */
 };
 struct sockaddr_in {
      sa_family_t sin_family;             /* AF_INET */
-     in_port_t sin_port;                 /* Port number.  */
-     struct in_addr sin_addr;            /* Internet address.  */
+     in_port_t sin_port;                 // remote Port number.  sa_data[0~1]
+     struct in_addr sin_addr;            // remote IP. sa_data[2~5]
 
      /* Pad to size of `struct sockaddr'.  */
      unsigned char sin_zero[8];
@@ -306,10 +306,12 @@ enum _EN_SOCKEY_ERRORNO
 #define CN_SOCKET_PROOOB        (1<<12)
 #define CN_SOCKET_PRONAGLE      (1<<13)
 #define CN_SOCKET_PROLINGER     (1<<14)
-#define CN_SOCKET_PROCORK       (1<<15)
+#define CN_SOCKET_PROCORK       (1<<15)     //收集到最大量数据才发送。
 #define CN_SOCKET_PROREUSE      (1<<16)
 #define CN_SOCKET_PROKEEPALIVE  (1<<17)
 #define CN_SOCKET_PROBROAD      (1<<18)
+
+#define CN_SOCKET_PROCONNECT    (1<<19)  //使用非阻塞连接时添加这个标志来记录目前发起了连接请求
 
 typedef struct
 {
@@ -367,7 +369,7 @@ struct TPL_ProtocalOps
 #define SHUT_RDWR 2  //关闭读写
     int (*__shutdown)(struct tagSocket *sockfd, u32 how);
     int (*__close)(struct tagSocket *sockfd);
-    int (*isactive)(struct tagSocket *sockfd,int mode);
+//    int (*isactive)(struct tagSocket *sockfd,int mode);
     //设置套接字选项
     int (*__setsockopt)(struct tagSocket *sockfd, int level, int optname,\
                    const void *optval, int optlen);
@@ -520,30 +522,31 @@ int getpeername(int sockfd,struct sockaddr *addr,socklen_t *addrlen);
 #define O_NDELAY    O_NONBLOCK
 #endif
 
-#ifndef FD_SETSIZE
-#define FD_SETSIZE     (10)    //the mac select num
-#endif
+//#ifndef FD_SETSIZE
+//#define FD_SETSIZE     (10)    //the mac select num
+//#endif
 
 #include <unistd.h>
 //select.h
 #include <sys/time.h>
-#define CN_SELECT_MAXNUM      FD_SETSIZE
+
 //#define CN_SELECT_TIMEDEFAULT 10
-typedef struct
-{
-    int  mode;
-    u32  fd[CN_SELECT_MAXNUM];
-}_types_fd_set;
-
-#define fd_set _types_fd_set
-#define ARG_MAX 256
-int FD_SET(int fd, fd_set *sets);
-int FD_CLR(int fd, fd_set *sets);
-int FD_ISSET(int fd, fd_set *sets);
-int FD_ZERO(fd_set *sets);
-
-int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
-           struct timeval *timeout);
+//在“工具链路径\include\sys\select.h”上有定义
+//typedef struct
+//{
+//    int  mode;
+//    u32  fd[CN_SELECT_MAXNUM];
+//}_types_fd_set;
+//
+//#define fd_set _types_fd_set
+//#define ARG_MAX 256
+//int FD_SET(int fd, fd_set *sets);
+//int FD_CLR(int fd, fd_set *sets);
+//int FD_ISSET(int fd, fd_set *sets);
+//int FD_ZERO(fd_set *sets);
+//
+//int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps,
+//           struct timeval *timeout);
 ////////////////////////NETDEV DRIVER USED INTERFACE///////////////////////////////
 //ip address defines
 #ifndef INADDR_LOOPBACK
@@ -574,14 +577,15 @@ int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
 typedef ptu32_t   ipaddr_t;
 
 
-//bool_t RoutCreate(const char *name,enum_ipv_t ver,void *netaddr,u32 pro);
 //bool_t RoutDelete(const char *name,enum_ipv_t ver,ipaddr_t addr);
 //bool_t RoutSet(const char *name,enum_ipv_t ver,ipaddr_t ipold,void *newaddr);
 //bool_t RoutSetDefault(enum_ipv_t ver,ipaddr_t ip);
 //bool_t RoutDns(enum_ipv_t ver, ipaddr_t ip);
 //bool_t RoutSetDefaultAddr(enum_ipv_t ver,ipaddr_t ip,ipaddr_t mask,ipaddr_t gateway,ipaddr_t dns);
 //this function use to alloc an ip from the dhcp dynamicly
-bool_t DhcpAddClientTask(const char *name);
+bool_t DHCP_AddClientTask(const char *ifname, u32 OldIP);
+bool_t  DHCP_ServerInit(void);
+bool_t  DHCP_ClientInit(void);
 
 //used for the multicast
 #define MULTICAST_MASK     (htonl(0xf0000000))
@@ -592,8 +596,8 @@ bool_t DhcpAddClientTask(const char *name);
 //ftp client interface
 //upload:put the local file(sfile) to the server(dfile)
 //download:download the sourcefile(sfile)  to the local file(dfile) from the server
-int ftpupload(const char *host,const char *port,const char *user,const char *passwd,const char *sfile,const char *dfile);
-int ftpdownload(const char *host,const char *port,const char *user,const char *passwd,const char *sfile,const char *dfile);
+int FTP_ClientUpload(const char *host,const char *port,const char *user,const char *passwd,const char *sfile,const char *dfile);
+int FTP_ClientDownload(const char *host,const char *port,const char *user,const char *passwd,const char *sfile,const char *dfile);
 
 
 

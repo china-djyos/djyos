@@ -10,9 +10,10 @@
 extern void rwnxl_violence_reset_patch(void);
 void rwxl_reset_patch(void)
 {
-#if (CFG_SOC_NAME == SOC_BK7231)
+// maybe bk7231u & bk7251 still need this patch
+// #if (CFG_SOC_NAME == SOC_BK7231)
 	rwnxl_violence_reset_patch();
-#endif // (CFG_SOC_NAME == SOC_BK7231)
+// #endif // (CFG_SOC_NAME == SOC_BK7231)
 }
 
 void hal_machw_init_diagnostic_ports(void)

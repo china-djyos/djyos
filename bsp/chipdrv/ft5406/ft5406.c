@@ -64,16 +64,12 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//  extern bool_t ModuleInstall_FT5406(struct GkWinObj *desktop);
-//  struct GkWinObj *ptouchdesktop;
-//  ptouchdesktop = GK_GetDesktop(CFG_DISPLAY_NAME);
-//  if(false == ModuleInstall_FT5406(ptouchdesktop))
-//  {
-//      printf("FT5406 Install Failed!\r\n");
-//      while(1);
-//  }
-//  extern bool_t GDD_AddInputDev(const char *InputDevName);
-//  GDD_AddInputDev(CFG_FT5406_TOUCH_NAME);
+//  extern bool_t ModuleInstall_FT5406(void);
+//  ModuleInstall_FT5406();
+//#if(CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == true)
+//    extern bool_t GDD_AddInputDev(const char *InputDevName);
+//    GDD_AddInputDev(CFG_FT5406_TOUCH_NAME);
+//#endif
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -82,7 +78,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:later               //初始化时机，可选值：early，medium，later。
+//init time:later               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"lock","iicbus","graphical decorate development","file system","graphical kernel","touch"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -108,7 +104,7 @@
 //%$#@string,1,10,
 #define CFG_FT5406_BUS_NAME          "I2C0"        //"IIC总线名称",触摸芯片使用的IIC总线名称
 #define CFG_FT5406_TOUCH_NAME        "TOUCH_FT5406"//"触摸屏名称",触摸芯片的名称
-#define CFG_FT5406_DESKTOP_NAME      ""            //"桌面名称",触摸屏所使用的桌面的名称
+#define CFG_FT5406_DISPLAY_NAME      ""            //"桌面名称",触摸屏所使用的桌面的名称
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -352,8 +348,9 @@ bool_t Touch_Adjust(struct GkWinObj *desktop,struct ST_TouchAdjust* touch_adjust
 // 参数：无
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t ModuleInstall_FT5406(struct GkWinObj *desktop)
+bool_t ModuleInstall_FT5406(void)
 {
+    struct GkWinObj *desktop;
     bool_t result = false;
     static struct IIC_Device* s_FT5406_Dev;
 
@@ -361,6 +358,7 @@ bool_t ModuleInstall_FT5406(struct GkWinObj *desktop)
     s_FT5406_Dev = IIC_DevAdd(CFG_FT5406_BUS_NAME,"IIC_Dev_FT5406",CFG_FT5406_RT_I2C_ADDRESS,0,8);
     if(NULL != s_FT5406_Dev)
     {
+        desktop = GK_GetDesktop(CFG_FT5X26_DISPLAY_NAME);
         ps_FT5406_Dev = s_FT5406_Dev;
         result=FT5406_Init();
         if(!result)
@@ -371,7 +369,7 @@ bool_t ModuleInstall_FT5406(struct GkWinObj *desktop)
             return false;
 
         FT5406.read_touch = FT5406_Scan;//读触摸点的坐标函数
-        FT5406.touch_loc.display = NULL;     //NULL表示用默认桌面
+        FT5406.touch_loc.display = GK_GetDisplay(CFG_FT5X26_DISPLAY_NAME);
         result=Touch_InstallDevice(CFG_FT5406_TOUCH_NAME,&FT5406);//添加驱动到Touch
         if(!result)
             return false;

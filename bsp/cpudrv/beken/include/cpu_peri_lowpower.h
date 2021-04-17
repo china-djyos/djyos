@@ -55,12 +55,17 @@
 #ifndef __CPU_PERI_LOWPOWER_H__
 #define __CPU_PERI_LOWPOWER_H__
 
+#include <typedef.h>
+#include "manual_ps_pub.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void LP_BSP_ResigerGpioToWakeUpL4(u32 gpio_index_map,u32 gpio_edge_map);
+void LP_BSP_ResigerGpioToWakeUpL4(PS_DEEP_WAKEUP_WAY way,u32 gpio_index,
+                                  u32 gpio_edge, u32 time);
 void LP_DeepSleep(void);
+void ImmediatelyDeepSleep(void);
 #ifdef __cplusplus
 }
 #endif

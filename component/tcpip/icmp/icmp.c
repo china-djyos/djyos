@@ -66,7 +66,7 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"lock","heap","device file system"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -96,31 +96,32 @@
 //%$#@end exclude   ****组件描述结束
 
 //@#$%component end configure
+
 #pragma pack(1)
-typedef struct
+struct IcmpHdr
 {
     u8        type;        //type for icmp
     u8        code;        //code for icmp
     u16       chksum;      //pkg chksum
     u8        data[0];     //additional data for specified type and data
-}tagIcmpHdr;
+};
 
-typedef struct
+struct IcmpHdrEcho
 {
     u16 taskid;
     u16 seqno;
     u8  data[0];
-}tagIcmpHdrEcho;
+};
 
 #pragma pack()
 
 enum _EN_ICMP_TYPE
 {
-    EN_ICMP_ECHOREPLY = 0,
+    EN_ICMP_ECHOREPLY = 0,                  //收到回显应答包
     EN_ICMP_DSTNOTREACH =3,
     EN_ICMP_SRCSHUTDOWN,
     EN_ICMP_RELOCATE,
-    EN_ICMP_ECHOREQUEST =8,
+    EN_ICMP_ECHOREQUEST =8,                 //收到回显请求包
     EN_ICMP_ROUTNOTICE,
     EN_ICMP_ROUTREQUEST,
     EN_ICMP_TIMEOUT,
@@ -135,25 +136,25 @@ enum _EN_ICMP_TYPE
 
 
 //the data used for request and answer info
-typedef struct IcmpTask
+struct IcmpTask
 {
     struct IcmpTask             *pre;     //pre  lst
     struct IcmpTask             *nxt;     //nxt  lst
-    semp_t                       sync;     //when rcv, active it
+    struct SemaphoreLCB         *sync;     //when rcv, active it
     //the member used for specifying
     u8        type;                             //icmp type
     u8        code;                             //icmp code
     u8        *data;                            //task data:the data type and code need
-}tagIcmpTask;
+};
 
-typedef struct
+struct IcmpTaskEcho
 {
     u16     taskid;
     u16     seqno;
     u32     ipdst;
-}tagIcmpTaskEcho;
+};
 
-static tagIcmpTask                *pgIcmpTaskLst;    //icmp queue
+static struct IcmpTask        *pgIcmpTaskLst;    //icmp queue
 static struct MutexLCB         sgIcmpTaskSync;    //icmp queue sync
 // =============================================================================
 // 函数功能：__Icmp_TaskAdd
@@ -163,10 +164,10 @@ static struct MutexLCB         sgIcmpTaskSync;    //icmp queue sync
 // 返回值  ：true success while  false failed
 // 说明    :
 // =============================================================================
-bool_t __Icmp_TaskAdd(tagIcmpTask *task)
+bool_t __Icmp_TaskAdd(struct IcmpTask *task)
 {
-    task->sync = semp_init(1,0,NULL);
-    if(mutex_lock(&sgIcmpTaskSync))
+    task->sync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
+    if(Lock_MutexPend(&sgIcmpTaskSync,CN_TIMEOUT_FOREVER))
     {
         //create the semp sync
         task->pre = NULL;
@@ -176,7 +177,7 @@ bool_t __Icmp_TaskAdd(tagIcmpTask *task)
             pgIcmpTaskLst->pre = task;
         }
         pgIcmpTaskLst = task;
-        mutex_unlock(&sgIcmpTaskSync);
+        Lock_MutexPost(&sgIcmpTaskSync);
         return true;
     }
     else
@@ -193,9 +194,9 @@ bool_t __Icmp_TaskAdd(tagIcmpTask *task)
 // 返回值  ：true success while  false failed
 // 说明    :
 // =============================================================================
-bool_t __Icmp_TaskDel(tagIcmpTask *task)
+bool_t __Icmp_TaskDel(struct IcmpTask *task)
 {
-    if(mutex_lock(&sgIcmpTaskSync))
+    if(Lock_MutexPend(&sgIcmpTaskSync,CN_TIMEOUT_FOREVER))
     {
         if(task == pgIcmpTaskLst)
         {
@@ -219,8 +220,8 @@ bool_t __Icmp_TaskDel(tagIcmpTask *task)
             }
         }
         //del the semp sync
-        semp_del(task->sync);
-        mutex_unlock(&sgIcmpTaskSync);
+        Lock_SempDelete(task->sync);
+        Lock_MutexPost(&sgIcmpTaskSync);
         return true;
     }
     else
@@ -241,38 +242,38 @@ bool_t __Icmp_TaskDel(tagIcmpTask *task)
 // =============================================================================
 void __Icmp_TaskEchoActive(u32 ipsrc, u8 type, u8 code,struct NetPkg *pkg)
 {
-    tagIcmpTask         *tmp;
-    tagIcmpTaskEcho     *taskdata;
-    tagIcmpHdrEcho      *echodata;
+    struct IcmpTask         *tmp;
+    struct IcmpTaskEcho     *taskdata;
+    struct IcmpHdrEcho      *echodata;
 
-    if(mutex_lock(&sgIcmpTaskSync))
+    if(Lock_MutexPend(&sgIcmpTaskSync,CN_TIMEOUT_FOREVER))
     {
         tmp = pgIcmpTaskLst;
-        echodata = (tagIcmpHdrEcho *)PkgGetCurrentBuffer(pkg);;
-//      echodata = (tagIcmpHdrEcho *)(pkg->buf + pkg->offset);
+        echodata = (struct IcmpHdrEcho *)PkgGetCurrentBuffer(pkg);;
+//      echodata = (struct IcmpHdrEcho *)(pkg->buf + pkg->offset);
         while(NULL != tmp)
         {
             if((tmp->type == type)&&(tmp->code == code))
             {
-                taskdata = (tagIcmpTaskEcho *)tmp->data;
+                taskdata = (struct IcmpTaskEcho *)tmp->data;
                 if((taskdata->ipdst == ipsrc)&&\
                    (taskdata->taskid ==echodata->taskid)&&\
                    (taskdata->seqno == echodata->seqno))
                 {
-                    semp_post(tmp->sync);
+                    Lock_SempPost(tmp->sync);
                     break;
                 }
             }
             tmp =tmp->nxt;
         }
-        mutex_unlock(&sgIcmpTaskSync);
+        Lock_MutexPost(&sgIcmpTaskSync);
     }
     return;
 }
 // =============================================================================
 // 函数功能：Icmp_EchoRequest
-//          ping request
-// 输入参数： ipdst, the ip of the host we will ping
+//          PING request
+// 输入参数： ipdst, the ip of the host we will PING
 //           data, additionnal data
 //           len, additionnal data len
 // 输出参数：
@@ -285,32 +286,32 @@ bool_t Icmp_EchoRequest(u32 ipdst, u8 *data, int len,int timeout)
     static u16           seqno = 0;
     u16                  pkglen;
     struct NetPkg            *sndpkg;
-    tagIcmpHdr           *icmppkg;
-    tagIcmpHdrEcho       *icmppkgecho;
-    tagIcmpTask          icmptask;
-    tagIcmpTaskEcho      icmptaskecho;
+    struct IcmpHdr           *icmppkg;
+    struct IcmpHdrEcho       *icmppkgecho;
+    struct IcmpTask          icmptask;
+    struct IcmpTaskEcho      icmptaskecho;
 
     result = false;
     if((NULL != data)&&(len > 0)&&(ipdst != INADDR_ANY))
     {
-        pkglen = sizeof(tagIcmpHdr)+sizeof(tagIcmpHdrEcho)+len;
+        pkglen = sizeof(struct IcmpHdr)+sizeof(struct IcmpHdrEcho)+len;
         sndpkg = PkgMalloc(pkglen,CN_PKLGLST_END);
         if(NULL != sndpkg)
         {
             seqno++;
             PkgSetDataLen(sndpkg, pkglen);
-            PkgSetNextUnit(sndpkg,NULL);
+//            PkgSetNextUnit(sndpkg,NULL);      //PkgMalloc已经设置好
 //          sndpkg->datalen = pkglen;
 //          sndpkg->partnext = NULL;
             //fill the snd pkg
-            icmppkg = (tagIcmpHdr *)PkgGetCurrentBuffer(sndpkg);
-//          icmppkg = (tagIcmpHdr *)(sndpkg->buf + sndpkg->offset);
+            icmppkg = (struct IcmpHdr *)PkgGetCurrentBuffer(sndpkg);
+//          icmppkg = (struct IcmpHdr *)(sndpkg->buf + sndpkg->offset);
             icmppkg->type = EN_ICMP_ECHOREQUEST;
             icmppkg->code = CN_ICMP_ECHOREQUEST_CODE;
             icmppkg->chksum = 0;
-            icmppkgecho = (tagIcmpHdrEcho *)(&icmppkg->data[0]);
+            icmppkgecho = (struct IcmpHdrEcho *)(&icmppkg->data[0]);
             icmppkgecho->seqno = htons(seqno);
-            icmppkgecho->taskid = htons(Djy_MyEvttId());
+            icmppkgecho->taskid = htons(DJY_GetMyEvttId());
             memcpy(&icmppkgecho->data[0], data, len);
             //combin the task
             icmptaskecho.ipdst = ipdst;
@@ -325,7 +326,7 @@ bool_t Icmp_EchoRequest(u32 ipdst, u8 *data, int len,int timeout)
                     CN_IPDEV_ICMPOCHKSUM,&icmppkg->chksum);
             PkgTryFreePart(sndpkg);
             //just wait for the echo, if false, it must be timeout
-            result = semp_pendtimeout(icmptask.sync, timeout);
+            result = Lock_SempPend(icmptask.sync, timeout);
             __Icmp_TaskDel(&icmptask);
         }
     }
@@ -351,20 +352,20 @@ bool_t Icmp_MsgSnd(u32 ipsrc, u32 ipdst, u8 type, u8 code, u8 *info, u16 infolen
     bool_t            result;
     u16               pkglen;
     struct NetPkg         *pkg2snd;
-    tagIcmpHdr        *hdr;
+    struct IcmpHdr        *hdr;
     u8                *src;
     u8                *dst;
     result = false;
-    pkglen = sizeof(tagIcmpHdr)+infolen;
+    pkglen = sizeof(struct IcmpHdr)+infolen;
     pkg2snd = PkgMalloc(pkglen,CN_PKLGLST_END);
     if(NULL != pkg2snd)
     {
         PkgSetDataLen(pkg2snd, pkglen);
-        PkgSetNextUnit(pkg2snd,NULL);
+//        PkgSetNextUnit(pkg2snd,NULL);      //PkgMalloc已经设置好
 //      pkg2snd->datalen = pkglen;
 //      pkg2snd->partnext = NULL;
-        hdr = (tagIcmpHdr *)PkgGetCurrentBuffer(pkg2snd);
-//      hdr = (tagIcmpHdr *)(pkg2snd->buf + pkg2snd->offset);
+        hdr = (struct IcmpHdr *)PkgGetCurrentBuffer(pkg2snd);
+//      hdr = (struct IcmpHdr *)(pkg2snd->buf + pkg2snd->offset);
         hdr->type = type;
         hdr->code = code;
         hdr->chksum = 0;
@@ -393,7 +394,7 @@ bool_t Icmp_MsgSnd(u32 ipsrc, u32 ipdst, u8 type, u8 code, u8 *info, u16 infolen
 // 说明    :Find any task in the queue,if any the set it,otherwise do nothing
 //       anyway, net_free the pkg in
 // =============================================================================
-bool_t __Icmp_EchoReply(u32 ipsrc, tagIcmpHdr *hdr,struct NetPkg *pkg)
+bool_t __Icmp_EchoReply(u32 ipsrc, struct IcmpHdr *hdr,struct NetPkg *pkg)
 {
     u8 type;
     u8 code;
@@ -405,8 +406,7 @@ bool_t __Icmp_EchoReply(u32 ipsrc, tagIcmpHdr *hdr,struct NetPkg *pkg)
     return true;
 }
 // =============================================================================
-// 函数功能：__Icmp_EchoRequest
-//          deal the icmp request pkg
+// 功能：收到ICMP请求的响应函数胡，将发送ICMP应答包
 // 输入参数：ipsrc, pkg source host
 //          ipdst, pkg dst host
 //          type, icmp type
@@ -416,9 +416,9 @@ bool_t __Icmp_EchoReply(u32 ipsrc, tagIcmpHdr *hdr,struct NetPkg *pkg)
 // 返回值  ：true , request success while false timeout
 // 说明    :--todo, CPY PROCESS MAYBE TOO OLD
 // =============================================================================
-bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,struct NetPkg *pkglst)
+bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,struct IcmpHdr *hdr,struct NetPkg *pkglst)
 {
-    bool_t              result;
+    bool_t              result=false;
     u16                 pkglen;
     struct NetPkg           *pkg;
     struct NetPkg           *pkg2snd;
@@ -426,9 +426,9 @@ bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,struct NetPkg *pk
     hdr->type = EN_ICMP_ECHOREPLY;
     hdr->code = CN_ICMP_ECHOREPLY_CODE;
     hdr->chksum = 0;
-    PkgMoveOffsetDown(pkglst,sizeof(tagIcmpHdr));
-//  pkglst->offset -= sizeof(tagIcmpHdr);
-//  pkglst->datalen +=sizeof(tagIcmpHdr);
+    PkgMoveOffsetDown(pkglst,sizeof(struct IcmpHdr));
+//  pkglst->offset -= sizeof(struct IcmpHdr);
+//  pkglst->datalen +=sizeof(struct IcmpHdr);
 
 //  pkglen = 0;
     pkg = pkglst;
@@ -457,8 +457,8 @@ bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,struct NetPkg *pk
 //          pkg = PkgGetNextUnit(pkg);
 //      }
 
-        hdr = (tagIcmpHdr *)PkgGetCurrentBuffer(pkg2snd);
-//      hdr = (tagIcmpHdr *)(pkg2snd->buf + pkg2snd->offset);
+        hdr = (struct IcmpHdr *)PkgGetCurrentBuffer(pkg2snd);
+//      hdr = (struct IcmpHdr *)(pkg2snd->buf + pkg2snd->offset);
         result = IpSend(EN_IPV_4,(ptu32_t)ipdst,(ptu32_t)ipsrc,pkg2snd,
                         PkgGetDataLen(pkg2snd),IPPROTO_ICMP,\
                         CN_IPDEV_ICMPOCHKSUM,&hdr->chksum);
@@ -481,7 +481,7 @@ bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,struct NetPkg *pk
 static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, struct NetPkg *pkglst, u32 devfunc)
 {
     bool_t        result;
-    tagIcmpHdr     *hdr;
+    struct IcmpHdr     *hdr;
     u16            chksum16;
 
     result = true;
@@ -496,11 +496,11 @@ static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, struct NetPkg *pkglst, u32 devfu
         }
     }
 
-    hdr = (tagIcmpHdr *)PkgGetCurrentBuffer(pkglst);
-//  hdr = (tagIcmpHdr *)(pkglst->buf + pkglst->offset);
-    PkgMoveOffsetUp(pkglst,sizeof(tagIcmpHdr));
-//  pkglst->offset += sizeof(tagIcmpHdr);
-//  pkglst->datalen -=sizeof(tagIcmpHdr);
+    hdr = (struct IcmpHdr *)PkgGetCurrentBuffer(pkglst);
+//  hdr = (struct IcmpHdr *)(pkglst->buf + pkglst->offset);
+    PkgMoveOffsetUp(pkglst,sizeof(struct IcmpHdr));
+//  pkglst->offset += sizeof(struct IcmpHdr);
+//  pkglst->datalen -=sizeof(struct IcmpHdr);
     switch(hdr->type)
     {
         case EN_ICMP_ECHOREQUEST:

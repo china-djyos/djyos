@@ -1686,7 +1686,7 @@ int wc_GenerateSeed(OS_Seed* os, byte* output, word32 sz)
     int i = 0;
     for(i = 0; i< sz;i++)
     {
-        random = (int)DjyGetSysTime();
+        random = (int)DJY_GetSysTime();
         if(NULL!=os)
         {
         	random = random%((unsigned int)os);

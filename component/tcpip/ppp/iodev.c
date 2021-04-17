@@ -58,6 +58,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <string.h>
+#include <misc/misc.h>
 #include <os.h>
 //add your own specified header here
 #include <sys/socket.h>
@@ -85,7 +86,7 @@ s32 iodevopen(const char *name)
 {
     s32 ret;
 
-    ret = DevOpen(name,O_RDWR,0);
+    ret = Device_Open(name,O_RDWR,0);
     if(-1==ret)
         return (0);
 
@@ -103,7 +104,7 @@ s32 iodevread(s32 dev,u8 *buf,u32 buflen,u32 timeout)
 {
     s32 len = -1;
 
-    len = DevRead(dev,buf,buflen,0,timeout);
+    len = Device_Read(dev,buf,buflen,0,timeout);
     if((len > 0)&&(gIoDebug.idebug > 0))
     {
         time_t printtime;
@@ -141,7 +142,7 @@ s32 iodevwrite(s32 dev,u8 *buf,u32 len,u32 timeout)
 
     while(sentlen != len)
     {
-        ret = DevWrite(dev,buf+sentlen,len-sentlen,0,timeout);
+        ret = Device_Write(dev,buf+sentlen,len-sentlen,0,timeout);
         if(ret > 0)
         {
             sentlen += ret;
@@ -200,7 +201,7 @@ void iodevflush(s32 dev)
 bool_t iodevclose(s32 dev)
 {
     bool_t ret = true;
-    DevClose(dev);
+    Device_Close(dev);
     return ret;
 }
 //usage:this function to set the sdev debug mode

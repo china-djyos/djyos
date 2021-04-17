@@ -61,7 +61,7 @@
 extern "C" {
 #endif
 
-void Sys_Start(void);
+void SYS_Start(void);
 
 #ifdef __cplusplus
 }

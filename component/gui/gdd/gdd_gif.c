@@ -60,7 +60,7 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 
-#include   <gui/gdd/gdd_private.h>
+#include    "gdd_private.h"
 
 
 /*********************************************************************
@@ -220,12 +220,12 @@ static u16 read_u16(struct GIF_DECODE *decode)
 
 /*********************************************************************
 *
-*       read_bytes
+*       __GDD_ReadBytes
 *
 * Purpose:
 *   Reads a string from the given pointer if possible and increments the pointer
 */
-static void read_bytes(struct GIF_DECODE *decode,u8 * pBuffer, s32 Len)
+static void __GDD_ReadBytes(struct GIF_DECODE *decode,u8 * pBuffer, s32 Len)
 {
   if (decode->RemBytes < 0)
   {
@@ -244,12 +244,12 @@ static void read_bytes(struct GIF_DECODE *decode,u8 * pBuffer, s32 Len)
 
 /*********************************************************************
 *
-*       skip_bytes
+*       __GDD_SkipBytes
 *
 * Purpose:
 *   Skips the number of given bytes and increments the pointer
 */
-static void skip_bytes(struct GIF_DECODE *decode,s32 Len)
+static void __GDD_SkipBytes(struct GIF_DECODE *decode,s32 Len)
 {
   if (decode->RemBytes < 0)
   {
@@ -274,7 +274,7 @@ static void skip_bytes(struct GIF_DECODE *decode,s32 Len)
 * Purpose:
 *   Initializes the given LZW with the input code size
 */
-static void LZW_init(struct GIF_DECODE *decode,s32 InputCodeSize)
+static void __GDD_LZW_Init(struct GIF_DECODE *decode,s32 InputCodeSize)
 {
   memset((u8 *)&(decode->LZW), 0, sizeof(LZW_CONTEXT));
 
@@ -291,7 +291,7 @@ static void LZW_init(struct GIF_DECODE *decode,s32 InputCodeSize)
 
 /*********************************************************************
 *
-*       get_data_block
+*       __GDD_GetDataBlock
 *
 * Purpose:
 *   Reads a LZW data block. The first byte contains the length of the block,
@@ -300,7 +300,7 @@ static void LZW_init(struct GIF_DECODE *decode,s32 InputCodeSize)
 * Return value:
 *   Length of the data block
 */
-static s32 get_data_block(struct GIF_DECODE *decode,u8 * pBuffer)
+static s32 __GDD_GetDataBlock(struct GIF_DECODE *decode,u8 * pBuffer)
 {
   u8 Count;
 
@@ -309,7 +309,7 @@ static s32 get_data_block(struct GIF_DECODE *decode,u8 * pBuffer)
   {
     if (pBuffer)
     {
-      read_bytes(decode,pBuffer, Count);
+      __GDD_ReadBytes(decode,pBuffer, Count);
     }
     else
     {
@@ -321,7 +321,7 @@ static s32 get_data_block(struct GIF_DECODE *decode,u8 * pBuffer)
 
 /*********************************************************************
 *
-*       get_next_code
+*       __GDD_GetNextCode
 *
 * Purpose:
 *   Returns the next LZW code from the LZW stack. One LZW code contains up to 12 bits.
@@ -330,7 +330,7 @@ static s32 get_data_block(struct GIF_DECODE *decode,u8 * pBuffer)
 *   >= 0 if succeed
 *   <  0 if not succeed
 */
-static s32 get_next_code(struct GIF_DECODE *decode)
+static s32 __GDD_GetNextCode(struct GIF_DECODE *decode)
 {
   s32 i, j, End;
   u32 Result;
@@ -355,7 +355,7 @@ static s32 get_next_code(struct GIF_DECODE *decode)
     }
     decode->LZW.aBuffer[0] = decode->LZW.aBuffer[decode->LZW.LastByte - 2];
     decode->LZW.aBuffer[1] = decode->LZW.aBuffer[decode->LZW.LastByte - 1];
-    if ((Count = get_data_block(decode,&decode->LZW.aBuffer[2])) == 0)
+    if ((Count = __GDD_GetDataBlock(decode,&decode->LZW.aBuffer[2])) == 0)
     {
       decode->LZW.GetDone = 1;
     }
@@ -396,7 +396,7 @@ static s32 get_next_code(struct GIF_DECODE *decode)
 
 /*********************************************************************
 *
-*       get_next_byte
+*       __GDD_GetNextByte
 *
 * Purpose:
 *   Reads the next LZW code from the LZW stack and returns the first byte from the LZW code.
@@ -406,10 +406,10 @@ static s32 get_next_code(struct GIF_DECODE *decode)
 *   -1   if not succeed
 *   -2   if end code has been read
 */
-static s32 get_next_byte(struct GIF_DECODE *decode)
+static s32 __GDD_GetNextByte(struct GIF_DECODE *decode)
 {
   s32 i, Code, Incode;
-  while ((Code = get_next_code(decode)) >= 0)
+  while ((Code = __GDD_GetNextCode(decode)) >= 0)
   {
     if (Code == decode->LZW.ClearCode)
     {
@@ -433,7 +433,7 @@ static s32 get_next_byte(struct GIF_DECODE *decode)
       /* Read the first code from the stack after clearing and initializing */
       do
       {
-        decode->LZW.FirstCode = get_next_code(decode);
+        decode->LZW.FirstCode = __GDD_GetNextCode(decode);
       } while (decode->LZW.FirstCode == decode->LZW.ClearCode);
       decode->LZW.OldCode = decode->LZW.FirstCode;
       return decode->LZW.FirstCode;
@@ -493,14 +493,14 @@ static s32 get_next_byte(struct GIF_DECODE *decode)
 
 /*********************************************************************
 *
-*       read_extension
+*       __GDD_ReadExtension
 *
 * Purpose:
 *   Reads an extension block. One extension block can consist of several data blocks.
 *   If an unknown extension block occures, the routine failes.
 */
 
-static s32 read_extension(struct GIF_DECODE *decode,s32 * pTransIndex, GIF_IMAGE_INFO * pInfo, u8 * pDisposal)
+static s32 __GDD_ReadExtension(struct GIF_DECODE *decode,s32 * pTransIndex, GIF_IMAGE_INFO * pInfo, u8 * pDisposal)
 {
   u8 Label;
   ////
@@ -512,13 +512,13 @@ static s32 read_extension(struct GIF_DECODE *decode,s32 * pTransIndex, GIF_IMAGE
       case GIF_APPLICATION:
       case GIF_COMMENT:
 
-        while (get_data_block(decode,decode->Buffer) > 0);
+        while (__GDD_GetDataBlock(decode,decode->Buffer) > 0);
         return 0;
         ////
 
       case GIF_GRAPHICCTL:
 
-        if (get_data_block(decode,decode->Buffer) != 4)
+        if (__GDD_GetDataBlock(decode,decode->Buffer) != 4)
         { /* Length of a graphic control block must be 4 */
           return 1;
         }
@@ -560,7 +560,7 @@ static s32 read_extension(struct GIF_DECODE *decode,s32 * pTransIndex, GIF_IMAGE
 
 /*********************************************************************
 *
-*       display_gif_image
+*       __GDD_DisplayGifImage
 *
 * Purpose:
 *   This routine draws a GIF image from the current pointer which should point to a
@@ -579,7 +579,7 @@ static s32 read_extension(struct GIF_DECODE *decode,s32 * pTransIndex, GIF_IMAGE
 */
 
 
-static bool_t display_gif_image(HDC hdc,s32 x, s32 y,u32 bk_color,struct GIF_DECODE *hgif, s32 TransIndex, s32 Disposal)
+static bool_t __GDD_DisplayGifImage(HDC hdc,s32 x, s32 y,u32 bk_color,struct GIF_DECODE *hgif, s32 TransIndex, s32 Disposal)
 {
 
   s32 Index, OldIndex, XPos, YPos, YCnt, Pass, Interlace, XEnd;
@@ -591,7 +591,7 @@ static bool_t display_gif_image(HDC hdc,s32 x, s32 y,u32 bk_color,struct GIF_DEC
   XEnd          = hgif->ImgDesc.XSize + x - 1;
 
   Cnt      = read_u8(hgif);                /* Read the LZW codesize */
-  LZW_init(hgif,Cnt);                      /* Initialize the LZW stack with the LZW codesize */
+  __GDD_LZW_Init(hgif,Cnt);                      /* Initialize the LZW stack with the LZW codesize */
   Interlace = hgif->ImgDesc.Flags & 0x40;  /* Evaluate if image is interlaced */
 
   for (YCnt = 0, YPos = y, Pass = 0; YCnt < Height; YCnt++)
@@ -608,7 +608,7 @@ static bool_t display_gif_image(HDC hdc,s32 x, s32 y,u32 bk_color,struct GIF_DEC
       }
       else
       {
-        Index = get_next_byte(hgif);
+        Index = __GDD_GetNextByte(hgif);
       }
       ////
 
@@ -623,7 +623,7 @@ static bool_t display_gif_image(HDC hdc,s32 x, s32 y,u32 bk_color,struct GIF_DEC
         return FALSE; /* Error */
       }
 
-      //SetPixel(hdc,XPos-1,YPos,decode->ColorTable[Index]);
+      //GDD_SetPixel(hdc,XPos-1,YPos,decode->ColorTable[Index]);
 
       #if 1
       /* If current index equals old index increment counter */
@@ -638,12 +638,12 @@ static bool_t display_gif_image(HDC hdc,s32 x, s32 y,u32 bk_color,struct GIF_DEC
           if (OldIndex != TransIndex)
           {
                color =hgif->ColorTable[OldIndex];
-               DrawLineEx(hdc,XPos - Cnt - 1, YPos, XPos-0,YPos,color);
+               GDD_DrawLineEx(hdc,XPos - Cnt - 1, YPos, XPos-0,YPos,color);
           }
           else if(Disposal == 2)
           {
 
-              DrawLineEx(hdc,XPos - Cnt - 1, YPos, XPos-0,YPos,bk_color);
+              GDD_DrawLineEx(hdc,XPos - Cnt - 1, YPos, XPos-0,YPos,bk_color);
           }
 
           Cnt = 0;
@@ -656,11 +656,11 @@ static bool_t display_gif_image(HDC hdc,s32 x, s32 y,u32 bk_color,struct GIF_DEC
             if (OldIndex != TransIndex)
             {
                 color   =hgif->ColorTable[OldIndex];
-                SetPixel(hdc,XPos-1,YPos,color);
+                GDD_SetPixel(hdc,XPos-1,YPos,color);
             }
             else if (Disposal == 2)
             {
-                SetPixel(hdc,XPos-1,YPos,bk_color);
+                GDD_SetPixel(hdc,XPos-1,YPos,bk_color);
             }
 
           }
@@ -680,22 +680,22 @@ static bool_t display_gif_image(HDC hdc,s32 x, s32 y,u32 bk_color,struct GIF_DEC
         if(Cnt)
         {
 
-          DrawLineEx(hdc,XPos - Cnt - 1, YPos, XPos-0,YPos,color);
+          GDD_DrawLineEx(hdc,XPos - Cnt - 1, YPos, XPos-0,YPos,color);
         }
         else
         {
-          SetPixel(hdc,XEnd,YPos,color);
+          GDD_SetPixel(hdc,XEnd,YPos,color);
         }
       }
       else
       {
         if(Cnt)
         {
-          DrawLineEx(hdc,XPos - Cnt - 1, YPos, XPos-0,YPos,bk_color);
+          GDD_DrawLineEx(hdc,XPos - Cnt - 1, YPos, XPos-0,YPos,bk_color);
         }
         else
         {
-          SetPixel(hdc,XEnd,YPos,bk_color);
+          GDD_SetPixel(hdc,XEnd,YPos,bk_color);
         }
       }
 
@@ -726,9 +726,9 @@ static bool_t display_gif_image(HDC hdc,s32 x, s32 y,u32 bk_color,struct GIF_DEC
 
 /*********************************************************************
 *
-*       read_color_map
+*       __GDD_ReadColorMap
 */
-static s32 read_color_map(struct GIF_DECODE *decode,s32 NumColors)
+static s32 __GDD_ReadColorMap(struct GIF_DECODE *decode,s32 NumColors)
 {
   s32 i,r,g,b;
   ////
@@ -748,7 +748,7 @@ static s32 read_color_map(struct GIF_DECODE *decode,s32 NumColors)
 
 /*********************************************************************
 *
-*       gif_decode_init
+*       __GDD_GifDecodeInit
 *
 * Purpose:
 *   The routine initializes the static decode structure and checks
@@ -758,7 +758,7 @@ static s32 read_color_map(struct GIF_DECODE *decode,s32 NumColors)
 *   0 on success, 1 on error
 */
 
-static s32 gif_decode_init(struct GIF_DECODE *decode)
+static s32 __GDD_GifDecodeInit(struct GIF_DECODE *decode)
 {
       u8 acVersion[7] = {0};
       ////
@@ -767,7 +767,7 @@ static s32 gif_decode_init(struct GIF_DECODE *decode)
      decode->RemBytes     = decode->NumBytes;
 
       /* Check if the file is a legal GIF file by checking the 6 byte file header */
-     read_bytes(decode,acVersion, 6); if (!decode->RemBytes) { return 0; }
+     __GDD_ReadBytes(decode,acVersion, 6); if (!decode->RemBytes) { return 0; }
      if ( (acVersion[0] != 'G') ||
        (acVersion[1] != 'I') ||
        (acVersion[2] != 'F') ||
@@ -782,7 +782,7 @@ static s32 gif_decode_init(struct GIF_DECODE *decode)
 
 /*********************************************************************
 *
-*       get_image_dimension
+*       __GDD_GetImageDimension
 *
 * Purpose:
 *   Reads the image dimension from the logical screen descriptor
@@ -791,7 +791,7 @@ static s32 gif_decode_init(struct GIF_DECODE *decode)
 *   0 on success, 1 on error
 */
 
-static s32 get_image_dimension(struct GIF_DECODE *decode)
+static s32 __GDD_GetImageDimension(struct GIF_DECODE *decode)
 {
   s32 XSize, YSize;
   /* Read image size */
@@ -810,7 +810,7 @@ static s32 get_image_dimension(struct GIF_DECODE *decode)
 
 /*********************************************************************
 *
-*       get_global_color_table
+*       __GDD_GetGlobalColorTable
 *
 * Purpose:
 *   Reads the global color table if there is one. Returns the number of
@@ -819,7 +819,7 @@ static s32 get_image_dimension(struct GIF_DECODE *decode)
 * Return value:
 *   0 on success, 1 on error
 */
-static s32 get_global_color_table(struct GIF_DECODE *decode)
+static s32 __GDD_GetGlobalColorTable(struct GIF_DECODE *decode)
 {
 
   u8 Flags;
@@ -836,7 +836,7 @@ static s32 get_global_color_table(struct GIF_DECODE *decode)
   if (Flags & 0x80)
   {
     /* Read global color table */
-    if (read_color_map(decode,NumColors))
+    if (__GDD_ReadColorMap(decode,NumColors))
     {
       return 1; /* Error */
     }
@@ -850,26 +850,26 @@ static s32 get_global_color_table(struct GIF_DECODE *decode)
 
 /*********************************************************************
 *
-*       init_size_and_color_table
+*       __GDD_InitSizeAndColorTable
 */
 
-static s32 init_size_and_color_table(struct GIF_DECODE *decode)
+static s32 __GDD_InitSizeAndColorTable(struct GIF_DECODE *decode)
 {
 
   /* Initialize decoding */
-  if (gif_decode_init(decode))
+  if (__GDD_GifDecodeInit(decode))
   {
     return 1; /* Error */
   }
 
   /* Get image size */
-  if (get_image_dimension(decode))
+  if (__GDD_GetImageDimension(decode))
   {
     return 1; /* Error */
   }
 
   /* Get global color table (if available) */
-  if (get_global_color_table(decode))
+  if (__GDD_GetGlobalColorTable(decode))
   {
     return 1; /* Error */
   }
@@ -877,14 +877,14 @@ static s32 init_size_and_color_table(struct GIF_DECODE *decode)
 }
 
 
-static bool_t gif_init(struct GIF_DECODE *decode)
+static bool_t __GDD_GifInit(struct GIF_DECODE *decode)
 {
   u8 Flags, Introducer;
   s32 ImageCnt;
   ////
 
   /* Initialize decoding and get size and global color table */
-  if (init_size_and_color_table(decode))
+  if (__GDD_InitSizeAndColorTable(decode))
   {
     return FALSE; /* Error */
   }
@@ -898,14 +898,14 @@ static bool_t gif_init(struct GIF_DECODE *decode)
     switch (Introducer)
     {
         case GIF_INTRO_IMAGE:
-          skip_bytes(decode,8);                /* Skip the first 8 bytes of the image descriptor */
+          __GDD_SkipBytes(decode,8);                /* Skip the first 8 bytes of the image descriptor */
           Flags = read_u8(decode);            /* Only 'Flags' are intresting */
           if (Flags & 0x80)
           {
-            skip_bytes(decode,decode->NumColors * 3);  /* Skip local color table */
+            __GDD_SkipBytes(decode,decode->NumColors * 3);  /* Skip local color table */
           }
-          skip_bytes(decode,1);                /* Skip codesize */
-          while (get_data_block(decode,0) > 0); /* Skip data blocks */
+          __GDD_SkipBytes(decode,1);                /* Skip codesize */
+          while (__GDD_GetDataBlock(decode,0) > 0); /* Skip data blocks */
           ImageCnt++;
           break;
           ////
@@ -915,7 +915,7 @@ static bool_t gif_init(struct GIF_DECODE *decode)
           ////
 
         case GIF_INTRO_EXTENSION:
-          if (read_extension(decode,NULL, NULL, NULL))
+          if (__GDD_ReadExtension(decode,NULL, NULL, NULL))
           { /* Skip image extension */
             return FALSE;
           }
@@ -937,7 +937,7 @@ static bool_t gif_init(struct GIF_DECODE *decode)
 
 /*============================================================================*/
 //获得GIF图像信息
-static    bool_t get_gif_image_info(struct GIF_DECODE *decode,s32 Index,GIF_IMAGE_INFO * pInfo)
+static    bool_t __GDD_GetGifImageInfo(struct GIF_DECODE *decode,s32 Index,GIF_IMAGE_INFO * pInfo)
 {
   u8 Flags, Introducer;
   s32 NumColors=0, ImageCnt=0;
@@ -947,7 +947,7 @@ static    bool_t get_gif_image_info(struct GIF_DECODE *decode,s32 Index,GIF_IMAG
   if(decode==NULL)    return FALSE;
 
   /* Initialize decoding and get size and global color table */
-  if (init_size_and_color_table(decode))
+  if (__GDD_InitSizeAndColorTable(decode))
   {
     return FALSE; /* Error */
   }
@@ -967,15 +967,15 @@ static    bool_t get_gif_image_info(struct GIF_DECODE *decode,s32 Index,GIF_IMAG
             return TRUE;
           }
 
-          skip_bytes(decode,8);                /* Skip the first 8 bytes of the image descriptor */
+          __GDD_SkipBytes(decode,8);                /* Skip the first 8 bytes of the image descriptor */
           Flags = read_u8(decode);            /* Only 'Flags' are intresting */
           if (Flags & 0x80)
           {
-            skip_bytes(decode,NumColors * 3);  /* Skip local color table */
+            __GDD_SkipBytes(decode,NumColors * 3);  /* Skip local color table */
           }
 
-          skip_bytes(decode,1);                /* Skip codesize */
-          while (get_data_block(decode,0) > 0); /* Skip data blocks */
+          __GDD_SkipBytes(decode,1);                /* Skip codesize */
+          while (__GDD_GetDataBlock(decode,0) > 0); /* Skip data blocks */
           ImageCnt++;
           break;
 
@@ -983,7 +983,7 @@ static    bool_t get_gif_image_info(struct GIF_DECODE *decode,s32 Index,GIF_IMAG
           break;
 
         case GIF_INTRO_EXTENSION:
-          if (read_extension(decode,NULL, (Index == ImageCnt) ? pInfo : NULL, NULL))
+          if (__GDD_ReadExtension(decode,NULL, (Index == ImageCnt) ? pInfo : NULL, NULL))
           {
             return FALSE;
           }
@@ -998,13 +998,13 @@ static    bool_t get_gif_image_info(struct GIF_DECODE *decode,s32 Index,GIF_IMAG
   return TRUE;
 }
 
-//---- OpenGIF -----------------------------------------------------------------
+//---- GDD_OpenGIF -----------------------------------------------------------------
 //描述: 此函数创建一个新的GIF解码上下文．
 //参数：dat: GIF图像数据源
 //      size:　GIF图像数据总字节数
 //返回：成功则返回GIF解码上下文，失败返回NULL
 //------------------------------------------------------------------------------
-struct GIF_DECODE*    OpenGIF(const void *dat,u32 size)
+struct GIF_DECODE*    GDD_OpenGIF(const void *dat,u32 size)
 {
     struct GIF_DECODE *hgif;
     u8 *p;
@@ -1021,9 +1021,10 @@ struct GIF_DECODE*    OpenGIF(const void *dat,u32 size)
     {
         return NULL;
     }
+    memset(hgif, 0, sizeof(struct GIF_DECODE));
     hgif->pSrcData    =(u8*)dat;
     hgif->NumBytes    =size;
-    if(!gif_init(hgif))
+    if(!__GDD_GifInit(hgif))
     {
         free(hgif);
         hgif=NULL;
@@ -1033,12 +1034,12 @@ struct GIF_DECODE*    OpenGIF(const void *dat,u32 size)
 
 }
 
-//---- GetGIFWidth -------------------------------------------------------------
+//---- GDD_GetGIF_Width -------------------------------------------------------------
 //描述: 获取GIF图像宽度(像素单位)．
 //参数：hgif: GIF解码上下文
 //返回：成功则返回GIF图像宽度，失败返回0
 //------------------------------------------------------------------------------
-u32    GetGIFWidth(struct GIF_DECODE *hgif)
+u32    GDD_GetGIF_Width(struct GIF_DECODE *hgif)
 {
 
     if(hgif!=NULL)
@@ -1049,12 +1050,12 @@ u32    GetGIFWidth(struct GIF_DECODE *hgif)
 
 }
 
-//---- GetGIFHeight ------------------------------------------------------------
+//---- GDD_GetGIF_Height ------------------------------------------------------------
 //描述: 获取GIF图像高度(像素单位)．
 //参数：hgif: GIF解码上下文
 //返回：成功则返回GIF图像高度，失败返回0
 //------------------------------------------------------------------------------
-u32    GetGIFHeight(struct GIF_DECODE *hgif)
+u32    GDD_GetGIF_Height(struct GIF_DECODE *hgif)
 {
     if(hgif!=NULL)
     {
@@ -1063,12 +1064,12 @@ u32    GetGIFHeight(struct GIF_DECODE *hgif)
     return 0;
 }
 
-//---- GetGIFFrameCount --------------------------------------------------------
+//---- GDD_GetGIF_FrameCount --------------------------------------------------------
 //描述: 获取GIF图像总帧数．
 //参数：hgif: GIF解码上下文
 //返回：成功则返回GIF图像总帧数，失败返回0
 //------------------------------------------------------------------------------
-u32    GetGIFFrameCount(struct GIF_DECODE *hgif)
+u32    GDD_GetGIF_FrameCount(struct GIF_DECODE *hgif)
 {
     if(hgif!=NULL)
     {
@@ -1077,19 +1078,19 @@ u32    GetGIFFrameCount(struct GIF_DECODE *hgif)
     return 0;
 }
 
-//---- GetGIFFrameDelay --------------------------------------------------------
+//---- GDD_GetGIF_FrameDelay --------------------------------------------------------
 //描述: 获取GIF图像指定帧的延时时间(毫秒单位)．
 //参数：hgif: GIF解码上下文
 //      frame_idx: 帧索引值
 //返回：成功则返回指定帧的延时时间，失败返回-1
 //------------------------------------------------------------------------------
-s32    GetGIFFrameDelay(struct GIF_DECODE *hgif,u32 frame_idx)
+s32    GDD_GetGIF_FrameDelay(struct GIF_DECODE *hgif,u32 frame_idx)
 {
     GIF_IMAGE_INFO Info;
 
     if(hgif!=NULL)
     {
-        if(get_gif_image_info(hgif,frame_idx,&Info))
+        if(__GDD_GetGifImageInfo(hgif,frame_idx,&Info))
         {
             return Info.Delay;
         }
@@ -1097,7 +1098,7 @@ s32    GetGIFFrameDelay(struct GIF_DECODE *hgif,u32 frame_idx)
     return -1;
 }
 
-//---- DrawGIFFrame ------------------------------------------------------------
+//---- GDD_DrawGIF_Frame ------------------------------------------------------------
 //描述: 绘制GIF指定帧
 //参数：
 //      hdc:  绘图上下文
@@ -1107,7 +1108,7 @@ s32    GetGIFFrameDelay(struct GIF_DECODE *hgif,u32 frame_idx)
 //      frame_idx: 帧索引值
 //返回：成功返回TRUE，失败返回FALSE
 //------------------------------------------------------------------------------
-bool_t    DrawGIFFrame(HDC hdc,s32 x,s32 y,struct GIF_DECODE *hgif,u32 bk_color,u32 frame_idx)
+bool_t    GDD_DrawGIF_Frame(HDC hdc,s32 x,s32 y,struct GIF_DECODE *hgif,u32 bk_color,u32 frame_idx)
 {
   s32 TransIndex, ImageCnt,Index;
   GIF_IMAGE_INFO Info;
@@ -1120,7 +1121,7 @@ bool_t    DrawGIFFrame(HDC hdc,s32 x,s32 y,struct GIF_DECODE *hgif,u32 bk_color,
   Index      = frame_idx;
   ////
 
-  init_size_and_color_table(hgif);
+  __GDD_InitSizeAndColorTable(hgif);
 
   do
   {
@@ -1144,7 +1145,7 @@ bool_t    DrawGIFFrame(HDC hdc,s32 x,s32 y,struct GIF_DECODE *hgif,u32 bk_color,
               if(hgif->ImgDesc.Flags & 0x80)
               {
                 /* Read local color table */
-                if (read_color_map(hgif,hgif->ImgDesc.NumColors))
+                if (__GDD_ReadColorMap(hgif,hgif->ImgDesc.NumColors))
                 {
                   return FALSE; /* Error */
                 }
@@ -1163,11 +1164,11 @@ bool_t    DrawGIFFrame(HDC hdc,s32 x,s32 y,struct GIF_DECODE *hgif,u32 bk_color,
                 if(Disposal == 2)
                 {
                     RECT rc;
-                    SetRect(&rc,x+Info.xPos,y+Info.yPos,Info.xSize,Info.ySize);
-                    FillRectEx(hdc,&rc,bk_color);
+                    GDD_SetRect(&rc,x+Info.xPos,y+Info.yPos,Info.xSize,Info.ySize);
+                    GDD_FillRectEx(hdc,&rc,bk_color);
                 }
 
-                if(!display_gif_image(hdc,x + hgif->ImgDesc.XPos, y + hgif->ImgDesc.YPos,bk_color,hgif, TransIndex, Disposal))
+                if(!__GDD_DisplayGifImage(hdc,x + hgif->ImgDesc.XPos, y + hgif->ImgDesc.YPos,bk_color,hgif, TransIndex, Disposal))
                 {
                   return FALSE;
                 }
@@ -1182,7 +1183,7 @@ bool_t    DrawGIFFrame(HDC hdc,s32 x,s32 y,struct GIF_DECODE *hgif,u32 bk_color,
               else
               {
                 read_u8(hgif);                    /* Skip codesize */
-                while (get_data_block(hgif,0) > 0); /* Skip data blocks */
+                while (__GDD_GetDataBlock(hgif,0) > 0); /* Skip data blocks */
               }
 
               ImageCnt++;
@@ -1195,7 +1196,7 @@ bool_t    DrawGIFFrame(HDC hdc,s32 x,s32 y,struct GIF_DECODE *hgif,u32 bk_color,
 
             case GIF_INTRO_EXTENSION:
               /* Read image extension */
-              if (read_extension(hgif,&TransIndex, (Index == ImageCnt) ? &Info : NULL, (Index == ImageCnt) ? &Disposal : NULL))
+              if (__GDD_ReadExtension(hgif,&TransIndex, (Index == ImageCnt) ? &Info : NULL, (Index == ImageCnt) ? &Disposal : NULL))
               {
                 return FALSE;
               }
@@ -1214,13 +1215,13 @@ bool_t    DrawGIFFrame(HDC hdc,s32 x,s32 y,struct GIF_DECODE *hgif,u32 bk_color,
 
 }
 
-//---- CloseGIF ---------------------------------------------------------------
+//---- GDD_CloseGIF ---------------------------------------------------------------
 //描述: 释放一个GIF上下文
 //参数：
 //      hgif: GIF解码上下文
 //返回：无
 //-----------------------------------------------------------------------------
-void    CloseGIF(struct GIF_DECODE *hgif)
+void    GDD_CloseGIF(struct GIF_DECODE *hgif)
 {
     if(hgif)
     {

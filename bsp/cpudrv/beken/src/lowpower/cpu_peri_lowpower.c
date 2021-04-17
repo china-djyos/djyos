@@ -50,33 +50,126 @@
 #include "mcu_ps_pub.h"
 #include "manual_ps_pub.h"
 #include "wlan_ui_pub.h"
+#include <dbug.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    void ModuleInstall_LowPower(void);
+//    ModuleInstall_LowPower();
+//%$#@end initcode  ****初始化代码结束
 
-static struct gpio_to_wakeup_t{
-    u32 index_map;
-    u32 edge_map;
-}gGpioToWakeUpL4;
+//%$#@describe      ****组件描述开始
+//component name:"cpu onchip lowpower control"//低功耗组件外设驱动
+//parent:"none"                      //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                          //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable                       //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:none                         //初始化时机，可选值：early，medium，later, pre-main。
+                                         //表示初始化时间，分别是早期、中期、后期
+//dependence:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                         //选中该组件时，被依赖组件将强制选中，
+                                         //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"                  //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                         //选中该组件时，被依赖组件不会被强制选中，
+                                         //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                         //如果与多个组件互斥，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
 
-void __LP_BSP_EntrySleepL0(u32 pend_ticks)
+//%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_LOWPOWER_CONTROL == false )
+//#warning  " cpu_onchip_peripheral_lowpower_control  组件参数未配置，使用默认配置"
+//%$#@target = header              //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_LOWPOWER_CONTROL    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***从列出的选项中选择若干个定义成宏
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
+//@#$%component end configure
+
+//static struct gpio_to_wakeup_t{
+//    u32 index_map;
+//    u32 edge_map;
+//}gGpioToWakeUpL4;
+
+static PS_DEEP_CTRL_PARAM deep_sleep_param;
+
+
+//-----------------------------------------------------------------------------
+//功能: 进入休眠
+//参数: sleep_level,休眠等级
+//      pend_ticks, 休眠tick数
+//返回: 无意义
+//-----------------------------------------------------------------------------
+void __LP_BSP_EntrySleep(u8 sleep_level, u32 pend_ticks)
 {
-//  if(pend_ticks>=LP_GetTriggerTick())
-        mcu_power_save(pend_ticks);
+    switch(sleep_level)
+    {
+        case CN_SLEEP_L0:
+            mcu_power_save(pend_ticks);
+            break;
+        case CN_SLEEP_L1:
+            warning_printf("LP", "Entry sleep level_1 undefined");
+            break;
+        case CN_SLEEP_L2:
+            warning_printf("LP", "Entry sleep level_2 undefined");
+            break;
+        case CN_SLEEP_L3:
+            warning_printf("LP", "Entry sleep level_3 undefined");
+            break;
+        case CN_SLEEP_L4:
+            DJY_DelayUs(100000);
+            bk_enter_deep_sleep_mode(&deep_sleep_param);
+            break;
+    }
 }
 
-void __LP_BSP_EntrySleepL1(u32 pend_ticks){}
-void __LP_BSP_EntrySleepL2(u32 pend_ticks){}
-void __LP_BSP_EntrySleepL3(void){}
-
-void LP_BSP_ResigerGpioToWakeUpL4(u32 gpio_index_map,u32 gpio_edge_map)
+void ImmediatelyDeepSleep(void)
 {
-    gGpioToWakeUpL4.index_map = gpio_index_map;
-    gGpioToWakeUpL4.edge_map = gpio_edge_map;
+    bk_enter_deep_sleep_mode(&deep_sleep_param);
 }
 
-void __LP_BSP_EntrySleepL4(void)
+//-----------------------------------------------------------------------------
+//功能：设置从深度睡眠中唤醒条件，设置的条件可以叠加
+//参数：way, 唤醒信源，可选择：PS_DEEP_WAKEUP_GPIO、PS_DEEP_WAKEUP_RTC、PS_DEEP_WAKEUP_GPIO_RTC
+//      gpio_index，如果way == PS_DEEP_WAKEUP_GPIO，指定gpio编号，0~39代表P0~P39
+//          要设置多个引脚，可多次调用本函数，way 等于其他值本参数无效。
+//      gpio_edge，唤醒边沿，0 = 上升沿，1 = 下降沿，way == PS_DEEP_WAKEUP_GPIO才有效
+//      time，如果way == PS_DEEP_WAKEUP_RTC，用于表示休眠时间，单位 = ？
+//返回：无
+//-----------------------------------------------------------------------------
+void LP_BSP_ResigerGpioToWakeUpL4(PS_DEEP_WAKEUP_WAY way,u32 gpio_index,
+                                  u32 gpio_edge, u32 time)
 {
-    bk_enter_deep_sleep(gGpioToWakeUpL4.index_map,gGpioToWakeUpL4.edge_map);
+    u32 map;
+    deep_sleep_param.wake_up_way    = way;
+    if(way == PS_DEEP_WAKEUP_GPIO)
+    {
+        if(gpio_index <= 31)
+        {
+            map = 1 << gpio_index;
+            deep_sleep_param.gpio_index_map |= map;
+            map = gpio_edge << gpio_index;
+            deep_sleep_param.gpio_edge_map |= map;
+        }
+        else
+        {
+            map = 1 << (gpio_index - 32);
+            deep_sleep_param.gpio_last_index_map |= map;
+            map = gpio_edge << (gpio_index - 32);
+            deep_sleep_param.gpio_last_edge_map |= map;
+        }
+    }
+    deep_sleep_param.sleep_time             = time;
 }
 
 bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel)
@@ -88,10 +181,30 @@ bool_t __LP_BSP_SaveRamL3(void)
 {
     return true;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
-void LP_DeepSleep(void)
+u32 BekenEntrySleepReCall(u32 SleepLevel)
 {
-    LP_SetSleepLevel(CN_SLEEP_L4);
-    Djy_EventDelay(1000*1000);
+    return true;
 }
+
+u32 BekenExitSleepReCall(u32 SleepLevel)
+{
+    return true;
+}
+#pragma GCC diagnostic pop
+
+//-----------------------------------------------------------------------------
+//功能: 安装低功耗组件，要把一些低功耗需要使用到的函数，注册到系统中
+//参数: __LP_BSP_EntrySleep：进入休眠；__LP_BSP_SaveSleepLevel：保存休眠等级；__LP_BSP_SaveRamL3：保存进入休眠等级3之前的内存，
+//      __LP_BSP_AsmSaveReg：获取含自己的返回地址在内的上下文并保存到栈中
+//返回: 无
+//-----------------------------------------------------------------------------
+void ModuleInstall_LowPower (void)
+{
+    Register_LowPower_Function(__LP_BSP_EntrySleep, __LP_BSP_SaveSleepLevel, __LP_BSP_SaveRamL3, __LP_BSP_AsmSaveReg);
+}
+
+
 

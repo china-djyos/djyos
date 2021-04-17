@@ -1,0 +1,22 @@
+{
+	"cpu_name":"stm32l433xx",
+	"cores":[{
+		"memories":{
+			"memory1":{
+				"size":"256k",
+				"type":"FLASH",
+				"startAddr":"0x08000000"
+			},
+			"memory2":{
+				"size":"48k",
+				"type":"RAM",
+				"startAddr":"0x20000000"
+			},
+			"memory3":{
+				"size":"16k",
+				"type":"RAM",
+				"startAddr":"0x10000000"
+			}
+		}
+	}]
+}

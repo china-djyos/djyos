@@ -81,7 +81,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"lock","spi bus","cpu onchip spi"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -158,11 +158,11 @@ void Cmd_DelayMs(u8 cmd)
 {
 
     if(cmd==0xb3)
-        Djy_EventDelay(1300);
+        DJY_EventDelay(1300);
     if(cmd==0xb4)
-        Djy_EventDelay(2300);
+        DJY_EventDelay(2300);
     else
-        Djy_EventDelay(30);
+        DJY_EventDelay(30);
 }
 
 /* =============================================================================
@@ -232,14 +232,14 @@ bool_t Receive_Response(u8 cmd)
 
         NRSEC3000_CsActive();//片选
 //      for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
-//      Djy_EventDelay(10);
-        Djy_DelayUs(100);
+//      DJY_EventDelay(10);
+        DJY_DelayUs(100);
         NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer1+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
 
         NRSEC3000_CsInActive();//非片选
 //      for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
-//      Djy_EventDelay(10);
-        Djy_DelayUs(100);
+//      DJY_EventDelay(10);
+        DJY_DelayUs(100);
 
 
 
@@ -272,16 +272,16 @@ bool_t Receive_Data(u8 cmd, u16 length,u16 *len)
    {
        NRSEC3000_CsActive();//片选
 //     for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
-//     Djy_EventDelay(10);
-       Djy_DelayUs(100);
+//     DJY_EventDelay(10);
+       DJY_DelayUs(100);
 
        NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer2+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
 
 
        NRSEC3000_CsInActive();//非片选
 //     for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
-//     Djy_EventDelay(10);
-       Djy_DelayUs(100);
+//     DJY_EventDelay(10);
+       DJY_DelayUs(100);
       if((200==i)&&(0xe0!=cmd))
       Cmd_DelayMs(cmd);
 
@@ -320,19 +320,19 @@ bool_t New_Receive_Data(u8 cmd, u16 length,u16 *len,u16 num)
       for(i=0;i<num;i++)
       {
          NRSEC3000_CsActive();//片选
-         Djy_DelayUs(100);
+         DJY_DelayUs(100);
          NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer2+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
          NRSEC3000_CsInActive();//非片选
-         Djy_DelayUs(100);
+         DJY_DelayUs(100);
       }
-     Djy_EventDelay(1000);
+     DJY_EventDelay(1000);
       for(i=num;;i++)
       {
          NRSEC3000_CsActive();//片选
-         Djy_DelayUs(1000);
+         DJY_DelayUs(1000);
          NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer2+num,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
          NRSEC3000_CsInActive();//非片选
-         Djy_DelayUs(1000);
+         DJY_DelayUs(1000);
 
         if( (0x90==ptagEncryptionCtrl->RxBuffer[i-1]) && (0x00==ptagEncryptionCtrl->RxBuffer[i]) )
                      break;
@@ -418,7 +418,7 @@ bool_t Import_SM1_Key()
 //将发送缓冲区1的内容送出去，等待接收到括号里写的d4
      if(Receive_Response(0xd4))
      {
-         Djy_EventDelay(1000);
+         DJY_EventDelay(1000);
            Receive_Data(0xd4, 0x80,&ptagEncryptionCtrl->len);
        }
 
@@ -459,7 +459,7 @@ bool_t Import_SM1_Key()
        }
        if(Receive_Response(0xd4))
        {
-           Djy_EventDelay(1000);
+           DJY_EventDelay(1000);
              if(Receive_Data(0xd4, 0x80,&ptagEncryptionCtrl->len))
              return 1;
          }
@@ -514,7 +514,7 @@ bool_t Import_IV()
 //发送指令和数据
       if(Receive_Response(0xd4))
       {
-          Djy_EventDelay(1000);
+          DJY_EventDelay(1000);
         if(Receive_Data(0xd4, 0x80,&ptagEncryptionCtrl->len))
                 return 1;
         }
@@ -565,7 +565,7 @@ bool_t SM1_Encrypt(u8 *Txbuffer,u16 InLenth)
 
       if(Receive_Response(0xe0))
       {
-          Djy_EventDelay(1000);
+          DJY_EventDelay(1000);
         if(Receive_Data(0xe0, InLenth+1,&ptagEncryptionCtrl->len))
         {
             memcpy(ptagEncryptionCtrl->SM1_EncryptNumber,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+3,InLenth);
@@ -618,7 +618,7 @@ bool_t SM1_Decrypt(u8 *Txbuffer,u16 InLenth)
 
     if(Receive_Response(0xe0))
     {
-        Djy_EventDelay(1000);
+        DJY_EventDelay(1000);
       if(Receive_Data(0xe0, InLenth+1,&ptagEncryptionCtrl->len))
       {
           memcpy(ptagEncryptionCtrl->SM1_TrueNumber,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+3,InLenth);
@@ -664,14 +664,14 @@ bool_t Key_Product()
     {
         NRSEC3000_CsActive();//片选
 //      for (byTmp1=0;byTmp1<30;byTmp1++) ; //延时
-        Djy_EventDelay(10);
-//      Djy_DelayUs(100);
+        DJY_EventDelay(10);
+//      DJY_DelayUs(100);
         NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
 
         NRSEC3000_CsInActive();//非片选
 //      for (byTmp1=0;byTmp1<30;byTmp1++) ; //延时
-        Djy_EventDelay(10);
-//      Djy_DelayUs(100);
+        DJY_EventDelay(10);
+//      DJY_DelayUs(100);
         if ((spiRxBuf[i]==0x00)&&(spiRxBuf[i-1]==0x90))
         {
             return 1;
@@ -717,12 +717,12 @@ bool_t Export_SM2_PublicKey(u8 p2)
     {
         NRSEC3000_CsActive();//片选
         for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
-//      Djy_EventDelay(1000);
+//      DJY_EventDelay(1000);
         NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
 
         NRSEC3000_CsInActive();//非片选
         for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
-//      Djy_EventDelay(1000);
+//      DJY_EventDelay(1000);
     }
 
     for(i=5;i<500;i++)
@@ -792,19 +792,19 @@ bool_t Export_SM2_PrivateKey(u8 p2)
           for(i=0;i<5;i++)
           {
              NRSEC3000_CsActive();//片选
-             Djy_DelayUs(100);
+             DJY_DelayUs(100);
              NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
              NRSEC3000_CsInActive();//非片选
-             Djy_DelayUs(100);
+             DJY_DelayUs(100);
           }
-         Djy_EventDelay(1000);
+         DJY_EventDelay(1000);
           for(i=5;;i++)
           {
              NRSEC3000_CsActive();//片选
-             Djy_DelayUs(1000);
+             DJY_DelayUs(1000);
              NRSEC3000_TxRx(spiTxBuf+5,1,spiRxBuf+i,1,0);
              NRSEC3000_CsInActive();//非片选
-             Djy_DelayUs(1000);
+             DJY_DelayUs(1000);
 
             if( (0x90==spiRxBuf[i-1]) && (0x00==spiRxBuf[i]) )
                          break;
@@ -887,7 +887,7 @@ bool_t Import_SM2_PublicKey(u8 p2)
 
     if(Receive_Response(0xba))
     {
-         Djy_EventDelay(1000);
+         DJY_EventDelay(1000);
         if(Receive_Data(0xba, 0x80,&ptagEncryptionCtrl->len))
             return 1;
     }
@@ -940,7 +940,7 @@ bool_t Import_SM2_PrivateKey(u8 p2)
       pResult=Receive_Response(0xba);
       if(pResult)
       {
-          Djy_EventDelay(1000);
+          DJY_EventDelay(1000);
           if(Receive_Data(0xba, 0x80,&ptagEncryptionCtrl->len))
               return 1;
      }
@@ -985,12 +985,12 @@ int NRSEC3000_sm3(u8 *Txbuffer,u16 Lenth, u8 *Rxbuffer)
    for(i=0;i<150;i++)
    {
        NRSEC3000_CsActive();//片选
-       Djy_DelayUs(1000); //延时
+       DJY_DelayUs(1000); //延时
 
        NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
 
        NRSEC3000_CsInActive();//非片选
-       Djy_DelayUs(1000) ; //延时
+       DJY_DelayUs(1000) ; //延时
 
        if((0xb5==spiRxBuf[i])&&(i>5))
        {
@@ -1025,12 +1025,12 @@ int NRSEC3000_sm3(u8 *Txbuffer,u16 Lenth, u8 *Rxbuffer)
    for(i=0;i<3000;i++)
      {
        NRSEC3000_CsActive();//片选
-       Djy_DelayUs(100); //延时
+       DJY_DelayUs(100); //延时
 
        NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
 
        NRSEC3000_CsInActive();//非片选
-       Djy_DelayUs(100); //延时
+       DJY_DelayUs(100); //延时
 
         if((0x90==spiRxBuf[i-1])&&(0x00==spiRxBuf[i]))
         {
@@ -1182,7 +1182,7 @@ bool_t SM2_Sign(u8 p2)
    }
    if(Receive_Response(0xb4))
    {
-       Djy_EventDelay(1000);
+       DJY_EventDelay(1000);
         if(New_Receive_Data(0xb4, 0x40,&ptagEncryptionCtrl->len,35))
         {
             memcpy(ptagEncryptionCtrl->sign,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+2,64);
@@ -1242,7 +1242,7 @@ bool_t SM2_Sign_Verif(u8 p2)
       pResult=Receive_Response(0xb6);
       if(pResult)
       {
-          Djy_EventDelay(1000);
+          DJY_EventDelay(1000);
           if(New_Receive_Data(0xba, 0x80,&ptagEncryptionCtrl->len,99))
               return 1;
      }
@@ -1291,7 +1291,7 @@ bool_t SM2_Encrypt(u8 p2)
    }
    if(Receive_Response(0xb3))
    {
-       //Djy_EventDelay(1000);
+       //DJY_EventDelay(1000);
         if(New_Receive_Data(0xb3, 0x80,&ptagEncryptionCtrl->len,35))
         {
             memcpy(ptagEncryptionCtrl->SM2_EncryptNumber,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+2,128);
@@ -1343,7 +1343,7 @@ bool_t SM2_Decrypt(u8 p2)
   }
   if(Receive_Response(0xb3))
   {
-      Djy_EventDelay(1000);
+      DJY_EventDelay(1000);
        if(New_Receive_Data(0xb3, 0x20,&ptagEncryptionCtrl->len,131))
        {
         memcpy(ptagEncryptionCtrl->SM2_TrueNumber,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+2,32);
@@ -1401,17 +1401,17 @@ bool_t Cer_Request(char *byP3Info,u8 p3)
 
     if(Receive_Response(0xb7))
     {
-        Djy_EventDelay(1000);
+        DJY_EventDelay(1000);
         for(i=0;i<5000;i++)
         {
            NRSEC3000_CsActive();//片选
-          Djy_EventDelay(10);
+          DJY_EventDelay(10);
            NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer2+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
 
            NRSEC3000_CsInActive();//非片选
-          Djy_EventDelay(10);
+          DJY_EventDelay(10);
             if(70==i)
-                Djy_EventDelay(100);
+                DJY_EventDelay(100);
 
             if((0x90==ptagEncryptionCtrl->RxBuffer[i-1])&&(0x00==ptagEncryptionCtrl->RxBuffer[i]))
             {
@@ -1525,10 +1525,10 @@ u8 NRSEC3000_RdVersion()
         for (i=0;i<150;i++)
         {
             NRSEC3000_CsActive();//片选
-            Djy_DelayUs(100);
+            DJY_DelayUs(100);
             NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer1+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
             NRSEC3000_CsInActive();//非片选
-            Djy_DelayUs(100);
+            DJY_DelayUs(100);
 
             if((0x90==ptagEncryptionCtrl->RxBuffer[i-1])&&(0x00==ptagEncryptionCtrl->RxBuffer[i])&&(i>=5))
             {
@@ -1597,7 +1597,7 @@ bool_t Safety_Cert()
   }
   if(Receive_Response(0xb3))
   {
-      Djy_EventDelay(1000);
+      DJY_EventDelay(1000);
 
        if(New_Receive_Data(0xb3, 0x92,&ptagEncryptionCtrl->len,35))
        {

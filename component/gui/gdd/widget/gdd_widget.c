@@ -70,56 +70,58 @@
 #include "dbug.h"
 //#include "arm32_stdint.h"
 
-static bool_t Widget_SetFillColor(HWND hwnd,uint32_t color)
+static bool_t __Widget_SetFillColor(HWND hwnd,uint32_t color)
 {
-    SetWindowFillColor(hwnd,color);
-    InvalidateWindow(hwnd,true);
+    GDD_SetWindowFillColor(hwnd,color);
+    GDD_InvalidateWindow(hwnd,true);
     return true;
 }
 
-static bool_t Widget_GetFillColor(HWND hwnd,uint32_t *pcolor)
+static bool_t __Widget_GetFillColor(HWND hwnd,uint32_t *pcolor)
 {
-    return (GetWindowFillColor(hwnd,pcolor));
+    return (GDD_GetWindowFillColor(hwnd,pcolor));
 }
 
-static bool_t Widget_SetHyalineColor(HWND hwnd,uint32_t color)
+static bool_t __Widget_SetHyalineColor(HWND hwnd,uint32_t color)
 {
-    SetWindowHyalineColor(hwnd,color);
-    InvalidateWindow(hwnd,true);
+    GDD_SetWindowHyalineColor(hwnd,color);
+    GDD_InvalidateWindow(hwnd,true);
+    return true;
+}
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+static bool_t __Widget_GetHyalineColor(HWND hwnd,uint32_t *pcolor)
+{
+    return false;
+}
+#pragma GCC diagnostic pop
+
+static bool_t __Widget_SetTextColor(HWND hwnd,uint32_t color)
+{
+    GDD_SetWindowTextColor(hwnd,color);
+    GDD_InvalidateWindow(hwnd,true);
     return true;
 }
 
-static bool_t Widget_GetHyalineColor(HWND hwnd,uint32_t *pcolor)
+static bool_t __Widget_GetTextColor(HWND hwnd,uint32_t *pcolor)
 {
-
+    return (GDD_GetWindowTextColor(hwnd,pcolor));
 }
 
-
-static bool_t Widget_SetTextColor(HWND hwnd,uint32_t color)
-{
-    SetWindowTextColor(hwnd,color);
-    InvalidateWindow(hwnd,true);
-    return true;
-}
-
-static bool_t Widget_GetTextColor(HWND hwnd,uint32_t *pcolor)
-{
-    return (GetWindowTextColor(hwnd,pcolor));
-}
-
-static bool_t Widget_SetRopCode(HWND hwnd,struct RopGroup *ptRopCode)
+static bool_t __Widget_SetRopCode(HWND hwnd,struct RopGroup *ptRopCode)
 {
     struct RopGroup RopCode;
     memcpy(&RopCode,ptRopCode,sizeof(struct RopGroup));
-    SetWindowRopCode(hwnd,RopCode);
-    InvalidateWindow(hwnd,true);
+    GDD_SetWindowRopCode(hwnd,RopCode);
+    GDD_InvalidateWindow(hwnd,true);
     return true;
 }
 
-static bool_t Widget_EnableHyalineColor(HWND hwnd)
+static bool_t __Widget_EnableHyalineColor(HWND hwnd)
 {
     struct RopGroup RopCode={0, 0, 0, CN_R2_COPYPEN, 0, 1, 0};
-    return (Widget_SetRopCode(hwnd,&RopCode));
+    return (__Widget_SetRopCode(hwnd,&RopCode));
 }
 
 
@@ -139,22 +141,22 @@ bool_t Widget_SetAttr(HWND hwnd,uint8_t attrid,ptu32_t param)
      switch(attrid)
      {
        case ENUM_WIDGET_FILL_COLOR:
-           Widget_SetFillColor(hwnd,param);
+           __Widget_SetFillColor(hwnd,param);
            break;
        case ENUM_WIDGET_DRAW_COLOR:
 //         Button_SetDrawColor(hwnd,param);
            break;
        case ENUM_WIDGET_TEXT_COLOR:
-           Widget_SetTextColor(hwnd,param);
+           __Widget_SetTextColor(hwnd,param);
            break;
        case ENUM_WIDGET_HYALINE_COLOR:
-           Widget_SetHyalineColor(hwnd,param);
+           __Widget_SetHyalineColor(hwnd,param);
            break;
        case ENUM_WIDGET_ROP_CODE:
-           Widget_SetRopCode(hwnd,(struct RopGroup *)param);
+           __Widget_SetRopCode(hwnd,(struct RopGroup *)param);
            break;
        case ENUM_WIDGET_ENABLE_HYALINE:
-           Widget_EnableHyalineColor(hwnd);
+           __Widget_EnableHyalineColor(hwnd);
            break;
        default:
           break;
@@ -173,22 +175,22 @@ bool_t Widget_GetAttr(HWND hwnd,uint8_t attrid,ptu32_t *param)
      switch(attrid)
      {
        case ENUM_WIDGET_FILL_COLOR:
-           Widget_GetFillColor(hwnd,(u32)param);
+           __Widget_GetFillColor(hwnd,(u32 *)param);
            break;
        case ENUM_WIDGET_TEXT_COLOR:
-           Widget_GetTextColor(hwnd,(u32)param);
+           __Widget_GetTextColor(hwnd,(u32 *)param);
            break;
 //     case ENUM_WIDGET_DRAW_COLOR:
 ////           Button_SetDrawColor(hwnd,param);
 //         break;
 //     case ENUM_WIDGET_HYALINE_COLOR:
-//         Widget_SetHyalineColor(hwnd,param);
+//         __Widget_SetHyalineColor(hwnd,param);
 //         break;
 //     case ENUM_WIDGET_ROP_CODE:
-//         Widget_SetRopCode(hwnd,(struct RopGroup *)param);
+//         __Widget_SetRopCode(hwnd,(struct RopGroup *)param);
 //         break;
 //     case ENUM_WIDGET_ENABLE_HYALINE:
-//         Widget_EnableHyalineColor(hwnd);
+//         __Widget_EnableHyalineColor(hwnd);
 //         break;
        default:
           break;

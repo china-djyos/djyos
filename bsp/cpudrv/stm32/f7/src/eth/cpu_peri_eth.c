@@ -66,12 +66,12 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu onchip MAC"//CPU的mac驱动
+//component name:"cpu onchip ETH"//CPU的mac驱动
 //parent:"tcpip"       //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"int","tcpip","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -657,7 +657,7 @@ static ptu32_t __MacRcvTask(void)
     u32 resettimes= 0;
     time_t printtime;
 
-    Djy_GetEventPara((ptu32_t *)&handle,NULL);
+    DJY_GetEventPara((ptu32_t *)&handle,NULL);
     value = pDrive->EthHandle->Instance->MMCRFCECR;
 //  addr = (u32 *)((u32)ETH + 0x194);
 //  value =*addr;
@@ -667,7 +667,7 @@ static ptu32_t __MacRcvTask(void)
         printf("[MACRESET:%s Num:0x%08x] CRCERRORCONTER:0x%08x start\n\r",\
                 ctime(&printtime),resettimes++,value);
         MacReset(NULL);
-        Djy_EventDelay(10*mS);
+        DJY_EventDelay(10*mS);
     }
 
     while(1)
@@ -687,7 +687,7 @@ static ptu32_t __MacRcvTask(void)
             if(NULL != pkg)
             {
                 //maybe we have another method like the hardware
-                NetDevFlowCtrl(handle,NetDevFrameType(PkgGetCurrentBuffer(pkg),
+                NetDev_FlowCtrl(handle,NetDev_FrameType(PkgGetCurrentBuffer(pkg),
                                                       PkgGetDataLen(pkg)));
                 //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
@@ -699,7 +699,7 @@ static ptu32_t __MacRcvTask(void)
                 }
                 else
                 {
-                    NetDevPush(handle,pkg);
+                    Link_NetDevPush(handle,pkg);
                 }
                 PkgTryFreePart(pkg);
                 pDrive->debuginfo.rcvPkgTimes++;
@@ -707,7 +707,7 @@ static ptu32_t __MacRcvTask(void)
             else
             {
                 //here we still use the counter to do the time state check
-                NetDevFlowCtrl(handle,EN_NETDEV_FRAME_LAST);
+                NetDev_FlowCtrl(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
@@ -722,7 +722,7 @@ static ptu32_t __MacRcvTask(void)
             printf("[MACRESET:%s Num:0x%08x] CRCERRORCONTER:0x%08x running\n\r",\
                     ctime(&printtime),resettimes++,value);
             MacReset(NULL);
-            Djy_EventDelay(10*mS);
+            DJY_EventDelay(10*mS);
         }
 
     }
@@ -735,18 +735,18 @@ static bool_t __CreateRcvTask(struct NetDev* handle)
     u16 evttID;
     u16 eventID;
 
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_REAL, 0, 1,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_REAL, 0, 1,
         (ptu32_t (*)(void))__MacRcvTask,NULL, 0x800, "GMACRcvTask");
     if (evttID != CN_EVTT_ID_INVALID)
     {
-        eventID=Djy_EventPop(evttID, NULL,  0,(ptu32_t)handle, 0, 0);
+        eventID=DJY_EventPop(evttID, NULL,  0,(ptu32_t)handle, 0, 0);
         if(eventID != CN_EVENT_ID_INVALID)
         {
             result = true;
         }
         else
         {
-            Djy_EvttUnregist(evttID);
+            DJY_EvttUnregist(evttID);
         }
     }
     return result;
@@ -762,7 +762,7 @@ bool_t macdebuginfo(char *param)
     tagMacDriver      *pDrive;
     pDrive = &gMacDriver;
 
-    time = DjyGetSysTime();
+    time = DJY_GetSysTime();
     timeS = time/(1000*1000);
     if(timeS == 0)
     {
@@ -956,11 +956,16 @@ bool_t ModuleInstall_ETH(void)
     u8 gc_NetMac[CN_MACADDR_LEN];
     memset(signature,0,sizeof(signature));
     GetCpuID(&signature[0],&signature[1],&signature[2]);
-    printk("CPU SIGNATURE:%08X-%08X-%08X-%08X\n\r",signature[0],signature[1],signature[2],signature[3]);
+    printk("CPU SIGNATURE:%08X-%08X-%08X\n\r",signature[0],signature[1],signature[2]);
     //use the signature as the mac address
-    signature[0] = signature[1]+signature[2];
-    memcpy(gc_NetMac,&signature[0],CN_MACADDR_LEN);
-    gc_NetMac[0]=0x00;      //根据mac的规定，第一字节某位置为1表示广播或者组播
+    signature[0] = signature[0]^signature[1]^signature[2];
+    //memcpy(gc_NetMac,&signature[0],CN_MACADDR_LEN);
+    memcpy(&gc_NetMac[2], &signature[0], 4);
+    gc_NetMac[1] = (u8)(signature[1]&0xFF);
+    gc_NetMac[0] = 0x00;      //根据mac的规定，第一字节某位置为1表示广播或者组播
+//    if (gc_NetMac[5]==0) {
+//        gc_NetMac[5]=0xFF;
+//    }
 #else
     u8 gc_NetMac[CN_MACADDR_LEN] ={CFG_ETH_MAC_ADDR0,CFG_ETH_MAC_ADDR1,
                                    CFG_ETH_MAC_ADDR2,CFG_ETH_MAC_ADDR3,
@@ -972,6 +977,8 @@ bool_t ModuleInstall_ETH(void)
     memcpy(pDrive->devname,CFG_ETH_NETCARD_NAME,CN_DEVNAME_LEN-1);
     pDrive->devname[CN_DEVNAME_LEN-1] = '\0';
     memcpy((void *)pDrive->macaddr,gc_NetMac,CN_MACADDR_LEN);
+    printf("mac: %02x-%02x-%02x-%02x-%02x-%02x！\r\n",
+            gc_NetMac[0], gc_NetMac[1],gc_NetMac[2], gc_NetMac[3],gc_NetMac[4], gc_NetMac[5]);
     if(CFG_ETH_LOOP_ENABLE)
     {
         pDrive->loopcycle = CFG_ETH_LOOP_CYCLE;
@@ -1022,7 +1029,7 @@ bool_t ModuleInstall_ETH(void)
     devpara.name = (char *)pDrive->devname;
     devpara.mtu = CN_ETH_MTU;
     devpara.Private = (ptu32_t)pDrive;
-    pDrive->devhandle = NetDevInstall(&devpara);
+    pDrive->devhandle = NetDev_Install(&devpara);
     if(NULL == pDrive->devhandle)
     {
         goto NetInstallFailed;
@@ -1044,7 +1051,7 @@ bool_t ModuleInstall_ETH(void)
     return true;
 
 RcvTaskFailed:
-    NetDevUninstall(pDrive->devname);
+    NetDev_Uninstall(pDrive->devname);
 NetInstallFailed:
     Lock_MutexDelete(pDrive->protect);
     pDrive->protect = NULL;

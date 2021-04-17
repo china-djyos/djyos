@@ -32,7 +32,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"spi bus","lock","cpu onchip spi"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -102,21 +102,21 @@ u16  Max14001_TxRx(u16 data,u8 addr,u8 rdflag,u32 timeout,struct SPI_Device Max1
     Data.RecvOff = 0;
 
     SPI_CsActive(&Max14001_Dev,CN_TIMEOUT_FOREVER);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
     SPI_Transfer(&Max14001_Dev,&Data,true,Max14001_TIMEOUT);  //数据传送函数，完成数据的发送和接收。
-    Djy_DelayUs(3);
+    DJY_DelayUs(3);
     SPI_CsInactive(&Max14001_Dev);
 
     if(rdflag)
     {
         SPI_CsActive(&Max14001_Dev,CN_TIMEOUT_FOREVER);
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
         SPI_Transfer(&Max14001_Dev,&Data,true,Max14001_TIMEOUT);  //数据传送函数，完成数据的发送和接收。
-        Djy_DelayUs(3);
+        DJY_DelayUs(3);
         SPI_CsInactive(&Max14001_Dev);
 
 //        printf("addr=0x%x , rcvdata =0x%x \n\r",addr,(u16)(Rcvbuf[0]|((Rcvbuf[1]&(0x3))<<8)));
-//        Djy_EventDelay(100*mS);
+//        DJY_EventDelay(100*mS);
         return (u16)(Rcvbuf[0]|((Rcvbuf[1]&(0x3))<<8));
     }
     else
@@ -168,104 +168,104 @@ bool_t Max14001_Config(u16 thl,u16 thu,struct SPI_Device Max14001_Dev)
 {
         u16 readdate;
         bool_t result;
-        Djy_EventDelay(100*mS);
+        DJY_EventDelay(100*mS);
 
         //1，READ FLAGS
         readdate=Max14001_TxRx(0,0x02,1,10000,Max14001_Dev);   //读FLAGS
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         readdate=Max14001_TxRx(0,0x02,1,10000,Max14001_Dev);   //读FLAGS
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
 
         //2，WRITEN WEN
         Max14001_TxRx(0x294,0x0c,0,10000,Max14001_Dev);     //写WEN=0x294
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
 
         //3，DISABLE FAULT MV
         Max14001_TxRx(0x0ff,0x03,0,10000,Max14001_Dev);     //写FLTEN=0x0ff  EMV=0 对应fault不输出
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
 
         //4，WRITE CONFIGURATION REGISTERS
         Max14001_TxRx(0x0ff,0x03,0,10000,Max14001_Dev);     //写FLTEN 0x0ff
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(thl,0x04,0,10000,Max14001_Dev);       //写THL
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(thu,0x05,0,10000,Max14001_Dev);       //写THU
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(0x20d,0x09,0,10000,Max14001_Dev);     //写CFG
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(0x0c0,0x06,0,10000,Max14001_Dev);     //写INRR
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(0x180,0x07,0,10000,Max14001_Dev);     //写INRT
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(0x1d8,0x08,0,10000,Max14001_Dev);     //写INRP
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
 
         //5，WRITE VERIFICATION REGISTERS
         Max14001_TxRx(0x0ff,0x13,0,10000,Max14001_Dev);     //写FLTV=FLTEN
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(thl,0x14,0,10000,Max14001_Dev);       //写THLV=THL
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(thu,0x15,0,10000,Max14001_Dev);       //写THUV=THU
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(0x20d,0x19,0,10000,Max14001_Dev);     //写CFGV=CFG
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(0x0c0,0x16,0,10000,Max14001_Dev);     //写INRRV=INRR
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(0x180,0x17,0,10000,Max14001_Dev);     //写INRTV=INRT
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(0x1d8,0x18,0,10000,Max14001_Dev);     //写INRPV=INRP
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
 
         Max14001_TxRx(0x010,0x0a,0,10000,Max14001_Dev);     //写ENBL
         Max14001_TxRx(0x010,0x1a,0,10000,Max14001_Dev);     //写ENBLV
 
         //6，ENABLE FALUT MV(WRITE FLTEN AND FLTV)
         Max14001_TxRx(0x1ff,0x03,0,10000,Max14001_Dev);   //写FLTEN=0x1ff
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         Max14001_TxRx(0x1ff,0x13,0,10000,Max14001_Dev);   //写FLTV=0x1ff
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
 
         //7，WRITE WEN
         Max14001_TxRx(0x000,0x0c,0,10000,Max14001_Dev);   //写WEN=0x000  之后不能写
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
 
         //8，READ BACK CONFIGURATION REGISTERS
         readdate=Max14001_TxRx(0x000,0x03,1,10000,Max14001_Dev);     //读FLTEN
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         readdate=Max14001_TxRx(0x000,0x04,1,10000,Max14001_Dev);     //读THL
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         readdate=Max14001_TxRx(0x000,0x05,1,10000,Max14001_Dev);     //读THU
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         readdate=Max14001_TxRx(0x000,0x09,1,10000,Max14001_Dev);     //读CFG=0x203
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         readdate=Max14001_TxRx(0x000,0x06,1,10000,Max14001_Dev);     //读INRR
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         readdate=Max14001_TxRx(0x000,0x07,1,10000,Max14001_Dev);     //读INRT
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         readdate=Max14001_TxRx(0x000,0x08,1,10000,Max14001_Dev);     //读INRP
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
 
 //        readdate1=Max14001_TxRx(0x000,0x13,1,10000);     //读FLTEN
-//        Djy_EventDelay(10);
+//        DJY_EventDelay(10);
 //        readdate1=Max14001_TxRx(0x000,0x14,1,10000);     //读THL
-//        Djy_EventDelay(10);
+//        DJY_EventDelay(10);
 //        readdate1=Max14001_TxRx(0x000,0x15,1,10000);     //读THU
-//        Djy_EventDelay(10);
+//        DJY_EventDelay(10);
 //        readdate1=Max14001_TxRx(0x000,0x19,1,10000);     //读CFG=0x203
-//        Djy_EventDelay(10);
+//        DJY_EventDelay(10);
 //        readdate1=Max14001_TxRx(0x000,0x16,1,10000);     //读INRRV
-//        Djy_EventDelay(10);
+//        DJY_EventDelay(10);
 //        readdate1=Max14001_TxRx(0x000,0x17,1,10000);     //读INRTV
-//        Djy_EventDelay(10);
+//        DJY_EventDelay(10);
 //        readdate1=Max14001_TxRx(0x000,0x18,1,10000);     //读INRPV
-//        Djy_EventDelay(10);
+//        DJY_EventDelay(10);
 
         //9，READ FLAGS
         readdate=Max14001_TxRx(0,0x02,1,10000,Max14001_Dev);   //读FLAGS
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         //10，READ FLAGS
         readdate=Max14001_TxRx(0,0x02,1,10000,Max14001_Dev);   //读FLAGS
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
 
         if(readdate==0x000)
         {

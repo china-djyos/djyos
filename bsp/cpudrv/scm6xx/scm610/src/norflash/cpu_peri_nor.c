@@ -56,12 +56,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <device.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <cpu_peri.h>
 #include <int.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <dbug.h>
-#include <filesystems.h>
+#include <djyfs/filesystems.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -79,7 +79,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","file system"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -487,13 +487,13 @@ s32 __Flash_FsInstallInit(const char *fs, u32 bstart, u32 bend, void *mediadrv)
     s32 res;
     if(mediadrv == NULL)
         return -1;
-    targetobj = obj_matchpath(fs, &notfind);
+    targetobj = OBJ_MatchPath(fs, &notfind);
     if(notfind)
     {
         error_printf("embed"," not found need to install file system.");
         return -1;
     }
-    super = (struct FsCore *)obj_GetPrivate(targetobj);
+    super = (struct FsCore *)OBJ_GetPrivate(targetobj);
     super->MediaInfo = emflash_um;
     super->MediaDrv = mediadrv;
 
@@ -531,7 +531,7 @@ s32 __Flash_FsInstallInit(const char *fs, u32 bstart, u32 bend, void *mediadrv)
     FullPath = malloc(res);
     memset(FullPath, 0, res);
     sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,flashName);   //获取该设备的全路径
-    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
+    File_BeMedia(FullPath,fs); //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);
@@ -575,7 +575,7 @@ s32 ModuleInstall_NorFlash(u32 doformat)
     emflash_um->type = embed;
     emflash_um->ubuf = (u8*)emflash_um + sizeof(struct umedia);
 
-    if(!dev_Create((const char*)flashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)emflash_um)))
+    if(!Device_Create((const char*)flashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)emflash_um)))
     {
         printf("\r\n: erro : device : %s addition failed.", flashName);
         free(emflash_um);

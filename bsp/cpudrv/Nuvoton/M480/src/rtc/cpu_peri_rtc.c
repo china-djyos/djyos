@@ -128,7 +128,7 @@ bool_t RTC_GetTime(s64 *time)
     dtm.tm_min  = min;
     dtm.tm_sec  = sec;
 
-    *time = (s64)(1000000 * Tm_MkTime(&dtm)+tim_us);
+    *time = (s64)(1000000 * Time_MkTime(&dtm)+tim_us);
     return true;
 }
 
@@ -154,7 +154,7 @@ static bool_t __Rtc_SetTime(s64 time)
     s64 time_s;
     u8 tm_wday;
     time_s = time/1000000;
-    Tm_LocalTime_r(&time_s,&dtm);
+    Time_LocalTime_r(&time_s,&dtm);
 
     //关闭RTC寄存器写保护
     RTC->WPR=0xCA;
@@ -218,7 +218,7 @@ static bool_t RTC_Configuration(void)
     {
 
             RCC->BDCR=1<<16;            //复位BDCR
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
             RCC->BDCR=0;                //结束复位
 
             RCC->CSR|=1<<0;             //LSI总是使能
@@ -228,7 +228,7 @@ static bool_t RTC_Configuration(void)
             while(retry&&((RCC->BDCR&0X02)==0))//等待LSE准备好
             {
                 retry--;
-                Djy_DelayUs(5*1000);
+                DJY_DelayUs(5*1000);
             }
 
             RCC->BDCR&=~(3<<8);         //清零BDCR寄存器第8、9位，即无时钟
@@ -261,7 +261,7 @@ static bool_t RTC_Configuration(void)
             if(false==RTC_Init_Mode())
             {
                 RCC->BDCR=1<<16;        //复位BDCR
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
                 RCC->BDCR=0;            //结束复位
                 return false;           //进入RTC初始化模式
             }
@@ -292,7 +292,7 @@ static bool_t RTC_Configuration(void)
         SSR=RTC->SSR;   //读取初始值
         while(retry)    //检测ssr寄存器的动态,来判断LSE是否正常
         {
-            Djy_DelayUs(10*1000);
+            DJY_DelayUs(10*1000);
             if(SSR==RTC->SSR)retry--;   //对比
             else break;
         }
@@ -300,7 +300,7 @@ static bool_t RTC_Configuration(void)
         {
             BKP_WriteBackupRegister(BAK_Reg,0XFFFF);    //标记错误的值
             RCC->BDCR=1<<16;            //复位BDCR
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
             RCC->BDCR=0;                //结束复位
         }
     }
@@ -325,7 +325,7 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
     if(NULL == pRtcSemp)
         return false;
 
-    evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
+    evtt = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
                             Rtc_UpdateTime,NULL,800,
                                 "RTC Update Event");
     //登记一个事件类型：关联型时间类型，优先级130，入口函数Rtc_UpdateTime，栈尺寸800
@@ -336,7 +336,7 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
         return false;
     }
 
-    Djy_EventPop(evtt,NULL,0,NULL,0,0);
+    DJY_EventPop(evtt,NULL,0,NULL,0,0);
     //弹出事件
 
     RTC_GetTime(&rtc_time);  //从RTC设备中读取RTC时间，单位是us,

@@ -55,7 +55,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <dbug.h>
-#include "./include/unit_media.h"
+#include "device/unit_media.h"
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
@@ -63,12 +63,12 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"component uint media"//模块名
+//component name:"uint media"   //模块名
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"stdio" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -128,7 +128,7 @@ static s32 __um_open(struct objhandle *hdl, u32 mode, u32 timeout)
     struct umedia *media;
 
     timeout = timeout;
-    media = (struct umedia*)dev_GetDrvTag(Handle2fd(hdl));
+    media = (struct umedia*)Device_GetDrvTag(Handle2fd(hdl));
     mc = (struct umcontext*)malloc(sizeof(struct umcontext));
     if(!mc)
         return (-1);
@@ -136,7 +136,7 @@ static s32 __um_open(struct objhandle *hdl, u32 mode, u32 timeout)
     memset(mc, 0x0, sizeof(struct umcontext));
     mc->opt= media->opt;
 
-    handle_SetContext(hdl, (ptu32_t)mc);
+    Handle_SetContext(hdl, (ptu32_t)mc);
     return (0);
 }
 
@@ -148,7 +148,7 @@ static s32 __um_open(struct objhandle *hdl, u32 mode, u32 timeout)
 // ============================================================================
 static s32 __um_close(struct objhandle *hdl)
 {
-    struct umcontext *mc = (struct umcontext*)handle_context(hdl);
+    struct umcontext *mc = (struct umcontext*)Handle_GetContext(hdl);
 
     free(mc);
     return (0);
@@ -169,7 +169,7 @@ static s32 __um_write(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 
     struct umedia *media;
     struct umcontext *mc;
 
-    media = (struct umedia*)dev_GetDrvTag(Handle2fd(hdl));
+    media = (struct umedia*)Device_GetDrvTag(Handle2fd(hdl));
     mc = (struct umcontext*)(hdl);
     dbuf = media->ubuf;
     buf = (u8*)data;
@@ -181,7 +181,7 @@ static s32 __um_write(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 
 
 //    if((pos > media->ustart + media->size) || ((pos+len) > media->start + media->size))
 //    {
-//        error_printf("device","write out of range<%s>.", handle_name(hdl));
+//        error_printf("device","write out of range<%s>.", Handle_GetName(hdl));
 //        debug_printf("device","range from <%l> to <%l>.", media->start, (media->start+media->size));
 //        return (0);
 //    }
@@ -266,7 +266,7 @@ static s32 __um_read(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 t
     struct umedia *media;
     struct umcontext *mc;
 
-    media = (struct umedia*)dev_GetDrvTag(Handle2fd(hdl));
+    media = (struct umedia*)Device_GetDrvTag(Handle2fd(hdl));
     mc = (struct umcontext*)(hdl);
     dbuf = media->ubuf;
     buf = (u8*)data;
@@ -278,7 +278,7 @@ static s32 __um_read(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 t
 
 //    if((pos > media->ustart + media->size) || ((pos+len) > media->ustart + media->size))
 //    {
-//        error_printf("device","read out of range<%s>.", handle_name(hdl));
+//        error_printf("device","read out of range<%s>.", Handle_GetName(hdl));
 //        debug_printf("device","range from <%l> to <%l>.", media->start, (media->start+media->size));
 //        return (0);
 //    }
@@ -391,7 +391,7 @@ s32 um_add(const char *name, struct umedia *media)
 //      return (-1);
 //  }
 
-    if(dev_Create(name, __um_open, __um_close, __um_write,
+    if(Device_Create(name, __um_open, __um_close, __um_write,
                 __um_read, __um_cntl, (ptu32_t)media))
         return (0);
 

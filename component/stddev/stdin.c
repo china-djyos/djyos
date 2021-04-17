@@ -73,7 +73,7 @@
 
 s32 skip_atoi(const char **s);
 #define CN_SCANF_BUF_LEN        32
-u32 __sc_strtoul(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s32 *Offset,s32 base,char *LastCh)
+u32 __sc_strtoul(ptu32_t Source,s32 (*__GetChar)(ptu32_t Source,s32 *Offset),s32 *Offset,s32 base,char *LastCh)
 {
     u32 result = 0,value;
     char ch = *LastCh;
@@ -83,14 +83,14 @@ u32 __sc_strtoul(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s3
             while ((ch <= '7') && (ch >= '0'))
             {
                 result = (result<<3) + (ch-'0');
-                ch = __GetChar(Source,Offset);
+                ch = (char)__GetChar(Source,Offset);
             }
             break;
         case 10:
             while (isdigit((s32)ch))
             {
                 result = (result * 10) + (ch-'0');
-                ch = __GetChar(Source,Offset);
+                ch = (char)__GetChar(Source,Offset);
             }
             break;
         case 16:
@@ -98,7 +98,7 @@ u32 __sc_strtoul(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s3
             {
                 value = isdigit((s32)ch) ? ch-'0' : toupper((s32)ch)-'A'+10;
                 result = (result<<4) + value;
-                ch = __GetChar(Source,Offset);
+                ch = (char)__GetChar(Source,Offset);
             }
             break;
     }
@@ -106,7 +106,7 @@ u32 __sc_strtoul(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s3
     return result;
 }
 
-s32 __sc_strtol(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s32 *Offset,s32 base,char *LastCh)
+s32 __sc_strtol(ptu32_t Source,s32 (*__GetChar)(ptu32_t Source,s32 *Offset),s32 *Offset,s32 base,char *LastCh)
 {
     s32 result = 0,value;
     char ch = *LastCh;
@@ -116,14 +116,14 @@ s32 __sc_strtol(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s32
             while ((ch <= '7') && (ch >= '0'))
             {
                 result = (result<<3) + (ch-'0');
-                ch = __GetChar(Source,Offset);
+                ch = (char)__GetChar(Source,Offset);
             }
             break;
         case 10:
             while (isdigit((s32)ch))
             {
                 result = (result * 10) + (ch-'0');
-                ch = __GetChar(Source,Offset);
+                ch = (char)__GetChar(Source,Offset);
             }
             break;
         case 16:
@@ -131,7 +131,7 @@ s32 __sc_strtol(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s32
             {
                 value = isdigit((s32)ch) ? ch-'0' : toupper((s32)ch)-'A'+10;
                 result = (result<<4) + value;
-                ch = __GetChar(Source,Offset);
+                ch = (char)__GetChar(Source,Offset);
             }
             break;
     }
@@ -139,7 +139,7 @@ s32 __sc_strtol(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s32
     return result;
 }
 
-u64 __sc_strtoull(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s32 *Offset,s32 base,char *LastCh)
+u64 __sc_strtoull(ptu32_t Source,s32 (*__GetChar)(ptu32_t Source,s32 *Offset),s32 *Offset,s32 base,char *LastCh)
 {
     u64 result = 0,value;
     char ch = *LastCh;
@@ -149,14 +149,14 @@ u64 __sc_strtoull(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s
             while ((ch <= '7') && (ch >= '0'))
             {
                 result = (result<<3) + (ch-'0');
-                ch = __GetChar(Source,Offset);
+                ch = (char)__GetChar(Source,Offset);
             }
             break;
         case 10:
             while (isdigit((s32)ch))
             {
                 result = (result * 10) + (ch-'0');
-                ch = __GetChar(Source,Offset);
+                ch = (char)__GetChar(Source,Offset);
             }
             break;
         case 16:
@@ -164,7 +164,7 @@ u64 __sc_strtoull(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s
             {
                 value = isdigit((s32)ch) ? ch-'0' : toupper((s32)ch)-'A'+10;
                 result = (result<<4) + value;
-                ch = __GetChar(Source,Offset);
+                ch = (char)__GetChar(Source,Offset);
             }
             break;
     }
@@ -172,7 +172,7 @@ u64 __sc_strtoull(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s
     return result;
 }
 
-s64 __sc_strtoll(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s32 *Offset,s32 base,char *LastCh)
+s64 __sc_strtoll(ptu32_t Source,s32 (*__GetChar)(ptu32_t Source,s32 *Offset),s32 *Offset,s32 base,char *LastCh)
 {
     s64 result = 0,value;
     char ch = *LastCh;
@@ -182,14 +182,14 @@ s64 __sc_strtoll(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s3
             while ((ch <= '7') && (ch >= '0'))
             {
                 result = (result<<3) + (ch-'0');
-                ch = __GetChar(Source,Offset);
+                ch = (char)__GetChar(Source,Offset);
             }
             break;
         case 10:
             while (isdigit((s32)ch))
             {
                 result = (result * 10) + (ch-'0');
-                ch = __GetChar(Source,Offset);
+                ch = (char)__GetChar(Source,Offset);
             }
             break;
         case 16:
@@ -197,7 +197,7 @@ s64 __sc_strtoll(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s3
             {
                 value = isdigit((s32)ch) ? ch-'0' : toupper((s32)ch)-'A'+10;
                 result = (result<<4) + value;
-                ch = __GetChar(Source,Offset);
+                ch = (char)__GetChar(Source,Offset);
             }
             break;
     }
@@ -273,7 +273,7 @@ s32 __GetCharFromFile(ptu32_t Source,s32 *Offset)
 //-----------------------------------------------------------------------------
 static s32 __vsnscanf(ptu32_t Source,u32 Method, const char *fmt,va_list args)
 {
-    char (*__GetChar)(ptu32_t Source,s32 *Offset);
+    s32 (*__GetChar)(ptu32_t Source,s32 *Offset);
     s32 Offset = 0;
     char ch,sign;
     s32 num = 0;
@@ -306,7 +306,7 @@ static s32 __vsnscanf(ptu32_t Source,u32 Method, const char *fmt,va_list args)
             while (isspace((s32)*fmt))
                 ++fmt;
             while (isspace((s32)ch))
-                ch = __GetChar(Source,&Offset);
+                ch = (char)__GetChar(Source,&Offset);
         }
 
         /* anything that is not a conversion must match exactly */
@@ -314,7 +314,7 @@ static s32 __vsnscanf(ptu32_t Source,u32 Method, const char *fmt,va_list args)
         {
             if (*fmt++ != ch)
                 break;
-            ch = __GetChar(Source,&Offset);
+            ch = (char)__GetChar(Source,&Offset);
             continue;
         }
 
@@ -329,7 +329,7 @@ static s32 __vsnscanf(ptu32_t Source,u32 Method, const char *fmt,va_list args)
             while (!isspace((s32)*fmt) && *fmt)
                 fmt++;
             while (!isspace((s32)ch) && ch)
-                ch = __GetChar(Source,&Offset);
+                ch = (char)__GetChar(Source,&Offset);
             continue;
         }
 
@@ -357,7 +357,7 @@ static s32 __vsnscanf(ptu32_t Source,u32 Method, const char *fmt,va_list args)
                 do
                 {
                     *s++ = ch;
-                    ch = __GetChar(Source,&Offset);
+                    ch = (char)__GetChar(Source,&Offset);
                 } while(field_width-- > 0 && ch);
                 num++;
             }
@@ -369,13 +369,13 @@ static s32 __vsnscanf(ptu32_t Source,u32 Method, const char *fmt,va_list args)
                     field_width = INT_MAX;
                 /* first, skip leading white space in buffer */
                 while (isspace((s32)ch))
-                    ch = __GetChar(Source,&Offset);
+                    ch = (char)__GetChar(Source,&Offset);
 
                 /* now copy until next white space */
                 while (ch && !isspace((s32)ch) && field_width--)
                 {
                     *s++ = ch;
-                    ch = __GetChar(Source,&Offset);
+                    ch = (char)__GetChar(Source,&Offset);
                 }
                 *s = '\0';
                 num++;
@@ -389,6 +389,7 @@ static s32 __vsnscanf(ptu32_t Source,u32 Method, const char *fmt,va_list args)
             }
             continue;
             is_sign = 0;
+            __attribute__((fallthrough));
             case 'o':
                 base = 8;
                 is_sign = 1;
@@ -414,7 +415,7 @@ static s32 __vsnscanf(ptu32_t Source,u32 Method, const char *fmt,va_list args)
             case '%':
                 if (ch != '%')      //查找 %
                     goto GotoErrorExit;         //非法格式，结束
-                ch = __GetChar(Source,&Offset);
+                ch = (char)__GetChar(Source,&Offset);
                 continue;
             default:
                 goto GotoErrorExit;         //非法格式，结束
@@ -422,14 +423,14 @@ static s32 __vsnscanf(ptu32_t Source,u32 Method, const char *fmt,va_list args)
 
         //各种数值转换
         while (isspace((s32)ch))       //首先删除前导空格
-            ch = __GetChar(Source,&Offset);
+            ch = (char)__GetChar(Source,&Offset);
 
         if (!ch)                  //串结束
             break;
 
         sign = ch;
         if ((sign == '-') || (sign == '+'))
-            ch = __GetChar(Source,&Offset);
+            ch = (char)__GetChar(Source,&Offset);
 
         //base = 0表示由输入流表示数据格式（8/10/16进制）。
         if (base == 0)
@@ -437,10 +438,10 @@ static s32 __vsnscanf(ptu32_t Source,u32 Method, const char *fmt,va_list args)
             base = 10;
             if (ch == '0') {
                 base = 8;
-                ch = __GetChar(Source,&Offset);
+                ch = (char)__GetChar(Source,&Offset);
                 if ((ch == 'x') || (ch == 'X'))
                 {
-                    ch = __GetChar(Source,&Offset);
+                    ch = (char)__GetChar(Source,&Offset);
                     base = 16;
                 }
             }
@@ -448,9 +449,9 @@ static s32 __vsnscanf(ptu32_t Source,u32 Method, const char *fmt,va_list args)
         {
             if (ch == '0')
             {
-                ch = __GetChar(Source,&Offset);
+                ch = (char)__GetChar(Source,&Offset);
                 if ((ch == 'x') || (ch == 'X'))
-                    ch = __GetChar(Source,&Offset);
+                    ch = (char)__GetChar(Source,&Offset);
             }
         }
 

@@ -47,15 +47,16 @@
 #include "stdint.h"
 #include "stddef.h"
 #include "mem_pub.h"
+#include "wdt_pub.h"
+#include <shell.h>
 #include "cpu_peri.h"
+#include "board.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern void Board_Init(void);
-//    Board_Init();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -64,9 +65,9 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:required               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"component kernel","third lib bk7251","cpu driver gpio"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"cpu onchip gpio"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -99,29 +100,175 @@
 // 参数：无
 // 返回：无
 // =============================================================================
-u8 power_flag;
-
-void Set_Power(u8 statue)
+//
+//static struct SemaphoreLCB* p7_sem=0;
+//void p7_sem_init()
+//{
+//    if (p7_sem==0) {
+//        p7_sem = semp_init(1,1,"p7_sem");
+//    }
+//}
+//
+//void p7_isr_hdr(void *args)
+//{
+//    if (p7_sem) {
+//         Lock_SempPost(p7_sem);
+//    }
+//}
+//
+//int pend_p7_down(unsigned int timeout)
+//{
+//    int ret = 0;
+//    ret = Lock_SempPend(p7_sem, timeout);
+//    return ret;
+//}
+//
+//电容触摸芯片IIC接口初始化
+void FT6236_Pin_Init(void)
 {
-    power_flag = statue;
+    djy_gpio_mode(GPIO4,PIN_MODE_OUTPUT);        //SCL
+    djy_gpio_mode(GPIO2,PIN_MODE_OUTPUT);        //SDA
+
+    djy_gpio_mode(GPIO6,PIN_MODE_INPUT_PULLUP);  //RT_INT
+    djy_gpio_mode(GPIO7,PIN_MODE_OUTPUT);        //RT_RST
 }
 
-u8 Get_Power(void)
+u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
 {
-    return power_flag;
+    switch(tag)
+    {
+        case 1 :
+            switch(IO)
+            {
+            case scl_set_High : CT_IIC_SCL(1); break;
+            case scl_set_Low  : CT_IIC_SCL(0); break;
+            case scl_set_out  : CT_SCL_OUT();  break;
+            case sda_set_High : CT_IIC_SDA(1); break;
+            case sda_get      : return CT_READ_SDA;
+            case sda_set_Low  : CT_IIC_SDA(0); break;
+            case sda_set_out  : CT_SDA_OUT();  break;
+            case sda_set_in   : CT_SDA_IN();   break;
+            default:
+                break;
+            }
+        break;
+    }
+    return 0;
+}
+void OpenBackLight()
+{
+    djy_gpio_write(GPIO10,1);
+}
+
+void CloseBackLight()
+{
+    djy_gpio_write(GPIO10,0);
+}
+
+void OpenScreen()
+{
+    djy_gpio_write(GPIO11,1);
+    djy_gpio_write(GPIO10,1);
+    FT_RST(1);
+}
+
+void CloseScreen()
+{
+    djy_gpio_write(GPIO10,0);
+    FT_RST(0);
+    djy_gpio_write(GPIO11,0);
+}
+
+static enum SpeakerState Speaker = Speaker_off;
+void CloseSpeaker()
+{
+    djy_gpio_write(GPIO9,0);
+    Speaker = Speaker_off;
+}
+void OpenSpeaker()
+{
+    djy_gpio_write(GPIO9,1);
+    Speaker = Speaker_on;
+}
+enum SpeakerState GetSpeakerState()
+{
+    return Speaker;
+}
+
+// =============================================================================
+// 功能：用于设置系统时钟为180M，该函数在initcpu.S中调用，
+// 参数：无
+// 返回：无
+// =============================================================================
+extern UINT32 sctrl_ctrl(UINT32 cmd, void *param);
+extern void sctrl_set_cpu_clk_dco(void);
+extern void sctrl_dco_cali(UINT32 speed);
+void InitOsClk_180M(void)
+{
+    u32 param;
+    param = BLK_BIT_26M_XTAL | BLK_BIT_DPLL_480M | BLK_BIT_XTAL2RF | BLK_BIT_DCO;
+    sctrl_ctrl(CMD_SCTRL_BLK_ENABLE, &param);
+
+    sctrl_dco_cali(5);      //#define DCO_CALIB_180M          0x5
+    sctrl_set_cpu_clk_dco();
 }
 
 void Board_Init(void)
 {
     extern void os_clk_init(void);
+    extern s32 Djy_GpioInit(void);
+    Djy_GpioInit();
     os_meminit();
     drv_model_init();
-    g_dd_init();
+    gpio_config(GPIO9, GMODE_OUTPUT);   //设置控制喇叭的IO为输出模式
+    gpio_output(GPIO9, 0);              //开始设置为0 关闭喇叭
+//  g_dd_init();
+    sctrl_init();
+    icu_init();
+    wdt_init();
+    gpio_init();
+    flash_init();       //本函数不能放到ModuleInstall_Flash中，sctrl_sta_ps_init调用时需要访问flash设备。
+    gdma_init();
+    bk_timer_init();
+    mpb_init();                         //暂时先放这里
+    sctrl_sta_ps_init();
+    pwm_init();         //用于os_clk_init做CPU时钟
+
     intc_init();
     os_clk_init();
 
-//    djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);   //上电检测管脚
-//    Set_Power(djy_gpio_read(GPIO10));
+#if 0
+    djy_gpio_mode(GPIO7,PIN_MODE_INPUT_PULLUP);  //wifi一键配置
+    djy_gpio_mode(GPIO3,PIN_MODE_INPUT_PULLUP);  //音效模式
+    djy_gpio_mode(GPIO4,PIN_MODE_INPUT_PULLUP);  //变声模式
+
+    djy_gpio_mode(GPIO13,PIN_MODE_INPUT_PULLUP);   //语音按键
+
+    djy_gpio_mode(GPIO9,PIN_MODE_OUTPUT);        //LED
+    djy_gpio_write(GPIO9,0);
+
+    djy_gpio_mode(GPIO8,PIN_MODE_OUTPUT);        //WIFI连接状态
+    djy_gpio_write(GPIO8,0);
+#else
+//    djy_gpio_mode(GPIO13,PIN_MODE_INPUT_PULLUP);  //wifi一键配置
+//    djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);  //读取蓝牙状态
+
+//    p7_sem_init();
+//    djy_gpio_mode(GPIO7,PIN_MODE_INPUT_PULLUP);   //语音按键
+//    djy_gpio_attach_irq(GPIO7, PIN_IRQ_MODE_FALLING, p7_isr_hdr, NULL);
+//    djy_gpio_irq_enable( GPIO7, 1);
+
+
+    djy_gpio_mode(GPIO10,PIN_MODE_OUTPUT);         //液晶背光
+//    djy_gpio_write(GPIO10,1);
+
+    djy_gpio_mode(GPIO11,PIN_MODE_OUTPUT);        //液晶+触摸屏电源控制管脚
+    djy_gpio_write(GPIO11,1);
+
+    djy_gpio_mode(GPIO8,PIN_MODE_INPUT);          //耳机检测脚使能
+#endif
+//    void uart1_exit(void);
+//    uart1_exit();
 }
 
 void Init_Cpu(void);
@@ -129,3 +276,29 @@ void SoftReset(void)
 {
     Init_Cpu();
 }
+
+//由于板件的jtag口被psram占用，导致出了问题无法插入仿真器，本函数禁止psram，使能jtag，
+//关闭中断后进入死循环，允许仿真器插入调试，用法有两种：
+//1、如果shell还有响应，可以执行jtag命令调用本函数。
+//2、插入监视代码，当检测到错误时，主动调用本函数，等待仿真器插入。
+void stub_debug(void)
+{
+    atom_high_t atom;
+    volatile u32 t = 1;
+    atom = Int_HighAtomStart();
+    printk("+++++++++enable jtag，you can contact ICE debuger++++++++++++\r\n");
+    EnJtag();
+    if(t)
+        while(1);
+    Int_HighAtomEnd(atom);
+}
+bool_t init_jtag(char *param)
+{
+    (void)param;
+    sddev_control(WDT_DEV_NAME, WCMD_POWER_DOWN, 0);
+    stub_debug();
+    return true;
+}
+
+ADD_TO_ROUTINE_SHELL(initjtag,init_jtag,"重新初始化 :COMMAND:init_jtag+enter");
+

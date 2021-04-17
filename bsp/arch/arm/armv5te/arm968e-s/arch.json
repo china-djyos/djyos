@@ -1,0 +1,10 @@
+{
+	"compile-option":{
+		
+	},
+	"name":"arm968e-s",
+	"mcpu":"arm968e-s",
+	"vendor-option":{
+		
+	}
+}

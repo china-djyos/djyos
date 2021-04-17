@@ -57,10 +57,11 @@
 
 #ifndef __CORTEX_M_H__
 #define __CORTEX_M_H__
-#include "stdint.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "stdint.h"
 
 //------------------------ SystemTick ----------------------------------------
 //CTRL 中断控制及状态寄存器,0xE000_E010,bm_为位掩码,bo_为位偏移

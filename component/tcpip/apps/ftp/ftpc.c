@@ -57,6 +57,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <misc/misc.h>
 #include <os.h>
 #include <shell.h>
 #include "component_config_ftp.h"
@@ -64,16 +65,13 @@
 #include "ftp.h"
 #include "dbug.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 //------------------------------------------------------------------------------
 //功能：字符串地址转整数IPV4地址，字符串可以是点分十进制的，也可以是主机名?
 //参数：string，IPV4 地址，或者主机名
 //     addr，返回结果，网络字节帿
 //返回：true=成功，false= 失败
 //------------------------------------------------------------------------------
-static bool_t  __String2Ip(const char *string,struct in_addr *addr)
+static bool_t  __FTP_ClientString2Ip(const char *string,struct in_addr *addr)
 {
     bool_t ret = false;
     struct hostent* hent;
@@ -94,7 +92,7 @@ static bool_t  __String2Ip(const char *string,struct in_addr *addr)
 }
 
 //initialize the client
-static bool_t __InitClient(tagFtpClient *client,const char *host,const char *port,const char *user,const char *passwd)
+static bool_t __FTP_ClientInitClient(tagFtpClient *client,const char *host,const char *port,const char *user,const char *passwd)
 {
     bool_t ret = false;
     memset(client,0,sizeof(tagFtpClient));
@@ -107,7 +105,7 @@ static bool_t __InitClient(tagFtpClient *client,const char *host,const char *por
     client->dchannel.ispasv = true;
     //set the config
     strncpy(client->ipadr,host,CN_FTP_NAMELEN);
-    if(__String2Ip(client->ipadr,&client->cchannel.ipaddr))
+    if(__FTP_ClientString2Ip(client->ipadr,&client->cchannel.ipaddr))
     {
         strncpy(client->port,port,CN_FTP_NAMELEN);
         client->cchannel.port = strtol(client->port,NULL,0);
@@ -123,7 +121,7 @@ static bool_t __InitClient(tagFtpClient *client,const char *host,const char *por
 
 //get the response code (0 failed)
 //the response format:code space string
-static int __GetRespCode(const char *string)
+static int __FTP_ClientGetRespCode(const char *string)
 {
     char c;
     int value;
@@ -154,14 +152,14 @@ static int __GetRespCode(const char *string)
     return ret;
 }
 //return the response code and the message in the buf
-static int __RcvResponse(int sock,u8 *buf,int len)
+static int __FTP_ClientRcvResponse(int sock,u8 *buf,int len)
 {
     int msglen;
     int code = 0;
-    msglen = FtpRcvLine(sock,buf,len);
+    msglen = FTP_RcvLine(sock,buf,len);
     if(msglen > 0)
     {
-        code = __GetRespCode((const char *)buf);
+        code = __FTP_ClientGetRespCode((const char *)buf);
         info_printf("ftpc","%s:rcvcode:%d",__FUNCTION__,code);
     }
     else
@@ -171,7 +169,7 @@ static int __RcvResponse(int sock,u8 *buf,int len)
     return code;
 }
 //send the command
-static bool_t __SndCmd(int sock,const char *cmd,const char *para,u8 *buf,int len)
+static bool_t __FTP_ClientSndCmd(int sock,const char *cmd,const char *para,u8 *buf,int len)
 {
     bool_t ret = false;
     memset(buf,0,len);
@@ -204,7 +202,7 @@ static bool_t __SndCmd(int sock,const char *cmd,const char *para,u8 *buf,int len
 
 //flush the socket,before we send any command,we should flush all the content in the socket
 //cache
-static void __FlushRcvChannle(int s)
+static void __FTP_ClientFlushRcvChannle(int s)
 {
     u8 buf[1];
     u32 timeo = 0;  //DO THE TIME OUT SET
@@ -223,23 +221,23 @@ static void __FlushRcvChannle(int s)
 
 //do the snd and recv the response,and the rcv buf is the respbuf
 //return the recv code here
-static int __SndAndRcvResp(int sock,const char *cmd,const char *para,u8 *buf,int len)
+static int __FTP_ClientSndAndRcvResp(int sock,const char *cmd,const char *para,u8 *buf,int len)
 {
     int code = CN_SNDCMDERR;
     bool_t sndret;
 
     //flush the sock
-    __FlushRcvChannle(sock);
+    __FTP_ClientFlushRcvChannle(sock);
 
-    sndret = __SndCmd(sock,cmd,para,buf,len);
+    sndret = __FTP_ClientSndCmd(sock,cmd,para,buf,len);
     if(sndret)
     {
-        code = __RcvResponse(sock,buf,len);
+        code = __FTP_ClientRcvResponse(sock,buf,len);
     }
     return code;
 }
 //create the data socket
-static bool_t  __PortCmd(tagFtpClient *client)
+static bool_t  __FTP_ClientPortCmd(tagFtpClient *client)
 {
     bool_t  ret = false;
     int     lsn_sock;
@@ -295,7 +293,7 @@ static bool_t  __PortCmd(tagFtpClient *client)
             (hostip>>24)&0x000000FF,
             (port>>0)&0xff,
             (port>>8)&0xff);
-    retcode = __SndAndRcvResp(client->cchannel.s,"PORT",para,client->buf,client->buflen);
+    retcode = __FTP_ClientSndAndRcvResp(client->cchannel.s,"PORT",para,client->buf,client->buflen);
     if(retcode != CN_CMDSUCCESS)
     {
         closesocket(lsn_sock);
@@ -313,7 +311,7 @@ static bool_t  __PortCmd(tagFtpClient *client)
 }
 
 //connect to the pasv socket
-static bool_t __Pasv(tagFtpClient *client)
+static bool_t __FTP_ClientPasv(tagFtpClient *client)
 {
     bool_t ret = false;
     int     addr[6];
@@ -324,7 +322,7 @@ static bool_t __Pasv(tagFtpClient *client)
     int s;
     char *start;
 
-    coderet = __SndAndRcvResp(client->cchannel.s,"PASV",NULL,client->buf,client->buflen);
+    coderet = __FTP_ClientSndAndRcvResp(client->cchannel.s,"PASV",NULL,client->buf,client->buflen);
     if(coderet == CN_ENTERPASSIVE)
     {
         start = strchr((char*)client->buf,'(');
@@ -335,7 +333,7 @@ static bool_t __Pasv(tagFtpClient *client)
             inet_aton(ipaddrstr,&ipaddr);
             port = htons((u16)(addr[4]*256+addr[5]));
             info_printf("ftpc","%s:IP:%s Port:%d",__FUNCTION__,ipaddrstr,ntohs(port));
-            s = FtpConnect(&ipaddr,port);
+            s = FTP_Connect(&ipaddr,port);
             if(s > 0)
             {
                 client->dchannel.ipaddr = ipaddr;
@@ -357,7 +355,7 @@ static bool_t __Pasv(tagFtpClient *client)
     return ret;
 }
 //do the connect to the ftp server
-static bool_t __ConnectServer(tagFtpClient *client)
+static bool_t __FTP_ClientConnectServer(tagFtpClient *client)
 {
     bool_t    ret = false;
     int       respcode;
@@ -368,10 +366,10 @@ static bool_t __ConnectServer(tagFtpClient *client)
         info_printf("ftpc","%s:sockfdexist:sockfd:%d",__FUNCTION__,client->cchannel.s);
         return ret;
     }
-    s = FtpConnect(&client->cchannel.ipaddr,client->cchannel.port);
+    s = FTP_Connect(&client->cchannel.ipaddr,client->cchannel.port);
     if(s > 0)
     {
-        respcode = __RcvResponse(s,client->buf,client->buflen);
+        respcode = __FTP_ClientRcvResponse(s,client->buf,client->buflen);
         if(respcode == CN_SERVERREADY)
         {
             client->cchannel.s = s;
@@ -391,7 +389,7 @@ static bool_t __ConnectServer(tagFtpClient *client)
     return ret;
 }
 
-static int __CreateDataChannel(tagFtpClient *client)
+static int __FTP_ClientCreateDataChannel(tagFtpClient *client)
 {
     int dsock = -1;
 
@@ -401,7 +399,7 @@ static int __CreateDataChannel(tagFtpClient *client)
     }
     else   //must wait for the client to connect
     {
-        client->dchannel.saccept = FtpAccept(client->dchannel.slisten,NULL,0);
+        client->dchannel.saccept = FTP_Accept(client->dchannel.slisten,NULL,0);
         dsock = client->dchannel.saccept;
     }
     if(dsock > 0)
@@ -414,7 +412,7 @@ static int __CreateDataChannel(tagFtpClient *client)
     return dsock;
 }
 //close the data channel
-static void __CloseDataChannel(tagFtpClient *client)
+static void __FTP_DomainCloseDataChannel(tagFtpClient *client)
 {
     if(client->dchannel.saccept > 0)
     {
@@ -435,19 +433,19 @@ static void __CloseDataChannel(tagFtpClient *client)
 }
 
 
-//__LogIn the server
-static bool_t __LogIn(tagFtpClient *client)
+//__FTP_ClientLogIn the server
+static bool_t __FTP_ClientLogIn(tagFtpClient *client)
 {
     bool_t ret = false;
     int code;
-    code = __SndAndRcvResp(client->cchannel.s,"USER",client->user,client->buf,client->buflen);
+    code = __FTP_ClientSndAndRcvResp(client->cchannel.s,"USER",client->user,client->buf,client->buflen);
     if(code == CN_LOGIN)
     {
         ret = true;
     }
     else if(code == CN_NEEDPASS)//need the passwd
     {
-        code = __SndAndRcvResp(client->cchannel.s,"PASS",client->passwd,client->buf,client->buflen);
+        code = __FTP_ClientSndAndRcvResp(client->cchannel.s,"PASS",client->passwd,client->buf,client->buflen);
         if(code == CN_LOGIN)
         {
             ret = true;
@@ -465,25 +463,25 @@ static bool_t __LogIn(tagFtpClient *client)
 }
 
 //expression type
-static bool_t __Type(tagFtpClient *client,char mode)
+static bool_t __FTP_ClientType(tagFtpClient *client,char mode)
 {
     bool_t ret= false;
     int code;
     char para[2];
     para[0]=mode;
     para[1]='\0';
-    code = __SndAndRcvResp(client->cchannel.s,"TYPE",para,client->buf,client->buflen);
+    code = __FTP_ClientSndAndRcvResp(client->cchannel.s,"TYPE",para,client->buf,client->buflen);
     if(code == CN_CMDSUCCESS)
     {
         ret = true;
     }
     return ret;
 }
-static bool_t __Pwd(tagFtpClient *client)
+static bool_t __FTP_ClientPwd(tagFtpClient *client)
 {
     bool_t ret= false;
     int code;
-    code = __SndAndRcvResp(client->cchannel.s,"PWD",NULL,client->buf,client->buflen);
+    code = __FTP_ClientSndAndRcvResp(client->cchannel.s,"PWD",NULL,client->buf,client->buflen);
     if(code == CN_PATHBUILD)
     {
         ret = true;
@@ -496,7 +494,7 @@ static bool_t __Cwd(tagFtpClient *client,const char *path)
 {
     bool_t ret= false;
     int code;
-    code = __SndAndRcvResp(client->cchannel.s,"CWD",path,client->buf,client->buflen);
+    code = __FTP_ClientSndAndRcvResp(client->cchannel.s,"CWD",path,client->buf,client->buflen);
     if(code == CN_FILECOMPLETE)
     {
         ret = true;
@@ -509,7 +507,7 @@ static bool_t __Cdup(tagFtpClient *client)
 {
     bool_t ret= false;
     int code;
-    code = __SndAndRcvResp(client->cchannel.s,"CDUP",NULL,client->buf,client->buflen);
+    code = __FTP_ClientSndAndRcvResp(client->cchannel.s,"CDUP",NULL,client->buf,client->buflen);
     if(code == CN_FILECOMPLETE)
     {
         ret = true;
@@ -522,7 +520,7 @@ static bool_t __Mkd(tagFtpClient *client,const char *path)
 {
     bool_t ret= false;
     int code;
-    code = __SndAndRcvResp(client->cchannel.s,"MKD",path,client->buf,client->buflen);
+    code = __FTP_ClientSndAndRcvResp(client->cchannel.s,"MKD",path,client->buf,client->buflen);
     if(code == CN_FILECOMPLETE)
     {
         ret = true;
@@ -531,35 +529,35 @@ static bool_t __Mkd(tagFtpClient *client,const char *path)
 }
 
 //list the directory
-static bool_t __List(tagFtpClient *client,const char *path)
+static bool_t __FTP_ClientList(tagFtpClient *client,const char *path)
 {
     int dsock = -1;
     bool_t ret = false;
     int len = 0;
     int timeout=0;
 
-    ret = __Type(client,'A');
+    ret = __FTP_ClientType(client,'A');
     if(ret == false)
     {
         return ret;
     }
     if(client->dchannel.ispasv)
     {
-        ret = __Pasv(client);
+        ret = __FTP_ClientPasv(client);
     }
     else
     {
-        ret = __PortCmd(client);
+        ret = __FTP_ClientPortCmd(client);
     }
     if(ret == false)
     {
         return ret;
     }
     int retcode;
-    retcode = __SndAndRcvResp(client->cchannel.s,"LIST",path,client->buf,client->buflen);
+    retcode = __FTP_ClientSndAndRcvResp(client->cchannel.s,"LIST",path,client->buf,client->buflen);
     if((retcode == CN_OPENCONNECTION)||(retcode== CN_OPENDATACONNECTION125))
     {
-        dsock = __CreateDataChannel(client);
+        dsock = __FTP_ClientCreateDataChannel(client);
         if(dsock > 0)
         {
             while(timeout < CN_FTPCLIENT_TRYTIMES)
@@ -582,9 +580,9 @@ static bool_t __List(tagFtpClient *client,const char *path)
             }
             ret = true;
         }
-        __CloseDataChannel(client);
+        __FTP_DomainCloseDataChannel(client);
     }
-    retcode = __RcvResponse(client->cchannel.s,client->buf,client->buflen);
+    retcode = __FTP_ClientRcvResponse(client->cchannel.s,client->buf,client->buflen);
     if(retcode != CN_CLOSEDATACONNECTION)
     {
         debug_printf("ftpc","%s:DATA NOT COMPLETE\r\n",__FUNCTION__);
@@ -594,7 +592,7 @@ static bool_t __List(tagFtpClient *client,const char *path)
 }
 
 //download the file
-static int __DownLoad( tagFtpClient *client,const char *s,const char *d)
+static int __FTP_ClientDownLoad( tagFtpClient *client,const char *s,const char *d)
 {
     int dsock = -1;
     bool_t retcmd = false;
@@ -619,7 +617,7 @@ static int __DownLoad( tagFtpClient *client,const char *s,const char *d)
         return retlen;
     }
 
-    retcmd = __Type(client,'I');
+    retcmd = __FTP_ClientType(client,'I');
     if(retcmd == false)
     {
         close(fd);
@@ -627,35 +625,35 @@ static int __DownLoad( tagFtpClient *client,const char *s,const char *d)
     }
     if(client->dchannel.ispasv)
     {
-        retcmd = __Pasv(client);
+        retcmd = __FTP_ClientPasv(client);
     }
     else
     {
-        retcmd = __PortCmd(client);
+        retcmd = __FTP_ClientPortCmd(client);
     }
     if(retcmd == false)
     {
         close(fd);
         return retlen;
     }
-    retcode = __SndAndRcvResp(client->cchannel.s,"RETR",s,client->buf,client->buflen);
+    retcode = __FTP_ClientSndAndRcvResp(client->cchannel.s,"RETR",s,client->buf,client->buflen);
     if((retcode == CN_OPENCONNECTION)||(retcode== CN_OPENDATACONNECTION125))
     {
-        dsock = __CreateDataChannel(client);
+        dsock = __FTP_ClientCreateDataChannel(client);
         if(dsock > 0)
         {
             while(timeout < CN_FTPCLIENT_TRYTIMES)
             {
                 memset(client->buf,0,client->buflen);
 
-                time1= DjyGetSysTime();
+                time1= DJY_GetSysTime();
                 len_rcv = recv(dsock,client->buf,client->buflen,0);
                 if(len_rcv > 0)
                 {
                     timeout = 0;
-                    time2= DjyGetSysTime();
+                    time2= DJY_GetSysTime();
                     len_write = write(fd,client->buf,len_rcv);
-                    time3= DjyGetSysTime();
+                    time3= DJY_GetSysTime();
                     if(len_write != len_rcv)
                     {
                         debug_printf("ftpc","%s:write %s err:len_rcv:%d len_write:%d\r\n",\
@@ -680,8 +678,8 @@ static int __DownLoad( tagFtpClient *client,const char *s,const char *d)
                 }
             }
         }
-        __CloseDataChannel(client);
-        retcode = __RcvResponse(client->cchannel.s,client->buf,client->buflen);
+        __FTP_DomainCloseDataChannel(client);
+        retcode = __FTP_ClientRcvResponse(client->cchannel.s,client->buf,client->buflen);
     }
     else
     {
@@ -694,7 +692,7 @@ static int __DownLoad( tagFtpClient *client,const char *s,const char *d)
     return retlen;
 }
 //upload the file
-static int __UpLoad( tagFtpClient *client,const char *s,const char *d)
+static int __FTP_ClientUpLoad( tagFtpClient *client,const char *s,const char *d)
 {
     int dsock = -1;
     bool_t retcmd = false;
@@ -719,7 +717,7 @@ static int __UpLoad( tagFtpClient *client,const char *s,const char *d)
         return retlen;
     }
 
-    retcmd = __Type(client,'I');
+    retcmd = __FTP_ClientType(client,'I');
     if(retcmd == false)
     {
         close(fd);
@@ -727,33 +725,33 @@ static int __UpLoad( tagFtpClient *client,const char *s,const char *d)
     }
     if(client->dchannel.ispasv)
     {
-        retcmd = __Pasv(client);
+        retcmd = __FTP_ClientPasv(client);
     }
     else
     {
-        retcmd = __PortCmd(client);
+        retcmd = __FTP_ClientPortCmd(client);
     }
     if(retcmd == false)
     {
         close(fd);
         return retlen;
     }
-    retcode = __SndAndRcvResp(client->cchannel.s,"STOR",d,client->buf,client->buflen);
+    retcode = __FTP_ClientSndAndRcvResp(client->cchannel.s,"STOR",d,client->buf,client->buflen);
     if((retcode == CN_OPENCONNECTION)||(retcode== CN_OPENDATACONNECTION125))
     {
-        dsock = __CreateDataChannel(client);
+        dsock = __FTP_ClientCreateDataChannel(client);
         if(dsock > 0)
         {
             while(timeout < CN_FTPCLIENT_TRYTIMES)
             {
-                time1= DjyGetSysTime();
+                time1= DJY_GetSysTime();
                 len_read = read(fd,client->buf,client->buflen);
                 if(len_read > 0)
                 {
-                    time2= DjyGetSysTime();
+                    time2= DJY_GetSysTime();
                     if(sendexact(dsock,client->buf,len_read))
                     {
-                        time3= DjyGetSysTime();
+                        time3= DJY_GetSysTime();
                         retlen += len_read;
                         //compute the timeused
                         time_netused += (u32)(time3-time2);
@@ -771,8 +769,8 @@ static int __UpLoad( tagFtpClient *client,const char *s,const char *d)
                 }
             }
         }
-        __CloseDataChannel(client);
-        retcode = __RcvResponse(client->cchannel.s,client->buf,client->buflen);
+        __FTP_DomainCloseDataChannel(client);
+        retcode = __FTP_ClientRcvResponse(client->cchannel.s,client->buf,client->buflen);
     }
     else
     {
@@ -785,14 +783,14 @@ static int __UpLoad( tagFtpClient *client,const char *s,const char *d)
 }
 
 //rename a file
-static bool_t   __RenameFile(tagFtpClient *client,const char *s,const char *d)
+static bool_t   __FTP_ClientRenameFile(tagFtpClient *client,const char *s,const char *d)
 {
     bool_t ret = false;
     int retcode;
-    retcode = __SndAndRcvResp(client->cchannel.s,"RNFR",s,client->buf,client->buflen);
+    retcode = __FTP_ClientSndAndRcvResp(client->cchannel.s,"RNFR",s,client->buf,client->buflen);
     if(retcode == CN_FILEPAUSE)
     {
-        retcode = __SndAndRcvResp(client->cchannel.s,"RNTO",d,client->buf,client->buflen);
+        retcode = __FTP_ClientSndAndRcvResp(client->cchannel.s,"RNTO",d,client->buf,client->buflen);
         if(retcode == CN_FILECOMPLETE)
         {
             ret = true;
@@ -801,11 +799,11 @@ static bool_t   __RenameFile(tagFtpClient *client,const char *s,const char *d)
     return ret;
 }
 //del a file
-static bool_t  __DelFile(tagFtpClient *client,const char *s)
+static bool_t  __FTP_ClientDelFile(tagFtpClient *client,const char *s)
 {
     bool_t ret = false;
     int retcode;
-    retcode = __SndAndRcvResp(client->cchannel.s,"DELE",s,client->buf,client->buflen);
+    retcode = __FTP_ClientSndAndRcvResp(client->cchannel.s,"DELE",s,client->buf,client->buflen);
     if(retcode == CN_FILECOMPLETE)
     {
         ret = true;
@@ -814,11 +812,11 @@ static bool_t  __DelFile(tagFtpClient *client,const char *s)
 }
 
 //del a folder
-static bool_t  __DelDir(tagFtpClient *client,const char *s)
+static bool_t  __FTP_ClientDelDir(tagFtpClient *client,const char *s)
 {
     bool_t ret = false;
     int retcode;
-    retcode = __SndAndRcvResp(client->cchannel.s,"RMD",s,client->buf,client->buflen);
+    retcode = __FTP_ClientSndAndRcvResp(client->cchannel.s,"RMD",s,client->buf,client->buflen);
     if(retcode == CN_FILECOMPLETE)
     {
         ret = true;
@@ -827,11 +825,11 @@ static bool_t  __DelDir(tagFtpClient *client,const char *s)
 }
 
 //logout
-static bool_t  __LogOut(tagFtpClient *client)
+static bool_t  __FTP_ClientLogOut(tagFtpClient *client)
 {
     bool_t ret = false;
     int retcode;
-    retcode = __SndAndRcvResp(client->cchannel.s,"QUIT",NULL,client->buf,client->buflen);
+    retcode = __FTP_ClientSndAndRcvResp(client->cchannel.s,"QUIT",NULL,client->buf,client->buflen);
     if(retcode == CN_SERVERREADY)
     {
         ret = true;
@@ -840,9 +838,9 @@ static bool_t  __LogOut(tagFtpClient *client)
 }
 
 //disconnect the server
-static void __DisConnectServer(tagFtpClient *client)
+static void __FTP_ClientDisConnectServer(tagFtpClient *client)
 {
-    __CloseDataChannel(client);
+    __FTP_DomainCloseDataChannel(client);
     if(client->cchannel.s > 0)
     {
         closesocket(client->cchannel.s);
@@ -850,12 +848,14 @@ static void __DisConnectServer(tagFtpClient *client)
     }
     return ;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //this data for the ftp client debug
 static tagFtpClient  gFtpClientDebug;
 //host port user passwd sfile destfile filesize times
 //only used by the developer
-static bool_t __FtpcTest(int argc,const char *argv[])
+static bool_t __FTP_ClientTest(int argc,const char *argv[])
 {
     int times_total = 0;
     int times_success = 0;
@@ -883,16 +883,16 @@ static bool_t __FtpcTest(int argc,const char *argv[])
     int i = 0;
     for(i = 0;i < times_total;i++)
     {
-        timestart = DjyGetSysTime();
+        timestart = DJY_GetSysTime();
         if(download)
         {
-            file_rcv= ftpdownload(argv[1],argv[2],argv[3],argv[4],argv[5],argv[6]);
+            file_rcv= FTP_ClientDownload(argv[1],argv[2],argv[3],argv[4],argv[5],argv[6]);
         }
         else
         {
-            file_rcv= ftpupload(argv[1],argv[2],argv[3],argv[4],argv[5],argv[6]);
+            file_rcv= FTP_ClientUpload(argv[1],argv[2],argv[3],argv[4],argv[5],argv[6]);
         }
-        timestop = DjyGetSysTime();
+        timestop = DJY_GetSysTime();
         time_used = (u32)((timestop - timestart)/1000);
         if(time_used > time_max)
         {
@@ -910,11 +910,13 @@ static bool_t __FtpcTest(int argc,const char *argv[])
         }
         info_printf("ftpc","No%04d:%s TimeUed:%d(ms):TimeMax:%d(ms) Failed:%d Success:%d\r\n",\
                 i,cur,time_used,time_max,times_failed,times_success);
-        Djy_EventDelay(5*1000*mS);
+        DJY_EventDelay(5*1000*mS);
     }
     info_printf("ftpc","TestDone\r\n");
     return true;
 }
+#pragma GCC diagnostic pop
+
 //static bool_t __FtpcDebug(char *param)
 bool_t ftpc(char *param)
 {
@@ -949,7 +951,7 @@ bool_t ftpc(char *param)
             if(argc == 5) //5 paras include the subcmd
             {
 
-                if(__InitClient(&gFtpClientDebug,argv[1],argv[2],argv[3],argv[4]))
+                if(__FTP_ClientInitClient(&gFtpClientDebug,argv[1],argv[2],argv[3],argv[4]))
                 {
                     info_printf("ftpc","%s:config:success\r\n",__FUNCTION__);
                 }
@@ -960,7 +962,7 @@ bool_t ftpc(char *param)
             }
             else if(argc == 1) //use the default config
             {
-                __InitClient(&gFtpClientDebug,"192.168.0.100","21","djyos","zqf");
+                __FTP_ClientInitClient(&gFtpClientDebug,"192.168.0.100","21","djyos","zqf");
             }
             else
             {
@@ -969,7 +971,7 @@ bool_t ftpc(char *param)
         }
         else if(0 == strcmp(argv[0],"connect"))
         {
-            if(__ConnectServer(&gFtpClientDebug))
+            if(__FTP_ClientConnectServer(&gFtpClientDebug))
             {
                 info_printf("ftpc","%s:connect:OK\r\n",__FUNCTION__);
             }
@@ -980,12 +982,12 @@ bool_t ftpc(char *param)
         }
         else if(0 == strcmp(argv[0],"disconnect"))
         {
-            __DisConnectServer(&gFtpClientDebug);
+            __FTP_ClientDisConnectServer(&gFtpClientDebug);
             info_printf("ftpc","%s:disconnect:OK",__FUNCTION__);
         }
         else if(0 == strcmp(argv[0],"login"))
         {
-            if(__LogIn(&gFtpClientDebug))
+            if(__FTP_ClientLogIn(&gFtpClientDebug))
             {
                 info_printf("ftpc","%s:login:OK",__FUNCTION__);
             }
@@ -996,7 +998,7 @@ bool_t ftpc(char *param)
         }
         else if(0 == strcmp(argv[0],"logout"))
         {
-            if(__LogOut(&gFtpClientDebug))
+            if(__FTP_ClientLogOut(&gFtpClientDebug))
             {
                 info_printf("ftpc","%s:logout:OK",__FUNCTION__);
             }
@@ -1007,7 +1009,7 @@ bool_t ftpc(char *param)
         }
         else if(0 == strcmp(argv[0],"pwd"))
         {
-            if(__Pwd(&gFtpClientDebug))
+            if(__FTP_ClientPwd(&gFtpClientDebug))
             {
                 info_printf("ftpc","%s:pwd:OK",__FUNCTION__);
             }
@@ -1067,7 +1069,7 @@ bool_t ftpc(char *param)
         {
             if(argc == 2)
             {
-                if(__List(&gFtpClientDebug,argv[1]))
+                if(__FTP_ClientList(&gFtpClientDebug,argv[1]))
                 {
                     info_printf("ftpc","%s:list:%s OK",__FUNCTION__,argv[1]);
                 }
@@ -1085,7 +1087,7 @@ bool_t ftpc(char *param)
         {
             if(argc == 2)
             {
-                if(__DelFile(&gFtpClientDebug,argv[1]))
+                if(__FTP_ClientDelFile(&gFtpClientDebug,argv[1]))
                 {
                     info_printf("ftpc","%s:delfile:%s OK",__FUNCTION__,argv[1]);
                 }
@@ -1103,7 +1105,7 @@ bool_t ftpc(char *param)
         {
             if(argc == 2)
             {
-                if(__DelDir(&gFtpClientDebug,argv[1]))
+                if(__FTP_ClientDelDir(&gFtpClientDebug,argv[1]))
                 {
                     info_printf("ftpc","%s:deldir:%s OK",__FUNCTION__,argv[1]);
                 }
@@ -1121,7 +1123,7 @@ bool_t ftpc(char *param)
         {
             if(argc == 3)
             {
-                len = __DownLoad(&gFtpClientDebug,argv[1],argv[2]);
+                len = __FTP_ClientDownLoad(&gFtpClientDebug,argv[1],argv[2]);
                 if(len)
                 {
                     info_printf("ftpc","%s:download:%s %s OK:len:%d",__FUNCTION__,argv[1],argv[2],len);
@@ -1140,7 +1142,7 @@ bool_t ftpc(char *param)
         {
             if(argc == 3)
             {
-                len = __UpLoad(&gFtpClientDebug,argv[1],argv[2]);
+                len = __FTP_ClientUpLoad(&gFtpClientDebug,argv[1],argv[2]);
                 if(len)
                 {
                     info_printf("ftpc","%s:upload:%s %s OK:len:%d",__FUNCTION__,argv[1],argv[2],len);
@@ -1159,7 +1161,7 @@ bool_t ftpc(char *param)
         {
             if(argc == 3)
             {
-                len = __RenameFile(&gFtpClientDebug,argv[1],argv[2]);
+                len = __FTP_ClientRenameFile(&gFtpClientDebug,argv[1],argv[2]);
                 if(len)
                 {
                     info_printf("ftpc","%s:rename:%s %s OK:len:%d\r\n",__FUNCTION__,argv[1],argv[2],len);
@@ -1176,7 +1178,7 @@ bool_t ftpc(char *param)
         }
         else if(0 == strcmp(argv[0],"status"))
         {
-            FtpShowClient(&gFtpClientDebug);
+            FTP_ShowClient(&gFtpClientDebug);
         }
         else if(0 == strcmp(argv[0],"test"))
         {
@@ -1198,7 +1200,7 @@ bool_t ftpc(char *param)
                 info_printf("ftpc","%s:parafmt:test d/u host port user passwd sfile destfile filesize times\r\n",__FUNCTION__);
                 return true;
             }
-            __FtpcTest(argc-1,&argv[1]);
+            __FTP_ClientTest(argc-1,(const char*)&argv[1]);
         }
         else
         {
@@ -1209,7 +1211,7 @@ bool_t ftpc(char *param)
 }
 
 //download api
-int ftpdownload(const char *host,const char *port,const char *user,const char *passwd,const char *sfile,const char *dfile)
+int FTP_ClientDownload(const char *host,const char *port,const char *user,const char *passwd,const char *sfile,const char *dfile)
 {
     int ret = 0;
     tagFtpClient *client;
@@ -1219,26 +1221,26 @@ int ftpdownload(const char *host,const char *port,const char *user,const char *p
         info_printf("ftpc","%s:no mem",__FUNCTION__);
         goto EXIT_MEM;
     }
-    if(false == __InitClient(client,host,port,user,passwd))
+    if(false == __FTP_ClientInitClient(client,host,port,user,passwd))
     {
         error_printf("ftpc","init err(HOST:%s COULD NOT RESOLVE)",host);
         goto EXIT_INIT;
     }
-    if(false == __ConnectServer(client))
+    if(false == __FTP_ClientConnectServer(client))
     {
         error_printf("ftpc","connect err");
         goto EXIT_CONNECT;
     }
-    if(false == __LogIn(client))
+    if(false == __FTP_ClientLogIn(client))
     {
         error_printf("ftpc","login err");
         goto EXIT_LOGIN;
     }
-    ret = __DownLoad(client,sfile,dfile);
+    ret = __FTP_ClientDownLoad(client,sfile,dfile);
     //now we begin to exit
-    __LogOut(client);
+    __FTP_ClientLogOut(client);
 EXIT_LOGIN:
-    __DisConnectServer(client);
+    __FTP_ClientDisConnectServer(client);
 EXIT_CONNECT:
 EXIT_INIT:
     net_free(client);
@@ -1246,7 +1248,7 @@ EXIT_MEM:
     return ret;
 }
 //upload api
-int ftpupload(const char *host,const char *port,const char *user,const char *passwd,const char *sfile,const char *dfile)
+int FTP_ClientUpload(const char *host,const char *port,const char *user,const char *passwd,const char *sfile,const char *dfile)
 {
     int ret = 0;
     tagFtpClient *client;
@@ -1256,26 +1258,26 @@ int ftpupload(const char *host,const char *port,const char *user,const char *pas
         error_printf("ftpc","no mem");
         goto EXIT_MEM;
     }
-    if(false == __InitClient(client,host,port,user,passwd))
+    if(false == __FTP_ClientInitClient(client,host,port,user,passwd))
     {
         error_printf("ftpc","init err(HOST:%s COULD NOT RESOLVE)",host);
         goto EXIT_INIT;
     }
-    if(false == __ConnectServer(client))
+    if(false == __FTP_ClientConnectServer(client))
     {
         error_printf("ftpc","connect err");
         goto EXIT_CONNECT;
     }
-    if(false == __LogIn(client))
+    if(false == __FTP_ClientLogIn(client))
     {
         error_printf("ftpc","login err");
         goto EXIT_LOGIN;
     }
-    ret = __UpLoad(client,sfile,dfile);
+    ret = __FTP_ClientUpLoad(client,sfile,dfile);
     //now we begin to exit
-    __LogOut(client);
+    __FTP_ClientLogOut(client);
 EXIT_LOGIN:
-    __DisConnectServer(client);
+    __FTP_ClientDisConnectServer(client);
 EXIT_CONNECT:
 EXIT_INIT:
     net_free(client);
@@ -1290,7 +1292,7 @@ EXIT_MEM:
 // 参数：para
 // 返回便  ：true成功  false失败?
 // =============================================================================
-bool_t ServiceFtpcInit(void)
+bool_t FTP_ClientServiceInit(void)
 {
     return true;
 }

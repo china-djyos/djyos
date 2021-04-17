@@ -466,7 +466,7 @@ static ptu32_t __MacRcvTask(void)
     tagMacDriver      *pDrive;
     pDrive = &gMacDriver;
 
-    Djy_GetEventPara(&handle,NULL);
+    DJY_GetEventPara(&handle,NULL);
     while(1)
     {
         Lock_SempPend(pDrive->rcvsync,pDrive->loopcycle);
@@ -481,7 +481,7 @@ static ptu32_t __MacRcvTask(void)
             if(NULL != pkg)
             {
                 //maybe we have another method like the hardware
-                NetDevFlowCtrl(handle,NetDevFrameType(PkgGetCurrentBuffer(pkg),
+                NetDev_FlowCtrl(handle,NetDev_FrameType(PkgGetCurrentBuffer(pkg),
                                                       PkgGetDataLen(pkg)));
                 //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
@@ -500,7 +500,7 @@ static ptu32_t __MacRcvTask(void)
             else
             {
                   //here we still use the counter to do the time state check
-                  NetDevFlowCtrl(handle,EN_NETDEV_FRAME_LAST);
+                  NetDev_FlowCtrl(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
@@ -514,18 +514,18 @@ static bool_t __CreateRcvTask(struct NetDev * handle)
     u16 evttID;
     u16 eventID;
 
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_REAL, 0, 1,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_REAL, 0, 1,
         (ptu32_t (*)(void))__MacRcvTask,NULL, 0x800, "GMACRcvTask");
     if (evttID != CN_EVTT_ID_INVALID)
     {
-        eventID=Djy_EventPop(evttID, NULL,  0,(ptu32_t)handle, 0, 0);
+        eventID=DJY_EventPop(evttID, NULL,  0,(ptu32_t)handle, 0, 0);
         if(eventID != CN_EVENT_ID_INVALID)
         {
             result = true;
         }
         else
         {
-            Djy_EvttUnregist(evttID);
+            DJY_EvttUnregist(evttID);
         }
     }
     return result;
@@ -540,7 +540,7 @@ bool_t macdebuginfo(char *param)
     tagMacDriver      *pDrive;
     pDrive = &gMacDriver;
 
-    time = DjyGetSysTime();
+    time = DJY_GetSysTime();
     timeS = time/(1000*1000);
     if(timeS == 0)
     {
@@ -765,7 +765,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     devpara.private = 0;
     devpara.mtu = 1522;
     devpara.private = (ptu32_t)pDrive;
-    pDrive->devhandle = NetDevInstall(&devpara);
+    pDrive->devhandle = NetDev_Install(&devpara);
     if(0 == pDrive->devhandle)
     {
         goto NetInstallFailed;
@@ -788,7 +788,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     return true;
 
 RcvTaskFailed:
-    NetDevUninstall(devname);
+    NetDev_Uninstall(devname);
 NetInstallFailed:
     Lock_MutexDelete(pDrive->protect);
     pDrive->protect = NULL;

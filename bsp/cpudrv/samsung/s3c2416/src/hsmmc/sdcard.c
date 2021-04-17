@@ -1,10 +1,10 @@
 #include <device/card/card.h>
 #include <stdlib.h>
-#include <fs/fat/port/drivers/fat_drivers.h>
-#include <fs/fat/ff11/src/integer.h>
-#include <fs/fat/ff11/src/diskio.h>
+#include <fat/port/drivers/fat_drivers.h>
+#include <fat/ff11/src/integer.h>
+#include <fat/ff11/src/diskio.h>
 #include <systime.h>
-#include <filesystems.h>
+#include <djyfs/filesystems.h>
 #include <dbug.h>
 #include <string.h>
 #include <device.h>
@@ -26,7 +26,7 @@
 //attribute:bsp                        //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                     //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                        //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                     //初始化时机，可选值：early，medium，later。
+//init time:medium                     //初始化时机，可选值：early，medium，later, pre-main。
                                        //表示初始化时间，分别是早期、中期、后期
 //dependence:"file system","heap","device file system"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                        //选中该组件时，被依赖组件将强制选中，
@@ -177,7 +177,7 @@ s32  ModuleInstall_SD(const char *targetfs,u8 doformat)
     Ret = S3c2416_HsmmcInit(1);
     if(0 == Ret)
     {
-        if(dev_Create(ChipName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)ChipName)))
+        if(Device_Create(ChipName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)ChipName)))
         {
             if((false == doformat) || ((doformat) &&
               (0 != S3c2416_BlkErase(0, ((Card.CapacityInBytes >> Card.BlkLenSettings)-1)))))
@@ -188,13 +188,13 @@ s32  ModuleInstall_SD(const char *targetfs,u8 doformat)
 
             if(targetfs != NULL)
             {
-                targetobj = obj_matchpath(targetfs, &notfind);
+                targetobj = OBJ_MatchPath(targetfs, &notfind);
                 if(notfind)
                 {
                     error_printf("SDCARD"," not found need to install file system.");
                     return -1;
                 }
-                super = (struct FsCore *)obj_GetPrivate(targetobj);
+                super = (struct FsCore *)OBJ_GetPrivate(targetobj);
                 super->MediaInfo = ChipName;
                 if(strcmp(super->pFsType->pType, "FAT") == 0)      //这里的"FAT"为文件系统的类型名，在文件系统的filesystem结构中
                 {
@@ -209,7 +209,7 @@ s32  ModuleInstall_SD(const char *targetfs,u8 doformat)
 
                 FullPath = malloc(strlen(ChipName)+strlen(s_ptDeviceRoot->name));  //获取msc的完整路径
                 sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,ChipName);
-                FsBeMedia(FullPath,targetfs);     //在msc上挂载文件系统
+                File_BeMedia(FullPath,targetfs);     //在msc上挂载文件系统
                 free(FullPath);
             }
             else

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<arch>
-    <compile-option>
-        <mcpu>ck803s</mcpu>
-    </compile-option>
-</arch>

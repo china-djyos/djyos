@@ -70,7 +70,7 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"lock","heap","device file system"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -91,8 +91,9 @@
 //%$#@enum,true,false,
 #define     CFG_TCP_REORDER             true    //"TCP乱序重组使能",资源充足才打开
 //%$#@num,,,
-#define     CFG_TCP_CCBNUM              10      //"tcp 客户端数限值"，占一个 指针 和 struct ClienCB
+#define     CFG_TCP_CCBNUM              10      //"tcp 客户端数限值"，占一个 指针 和 struct ClientCB
 #define     CFG_TCP_SCBNUM              5       //"tcp 服务器数限值"，占一个 指针 和 struct ServerCB
+#define     CFG_TCP_SOCKET_HASH_LEN     10      //"tcp socket hashtable长度"，用于通过“IP+port”四元组检索socket
 //%$#@string,1,256,
 //%$#@select
 //%$#@free
@@ -111,8 +112,8 @@
 enum _EN_TCPSTATE
 {
     EN_TCP_MC_CREAT = 0 ,  //刚被创建的状态，一般而言只有主动创建的才会在此状态
-    EN_TCP_MC_SYNRCV,      //服务器端收到了FIN
-    EN_TCP_MC_SYNSNT,      //客户端已经发送了FIN信号
+    EN_TCP_MC_SYNRCV,      //socket收到了SYN
+    EN_TCP_MC_SYNSNT,      //socket已经发送了SYN信号
     EN_TCP_MC_ESTABLISH,   //稳定链接状态
     EN_TCP_MC_FINWAIT1,    //主动关闭发送了FIN
     EN_TCP_MC_FINWAIT2,    //主动关闭发送了FIN并且收到了ACK
@@ -129,7 +130,7 @@ enum _EN_TCPSTATE
 #define CN_TCP_MSSDEFAULT          1460     //默认 tcp mss size
 #define CN_TCP_LISTENDEFAULT    5           //LISTEN BAKLOG DEFAULT
 #define CN_TCP_RCMBLENDEFAULT   0x10        //most allowing num frame in the recombine list
-#define CN_TCP_ACCEPTMAX        0x10000
+#define CN_TCP_ACCEPTMAX        0x10000     //服务器listen后，accept前能排队的客户端数量
 
 //define for the channel stat
 //rcv fin makes krcv 0
@@ -138,12 +139,12 @@ enum _EN_TCPSTATE
 //shutdown_wr makes asnd 0
 //close makes the ksnd krcv 0 arcv 0 asnd 0
 #define CN_TCP_CHANNEL_STATASND    (1<<0)  //APP COULD SND DATA
-#define CN_TCP_CHANNEL_STATARCV    (1<<1)  //APP COULD NOT SND DATA
+#define CN_TCP_CHANNEL_STATARCV    (1<<1)  //APP COULD RCV DATA
 #define CN_TCP_CHANNEL_STATKSND    (1<<2)  //STACK COULD SND DATA
-#define CN_TCP_CHANNEL_STATKRCV    (1<<3)  //STAK COULD RCV DATA
+#define CN_TCP_CHANNEL_STATKRCV    (1<<3)  //STACK COULD RCV DATA
 #define CN_TCP_CHANNEL_STATCONGEST (1<<4)  //the rcv window is full or channel is bad
 
-//define for the tcp timer
+//tcp timer定义，所有定义都是tcp ticks 数，每tick=100mS。
 #define CN_TCP_TICK_TIME                   (100*mS) //Units:Micro Seconds
 #define CN_TCP_TICK_2ML                    (10)     //unit:tcp tick
 #define CN_TCP_TICK_KEEPALIVE              (500*10) //unit:tcp tick
@@ -153,19 +154,19 @@ enum _EN_TCPSTATE
 #define CN_TCP_TIMER_2MSL                  (1<<1)   //2ML TIMER control bit
 #define CN_TCP_TIMER_KEEPALIVE             (1<<2)   //KEEP TIMER control
 #define CN_TCP_TIMER_PERSIST               (1<<3)   //PERSIST TIMER control bit
-#define CN_TCP_TIMER_CORK                  (1<<4)   //CORK TIMER control bit
+#define CN_TCP_TIMER_CORK                  (1<<4)   //积攒数据 TIMER control bit
 #define CN_TCP_TIMER_LINGER                (1<<5)   //LINGER TIMER START
 #define CN_TCP_TIMER_RESEND                (1<<6)   //RESEND TIMER
 #define CN_TCP_TIMER_FIN                   (1<<7)   //FIN TIMER
 #define CN_TCP_TIMER_NONE                  (0)      //NO TIMER IS START
 //define for the rtt
-#define CN_TCP_RTOMAX                      150    //unit:tcp tick
-#define CN_TCP_RTOMIN                      2      //unit:tcp tick
-#define CN_TCP_SA_INIT                     0
-#define CN_TCP_SD_INIT                     4      //unit:tcp tick
-#define CN_TCP_FASTRETRANS                 3
+#define CN_TCP_RTOMAX                      150    //重传定时器起始时间最大值:tcp tick
+#define CN_TCP_RTOMIN                      2      //重传定时器起始时间最小值:tcp tick
+#define CN_TCP_SA_INIT                     0      //rtt平均值的初始值:tcp tick
+#define CN_TCP_SD_INIT                     4      //rtt平均值偏差的初始值:tcp tick
+#define CN_TCP_FASTRETRANS                 3      //收到多少次相同 ackno 执行快速重传
 #define CN_TCP_CWND_LIMIT                  60000
-#define CN_TCP_RSNDMAX                     8     //RESND TIMES MOST
+#define CN_TCP_RSNDMAX                     8     //最大重传次数
 //tcp flags
 #define CN_TCP_FLAG_FIN  (1<<0)     //网络位序也分大小端么？
 #define CN_TCP_FLAG_SYN  (1<<1)
@@ -213,52 +214,61 @@ typedef struct SynOption
 //receive buffer
 typedef struct
 {
-    struct SemaphoreLCB      *bufsync;     //the buffer sync member
+    struct SemaphoreLCB      *bufsync;     //初始化为无信号，
     u32                       timeout;     //if block, the block time
     s32                       buflen;      //the valid data length in the buffer
     s32                       buflenlimit; //the buffer length
     s32                       trigerlevel; //the buffer trigerlevel
-    struct NetPkg            *ph;          //the buffer package head
-    struct NetPkg            *pt;          //the buffer package tail
+    struct NetPkg            *phead;          //the buffer package head
+    struct NetPkg            *ptail;          //the buffer package tail
     u32                       rcvnxt;      //this is we receive next number
 }tagRecvBuf;
 //send buffer
 typedef struct
 {
-    struct SemaphoreLCB      *bufsync;     //buflenleft超过trigerlevel则post
-    u32                       timeout;     //if block, the block time
-    u32                       rtotick;     //最后一次发送数据 以来的ticks数
-    u8                       *tcpsendbuf;  //tcp发送buf，malloc得到。
-    s32                       buflenlimit; //the buffer length
-    u32                       unackno;     //which means the unack sequence
-    s32                       unackoff;    //which means off the buf to ack
-    s32                       unacklen;     //which means the length between the uack and sndnxt;
-    u32                       sndnxtno;    //which means the sequence no to send
-    s32                       sndnxtoff;   //which means off the buf to send
-    s32                       dataoff;     //which means off the buf,and buf from dataoff to unackoff could be write
-    s32                       datalen;     //which means the unsend data length
-    s32                       buflenleft;  //the net_free buffer len,which means how many data you could use
-    s32                       trigerlevel; //the buffer trigerlevel,if the bufleftlen is less than this ,then will active the sync
-                                           //the default is the size of the buffer
-    u8                        dupacktims;  //when receive the same ack,add it,when over,do the resend
+    struct SemaphoreLCB *bufsync;     //buflenleft超过trigerlevel则post
+    u32                  timeout;     //if block, the block time
+    u32                  rtotick;     //最后一次发送数据 以来的ticks数
+    u8                  *tcpsendbuf;  //tcp发送buf，malloc得到。
+    s32                  buflenlimit; //创建ccb时赋值，重设buffer len时赋值为buffer len.
+    u32                  unackno;     //等待对方确认的序号，创建ccb时赋值为 sndnxtno；
+                                      //收到对方ack时，赋值为对方的ackno（期待收到）；
+                                      //保活定时器启动时-1
+    s32                  unackoff;    //创建ccb时清零；__ackdata时增量，到缓冲区末则清零；
+                                      //重设buffer len 时清零;
+    s32                  unacklen;    //uackoff 和 sndnxtoff之间的长度，创建ccb时清零;
+                                      //重设buffer len 时清零;__ackdata时减量；保活定时器启动时-1
+    u32                  sndnxtno;    //待发送的序号，创建ccb时用__computeIsn得到，
+                                      //每发送数据时增加，发SYN则额外增加1
+    s32                  sndnxtoff;   //待发送的数据偏移，创建ccb时清零；__senddata时增量，
+                                      //到缓冲区末则清零；重设buffer len 时清零;
+    s32                  dataoff;     //buffer写入偏移，创建ccb时清零；__cpy2sndbuf时增量，
+                                      //到缓冲区末则清零；重设buffer len 时清零;
+    s32                  datalen;     //未发送数据长度(不含未确认)，创建ccb时清零，__cpy2sndbuf时增量，
+                                      //__senddata时减量,重设buffer len 时清零
+    s32                  buflenleft;  //空闲buffer量，创建ccb时赋值，__cpy2sndbuf时减量，
+                                      //__ackdata时增量；重设buffer len时赋值为buffer len.
+    s32                  trigerlevel; //缓冲区触发水平
+    u8                   dupacktims;  //收到相同 ackno 计数，达到限值执行快速重传
+                                      //unackno 改变时清零，收到 ackno==unackno 时增量
 }tagSendBuf;  //this buf used for the tcp send
-//each client has an ClienCB for the tcp state control
-struct ClienCB
+//each client has an ClientCB for the tcp state control
+struct ClientCB
 {
-    struct ClienCB           *nxt;          //用于动态分配内存块
+    struct ClientCB           *nxt;          //用于动态分配内存块
     struct tagSocket         *server;       //if this is an accept one
     u16                       machinestat;  //the machine stat of the tcb
     u16                       channelstat;  //the stat of the channel,which mean we could recv or send
     tagRecvBuf                rbuf;         //rcv buffer
     tagSendBuf                sbuf;         //sendbuffer
     struct NetPkg            *pkgrecomblst; //the package recomb queue
-    u16                       pkgrecomblen; //the package recomb queue length
     //the send window member
-    u16                       mss;         //you could send the most data one time
-    u8                        sndwndscale; //the remote window scale,update by the handshake
-    s32                       cwnd;        //the congest avoiding window
-    s32                       ssthresh;    //slow thresh,default 65535
-    s32                       sndwnd;      //the remote receive window,update by the receive frame
+    u16                       mss;         //单次发送的最大数据包
+    u8                        sndwndscale; //远程窗口放大指数选项，握手时 syn 包传递
+    s32                       cwnd;        //拥塞避免窗口，初始化为 mss*10
+    s32                       ssthresh;    //慢启动阈值，用来确定cwnd的中间变量，默认 65535
+    s32                       sndwnd;      //远程接收窗口，syn时初始化，发送时减量，
+                                           //收到包时更新，但要减掉未确认的数据
     //round trip time measure
     /* RTT(round trip time)相关变量 */
     /*
@@ -269,16 +279,20 @@ struct ClienCB
     g=0.125 ; h=0.25
     */
     s16 sa, sd;                /* 用于计算RTO：sa = 8*A；sv = 4*D */
-    s16 rto;                   /* RTO */
+    s16 rto;                   //重传定时器起始周期，发生重传时指数增加
     //tcp timer
-    u8                         timerctrl;
+    u16                        timerctrl;
     u16                        mltimer;     //(unit:tcp tick,used for 2msl wait)
     u16                        lingertimer; //(unit:tcp tick,used for linger close)
     u16                        keeptimer;   //(unit:tcp tick,used for keep alive)
     u16                        persistimer; //(unit:tcp tick,used for probe window)
-    u16                        corktimer;   //(unit:tcp tick,used for cork timeout)
+    u16                        corktimer;   //(unit:tcp tick,used for 积攒数据 timeout(supper Nagle))
+    u16                        resndtimer;  //数据重传、syn、fin三合一定时器，从rto开始，经 CN_TCP_RSNDMAX
+                                            //      次退避重传后收不到响应，终止，默认参数约204秒。
+                                            //syn：发送syn后启动
+                                            //数据重传：发送数据后，或收到部分数据ack后启动
+                                            //fin：发送 fin 后启动
     u8                         resndtimes;  //when resend,add it;when ack the data then clear it
-    u8                         resndtimer;  //when resend time is zero,do the resend
     u8                         acktimes;    //if acktimes overrun the limit, then will do fast ack
 };
 //each server has an ServerCB
@@ -288,7 +302,7 @@ struct ServerCB
     s32                        backlog;             //which limit the pending num
     s32                        pendnum;             //which means how much still in pending
     u32                        accepttime;          //block time for the accept
-    struct tagSocket             *clst;                //all the client including the pending stat
+    struct tagSocket          *clst;                //该服务器accetp的所有客户端，including the pending stat
     struct SemaphoreLCB       *acceptsemp;          //if block, then wait this num
 };  //tcp server control block
 //we use this structure to statistics the tcp state
@@ -303,56 +317,50 @@ typedef struct
 static struct TPL_ProtocalOps         gTcpProto;
 //used for the connection to snd syn (server or client)  tcp option
 static tagSynOption           sgSynOptDefault;   //when snd syn,use this const option
-//we use the hash table to search the socket
+
+//用于搜索跟“IP+port”四元组匹配的socket，哈希算法见 __hashTabInit 函数说明
 typedef struct
 {
-    s32                          tablen;     //how long the hash tab is
+//  s32                          tablen;     //how long the hash tab is
     struct MutexLCB             *tabsync;    //used to peotect the hash tab
-    struct tagSocket               *array[0];   //this is the hash tab
+    struct tagSocket            *array[CFG_TCP_SOCKET_HASH_LEN];   //this is the hash tab
 }tagTcpHashTab;
-static tagTcpHashTab   *pTcpHashTab = NULL;
+static tagTcpHashTab   TcpHashTab;
 static void *pTcpTicker = NULL;
-// =============================================================================
-// FUNCTION：this function is used to initialize the tcp hash tab
-// PARA  IN：len ,this parameter limits the hashtab length
-// PARA OUT：
-// RETURN  ：
-// INSTRUCT:
-// =============================================================================
-static bool_t __hashTabInit(u32 len)
-{
-    bool_t result = false;
-    pTcpHashTab = net_malloc(sizeof(tagTcpHashTab) + len *sizeof(struct tagSocket *));
-    if(NULL == pTcpHashTab)
-    {
-        goto ERR_ARRAYMEM;
-    }
-    memset((void *)pTcpHashTab,0,sizeof(tagTcpHashTab) + len *sizeof(struct tagSocket *));
 
-    pTcpHashTab->tabsync = mutex_init(NULL);
-    if(NULL == pTcpHashTab->tabsync)
+//-----------------------------------------------------------------------------
+//功能: 初始化tcp hash表，此表用于接收到数据包时匹配相应的socket用，hashtable所需内存
+//      从系统heap中分配。hash算法：把地址四元组全部按无符号数加起来，再与tablen取模，
+//      得hash值，hash值相同的 socket 用 Nextsock 指针串起来，是单向不循环链表。
+//参数: len，hash表长度
+//返回: true = 成功，false=失败，因内存不足
+//-----------------------------------------------------------------------------
+static bool_t __hashTabInit( void )
+{
+//  TcpHashTab = net_malloc(sizeof(tagTcpHashTab) + len *sizeof(struct tagSocket *));
+//  if(NULL == TcpHashTab)
+//  {
+//      goto ERR_ARRAYMEM;
+//  }
+//  memset((void *)TcpHashTab,0,sizeof(tagTcpHashTab) + len *sizeof(struct tagSocket *));
+
+    TcpHashTab.tabsync = Lock_MutexCreate(NULL);
+    if(NULL == TcpHashTab.tabsync)
     {
         goto ERR_SYNC;
     }
 
-    pTcpHashTab->tablen = len;
+//  TcpHashTab.tablen = len;
 
-    result = true;
-    return result;
+    return true;
 
 ERR_SYNC:
-    net_free(pTcpHashTab);
-    pTcpHashTab = NULL;
-ERR_ARRAYMEM:
-    return result;
+//    net_free(TcpHashTab);
+//    TcpHashTab = NULL;
+//ERR_ARRAYMEM:
+    return false;
 }
-// =============================================================================
-// FUNCTION：this function is used to find an socket in the hashtab
-// PARA  IN：the specified ip and port determines the item together
-// PARA OUT：
-// RETURN  ：the socket find else NULL(no one mathes)
-// INSTRUCT:send an mail to the mail box, which to be dealt by the ip engine
-// =============================================================================
+
 //-----------------------------------------------------------------------------
 //功能: 从hash表中查找socket。
 //参数: iplocal，本地IP
@@ -369,8 +377,8 @@ static struct tagSocket *__hashSocketSearch(u32 iplocal, u16 portlocal,u32 iprem
     u32 hashKey;
 
     hashKey = iplocal+portlocal + ipremote +portremote;
-    hashKey = hashKey%pTcpHashTab->tablen;
-    tmp = pTcpHashTab->array[hashKey];
+    hashKey = hashKey%CFG_TCP_SOCKET_HASH_LEN;
+    tmp = TcpHashTab.array[hashKey];
     while((NULL != tmp))
     {
         if((iplocal == tmp->element.v4.iplocal)&&(portlocal == tmp->element.v4.portlocal)&&\
@@ -388,9 +396,12 @@ static struct tagSocket *__hashSocketSearch(u32 iplocal, u16 portlocal,u32 iprem
     return result;
 }
 
-//this function is only used for the bind function
-//when we bind a address,we must make sure than if any socket with the same address
-//if any socket find with the same address, then bind failed
+//------------------------------------------------------------------------------
+//功能：在hashtable中查找socket，但只匹配本地端口和IP，用于确保不会bind重复的地址。
+//参数: iplocal，本地IP
+//      portlocal，本地端口
+//返回: socket指针，或NULL
+//-----------------------------------------------------------------------------
 static struct tagSocket *__hashSocketLocalSearch(u32 iplocal, u16 portlocal)
 {
     struct tagSocket *result = NULL;
@@ -398,9 +409,9 @@ static struct tagSocket *__hashSocketLocalSearch(u32 iplocal, u16 portlocal)
     s32 i = 0;
     struct tagSocket *tmp;
 
-    for(i =0; i < pTcpHashTab->tablen;i++ )
+    for(i =0; i < CFG_TCP_SOCKET_HASH_LEN;i++ )
     {
-        tmp = pTcpHashTab->array[i];
+        tmp = TcpHashTab.array[i];
         while((NULL != tmp))
         {
             if((iplocal == tmp->element.v4.iplocal)&&(portlocal == tmp->element.v4.portlocal))
@@ -421,13 +432,12 @@ static struct tagSocket *__hashSocketLocalSearch(u32 iplocal, u16 portlocal)
 
     return result;
 }
-// =============================================================================
-// FUNCTION:this function is used to create an hash item
-// PARA  IN:ip and port are the only hash property we need
-// PARA OUT：
-// RETURN  :the hash item we create
-// INSTRUCT:add the create item to the last
-// =============================================================================
+
+//------------------------------------------------------------------------------
+//功能：添加hash表项，如果有hash值重复的，则添加在相同hash的链表末尾。
+//参数：sock，待添加的表项
+//返回：true。
+//------------------------------------------------------------------------------
 static bool_t __hashSocketAdd(struct tagSocket *sock)
 {
     struct tagSocket  *tmp;
@@ -435,11 +445,12 @@ static bool_t __hashSocketAdd(struct tagSocket *sock)
     tagSockElementV4  *v4 = &sock->element.v4;
 
     hashKey = v4->iplocal + v4->portlocal + v4->ipremote + v4->portremote;
-    hashKey = hashKey%pTcpHashTab->tablen;
-    tmp = pTcpHashTab->array[hashKey];
+    hashKey = hashKey%CFG_TCP_SOCKET_HASH_LEN;
+
+    tmp = TcpHashTab.array[hashKey];
     if(NULL == tmp)
     {
-        pTcpHashTab->array[hashKey] = sock;
+        TcpHashTab.array[hashKey] = sock;
         sock->Nextsock = NULL;
     }
     else
@@ -461,6 +472,11 @@ static bool_t __hashSocketAdd(struct tagSocket *sock)
 // RETURN  :the hash item we create
 // INSTRUCT:add the create item to the last
 // =============================================================================
+//------------------------------------------------------------------------------
+//功能：移除hash表项，只是从hash表中删除，并不释放该socket。
+//参数：sock，待移除的socket
+//返回：true
+//------------------------------------------------------------------------------
 static bool_t __hashSocketRemove(struct tagSocket *sock)
 {
 
@@ -469,11 +485,11 @@ static bool_t __hashSocketRemove(struct tagSocket *sock)
     tagSockElementV4  *v4 = &sock->element.v4;
 
     hashKey = v4->iplocal+ v4->portlocal+ v4->ipremote + v4->portremote;
-    hashKey = hashKey%pTcpHashTab->tablen;
-    tmp = pTcpHashTab->array[hashKey];
+    hashKey = hashKey%CFG_TCP_SOCKET_HASH_LEN;
+    tmp = TcpHashTab.array[hashKey];
     if(sock == tmp)
     {
-        pTcpHashTab->array[hashKey] = sock->Nextsock;
+        TcpHashTab.array[hashKey] = sock->Nextsock;
         sock->Nextsock = NULL;
     }
     else
@@ -490,8 +506,13 @@ static bool_t __hashSocketRemove(struct tagSocket *sock)
     }
     return true;
 }
-//this function used to compute a send sequence number;make sure you could not guess
-//the sequence number when handshake
+
+//----计算初始序号--------------------------------------------------------------
+//功能：计算初始序号，每个tcp连接，发送的数据都始于某一个随机序号，该序号在连接时的
+//     syn报文中通知对方。
+//参数：无
+//返回：32位序号
+//------------------------------------------------------------------------------
 static u32 __computeIsn(void)
 {
     #define CN_TCP_ISNPRE_MS    (250)
@@ -500,13 +521,13 @@ static u32 __computeIsn(void)
     u32 result;
 
     result = (u32)((sIsnCnt++)*CN_ISN_PER_CONNECT +
-            DjyGetSysTime()*mS*CN_TCP_ISNPRE_MS);
+            DJY_GetSysTime()*mS*CN_TCP_ISNPRE_MS);
     return result;
 }
 
 static struct MutexLCB *pCBSync = NULL;      //use this to protect the
-static struct ClienCB          *pCCBFreeList = NULL; //this is used for the net_free ccb queue
-static struct ServerCB          *pSCBFreeList = NULL; //this is used for the net_free scb queue
+static struct ClientCB *pCCBFreeList = NULL; //this is used for the net_free ccb queue
+static struct ServerCB *pSCBFreeList = NULL; //this is used for the net_free scb queue
 //this function is used to initialize the ccb and scb module
 //net_malloc the mem from the configuration and create the sync
 //after the initialize, we net_malloc CB from the net_free queue
@@ -516,18 +537,18 @@ static bool_t  __initCB(s32 ccbnum, s32 scbnum)
 
     if((ccbnum <= 0) || (scbnum <= 0))
         return false;
-    pCBSync = mutex_init(NULL);
+    pCBSync = Lock_MutexCreate(NULL);
 
     //do the ccb initialize
-    pCCBFreeList = net_malloc(ccbnum *sizeof(struct ClienCB));
+    pCCBFreeList = net_malloc(ccbnum *sizeof(struct ClientCB));
     if(NULL == pCCBFreeList)
     {
         goto CCB_MEM;
     }
 
-    memset(pCCBFreeList, 0, (ccbnum *sizeof(struct ClienCB)));
+    memset(pCCBFreeList, 0, (ccbnum *sizeof(struct ClientCB)));
 
-    //do ClienCB initialize
+    //do ClientCB initialize
     for(i=0;i <(ccbnum -1);i++)
     {
         pCCBFreeList[i].nxt = &pCCBFreeList[i +1];
@@ -555,16 +576,16 @@ SCB_MEM:
     net_free((void *)pCCBFreeList);
     pCCBFreeList = NULL;
 CCB_MEM:
-    mutex_del(pCBSync);
+    Lock_MutexDelete(pCBSync);
     pCBSync = NULL;
     return false;
 }
 
 //net_malloc a ccb
-static struct ClienCB  *mallocccb(void)
+static struct ClientCB  *mallocccb(void)
 {
-    struct ClienCB           *result = NULL;
-    if(mutex_lock(pCBSync))
+    struct ClientCB           *result = NULL;
+    if(Lock_MutexPend(pCBSync,CN_TIMEOUT_FOREVER))
     {
         if(NULL != pCCBFreeList)
         {
@@ -572,19 +593,19 @@ static struct ClienCB  *mallocccb(void)
             pCCBFreeList = result->nxt;
         }
 
-        mutex_unlock(pCBSync);
+        Lock_MutexPost(pCBSync);
     }
     return result;
 }
 //net_free a ccb
-static bool_t  freeccb(struct ClienCB  *ccb)
+static bool_t  freeccb(struct ClientCB  *ccb)
 {
-    if(mutex_lock(pCBSync))
+    if(Lock_MutexPend(pCBSync,CN_TIMEOUT_FOREVER))
     {
         ccb->nxt = pCCBFreeList;
         pCCBFreeList = ccb;
 
-        mutex_unlock(pCBSync);
+        Lock_MutexPost(pCBSync);
     }
     return true;
 }
@@ -593,26 +614,26 @@ static struct ServerCB  *mallocscb(void)
 {
     struct ServerCB           *result = NULL;
 
-    if(mutex_lock(pCBSync))
+    if(Lock_MutexPend(pCBSync,CN_TIMEOUT_FOREVER))
     {
         if(NULL != pSCBFreeList)
         {
             result = pSCBFreeList;
             pSCBFreeList = result->nxt;
         }
-        mutex_unlock(pCBSync);
+        Lock_MutexPost(pCBSync);
     }
     return result;
 }
 //net_free a scb
 static bool_t  freescb(struct ServerCB  *scb)
 {
-    if(mutex_lock(pCBSync))
+    if(Lock_MutexPend(pCBSync,CN_TIMEOUT_FOREVER))
     {
         scb->nxt = pSCBFreeList;
         pSCBFreeList = scb;
 
-        mutex_unlock(pCBSync);
+        Lock_MutexPost(pCBSync);
     }
     return true;
 }
@@ -625,18 +646,18 @@ static bool_t  freescb(struct ServerCB  *scb)
 // INSTRUCT:
 // =============================================================================
 //net_malloc a ccb and init the member in it
-static struct ClienCB  *__CreateCCB(void)
+static struct ClientCB  *__CreateCCB(void)
 {
-    struct ClienCB *result;
+    struct ClientCB *result;
 
     result =  mallocccb();
     if(NULL == result)
     {
         goto EXIT_CCBMEM;
     }
-    memset((void *)result,0, sizeof(struct ClienCB));
-    result->sbuf.bufsync = semp_init(1,1,NULL);
-    result->rbuf.bufsync = semp_init(1,0,NULL);
+    memset((void *)result,0, sizeof(struct ClientCB));
+    result->sbuf.bufsync = Lock_SempCreate(1,1,CN_BLOCK_FIFO,NULL);
+    result->rbuf.bufsync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
     if((NULL == result->sbuf.bufsync)||(NULL == result->rbuf.bufsync))
     {
         goto EXIT_CCBSEMP;
@@ -668,11 +689,10 @@ static struct ClienCB  *__CreateCCB(void)
     result->rbuf.timeout      = CN_TIMEOUT_FOREVER;
     result->rbuf.trigerlevel    = 0;
     result->rbuf.rcvnxt       = 0;
-    result->rbuf.ph = NULL;
-    result->rbuf.pt = NULL;
+    result->rbuf.phead = NULL;
+    result->rbuf.ptail = NULL;
 
     result->pkgrecomblst = NULL;
-    result->pkgrecomblen = 0;
     //set the local mss to default
     //the window initialize
     result->ssthresh    = 65535;
@@ -699,33 +719,32 @@ static struct ClienCB  *__CreateCCB(void)
 
 EXIT_CCBSBUF:
 EXIT_CCBSEMP:
-    semp_del(result->rbuf.bufsync);
-    semp_del(result->sbuf.bufsync);
+    Lock_SempDelete(result->rbuf.bufsync);
+    Lock_SempDelete(result->sbuf.bufsync);
     freeccb(result);
     result = NULL;
 EXIT_CCBMEM:
     return result;
 }
 //reset the ccb to the specified stat, such as the CREAT or 2FREE
-static void  __ResetCCB(struct ClienCB *ccb,u16 machinestat)
+static void  __ResetCCB(struct ClientCB *ccb,u16 machinestat)
 {
     //init the ccb member
     //set the snd and receive buf limit to default
-    semp_post(ccb->sbuf.bufsync);
+    Lock_SempPost(ccb->sbuf.bufsync);
     //reset the receive buf
     ccb->rbuf.buflen       = 0;
     ccb->rbuf.buflenlimit  = CN_TCP_RCVBUF_SIZEDEFAULT;
     ccb->rbuf.timeout      = CN_TIMEOUT_FOREVER;
     ccb->rbuf.trigerlevel    = 0;
-    PkgTryFreeQ(ccb->rbuf.ph);
-    ccb->rbuf.ph = NULL;
-    ccb->rbuf.pt = NULL;
-    semp_post(ccb->rbuf.bufsync);
+    PkgTryFreeQ(ccb->rbuf.phead);
+    ccb->rbuf.phead = NULL;
+    ccb->rbuf.ptail = NULL;
+    Lock_SempPost(ccb->rbuf.bufsync);
 
     //reset the recomb queue
     PkgTryFreeQ(ccb->pkgrecomblst);
     ccb->pkgrecomblst = NULL;
-    ccb->pkgrecomblen = 0;
     //init the stat
     ccb->channelstat =0;
     ccb->machinestat = machinestat;
@@ -737,17 +756,17 @@ static void  __ResetCCB(struct ClienCB *ccb,u16 machinestat)
     ccb->mltimer     = 0;
 }
 //use this function to net_free the ccb
-static bool_t __DeleCCB(struct ClienCB *ccb)
+static bool_t __DeleCCB(struct ClientCB *ccb)
 {
     //net_free all the pkg to snd
     net_free(ccb->sbuf.tcpsendbuf);
     //net_free all the pkg to rcv
-    PkgTryFreeQ(ccb->rbuf.ph);
+    PkgTryFreeQ(ccb->rbuf.phead);
     //net_free all the pkg to recomb
     PkgTryFreeQ(ccb->pkgrecomblst);
     //del the semp for the buf
-    semp_del(ccb->rbuf.bufsync);
-    semp_del(ccb->sbuf.bufsync);
+    Lock_SempDelete(ccb->rbuf.bufsync);
+    Lock_SempDelete(ccb->sbuf.bufsync);
 
     freeccb(ccb);
     return true;
@@ -763,7 +782,7 @@ static struct ServerCB* __CreateScb(void)
     {
         goto SCB_MEM;
     }
-    result->acceptsemp = semp_init(CN_TCP_ACCEPTMAX,0,NULL);
+    result->acceptsemp = Lock_SempCreate(CN_TCP_ACCEPTMAX,0,CN_BLOCK_FIFO,NULL);
     if(NULL == result->acceptsemp)
     {
         goto SCB_SYNC;
@@ -782,13 +801,13 @@ SCB_MEM:
 //use this function to delete an scb and net_free it
 static bool_t __DeleteScb(struct ServerCB* scb)
 {
-    semp_del(scb->acceptsemp);
+    Lock_SempDelete(scb->acceptsemp);
     freescb(scb);
     return true;
 }
 static bool_t __ReseSCB(struct ServerCB* scb)
 {
-    semp_post(scb->acceptsemp);
+    Lock_SempPost(scb->acceptsemp);
     scb->backlog =  CN_TCP_LISTENDEFAULT;
     scb->clst    =  NULL;
     scb->pendnum =  0;
@@ -808,7 +827,7 @@ static u16 gPortEngineTcp = 1024;//usually, the dynamic port is more than 1024
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 static struct tagSocket * __tcpsocket(s32 family, s32 type, s32 protocal)
 {
-    struct tagSocket    *sock,*tmp;
+    struct tagSocket    *sock = NULL,*tmp;
     u16           findtime = 0;
     if(AF_INET == family)
     {
@@ -816,10 +835,10 @@ static struct tagSocket * __tcpsocket(s32 family, s32 type, s32 protocal)
         if(NULL != sock)
         {
             sock->ProtocolOps = &gTcpProto;
-            handle_SetMultiplexEvent(fd2Handle(sock->sockfd), 0);
+            Handle_SetMultiplexEvent(fd2Handle(sock->sockfd), 0);
 //          memset(sock, 0, sizeof(struct tagSocket));
-//          sock->SockSync = mutex_init(NULL);
-            if(mutex_lock(pTcpHashTab->tabsync))
+//          sock->SockSync = Lock_MutexCreate(NULL);
+            if(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER))
             {
                 //ok, find any port could use
                 do
@@ -849,7 +868,7 @@ static struct tagSocket * __tcpsocket(s32 family, s32 type, s32 protocal)
                         //initialize the sock add the sock to the hash tab
 //                      sock->IoInitstat = 0;
                         sock->sockstat |=CN_SOCKET_OPEN|CN_SOCKET_CLIENT|CN_SOCKET_PROBLOCK|CN_SOCKET_PRONAGLE;
-                        sock->ProtocolOps = &gTcpProto;
+//                        sock->ProtocolOps = &gTcpProto;
                         __hashSocketAdd(sock);
                     }
                 }
@@ -857,18 +876,21 @@ static struct tagSocket * __tcpsocket(s32 family, s32 type, s32 protocal)
                 {
                     //no port for you,you must do some kidding
                 }
-                mutex_unlock(pTcpHashTab->tabsync);
+                Lock_MutexPost(TcpHashTab.tabsync);
             }//end if for the lock pend
         }//end if NULL != sock
     }//end if AF_INET == family
     return sock;
 }
+
+#pragma GCC diagnostic pop
+
 // =============================================================================
-// FUNCTION:this function used to bind a address for the socket
-// PARA  IN:the parameters has the same meaning as bind
-// PARA OUT：
-// RETURN  :0 success while -1 failed
-// INSTRUCT:
+// 功能：给socket绑定一个地址，包含端口号和IP地址
+// 参数：sock，待绑定地址的socket
+//      addr：被绑定的地址
+//      addrlen：地址长度
+// 返回：0 success while -1 failed
 // =============================================================================
 static s32 __tcpbind(struct tagSocket *sock,struct sockaddr *addr, s32 addrlen)
 {
@@ -884,9 +906,9 @@ static s32 __tcpbind(struct tagSocket *sock,struct sockaddr *addr, s32 addrlen)
     {
         return result;
     }
-    if(mutex_lock(pTcpHashTab->tabsync))
+    if(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER))
     {
-        if(mutex_lock(sock->SockSync))
+        if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
         {
             if((0 == (sock->sockstat&CN_SOCKET_BIND))&&\
                (0 == (CN_SOCKET_CLOSE&sock->sockstat)))  //NOT BIND YET
@@ -932,26 +954,25 @@ static s32 __tcpbind(struct tagSocket *sock,struct sockaddr *addr, s32 addrlen)
                     }
                 }
             }
-            mutex_unlock(sock->SockSync);
+            Lock_MutexPost(sock->SockSync);
         }
-        mutex_unlock(pTcpHashTab->tabsync);
+        Lock_MutexPost(TcpHashTab.tabsync);
     }
     return  result;
 }
-// =============================================================================
-// FUNCTION:this function used to make the socket to listen
-// PARA  IN:the parameters has the same meaning as listen
-// PARA OUT：
-// RETURN  :0 success while -1 failed
-// INSTRUCT:this function to make the socket to become an server terminal
-// =============================================================================
+
+//------------------------------------------------------------------------------
+//功能：开启一个服务器socket，使一个端口置于监听状态，先检查该socket是否已经连接。
+//参数：sock，待监听的sock，必须是未连接的socket
+//      backlog，该服务器socket能接受的连接数量
+//返回：0=成功，-1=失败
 static s32 __tcplisten(struct tagSocket *sock, s32 backlog)
 {
     s32  result;
     struct ServerCB  *scb;
 
     result = -1;
-    if(mutex_lock(sock->SockSync))
+    if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
     {
         if((CN_SOCKET_BIND &sock->sockstat)&&\
            (0 == (CN_SOCKET_CONNECT&sock->sockstat))&&\
@@ -961,9 +982,8 @@ static s32 __tcplisten(struct tagSocket *sock, s32 backlog)
             scb = __CreateScb();
             if(NULL != scb)
             {
-                //may be we should cpy some options from the ClienCB,which set before listen
+                scb->accepttime = ((struct ClientCB *)(sock->TplCB))->rbuf.timeout;
                 __DeleCCB(sock->TplCB);
-                scb->accepttime = ((struct ClienCB *)(sock->TplCB))->rbuf.timeout;
                 sock->TplCB = scb;
                 scb->backlog = backlog;
                 sock->sockstat&=(~CN_SOCKET_CLIENT);
@@ -972,18 +992,22 @@ static s32 __tcplisten(struct tagSocket *sock, s32 backlog)
                 result = 0;
             }
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
     return  result;
 }
 
-//find an new client which is stable in the scb client queue
+//------------------------------------------------------------------------------
+//功能：从服务器sock中取一个处于稳定连接状态的客户端
+//参数：sock，服务器socket
+//返回：找到则返回其中一个socket，找不到则返回NULL
+//------------------------------------------------------------------------------
 static struct tagSocket *__acceptclient(struct tagSocket *sock)
 {
     struct tagSocket    *result;
     struct tagSocket    *client;
     struct tagSocket    *pre;
-    struct ClienCB       *ccb;
+    struct ClientCB       *ccb;
     struct ServerCB  *scb;
 
     scb = (struct ServerCB *)sock->TplCB;
@@ -992,7 +1016,7 @@ static struct tagSocket *__acceptclient(struct tagSocket *sock)
     pre = client;
     while(NULL != client)  //find the established and unopend socket
     {
-        ccb = (struct ClienCB*)client->TplCB;
+        ccb = (struct ClientCB*)client->TplCB;
         if(EN_TCP_MC_ESTABLISH== ccb->machinestat)
         {
             ccb->channelstat|=CN_TCP_CHANNEL_STATARCV|CN_TCP_CHANNEL_STATASND;
@@ -1016,8 +1040,10 @@ static struct tagSocket *__acceptclient(struct tagSocket *sock)
             client = client->Nextsock;
         }
     }
-    if(scb->clst == NULL)
-       handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT);
+    if(scb->clst == NULL) {
+       Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
+       //printf("--info: low level remove the accept event...\r\n");
+    }
     return result;
 }
 
@@ -1040,18 +1066,18 @@ static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *ad
     //first we will find if any client is ready
     if((0 ==(CN_SOCKET_CLIENT&sock->sockstat))&&\
        (sock->sockstat &CN_SOCKET_LISTEN)&&\
-       mutex_lock(sock->SockSync))
+       Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
     {
         scb = (struct ServerCB *)sock->TplCB;
-        result = __acceptclient(sock);
+        result = __acceptclient(sock);  //查看是否已经可接受
         waittime = scb->accepttime;
         if((NULL == result)&&(0 != waittime))
         {
             //if none find and permit the wait
-            mutex_unlock(sock->SockSync);
-            if(semp_pendtimeout(scb->acceptsemp,waittime))
+            Lock_MutexPost(sock->SockSync);
+            if(Lock_SempPend(scb->acceptsemp,waittime))
             {
-                if(mutex_lock(sock->SockSync))
+                if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
                 {
                     result = __acceptclient(sock);
                 }
@@ -1059,19 +1085,20 @@ static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *ad
         }
         if(NULL== result)  //no one to accept
         {
-//          handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT);
+//          Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT);
         }
         else
         {
             result->sockstat |= CN_SOCKET_OPEN;
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
-    if((NULL != result)&&(mutex_lock(pTcpHashTab->tabsync)))
-    {
-        __hashSocketAdd(result);
-        mutex_unlock(pTcpHashTab->tabsync);
-    }
+//应该在ack的时候添加hash表项
+//    if((NULL != result)&&(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER)))
+//    {
+//        __hashSocketAdd(result);
+//        Lock_MutexPost(TcpHashTab.tabsync);
+//    }
     if((NULL != result)&&(NULL != addr) &&(NULL != addrlen))
     {
         //fill the address if possible
@@ -1089,7 +1116,7 @@ static bool_t __sendmsg(struct tagSocket *sock, struct NetPkg *pkg,u16 translen)
 {
     bool_t       result;
     struct TcpHdr    *hdr;
-    struct ClienCB      *ccb;
+    struct ClientCB      *ccb;
     u32          iplocal, ipremote;
 
     iplocal = sock->element.v4.iplocal;
@@ -1098,7 +1125,15 @@ static bool_t __sendmsg(struct tagSocket *sock, struct NetPkg *pkg,u16 translen)
 //  hdr = (struct TcpHdr *)(pkg->buf + pkg->offset);
     hdr->chksum = 0;
     //if any ack timer set, we'd better to clear the ack timer
-    ccb = (struct ClienCB *)sock->TplCB;
+    ccb = (struct ClientCB *)sock->TplCB;
+//    char n[32];
+//    DJY_GetEvttName(DJY_GetMyEvttId(),n,32);
+//    if(hdr->portsrc == 0xb315)
+//        printf("----------server发%4u:%4d:%7u; %s\r\n",
+//                        ntohl(hdr->seqno),translen,intervaltime(),n);
+//    else if(hdr->portsrc == 0x5c54)
+//        printf("------------client发%4u:%4d:%7u; %s\r\n",
+//                        ntohl(hdr->seqno),translen,intervaltime(),n);
     result = IpSend(EN_IPV_4,(ptu32_t)iplocal, (ptu32_t)ipremote,pkg,translen,IPPROTO_TCP,\
                      CN_IPDEV_TCPOCHKSUM,&hdr->chksum);
     if(result)
@@ -1114,7 +1149,7 @@ static struct NetPkg  *__buildhdr(struct tagSocket *sock, u8 flags,\
 {
     struct NetPkg  *result;
     struct TcpHdr  *hdr;
-    struct ClienCB     *ccb;
+    struct ClientCB     *ccb;
     u32         datalen;
 
     datalen = sizeof(struct TcpHdr)+((optionlen+3)/4)*4;
@@ -1123,7 +1158,7 @@ static struct NetPkg  *__buildhdr(struct tagSocket *sock, u8 flags,\
     {
         PkgSetDataLen(result, datalen);
 //      result->datalen = datalen;
-        ccb = (struct ClienCB*)sock->TplCB;
+        ccb = (struct ClientCB*)sock->TplCB;
         hdr = (struct TcpHdr *)PkgGetCurrentBuffer(result);
 //      hdr =(struct TcpHdr *)(result->offset + result->buf);
         hdr->portdst = sock->element.v4.portremote;
@@ -1158,7 +1193,6 @@ static bool_t __sendflag(struct tagSocket *sock, u8 flags, void *option, u8 opti
     if(NULL != pkg)
     {
         result = __sendmsg(sock,pkg,PkgGetDataLen(pkg));
-//      result = __sendmsg(sock,pkg,pkg->datalen);
         PkgTryFreePart(pkg);
     }
     return  result;
@@ -1178,11 +1212,11 @@ static s32 __tcpconnect(struct tagSocket *sock, struct sockaddr *serveraddr, s32
 {
     s32  result;
     struct sockaddr_in *addrin;
-    struct ClienCB             *ccb;
+    struct ClientCB             *ccb;
     result = -1;
 
     //fist we make sure to adjust the its place in the hash tab
-    if(mutex_lock(pTcpHashTab->tabsync))
+    if(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER))
     {
         if((NULL != serveraddr)&&(addrlen == sizeof(struct sockaddr_in))&&\
             (CN_SOCKET_CLIENT&sock->sockstat))
@@ -1195,56 +1229,68 @@ static s32 __tcpconnect(struct tagSocket *sock, struct sockaddr *serveraddr, s32
             __hashSocketAdd(sock);
             result = 0;
         }
-        mutex_unlock(pTcpHashTab->tabsync);
+        Lock_MutexPost(TcpHashTab.tabsync);
     }
     if(0 == result)
     {
         result = -1;
         //now do the handshake with the server
-        if(mutex_lock(sock->SockSync))
+        if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
         {
-            ccb = (struct ClienCB *)sock->TplCB;
+            ccb = (struct ClientCB *)sock->TplCB;
             if((0 ==(CN_SOCKET_CONNECT &sock->sockstat))&&\
                (EN_TCP_MC_CREAT ==ccb->machinestat))  //it does not connect yet
             {
                 __sendflag(sock,CN_TCP_FLAG_SYN,(void *)&sgSynOptDefault,\
                                         sizeof(sgSynOptDefault),ccb->sbuf.sndnxtno);
                 //change the machine stat and open the timer flag
-                ccb->resndtimer = ccb->rto;
+                ccb->resndtimer = (u16)ccb->rto;
                 ccb->sbuf.sndnxtno++;
                 ccb->machinestat = EN_TCP_MC_SYNSNT;
                 ccb->timerctrl  = CN_TCP_TIMER_SYN;
-                mutex_unlock(sock->SockSync); //release the mutex
-                //wait the SockSync signal happens
-                semp_pendtimeout(ccb->rbuf.bufsync,ccb->rbuf.timeout);
+                Lock_MutexPost(sock->SockSync); //release the mutex
+                //等待服务器返回 syn 标志
+                Lock_SempPend(ccb->rbuf.bufsync,ccb->rbuf.timeout);
                 //check the connection
-                mutex_lock(sock->SockSync);
+                Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER);
                 if(ccb->machinestat == EN_TCP_MC_ESTABLISH)
                 {
                     //the app could send and rceive data from now on
                     ccb->channelstat|=CN_TCP_CHANNEL_STATASND|CN_TCP_CHANNEL_STATARCV;
                     result = 0; //connection success
                 }
+                else if((sock->sockstat & CN_SOCKET_PROBLOCK) == 0 &&
+                        (sock->sockstat & CN_SOCKET_CLIENT) &&
+                        (sock->sockstat & CN_SOCKET_CLOSE)==0) {//握手设置非阻塞，
+                    //result = -1; //默认是-1，这里不用设置也可以
+                    sock->sockstat |= CN_SOCKET_PROCONNECT;
+                }
                 else
                 {
                     __ResetCCB(ccb, EN_TCP_MC_2FREE); //THE NEXT STEP NEED BE CLOSE
                 }
             }
-            mutex_unlock(sock->SockSync);
+            Lock_MutexPost(sock->SockSync);
         }
     }
     return  result;
 }
-//we use this function to copy the data to the buffer,the len has been specified by the
-//buflenleft,we write from the data off, may be round over
+
+//----copy数据------------------------------------------------------------------
+//功能：把数据从用户缓冲区copy到对应socket的tcp缓冲区，类似环形缓冲区结构。如果发生
+//      环绕，先copy buffer的末端，再copy卷绕部分。
+//参数：sock，目标socket的指针
+//      msg，待发送的数据
+//      len，待拷贝的数据长度，由调用方确保不会超过 buf 剩余长度。
+//------------------------------------------------------------------------------
 static void __cpy2sndbuf(struct tagSocket *sock, const void *msg, s32 len)
 {
-    struct ClienCB           *ccb;
+    struct ClientCB           *ccb;
     u8               *src;
     u8               *dst;
     s32               cpylen;
 
-    ccb = (struct ClienCB *)sock->TplCB;
+    ccb = (struct ClientCB *)sock->TplCB;
 
     cpylen = ccb->sbuf.buflenlimit-ccb->sbuf.dataoff;
     if(cpylen >= len)
@@ -1269,7 +1315,7 @@ static void __cpy2sndbuf(struct tagSocket *sock, const void *msg, s32 len)
     ccb->sbuf.buflenleft -= cpylen;
     ccb->sbuf.datalen    += cpylen;
 
-    if(len > 0)
+    if(len > 0)     //表示数据有环绕
     {
         cpylen = len;
         dst = (u8 *)(ccb->sbuf.tcpsendbuf + ccb->sbuf.dataoff);
@@ -1284,16 +1330,20 @@ static void __cpy2sndbuf(struct tagSocket *sock, const void *msg, s32 len)
         ccb->sbuf.datalen    += cpylen;
     }
 }
-//check how many data could send in the current state
-//consider how many data in the buffer and the channel could send most
-//the result is the little one during them
+
+//------------------------------------------------------------------------------
+//功能：确定socket中有多少数据可以发送，使用nagle算法和拥塞避免算法，确定当前有多少
+//      数据可以发送。
+//参数：sock，目标sock
+//返回：允许发送的字节数
+//------------------------------------------------------------------------------
 static s32 __chkchannelsendlen(struct tagSocket *sock)
 {
-    s32      result;
+    s32      result = 0,congest;
     s32      datalen;
-    struct ClienCB  *ccb;
+    struct ClientCB  *ccb;
 
-    ccb =(struct ClienCB *)sock->TplCB;
+    ccb =(struct ClientCB *)sock->TplCB;
     if(0 ==(ccb->channelstat & CN_TCP_CHANNEL_STATKSND))
     {
         return 0;
@@ -1302,33 +1352,43 @@ static s32 __chkchannelsendlen(struct tagSocket *sock)
     datalen = ccb->sbuf.datalen;
     if(CN_SOCKET_PRONAGLE&sock->sockstat) //nagle is open
     {
-        //this means nothing to ack now or the new data is more than the mss,
-        if(ccb->sbuf.unackno == ccb->sbuf.sndnxtno)
+        if(ccb->sbuf.unackno == ccb->sbuf.sndnxtno)     //没有待确认的数据
         {
-            //this means nothing to acknowledge, so you could send as much data as possible
-            result = datalen;
+            result = datalen;           //有多少数据发送多少数据
         }
-        else if(datalen > ccb->mss)
+        else if(datalen > ccb->mss)     //若有待确认的数据，则攒够mss才发送
         {
-            result = datalen;
+            result = datalen;           //有多少数据发送多少数据
         }
         else
         {
-            result = 0;
+            result = 0;                 //不足mss，不发送
         }
     }
-    else //nagle is close
-    {
+    else
+        result = datalen;
+//  else //nagle is close
+//  {
+//      //we will send the mixnum of (sndwnd cwnd datalen)
+//      result = ccb->cwnd;
+//      if(result > ccb->sndwnd)
+//      {
+//          result = ccb->sndwnd;
+//      }
+//      if(result > datalen)
+//      {
+//          result = datalen;
+//      }
+//  }
         //we will send the mixnum of (sndwnd cwnd datalen)
-        result = ccb->cwnd;
-        if(result > ccb->sndwnd)
-        {
-            result = ccb->sndwnd;
-        }
-        if(result > datalen)
-        {
-            result = datalen;
-        }
+    congest = ccb->cwnd;
+    if(congest > ccb->sndwnd)
+    {
+        congest = ccb->sndwnd;
+    }
+    if(result > congest)
+    {
+        result = congest;
     }
     return result;
 }
@@ -1339,13 +1399,13 @@ static void __senddata(struct tagSocket *sock,s32 length)
     u16                 datalen;
     struct NetPkg          *pkghdr;
     struct NetPkg          *pkgdata;
-    struct ClienCB             *ccb;
+    struct ClientCB             *ccb;
     u8                  flags;
     u8                 *data;
     bool_t              sendresult;
     u32                 translen;
 
-    ccb = (struct ClienCB *)sock->TplCB;
+    ccb = (struct ClientCB *)sock->TplCB;
     while(length > 0) //we send all the data specified by length or until send failed
     {
         //compute the data datalen flags first
@@ -1379,21 +1439,13 @@ static void __senddata(struct tagSocket *sock,s32 length)
         if(NULL != pkghdr)
         {
             pkgdata = PkgMalloc(0,CN_PKLGLST_END);
-//          pkgdata = PkgMalloc(sizeof(struct NetPkg),CN_PKLGLST_END);
             if(NULL != pkgdata)
             {
                 //we got the data pkgnow, make sure how many data we will send
                 PkgInit(pkgdata,CN_PKLGLST_END,0,datalen,data);  //只有一个包
-//              pkgdata->buf = data;
-//              pkgdata->offset = 0;
-//              pkgdata->datalen = datalen;
-//              pkgdata->partnext = NULL;
                 PkgSetNextUnit(pkghdr,pkgdata);
-//              pkghdr->partnext = pkgdata;
                 translen = PkgGetDataLen(pkghdr)+datalen;
-//              translen = datalen + pkghdr->datalen;
                 sendresult = __sendmsg(sock,pkghdr,translen);
-                //net_free the package
                 PkgTryFreePart(pkghdr);
                 PkgTryFreePart(pkgdata);
                 //update the members
@@ -1426,6 +1478,8 @@ static void __senddata(struct tagSocket *sock,s32 length)
                         else
                         {
                             ccb->machinestat = EN_TCP_MC_FINWAIT1;
+//                            ccb->timerctrl |= CN_TCP_TIMER_2MSL;     //容错计数，若网络传丢了后续的fin，4ML后将收回。
+//                            ccb->mltimer = CN_TCP_TICK_2ML*2;
                         }
                         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKSND);
                         ccb->timerctrl |= CN_TCP_TIMER_FIN;  //open the fin timer
@@ -1454,7 +1508,7 @@ static void __senddata(struct tagSocket *sock,s32 length)
     }
     if(ccb->sbuf.unacklen > 0)
     {
-        ccb->resndtimer = ccb->rto;
+        ccb->resndtimer = (u16)ccb->rto;
         ccb->timerctrl |= CN_TCP_TIMER_RESEND;   //OPEN THE RESEND TIMER
     }
     if(((ccb->sbuf.datalen > 0)&&(ccb->sndwnd < ccb->mss)))
@@ -1475,12 +1529,12 @@ static void __resenddata(struct tagSocket *sock)
     u16                 datalen;
     struct NetPkg          *pkghdr;
     struct NetPkg          *pkgdata;
-    struct ClienCB             *ccb;
+    struct ClientCB             *ccb;
     u8                  flags;
     u8                 *data;
     u32                 translen;
 
-    ccb = (struct ClienCB *)sock->TplCB;
+    ccb = (struct ClientCB *)sock->TplCB;
     //first we want to make sure if any data or how many data to resend
     //we could only send a mss at most
     datalen = ccb->sbuf.unacklen;
@@ -1503,19 +1557,12 @@ static void __resenddata(struct tagSocket *sock)
         if(NULL != pkghdr)
         {
             pkgdata = PkgMalloc(0,CN_PKLGLST_END);
-//          pkgdata = PkgMalloc(sizeof(struct NetPkg),CN_PKLGLST_END);
             if(NULL != pkgdata)
             {
                 //we got the data pkgnow, make sure how many data we will send
                 PkgInit(pkgdata,CN_PKLGLST_END,0,datalen,data);  //只有一个包
-//              pkgdata->buf = data;
-//              pkgdata->offset = 0;
-//              pkgdata->datalen = datalen;
-//              pkgdata->partnext = NULL;
                 PkgSetNextUnit(pkghdr,pkgdata);
-//              pkghdr->partnext = pkgdata;
                 translen = PkgGetDataLen(pkghdr)+datalen;
-//              translen = datalen + pkghdr->datalen;
                 __sendmsg(sock,pkghdr,translen);
                 //net_free the package
                 PkgTryFreePart(pkghdr);
@@ -1529,6 +1576,10 @@ static void __resenddata(struct tagSocket *sock)
     }
     return;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // =============================================================================
 // FUNCTION:this function used to send data to the socket
 // PARA  IN:sock, the socket to send
@@ -1545,18 +1596,18 @@ static s32 __tcpsend(struct tagSocket *sock, const void *msg, s32 len, s32 flags
 {
     s32        result;
     s32        sndlen;
-    struct ClienCB    *ccb;
+    struct ClientCB    *ccb;
 
     result = -1;
     if(0 == (CN_SOCKET_CLIENT &sock->sockstat))
     {
         return result;
     }
-    ccb = (struct ClienCB *)sock->TplCB;
-    if(semp_pendtimeout(ccb->sbuf.bufsync,ccb->sbuf.timeout))
+    ccb = (struct ClientCB *)sock->TplCB;
+    if(Lock_SempPend(ccb->sbuf.bufsync,ccb->sbuf.timeout))
     {
         //got the mutex
-        if(mutex_lock(sock->SockSync))
+        if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
         {
             //check if we could copy it to the buffer
             if(CN_TCP_CHANNEL_STATASND&ccb->channelstat)
@@ -1578,12 +1629,12 @@ static s32 __tcpsend(struct tagSocket *sock, const void *msg, s32 len, s32 flags
                    if((ccb->sbuf.buflenleft > ccb->sbuf.trigerlevel)||
                       (0 ==(ccb->channelstat&CN_TCP_CHANNEL_STATASND)))
                    {
-                       handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
-                       semp_post(ccb->sbuf.bufsync);
+                       Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
+                       Lock_SempPost(ccb->sbuf.bufsync);
                    }
                    else
                    {
-                       handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
+                       Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
                    }
                 }
                 else
@@ -1598,13 +1649,18 @@ static s32 __tcpsend(struct tagSocket *sock, const void *msg, s32 len, s32 flags
                     }
                 }
             }
+            else if((sock->sockstat & CN_SOCKET_PROBLOCK) == 0 &&
+                    (sock->sockstat & CN_SOCKET_PROCONNECT)) {//握手设置非阻塞，
+                result = -1;                //默认是-1，这里不用设置也可以
+                Lock_SempPost(ccb->sbuf.bufsync);
+            }
             else
             {
                 result = 0;  // the channel is shutdown now
-                handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
-                semp_post(ccb->sbuf.bufsync);
+                Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
+                Lock_SempPost(ccb->sbuf.bufsync);
             }
-            mutex_unlock(sock->SockSync);
+            Lock_MutexPost(sock->SockSync);
         }
     }
     else
@@ -1615,7 +1671,7 @@ static s32 __tcpsend(struct tagSocket *sock, const void *msg, s32 len, s32 flags
 }
 
 //use this function to copy data from the receive buf
-static s32 __cpyfromrcvbuf(struct ClienCB *ccb, void *buf, s32 len)
+static s32 __cpyfromrcvbuf(struct ClientCB *ccb, void *buf, s32 len)
 {
     s32  result;
     s32 cpylen;
@@ -1626,32 +1682,30 @@ static s32 __cpyfromrcvbuf(struct ClienCB *ccb, void *buf, s32 len)
     srcbuf = (u8 *)buf;
     result = 0;
 
-    pkg = ccb->rbuf.ph;
+    pkg = ccb->rbuf.phead;
     while((len >0) && (NULL != pkg))
     {
-        cpylen = len > PkgGetDataLen(pkg)?PkgGetDataLen(pkg):len;
-//      cpylen = len > pkg->datalen?pkg->datalen:len;
+        cpylen = PkgGetDataLen(pkg);
+        cpylen = len > cpylen?cpylen:len;
         cpybuf = (u8 *)PkgGetCurrentBuffer(pkg);
-//      cpybuf = (u8 *)(pkg->buf + pkg->offset);
         memcpy(srcbuf, cpybuf,cpylen);
         PkgMoveOffsetUp(pkg,cpylen);
-//      pkg->offset += cpylen;
-//      pkg->datalen -= cpylen;
         ccb->rbuf.buflen -= cpylen;
         result +=cpylen;
         len-= cpylen;
         srcbuf+=cpylen;
         if(0==PkgGetDataLen(pkg)) //release the no data pkg
-//      if(0==pkg->datalen) //release the no data pkg
         {
-            ccb->rbuf.ph = PkgGetNextUnit(pkg);
-            if(NULL == ccb->rbuf.ph)
+            ccb->rbuf.phead = PkgGetNextUnit(pkg);
+            if(NULL == ccb->rbuf.phead)
             {
-                ccb->rbuf.pt = NULL;
+                ccb->rbuf.ptail = NULL;
             }
             PkgTryFreePart(pkg);
-            pkg = ccb->rbuf.ph;
+            pkg = ccb->rbuf.phead;
         }
+        else
+            break;
     }
 
     return result;
@@ -1667,18 +1721,18 @@ static s32 __cpyfromrcvbuf(struct ClienCB *ccb, void *buf, s32 len)
 static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
 {
     s32        result;
-    struct ClienCB    *ccb;
+    struct ClientCB    *ccb;
 
     result = -1;
     if(0 == (CN_SOCKET_CLIENT &sock->sockstat))
     {
         return result;
     }
-    ccb = (struct ClienCB *)sock->TplCB;
-    if(semp_pendtimeout(ccb->rbuf.bufsync,ccb->rbuf.timeout))
+    ccb = (struct ClientCB *)sock->TplCB;
+    if(Lock_SempPend(ccb->rbuf.bufsync,ccb->rbuf.timeout))
     {
         //got the mutex
-        if(mutex_lock(sock->SockSync))
+        if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
         {
             if(CN_TCP_CHANNEL_STATARCV & ccb->channelstat)
             {
@@ -1698,15 +1752,17 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
                     }
                 }
 
-                if((ccb->rbuf.buflen > ccb->rbuf.trigerlevel)||
-                   (0 == (ccb->channelstat&CN_TCP_CHANNEL_STATKRCV)))
+//              if((ccb->rbuf.buflen > ccb->rbuf.trigerlevel)||
+//                 (0 == (ccb->channelstat&CN_TCP_CHANNEL_STATKRCV)))
+                if((ccb->rbuf.buflen > ccb->rbuf.trigerlevel) &&
+                   (0 != (ccb->channelstat&CN_TCP_CHANNEL_STATKRCV)))
                 {
-                    handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
-                    semp_post(ccb->rbuf.bufsync);
+                    Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                    Lock_SempPost(ccb->rbuf.bufsync);
                 }
                 else
                 {
-                    handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                    Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
                     ccb->channelstat &=(~CN_TCP_CHANNEL_STATCONGEST);
                     //changed the rcv window
                     //we may prevent the data in because of the limited buf, then we
@@ -1715,14 +1771,20 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
                     __sendflag(sock,CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
                 }
             }
+            else if((sock->sockstat & CN_SOCKET_PROBLOCK) == 0 &&
+                    (sock->sockstat & CN_SOCKET_PROCONNECT)) //握手设置非阻塞，
+            {
+                //result = -1; //默认是-1，这里不用设置也可以
+                Lock_SempPost(ccb->rbuf.bufsync);
+            }
             else
             {
                 result = 0;  // the channel receive is shutdown now
-                handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
-                semp_post(ccb->rbuf.bufsync);
+//                Handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                Lock_SempPost(ccb->rbuf.bufsync);
             }
 
-            mutex_unlock(sock->SockSync);
+            Lock_MutexPost(sock->SockSync);
         }
     }
     else
@@ -1742,26 +1804,25 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
 static s32 __shutdownRD(struct tagSocket *sock)
 {
     s32 result;
-    struct ClienCB *ccb;
+    struct ClientCB *ccb;
 
     result = -1;
-    ccb = (struct ClienCB *)sock->TplCB;
+    ccb = (struct ClientCB *)sock->TplCB;
 
     //clear the rcv buf and recombination queue
     //and set some specified flags at the same time
     ccb->channelstat&=(~(CN_TCP_CHANNEL_STATARCV|CN_TCP_CHANNEL_STATKRCV));
     //release the rcv and recombination queue
-    PkgTryFreeQ(ccb->rbuf.ph);
+    PkgTryFreeQ(ccb->rbuf.phead);
     ccb->rbuf.buflen = 0;
     ccb->rbuf.buflenlimit  = CN_TCP_RCVBUF_SIZEDEFAULT;
-    ccb->rbuf.ph = NULL;
-    ccb->rbuf.pt = NULL;
+    ccb->rbuf.phead = NULL;
+    ccb->rbuf.ptail = NULL;
     ccb->rbuf.trigerlevel = 0;
-    semp_post(ccb->rbuf.bufsync);
+    Lock_SempPost(ccb->rbuf.bufsync);
     //net_free all the recomblst
     PkgTryFreeQ(ccb->pkgrecomblst);
     ccb->pkgrecomblst = NULL;
-    ccb->pkgrecomblen = 0;
     result = 0;
 
     return result;
@@ -1776,12 +1837,12 @@ static s32 __shutdownRD(struct tagSocket *sock)
 static s32 __shutdownWR(struct tagSocket *sock)
 {
     s32 result;
-    struct ClienCB     *ccb;
+    struct ClientCB     *ccb;
 
     result = -1;
     if(sock->sockstat & CN_SOCKET_CLIENT)
     {
-        ccb = (struct ClienCB *)sock->TplCB;
+        ccb = (struct ClientCB *)sock->TplCB;
         ccb->channelstat&=(~(CN_TCP_CHANNEL_STATASND));  //APP NO PERMIT TO TRANSMISSION
         //if send buf still has some data to snd, then set the flag is OK
         if(ccb->sbuf.datalen == 0)
@@ -1789,7 +1850,7 @@ static s32 __shutdownWR(struct tagSocket *sock)
             ccb->channelstat&=(~(CN_TCP_CHANNEL_STATKSND));
             __sendflag(sock,CN_TCP_FLAG_FIN|CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
             ccb->sbuf.sndnxtno++;
-            ccb->resndtimer = ccb->rto;
+            ccb->resndtimer = (u16)ccb->rto;
             ccb->timerctrl |= CN_TCP_TIMER_FIN;
             if(EN_TCP_MC_CLOSEWAIT == ccb->machinestat)
             {
@@ -1798,6 +1859,8 @@ static s32 __shutdownWR(struct tagSocket *sock)
             else
             {
                 ccb->machinestat  = EN_TCP_MC_FINWAIT1;
+//                ccb->timerctrl |= CN_TCP_TIMER_2MSL;     //容错计数，若网络传丢了后续的fin，4ML后将收回。
+//                ccb->mltimer = CN_TCP_TICK_2ML*2;
             }
             result = 0;
         }
@@ -1818,10 +1881,10 @@ static s32 __shutdownWR(struct tagSocket *sock)
 // =============================================================================
 static s32 __tcpshutdown(struct tagSocket *sock, u32 how)
 {
-    s32    result;
+    s32    result = -1;
 
     if((CN_SOCKET_CLIENT&sock->sockstat)&&\
-        mutex_lock(sock->SockSync))
+        Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
     {
         switch(how)
         {
@@ -1842,7 +1905,7 @@ static s32 __tcpshutdown(struct tagSocket *sock, u32 how)
                 result = -1;
                 break;
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
     return  result;
 }
@@ -1861,32 +1924,32 @@ static s32 __tcpshutdown(struct tagSocket *sock, u32 how)
 static s32 __closesocket(struct tagSocket *sock)
 {
     s32       result;
-    struct ClienCB   *ccb;
+    struct ClientCB   *ccb;
     struct ServerCB   *scb;
     struct tagSocket *client;
     struct tagSocket *server;
     result = -1;
 
-    if(mutex_lock(pTcpHashTab->tabsync))
+    if(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER))
     {
-        if(mutex_lock(sock->SockSync))
+        if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
         {
             if(CN_SOCKET_CLIENT&sock->sockstat)  //sock client
             {
                 client = sock;
                 client->sockstat |= CN_SOCKET_CLOSE;
-                ccb = (struct ClienCB *)client->TplCB;
+                ccb = (struct ClientCB *)client->TplCB;
                 if(ccb->machinestat == EN_TCP_MC_CREAT)
                 {
                     __ResetCCB(ccb, EN_TCP_MC_2FREE);
-                    result = true;
+                    result = 1;
                 }
                 else
                 {
                     __shutdownRD(client);
                     result = __shutdownWR(client);
                 }
-                mutex_unlock(client->SockSync);
+                Lock_MutexPost(client->SockSync);
             }
             else   //this is the server,so just close it and close all the client hung on it
             {
@@ -1899,9 +1962,10 @@ static s32 __closesocket(struct tagSocket *sock)
                     client = scb->clst;
                     scb->clst = client->Nextsock;
 
-                    ccb = (struct ClienCB *)client->TplCB;
+                    ccb = (struct ClientCB *)client->TplCB;
                     __ResetCCB(ccb,EN_TCP_MC_2FREE);
                     __DeleCCB(ccb);
+                    __hashSocketRemove(client);
                     SocketFree(client);
                 }
                 __ReseSCB(scb);
@@ -1912,7 +1976,7 @@ static s32 __closesocket(struct tagSocket *sock)
             result = 0;
         }
 
-        mutex_unlock(pTcpHashTab->tabsync);
+        Lock_MutexPost(TcpHashTab.tabsync);
     }
 
     return result;
@@ -1922,7 +1986,7 @@ static s32 __closesocket(struct tagSocket *sock)
 static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optval, s32 optlen)
 {
     bool_t result;
-    struct ClienCB *ccb;
+    struct ClientCB *ccb;
     struct ServerCB *scb;
     struct linger      *mylinger;
     u8 *buf;
@@ -1942,7 +2006,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
         case SO_KEEPALIVE:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (struct ClienCB *)sock->TplCB;
+                ccb = (struct ClientCB *)sock->TplCB;
                 if(*(s32 *)optval)
                 {
                     ccb->timerctrl |= CN_TCP_TIMER_KEEPALIVE;
@@ -1959,7 +2023,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
             if((CN_SOCKET_CLIENT&sock->sockstat)&&\
                     (optlen == sizeof(struct linger)))
             {
-                ccb = (struct ClienCB *)sock->TplCB;
+                ccb = (struct ClientCB *)sock->TplCB;
                 mylinger  = (struct linger *)optval;
                 if(mylinger->l_onff)
                 {
@@ -1978,7 +2042,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
         case SO_RCVBUF:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (struct ClienCB *)sock->TplCB;
+                ccb = (struct ClientCB *)sock->TplCB;
                 s32 buflen;
                 buflen = *(s32 *)optval;
                 if(buflen >0)
@@ -1992,7 +2056,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
         case SO_SNDBUF:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (struct ClienCB *)sock->TplCB;
+                ccb = (struct ClientCB *)sock->TplCB;
                 buflen = *(s32 *)optval;
                 if((buflen >0)&&((buf = net_malloc(buflen))!= NULL))
                 {
@@ -2018,7 +2082,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
         case SO_RCVLOWAT:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (struct ClienCB *)sock->TplCB;
+                ccb = (struct ClientCB *)sock->TplCB;
                 if(*(s32 *)optval>=0)
                 {
                     ccb->rbuf.trigerlevel = *(s32 *)optval;
@@ -2029,7 +2093,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
         case SO_SNDLOWAT:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (struct ClienCB *)sock->TplCB;
+                ccb = (struct ClientCB *)sock->TplCB;
                 if(*(s32 *)optval>=0)
                 {
                     ccb->sbuf.trigerlevel = *(s32 *)optval;
@@ -2040,32 +2104,32 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
         case SO_RCVTIMEO:       // *optval ==0等效于非阻塞模式接收
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (struct ClienCB *)sock->TplCB;
-                if(*(s32 *)optval>=0)
-                {
+                ccb = (struct ClientCB *)sock->TplCB;
+//                if(*(s32 *)optval>=0)
+//                {
                     ccb->rbuf.timeout = *(s32 *)optval;
                     result = 0;
-                }
+//                }
             }
             else
             {
                 scb = (struct ServerCB *)sock->TplCB;
-                if(*(s32 *)optval>=0)
-                {
+//                if(*(s32 *)optval>=0)
+//                {
                     scb->accepttime = *(s32 *)optval;
                     result = 0;
-                }
+//                }
             }
             break;
         case SO_SNDTIMEO:       // *optval ==0等效于非阻塞模式发送
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (struct ClienCB *)sock->TplCB;
-                if(*(s32 *)optval>=0)
-                {
+                ccb = (struct ClientCB *)sock->TplCB;
+//                if(*(s32 *)optval>=0)
+//                {
                     ccb->sbuf.timeout = *(s32 *)optval;
                     result = 0;
-                }
+//                }
             }
             break;
         case SO_REUSEADDR:
@@ -2084,7 +2148,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
                 sock->sockstat &= (~CN_SOCKET_PROBLOCK);
                 if(CN_SOCKET_CLIENT&sock->sockstat)
                 {
-                    ccb = (struct ClienCB *)sock->TplCB;
+                    ccb = (struct ClientCB *)sock->TplCB;
                     ccb->rbuf.timeout = 0;
                     ccb->sbuf.timeout = 0;
                 }
@@ -2099,7 +2163,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
                 sock->sockstat |=  CN_SOCKET_PROBLOCK;
                 if(CN_SOCKET_CLIENT&sock->sockstat)
                 {
-                    ccb = (struct ClienCB *)sock->TplCB;
+                    ccb = (struct ClientCB *)sock->TplCB;
                     ccb->rbuf.timeout = CN_TIMEOUT_FOREVER;
                     ccb->sbuf.timeout = CN_TIMEOUT_FOREVER;
                 }
@@ -2143,7 +2207,7 @@ static s32 __setsockopt_ip(struct tagSocket *sock,s32 optname,const void *optval
 static s32 __setsockopt_tcp(struct tagSocket *sock,s32 optname,const void *optval, s32 optlen)
 {
     bool_t result;
-    struct ClienCB *ccb;
+    struct ClientCB *ccb;
 
     result = -1;
     switch(optname)
@@ -2151,7 +2215,7 @@ static s32 __setsockopt_tcp(struct tagSocket *sock,s32 optname,const void *optva
         case TCP_MAXSEG:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (struct ClienCB *)sock->TplCB;
+                ccb = (struct ClientCB *)sock->TplCB;
                 ccb->mss = *(u8 *)optval;
                 result = 0;
             }
@@ -2190,9 +2254,9 @@ static s32 __setsockopt_tcp(struct tagSocket *sock,s32 optname,const void *optva
 static s32 __tcpsetsockopt(struct tagSocket *sock, s32 level, s32 optname,\
                const void *optval, s32 optlen)
 {
-    s32  result;
+    s32  result = -1;
 
-    if(mutex_lock(sock->SockSync))
+    if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
     {
         switch(level)
         {
@@ -2209,7 +2273,7 @@ static s32 __tcpsetsockopt(struct tagSocket *sock, s32 level, s32 optname,\
                 result = -1;
                 break;
         }
-        mutex_unlock(sock->SockSync);
+        Lock_MutexPost(sock->SockSync);
     }
     return  result;
 }
@@ -2228,7 +2292,19 @@ static s32 __tcpgetsockopt(struct tagSocket *sock, s32 level, s32 optname, void 
                s32 *optlen)
 {
     s32  result = -1;
-
+    if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER)) {
+        switch(level) {
+        case SOL_SOCKET:
+            if (optname == SO_ERROR) {
+                *(s32*)optval = sock->errorno;
+            }
+            result = 0;
+            break;
+        default:
+            break;
+        }
+        Lock_MutexPost(sock->SockSync);
+    }
 
     return  result;
 }
@@ -2283,7 +2359,7 @@ static bool_t __resetremoteraw(u32 iplocal, u16 portlocal,u32 ipremote, u16 port
         translen = PkgGetDataLen(pkg);
 //      translen = pkg->datalen;
 
-        result = IpSend(EN_IPV_4,(ptu32_t)iplocal, (ptu32_t)ipremote, pkg,translen,IPPROTO_TCP,\
+       result = IpSend(EN_IPV_4,(ptu32_t)iplocal, (ptu32_t)ipremote, pkg,translen,IPPROTO_TCP,\
                  CN_IPDEV_TCPOCHKSUM,&hdr->chksum);
         PkgTryFreePart(pkg);
     }
@@ -2302,7 +2378,7 @@ enum __EN_TCP_OPT_CODE
 };
 
 //do the remote optional
-static void dealtcpoption(struct ClienCB *ccb, struct TcpHdr *hdr)
+static void dealtcpoption(struct ClientCB *ccb, struct TcpHdr *hdr)
 {
     u8  totallen;
     u8  optlen;
@@ -2356,199 +2432,238 @@ static void dealtcpoption(struct ClienCB *ccb, struct TcpHdr *hdr)
     return ;
 }
 
-//we use this function to deal with the data accepted, which means that if the krcv
-//bit of the ccb is set then could use this function to deal with the data received
-//check the krcv bit and the pkg.data len > 0
-//which means how many data received
-
 //------------------------------------------------------------------------------
 //功能：接收数据，并把数据推送到上一层
 //参数：client，接收数据的socket
 //     seqno，数据序号
 //     pkg，数据包
-//     proto，传输协议接口函数集
 //返回：true or false
 //------------------------------------------------------------------------------
 static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
 {
-    struct ClienCB   *ccb;
+    struct ClientCB   *ccb;
+    tagRecvBuf *recbuf;
     u32        pkgstart;
-    u32        pkgstop;
+    u32        pkgstop;     //不含
+    u32        pkglen;
     u32        rcvlen;
     u32        pkgdataoff;
     struct NetPkg *pkgcomb;
+    u32 distance;
+    struct NetPkg *current,*pre;
 
     rcvlen = 0;
-    ccb = (struct ClienCB *)client->TplCB;
+    ccb = (struct ClientCB *)client->TplCB;
+
     pkgstart = seqno;
-    pkgstop = PkgGetDataLen(pkg)+seqno;
+//  rcvlen = PkgGetDataLen(pkg);
+    pkgstop = PkgGetDataLen(pkg) + seqno;
 //  pkgstop = seqno + pkg->datalen;
     if(ccb->rbuf.rcvnxt == pkgstart)
     {
-        //this is just the pkg what we want to receive next
-        PkgCachedPart(pkg); //cached the package
-        //and add it to the receive queue
-        if(NULL == ccb->rbuf.pt)
+        //收到的包刚好就是期待的包
+        PkgCachedPart(pkg);         //锁住新接收的包
+        if(NULL == ccb->rbuf.phead)    //把它加入到接收链中
         {
-            ccb->rbuf.ph = pkg;
+            ccb->rbuf.phead = pkg;
         }
         else
         {
-            PkgSetNextUnit(ccb->rbuf.pt,pkg);
-//          ccb->rbuf.pt->partnext = pkg;
+            PkgSetNextUnit(ccb->rbuf.ptail,pkg);
         }
-        ccb->rbuf.pt = pkg;
         rcvlen = PkgGetDataLen(pkg);
+        ccb->rbuf.ptail = pkg;         //设置链表的末端节点
         ccb->rbuf.buflen += rcvlen;
-        ccb->rbuf.rcvnxt+= rcvlen;
-//      ccb->rbuf.buflen += pkg->datalen;
-//      ccb->rbuf.rcvnxt+= pkg->datalen;
-//      rcvlen += pkg->datalen;
+        ccb->rbuf.rcvnxt = pkgstop;
     }
-    else if((pkgstop > pkgstart)&&((ccb->rbuf.rcvnxt > pkgstart)&&(ccb->rbuf.rcvnxt < pkgstop)))
+    else if((pkgstop > pkgstart)&& ((ccb->rbuf.rcvnxt > pkgstart)
+                                   &&(ccb->rbuf.rcvnxt < pkgstop)))
     {
-        //this is only part of the package data valid
+        //tcp序号未回绕，期待接收的序号在数据包范围内，即收到的包部分已经被接收。
+        //部分未被接收。
+        pkgdataoff = ccb->rbuf.rcvnxt - pkgstart;
+        PkgMoveOffsetUp(pkg,pkgdataoff);    //移动有效数据偏移，略过已接收部分
+        PkgCachedPart(pkg);         //锁住新接收的包
+        if(NULL == ccb->rbuf.phead)    //把它加入到接收链中
+        {
+            ccb->rbuf.phead = pkg;
+        }
+        else
+        {
+            PkgSetNextUnit(ccb->rbuf.ptail,pkg);
+        }
+        rcvlen = PkgGetDataLen(pkg);
+        ccb->rbuf.ptail = pkg;         //设置链表的末端节点
+        rcvlen -= pkgdataoff;       //实际接收数量须减去重复部分数据
+        ccb->rbuf.buflen += rcvlen;
+        ccb->rbuf.rcvnxt = pkgstop;
+    }
+    else if((pkgstop < pkgstart)&&((ccb->rbuf.rcvnxt > pkgstart)
+                                    ||(ccb->rbuf.rcvnxt < pkgstop)))
+    {
+        //注：处理过程与上一个else if 一致
+        //tcp序号发生回绕，期待接收的序号在数据包范围内，即收到的包部分已经被接收。
+        //无符号数减法，即使rcvnxt < pkgstart也能得出正确结果
         pkgdataoff = ccb->rbuf.rcvnxt - pkgstart;
         PkgMoveOffsetUp(pkg,pkgdataoff);
-//      pkg->offset += pkgdataoff;
-//      pkg->datalen -= pkgdataoff;
-        //then cached it and add it to the queue
-        PkgCachedPart(pkg); //cached the package
-        //and add it to the receive queue
-        if(NULL == ccb->rbuf.pt)
+        PkgCachedPart(pkg);         //锁住新接收的包
+        if(NULL == ccb->rbuf.phead)    //把它加入到接收链中
         {
-            ccb->rbuf.ph = pkg;
+            ccb->rbuf.phead = pkg;
         }
         else
         {
-            PkgSetNextUnit(ccb->rbuf.pt,pkg);
-//          ccb->rbuf.pt->partnext = pkg;
+            PkgSetNextUnit(ccb->rbuf.ptail,pkg);
         }
-        ccb->rbuf.pt = pkg;
         rcvlen = PkgGetDataLen(pkg);
+        ccb->rbuf.ptail = pkg;         //设置链表的末端节点
         ccb->rbuf.buflen += rcvlen;
-        ccb->rbuf.rcvnxt+= rcvlen;
-//      ccb->rbuf.buflen += pkg->datalen;
-//      ccb->rbuf.rcvnxt+= pkg->datalen;
-//      rcvlen += pkg->datalen;
+        ccb->rbuf.rcvnxt = pkgstop;
     }
-    else if((pkgstop < pkgstart)&&((ccb->rbuf.rcvnxt > pkgstart)||(ccb->rbuf.rcvnxt < pkgstop)))
-    {
-        //this is only part of the package data valid and the seqo turn over
-        pkgdataoff = ccb->rbuf.rcvnxt - pkgstart;
-        PkgMoveOffsetUp(pkg,pkgdataoff);
-//      pkg->offset += pkgdataoff;
-//      pkg->datalen -= pkgdataoff;
-        //then cached it and add it to the queue
-        PkgCachedPart(pkg); //cached the package
-        //and add it to the receive queue
-        if(NULL == ccb->rbuf.pt)
-        {
-            ccb->rbuf.ph = pkg;
-        }
-        else
-        {
-            PkgSetNextUnit(ccb->rbuf.pt,pkg);
-//          ccb->rbuf.pt->partnext = pkg;
-        }
-        ccb->rbuf.pt = pkg;
-        rcvlen = PkgGetDataLen(pkg);
-        ccb->rbuf.buflen += rcvlen;
-        ccb->rbuf.rcvnxt+= rcvlen;
-//      ccb->rbuf.buflen += pkg->datalen;
-//      ccb->rbuf.rcvnxt+= pkg->datalen;
-//      rcvlen += pkg->datalen;
-    }
-    else if(pkgstop == ccb->rbuf.rcvnxt) //maybe a keepalive package,just ignore it
+    else if(pkgstop == ccb->rbuf.rcvnxt) //包已经接收过了，应该是迟到的重发包，忽略
     {
 
     }
-    else
+    else if((ccb->rbuf.rcvnxt - pkgstart) > 0x80000000)
     {
-        //this data is out of sequence, we'd better to cached it in the recombination queue
-        //could cached in the recombination queue
-        if(CFG_TCP_REORDER)
+        //收到的包整体超前于待接收的序号
+#if(CFG_TCP_REORDER == true)        //支持乱序包才处理
+        PkgCachedPart(pkg);
+        PkgSetPrivate(pkg, seqno);
+        distance  = seqno - ccb->rbuf.rcvnxt;           //新包的超前量
+        current = ccb->pkgrecomblst;
+        if(current != NULL)
         {
-            PkgCachedPart(pkg);
-            PkgSetPrivate(pkg, seqno);
-//          pkg->Private = seqno;
-            //find an proplace to insert the pkg
-            if(NULL == ccb->pkgrecomblst)//this queue is empty
+            //新包插入点在链表第一个节点前
+            if(PkgGetPrivate(current) - ccb->rbuf.rcvnxt > distance)
             {
-                PkgSetNextUnit(pkg,NULL);
-//              pkg->partnext = NULL;
+                PkgSetNextUnit(pkg,current);
                 ccb->pkgrecomblst = pkg;
             }
             else
             {
-                PkgSetNextUnit(pkg,ccb->pkgrecomblst);
-//              pkg->partnext = ccb->pkgrecomblst;
-                ccb->pkgrecomblst = pkg;
-            }
-            ccb->pkgrecomblen++;
-        }
-    }
-    //if we have receive some data to the receive buffer, then we check all the data
-    //in the combination queue, if mathes then move it to the receive buffer, else drops now
-    if(rcvlen > 0)
-    {
-#if(CFG_TCP_REORDER == true)
-        {
-            while(NULL != ccb->pkgrecomblst)
-            {
-                pkgcomb = ccb->pkgrecomblst;
-                ccb->pkgrecomblst = PkgGetNextUnit(pkgcomb);
-                PkgSetNextUnit(pkgcomb,NULL);
-//              pkgcomb->partnext = NULL;
-                pkgstart = (u32)PkgGetPrivate(pkgcomb);
-//              pkgstart = pkgcomb->Private;
-                pkgstop = pkgstart + PkgGetDataLen(pkgcomb);
-//              pkgstop = pkgstart + pkgcomb->datalen;
-                if(pkgstart == ccb->rbuf.rcvnxt)
+                while(1)
                 {
-                    //and add it to the receive queue
-                    if(NULL == ccb->rbuf.pt)
+                    pre = current;
+                    current = PkgGetNextUnit(current);
+                    if(current != NULL)
                     {
-                        ccb->rbuf.ph = pkgcomb;
+                        if(PkgGetPrivate(current) - ccb->rbuf.rcvnxt > distance)
+                        {
+                            break;      //当前节点为插入点
+                        }
                     }
                     else
-                    {
-                        PkgSetNextUnit(ccb->rbuf.pt,pkgcomb);
-//                      ccb->rbuf.pt->partnext = pkgcomb;
-                    }
-                    ccb->rbuf.pt = pkgcomb;
-                    ccb->rbuf.buflen += PkgGetDataLen(pkgcomb);
-                    ccb->rbuf.rcvnxt+= PkgGetDataLen(pkgcomb);
-                    rcvlen += PkgGetDataLen(pkgcomb);
-//                  ccb->rbuf.buflen += pkgcomb->datalen;
-//                  ccb->rbuf.rcvnxt+= pkgcomb->datalen;
-//                  rcvlen += pkgcomb->datalen;
+                        break;
+                }
+                if((seqno == PkgGetPrivate(pre)) && (PkgGetDataLen(pkg)==PkgGetDataLen(pre)))
+                {
+                    PkgTryFreePart(pkg);  //丢弃重复包，产生于多次重发同一个包
+                                          //注意，部分数据重叠的包不能丢弃
+                }
+                else  //如果是部分重叠包，在入列时不处理，出列时才处理。
+                {
+                    PkgSetNextUnit(pre,pkg);
+                    PkgSetNextUnit(pkg,current);
+                }
+
+            }
+        }
+        else
+        {
+            PkgSetNextUnit(pkg,NULL);
+            ccb->pkgrecomblst = pkg;
+        }
+#else
+//      包被丢弃，此处无须释放，由网络驱动分配包的地方释放。
+#endif      //for (CFG_TCP_REORDER == true)
+    }
+    else
+    {
+        //      包被丢弃，此处无须释放，由网络驱动分配包的地方释放。
+    }
+
+    //刚刚可能接收了一些数据到buffer，须检查乱序重组序列有无可接收的数据
+#if(CFG_TCP_REORDER == true)
+    pkgcomb = ccb->pkgrecomblst;
+    while(NULL != pkgcomb)
+    {
+        pkgstart = (u32)PkgGetPrivate(pkgcomb);
+        pkglen = PkgGetDataLen(pkgcomb);
+        pkgstop = pkgstart + pkglen;
+        recbuf = &ccb->rbuf;
+        if(pkgstart == recbuf->rcvnxt)      //包头无重叠数据
+        {
+            //and add it to the receive queue
+            if(NULL == recbuf->phead)
+            {
+                recbuf->phead = pkgcomb;
+            }
+            else
+            {
+                PkgSetNextUnit(ccb->rbuf.ptail,pkgcomb);
+            }
+            recbuf->ptail = pkgcomb;
+            recbuf->buflen += pkglen;
+            recbuf->rcvnxt += pkglen;
+            rcvlen += pkglen;
+        }
+        else if((pkgstart - recbuf->rcvnxt) > 0x80000000)       //有数据重叠
+        {
+            //数据重叠是如何产生的呢？假设序号从0开始
+            //对方发包序号   本方收包序号            对方收到应答序号
+            //0~999         0~999（接收并确认）      1000
+            //1000~1999     未收到                   1000
+            //2000~2999     2000~2999（进重组队列）  1000
+            //3000~3999     3000~3999（进重组队列）  1000
+            //1000~2460     1000~2460（接收并确认）  4000
+            //此时，重组队列中（2000~2999）这个包将有460字节与已接收数据重叠
+            if((recbuf->rcvnxt - pkgstart) >= pkglen)
+            {
+                PkgTryFreePart(pkgcomb);  //包中全部数据已经接收
+            }
+            else        //数据包部分应该接收
+            {
+                if(NULL == recbuf->phead)
+                {
+                    recbuf->phead = pkgcomb;
                 }
                 else
                 {
-                    PkgTryFreePart(pkgcomb);        //drops it now
+                    PkgSetNextUnit(ccb->rbuf.ptail,pkgcomb);
                 }
-                ccb->pkgrecomblen = 0;
+                recbuf->ptail = pkgcomb;
+                PkgSetNextUnit(pkgcomb,NULL);
+                pkglen = pkglen - (recbuf->rcvnxt - pkgstart);
+                PkgMoveOffsetUp(pkgcomb,recbuf->rcvnxt - pkgstart);
+                recbuf->buflen += pkglen;
+                recbuf->rcvnxt += pkglen;
+                rcvlen += pkglen;
             }
         }
+        else    //重组队列中没有可接收包了。
+        {
+            break;
+        }
+        ccb->pkgrecomblst = PkgGetNextUnit(ccb->pkgrecomblst);
+        pkgcomb = ccb->pkgrecomblst;
+    }
 #endif      //for (CFG_TCP_REORDER == true)
+    if(rcvlen > 0)
+    {
         if(ccb->rbuf.buflen > ccb->rbuf.trigerlevel)
         {
-            handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
-            semp_post(ccb->rbuf.bufsync);
+            Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
+            Lock_SempPost(ccb->rbuf.bufsync);
         }
         if(ccb->rbuf.buflen >= (2*ccb->rbuf.buflenlimit))
         {
             ccb->channelstat |= CN_TCP_CHANNEL_STATCONGEST;
         }
     }
+//  PkgSetNextUnit(ccb->rbuf.ptail,NULL);
     return rcvlen;
 }
-#define __TCPCHKINTARGETNOE(target,start,stop) (stop>=start?((target>start)&&(target<stop)):\
-                                            ((target>start)||(target<stop)))
-
-#define __TCPCHKINTARGET(target,start,stop) (stop>=start?((target>=start)&&(target<=stop)):\
-                                            ((target>=start)||(target<=stop)))
 
 //------------------------------------------------------------------------------
 //功能：应答收到的数据
@@ -2560,27 +2675,29 @@ static bool_t __ackdata(struct tagSocket *client, struct TcpHdr *hdr)
 {
     u32                ackno;
     s32                acklen;
-    struct ClienCB    *ccb;
+    struct ClientCB    *ccb;
     s32                err;
     s32                uerr;
     u32                usedtime;
 
     acklen = 0;
-    ccb    = (struct ClienCB *)client->TplCB;
+    ccb    = (struct ClientCB *)client->TplCB;
     ackno  = ntohl(hdr->ackno);
-    //first we will deal the send buffer to release some space
+    //首先处理发送buffer，释放空间。
+    //对方没有收到新数据 且 对方有需要接收的新数据
     if((ackno  == ccb->sbuf.unackno)&&(ccb->sbuf.unacklen > 0))
     {
         ccb->sbuf.dupacktims++;
         if(ccb->sbuf.dupacktims > CN_TCP_FASTRETRANS)
         {
             //do the fast retransmition
-            ccb->rto = ccb->rto<<1;
-            if(ccb->rto < CN_TCP_RTOMIN)
-            {
-                ccb->rto = CN_TCP_RTOMIN;
-            }
-            else if(ccb->rto > CN_TCP_RTOMAX)
+            ccb->rto = (u16)ccb->rto<<1;
+//          if(ccb->rto < CN_TCP_RTOMIN)    //rto增大，无须判断下限
+//          {
+//              ccb->rto = CN_TCP_RTOMIN;
+//          }
+//          else
+            if(ccb->rto > CN_TCP_RTOMAX)
             {
                 ccb->rto = CN_TCP_RTOMAX;
             }
@@ -2594,12 +2711,10 @@ static bool_t __ackdata(struct tagSocket *client, struct TcpHdr *hdr)
             __resenddata(client);
         }
     }
-    //1,sndnxtno > unackno, then ackno must be between them
-    //2,sndnxtno <= unackno,then ackno must be bigger than unack no or less than
-    //  sndnxtno
-    else if(((ccb->sbuf.sndnxtno > ccb->sbuf.unackno)&&\
-       ((ackno >ccb->sbuf.unackno)&&(ackno <= ccb->sbuf.sndnxtno)))||\
-            ((ccb->sbuf.sndnxtno < ccb->sbuf.unackno)&&\
+    //ack了部分数据但仍有未确认的
+    else if(((ccb->sbuf.sndnxtno > ccb->sbuf.unackno)&&    //序号不无回绕且有未确认的数据
+       ((ackno >ccb->sbuf.unackno)&&(ackno <= ccb->sbuf.sndnxtno)))||
+            ((ccb->sbuf.sndnxtno < ccb->sbuf.unackno)&&    //序号不无回绕且有未确认的数据
              ((ackno >ccb->sbuf.unackno)||(ackno <= ccb->sbuf.sndnxtno))))
     {
         acklen = ackno-ccb->sbuf.unackno;
@@ -2654,12 +2769,12 @@ static bool_t __ackdata(struct tagSocket *client, struct TcpHdr *hdr)
         if((ccb->sbuf.buflenleft > ccb->sbuf.trigerlevel)||
            (0 ==(ccb->channelstat&CN_TCP_CHANNEL_STATASND)))
         {
-            handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE);
-            semp_post(ccb->sbuf.bufsync);
+            Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE);
+            Lock_SempPost(ccb->sbuf.bufsync);
         }
         else
         {
-            handle_ClrMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE);
+            Handle_ClrMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE);
         }
         if(ccb->sbuf.sndnxtno == ccb->sbuf.unackno)  //noting to resend, so close the resend timer
         {
@@ -2688,7 +2803,7 @@ static bool_t __ackdata(struct tagSocket *client, struct TcpHdr *hdr)
 }
 
 //------------------------------------------------------------------------------
-//功能：服务器端已经收到FIN
+//功能：服务器端已经收到SYN
 //参数：client，客户端
 //     hdr，tcp头
 //     pkg，偏移已经越过tcp头的网络包
@@ -2696,7 +2811,7 @@ static bool_t __ackdata(struct tagSocket *client, struct TcpHdr *hdr)
 //------------------------------------------------------------------------------
 static bool_t __rcvsyn_ms(struct tagSocket *client, struct TcpHdr *hdr, struct NetPkg *pkg)
 {
-    struct ClienCB   *ccb;
+    struct ClientCB   *ccb;
     struct ServerCB   *scb;
     struct tagSocket *server;
 
@@ -2704,27 +2819,32 @@ static bool_t __rcvsyn_ms(struct tagSocket *client, struct TcpHdr *hdr, struct N
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
         __ackdata(client,hdr);
-        ccb = (struct ClienCB *)client->TplCB;
-        if(ccb->sbuf.unackno == ccb->sbuf.sndnxtno) //ok, has ack the syn
+        ccb = (struct ClientCB *)client->TplCB;
+        if(ccb->sbuf.unackno == ccb->sbuf.sndnxtno)     //ack 了所有数据
         {
             ccb->machinestat = EN_TCP_MC_ESTABLISH;
             ccb->channelstat|= CN_TCP_CHANNEL_STATKRCV| CN_TCP_CHANNEL_STATKSND;
-            ccb->sbuf.unackno = ccb->sbuf.sndnxtno;
+//          ccb->sbuf.unackno = ccb->sbuf.sndnxtno;
             //close the syn resend timer
             ccb->timerctrl &= (~CN_TCP_TIMER_SYN);
-            ccb->resndtimer = ccb->rto;
+            ccb->resndtimer = (u16)ccb->rto;
             //notice the server to accept
             server = ccb->server;
             scb = (struct ServerCB *)server->TplCB;
-            handle_SetMultiplexEvent(fd2Handle(server->sockfd),CN_SOCKET_IOACCEPT);
-            semp_post(scb->acceptsemp);
+            if((Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER)))
+            {
+                __hashSocketAdd(client);
+                Lock_MutexPost(TcpHashTab.tabsync);
+            }
+            Handle_SetMultiplexEvent(fd2Handle(server->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
+            Lock_SempPost(scb->acceptsemp);
         }
     }
     return true;
 }
 
 //------------------------------------------------------------------------------
-//功能：客户端已经发送了FIN信号
+//功能：接收包处理，已经发送了SYN信号
 //参数：client，客户端
 //     hdr，tcp头
 //     pkg，偏移已经越过tcp头的网络包
@@ -2732,9 +2852,9 @@ static bool_t __rcvsyn_ms(struct tagSocket *client, struct TcpHdr *hdr, struct N
 //------------------------------------------------------------------------------
 static bool_t __sndsyn_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
-    struct ClienCB   *ccb;
+    struct ClientCB   *ccb;
 
-    ccb = (struct ClienCB *)client->TplCB;
+    ccb = (struct ClientCB *)client->TplCB;
     //only care about the ack to the syn
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
@@ -2744,22 +2864,27 @@ static bool_t __sndsyn_ms(struct tagSocket *client, struct TcpHdr *hdr,struct Ne
         {
             ccb->machinestat = EN_TCP_MC_ESTABLISH;
             ccb->channelstat|= CN_TCP_CHANNEL_STATKRCV| CN_TCP_CHANNEL_STATKSND;
-            ccb->sbuf.unackno = ccb->sbuf.sndnxtno;
+//            ccb->sbuf.unackno = ccb->sbuf.sndnxtno;
             //close the syn resend timer
             ccb->timerctrl &= (~CN_TCP_TIMER_SYN);
-            ccb->resndtimer = ccb->rto;
+            ccb->resndtimer = (u16)ccb->rto;
             dealtcpoption(ccb,hdr);
             ccb->rbuf.rcvnxt = ntohl(hdr->seqno) + 1;
             __sendflag(client,CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
+
+            if((client->sockstat & CN_SOCKET_PROBLOCK) == 0 &&
+               (client->sockstat & CN_SOCKET_PROCONNECT)) {//握手设置非阻塞，
+                ccb->channelstat|=CN_TCP_CHANNEL_STATASND|CN_TCP_CHANNEL_STATARCV;
+            }
             //notice the applications  the connect success
-            semp_post(ccb->rbuf.bufsync);
+            Lock_SempPost(ccb->rbuf.bufsync);
         }
     }
     return true;
 }
 
 //------------------------------------------------------------------------------
-//功能：已经处于稳定连接状态
+//功能：接收包处理，已经处于稳定连接状态
 //参数：client，客户端
 //     hdr，tcp头
 //     pkg，偏移已经越过tcp头的网络包
@@ -2768,11 +2893,11 @@ static bool_t __sndsyn_ms(struct tagSocket *client, struct TcpHdr *hdr,struct Ne
 static bool_t __stable_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
     u32       seqno;
-    struct ClienCB  *ccb;
+    struct ClientCB  *ccb;
     u32       rcvlen = 0;
 
     seqno =ntohl(hdr->seqno);
-    ccb = (struct ClienCB *)client->TplCB;
+    ccb = (struct ClientCB *)client->TplCB;
     //deal the acknowledge to release the send buffer
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
@@ -2800,8 +2925,8 @@ static bool_t __stable_ms(struct tagSocket *client, struct TcpHdr *hdr,struct Ne
         ccb->machinestat= EN_TCP_MC_CLOSEWAIT;
         //could never to receive more data
         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKRCV);
-        handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
-        semp_post(ccb->rbuf.bufsync);
+        Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
+        Lock_SempPost(ccb->rbuf.bufsync);
         //--TODO,maybe signal an sigpipe signal
     }
     else if(CN_TCP_FLAG_SYN & hdr->flags) //maybe the acknowledge to the syn we sent has lost
@@ -2834,11 +2959,11 @@ static bool_t __stable_ms(struct tagSocket *client, struct TcpHdr *hdr,struct Ne
 static bool_t __finwait1_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
     u32      seqno;
-    struct ClienCB  *ccb;
+    struct ClientCB  *ccb;
     u32       rcvlen = 0;
 
     seqno =ntohl(hdr->seqno);
-    ccb = (struct ClienCB *)client->TplCB;
+    ccb = (struct ClientCB *)client->TplCB;
     //deal the acn to release the package in the send buffer
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
@@ -2863,6 +2988,8 @@ static bool_t __finwait1_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
     {
         ccb->timerctrl &= (~CN_TCP_TIMER_FIN);  //CLOSE THE FIN TIMER
         ccb->machinestat= EN_TCP_MC_FINWAIT2;
+        ccb->timerctrl |= CN_TCP_TIMER_2MSL;     //容错计数，若网络传丢了后续的fin，4ML后将收回。
+        ccb->mltimer = CN_TCP_TICK_2ML*2;
     }
     //if any fin received
     if((CN_TCP_FLAG_FIN & hdr->flags)&&((ccb->rbuf.rcvnxt== seqno)||(rcvlen > 0)))
@@ -2881,8 +3008,8 @@ static bool_t __finwait1_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
         }
         //could never to receive more data
         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKRCV);
-        handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
-        semp_post(ccb->rbuf.bufsync);
+        Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
+        Lock_SempPost(ccb->rbuf.bufsync);
         //--TODO,maybe signal an sigpipe signal
     }
     if(ccb->acktimes>= CN_TCP_TICK_ACK)
@@ -2902,11 +3029,11 @@ static bool_t __finwait1_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
 static bool_t __finwait2_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
     u32      seqno;
-    struct ClienCB  *ccb;
+    struct ClientCB  *ccb;
     u32       rcvlen = 0;
 
     seqno =ntohl(hdr->seqno);
-    ccb = (struct ClienCB *)client->TplCB;
+    ccb = (struct ClientCB *)client->TplCB;
     //deal the acn to release the package in the send buffer
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
@@ -2936,8 +3063,8 @@ static bool_t __finwait2_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
         ccb->mltimer = CN_TCP_TICK_2ML;
         //could never to receive more data
         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKRCV);
-        handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
-        semp_post(ccb->rbuf.bufsync);
+        Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
+        Lock_SempPost(ccb->rbuf.bufsync);
         //--TODO,maybe signal an sigpipe signal
     }
     if(ccb->acktimes>= CN_TCP_TICK_ACK)
@@ -2956,9 +3083,9 @@ static bool_t __finwait2_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
 //------------------------------------------------------------------------------
 static bool_t __closing_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
-    struct ClienCB  *ccb;
+    struct ClientCB  *ccb;
 
-    ccb = (struct ClienCB *)client->TplCB;
+    ccb = (struct ClientCB *)client->TplCB;
     //deal the ack first
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
@@ -2992,8 +3119,8 @@ static bool_t __closing_ms(struct tagSocket *client, struct TcpHdr *hdr,struct N
 //------------------------------------------------------------------------------
 static bool_t __timewait_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
-    struct ClienCB  *ccb;
-    ccb = (struct ClienCB *)client->TplCB;
+    struct ClientCB  *ccb;
+    ccb = (struct ClientCB *)client->TplCB;
 
     if((NULL != pkg)&&(PkgGetDataLen(pkg) > 0))
 //  if((NULL != pkg)&&(pkg->datalen > 0))
@@ -3007,6 +3134,8 @@ static bool_t __timewait_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
     return true;
 }
 
+#pragma GCC diagnostic pop
+
 //------------------------------------------------------------------------------
 //功能：被动关闭收到了对面的FIN，任何数据都会被当做重传数据。
 //参数：client，客户端
@@ -3016,8 +3145,8 @@ static bool_t __timewait_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
 //------------------------------------------------------------------------------
 static bool_t __closewait_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
-    struct ClienCB  *ccb;
-    ccb = (struct ClienCB *)client->TplCB;
+    struct ClientCB  *ccb;
+    ccb = (struct ClientCB *)client->TplCB;
     //deal the ack first
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
@@ -3051,9 +3180,9 @@ static bool_t __closewait_ms(struct tagSocket *client, struct TcpHdr *hdr,struct
 //------------------------------------------------------------------------------
 static bool_t __lastack_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
-    struct ClienCB         *ccb;
+    struct ClientCB         *ccb;
 
-    ccb = (struct ClienCB *)client->TplCB;
+    ccb = (struct ClientCB *)client->TplCB;
     //deal the ack first
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
@@ -3086,8 +3215,8 @@ static bool_t __lastack_ms(struct tagSocket *client, struct TcpHdr *hdr,struct N
 //------------------------------------------------------------------------------
 static bool_t __dealrecvpkg(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
-    struct ClienCB  *ccb;
-    ccb = (struct ClienCB *)client->TplCB;
+    struct ClientCB  *ccb;
+    ccb = (struct ClientCB *)client->TplCB;
     if(ccb->timerctrl&CN_TCP_TIMER_KEEPALIVE)
     {
         ccb->keeptimer = CN_TCP_TICK_KEEPALIVE; //any receive data will reset the keep alive timer
@@ -3095,7 +3224,9 @@ static bool_t __dealrecvpkg(struct tagSocket *client, struct TcpHdr *hdr,struct 
     if((hdr->flags & CN_TCP_FLAG_RST)&&(ccb->rbuf.rcvnxt == htonl(hdr->seqno)))
     {
         __ResetCCB(ccb, EN_TCP_MC_2FREE);           //general deal the reset socket
-        handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE|CN_SOCKET_IOREAD);
+        client->errorno =  ECONNRESET;
+        //Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE|CN_SOCKET_IOREAD);
+        Handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOERR);
     }
     else
     {
@@ -3136,11 +3267,19 @@ static bool_t __dealrecvpkg(struct tagSocket *client, struct TcpHdr *hdr,struct 
     return true;
 }
 
+//------------------------------------------------------------------------------
+//功能：当server收到syn时，创建一个socket，挂在tcp的server控制块的clst下，然后发送
+//      syn+ack，待再次收到对方的ack时，进入已连接状态。
+//参数：server，证件listen的socket
+//      hdr，当前收到的tcp头
+//      ipdst,portdst,ipsrc,portsrc，地址四元组
+//返回：新创建的socket。
+//------------------------------------------------------------------------------
 static struct tagSocket* __newclient(struct tagSocket *server, struct TcpHdr *hdr,\
                           u32 ipdst,u16 portdst,u32 ipsrc, u16 portsrc)
 {
     struct ServerCB *scb;
-    struct ClienCB *ccb;
+    struct ClientCB *ccb;
     struct tagSocket *result= NULL;
 
     scb = (struct ServerCB *)server->TplCB;
@@ -3154,9 +3293,9 @@ static struct tagSocket* __newclient(struct tagSocket *server, struct TcpHdr *hd
         if(NULL != result)
         {
             result->ProtocolOps = &gTcpProto;
-            handle_SetMultiplexEvent(fd2Handle(result->sockfd), 0);
+            Handle_SetMultiplexEvent(fd2Handle(result->sockfd), 0);
 //          memset(result, 0, sizeof(struct tagSocket));
-//          result->SockSync = mutex_init(NULL);
+//          result->SockSync = Lock_MutexCreate(NULL);
             ccb = __CreateCCB();
             if(NULL == ccb)
             {
@@ -3185,7 +3324,7 @@ static struct tagSocket* __newclient(struct tagSocket *server, struct TcpHdr *hd
                 scb->pendnum++;
                 ccb->server = server;
                 ccb->timerctrl = CN_TCP_TIMER_SYN;
-                ccb->resndtimer = ccb->rto;
+                ccb->resndtimer = (u16)ccb->rto;
                 ccb->machinestat = EN_TCP_MC_SYNRCV;
                 ccb->sbuf.sndnxtno++;
             }
@@ -3221,8 +3360,8 @@ static struct tagSocket* __tcpmatchclient(struct tagSocket *server, u32 ip, u16 
 static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devfunc)
 {
 
-    u16         portdst;
-    u16         portsrc;
+    u16    portdst;
+    u16    portsrc;
     struct TcpHdr  *hdr;
     struct tagSocket  *server;
     struct tagSocket  *client;
@@ -3257,30 +3396,29 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
     //ok,now we deal the pkg now, the pkg check success
     portdst = hdr->portdst;
     portsrc = hdr->portsrc;
-
     //if any client match this pkg
-    mutex_lock(pTcpHashTab->tabsync);
+    Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER);
     if((sock = __hashSocketSearch(ipdst,portdst,ipsrc,portsrc)) != NULL)
     {
         //get the communicate client
         client = sock;
-        mutex_lock(client->SockSync);
+        Lock_MutexPend(client->SockSync,CN_TIMEOUT_FOREVER);
         __dealrecvpkg(client,hdr,pkg);
-        mutex_unlock(client->SockSync);
+        Lock_MutexPost(client->SockSync);
     }
     else if((sock = __hashSocketSearch(INADDR_ANY,portdst,ipsrc,portsrc)) != NULL)
     {
         //the inaddr_any client matches
         client = sock;
-        mutex_lock(client->SockSync);
+        Lock_MutexPend(client->SockSync,CN_TIMEOUT_FOREVER);
         __dealrecvpkg(client,hdr,pkg);
-        mutex_unlock(client->SockSync);
+        Lock_MutexPost(client->SockSync);
     }
     else if((sock = __hashSocketSearch(ipdst,portdst,0,0))!= NULL)
     {
         //the specified server matches
         server = sock;
-        mutex_lock(server->SockSync);
+        Lock_MutexPend(server->SockSync,CN_TIMEOUT_FOREVER);
         client = __tcpmatchclient(server,ipsrc,portsrc);
         if(NULL == client)
         {
@@ -3294,13 +3432,13 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
         {
             __dealrecvpkg(client,hdr,pkg);
         }
-        mutex_unlock(server->SockSync);
+        Lock_MutexPost(server->SockSync);
     }
     else if((sock = __hashSocketSearch(INADDR_ANY,portdst,0,0))!= NULL)
     {
         //the inaddr_any server matches
         server = sock;
-        mutex_lock(server->SockSync);
+        Lock_MutexPend(server->SockSync,CN_TIMEOUT_FOREVER);
         client = __tcpmatchclient(server,ipsrc,portsrc);
         if(NULL == client)
         {
@@ -3314,7 +3452,7 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
         {
             __dealrecvpkg(client,hdr,pkg);
         }
-        mutex_unlock(server->SockSync);
+        Lock_MutexPost(server->SockSync);
     }
     else   //no port matches, so just reset it
     {
@@ -3323,7 +3461,7 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
             __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno),ntohl(hdr->ackno));
         }
     }
-    mutex_unlock(pTcpHashTab->tabsync);
+    Lock_MutexPost(TcpHashTab.tabsync);
 
     return true;
 
@@ -3358,9 +3496,9 @@ static bool_t __rcvdeal(tagIpAddr *addr,struct NetPkg *pkglst, u32 devfunc)
 static bool_t __dealclienttimer(struct tagSocket *client)
 {
     u8        flag;
-    struct ClienCB   *ccb;
+    struct ClientCB   *ccb;
 
-    ccb = (struct ClienCB *)client->TplCB;
+    ccb = (struct ClientCB *)client->TplCB;
     if(ccb->timerctrl&CN_TCP_TIMER_LINGER)   //deal the linger timer
     {
         if( 0 == ccb->lingertimer)
@@ -3384,7 +3522,7 @@ static bool_t __dealclienttimer(struct tagSocket *client)
             ccb->mltimer--;
         }
     }
-    //chk all the transmissions if any package need retransmission
+    //resndtimer 用于 syn 、 fin 、 数据包 三者发送后的重传
     if(ccb->timerctrl &(CN_TCP_TIMER_SYN|CN_TCP_TIMER_RESEND|CN_TCP_TIMER_FIN))
     {
         if(ccb->resndtimer == 0)
@@ -3416,7 +3554,6 @@ static bool_t __dealclienttimer(struct tagSocket *client)
                 {
                     //do the resend
                     __resenddata(client);
-
                 }
                 else  //fin
                 {
@@ -3457,11 +3594,17 @@ static bool_t __dealclienttimer(struct tagSocket *client)
     {
         if(ccb->keeptimer == 0)
         {
-            if ((ccb->sbuf.unacklen == 0) && (ccb->sbuf.datalen == 0)) {
-                ccb->sbuf.unackoff = (ccb->sbuf.unackoff + ccb->sbuf.buflenlimit
-                        - 1) % ccb->sbuf.buflenlimit;
+            if ((ccb->sbuf.unacklen == 0) && (ccb->sbuf.datalen == 0))
+            {
+//              ccb->sbuf.unackoff = (ccb->sbuf.unackoff + ccb->sbuf.buflenlimit
+//                                   - 1) % ccb->sbuf.buflenlimit;
+                //下面写法可读性强，且执行效率高
+                if(ccb->sbuf.unackoff == 0)
+                    ccb->sbuf.unackoff = ccb->sbuf.buflenlimit - 1;
+                else
+                    ccb->sbuf.unackoff--;
                 ccb->sbuf.unacklen = 1;
-                ccb->sbuf.unackno = ccb->sbuf.unackno - 1;
+                ccb->sbuf.unackno -= 1;
                 ccb->timerctrl |= CN_TCP_TIMER_RESEND;
             }
             else {
@@ -3496,12 +3639,6 @@ static bool_t __dealclienttimer(struct tagSocket *client)
     {
         __sendflag(client,CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
     }
-    if(NULL != ccb->pkgrecomblst)
-    {
-        PkgTryFreeQ(ccb->pkgrecomblst);
-        ccb->pkgrecomblst = NULL;
-        ccb->pkgrecomblen = 0;
-    }
     return true;
 }
 // =============================================================================
@@ -3519,21 +3656,21 @@ static void __tcptick(void)
     struct tagSocket    *clientnxt;
     struct tagSocket    *clientpre;
     struct ServerCB       *scb;
-    struct ClienCB       *ccb;
+    struct ClientCB       *ccb;
     s32 i;
 
-    for(i = 0; i <pTcpHashTab->tablen; i ++)
+    for(i = 0; i < CFG_TCP_SOCKET_HASH_LEN; i ++)
     {
         //each hash number we will lock and unlock ,so left some time for others
-        mutex_lock(pTcpHashTab->tabsync);
-        sock = pTcpHashTab->array[i];
+        Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER);
+        sock = TcpHashTab.array[i];
         while(NULL != sock)
         {
-            mutex_lock(sock->SockSync);
+            Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER);
             if(CN_SOCKET_CLIENT&sock->sockstat)//this is the client
             {
                 client = sock;
-                ccb = (struct ClienCB *)client->TplCB;
+                ccb = (struct ClientCB *)client->TplCB;
                 if((CN_SOCKET_CLOSE&client->sockstat)&&\
                     (EN_TCP_MC_2FREE == ccb->machinestat))
                 {
@@ -3547,7 +3684,7 @@ static void __tcptick(void)
                 {
                     __dealclienttimer(client);
                     sock = client->Nextsock;
-                    mutex_unlock(client->SockSync);
+                    Lock_MutexPost(client->SockSync);
                 }
             }//end for the client
             else//this is an server, we should deal the client hang on it
@@ -3559,7 +3696,7 @@ static void __tcptick(void)
                 while(NULL != client)  //deal all the client
                 {
                     __dealclienttimer(client);
-                    ccb = (struct ClienCB *)client->TplCB;
+                    ccb = (struct ClientCB *)client->TplCB;
                     if(EN_TCP_MC_2FREE == ccb->machinestat)
                     {
                         //remove it from the queue
@@ -3576,10 +3713,11 @@ static void __tcptick(void)
                         client->Nextsock = NULL;
                         __ResetCCB(ccb,EN_TCP_MC_2FREE);
                         __DeleCCB(ccb);
+                        __hashSocketRemove(client);
                         SocketFree(client);  //net_free the client
                         if (scb->pendnum > 0) {
                             scb->pendnum--;
-                            semp_pendtimeout(scb->acceptsemp, 0);
+                            Lock_SempPend(scb->acceptsemp, 0);
                         }
                     }
                     else if (EN_TCP_MC_CLOSEWAIT == ccb->machinestat) {
@@ -3588,7 +3726,7 @@ static void __tcptick(void)
                         __sendflag(sock, CN_TCP_FLAG_FIN | CN_TCP_FLAG_ACK,
                                 NULL, 0, ccb->sbuf.sndnxtno);
                         ccb->sbuf.sndnxtno++;
-                        ccb->resndtimer = ccb->rto;
+                        ccb->resndtimer = (u16)ccb->rto;
                         ccb->timerctrl |= CN_TCP_TIMER_FIN;
                         ccb->machinestat = EN_TCP_MC_LASTACK;
                         clientpre = client;
@@ -3603,10 +3741,10 @@ static void __tcptick(void)
                 }
                 //deal the server it self
                 sock = server->Nextsock;
-                mutex_unlock(server->SockSync);
+                Lock_MutexPost(server->SockSync);
             }
         }
-        mutex_unlock(pTcpHashTab->tabsync);
+        Lock_MutexPost(TcpHashTab.tabsync);
     }
 
     return;
@@ -3639,7 +3777,7 @@ static void __tcpdebugsockinfo(struct tagSocket *sock,char *prefix)
     debug_printf("tcp","%s:errno   :%d\n\r",prefix,sock->errorno);
 }
 
-static void __tcpdebugccb(struct ClienCB *ccb,char *prefix)
+static void __tcpdebugccb(struct ClientCB *ccb,char *prefix)
 {
     //machine state
     debug_printf("tcp","%s:machinestat:%s\n\r",prefix,gCCBLinkStat[ccb->machinestat]);
@@ -3666,8 +3804,6 @@ static void __tcpdebugccb(struct ClienCB *ccb,char *prefix)
             prefix,ccb->rbuf.buflenlimit,ccb->rbuf.buflen,ccb->rbuf.trigerlevel);
     debug_printf("tcp","%s:rcvbuf:rcvnxtno:0x%08x timeout:0x%08x SockSync:%s\n\r",prefix,\
             ccb->rbuf.rcvnxt,ccb->rbuf.timeout,ccb->rbuf.bufsync->lamp_counter?"enable":"disable");
-    //recomb queue
-    debug_printf("tcp","%s:recomb:len:%d\n\r",prefix,ccb->pkgrecomblen);
     //windows
     debug_printf("tcp","%s:mss:%04d sndwnd:%d sndwndscale:%d\n\r",prefix,ccb->mss,ccb->sndwnd,ccb->sndwndscale);
     debug_printf("tcp","%s:cwnd :%d ssh:%d \r\n",prefix,ccb->cwnd,ccb->ssthresh);
@@ -3692,15 +3828,18 @@ static void __tcpdebugscb(struct ServerCB *scb,char *prefix)
     debug_printf("tcp","%s:accepttm :0x%08x acceptsync:%d\n\r",prefix,scb->accepttime,scb->acceptsemp->lamp_counter);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 #define CN_TCP_DEBUG_PREFIX  "         "
 static void __tcpdebug(struct tagSocket *sock,char *filter)
 {
-    struct ClienCB   *ccb;
+    struct ClientCB   *ccb;
     struct ServerCB   *scb;
 
     if(sock->sockstat&CN_SOCKET_CLIENT)
     {
-        ccb = (struct ClienCB *)sock->TplCB;
+        ccb = (struct ClientCB *)sock->TplCB;
         debug_printf("tcp","TCPCLIENT:address:0x%08x\n\r",(u32)sock);
         __tcpdebugsockinfo(sock,CN_TCP_DEBUG_PREFIX);
         __tcpdebugccb(ccb,CN_TCP_DEBUG_PREFIX);
@@ -3714,19 +3853,27 @@ static void __tcpdebug(struct tagSocket *sock,char *filter)
     }
 }
 
+#pragma GCC diagnostic pop
+
 //------------------------------------------------------------------------------
 //功能：tcp协议初始化
 //参数：无
 //返回：true or false
 //------------------------------------------------------------------------------
+u16 rand_port() __attribute__ ((weak));
+u16 rand_port()
+{
+    return (u16)(rand() >> 16)%(0xffff-1024)+1024;
+}
 bool_t TcpInit(void)
 {
     bool_t ret = false;
 
     //do the port random initialize
 //    gPortEngineTcp = (u16)RNG_Get_RandomRange(1024,65535);
-    gPortEngineTcp = (u16)(rand() >> 16)%(0xffff-1024)+1024;
-    if(false == __hashTabInit(CFG_TCP_CCBNUM+CFG_TCP_SCBNUM))
+    //gPortEngineTcp = (u16)(rand() >> 16)%(0xffff-1024)+1024;
+    gPortEngineTcp = rand_port();
+    if(false == __hashTabInit())
     {
         goto EXIT_REGISTERTCPFAILED;
     }
@@ -3775,4 +3922,4 @@ EXIT_REGISTERTCPFAILED:
 //    __LoadLog("TCP",ret);
     return ret;
 }
-#pragma GCC diagnostic pop
+

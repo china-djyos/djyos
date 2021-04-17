@@ -84,7 +84,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"iicbus","int","time","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -228,10 +228,10 @@ bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
      {
           timeout++;
           GPIO_SettoLow(port,sck_pin);
-          Djy_DelayUs(10);
+          DJY_DelayUs(10);
 
           GPIO_SettoHigh(port,sck_pin);
-          Djy_DelayUs(10);
+          DJY_DelayUs(10);
 
           if(timeout>=CONFIG_I2C_TIMEOUT)
               return false;
@@ -242,9 +242,9 @@ bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
                          GPIO_OTYPE_OD,GPIO_SPEED_100M,GPIO_PUPD_PU);
     //产生停止信号 iic总线释放
     GPIO_SettoLow(port,sda_pin);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
     GPIO_SettoHigh(port,sda_pin);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
 
     return true;
 }
@@ -363,7 +363,7 @@ static bool_t __IIC_Write(tagI2CReg *reg,u8 devaddr, u8 *adder_nuf, u32 addr_len
                 if(_IIC_Chek(reg)==false)
                     return false;
                 timeout++;
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
             }
 
             if(reg->ISR&I2C_ISR_TCR)//255字节传输完成
@@ -419,7 +419,7 @@ static bool_t __IIC_Write(tagI2CReg *reg,u8 devaddr, u8 *adder_nuf, u32 addr_len
                 if(_IIC_Chek(reg)==false)
                     return false;
                 timeout++;
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
             }
             //判断是否传输完成
             if((reg->ISR&I2C_ISR_TC)||(reg->ISR&I2C_ISR_STOPF))//传输完成
@@ -473,7 +473,7 @@ static bool_t __IIC_WriteAddr(tagI2CReg *reg,u8 devaddr, u8 *mem_addr, u32 maddr
             if(_IIC_Chek(reg)==false)
                 return false;
             timeout++;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         //判断是否传输完成
         if((reg->ISR&I2C_ISR_TC)||(reg->ISR&I2C_ISR_STOPF))//传输完成
@@ -524,7 +524,7 @@ static bool_t __IIC_Read(tagI2CReg *reg,u8 devaddr,u8 *buf, u32 len)
                 if(_IIC_Chek(reg)==false)
                     return false;
                 timeout++;
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
             }
 
             if(reg->ISR&I2C_ISR_TCR)//255字节传输完成
@@ -575,7 +575,7 @@ static bool_t __IIC_Read(tagI2CReg *reg,u8 devaddr,u8 *buf, u32 len)
                 if(_IIC_Chek(reg)==false)
                     return false;
                 timeout++;
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
             }
             //判断是否传输完成传输完成或者已经产生停止位
             if((!(reg->ISR&I2C_ISR_RXNE))&&    //最后一位读取完成

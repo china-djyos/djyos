@@ -53,8 +53,8 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "../include/unit_media.h"
-#include "flash.h" // will be obsolete
+#include "device/unit_media.h"
+#include "device/djy_flash.h"      // will be obsolete
 #include "dbug.h"
 
 // ============================================================================
@@ -65,22 +65,20 @@
 // 返回：成功(0); 失败(-1);
 // 备注：参数页的具体数据结构,要看注意下NAND FLASH的参数手册
 // ============================================================================
-s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
+s32 deonfi(const struct NandONFI *data, struct NandDescr *onfi, u8 little)
 {
     u8 i;
-    u32 offset;
-    u8 temp[20] = {0};
+
     char signature[4] = {'O', 'N', 'F', 'I'}; // 用于识别是否是ONFI数据
 
     // ONFI标记
-    offset = 0;
     if(little)
     {
         *(u32 *)signature = swapl(*(u32 *)signature);
     }
     for (i = 0; i < 4; i++)
     {
-        if (signature[i] != (char)data[offset+i])
+        if (signature[i] != data->signature[i])
         {
             printf("\r\n: info : device : flash's ONFI is unavailable\r\n");
             return (-1); // 标记内容不符要求
@@ -88,128 +86,88 @@ s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
     }
 
     // ONFI版本号
-    offset = 4;
-    for (i = 0; i < 4; i++)
-    {
-        temp[i] = (u8)data[offset+i];
-    }
 
     if(little)
-        onfi->Revision = (u16)swapl(*(u32 *)temp);
+        onfi->Revision = (u16)swapl(data->revision_num);
     else
-        onfi->Revision = (u16)(*(u32 *)temp);
+        onfi->Revision = (u16)(data->revision_num);
 
     // Device Manufacturer
-    offset = 32;
     for (i = 0; i < 12; i++)
     {
-        temp[i] = (u8)data[offset+i];
+        onfi->Manufacturer[i] = data->dev_manufacturer[i];
     }
     if(little)
     {
         for (i = 0; i < 3; i++)
         {
-            ((u32 *)temp)[i] = swapl(((u32 *)temp)[i]);
+            ((u32 *)onfi->Manufacturer)[i] = swapl(((u32 *)onfi->Manufacturer)[i]);
         }
     }
-    for (i = 0; i < 12; i++)
-    {
-        onfi->Manufacturer[i] = (char)temp[i];
-    }
-    onfi->Manufacturer[i] = '\0';
+    onfi->Manufacturer[sizeof(onfi->Manufacturer)-1] = '\0';
 
     // Device Model
-    offset = 44;
     for (i = 0; i < 20; i++)
     {
-        temp[i] = (u8)data[offset+i];
+        onfi->DeviceModel[i] = data->dev_model[i];
     }
     if(little)
     {
         for (i = 0; i < 5; i++)
         {
-            ((u32 *)temp)[i] = swapl(((u32 *)temp)[i]);
+            ((u32 *)onfi->DeviceModel)[i] = swapl(((u32 *)onfi->DeviceModel)[i]);
         }
     }
-    for (i = 0; i < 20; i++)
-    {
-        onfi->DeviceModel[i] = (char)temp[i];
-    }
-    onfi->DeviceModel[i] = '\0';
+    onfi->DeviceModel[sizeof(onfi->DeviceModel) - 1] = '\0';
 
     // Number of data bytes per page
-    offset = 80;
-    for (i = 0; i < 4; i++)
-    {
-        temp[i] = (u8)data[offset+i];
-    }
     if(little)
     {
-        onfi->BytesPerPage = swapl(*(u32 *)temp);
+        onfi->BytesPerPage = swapl((u32)(data->bytes_per_page));
     }
     else
     {
-        onfi->BytesPerPage = *(u32 *)temp;
+        onfi->BytesPerPage = (u32)data->bytes_per_page;
     }
 
     // Number of spare bytes per page
-    offset = 84;
-    for (i = 0; i < 4; i++)
-    {
-        temp[i] = (u8)data[offset+i];
-    }
     if(little)
     {
-        onfi->OOB_Size = swapl(*(u32 *)temp);
+        onfi->OOB_Size = swapl((u16)data->spare_bytes_per_page);
     }
     else
     {
-        onfi->OOB_Size = *(u32 *)temp;
+        onfi->OOB_Size = (u16)data->spare_bytes_per_page;
     }
 
     // Number of pages per block
-    offset = 92;
-    for (i = 0; i < 4; i++)
-    {
-        temp[i] = (u8)data[offset+i];
-    }
     if(little)
     {
-        onfi->PagesPerBlk = swapl(*(u32 *)temp);
+        onfi->PagesPerBlk = swapl((u32)data->pages_per_block);
     }
     else
     {
-        onfi->PagesPerBlk = *(u32 *)temp;
+        onfi->PagesPerBlk = (u32)data->pages_per_block;
     }
 
     // Number of blocks per LUN
-    offset = 96;
-    for (i = 0; i < 4; i++)
-    {
-        temp[i] = (u8)data[offset+i];
-    }
     if(little)
     {
-        onfi->BlksPerLUN = swapl(*(u32 *)temp);
+        onfi->BlksPerLUN = swapl((u32)data->blocks_per_LUN);
     }
     else
     {
-        onfi->BlksPerLUN = *(u32 *)temp;
+        onfi->BlksPerLUN = (u32)data->blocks_per_LUN;
     }
 
     // Number of LUNs
-    offset = 100;
-    for (i = 0; i < 4; i++)
-    {
-        temp[i] = (u8)data[offset+i];
-    }
     if(little)
     {
-        onfi->LUNs = (u8)swapl(*(u32 *)temp);
+        onfi->LUNs = swapl((u8)data->LUNs);
     }
     else
     {
-        onfi->LUNs = (u8)(*(u32 *)temp);
+        onfi->LUNs = (u8)data->LUNs;
     }
 
  #if 0
@@ -236,7 +194,7 @@ s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
     return (0);
 }
 
-#if 1
+#if 0
 // ============================================================================
 // 功能： 擦除整颗芯片(保留块除外)
 // 参数：
@@ -357,7 +315,7 @@ s32 nandscanbads( __um_req req, u32 **table)
 
     for(i = 0; i < blocks; i++)
     {
-        if(1 == req(checkbad, i)) // 是坏块
+        if(req(checkbad, i) != 0) // 是坏块
         {
             tmp[bads] = i;
             bads++;

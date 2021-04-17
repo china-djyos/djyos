@@ -78,7 +78,7 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:required              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:none                //初始化时机，可选值：early，medium，later。
+//init time:none                //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -173,11 +173,14 @@ ptu32_t __InitMB(void)
 // ============================================================================
 s32 Mb_CreateObject(void)
 {
-    if(obj_newchild(obj_root(), Mb_PoolObjOps, 0, "memory pool"))
+    if(OBJ_NewChild(OBJ_GetRoot(), Mb_PoolObjOps, 0, "memory pool"))
         return (0);
 
     return (-1);
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //----内存池文件操作函数-------------------------------------------------------
 //功能：只实现了一个功能，即：列出全部内存池，以及当前内存池状态（空闲多少，
@@ -220,6 +223,8 @@ s32 Mb_PoolObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     }
     return (result);
 }
+
+#pragma GCC diagnostic pop
 
 //----创建一个内存池-------------------------------------------------------
 //功能: 初始化一个内存池，原始内存池的内存由用户提供。如果系统有对齐要求，则起始
@@ -354,7 +359,7 @@ bool_t Mb_DeletePool(struct MemCellPool *pool)
         inc_memory = temp;
     }
     dListRemove(&pool->List);
-//  if(!obj_Delete(&pool->memb_node))
+//  if(!OBJ_Delete(&pool->memb_node))
 //      return false;
     Mb_Free(s_ptPoolCtrl,pool);
     return true;
@@ -379,7 +384,7 @@ bool_t Mb_DeletePool_s(struct MemCellPool *pool)
         inc_memory = temp;
     }
     dListRemove(&pool->List);
-//  if(!obj_Delete(&pool->memb_node))
+//  if(!OBJ_Delete(&pool->memb_node))
 //      return false;
     return true;
 }
@@ -401,6 +406,8 @@ void *Mb_Malloc(struct MemCellPool *pool,u32 timeout)
         return NULL;
     //没有取得信号量，表明内存池空,这个信号量是保护内存池的，确保被分配的内存块
     //不超过内存池的容量
+    //Lock_SempPend的超时参数应该是 0，不是timeout，因为此处不是等待空闲内存，而是判断
+    //是否需要增量。
     if(Lock_SempPend(&pool->memb_semp,0) == false)  //无信号量，表明内存块已经用完
     {
         //注意:上一行和下一行之间可能发生线程切换

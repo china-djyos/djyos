@@ -75,7 +75,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"int","time","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -161,7 +161,7 @@ void RTC_Configuration(void)
     if(HAL_RTCEx_BKUPRead(&RTC_Handler,BAK_Reg)!=LSE_Flag_Reg)
     {
         RCC->BDCR=RCC_BDCR_BDRST;            //复位BDCR
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
         RCC->BDCR=0;                //结束复位
 
         RCC->CSR|=RCC_CSR_LSION;                //LSI总是使能
@@ -174,7 +174,7 @@ void RTC_Configuration(void)
            if(RCC->BDCR|RCC_BDCR_LSERDY)
                break;
            timeout++;
-           Djy_DelayUs(1000);
+           DJY_DelayUs(1000);
         }
         if(timeout==1000)//外部时钟启动超时选择内部时钟LSI
         {

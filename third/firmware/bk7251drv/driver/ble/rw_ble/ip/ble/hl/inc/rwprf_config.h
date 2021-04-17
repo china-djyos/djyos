@@ -43,7 +43,7 @@
 //  <e> CFG_PRF_FFE0
 //  <i> FFF0 profile Locator Role
 //  </e>
-#if ( 1 )
+#if ( 0 )
 #define CFG_PRF_FFE0
 #endif
 
@@ -54,6 +54,21 @@
 //  </e>
 #if ( 1 )
 #define CFG_PRF_FFB3
+#endif
+
+
+//  <e> CFG_PRF_MS
+//  <i> MS profile Locator Role
+//  </e>
+#if ( 0 )
+#define CFG_PRF_MS
+#endif
+
+//  <e> CFG_PRF_BTL
+//  <i> MS profile Locator Role
+//  </e>
+#if ( 1 )
+#define CFG_PRF_BTL
 #endif
 
 
@@ -160,6 +175,19 @@
 #define BLE_FEB3_SERVER        0
 #endif // defined(CFG_PRF_FFB3)
 
+///MS  Profile Locator role
+#if defined(CFG_PRF_MS)
+#define BLE_MS_SERVER        1
+#else
+#define BLE_MS_SERVER        0
+#endif // defined(CFG_PRF_MS)
+
+///BTL Profile Locator role
+#if defined(CFG_PRF_BTL)
+#define BLE_BTL_SERVER        1
+#else
+#define BLE_BTL_SERVER        0
+#endif // defined(CFG_PRF_BTL)
 
 
 /// Proximity Profile Monitor Role
@@ -477,7 +505,8 @@
         || BLE_CSC_SENSOR || BLE_CP_SENSOR || BLE_LN_SENSOR || BLE_AN_SERVER \
         || BLE_PAS_SERVER || BLE_IPS_SERVER || BLE_ENV_SERVER || BLE_WSC_SERVER \
 		|| BLE_UDS_SERVER || BLE_BCS_SERVER || BLE_WPT_SERVER || BLE_PLX_SERVER \
-		|| BLE_FFF0_SERVER || BLE_FFE0_SERVER || BLE_FEB3_SERVER)
+		|| BLE_FFF0_SERVER || BLE_FFE0_SERVER || BLE_FEB3_SERVER || BLE_MS_SERVER \
+		|| BLE_BTL_SERVER)
 #define BLE_SERVER_PRF          1
 #else
 #define BLE_SERVER_PRF          0

@@ -45,18 +45,25 @@
 // =============================================================================
 #include "cpu_peri.h"
 #include "stdlib.h"
+#include "component_config_audio.h"
 
 static AUD_DAC_CFG_ST aud_dac;
 
+void djy_audio_dac_close(void);
 void djy_audio_dac_open(uint16_t buf_len,uint16_t channel,
                                     audio_sample_rate_e freq)
 {
-    if(channel>2)
-        return;
-    aud_dac.buf = malloc(buf_len);
-    if(aud_dac.buf == NULL)
-        return;
-    aud_dac.buf_len = buf_len;
+    if(channel>2) channel=2;
+    if(buf_len==0) buf_len=1024;
+
+    aud_dac.buf = realloc(aud_dac.buf, buf_len);
+    if(aud_dac.buf==0){
+        printf("err: djy_audio_dac_open failed!\r\n");
+        aud_dac.buf_len = 0;
+    }
+    else {
+        aud_dac.buf_len = buf_len;
+    }
     aud_dac.channels = channel;
     aud_dac.freq = freq;
     aud_dac.dma_mode = 1;
@@ -66,16 +73,35 @@ void djy_audio_dac_open(uint16_t buf_len,uint16_t channel,
 
 uint32_t djy_audio_dac_ctrl(uint32_t cmd, void *param)
 {
+    if(aud_dac.buf == NULL) return 0;
     return audio_dac_ctrl(cmd, param);
 }
 
 uint32_t djy_audio_dac_write(char *user_buf, uint32_t count)
 {
+    if(aud_dac.buf == NULL) return 0;
     return audio_dac_write(user_buf, count, (uint32_t)&aud_dac);
+}
+
+uint32_t djy_audio_dac_clear_buffer()
+{
+    if(aud_dac.buf == NULL) return 0;
+    if(aud_dac.buf_len > 0) {
+        memset(aud_dac.buf,  0, aud_dac.buf_len);
+    }
+    return 0;
 }
 
 void djy_audio_dac_close(void)
 {
+    unsigned char *buf_temp = 0;
+    int len_temp = 0;
     audio_dac_close();
-    free(aud_dac.buf);
+    if(aud_dac.buf) {
+        buf_temp = aud_dac.buf;
+        len_temp = aud_dac.buf_len;
+    }
+    memset(&aud_dac,  0,  sizeof(aud_dac));
+    aud_dac.buf = buf_temp;
+    aud_dac.buf_len = len_temp;
 }

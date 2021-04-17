@@ -150,7 +150,7 @@ void __DjyInitTick(void)
 //参数:无
 //输出:无
 //返回:64位时间
-//说明: 这是一个桩函数,被rtc.c文件的 DjyGetSysTime 函数调用
+//说明: 这是一个桩函数,被rtc.c文件的 DJY_GetSysTime 函数调用
 // =============================================================================
 s64 __DjyGetSysTime(void)
 {
@@ -173,14 +173,14 @@ s64 __DjyGetSysTime(void)
 
 
 // =============================================================================
-// 函数功能:LockSysCode
+// 函数功能:CPU_LockSysCode
 //          系统代码段写保护
 // 输入参数:无
 // 输出参数:无
 // 返回值  :
 // 说明    :P1020的前64MB为代码段，在此做写保护
 // =============================================================================
-void LockSysCode(void)
+void CPU_LockSysCode(void)
 {
     u32 property;
     //protect the mem code from overwriting

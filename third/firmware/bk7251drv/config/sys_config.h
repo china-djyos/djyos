@@ -1,7 +1,8 @@
 #ifndef _SYS_CONFIG_H_
 #define _SYS_CONFIG_H_
-
-#define CFG_SUPPORT_BOOTLOADER                     0
+#include <stddef.h>
+#include "project_config.h"
+//#define CFG_SUPPORT_BOOTLOADER                     0
 
 /*SUMMARY: macro--1: OPEN; --0:CLOSE*/
 
@@ -13,22 +14,23 @@
 
 /*section 0-----app macro config-----*/
 #define CFG_IEEE80211N                             1
-
 /*section 1-----OS macro config-----*/
-#define CFG_OS_FREERTOS                            1
+#define CFG_OS_FREERTOS                            0
+#define CFG_SUPPORT_DJYOS                          1
 
-#if CFG_OS_FREERTOS
-#define THD_APPLICATION_PRIORITY                   3
-#define THD_CORE_PRIORITY                          2
+
+#if CFG_OS_FREERTOS | CFG_SUPPORT_DJYOS
+#define THD_APPLICATION_PRIORITY                   133
+#define THD_CORE_PRIORITY                          132
 #define THD_UMP3_PRIORITY                          4
 #define THD_UBG_PRIORITY                           5
 #define THD_LWIP_PRIORITY                          4
 #define THD_INIT_PRIORITY                          4
 #define THD_RECONNECT_PRIORITY                     4
-#define THD_MEDIA_PRIORITY						   4
-#define THD_WPAS_PRIORITY                          5
+#define THD_MEDIA_PRIORITY                         4
+#define THD_WPAS_PRIORITY                          135
 #define THD_HOSTAPD_PRIORITY                       5
-#define THDD_KEY_SCAN_PRIORITY					   7
+#define THDD_KEY_SCAN_PRIORITY                     7
 #endif // CFG_OS_FREERTOS
 
 /*section 2-----function macro config-----*/
@@ -60,7 +62,8 @@
 #define CFG_SUPPORT_CCD                            0
 #define CFG_SUPPORT_UVC                            0
 #endif
-
+#define CFG_USE_USB_CHARGE                         1
+#define CFG_USE_QSPI                               1
 /*section 4-----DEBUG macro config-----*/
 #define CFG_UART_DEBUG                             0
 #define CFG_UART_DEBUG_COMMAND_LINE                1
@@ -105,6 +108,7 @@
 #define CFG_USE_TEMPERATURE_DETECT                 0
 
 /*section 12-----for SPIDMA interface*/
+#define CFG_USE_HSLAVE_SPI                         0
 #define CFG_USE_SPIDMA                             0
 #define CFG_USE_CAMERA_INTF                        0
 
@@ -115,7 +119,8 @@
 #define CFG_USE_FTPD_UPGRADE                       0
 
 /*section 15-----support customer macro*/
-#define CFG_SUPPORT_TIANZHIHENG_DRONE              0
+//#define CFG_SUPPORT_TIANZHIHENG_DRONE              0
+#define CFG_USE_APP_DEMO_VIDEO_TRANSFER            1
 
 /*section 16-----support mcu & deep sleep*/
 #define CFG_USE_MCU_PS                             1
@@ -128,10 +133,10 @@
 #define CFG_USE_AP_PS                              0
 
 /*section 19-----for SDCARD HOST*/
-#define CFG_USE_SDCARD_HOST                        0
+#define CFG_USE_SDCARD_HOST                        1
 
 /*section 20 ----- support mp3 decoder*/
-#define CONFIG_APP_MP3PLAYER 			           0
+#define CONFIG_APP_MP3PLAYER                       0
 
 /*section 21 ----- support ota*/
 #if CFG_SUPPORT_BOOTLOADER
@@ -151,10 +156,17 @@
 /*section 24 ----- less memery in rwnx*/
 #define CFG_LESS_MEMERY_IN_RWNX                    0
 
-/*section 25 ----- use audio*/
-#define CFG_USE_AUDIO                              1
+/*section 25 ----- use audio*/      //djyos下，audio配置已经转移到DIDE中
+#if(CFG_SUPPORT_DJYOS == 1)
+#define CFG_USE_AUDIO                              CFG_MODULE_ENABLE_CPU_ONCHIP_AUDIO
 #define CFG_USE_AUD_DAC                            1
 #define CFG_USE_AUD_ADC                            1
+#endif
 
+/*section 26 ----- general spi master/slave */
+#define CFG_USE_SPI_MASTER                         1
+#define CFG_USE_SPI_MST_FLASH                      0
+#define CFG_USE_SPI_MST_PSRAM                      0
+#define CFG_USE_SPI_SLAVE                          0
 
 #endif // _SYS_CONFIG_H_

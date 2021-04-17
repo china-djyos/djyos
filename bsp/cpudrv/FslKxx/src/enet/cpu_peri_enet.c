@@ -75,7 +75,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"int","tcpip","heap","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -491,7 +491,7 @@ static bool_t PHY_Init(void)
     /* Can we talk to the PHY? */
 //    do
 //    {
-//      Djy_DelayUs(500);
+//      DJY_DelayUs(500);
 //      usData = 0xFFFF;
 //      __MII_Read( CN_PHY_ADDR, CN_PHY_IDR1, &usData );
 //    } while( usData == 0xFFFF );
@@ -502,7 +502,7 @@ static bool_t PHY_Init(void)
     /* Wait for auto negotiate to complete. */
     do
     {
-        Djy_DelayUs( 50000);
+        DJY_DelayUs( 50000);
       __MII_Read( CN_PHY_ADDR, PHY_BMSR, &usData );
       NegTimes--;
     } while(( !( usData & PHY_BMSR_AN_COMPLETE ) ) && (NegTimes > 0));
@@ -874,18 +874,18 @@ static bool_t __CreateRcvTask(struct NetDev *nethandle)
     u16 evttID;
     u16 eventID;
 
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1,
         (ptu32_t (*)(void))__GmacRcvTask,NULL, 0x400, "ENETRcvTask");
     if (evttID != CN_EVTT_ID_INVALID)
     {
-        eventID=Djy_EventPop(evttID, NULL,  0,(ptu32_t)nethandle, 0, 0);
+        eventID=DJY_EventPop(evttID, NULL,  0,(ptu32_t)nethandle, 0, 0);
         if(eventID != CN_EVENT_ID_INVALID)
         {
             result = true;
         }
         else
         {
-            Djy_EvttUnregist(evttID);
+            DJY_EvttUnregist(evttID);
         }
     }
     return result;
@@ -948,7 +948,7 @@ static bool_t Enet_AddNetDev(void)
     devpara.name = (char *)(s_EnetConfig.name);
     devpara.mtu = CN_ETH_MTU;
     devpara.Private = (u32)NULL;
-    gEnetHandle = NetDevInstall(&devpara);
+    gEnetHandle = NetDev_Install(&devpara);
     if(0 == gEnetHandle)
     {
         goto NetInstallFailed;
@@ -960,7 +960,7 @@ static bool_t Enet_AddNetDev(void)
     return true;
 
 RcvTaskFailed:
-    NetDevUninstall(s_EnetConfig.name);
+    NetDev_Uninstall(s_EnetConfig.name);
 NetInstallFailed:
     Lock_MutexDelete(pEnetSndSync);
     pEnetSndSync = NULL;

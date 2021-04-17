@@ -65,16 +65,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-//gui kernel的user call编码,由上层通过管道传递给gui kernel
-#define CN_GKUC_REPAINT         0x000   //重绘窗口
-
- struct GkucParaRepaint
-{
-    struct GkWinObj *gk_win;          //绘制的目标窗口
-    struct ClipRect *redraw_clip;  //需重绘的剪切域链表
-};
-
 #ifdef __cplusplus
 }
 #endif

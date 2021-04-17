@@ -84,7 +84,7 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -147,7 +147,7 @@ bool_t Font_InstallFont(struct FontObj *font,const char* name)
     if(!pFontRoot)
         return (FALSE);       //字体资源根结点未创建
 
-    font->HostObj = obj_newchild(pFontRoot, (fnObjOps)-1, 0, name);
+    font->HostObj = OBJ_NewChild(pFontRoot, (fnObjOps)-1, 0, name);
     if(!font->HostObj)
         return (FALSE);
 
@@ -173,7 +173,7 @@ bool_t Font_InstallFont(struct FontObj *font,const char* name)
 //-----------------------------------------------------------------------------
 bool_t ModuleInstall_Font(void)
 {
-    pFontRoot = obj_newchild(obj_root(), NULL, 0, "font");
+    pFontRoot = OBJ_NewChild(OBJ_GetRoot(), NULL, 0, "font");
     if(pFontRoot)
     {
         info_printf("module","font install ");
@@ -208,11 +208,11 @@ struct FontObj* Font_SetCurFont(struct FontObj* font)
     if(font == NULL)
         return NULL;
 
-    rsc = obj_search_child(obj_root(), CN_FONT_RSC_TREE);
+    rsc = OBJ_SearchChild(OBJ_GetRoot(), CN_FONT_RSC_TREE);
     if(rsc == NULL)
         return NULL;       //字体资源树未创建
-    Name = obj_name(font->HostObj);
-    rsc = obj_search_child(rsc,(const char*)Name);
+    Name = OBJ_GetName(font->HostObj);
+    rsc = OBJ_SearchChild(rsc,(const char*)Name);
     if(rsc != NULL)
     {
         s_ptCurFont = (struct FontObj*)rsc;
@@ -230,11 +230,11 @@ struct FontObj* Font_SetCurFont(struct FontObj* font)
 struct FontObj* Font_SearchFont(const char* name)
 {
     struct Object *rsc;
-    rsc = OBJ_SearchTree(CN_FONT_RSC_TREE);
+    rsc = OBJ_SearchChild(OBJ_GetRoot(), CN_FONT_RSC_TREE);
     if(rsc == NULL)
         return NULL;       //字体资源树未创建
 
-    return (struct FontObj*)obj_search_child(rsc, name);
+    return (struct FontObj*)OBJ_SearchChild(rsc, name);
 }
 
 //----取字体点阵行高-----------------------------------------------------------

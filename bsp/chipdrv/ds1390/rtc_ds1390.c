@@ -75,7 +75,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"spi bus","time","cpu onchip spi"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -228,7 +228,7 @@ bool_t RTC_SetTime(s64 time)
     struct tm DateTime;
 
     time = time/1000000;
-    Tm_LocalTime_r(&time,&DateTime);
+    Time_LocalTime_r(&time,&DateTime);
 
     __rtc_write (RTC_CMD_SECONDS,     HexToBcd (DateTime.tm_sec));
     __rtc_write (RTC_CMD_MINUTES,     HexToBcd (DateTime.tm_min));

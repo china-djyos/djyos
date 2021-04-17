@@ -50,16 +50,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <cpu_peri.h>
-#include <device/flash/flash.h>
-#include <device/include/unit_media.h>
+#include <device/djy_flash.h>
+#include <device/unit_media.h>
 #include <device.h>
 #include <spibus.h>
 #include <systime.h>
 #include <math.h>
 #include "at45db321.h"
 #include <dbug.h>
-#include <filesystems.h>
-#include <efs.h>
+#include <djyfs/filesystems.h>
+#include <djyfs/efs.h>
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
@@ -75,7 +75,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"easy file system","lock","spi bus","cpu onchip spi","at45db321"
                                 //该组件的依赖组件名（可以是none，表示无依赖组件），
@@ -318,13 +318,13 @@ bool_t ModuleInstall_At45InstallEfs(const char *TargetFs, s32 bstart, s32 bend, 
                     warning_printf("efs"," Format failure.");
                 }
             }
-            targetobj = obj_matchpath(TargetFs, &notfind);
+            targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
                 error_printf("at45"," not found need to install file system.");
                 return false;
             }
-            super = (struct FsCore *)obj_GetPrivate(targetobj);
+            super = (struct FsCore *)OBJ_GetPrivate(targetobj);
             if(strcmp(super->pFsType->pType, "EFS") == 0)
             {
                 if(__AT45_FsInstallInit(TargetFs,bstart,bend,&EFS_AT45_DRV) == 0)

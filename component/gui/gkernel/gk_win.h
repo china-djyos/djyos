@@ -70,10 +70,6 @@ extern "C" {
 
 struct DisplayObj;
 
-//用户调用消息队列参数配置
-#define CN_USERCALL_MSGQ_SIZE   16  //用户调用消息队列容纳的最大消息数量
-#define CN_USERCALL_MSG_SIZE    64  //用户调用消息队列的每条消息最大字节数
-
 struct GkChunnel       //用户程序(通常是gui windows) 和 gui kernel的通信管道
 {
     struct RingBuf ring_syscall;         //gui 系统调用环形缓冲区
@@ -107,7 +103,7 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para);
 void __GK_OutputRedraw(struct DisplayObj *display);
 u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
                                                 void *param2,u16 size2);
-bool_t  __GK_PostUsercall(u16 usercall_id,void *pdata,u16 size);
+bool_t  __GK_UsercallChunnel(void *pdata,u16 size,u32 timeout);
 
 ptu32_t __GK_UsercallServer(void);
 ptu32_t __GK_Server(void);

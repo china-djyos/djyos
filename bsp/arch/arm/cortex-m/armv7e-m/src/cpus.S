@@ -60,6 +60,21 @@
 .thumb
 .file   "cpus.S"
 
+/* cortex-m4/7的栈帧设计：
+padding————对齐用————————LR_RETURN的bit4 == 0才需要
+FPSCR————————LR_RETURN的bit4 == 0才需要
+S15~S0————————LR_RETURN的bit4 == 0才需要
+xpsr
+PC
+LR
+R12
+R3~R0————以上是异常（中断）会自动压的部分
+S31~S16————————LR_RETURN的bit4 == 0才需要
+R11~R4
+padding，为了8字节对齐
+LR_RETURN————浮点寄存器压栈标志
+*/
+
 /*
 @----重置线程-----------------------------------------------------------------
 @功能:  初始化线程的栈，并挂上线程执行函数，新创建线程时将会调用本函数
@@ -78,9 +93,9 @@
 __asm_reset_thread:
     ldr     r2,[r1,#4]          /* 取线程栈顶指针 */
     mov     r12,#0x01000000     /* xpsr的初始值 */
-    ldr     r3,=__Djy_VmEngine  /* 取线程引擎指针 */
+    ldr     r3,=__DJY_VmEngine  /* 取线程引擎指针，即线程入口的PC值 */
     stmfd   r2!,{r3,r12}        /* 存pc，xpsr */
-    sub     r2,r2,#15*4         /* 后退14个寄存器,初始状态r0-r12中，除r0外均无意义， */
+    sub     r2,r2,#15*4         /* 后退15个寄存器,初始状态r0-r12中，除r0外均无意义， */
                                 /* __vm_engine函数不返回，lr也无意义 */
                                 /* 另外4字节是为了与EXC_RETURN形成栈的8字节对齐*/
 
@@ -116,7 +131,7 @@ __asm_reset_thread:
 __asm_reset_switch:
     ldr     sp,[r2,#4]          /* 取老线程栈顶指针 */
     mov     r12,#0x01000000     /* xpsr的初始值 */
-    ldr     r11,=__Djy_VmEngine    /* 取线程引擎指针 */
+    ldr     r11,=__DJY_VmEngine    /* 取线程引擎指针 */
     push    {r11,r12}           /* 存pc,xpsr */
 
     sub     sp,sp,#15*4         /* 后退14个寄存器,初始状态r0-r12中，除r0外均无意义，
@@ -228,13 +243,15 @@ __asm_switch_context_int:
 @----保存上下文---------------------------------------------------------------
 @功能: 保存当前线程的上下文，但不切换,专用于进入CN_SLEEP_L3之前调用.
 @参数: running_vm，当前线程的控制块指针，即&vm->stack。
-@参数: WakeUpAddr, 唤醒后的返回地址.
+@参数: SaveRamL3, 把执行过step1的内存保存到flash中.
+@参数: EntrySleep, 进入低功耗.
 @返回:  无
 @函数原型: void __LP_BSP_AsmSaveReg(struct tagThreadVm *running_vm，
                     bool_t (*SaveRamL3)(void),
-                    void (*EntrySleepL3)(void))
+                    void (*EntrySleep)(void))
 @-----------------------------------------------------------------------------
 */
+
 .text
 .align 2
 .global __asm_reset_cpu

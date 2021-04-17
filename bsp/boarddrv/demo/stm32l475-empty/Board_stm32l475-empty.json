@@ -1,0 +1,27 @@
+{
+	"board_name":"stm32l475-empty",
+	"cpus":{
+		"stm32l475xx":{
+			"clocks":{
+				
+			},
+			"chips":["EEPROM at24c128b",
+			"nor flash at45db321"],
+			"peripherals":["cpu_peri_emflash",
+			"cpu_peri_iic",
+			"cpu_peri_lowpwer",
+			"cpu_peri_spi",
+			"cpu_peri_systime",
+			"cpu_peri_timer",
+			"cpu_peri_uart",
+			"cpu_peri_wwdg"],
+			"mian_freq":0,
+			"memories":{
+				
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

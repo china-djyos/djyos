@@ -68,16 +68,16 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 // bool_t ModuleInstall_init_ioiic(const char * busname);
-// ModuleInstall_init_ioiic(IO_IIC_BUS_NAME);
+// ModuleInstall_init_ioiic(CFG_IO_IIC_BUS_NAME);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
 //component name:"ioiicconfig" //填写该组件的名字
-//parent:"component io iic"    //填写该组件的父组件名字，none表示没有父组件
+//parent:"io analog iic bus"    //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"iicbus","io analog iic bus"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -96,7 +96,7 @@
 #define CFG_MODULE_ENABLE_IOIICCONFIG    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,
 //%$#@string,1,32,
-#define IO_IIC_BUS_NAME   "Ioiic"
+#define CFG_IO_IIC_BUS_NAME   "IoIic"
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -107,7 +107,8 @@
 #include "djyos.h"
 #include "board.h"
 #include "cpu_peri.h"
-#include "project_config.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 #include "IoIicBus.h"
 
 bool_t ModuleInstall_init_ioiic(const char * busname)
@@ -115,7 +116,7 @@ bool_t ModuleInstall_init_ioiic(const char * busname)
     struct IO_IIC_Init IoIic;
 
     IoIic.BusName     =  busname;//总线名称，如IIC1
-    IoIic.tag         =  0; //用户自己的标记
+    IoIic.tag         =  1; //用户自己的标记
     IoIic.IIC_IoCtrl  =  IIC_IoCtrlFunc; //控制函数
     //模块接口
     ModuleInstall_IO_IICBus(&IoIic);

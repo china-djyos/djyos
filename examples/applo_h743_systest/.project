@@ -26,6 +26,11 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>src/usercomponent</name>
+			<type>2</type>
+			<locationURI>DJYOS_SRC_LOCATION/usercomponent</locationURI>
+		</link>
+		<link>
 			<name>src/userlib</name>
 			<type>2</type>
 			<location>D:/DIDE/djysrc/userlib</location>

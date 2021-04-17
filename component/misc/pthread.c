@@ -30,6 +30,8 @@ bool_t pthread_mutex_destroy(struct MutexLCB *mutex)
 {
     return Lock_MutexDelete_s(mutex);
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 bool_t  pthread_cond_signal(int *cond)
 {
@@ -56,11 +58,11 @@ int pthread_create(pthread_t  *threadId, const pthread_attr_t *attr,\
     u16 evttID;
     u16 eventID;
 
-    evttID = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,\
+    evttID = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,\
                            taskroutine,NULL,0x1000,NULL);
     if(evttID != CN_EVTT_ID_INVALID)
     {
-        eventID = Djy_EventPop(evttID,NULL,0,(ptu32_t)arg,0,0);
+        eventID = DJY_EventPop(evttID,NULL,0,(ptu32_t)arg,0,0);
         if(CN_EVENT_ID_INVALID != eventID)
         {
             if(NULL != threadId)
@@ -83,12 +85,13 @@ int exit(int no)
     }
     return 0;
 }
+#pragma GCC diagnostic pop
 
 //get the current process id
 //we has no multi process yet,so we use the current taskID to replace it
 int getpid(void)
 {
-	return (int)Djy_MyEventId();
+	return (int)DJY_GetMyEventId();
 }
 
 

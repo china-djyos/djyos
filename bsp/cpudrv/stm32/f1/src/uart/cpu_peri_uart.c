@@ -56,7 +56,7 @@
 #include "errno.h"
 #include "systime.h"
 #include "cpu_peri.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "int.h"
 #include "djyos.h"
 #include "stdlib.h"
@@ -91,13 +91,13 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"cpu onchip uart"//CPU的uart外设驱动
-//parent:"uart"      //填写该组件的父组件名字，none表示没有父组件
+//parent:"uart device file"      //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"device file system","lock","uart","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"uart device file","int","cpu onchip dma"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -445,12 +445,10 @@ static void __UART_BaudSet(tagUartReg volatile *Reg,u32 port,u32 baud)
 //        data,结构体tagCOMParam类型的指针数值
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
 {
-    struct COMParam *COM;
-    if((data == 0) || (Reg == NULL))
+    if((COM == NULL) || (Reg == NULL))
         return;
-    COM = (struct COMParam *)data;
     __UART_BaudSet(Reg,port,COM->BaudRate);
 
     switch(COM->DataBits)               // data bits
@@ -605,7 +603,7 @@ bool_t __uart_dma_timeout(bool_t sending)
     while((sending == true)&& (timeout > 0))//超时
     {
         timeout--;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
     if(timeout == 0)
         return true;
@@ -727,7 +725,7 @@ u32 __UART_DMA_SendStart(u32 port)
 //        while((false == __UART_TxTranEmpty(Reg))&& (timeout > 10))
 //        {
 //            timeout -=10;
-//            Djy_DelayUs(10);
+//            DJY_DelayUs(10);
 //        }
 //        if(timeout <= 10)
 //            break;
@@ -742,7 +740,7 @@ u32 __UART_DMA_SendStart(u32 port)
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
+static u32 __UART_SendStart (tagUartReg *Reg)
 {
     u8 port,dmaused;
 
@@ -1017,7 +1015,7 @@ void __UART_SetDmaUnUsed(u32 port)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 {
     ptu32_t result = 0;
     u32 port;
@@ -1026,12 +1024,12 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 
     switch((u32)Reg)
     {
-    case CN_UART1_BASE: port = CN_UART1;break;
-    case CN_UART2_BASE: port = CN_UART2;break;
-    case CN_UART3_BASE: port = CN_UART3;break;
-    case CN_UART4_BASE: port = CN_UART4;break;
-    case CN_UART5_BASE: port = CN_UART5;break;
-    default:return 0;
+        case CN_UART1_BASE: port = CN_UART1;break;
+        case CN_UART2_BASE: port = CN_UART2;break;
+        case CN_UART3_BASE: port = CN_UART3;break;
+        case CN_UART4_BASE: port = CN_UART4;break;
+        case CN_UART5_BASE: port = CN_UART5;break;
+        default:return 0;
     }
 
     switch(cmd)
@@ -1049,7 +1047,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-             __UART_BaudSet(Reg,port, data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(Reg,port, data);
+        }
             break;
         case CN_UART_EN_RTS:
             Reg->CR3 |= 0x100;
@@ -1070,7 +1072,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
             __UART_SetDmaUnUsed(port);
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(Reg,port,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(Reg,port,COM);
+        }
             break;
         default: break;
     }
@@ -1398,7 +1404,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;
@@ -1408,7 +1414,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
     while((PutStrDirectReg->SR &(1<<6))!=(1<<6))
     {
         timeout -=10;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
         if(timeout < 10)
            break;
     }

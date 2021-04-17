@@ -308,7 +308,7 @@ u32 USB_ServiceThread(void)
     u8 devAttached = 0;
     u8 devReady = 0;
 
-    Djy_GetEventPara((ptu32_t*)&id, NULL); // id -- host ID;
+    DJY_GetEventPara((ptu32_t*)&id, NULL); // id -- host ID;
 
     itoa(id, &name[6], 10);
     host = USBH_NewHost(name);
@@ -333,7 +333,7 @@ u32 USB_ServiceThread(void)
 
     USB_DeviceReset(id, 0);
 
-    time = DjyGetSysTime();
+    time = DJY_GetSysTime();
     // Run Application (Blocking mode)
     while (1)
     {
@@ -341,19 +341,19 @@ u32 USB_ServiceThread(void)
         USBH_Process(host);
 
         // 枚举过程中，如果一直未检测到设备，则每隔45秒复位一次设备
-        comsumed = DjyGetSysTime() - time;
+        comsumed = DJY_GetSysTime() - time;
         if(!devAttached)
         {
             if(HOST_DEV_ATTACHED == host->gState)
             {
                 devAttached = 1; // 已检测到设备
-                time = DjyGetSysTime();
+                time = DJY_GetSysTime();
             }
             else if(comsumed > 60000000) // 60秒
             {
                 printf("\r\n: info : usbs%02x : no device attach, will reset device.", host->id);
                 USB_DeviceReset(id, 0);
-                time = DjyGetSysTime();
+                time = DJY_GetSysTime();
             }
         }
 
@@ -377,7 +377,7 @@ u32 USB_ServiceThread(void)
 
                 printf("\r\n: erro : usbs%02x : no device ready, will reset device.", host->id);
                 USB_DeviceReset(id, 0);
-                time = DjyGetSysTime();
+                time = DJY_GetSysTime();
             }
         }
     }
@@ -615,11 +615,11 @@ s32 ModuleInstall_USB(const char *TargetFs,u8 controller)
 
     USB_UserInstall(TargetFs,controller);
 
-    thread = Djy_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 0, 0,
+    thread = DJY_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 0, 0,
                             USB_ServiceThread, NULL, 0x2000, name);
     if(CN_EVTT_ID_INVALID != thread)
     {
-        Djy_EventPop(thread, NULL, 0, controller, 0, 0);
+        DJY_EventPop(thread, NULL, 0, controller, 0, 0);
         return (0);
     }
 
@@ -686,11 +686,11 @@ s32 ModuleInstall_USB(u8 bController)
             return (-1);
         }
 #endif
-        thread = Djy_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 0, 0,
+        thread = DJY_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 0, 0,
                     USB_1_Thread, NULL, 0x2000, "USB #1 stack service");
         if(CN_EVTT_ID_INVALID != thread)
         {
-            Djy_EventPop(thread, NULL, 0, 0, 0, 0);
+            DJY_EventPop(thread, NULL, 0, 0, 0, 0);
             return (0);
         }
     }
@@ -705,20 +705,20 @@ s32 ModuleInstall_USB(u8 bController)
             return (-1);
         }
 #endif
-        thread = Djy_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 0, 0,
+        thread = DJY_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 0, 0,
                     USB_2_Thread, NULL, 0x2000, "USB #2 stack service");
         if(CN_EVTT_ID_INVALID != thread)
         {
-            Djy_EventPop(thread, NULL, 0, 0, 0, 0);
+            DJY_EventPop(thread, NULL, 0, 0, 0, 0);
             return (0);
         }
     }
 #else
-    thread = Djy_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 0, 0,
+    thread = DJY_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 0, 0,
                         USB_1_Thread, NULL, 0x2000, "USB #1 stack service");
     if(CN_EVTT_ID_INVALID != thread)
     {
-        Djy_EventPop(thread, NULL, 0, 0, 0, 0);
+        DJY_EventPop(thread, NULL, 0, 0, 0, 0);
         return (0);
     }
 #endif

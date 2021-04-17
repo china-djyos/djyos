@@ -59,7 +59,7 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include <stdint.h>
-#include <gui/gdd/gdd_private.h>
+#include    "gdd_private.h"
 #include <gui\gdd_focus.h>
 
 
@@ -70,25 +70,25 @@ static HWND sg_pMouseHwnd;
 //参数：pMsg，消息指针
 //返回：固定true
 //-----------------------------------------------------------------------------
-static  bool_t MousePaint(struct WindowMsg *pMsg)
+static  bool_t __GDD_MousePaint(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     HDC hdc;
     RECT rc;
 
     hwnd=pMsg->hwnd;
-    hdc =BeginPaint(hwnd);
+    hdc =GDD_BeginPaint(hwnd);
     if(NULL!=hdc)
     {
-        GetClientRect(hwnd,&rc);
-        SetFillColor(hdc,RGB(255,0,0));
-        FillRect(hdc,&rc);
+        GDD_GetClientRect(hwnd,&rc);
+        GDD_SetFillColor(hdc,RGB(255,0,0));
+        GDD_FillRect(hdc,&rc);
 
-        SetDrawColor(hdc,RGB(1,1,1));
-        DrawLine(hdc,0,4,8,4);
-        DrawLine(hdc,4,0,4,8);
+        GDD_SetDrawColor(hdc,RGB(1,1,1));
+        GDD_DrawLine(hdc,0,4,8,4);
+        GDD_DrawLine(hdc,4,0,4,8);
 
-        EndPaint(hwnd,hdc);
+        GDD_EndPaint(hwnd,hdc);
     }
     return true;
 }
@@ -96,7 +96,7 @@ static  bool_t MousePaint(struct WindowMsg *pMsg)
 //鼠标消息处理函数表，处理用户函数表中没有处理的消息。
 static struct MsgProcTable s_gMouseMsgProcTable[] =
 {
-    {MSG_CREATE,MousePaint}
+    {MSG_CREATE,__GDD_MousePaint}
 };
 
 static struct MsgTableLink  s_gMouseWinMsgLink;
@@ -105,12 +105,12 @@ bool_t GDD_CreateMouseIcon( void )
 {
     HWND desktop;
     struct RopGroup RopCode;
-    desktop = GetDesktopWindow( );
+    desktop = GDD_GetDesktopWindow( );
     s_gMouseWinMsgLink.MsgNum = sizeof(s_gMouseMsgProcTable) / sizeof(struct MsgProcTable);
     s_gMouseWinMsgLink.myTable = (struct MsgProcTable *)&s_gMouseMsgProcTable;
-    sg_pMouseHwnd = CreateWindow("Mouse_Cursor", WS_CHILD, desktop->CliRect.right/2,
+    sg_pMouseHwnd = GDD_CreateWindow("Mouse_Cursor", WS_CHILD, desktop->CliRect.right/2,
                                   desktop->CliRect.bottom / 2, 8, 8, NULL, 0,
-                                  CN_WINBUF_BUF, NULL, &s_gMouseWinMsgLink);
+                                  CN_WINBUF_BUF, 0, &s_gMouseWinMsgLink);
     if(sg_pMouseHwnd != NULL)
     {
        GK_SetPrio(sg_pMouseHwnd->pGkWin,CN_WINDOW_ZPRIO_MOUSE , CN_TIMEOUT_FOREVER);

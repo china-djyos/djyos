@@ -57,7 +57,7 @@
 #include "errno.h"
 #include "systime.h"
 #include "cpu_peri.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "int.h"
 #include "djyos.h"
 #include "cpu_peri_uart.h"
@@ -105,7 +105,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","lock","uart device file","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -285,12 +285,11 @@ static void __UART_Stop(u8 port)
 //      data，参数
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
 {
-    struct COMParam *COM;
+//    struct COMParam *COM;
     if(port < CN_UART_NUM)
     {
-        COM = (struct COMParam *)data;
         phuart[port]->Init.BaudRate = COM->BaudRate;
         switch(COM->Parity)                 // parity
         {
@@ -391,7 +390,7 @@ static void __UART_HardInit(u8 port)
 
         HAL_UART_DeInit(phuart[port]);
         HAL_UART_Init(phuart[port]);
-        __UART_StartRecv(port);
+        __UART_Start(port);
     }
 }
 
@@ -400,7 +399,7 @@ static void __UART_HardInit(u8 port)
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
+static u32 __UART_SendStart (tagUartReg *Reg)
 {
     u16 port,len=0;
     HAL_StatusTypeDef Ret;
@@ -544,7 +543,7 @@ void __UART_SetDmaUsed(u8 port,u8 enable)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 {
     ptu32_t result = 0;
     u32 port;
@@ -571,10 +570,18 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:
-            __UART_BaudSet(port,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(port, data);
+        }
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(Reg,port,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(Reg,port,COM);
+        }
             break;
         case CN_UART_HALF_DUPLEX_SEND: //发送数据
             Board_UartHalfDuplexSend(port);
@@ -584,7 +591,7 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
                     && (timeout > 10))
             {
                 timeout -=10;
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
             }
             Board_UartHalfDuplexRecv(port);
             break;
@@ -827,7 +834,7 @@ char Uart_GetCharDirect(void)
     u8 result;
     while(HAL_OK != HAL_UART_Receive(GetCharDirectH,&result,1,0))
     {
-        Djy_EventDelay(500);
+        DJY_EventDelay(500);
     }
     return result;
 }

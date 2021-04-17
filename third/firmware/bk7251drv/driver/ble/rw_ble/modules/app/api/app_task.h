@@ -69,6 +69,8 @@ enum appm_state
     APPM_READY,
     /// Advertising state
     APPM_ADVERTISING,
+    /// Scan state
+    APPM_SCANNING,
     /// Connected state
     APPM_CONNECTED,
     /// Number of defined states.

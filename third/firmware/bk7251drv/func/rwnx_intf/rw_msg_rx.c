@@ -14,6 +14,7 @@
 #include "ieee802_11_defs.h"
 #include "wlan_ui_pub.h"
 #include "mcu_ps_pub.h"
+#include "rtos_pub.h"
 
 
 uint32_t scan_cfm = 0;
@@ -26,11 +27,12 @@ SCAN_RST_UPLOAD_T *scan_rst_set_ptr = 0;
 IND_CALLBACK_T scan_cfm_cb = {0};
 IND_CALLBACK_T assoc_cfm_cb = {0};
 IND_CALLBACK_T deassoc_evt_cb = {0};
+IND_CALLBACK_T djyos_deassoc_evt_cb = {0};
 IND_CALLBACK_T deauth_evt_cb = {0};
 IND_CALLBACK_T wlan_connect_user_cb = {0};
 
 FUNC_1PARAM_PTR connection_lost_cb =NULL;
-FUNC_1PARAM_PTR	auth_fail_cb = NULL;
+FUNC_1PARAM_PTR auth_fail_cb = NULL;
 FUNC_1PARAM_PTR assoc_fail_cb = NULL;
 FUNC_1PARAM_PTR sta_connect_start_cb = NULL;
 rw_event_handler rw_event_handlers[RW_EVT_MAX] = {0};
@@ -95,7 +97,7 @@ void sr_release_scan_results(SCAN_RST_UPLOAD_PTR ptr)
         sr_free_all(ptr);
     }
     scan_rst_set_ptr = 0;
-	wpa_clear_scan_results();
+    wpa_clear_scan_results();
 }
 #endif
 
@@ -178,23 +180,23 @@ UINT32 mr_kmsg_exact_handle(UINT16 rsp)
 #endif
 
 void user_callback_func_register(FUNC_1PARAM_PTR sta_connect_start_func,
-								 FUNC_1PARAM_PTR connection_lost_func,
-								 FUNC_1PARAM_PTR auth_fail_func,
-								 FUNC_1PARAM_PTR assoc_fail_func )		
+                                 FUNC_1PARAM_PTR connection_lost_func,
+                                 FUNC_1PARAM_PTR auth_fail_func,
+                                 FUNC_1PARAM_PTR assoc_fail_func )
 {
-	sta_connect_start_cb = sta_connect_start_func;
-	connection_lost_cb = connection_lost_func;
-	auth_fail_cb = auth_fail_func;
-	assoc_fail_cb = assoc_fail_func;
-	
+    sta_connect_start_cb = sta_connect_start_func;
+    connection_lost_cb = connection_lost_func;
+    auth_fail_cb = auth_fail_func;
+    assoc_fail_cb = assoc_fail_func;
+
 }
 //
 void user_callback_func_unregister(void)
 {
     sta_connect_start_cb = NULL;
-	connection_lost_cb = NULL;
-	auth_fail_cb = NULL;
-	assoc_fail_cb = NULL;
+    connection_lost_cb = NULL;
+    auth_fail_cb = NULL;
+    assoc_fail_cb = NULL;
 }
 
 void rw_evt_set_callback(enum rw_evt_type evt_type, rw_event_handler handler)
@@ -235,6 +237,12 @@ void mhdr_deassoc_evt_cb(FUNC_2PARAM_PTR ind_cb, void *ctxt)
     deassoc_evt_cb.ctxt_arg = ctxt;
 }
 
+void mhdr_deassoc_evt_cb_for_djyos(FUNC_2PARAM_PTR ind_cb, void *ctxt)
+{
+    djyos_deassoc_evt_cb.cb = ind_cb;
+    djyos_deassoc_evt_cb.ctxt_arg = ctxt;
+}
+
 void mhdr_disconnect_ind(void *msg)
 {
     struct ke_msg *msg_ptr;
@@ -250,6 +258,10 @@ void mhdr_disconnect_ind(void *msg)
     if(deassoc_evt_cb.cb)
     {
         (*deassoc_evt_cb.cb)(deassoc_evt_cb.ctxt_arg, disc->vif_idx);
+    }
+    if(djyos_deassoc_evt_cb.cb)
+    {
+        (*djyos_deassoc_evt_cb.cb)(djyos_deassoc_evt_cb.ctxt_arg, disc->vif_idx);
     }
 }
 
@@ -281,7 +293,7 @@ void mhdr_connect_ind(void *msg, UINT32 len)
         mhdr_set_station_status(MSG_CONN_FAIL);
 
         sa_reconnect_init();
-  
+
         if(deassoc_evt_cb.cb)
         {
             (*deassoc_evt_cb.cb)(deassoc_evt_cb.ctxt_arg, conn_ind_ptr->vif_idx);
@@ -290,11 +302,46 @@ void mhdr_connect_ind(void *msg, UINT32 len)
 
     mcu_prevent_clear(MCU_PS_CONNECT);
 }
-
+#if 0
 void mhdr_set_station_status(msg_sta_states val)
 {
     connect_flag = val;
 }
+#else
+
+void mhdr_set_station_status(msg_sta_states val)
+{
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+    connect_flag = val;
+
+    switch (val)
+    {
+        case MSG_GOT_IP:
+            if (NULL != rw_event_handlers[RW_EVT_STA_GOT_IP])
+            {
+                struct rw_evt_payload evt_payload;
+                os_memset((void *)&evt_payload, 0x0, sizeof(evt_payload));
+                (*rw_event_handlers[RW_EVT_STA_GOT_IP])(RW_EVT_STA_GOT_IP, (void *)&evt_payload);
+            }
+            break;
+
+        case MSG_NO_AP_FOUND:
+            if (NULL != rw_event_handlers[RW_EVT_STA_CONNECT_FAILED])
+            {
+                struct rw_evt_payload evt_payload;
+                os_memset((void *)&evt_payload, 0x0, sizeof(evt_payload));
+                (*rw_event_handlers[RW_EVT_STA_CONNECT_FAILED])(RW_EVT_STA_CONNECT_FAILED, (void *)&evt_payload);
+            }
+            break;
+
+        default:
+            break;
+    }
+    GLOBAL_INT_RESTORE();
+}
+#endif
+
 
 msg_sta_states mhdr_get_station_status(void)
 {
@@ -500,33 +547,33 @@ void rwnx_handle_recv_msg(struct ke_msg *rx_msg)
         mhdr_disconnect_ind(rx_msg);
         break;
 
-	case SM_CONNCTION_START_IND:
-		if(sta_connect_start_cb)
-		{
-			(*sta_connect_start_cb)(rx_msg->param);
-		}
-		break;
-		
-	case SM_BEACON_LOSE_IND:
-		if(connection_lost_cb)
-		{
-			(*connection_lost_cb)(0);
-		}
-		break;
-		
-	case SM_AUTHEN_FAIL_IND:
-		if(auth_fail_cb)
-		{
-			(*auth_fail_cb)(rx_msg->param);
-		}
-		break;
-		
-	case SM_ASSOC_FAIL_INID:
-		if(assoc_fail_cb)
-		{
-			(*assoc_fail_cb)(rx_msg->param);
-		}
-		break;
+    case SM_CONNCTION_START_IND:
+        if(sta_connect_start_cb)
+        {
+            (*sta_connect_start_cb)(rx_msg->param);
+        }
+        break;
+
+    case SM_BEACON_LOSE_IND:
+        if(connection_lost_cb)
+        {
+            (*connection_lost_cb)(0);
+        }
+        break;
+
+    case SM_AUTHEN_FAIL_IND:
+        if(auth_fail_cb)
+        {
+            (*auth_fail_cb)(rx_msg->param);
+        }
+        break;
+
+    case SM_ASSOC_FAIL_INID:
+        if(assoc_fail_cb)
+        {
+            (*assoc_fail_cb)(rx_msg->param);
+        }
+        break;
 
     case SM_ASSOC_IND:
         if (rw_event_handlers[RW_EVT_STA_CONNECTED])
@@ -646,7 +693,7 @@ void rwnx_recv_msg(void)
             if(tx_msg->cfm && rx_msg->param_len)
                 os_memcpy(tx_msg->cfm, &rx_msg->param[0], rx_msg->param_len);
 
-            ret = rtos_set_semaphore(&tx_msg->semaphore);
+            ret = bk_rtos_set_semaphore(&tx_msg->semaphore);
             ASSERT(0 == ret);
         }
         else

@@ -51,12 +51,12 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <math.h>
-#include <misc.h>
+#include <misc/misc.h>
 #include <systime.h>
 #include <dbug.h>
-#include <filesystems.h>
-#include <device/flash/flash.h> // will be obsolete
-#include <device/include/unit_media.h>
+#include <djyfs/filesystems.h>
+#include <device/djy_flash.h> // will be obsolete
+#include <device/unit_media.h>
 #include <xip.h>
 
 #if 0
@@ -74,12 +74,12 @@
 //attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                       //初始化时机，可选值：early，medium，later。
+//init time:early                       //初始化时机，可选值：early，medium，later, pre-main。
                                         //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","lock","cpu drive inner flash"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
-//weakdependence:"xip_app","xip_iboot"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"xip app file system","xip iboot file system"  //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件不会被强制选中，
                                         //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -93,7 +93,7 @@
 #define CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,-1,12,
 #define CFG_EFLASH_XIP_PART_START      6          //分区起始，填写块号，块号从0开始计算
-#define CFG_EFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块
+#define CFG_EFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块。如果结束块是6，起始块是0，则该分区使用的块为0，1，2，3，4，5块
 //%$#@enum,true,false,
 #define CFG_EFLASH_XIP_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
 //%$#@string,1,32,
@@ -314,13 +314,14 @@ s32 xip_emflash_erase(struct __icore *core, u32 bytes, u32 pos)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 xip_fs_format(struct __icore *core)
+s32 xip_fs_format(void *core)
 {
+    struct __icore *xip_core = core;
     u32 remainunit = 0,block = 0,endunit = 0;
-    s64 startunit = core->MStart;
+    s64 startunit = xip_core->MStart;
     struct uesz esz = {0};
     esz.block = 1;
-    endunit = (core->ASize/core->bufsz) + startunit;
+    endunit = (xip_core->ASize/xip_core->bufsz) + startunit;
     __embed_req(whichblock, (ptu32_t)&block, (ptu32_t)&startunit);
     if(__embed_erase(block, esz))
     {
@@ -371,13 +372,13 @@ bool_t ModuleInstall_EmFlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend
                     warning_printf("xip"," Format failure.");
                 }
             }
-            targetobj = obj_matchpath(TargetFs, &notfind);
+            targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
                 error_printf("EmFlash"," not found need to install file system.");
                 return false;
             }
-            super = (struct FsCore *)obj_GetPrivate(targetobj);
+            super = (struct FsCore *)OBJ_GetPrivate(targetobj);
             if((strcmp(super->pFsType->pType, "XIP-APP") == 0) || (strcmp(super->pFsType->pType, "XIP-IBOOT") == 0))
             {
                 if(__embed_FsInstallInit(TargetFs,bstart,bend,&XIP_EMFLASH_DRV) == 0)

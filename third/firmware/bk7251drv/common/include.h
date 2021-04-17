@@ -7,6 +7,6 @@
 #include "compiler.h"
 #include "arm_arch.h"
 #if (!CFG_SUPPORT_ALIOS)
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 #endif
-#endif // _INCLUDES_H_ 
+#endif // _INCLUDES_H_

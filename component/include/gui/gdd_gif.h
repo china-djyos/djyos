@@ -67,13 +67,13 @@ extern "C" {
 
 struct  GIF_DECODE;
 
-struct GIF_DECODE *OpenGIF(const void *dat,u32 size);
-u32    GetGIFWidth(struct GIF_DECODE *hgif);
-u32    GetGIFHeight(struct GIF_DECODE *hgif);
-u32    GetGIFFrameCount(struct GIF_DECODE *hgif);
-s32    GetGIFFrameDelay(struct GIF_DECODE *hgif,u32 frame_idx);
-bool_t   DrawGIFFrame(HDC hdc,s32 x,s32 y,struct GIF_DECODE *hgif,u32 bk_color,u32 frame_idx);
-void   CloseGIF(struct GIF_DECODE *hgif);
+struct GIF_DECODE *GDD_OpenGIF(const void *dat,u32 size);
+u32    GDD_GetGIF_Width(struct GIF_DECODE *hgif);
+u32    GDD_GetGIF_Height(struct GIF_DECODE *hgif);
+u32    GDD_GetGIF_FrameCount(struct GIF_DECODE *hgif);
+s32    GDD_GetGIF_FrameDelay(struct GIF_DECODE *hgif,u32 frame_idx);
+bool_t   GDD_DrawGIF_Frame(HDC hdc,s32 x,s32 y,struct GIF_DECODE *hgif,u32 bk_color,u32 frame_idx);
+void   GDD_CloseGIF(struct GIF_DECODE *hgif);
 
 #if __cplusplus
 }

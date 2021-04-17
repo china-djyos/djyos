@@ -67,6 +67,7 @@
 #include "stdint.h"
 #include "lowpower.h"
 #include "cpu_peri.h"
+#include <dbug.h>
 #include <stm32l4xx_hal_rcc.h>
 #include <stm32l4xx_hal_rtc.h>
 #include <stm32l4xx_hal_rtc.h>
@@ -78,17 +79,19 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    void ModuleInstall_LowPower (void);
+//    ModuleInstall_LowPower();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
 //component name:"cpu onchip peripheral lowpower control"//低功耗组件外设驱动
-//parent:"lowpower"  //填写该组件的父组件名字，none表示没有父组件
+//parent:"none"  //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                     //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:none                    //初始化时机，可选值：early，medium，later。
+//init time:none                    //初始化时机，可选值：early，medium，later, pre-main。
                                     //表示初始化时间，分别是早期、中期、后期
-//dependence:"lowpower"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"none"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //选中该组件时，被依赖组件将强制选中，
                                     //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"             //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -141,7 +144,11 @@ u32 __LP_BSP_GetSleepLevel(void)
     if(__HAL_PWR_GET_FLAG(PWR_FLAG_WU+PWR_FLAG_SB)& PWR_FLAG_WU)
     {
         bkt_DR = HAL_RTCEx_BKUPRead(&RTC_Handler,RTC_BKP_DR0);
-        return bkt_DR;
+//        bkt_DR = Stm32SleepModel4;
+        if( (bkt_DR == CN_SLEEP_L3) || (bkt_DR == CN_SLEEP_L4) )
+            return bkt_DR;
+        else
+            return CN_SLEEP_NORMAL;
     }
     else
         return CN_SLEEP_NORMAL;
@@ -161,69 +168,52 @@ bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel)
         return false;
     HAL_RTCEx_BKUPWrite(&RTC_Handler,RTC_BKP_DR0,SleepLevel);
     return true;
-
 }
 
-//----进入L0级低功耗-----------------------------------------------------------
-//功能: 进入L0级低功耗状态,函数在lowpower.h中声明,供lowpower.c文件调用
-//参数: 无
-//返回: 无
-//-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL0(u32 pend_ticks)
-{
-    //Sleep
-//    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
-    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
-}
 
-//----进入L1级低功耗-----------------------------------------------------------
-//功能: 进入L1级低功耗状态,函数在lowpower.h中声明,供lowpower.c文件调用.在stm32中
-//      L0和L1其实是一样的,但用户的回调函数可能不一样.
-//参数: 无
-//返回: 无
 //-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL1(u32 pend_ticks)
-{
-    //Mode : Run --> lprun--->lpsleep
-//  HAL_PWR_EnterSLEEPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI);
-}
-
-//----进入L2级低功耗-----------------------------------------------------------
-//功能: 进入L2级低功耗状态,函数在lowpower.h中声明,供lowpower.c文件调用
-//参数: 无
-//返回: 无
+//功能: 进入休眠
+//参数: sleep_level,休眠等级
+//      pend_ticks, 休眠tick数
+//返回: 无意义
 //-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL2(u32 pend_ticks)
+void __LP_BSP_EntrySleep(u8 sleep_level, u32 pend_ticks)
 {
-    //stop2 mode : exit this mode by exti_line int or wakeup
-  HAL_PWREx_EnterSTOP2Mode(PWR_SLEEPENTRY_WFI);
-}
-
-//----进入L3级低功耗-----------------------------------------------------------
-//功能: 进入L3级低功耗状态,函数在lowpower.h中声明,供lowpower.c文件调用
-//参数: 无
-//返回: 无
-//-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL3(void)
-{
-    //STOP
-//    HAL_PWR_EnterSTANDBYMode();
-}
-
-//----进入L4级低功耗-----------------------------------------------------------
-//功能: 进入L4级低功耗状态,函数在lowpower.h中声明,供lowpower.c文件调用,stm32中,
-//      L3和L4在cpudrv方面,是一致的.
-//参数: 无
-//返回: 无
-//-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL4(void)
-{
-    //ShutDown/Standby
-//    HAL_PWR_EnterSTANDBYMode( );
-//  HAL_PWREx_EnterSHUTDOWNMode();
+    switch(sleep_level)
+    {
+        case CN_SLEEP_L0:
+            //Sleep
+        //    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
+            HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+            break;
+        case CN_SLEEP_L1:
+            warning_printf("LP", "Entry sleep level_1 undefined");
+            break;
+        case CN_SLEEP_L2:
+            //stop2 mode : exit this mode by exti_line int or wakeup
+            HAL_PWREx_EnterSTOP2Mode(PWR_SLEEPENTRY_WFI);
+            break;
+        case CN_SLEEP_L3:
+            warning_printf("LP", "Entry sleep level_3 undefined");
+            break;
+        case CN_SLEEP_L4:
+            warning_printf("LP", "Entry sleep level_4 undefined");
+            break;
+    }
 }
 
 bool_t __LP_BSP_SaveRamL3(void)
 {
    return true;
+}
+
+//-----------------------------------------------------------------------------
+//功能: 安装低功耗组件，要把一些低功耗需要使用到的函数，注册到系统中
+//参数: __LP_BSP_EntrySleep：进入休眠；__LP_BSP_SaveSleepLevel：保存休眠等级；__LP_BSP_SaveRamL3：保存进入休眠等级3之前的内存，
+//		__LP_BSP_AsmSaveReg：获取含自己的返回地址在内的上下文并保存到栈中
+//返回: 无
+//-----------------------------------------------------------------------------
+void ModuleInstall_LowPower (void)
+{
+    Register_LowPower_Function(__LP_BSP_EntrySleep, __LP_BSP_SaveSleepLevel, __LP_BSP_SaveRamL3, __LP_BSP_AsmSaveReg);
 }

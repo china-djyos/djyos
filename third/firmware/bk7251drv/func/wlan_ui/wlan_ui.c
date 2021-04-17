@@ -27,6 +27,10 @@
 #include "mcu_ps_pub.h"
 #include "manual_ps_pub.h"
 #include "gpio_pub.h"
+#include "rtos_pub.h"
+
+
+
 
 #if CFG_ROLE_LAUNCH
 #include "role_launch.h"
@@ -78,6 +82,17 @@ static void rwnx_remove_added_interface(void)
         os_free(cfm);
     }
 }
+//int bk_wlan_enter_powersave(struct rt_wlan_device *device, int level)
+//{
+//    int result = 0;
+//
+//    if (device == 0) return -8;
+//
+//    result = rt_device_control(RT_DEVICE(device), WIFI_ENTER_POWERSAVE, (void *)&level);
+//
+//    return result;
+//}
+
 
 void bk_wlan_connection_loss(void)
 {
@@ -390,7 +405,7 @@ OSStatus bk_wlan_start_ap(network_InitTypeDef_st *inNetworkInitParaAP)
         else
         {
             GLOBAL_INT_RESTORE();
-            rtos_delay_milliseconds(100);
+            bk_rtos_delay_milliseconds(100);
         }
     }
 
@@ -817,8 +832,8 @@ OSStatus bk_wlan_start_ap_adv(network_InitTypeDef_ap_st *inNetworkInitParaAP)
     ret = hostapd_main_entry(2, 0);
     if(ret)
     {
-        os_printf("bk_wlan_start_ap_adv failed!!\r\n");
-        bk_wlan_stop(SOFT_AP);
+        os_printf("bk_wlan_start softap failed!!\r\n");
+		bk_wlan_stop(SOFT_AP);
         return -1;
     }
 
@@ -1253,32 +1268,7 @@ extern void bmsg_ps_sender(uint8_t ioctl);
  *              gpio_edge_map is hex and every bits is map to gpio0-gpio31.
  *              0:rising,1:falling.
  */
-#if CFG_USE_DEEP_PS
-void bk_enter_deep_sleep(UINT32 gpio_index_map,UINT32 gpio_edge_map)
-{
-    UINT32 param;
-    UINT32 i;
 
-    for (i = 0; i < GPIONUM; i++)
-    {
-        if (gpio_index_map & (0x01UL << i))
-        {
-            if(gpio_index_map & gpio_edge_map & (0x01UL << i))
-            {
-                param = GPIO_CFG_PARAM(i, GMODE_INPUT_PULLUP);
-                sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
-            }
-            else
-            {
-                param = GPIO_CFG_PARAM(i, GMODE_INPUT_PULLDOWN);
-                sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
-            }
-        }
-    }
-
-    deep_sleep_wakeup_with_gpio(gpio_index_map,gpio_edge_map);
-}
-#endif
 
 #if CFG_USE_STA_PS
 /** @brief  Enable dtim power save,close rf,and wakeup by ieee dtim dynamical
@@ -1335,7 +1325,7 @@ int bk_wlan_dtim_rf_ps_mode_disable(void)
         }
         else
         {
-            rtos_delay_milliseconds(100);
+            bk_rtos_delay_milliseconds(100);
         }
     }
 
@@ -1402,6 +1392,11 @@ int bk_wlan_dtim_with_normal_close()
 BK_PS_LEVEL global_ps_level = 0;
 int bk_wlan_power_save_set_level(BK_PS_LEVEL level)
 {
+    PS_DEEP_CTRL_PARAM deep_sleep_param;
+    deep_sleep_param.gpio_index_map = 0xc000;
+    deep_sleep_param.gpio_edge_map  = 0x0;
+    deep_sleep_param.wake_up_way = PS_DEEP_WAKEUP_GPIO;
+
     if(level & PS_DEEP_SLEEP_BIT)
     {
 #if CFG_USE_STA_PS
@@ -1416,9 +1411,9 @@ int bk_wlan_power_save_set_level(BK_PS_LEVEL level)
             bk_wlan_mcu_ps_mode_disable();
         }
 #endif
-        rtos_delay_milliseconds(100);
+        bk_rtos_delay_milliseconds(100);
 #if CFG_USE_DEEP_PS
-        bk_enter_deep_sleep(0xc000,0x0);
+        bk_enter_deep_sleep_mode(&deep_sleep_param);
 #endif
     }
 

@@ -66,7 +66,7 @@ ptu32_t __Udp_ServerTast( void )
     int                 sFd;
     int                 iMsgLen;
 
-    Djy_GetEventPara((ptu32_t *)&sFd,NULL);
+    DJY_GetEventPara((ptu32_t *)&sFd,NULL);
     while(1)
     {
         iMsgLen = recvfrom( sFd, byMsgBuf, UDP_PKG_BUF_LEN, 0, (struct sockaddr *)&tClientAddr, &sockAddrSize );
@@ -121,7 +121,7 @@ int Udp_SvrStart( char* SvrIP,short SvrPort )
         return -1;
     }
 
-    evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS - 20,0,0,
+    evtt = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS - 20,0,0,
                                 __Udp_ServerTast,NULL,4096, "UDP_SVR_Event");
 
     if(evtt == CN_EVTT_ID_INVALID)
@@ -130,12 +130,12 @@ int Udp_SvrStart( char* SvrIP,short SvrPort )
         return -1;
     }
 
-    Djy_EventPop(evtt,NULL,0,(ptu32_t)sFd,0,0);
+    DJY_EventPop(evtt,NULL,0,(ptu32_t)sFd,0,0);
     printf("UDP Server Start Receive Packet!\r\n");
     while(1)
     {
         rcvLast = iMsgCnt;
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
         printf("UDP Server Receive Speed = %d bytes/s.\r\n",iMsgCnt-rcvLast);
     }
 
@@ -180,7 +180,7 @@ int Udp_ClientSend( char *SvrIP,short SvrPort, int pDlyUs )
     while(1)
     {
         byMsgBuf[0] = byMsgBuf[0] + 1;
-        Djy_DelayUs(pDlyUs);
+        DJY_DelayUs(pDlyUs);
         iMsgLen = sendto(sockfd, byMsgBuf, UDP_PKG_BUF_LEN, 0,
                 (struct sockaddr *)&tServerAddr, sockAddrSize);
         if(-1 == iMsgLen)

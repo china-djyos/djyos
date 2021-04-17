@@ -46,14 +46,14 @@
 // 于替代商品或劳务之购用�?�使用损失�?�资料损失�?�利益损失�?�业务中断等等）�?
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然�?
 //-----------------------------------------------------------------------------
-
+#if 0
 #include <stdio.h>
 #include <string.h>
 #include <djyos.h>
 #include <wdt_soft.h>
 #include <dirent.h>
 #include <stdlib.h>
-#include <osboot.h>
+#include <blackbox.h>
 
 #define RW_SIZE                      512
 #define APPLICATION_FILE_NAME        "PRS-7573.bin"
@@ -71,14 +71,14 @@ static u32 dwDeamonInspect;
 //extern void USB_UDiskReset(void);
 extern void Amend_IBootFlag_RunIBoot(void);
 extern void Amend_IBootFlag_RunAPP(void);
-extern enBootMode GetBootMethodSoft(void);
+extern enStartMode GetBootMethodSoft(void);
 extern s32 MSC_DeviceReady(u8 bID);
 extern bool_t  Sh_RunAPP(char *param);
 extern bool_t HAL_ClrUpdateFlag(void);
 extern bool_t HAL_SetUpdateFlag(void);
 extern bool_t HAL_ClrUpdateFlag(void);
 extern void RunIboot(void);
-extern void reset(u32 key);
+extern void CPU_Reset(u32 key);
 extern s32 IAP_SetMethod(u32 dwMethod);
 extern s32 IAP_SetPath(char *pPath);
 extern u32 IAP_GetMethod(void);
@@ -156,8 +156,8 @@ u32 USB_IAP_StatusDeamon(struct Wdt *reg)
             {
                 dwDeamonInspect = 0;
                 printf("\r\nIAP : DEAMON : unknown state during USB update, reset all.\r\n");
-                Djy_EventDelay(1000000);
-                reset(CN_BOOT_LEGALKEY);
+                DJY_EventDelay(1000000);
+                CPU_Reset(CN_BOOT_LEGALKEY);
             }
             break;
 
@@ -188,7 +188,7 @@ u32 USB_IAP_StatusDeamon(struct Wdt *reg)
                 if(!MSC_DeviceReady(0))
                 {
                     printf("\r\nIAP : DEAMON : unknown state during USB update, reset all.\r\n");
-                    Djy_EventDelay(1000000);
+                    DJY_EventDelay(1000000);
                     USB_UDiskReset();
                 }
                 else
@@ -263,15 +263,15 @@ s32 __UpdateThroughUSB(char *pAPP, u32 dwOpt)
         if(!MSC_DeviceReady(0))
             break; // USB设备已准备好
 
-        Djy_EventDelay(1000000); // 1s跑一�?
+        DJY_EventDelay(1000000); // 1s跑一�?
 
         if((bit[0]) && (++i > 60))
         {
             if(resetflag)
             {
                 printf("\r\n: info : iapusb : no U disk was found, switch to application mode in 10 seconds.\r\n\r\n\r\n\r\n\r\n");
-                Djy_EventDelay(10000000); // 延时10s，以保证打印能输�?
-                reset(CN_BOOT_LEGALKEY);
+                DJY_EventDelay(10000000); // 延时10s，以保证打印能输�?
+                CPU_Reset(CN_BOOT_LEGALKEY);
                 return (-1); // 未检测到USB设备
             }
             resetflag = 1;
@@ -359,7 +359,7 @@ s32 __UpdateThroughUSB(char *pAPP, u32 dwOpt)
         dbgCount++;
         if(9 == dbgCount)
         {
-            Djy_EventDelay(1000);
+            DJY_EventDelay(1000);
         }
 
         res = read(source, buffer, __IAP_USB_BUFFER_SIZE);
@@ -427,7 +427,7 @@ __UPGRADE_ERROR:
     if((bit[1]) && (gRunningStatus == DONE))
     {
         printf("\r\nIAP : USB : application update succeed, switch to application mode in 10 seconds.\r\n\r\n\r\n\r\n\r\n");
-        Djy_EventDelay(10000000); // 延时10s，以保证打印能输�?
+        DJY_EventDelay(10000000); // 延时10s，以保证打印能输�?
         Sh_RunAPP(NULL);
         return (0); // 未检测到USB设备
     }
@@ -452,7 +452,7 @@ void UpdateThroughUSB_T(void)
     char *file;
     u32 bits;
 
-    Djy_GetEventPara((ptu32_t*)&file, (ptu32_t*)&bits);
+    DJY_GetEventPara((ptu32_t*)&file, (ptu32_t*)&bits);
 
     __UpdateThroughUSB(file, bits);
 }
@@ -522,7 +522,7 @@ void __SniffUSB(char *pFile,u32 dwOpt)
             UDisk_Flag = 1;
         }
 
-        Djy_EventDelay(1000000);
+        DJY_EventDelay(1000000);
     }
 }
 
@@ -537,7 +537,7 @@ void SniffUSB_T(void)
     char *file;
     u32 bits;
 
-    Djy_GetEventPara((ptu32_t*)&file, (ptu32_t*)&bits);
+    DJY_GetEventPara((ptu32_t*)&file, (ptu32_t*)&bits);
 
     __SniffUSB(file,bits);
 }
@@ -577,27 +577,28 @@ s32 ModuleInstall_USB_IAP(u8 bArgC, ...)
 
     if(0 == func)
     {
-        thread = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+        thread = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
                                 SniffUSB_T, NULL, 0x1000, (char*)func0);
 
         if(thread != CN_EVTT_ID_INVALID)
         {
-            Djy_EventPop(thread, NULL, 0, (ptu32_t)file, arg, 0);
+            DJY_EventPop(thread, NULL, 0, (ptu32_t)file, arg, 0);
             return (0);
         }
     }
     else if(1 == func)
     {
         USB_IAP_StatusInit();
-        thread = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+        thread = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
                                 UpdateThroughUSB_T, NULL, 0x1000, (char*)func1);
 
         if(thread != CN_EVTT_ID_INVALID)
         {
-            Djy_EventPop(thread, NULL, 0, (ptu32_t)file, arg, 0);
+            DJY_EventPop(thread, NULL, 0, (ptu32_t)file, arg, 0);
             return (0);
         }
     }
 
     return (-1);
 }
+#endif

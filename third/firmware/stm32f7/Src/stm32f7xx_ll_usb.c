@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f7xx_ll_usb.c
   * @author  MCD Application Team
-  * @version V1.2.0
-  * @date    30-December-2016
+  * @version V1.1.2
+  * @date    23-September-2016 
   * @brief   USB Low Layer HAL module driver.
   *    
   *          This file provides firmware functions to manage the following 
@@ -72,10 +72,6 @@
 /* Private functions ---------------------------------------------------------*/
 static HAL_StatusTypeDef USB_CoreReset(USB_OTG_GlobalTypeDef *USBx);
 
-#ifdef USB_HS_PHYC 
-static HAL_StatusTypeDef USB_HS_PHYCInit(USB_OTG_GlobalTypeDef *USBx);
-#endif
-
 /* Exported functions --------------------------------------------------------*/
 /** @defgroup LL_USB_Exported_Functions USB Low Layer Exported Functions
   * @{
@@ -103,7 +99,7 @@ static HAL_StatusTypeDef USB_HS_PHYCInit(USB_OTG_GlobalTypeDef *USBx);
   */
 HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef cfg)
 {
-  if (cfg.phy_itface == USB_OTG_ULPI_PHY)
+  if (cfg.phy_itface == USB_OTG_ULPI_PHY) // ULPI接口
   {
     
     USBx->GCCFG &= ~(USB_OTG_GCCFG_PWRDWN);
@@ -120,50 +116,22 @@ HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
     /* Reset after a PHY select  */
     USB_CoreReset(USBx); 
   }
-#ifdef USB_HS_PHYC 
-  
-  else if (cfg.phy_itface == USB_OTG_HS_EMBEDDED_PHY)
-  {
-    USBx->GCCFG &= ~(USB_OTG_GCCFG_PWRDWN);
-    
-    /* Init The UTMI Interface */
-    USBx->GUSBCFG &= ~(USB_OTG_GUSBCFG_TSDPS | USB_OTG_GUSBCFG_ULPIFSLS | USB_OTG_GUSBCFG_PHYSEL);
-    
-    /* Select vbus source */
-    USBx->GUSBCFG &= ~(USB_OTG_GUSBCFG_ULPIEVBUSD | USB_OTG_GUSBCFG_ULPIEVBUSI);
-    
-    /* Select UTMI Interace */
-    USBx->GUSBCFG &= ~ USB_OTG_GUSBCFG_ULPI_UTMI_SEL;
-    USBx->GCCFG |= USB_OTG_GCCFG_PHYHSEN;
-    
-    /* Enables control of a High Speed USB PHY */
-    USB_HS_PHYCInit(USBx);
-    
-    if(cfg.use_external_vbus == 1)
-    {
-      USBx->GUSBCFG |= USB_OTG_GUSBCFG_ULPIEVBUSD;
-    }
-    /* Reset after a PHY select  */
-    USB_CoreReset(USBx); 
-    
-  }
-#endif
-  else /* FS interface (embedded Phy) */
+  else /* FS interface (embedded Phy) */ // 内置USB
   {
     /* Select FS Embedded PHY */
-    USBx->GUSBCFG |= USB_OTG_GUSBCFG_PHYSEL;
+    USBx->GUSBCFG |= USB_OTG_GUSBCFG_PHYSEL; // 只读位
     
     /* Reset after a PHY select and set Host mode */
-    USB_CoreReset(USBx);
+    USB_CoreReset(USBx); // 软RESET
     
     /* Deactivate the power down*/
-    USBx->GCCFG = USB_OTG_GCCFG_PWRDWN;
+    USBx->GCCFG = USB_OTG_GCCFG_PWRDWN; // 使能FS收发器
   }
  
   if(cfg.dma_enable == ENABLE)
   {
-    USBx->GAHBCFG |= USB_OTG_GAHBCFG_HBSTLEN_2;
-    USBx->GAHBCFG |= USB_OTG_GAHBCFG_DMAEN;
+    USBx->GAHBCFG |= (USB_OTG_GAHBCFG_HBSTLEN_1 | USB_OTG_GAHBCFG_HBSTLEN_2); // TODO: 没有见到位的意思
+    USBx->GAHBCFG |= USB_OTG_GAHBCFG_DMAEN; // DMA使能
   }  
 
   return HAL_OK;
@@ -190,7 +158,7 @@ HAL_StatusTypeDef USB_EnableGlobalInt(USB_OTG_GlobalTypeDef *USBx)
 */
 HAL_StatusTypeDef USB_DisableGlobalInt(USB_OTG_GlobalTypeDef *USBx)
 {
-  USBx->GAHBCFG &= ~USB_OTG_GAHBCFG_GINT;
+  USBx->GAHBCFG &= ~USB_OTG_GAHBCFG_GINT; // 关闭中断
   return HAL_OK;
 }
    
@@ -206,18 +174,18 @@ HAL_StatusTypeDef USB_DisableGlobalInt(USB_OTG_GlobalTypeDef *USBx)
   */
 HAL_StatusTypeDef USB_SetCurrentMode(USB_OTG_GlobalTypeDef *USBx , USB_OTG_ModeTypeDef mode)
 {
-  USBx->GUSBCFG &= ~(USB_OTG_GUSBCFG_FHMOD | USB_OTG_GUSBCFG_FDMOD); 
+  USBx->GUSBCFG &= ~(USB_OTG_GUSBCFG_FHMOD | USB_OTG_GUSBCFG_FDMOD); // 重置
   
   if ( mode == USB_OTG_HOST_MODE)
   {
-    USBx->GUSBCFG |= USB_OTG_GUSBCFG_FHMOD; 
+    USBx->GUSBCFG |= USB_OTG_GUSBCFG_FHMOD; // 主机模式
   }
   else if ( mode == USB_OTG_DEVICE_MODE)
   {
-    USBx->GUSBCFG |= USB_OTG_GUSBCFG_FDMOD; 
+    USBx->GUSBCFG |= USB_OTG_GUSBCFG_FDMOD; // 设备模式
   }
-  HAL_Delay(50);
-  
+  HAL_Delay(50); // TODO
+  // DJY_EventDelay(50);
   return HAL_OK;
 }
 
@@ -265,21 +233,6 @@ HAL_StatusTypeDef USB_DevInit (USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
       USB_SetDevSpeed (USBx , USB_OTG_SPEED_HIGH_IN_FULL);
     }
   }
-  
-  else if(cfg.phy_itface  == USB_OTG_HS_EMBEDDED_PHY)
-  {
-    if(cfg.speed == USB_OTG_SPEED_HIGH)
-    {      
-      /* Set High speed phy */
-      USB_SetDevSpeed (USBx , USB_OTG_SPEED_HIGH);
-    }
-    else 
-    {
-      /* set High speed phy in Full speed mode */
-      USB_SetDevSpeed (USBx , USB_OTG_SPEED_HIGH_IN_FULL);
-    }
-  }
-  
   else
   {
     /* Set Full speed phy */
@@ -381,7 +334,7 @@ HAL_StatusTypeDef USB_FlushTxFifo (USB_OTG_GlobalTypeDef *USBx, uint32_t num )
 {
   uint32_t count = 0;
  
-  USBx->GRSTCTL = ( USB_OTG_GRSTCTL_TXFFLSH |(uint32_t)( num << 6)); 
+  USBx->GRSTCTL = ( USB_OTG_GRSTCTL_TXFFLSH |(uint32_t)( num << 6)); // num = 0x10表示所有TX FIFO
  
   do
   {
@@ -390,7 +343,7 @@ HAL_StatusTypeDef USB_FlushTxFifo (USB_OTG_GlobalTypeDef *USBx, uint32_t num )
       return HAL_TIMEOUT;
     }
   }
-  while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_TXFFLSH) == USB_OTG_GRSTCTL_TXFFLSH);
+  while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_TXFFLSH) == USB_OTG_GRSTCTL_TXFFLSH); // 等待刷新完成
   
   return HAL_OK;
 }
@@ -414,7 +367,7 @@ HAL_StatusTypeDef USB_FlushRxFifo(USB_OTG_GlobalTypeDef *USBx)
       return HAL_TIMEOUT;
     }
   }
-  while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_RXFFLSH) == USB_OTG_GRSTCTL_RXFFLSH);
+  while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_RXFFLSH) == USB_OTG_GRSTCTL_RXFFLSH); // 等待刷新完成
   
   return HAL_OK;
 }
@@ -811,13 +764,15 @@ HAL_StatusTypeDef USB_EP0StartXfer(USB_OTG_GlobalTypeDef *USBx , USB_OTG_EPTypeD
 HAL_StatusTypeDef USB_WritePacket(USB_OTG_GlobalTypeDef *USBx, uint8_t *src, uint8_t ch_ep_num, uint16_t len, uint8_t dma)
 {
   uint32_t count32b= 0 , i= 0;
+  u32 temp;
   
   if (dma == 0)
   {
     count32b =  (len + 3) / 4;
     for (i = 0; i < count32b; i++, src += 4)
     {
-      USBx_DFIFO(ch_ep_num) = *((__packed uint32_t *)src);
+        temp = src[0]+(src[1]<<8)+(src[2]<<16)+(src[3]<<24);
+        USBx_DFIFO(ch_ep_num) = temp;
     }
   }
   return HAL_OK;
@@ -956,7 +911,7 @@ HAL_StatusTypeDef  USB_SetDevAddress (USB_OTG_GlobalTypeDef *USBx, uint8_t addre
 HAL_StatusTypeDef  USB_DevConnect (USB_OTG_GlobalTypeDef *USBx)
 {
   USBx_DEVICE->DCTL &= ~USB_OTG_DCTL_SDIS ;
-  HAL_Delay(3);
+  HAL_Delay(3); // TODO
   
   return HAL_OK;  
 }
@@ -969,7 +924,7 @@ HAL_StatusTypeDef  USB_DevConnect (USB_OTG_GlobalTypeDef *USBx)
 HAL_StatusTypeDef  USB_DevDisconnect (USB_OTG_GlobalTypeDef *USBx)
 {
   USBx_DEVICE->DCTL |= USB_OTG_DCTL_SDIS ;
-  HAL_Delay(3);
+  HAL_Delay(3); // TODO
   
   return HAL_OK;  
 }
@@ -1141,7 +1096,7 @@ static HAL_StatusTypeDef USB_CoreReset(USB_OTG_GlobalTypeDef *USBx)
   
   /* Core Soft Reset */
   count = 0;
-  USBx->GRSTCTL |= USB_OTG_GRSTCTL_CSRST;
+  USBx->GRSTCTL |= USB_OTG_GRSTCTL_CSRST; // 软复位
 
   do
   {
@@ -1155,69 +1110,7 @@ static HAL_StatusTypeDef USB_CoreReset(USB_OTG_GlobalTypeDef *USBx)
   return HAL_OK;
 }
 
-#ifdef USB_HS_PHYC 
-/**
-  * @brief  Enables control of a High Speed USB PHY抯
-  *         Init the low level hardware : GPIO, CLOCK, NVIC... 
-  * @param  USBx : Selected device
-  * @retval HAL status
-  */
-static HAL_StatusTypeDef USB_HS_PHYCInit(USB_OTG_GlobalTypeDef *USBx)
-{
-  uint32_t count = 0;
-  
-  /* Enable LDO */
-  USB_HS_PHYC->USB_HS_PHYC_LDO |= USB_HS_PHYC_LDO_ENABLE;
-  
-  /* wait for LDO Ready */
-  while((USB_HS_PHYC->USB_HS_PHYC_LDO & USB_HS_PHYC_LDO_STATUS) == RESET)
-  {
-    if (++count > 200000)
-    {
-      return HAL_TIMEOUT;
-    }
-  }
 
-  /* Controls PHY frequency operation selection */
-  if (HSE_VALUE == 12000000) /* HSE = 12MHz */
-  {
-    USB_HS_PHYC->USB_HS_PHYC_PLL = (uint32_t)(0x0 << 1);
-  }
-  else if (HSE_VALUE == 12500000) /* HSE = 12.5MHz */
-  {
-    USB_HS_PHYC->USB_HS_PHYC_PLL = (uint32_t)(0x2 << 1);
-  }
-  else if (HSE_VALUE == 16000000) /* HSE = 16MHz */
-  {
-    USB_HS_PHYC->USB_HS_PHYC_PLL = (uint32_t)(0x3 << 1);
-  }
-  
-  else if (HSE_VALUE == 24000000) /* HSE = 24MHz */
-  {
-    USB_HS_PHYC->USB_HS_PHYC_PLL = (uint32_t)(0x4 << 1);
-  }
-  else if (HSE_VALUE == 25000000) /* HSE = 25MHz */
-  {
-    USB_HS_PHYC->USB_HS_PHYC_PLL = (uint32_t)(0x5 << 1);
-  }
-  else if (HSE_VALUE == 32000000) /* HSE = 32MHz */
-  {
-    USB_HS_PHYC->USB_HS_PHYC_PLL = (uint32_t)(0x7 << 1);
-  }
-  
-  /* Control the tuning interface of the High Speed PHY */
-  USB_HS_PHYC->USB_HS_PHYC_TUNE |= USB_HS_PHYC_TUNE_VALUE;
-  
-  /* Enable PLL internal PHY */
-  USB_HS_PHYC->USB_HS_PHYC_PLL |= USB_HS_PHYC_PLL_PLLEN;
-
-  /* 2ms Delay required to get internal phy clock stable */
-  HAL_Delay(2);
-  
-  return HAL_OK;
-}
-
-#endif /* USB_HS_PHYC */
 /**
   * @brief  USB_HostInit : Initializes the USB OTG controller registers 
   *         for Host mode 
@@ -1234,17 +1127,17 @@ HAL_StatusTypeDef USB_HostInit (USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef 
   USBx_PCGCCTL = 0;
   
   /*Activate VBUS Sensing B */
-  USBx->GCCFG |= USB_OTG_GCCFG_VBDEN;
+  USBx->GCCFG |= USB_OTG_GCCFG_VBDEN; // OTG version 2.0
   
   /* Disable the FS/LS support mode only */
   if((cfg.speed == USB_OTG_SPEED_FULL)&&
-     (USBx != USB_OTG_FS))
+     (USBx != USB_OTG_FS)) //
   {
-    USBx_HOST->HCFG |= USB_OTG_HCFG_FSLSS; 
+    USBx_HOST->HCFG |= USB_OTG_HCFG_FSLSS; // 仅支持FS/LS
   }
   else
   {
-    USBx_HOST->HCFG &= ~(USB_OTG_HCFG_FSLSS);  
+    USBx_HOST->HCFG &= ~(USB_OTG_HCFG_FSLSS); //
   }
 
   /* Make sure the FIFOs are flushed. */
@@ -1254,29 +1147,30 @@ HAL_StatusTypeDef USB_HostInit (USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef 
   /* Clear all pending HC Interrupts */
   for (i = 0; i < cfg.Host_channels; i++)
   {
-    USBx_HC(i)->HCINT = 0xFFFFFFFF;
-    USBx_HC(i)->HCINTMSK = 0;
+    USBx_HC(i)->HCINT = 0xFFFFFFFF; // 清中断
+    USBx_HC(i)->HCINTMSK = 0; // 屏蔽通道所有中断
   }
   
   /* Enable VBUS driving */
-  USB_DriveVbus(USBx, 1);
+  USB_DriveVbus(USBx, 1); // 激活Vbus
   
-  HAL_Delay(200);
+  HAL_Delay(200); // TODO
+  // DJY_EventDelay(200); 
   
   /* Disable all interrupts. */
-  USBx->GINTMSK = 0;
+  USBx->GINTMSK = 0; // 屏蔽所有中断
   
   /* Clear any pending interrupts */
-  USBx->GINTSTS = 0xFFFFFFFF;
+  USBx->GINTSTS = 0xFFFFFFFF; // 清中断
   
   if(USBx == USB_OTG_FS)
   {
     /* set Rx FIFO size */
-    USBx->GRXFSIZ  = (uint32_t )0x80; 
-    USBx->DIEPTXF0_HNPTXFSIZ = (uint32_t )(((0x60 << 16)& USB_OTG_NPTXFD) | 0x80);
-    USBx->HPTXFSIZ = (uint32_t )(((0x40 << 16)& USB_OTG_HPTXFSIZ_PTXFD) | 0xE0);
+    USBx->GRXFSIZ  = (uint32_t )0x80; // Rx FIFO深度 = 128
+    USBx->DIEPTXF0_HNPTXFSIZ = (uint32_t )(((0x60 << 16)& USB_OTG_NPTXFD) | 0x80); // 非周期TX FIFO深度 96,
+    USBx->HPTXFSIZ = (uint32_t )(((0x40 << 16)& USB_OTG_HPTXFSIZ_PTXFD) | 0xE0); // 周期性TX FIFO深度64
   }
-  else
+  else // TODO
   {
     /* set Rx FIFO size */
     USBx->GRXFSIZ  = (uint32_t )0x200; 
@@ -1287,12 +1181,13 @@ HAL_StatusTypeDef USB_HostInit (USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef 
   /* Enable the common interrupts */
   if (cfg.dma_enable == DISABLE)
   {
-    USBx->GINTMSK |= USB_OTG_GINTMSK_RXFLVLM; 
+    USBx->GINTMSK |= USB_OTG_GINTMSK_RXFLVLM; // 使能RX FIFO非空中断
   }
   
   /* Enable interrupts matching to the Host mode ONLY */
+  // 主机端口 |主机通道 |SOF帧 |断开链接|未完成OUT同步传输|恢复远程唤醒
   USBx->GINTMSK |= (USB_OTG_GINTMSK_PRTIM            | USB_OTG_GINTMSK_HCIM |\
-                    USB_OTG_GINTMSK_SOFM             |USB_OTG_GINTSTS_DISCINT|\
+                    USB_OTG_GINTMSK_SOFM             | USB_OTG_GINTSTS_DISCINT|\
                     USB_OTG_GINTMSK_PXFRM_IISOOXFRM  | USB_OTG_GINTMSK_WUIM);
 
   return HAL_OK;
@@ -1311,8 +1206,9 @@ HAL_StatusTypeDef USB_HostInit (USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef 
 HAL_StatusTypeDef USB_InitFSLSPClkSel(USB_OTG_GlobalTypeDef *USBx , uint8_t freq)
 {
   USBx_HOST->HCFG &= ~(USB_OTG_HCFG_FSLSPCS);
-  USBx_HOST->HCFG |= (freq & USB_OTG_HCFG_FSLSPCS);
+  USBx_HOST->HCFG |= (freq & USB_OTG_HCFG_FSLSPCS); // 选择时钟频率
   
+  // 设置帧间隔1ms
   if (freq ==  HCFG_48_MHZ)
   {
     USBx_HOST->HFIR = (uint32_t)48000;
@@ -1334,17 +1230,17 @@ HAL_StatusTypeDef USB_InitFSLSPClkSel(USB_OTG_GlobalTypeDef *USBx , uint8_t freq
 HAL_StatusTypeDef USB_ResetPort(USB_OTG_GlobalTypeDef *USBx)
 {
   __IO uint32_t hprt0;
-
+  
   hprt0 = USBx_HPRT0;
-
-  hprt0 &= ~(USB_OTG_HPRT_PENA | USB_OTG_HPRT_PCDET |
-             USB_OTG_HPRT_PENCHNG | USB_OTG_HPRT_POCCHNG);
-
-  USBx_HPRT0 = (USB_OTG_HPRT_PRST | hprt0);  
-  HAL_Delay (100);                                /* See Note #1 */
-  USBx_HPRT0 = ((~USB_OTG_HPRT_PRST) & hprt0); 
-  HAL_Delay (10);
-
+  hprt0 |= USB_OTG_HPRT_PENA ; // 使能端口
+  
+  hprt0 &= ~(USB_OTG_HPRT_PCDET | USB_OTG_HPRT_PENCHNG |\
+             USB_OTG_HPRT_POCCHNG ); // 清变化
+  
+  USBx_HPRT0 = (USB_OTG_HPRT_PRST | hprt0); // 端口复位
+  HAL_Delay (10);  /* See Note #1 */
+  // DJY_EventDelay(10);
+  USBx_HPRT0 = ((~USB_OTG_HPRT_PRST) & hprt0); // 清端口复位
   return HAL_OK;
 }
 
@@ -1361,17 +1257,18 @@ HAL_StatusTypeDef USB_DriveVbus (USB_OTG_GlobalTypeDef *USBx, uint8_t state)
   __IO uint32_t hprt0;
 
   hprt0 = USBx_HPRT0;
-
-  hprt0 &= ~(USB_OTG_HPRT_PENA | USB_OTG_HPRT_PCDET |
-             USB_OTG_HPRT_PENCHNG | USB_OTG_HPRT_POCCHNG);
-
-  if (((hprt0 & USB_OTG_HPRT_PPWR) == 0 ) && (state == 1 ))
+  hprt0 |= USB_OTG_HPRT_PENA ; // 使能端口
+  
+  hprt0 &= ~(USB_OTG_HPRT_PCDET | USB_OTG_HPRT_PENCHNG |\
+             USB_OTG_HPRT_POCCHNG ); //变化（ 端口链接 | 端口使能 | 过流）
+  
+  if (((hprt0 & USB_OTG_HPRT_PPWR) == 0 ) && (state == 1 )) // 当前无电且给Vbus上电
   {
-    USBx_HPRT0 = (USB_OTG_HPRT_PPWR | hprt0); 
+    USBx_HPRT0 = (USB_OTG_HPRT_PPWR | hprt0); // 上电
   }
-  if (((hprt0 & USB_OTG_HPRT_PPWR) == USB_OTG_HPRT_PPWR) && (state == 0 ))
+  if (((hprt0 & USB_OTG_HPRT_PPWR) == USB_OTG_HPRT_PPWR) && (state == 0 )) // Vbus关闭,且当前有电
   {
-    USBx_HPRT0 = ((~USB_OTG_HPRT_PPWR) & hprt0); 
+    USBx_HPRT0 = ((~USB_OTG_HPRT_PPWR) & hprt0); // 掉电
   }
   return HAL_OK; 
 }
@@ -1527,13 +1424,18 @@ HAL_StatusTypeDef USB_HC_Init(USB_OTG_GlobalTypeDef *USBx,
   *           1 : DMA feature used  
   * @retval HAL state
   */
+#if defined   (__CC_ARM) /*!< ARM Compiler */
+#pragma O0
+#elif defined (__GNUC__) /*!< GNU Compiler */
+#pragma GCC optimize ("O0")
+#endif /* __CC_ARM */
 HAL_StatusTypeDef USB_HC_StartXfer(USB_OTG_GlobalTypeDef *USBx, USB_OTG_HCTypeDef *hc, uint8_t dma)
 {
-  static __IO uint32_t tmpreg = 0;
   uint8_t  is_oddframe = 0; 
   uint16_t len_words = 0;   
   uint16_t num_packets = 0;
   uint16_t max_hc_pkt_count = 256;
+  uint32_t tmpreg = 0;
     
   if((USBx != USB_OTG_FS) && (hc->speed == USB_OTG_SPEED_HIGH))
   {
@@ -1564,15 +1466,16 @@ HAL_StatusTypeDef USB_HC_StartXfer(USB_OTG_GlobalTypeDef *USBx, USB_OTG_HCTypeDe
   {
     num_packets = 1;
   }
+
   if (hc->ep_is_in)
   {
     hc->xfer_len = num_packets * hc->max_packet;
   }
   
   /* Initialize the HCTSIZn register */
-  USBx_HC(hc->ch_num)->HCTSIZ = (((hc->xfer_len) & USB_OTG_HCTSIZ_XFRSIZ)) |\
-    ((num_packets << 19) & USB_OTG_HCTSIZ_PKTCNT) |\
-      (((hc->data_pid) << 29) & USB_OTG_HCTSIZ_DPID);
+  USBx_HC(hc->ch_num)->HCTSIZ = (((hc->xfer_len) & USB_OTG_HCTSIZ_XFRSIZ)) | // 传输大小
+    ((num_packets << 19) & USB_OTG_HCTSIZ_PKTCNT) | // 数据包计数
+      (((hc->data_pid) << 29) & USB_OTG_HCTSIZ_DPID); // 数据PID
   
   if (dma)
   {
@@ -1580,19 +1483,19 @@ HAL_StatusTypeDef USB_HC_StartXfer(USB_OTG_GlobalTypeDef *USBx, USB_OTG_HCTypeDe
     USBx_HC(hc->ch_num)->HCDMA = (uint32_t)hc->xfer_buff;
   }
   
-  is_oddframe = (USBx_HOST->HFNUM & 0x01) ? 0 : 1;
-  USBx_HC(hc->ch_num)->HCCHAR &= ~USB_OTG_HCCHAR_ODDFRM;
-  USBx_HC(hc->ch_num)->HCCHAR |= (is_oddframe << 29);
+  is_oddframe = (USBx_HOST->HFNUM & 0x01) ? 0 : 1; // 奇偶帧
+  USBx_HC(hc->ch_num)->HCCHAR &= ~USB_OTG_HCCHAR_ODDFRM; // 清奇偶位
+  USBx_HC(hc->ch_num)->HCCHAR |= (is_oddframe << 29); // 设置奇偶位
   
   /* Set host channel enable */
   tmpreg = USBx_HC(hc->ch_num)->HCCHAR;
-  tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
-  tmpreg |= USB_OTG_HCCHAR_CHENA;
+  tmpreg &= ~USB_OTG_HCCHAR_CHDIS; // 使能通道
+  tmpreg |= USB_OTG_HCCHAR_CHENA; // 使能通道
   USBx_HC(hc->ch_num)->HCCHAR = tmpreg;
   
   if (dma == 0) /* Slave mode */
   {  
-    if((hc->ep_is_in == 0) && (hc->xfer_len > 0))
+    if((hc->ep_is_in == 0) && (hc->xfer_len > 0)) // 输出
     {
       switch(hc->ep_type) 
       {
@@ -1655,16 +1558,16 @@ HAL_StatusTypeDef USB_HC_Halt(USB_OTG_GlobalTypeDef *USBx , uint8_t hc_num)
   uint32_t count = 0;
   
   /* Check for space in the request queue to issue the halt. */
-  if (((((USBx_HC(hc_num)->HCCHAR) & USB_OTG_HCCHAR_EPTYP) >> 18) == HCCHAR_CTRL) ||
-     (((((USBx_HC(hc_num)->HCCHAR) & USB_OTG_HCCHAR_EPTYP) >> 18) == HCCHAR_BULK)))
+  // 控制或者批量传输类型
+  if (((USBx_HC(hc_num)->HCCHAR) & (HCCHAR_CTRL << 18)) || ((USBx_HC(hc_num)->HCCHAR) & (HCCHAR_BULK << 18)))
   {
-    USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHDIS;
+    USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHDIS; // 禁止通道，会产生中断
     
-    if ((USBx->HNPTXSTS & 0xFFFF) == 0)
+    if ((USBx->HNPTXSTS & 0xFFFF) == 0) // 周期性FIFO已满
     {
-      USBx_HC(hc_num)->HCCHAR &= ~USB_OTG_HCCHAR_CHENA;
-      USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHENA;  
-      USBx_HC(hc_num)->HCCHAR &= ~USB_OTG_HCCHAR_EPDIR;
+      USBx_HC(hc_num)->HCCHAR &= ~USB_OTG_HCCHAR_CHENA; // 禁止通道
+      USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHENA; // 使能通道, TODO:是不是因为存在数据，所以使能将数据发送完?
+      USBx_HC(hc_num)->HCCHAR &= ~USB_OTG_HCCHAR_EPDIR; // 方向置为OUT
       do 
       {
         if (++count > 1000) 
@@ -1672,16 +1575,16 @@ HAL_StatusTypeDef USB_HC_Halt(USB_OTG_GlobalTypeDef *USBx , uint8_t hc_num)
           break;
         }
       } 
-      while ((USBx_HC(hc_num)->HCCHAR & USB_OTG_HCCHAR_CHENA) == USB_OTG_HCCHAR_CHENA);     
+      while ((USBx_HC(hc_num)->HCCHAR & USB_OTG_HCCHAR_CHENA) == USB_OTG_HCCHAR_CHENA); // 等待通道被禁止
     }
-    else
+    else // 周期性FIFO仍有空余
     {
-      USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHENA; 
+      USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHENA; // 使能通道
     }
   }
-  else
+  else // 其他传输模式
   {
-    USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHDIS;
+	USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHDIS; // 禁止通道，会产生中断
     
     if ((USBx_HOST->HPTXSTS & 0xFFFF) == 0)
     {
@@ -1699,7 +1602,7 @@ HAL_StatusTypeDef USB_HC_Halt(USB_OTG_GlobalTypeDef *USBx , uint8_t hc_num)
     }
     else
     {
-       USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHENA; 
+       USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHENA; // 通道使能
     }
   }
   
@@ -1735,16 +1638,17 @@ HAL_StatusTypeDef USB_DoPing(USB_OTG_GlobalTypeDef *USBx , uint8_t ch_num)
   * @param  USBx : Selected device
   * @retval HAL state
   */
+// 刷新FIFO，清通道，清中断
 HAL_StatusTypeDef USB_StopHost(USB_OTG_GlobalTypeDef *USBx)
 {
   uint8_t i;
   uint32_t count = 0;
   uint32_t value;
   
-  USB_DisableGlobalInt(USBx);
+  USB_DisableGlobalInt(USBx); // 关闭中断
   
     /* Flush FIFO */
-  USB_FlushTxFifo(USBx, 0x10);
+  USB_FlushTxFifo(USBx, 0x10); // 刷新FIFO
   USB_FlushRxFifo(USBx);
   
   /* Flush out any leftover queued requests. */
@@ -1752,9 +1656,9 @@ HAL_StatusTypeDef USB_StopHost(USB_OTG_GlobalTypeDef *USBx)
   {   
 
     value = USBx_HC(i)->HCCHAR ;
-    value |=  USB_OTG_HCCHAR_CHDIS;
-    value &= ~USB_OTG_HCCHAR_CHENA;  
-    value &= ~USB_OTG_HCCHAR_EPDIR;
+    value |=  USB_OTG_HCCHAR_CHDIS; // 停止通道收发数据
+    value &= ~USB_OTG_HCCHAR_CHENA; // 禁止通道
+    value &= ~USB_OTG_HCCHAR_EPDIR; // 端点方向置为OUT
     USBx_HC(i)->HCCHAR = value;
   }
   
@@ -1763,9 +1667,9 @@ HAL_StatusTypeDef USB_StopHost(USB_OTG_GlobalTypeDef *USBx)
   {
     value = USBx_HC(i)->HCCHAR ;
     
-    value |= USB_OTG_HCCHAR_CHDIS;
-    value |= USB_OTG_HCCHAR_CHENA;  
-    value &= ~USB_OTG_HCCHAR_EPDIR;
+    value |= USB_OTG_HCCHAR_CHDIS; // 停止通道收发数据
+    value |= USB_OTG_HCCHAR_CHENA; // 使能通道
+    value &= ~USB_OTG_HCCHAR_EPDIR; // 端点方向置为OUT
     
     USBx_HC(i)->HCCHAR = value;
     do 
@@ -1774,14 +1678,14 @@ HAL_StatusTypeDef USB_StopHost(USB_OTG_GlobalTypeDef *USBx)
       {
         break;
       }
-    } 
+    } // 等待通道被禁止
     while ((USBx_HC(i)->HCCHAR & USB_OTG_HCCHAR_CHENA) == USB_OTG_HCCHAR_CHENA);
   }
 
   /* Clear any pending Host interrupts */
-  USBx_HOST->HAINT = 0xFFFFFFFF;
-  USBx->GINTSTS = 0xFFFFFFFF;
-  USB_EnableGlobalInt(USBx);
+  USBx_HOST->HAINT = 0xFFFFFFFF; // 清通道
+  USBx->GINTSTS = 0xFFFFFFFF; // 清中断
+  USB_EnableGlobalInt(USBx); // 使能中断
   return HAL_OK;  
 }
 /**

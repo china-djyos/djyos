@@ -32,7 +32,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"time","int"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -116,7 +116,7 @@ bool_t RTC_GetTime(s64 *time)
     dtm.tm_min  = BcdToHex(min & 0x7F);
     dtm.tm_sec  = BcdToHex(sec & 0x7F);
 
-    *time = (s64)(1000000 * Tm_MkTime(&dtm));
+    *time = (s64)(1000000 * Time_MkTime(&dtm));
     return true;
 }
 
@@ -130,7 +130,7 @@ static bool_t RTC_SetTime(s64 time)
     struct tm dtm;
     u8 rtccs0,year;
     time = time/1000000;
-    Tm_LocalTime_r(&time,&dtm);
+    Time_LocalTime_r(&time,&dtm);
 
     rtccs0 = silan_rtc_reg_get(0x13c);
     silan_rtc_reg_set(0x13C,rtccs0 | (1<<5));//暂时关闭时钟

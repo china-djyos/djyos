@@ -63,8 +63,8 @@
 #define CN_BUF_LEN        256
 typedef struct
 {
-    semp_t sempr;        //used for the read wait semp
-    semp_t sempw;        //used for the write wait semp
+    struct SemaphoreLCB *sempr;        //used for the read wait semp
+    struct SemaphoreLCB *sempw;        //used for the write wait semp
     u8     buf[CN_BUF_LEN];
     u16    datalen;
 }tagRwBuf;  //used as the read and write buffer structure
@@ -74,7 +74,7 @@ typedef struct  __MosDev
     struct  __MosDev  *nxt;
     tagRwBuf rbuf;   //used for the read buffer
     tagRwBuf wbuf;   //used for the write buffer
-    mutex_t  mutex;  //used to protect the mosquitto device
+    struct MutexLCB *mutex;  //used to protect the mosquitto device
     char *devname;   //used for the dev to create
     char *id;        //used for the client name
     char *user;      //used for the log user
@@ -115,16 +115,16 @@ static u32 __DevRead(ptu32_t PrivateTag,u8 *buf,u32 len,u32 offset,u32 timeout)
     dev = (tagMqttDev *)PrivateTag;
     if(NULL != dev)
     {
-        if(semp_pendtimeout(dev->rbuf.sempr,timeout))
+        if(Lock_SempPend(dev->rbuf.sempr,timeout))
         {
-            if(mutex_lock(dev->mutex))
+            if(Lock_MutexPend(dev->mutex,CN_TIMEOUT_FOREVER))
             {
                 result = dev->rbuf.datalen > len?len:dev->rbuf.datalen;
                 memcpy(buf,dev->rbuf.buf,result);
                 dev->rbuf.datalen = 0;
-                semp_post(dev->rbuf.sempw);  //tell the down layer to write data
+                Lock_SempPost(dev->rbuf.sempw);  //tell the down layer to write data
 
-                mutex_unlock(dev->mutex);
+                Lock_MutexPost(dev->mutex);
             }
         }
     }
@@ -169,16 +169,16 @@ static u32 __Inputdata(tagMqttDev *dev,u8 *buf, u16 len,u32 timeout)
     if(NULL != dev)
     {
         TCPIP_DEBUG_INC(dev->rcvnum);
-        if(semp_pendtimeout(dev->rbuf.sempw,0))
+        if(Lock_SempPend(dev->rbuf.sempw,0))
         {
-            if(mutex_lock(dev->mutex))
+            if(Lock_MutexPend(dev->mutex,CN_TIMEOUT_FOREVER))
             {
                 result =  CN_BUF_LEN> len?len:CN_BUF_LEN;
                 memcpy(dev->rbuf.buf,buf,result);
                 dev->rbuf.datalen = result;
-                semp_post(dev->rbuf.sempr);  //tell the down layer to write data
+                Lock_SempPost(dev->rbuf.sempr);  //tell the down layer to write data
 
-                mutex_unlock(dev->mutex);
+                Lock_MutexPost(dev->mutex);
             }
         }
         else
@@ -264,7 +264,7 @@ static ptu32_t __mqtttask(void)
     struct mosquitto *mosq;
     int rc;
 
-    Djy_GetEventPara((ptu32_t *)&dev,NULL);
+    DJY_GetEventPara((ptu32_t *)&dev,NULL);
     if((NULL == dev)||(NULL!=dev->mos))
     {
         printf("%s:No dev or Mosq existed!\n\r",__FUNCTION__);
@@ -303,7 +303,7 @@ static ptu32_t __mqtttask(void)
     dev->running = true;
     do{
         rc = mosquitto_loop(mosq, -1, 100);
-        Djy_EventDelay(10*mS);
+        DJY_EventDelay(10*mS);
     }while((rc == MOSQ_ERR_SUCCESS)&&(dev->running));
     mosquitto_destroy(mosq);
     mosquitto_lib_cleanup();
@@ -438,13 +438,13 @@ void * mqttcreate(char *devname,char *id,char *host,char *user,char *passwd,\
     }
     memset(dev,0,sizeof(tagMqttDev));
 
-    dev->rbuf.sempr = semp_init();
+    dev->rbuf.sempr = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
     if(NULL == dev->rbuf.sempr)
     {
         printf("%s:rbuf-rsemperr\n\r",__FUNCTION__);
         goto EXIT_RBUFR;
     }
-    dev->rbuf.sempw = semp_init();
+    dev->rbuf.sempw = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
     if(NULL == dev->rbuf.sempw)
     {
         printf("%s:rbuf-wsemperr\n\r",__FUNCTION__);
@@ -452,7 +452,7 @@ void * mqttcreate(char *devname,char *id,char *host,char *user,char *passwd,\
     }
     dev->rbuf.sempw->lamp_counter =1;
 
-    dev->mutex = mutex_init(NULL);
+    dev->mutex = Lock_MutexCreate(NULL);
     if(NULL == dev->mutex)
     {
         printf("%s:mutexerr\n\r",__FUNCTION__);
@@ -526,7 +526,7 @@ void * mqttcreate(char *devname,char *id,char *host,char *user,char *passwd,\
 
     //here we should create the mosquitto device here,then the app could open the device and
     //do the read and write
-    dev_Create(dev->devname,NULL,NULL,__DevWrite,__DevRead,NULL,(ptu32_t)dev);
+    Device_Create(dev->devname,NULL,NULL,__DevWrite,__DevRead,NULL,(ptu32_t)dev);
     //add it to the list
     dev->nxt = pMqttDevLst;
     pMqttDevLst = dev;
@@ -534,9 +534,9 @@ void * mqttcreate(char *devname,char *id,char *host,char *user,char *passwd,\
     return dev;
 
 EXIT_MUTEX:
-    semp_del(dev->rbuf.sempw);
+    Lock_SempDelete(dev->rbuf.sempw);
 EXIT_RBUFW:
-    semp_del(dev->rbuf.sempr);
+    Lock_SempDelete(dev->rbuf.sempr);
 EXIT_RBUFR:
     free(dev);
     dev = NULL;
@@ -640,7 +640,7 @@ bool_t mqttstart(void *handle)
             //make a mqtt task
             if(gMqttEvttID != CN_EVTT_ID_INVALID)
             {
-                eventID = Djy_EventPop(gMqttEvttID,NULL,0,(ptu32_t)dev,NULL,0);
+                eventID = DJY_EventPop(gMqttEvttID,NULL,0,(ptu32_t)dev,NULL,0);
                 if(eventID != CN_EVENT_ID_INVALID)
                 {
                     printf("event pop ok\n\r");
@@ -774,7 +774,7 @@ static bool_t mqttstat(char *param)
 int mqttserviceinit(void)
 {
     bool_t result = false;
-    gMqttEvttID = Djy_EvttRegist(EN_INDEPENDENCE,200,0,5,__mqtttask,NULL,0x1000,"mqtttask");
+    gMqttEvttID = DJY_EvttRegist(EN_INDEPENDENCE,200,0,5,__mqtttask,NULL,0x1000,"mqtttask");
     if(gMqttEvttID == CN_EVTT_ID_INVALID)
     {
         printf("%s:evtt register error\n\r",__FUNCTION__);

@@ -71,12 +71,13 @@ extern "C" {
 
 
 
-#define VK_DEL_CHAR           120
+#define VK_DEL_CHAR           0x20
 #define VK_ENTER_CHAR         161
 #define VK_UP                 85
 #define VK_DOWN               68
 
-
+#define VK_CHAR_START         0x21
+#define VK_CHAR_END           0x7e
 
 #define VK_DECIMAL_POINT      46   //小数点
 
@@ -121,9 +122,9 @@ typedef struct VirKeyBoardPara *VBK;
 // 输出参数: 无。
 // 返回值  :成功则返回文本框句柄，失败则返回NULL。
 // =============================================================================
-HWND CreateVirKeyBoard(const char *Text,u32 Style,
+HWND Widget_CreateVirKeyBoard(const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,void *pdata,
+                    HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink);
 
 #if __cplusplus

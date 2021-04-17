@@ -90,10 +90,10 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     u8 *Data;
 
     hwnd =pMsg->hwnd;
-    hdc =BeginPaint(hwnd);
-    GetClientRect(hwnd,&rc0);
+    hdc =GDD_BeginPaint(hwnd);
+    GDD_GetClientRect(hwnd,&rc0);
 
-    SetDrawColor(hdc,CN_COLOR_BLACK);
+    GDD_SetDrawColor(hdc,CN_COLOR_BLACK);
 /* 89x89位宽的二维码参数为
  * 版本号:18
  * 容错等级  (ECC)  数字  (容量)     字母                                汉字          二进制代码
@@ -115,9 +115,9 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     bitmap.ExColor = CN_COLOR_WHITE;
     bitmap.height=(s32)(qrcode->width);
     bitmap.width=(s32)(qrcode->width);
-    DrawBitmap(hdc,rc0.left+75,rc0.top+20,&bitmap,CN_SYS_PF_GRAY1,RopCode);
+    GDD_DrawBitmap(hdc,rc0.left+75,rc0.top+20,&bitmap,CN_SYS_PF_GRAY1,RopCode);
 
-    EndPaint(hwnd,hdc);
+    GDD_EndPaint(hwnd,hdc);
     QRcode_free(qrcode);
     free(Data);
     return true;

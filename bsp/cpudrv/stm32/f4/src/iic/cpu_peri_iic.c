@@ -86,7 +86,7 @@
 //attribute:bsp                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                     //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                   //初始化时机，可选值：early，medium，later。
+//init time:early                   //初始化时机，可选值：early，medium，later, pre-main。
                                     //表示初始化时间，分别是早期、中期、后期
 //dependence:"iicbus","int","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //选中该组件时，被依赖组件将强制选中，
@@ -178,9 +178,9 @@ static void IIC_Start(u8 I2Cx)
     IIC_SetDaOut(I2Cx);     //sda线输出
     IIC_Sda(I2Cx,1);
     IIC_Scl(I2Cx,1);
-    Djy_DelayUs(4);
+    DJY_DelayUs(4);
     IIC_Sda(I2Cx,0);//START:when CLK is high,DATA change form high to low
-    Djy_DelayUs(4);
+    DJY_DelayUs(4);
     IIC_Scl(I2Cx,0);//钳住I2C总线，准备发送或接收数据
 }
 
@@ -194,10 +194,10 @@ static void IIC_Stop(u8 I2Cx)
     IIC_SetDaOut(I2Cx);//sda线输出
     IIC_Scl(I2Cx,0);
     IIC_Sda(I2Cx,0);//STOP:when CLK is high DATA change form low to high
-    Djy_DelayUs(4);
+    DJY_DelayUs(4);
     IIC_Scl(I2Cx,1);
     IIC_Sda(I2Cx,1);//发送I2C总线结束信号
-    Djy_DelayUs(4);
+    DJY_DelayUs(4);
 }
 
 // =============================================================================
@@ -210,13 +210,13 @@ static u8 IIC_Wait_Ack(u8 I2Cx)
     u8 ucErrTime=0;
     IIC_SetDaIn(I2Cx);      //SDA设置为输入
     IIC_Sda(I2Cx,1);
-    Djy_DelayUs(1);
+    DJY_DelayUs(1);
     IIC_Scl(I2Cx,1);
-    Djy_DelayUs(1);
+    DJY_DelayUs(1);
     while(IIC_ReadSda(I2Cx))
     {
         ucErrTime++;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
         if(ucErrTime>250)
         {
             IIC_Stop(I2Cx);
@@ -237,9 +237,9 @@ static void IIC_Ack(u8 I2Cx)
     IIC_Scl(I2Cx,0);
     IIC_SetDaOut(I2Cx);
     IIC_Sda(I2Cx,0);
-    Djy_DelayUs(2);
+    DJY_DelayUs(2);
     IIC_Scl(I2Cx,1);
-    Djy_DelayUs(2);
+    DJY_DelayUs(2);
     IIC_Scl(I2Cx,0);
 }
 
@@ -253,9 +253,9 @@ static void IIC_NAck(u8 I2Cx)
     IIC_Scl(I2Cx,0);
     IIC_SetDaOut(I2Cx);
     IIC_Sda(I2Cx,1);
-    Djy_DelayUs(2);
+    DJY_DelayUs(2);
     IIC_Scl(I2Cx,1);
-    Djy_DelayUs(2);
+    DJY_DelayUs(2);
     IIC_Scl(I2Cx,0);
 }
 
@@ -273,11 +273,11 @@ static void IIC_Send_Byte(u8 I2Cx,u8 txd)
     {
         IIC_Sda(I2Cx,(txd&0x80)>>7);
         txd<<=1;
-        Djy_DelayUs(2);   //对TEA5767这三个延时都是必须的
+        DJY_DelayUs(2);   //对TEA5767这三个延时都是必须的
         IIC_Scl(I2Cx,1);
-        Djy_DelayUs(2);
+        DJY_DelayUs(2);
         IIC_Scl(I2Cx,0);
-        Djy_DelayUs(2);
+        DJY_DelayUs(2);
     }
 }
 
@@ -293,12 +293,12 @@ static u8 IIC_Read_Byte(u8 I2Cx,unsigned char ack)
     for(i=0;i<8;i++ )
     {
         IIC_Scl(I2Cx,0);
-        Djy_DelayUs(2);
+        DJY_DelayUs(2);
         IIC_Scl(I2Cx,1);
         receive<<=1;
         if(IIC_ReadSda(I2Cx))
             receive++;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
     if (!ack)
         IIC_NAck(I2Cx);//发送nACK
@@ -337,7 +337,7 @@ void __IIC_GpioConfig(u8 IIC_NO)
 //       len,数据长度，字节
 // 返回：len,读取成功;-1,读取失败
 // =============================================================================
-static s32 __IIC_ReadPoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
+static u32 __IIC_ReadPoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
                         u8 maddrlen, u8 *buf, u32 len)
 {
     u32 i;
@@ -380,9 +380,13 @@ static s32 __IIC_ReadPoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
     }
     buf[i] = IIC_Read_Byte(iic,0);
     IIC_Stop(iic);//产生一个停止条件
-    Djy_DelayUs(1000);
+    DJY_DelayUs(1000);
     return len;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // =============================================================================
 // 功能：轮询方式向IIC从设备的写数据
 // 参数：reg,寄存器基址
@@ -393,7 +397,7 @@ static s32 __IIC_ReadPoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
 //       len,数据长度，字节
 // 返回：len,读取成功;-1,读取失败
 // =============================================================================
-static s32 __IIC_WritePoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
+static u32 __IIC_WritePoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
                         u8 maddrlen, u8 *buf, u32 len)
 {
     u8 mem_addr_buf[4];
@@ -429,18 +433,20 @@ static s32 __IIC_WritePoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
         IIC_Wait_Ack(iic);
     }
     IIC_Stop(iic);//产生一个停止条件
-    Djy_DelayUs(1000);
+    DJY_DelayUs(1000);
     return len;
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // 功能: 禁止iic中断,接收与发送共用一个中断源。
 // 参数: reg,被操作的寄存器组指针
 // 返回: 无
+// 注：F4的寄存器定义与F1/F3/F7/H7/L4均不一样。
 // =============================================================================
 static void __IIC_IntDisable(tagI2CReg *reg)
 {
-    reg->CR1 &= ~(I2C_CR1_RXIE| I2C_CR1_TXIE);
+    reg->CR2 &= ~(I2C_IT_EVT);
 }
 
 // =============================================================================
@@ -454,20 +460,20 @@ static void __IIC_IntDisable(tagI2CReg *reg)
 //       WrRdFlag,读写标记，为0时写，1时为读
 // 返回：len,读取成功;-1,读取失败
 // =============================================================================
-static bool_t __IIC_WriteReadPoll(tagI2CReg *reg,u8 DevAddr,u32 MemAddr,\
+static bool_t __IIC_WriteReadPoll(ptu32_t reg,u8 DevAddr,u32 MemAddr,\
                                 u8 MemAddrLen,u8* Buf, u32 Length,u8 WrRdFlag)
 {
-    __IIC_IntDisable(reg);
+    __IIC_IntDisable((tagI2CReg *)reg);
     if(WrRdFlag == CN_IIC_WRITE_FLAG)   //写
     {
-        if(Length == __IIC_WritePoll(reg,DevAddr,MemAddr,MemAddrLen,Buf,Length))
+        if(Length == __IIC_WritePoll((tagI2CReg *)reg,DevAddr,MemAddr,MemAddrLen,Buf,Length))
             return true;
         else
             return false;
     }
     else                                //读
     {
-        if(Length == __IIC_ReadPoll(reg,DevAddr,MemAddr,MemAddrLen,Buf,Length))
+        if(Length == __IIC_ReadPoll((tagI2CReg *)reg,DevAddr,MemAddr,MemAddrLen,Buf,Length))
             return true;
         else
             return false;

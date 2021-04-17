@@ -59,7 +59,7 @@
 
 #define PRINT_SNTPDEBUG(x)            printf
 
-static int __SntpDealTime(time_t time)
+static int __SNTP_DealTime(time_t time)
 {
 
     time_t   time_now;
@@ -91,16 +91,16 @@ static int __SntpDealTime(time_t time)
 /**
  * SNTP processing
  */
-static void sntp_process( time_t t)
+static void __SNTP_Process( time_t t)
 {
     /* change system time and/or the update the RTC clock */
-    __SntpDealTime(t);
+    __SNTP_DealTime(t);
 }
 
 /**
  * SNTP request
  */
-static void __SntpRequest(char *SntpServerAddress)
+static void __SNTP_Request(char *SntpServerAddress)
 {
     int                sock;
     struct sockaddr_in to;
@@ -156,7 +156,7 @@ static void __SntpRequest(char *SntpServerAddress)
                         t = (ntohl(timestamp) - DIFF_SEC_1900_1970);
 
                         /* do time processing */
-                        sntp_process(t);
+                        __SNTP_Process(t);
                     }
                 }
             }
@@ -171,13 +171,13 @@ static void __SntpRequest(char *SntpServerAddress)
 //bool_t SntpTimeSyncShell(char *param)
 bool_t sntp(char *param)
 {
-    __SntpRequest(param);
+    __SNTP_Request(param);
     return true;
 }
 
 
 //THIS IS SNTP MODULE FUNCTION
-bool_t ServiceSntpInit(void)
+bool_t SNTP_ServiceSNTP_Init(void)
 {
         return (TRUE);
 }

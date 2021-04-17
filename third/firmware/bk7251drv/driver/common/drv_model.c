@@ -1,6 +1,6 @@
 #include "include.h"
 #include "arm_arch.h"
-#include "arch.h"
+#include "driver/entry/arch.h"      //lst
 #include "drv_model_pub.h"
 #include "drv_model.h"
 #if CFG_SUPPORT_ALIOS
@@ -119,7 +119,7 @@ DD_HANDLE ddev_open(char *dev_name, UINT32 *status, UINT32 op_flag)
                 {
                     *status = (operation->open)(op_flag);
                 }
-                
+
                 GLOBAL_INT_DISABLE();
                 dev_ptr->state = DD_STATE_OPENED;
                 dev_ptr->use_cnt = 0;
@@ -170,7 +170,7 @@ UINT32 ddev_close(DD_HANDLE handle)
         }
 
         ASSERT(dev_ptr);
-        
+
         GLOBAL_INT_DISABLE();
         dev_ptr->state = DD_STATE_CLOSED;
         GLOBAL_INT_RESTORE();
@@ -381,7 +381,7 @@ UINT32 ddev_unregister_dev(char *dev_name)
         }
     }
 
-    ASSERT(NULLPTR == dev_ptr);
+//    ASSERT(NULLPTR == dev_ptr);       //嵌入式用assert有什么用？
 
     return DRV_SUCCESS;
 }

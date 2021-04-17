@@ -169,7 +169,7 @@ int wolfCrypt_Init(void)
     #endif
 
     #ifdef WOLFSSL_AFALG
-	WOLFSSL_MSG("Using AF_ALG for crypto acceleration");
+    WOLFSSL_MSG("Using AF_ALG for crypto acceleration");
     #endif
 
     #if !defined(WOLFCRYPT_ONLY) && \
@@ -248,7 +248,7 @@ int wolfCrypt_Cleanup(void)
 }
 
 #if !defined(NO_FILESYSTEM) && !defined(NO_WOLFSSL_DIR) && \
-	!defined(WOLFSSL_NUCLEUS) && !defined(WOLFSSL_NUCLEUS_1_2)
+    !defined(WOLFSSL_NUCLEUS) && !defined(WOLFSSL_NUCLEUS_1_2)
 
 /* File Handling Helpers */
 /* returns 0 if file found, WC_READDIR_NOFILE if no files or negative error */
@@ -1315,8 +1315,8 @@ int wolfSSL_CryptHwMutexUnLock(void) {
         del = DeleteRtSemaphore(
             *m                      /* handle for RT semaphore */
         );
-    	if (del != TRUE)
-    		ret = BAD_MUTEX_E;
+        if (del != TRUE)
+            ret = BAD_MUTEX_E;
 
         return ret;
     }
@@ -1354,8 +1354,8 @@ int wolfSSL_CryptHwMutexUnLock(void) {
             *m,                     /* handle for RT semaphore */
             1                       /* number of units to release to semaphore */
         );
-    	if (rel != TRUE)
-    		ret = BAD_MUTEX_E;
+        if (rel != TRUE)
+            ret = BAD_MUTEX_E;
 
         return ret;
     }

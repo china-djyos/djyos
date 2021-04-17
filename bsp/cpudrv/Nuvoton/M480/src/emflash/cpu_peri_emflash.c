@@ -49,10 +49,10 @@
 #include <driver/flash/flash.h>
 #include <cpu_peri.h>
 #include <int.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <dbug.h>
 #include <xip.h>
-#include <filesystems.h>
+#include <djyfs/filesystems.h>
 #include <math.h>
 
 
@@ -69,12 +69,12 @@
 //attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                       //初始化时机，可选值：early，medium，later。
+//init time:early                       //初始化时机，可选值：early，medium，later, pre-main。
                                         //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
-//weakdependence:"xip_app","xip_iboot"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"xip app file system","xip iboot file system"  //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件不会被强制选中，
                                         //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                          //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -88,6 +88,16 @@
 #define CFG_MODULE_ENABLE_CPU_DRIVE_INNER_FLASH    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,true,false,
 #define CFG_EFLASH_PART_FORMAT     false      //分区选项,是否需要擦除该芯片。
+//%$#@num,0,,
+#define CFG_EFLASH_PAGE_SIZE                 512      //片内flash的页大小，单位字节。
+#define CFG_EFLASH_SMALL_SECT_PAGE_NUM       32         //片内flash的小扇区中，有多少页。
+#define CFG_EFLASH_LARGE_SECT_PAGE_NUM       128         //片内flash的大扇区中，有多少页。
+#define CFG_EFLASH_NORMAL_SECT_PAGE_NUM      256         //片内flash的标准扇区中，有多少页。
+#define CFG_EFLASH_PLANE_SMALL_SECT_NUM      4         //片内flash的主存储块中，有多少小扇区。
+#define CFG_EFLASH_PLANE_LARGE_SECT_NUM      1         //片内flash的主存储块中，有多少大扇区。
+#define CFG_EFLASH_PLANE_NORMAL_SECT_NUM     7       //片内flash的主存储块中，有多少标准扇区。
+#define CFG_EFLASH_PLANE_NUM                 1         //片内flash的主存储块个数。
+#define CFG_EFLASH_MAPPED_START_ADDR         0x8000000 //片内flash的映射起始地址。
 //%$#@string,1,32,
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
@@ -146,15 +156,15 @@ bool_t BrdWdt_FeedDog(void)
 // ============================================================================
 static s32 EmFlash_Init(struct EmbdFlashDescr *Description)
 {
-    Description->BytesPerPage = 512;
-    Description->PagesPerSmallSect = 32;
-    Description->PagesPerLargeSect = 128;
-    Description->PagesPerNormalSect = 256;
-    Description->SmallSectorsPerPlane = 4;
-    Description->LargeSectorsPerPlane = 1;
-    Description->NormalSectorsPerPlane = 7;
-    Description->Planes = 1;
-    Description->MappedStAddr = 0x08000000;
+    Description->BytesPerPage = CFG_EFLASH_PAGE_SIZE;
+    Description->PagesPerSmallSect = CFG_EFLASH_SMALL_SECT_PAGE_NUM;
+    Description->PagesPerLargeSect = CFG_EFLASH_LARGE_SECT_PAGE_NUM;
+    Description->PagesPerNormalSect = CFG_EFLASH_NORMAL_SECT_PAGE_NUM;
+    Description->SmallSectorsPerPlane = CFG_EFLASH_PLANE_SMALL_SECT_NUM;
+    Description->LargeSectorsPerPlane = CFG_EFLASH_PLANE_LARGE_SECT_NUM;
+    Description->NormalSectorsPerPlane = CFG_EFLASH_PLANE_NORMAL_SECT_NUM;
+    Description->Planes = CFG_EFLASH_PLANE_NUM;
+    Description->MappedStAddr = CFG_EFLASH_MAPPED_START_ADDR;
     return (0);
 }
 
@@ -368,7 +378,7 @@ s32 ModuleInstall_EmbededFlash(u32 doformat)
     emflash_um->type = embed;
     emflash_um->ubuf = (u8*)emflash_um + sizeof(struct umedia);
 
-    if(!dev_Create((const char*)EmflashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)emflash_um)))
+    if(!Device_Create((const char*)EmflashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)emflash_um)))
     {
         printf("\r\n: erro : device : %s addition failed.", EmflashName);
         free(emflash_um);
@@ -643,13 +653,13 @@ s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
     struct Object *targetobj;
     struct FsCore *super;
     s32 res,endblock = bend;
-    targetobj = obj_matchpath(fs, &notfind);
+    targetobj = OBJ_MatchPath(fs, &notfind);
     if(notfind)
     {
         error_printf("embed"," not found need to install file system.");
         return -1;
     }
-    super = (struct FsCore *)obj_GetPrivate(targetobj);
+    super = (struct FsCore *)OBJ_GetPrivate(targetobj);
     super->MediaInfo = emflash_um;
     super->MediaDrv = mediadrv;
 
@@ -688,7 +698,7 @@ s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
     FullPath = malloc(res);
     memset(FullPath, 0, res);
     sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,EmflashName);   //获取该设备的全路径
-    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
+    File_BeMedia(FullPath,fs); //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);

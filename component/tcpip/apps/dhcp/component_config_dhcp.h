@@ -68,9 +68,9 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"lock","heap","udp"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"lock","heap","tcpip"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -99,6 +99,7 @@
 #define     CFG_DHCPD_ROUTERIP          "192.168.0.253"  //"DHCP ROUTER SERVER IP"
 #define     CFG_DHCPD_NETIP             "255.255.255.0"  //"DHCP MASK IP"
 #define     CFG_DHCPD_DNS               "192.168.0.253"  //"DHCP DNSSERVER IP"
+#define     CFG_DHCPD_DNSBAK            "192.168.0.253"  //"DHCP DNSSERVER IP"
 //%$#@string,1,32,
 #define     CFG_DHCPD_DOMAINNAME       "domain"        //"DHCP domain name"
 

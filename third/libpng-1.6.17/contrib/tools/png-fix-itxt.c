@@ -76,7 +76,7 @@ for (;;)
          break;  /* To do: handle this more gracefully */
 
       /* Initialize the CRC */
-      crc = crc32(0, Z_NULL, 0);
+      crc = CRC_32(0, Z_NULL, 0);
 
       /* Copy the data bytes */
       for (i=8; i < length + 12; i++)
@@ -85,7 +85,7 @@ for (;;)
       }
 
       /* Calculate the CRC */
-      crc = crc32(crc, buf+4, (uInt)length+4);
+      crc = CRC_32(crc, buf+4, (uInt)length+4);
 
       for (;;)
       {
@@ -105,7 +105,7 @@ for (;;)
         buf[length+11]=c;
 
         /* Update the CRC */
-        crc = crc32(crc, buf+7+length, 1);
+        crc = CRC_32(crc, buf+7+length, 1);
       }
 
       /* Update length bytes */

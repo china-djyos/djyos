@@ -44,9 +44,11 @@
 //-----------------------------------------------------------------------------
 // =============================================================================
 #include "cpu_peri.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "stdlib.h"
-
+#include "uart/uart.h"
+#include <icu_pub.h>
+#include "arm_arch.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -62,14 +64,6 @@
 //    #if CFG_UART2_ENABLE ==1
 //    ModuleInstall_UART(CN_UART2);
 //    #endif
-//
-//    #if CFG_UART3_ENABLE ==1
-//    ModuleInstall_UART(CN_UART3);
-//    #endif
-//
-//    #if CFG_UART4_ENABLE ==1
-//    ModuleInstall_UART(CN_UART4);
-//    #endif
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -78,9 +72,9 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"device file system","lock","uart device file","heap","cpu onchip dma","cpu onchip uart"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"device file system","lock","uart device file","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -95,27 +89,15 @@
 //#warning  " cpu_onchip_uart  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_UART    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,0,512,
-#define CFG_UART1_SENDBUF_LEN       64      //"UART1发送环形缓冲区大小",
-#define CFG_UART1_RECVBUF_LEN       64      //"UART1接收环形缓冲区大小",
-#define CFG_UART1_DMABUF_LEN        64      //"UART1 DMA环形缓冲区大小",
+//%$#@num,0,4096,
+#define CFG_UART1_SENDBUF_LEN       256      //"UART1发送环形缓冲区大小",
+#define CFG_UART1_RECVBUF_LEN       256      //"UART1接收环形缓冲区大小",
 
-#define CFG_UART2_SENDBUF_LEN       64      //"UART2发送环形缓冲区大小",
-#define CFG_UART2_RECVBUF_LEN       64      //"UART2接收环形缓冲区大小",
-#define CFG_UART2_DMABUF_LEN        64      //"UART2 DMA环形缓冲区大小",
-
-#define CFG_UART3_SENDBUF_LEN       64      //"UART3发送环形缓冲区大小",
-#define CFG_UART3_RECVBUF_LEN       64      //"UART3接收环形缓冲区大小",
-#define CFG_UART3_DMABUF_LEN        64      //"UART3 DMA环形缓冲区大小",
-
-#define CFG_UART4_SENDBUF_LEN       64      //"UART4发送环形缓冲区大小",
-#define CFG_UART4_RECVBUF_LEN       64      //"UART4接收环形缓冲区大小",
-#define CFG_UART4_DMABUF_LEN        64      //"UART4 DMA环形缓冲区大小",
+#define CFG_UART2_SENDBUF_LEN       256      //"UART2发送环形缓冲区大小",
+#define CFG_UART2_RECVBUF_LEN       256      //"UART2接收环形缓冲区大小",
 //%$#@enum,true,false
 #define CFG_UART1_ENABLE           true        //"是否使用UART1",
 #define CFG_UART2_ENABLE           true       //"是否使用UART2",
-#define CFG_UART3_ENABLE           false       //"是否使用UART3",
-#define CFG_UART4_ENABLE           false       //"是否使用UART4",
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -126,7 +108,26 @@
 //@#$%component end configure
 // =============================================================================
 
-
+#if (CN_BEKEN_SDK_V3 == 1)
+extern void uart_hw_set_change(UINT8 uport, bk_uart_config_t *uart_config);
+static bk_uart_config_t djybsp_uart[CN_UART_NUM] = {
+    {
+        .baud_rate = UART_BAUDRATE_115200,
+        .data_width = BK_DATA_WIDTH_8BIT,
+        .parity = BK_PARITY_NO,
+        .stop_bits = BK_STOP_BITS_1,
+        .flow_control = FLOW_CTRL_DISABLED,
+    },
+    {
+       .baud_rate = UART_BAUDRATE_115200,
+       .data_width = BK_DATA_WIDTH_8BIT,
+       .parity = BK_PARITY_NO,
+       .stop_bits = BK_STOP_BITS_1,
+       .flow_control = FLOW_CTRL_DISABLED,
+    },
+};
+#else
+extern void uart_hw_set_change(UINT8 uport, uart_config_t *uart_config);
 static uart_config_t djybsp_uart[CN_UART_NUM] = {
     {
         .baud_rate = UART_BAUDRATE_115200,
@@ -143,12 +144,13 @@ static uart_config_t djybsp_uart[CN_UART_NUM] = {
        .flow_control = FLOW_CTRL_DISABLED,
     },
 };
+#endif
 
 static u16 UART_SndBufLen = 0;
 static u16 UART_RxBufLen = 0;
 static u32 TxDirectPort = 0;                  //用于printk发送的串口号
 static u32 RxDirectPort = 0;                  //用于直接接收的串口号
-static struct UartCB *pUartCB[CN_UART_NUM];
+static struct UartGeneralCB *pUartCB[CN_UART_NUM];
 static const char *sUartName[CN_UART_NUM] = {
         "UART1","UART2",
 };
@@ -157,6 +159,66 @@ static const uint8_t volatile *sUartReg[CN_UART_NUM] = {
                                             CN_UART1,
                                             CN_UART2,
 };
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, va_list *arg0);
+
+__attribute__((weak))  void Board_UartHalfDuplexSend(u8 SerialNo)
+{
+    return;
+}
+__attribute__((weak))  void Board_UartHalfDuplexRecv(u8 SerialNo)
+{
+    return ;
+}
+
+static void __UART_BaudSet(uint8_t port,uint32_t data)
+{
+    if((data == 0) || (port > CN_UART2))
+        return;
+    djybsp_uart[port].baud_rate = data;
+        uart_hw_set_change(port,&djybsp_uart[port]);
+}
+// =============================================================================
+// 功能: 关串口中断
+// 参数: SerialNo,串口号，0,1
+// 返回: 无
+// =============================================================================
+static void __UART_CloseInte(uint8_t SerialNo)
+{
+    u32 param;
+    if(SerialNo == CN_UART1)
+    {
+        param = IRQ_UART1_BIT;
+        sddev_control(ICU_DEV_NAME, CMD_ICU_INT_DISABLE, &param);
+    }
+    else if(SerialNo == CN_UART2)
+    {
+        param = IRQ_UART2_BIT;
+        sddev_control(ICU_DEV_NAME, CMD_ICU_INT_DISABLE, &param);
+    }
+}
+
+// =============================================================================
+// 功能: 开串口中断
+// 参数: SerialNo,串口号，0,1
+// 返回: 无
+// =============================================================================
+static void __UART_OpenInte(uint8_t SerialNo)
+{
+    u32 param;
+    if(SerialNo == CN_UART1)
+    {
+        param = IRQ_UART1_BIT;
+        sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
+    }
+    else if(SerialNo == CN_UART2)
+    {
+        param = IRQ_UART2_BIT;
+        sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
+    }
+}
+
 // =============================================================================
 // 功能: 硬件参数配置和寄存器的初始化，包括波特率、停止位、校验位、数据位，默认情况下:
 //       波特率:115200  ； 停止位:1 ; 校验:无 ; 数据位:8bit
@@ -168,10 +230,11 @@ static void __UART_HardInit(u8 SerialNo)
     switch(SerialNo)
     {
         case CN_UART1:
-            uart1_init();
+//            uart1_init();
+//            __UART_BaudSet(SerialNo, 115200);
             break;
         case CN_UART2:
-            uart2_init();
+//            uart2_init();
             break;
     }
 }
@@ -198,16 +261,25 @@ static void __UART_Disable(u32 port)
 //        data,结构体tagCOMParam类型的指针数值
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(u32 port,ptu32_t data)
+static void __UART_ComConfig(u32 port,struct COMParam *COM)
 {
-    struct COMParam *COM;
-    if((data == 0) || (port > CN_UART2))
+//  struct COMParam *COM;
+    if((COM == 0) || (port > CN_UART2))
         return;
-    COM = (struct COMParam *)data;
+//    COM = (struct COMParam *)data;
     djybsp_uart[port].baud_rate = COM->BaudRate;
 
     switch(COM->DataBits)               // data bits
     {
+#if (CN_BEKEN_SDK_V3 == 1)
+        case CN_UART_DATABITS_7:
+            djybsp_uart[port].data_width = BK_DATA_WIDTH_7BIT;
+            break;
+
+        case CN_UART_DATABITS_8:
+            djybsp_uart[port].data_width = BK_DATA_WIDTH_8BIT;
+            break;
+#else
         case CN_UART_DATABITS_7:
             djybsp_uart[port].data_width = DATA_WIDTH_7BIT;
             break;
@@ -215,6 +287,7 @@ static void __UART_ComConfig(u32 port,ptu32_t data)
         case CN_UART_DATABITS_8:
             djybsp_uart[port].data_width = DATA_WIDTH_8BIT;
             break;
+#endif
         default:break;
     }
 
@@ -227,34 +300,38 @@ static void __UART_ComConfig(u32 port,ptu32_t data)
     uart_hw_set_change(port,&djybsp_uart[port]);
 }
 
-static void __UART_SetBaud(uint8_t port,uint32_t data)
-{
-    if((data == 0) || (port > CN_UART2))
-        return;
-    djybsp_uart[port].baud_rate = data;
-        uart_hw_set_change(port,&djybsp_uart[port]);
-}
-
 // =============================================================================
 // 功能: 启动串口发送，包括两种情况，使用DMA或不使用DMA
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (uint8_t port,u32 timeout)
+static u32 __UART_SendStart (uint8_t port)
 {
-    u8 val = 0;
+
+    u8 val[256];
+    u32 i = 0,len = 0;
     if(port>CN_UART2)
        return 0;
+    Board_UartHalfDuplexSend(port);//切换到发送
     uart_set_tx_fifo_needwr_int(port,1);
-    while(uart_is_tx_fifo_full(port)==0)
+
+    __UART_CloseInte(port);
+    uart_set_tx_stop_end_int(port, 1);
+
+    if(uart_is_tx_fifo_empty(port) == 1)
     {
-        if(0 != UART_PortRead(pUartCB[port],&val,1))
+        len = UART_PortRead((struct UartGeneralCB *)pUartCB[port],val,256);
+        if(0 != len)
         {
-            uart_write_byte(port,val);
+            for(i = 0; i < len; i++)
+            {
+                uart_write_byte(port,val[i]);
+            }
         }
-        else
-            break;
+
     }
+
+    __UART_OpenInte(port);
     return 1;
 }
 
@@ -264,12 +341,12 @@ static u32 __UART_SendStart (uint8_t port,u32 timeout)
 // 参数：串口号
 // 返回：1=成功，0=失败
 // =============================================================================
-static uint32_t djybsp_uart_rx_isr(uint32_t port)
+static void djybsp_uart_rx_isr(s32 port, void *param)
 {
     uint8_t val = 0;
-    uint8_t num = 0;
-    uint8_t fifo[64];
+    uint8_t fifo[256];
     uint32_t fifo_status_reg = 0;
+    u32 num = 0;
 
     if(port>CN_UART2)
         return 0;
@@ -282,19 +359,27 @@ static uint32_t djybsp_uart_rx_isr(uint32_t port)
     {
         UART_READ_BYTE(port, val);
         fifo[num++] = val;
+        if(num >= sizeof(fifo))
+            break;
     }
     if(num > 0)
     {
-        if(num != UART_PortWrite(pUartCB[port],fifo,num))
+        if(num != UART_PortWrite((struct UartGeneralCB *)pUartCB[port],fifo,num) && (port ==1))
         {
-            UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
-            printk("uart idle over!\r\n");
+            void EnJtag(void);
+            UART_ErrHandle((struct UartGeneralCB *)pUartCB[port],CN_UART_BUF_OVER_ERR);
+            printk("uart%d idle over!running=%d\r\n",port+1,g_ptEventRunning->event_id);
+            if(fifo[0] == 'p')
+            {
+                EnJtag();
+                while(1);
+            }
         }
     }
     return 1;
 }
 
-static uint32_t djybsp_uart_tx_isr(uint32_t port)
+static void djybsp_uart_tx_isr(s32 port, void *param)
 {
     uint8_t val = 0;
     if(port>CN_UART2)
@@ -302,7 +387,7 @@ static uint32_t djybsp_uart_tx_isr(uint32_t port)
 
     while(uart_is_tx_fifo_full(port)==0)
     {
-        if(0 != UART_PortRead(pUartCB[port],&val,1))
+        if(0 != UART_PortRead((struct UartGeneralCB *)pUartCB[port],&val,1))
         {
             uart_write_byte(port,val);
         }
@@ -315,6 +400,16 @@ static uint32_t djybsp_uart_tx_isr(uint32_t port)
     return 1;
 }
 
+static void djybsp_uart_tx_end_isr(s32 port, void *param)
+{
+    if(port>CN_UART2)
+        return 0;
+
+    Board_UartHalfDuplexRecv(port);
+    return 1;
+}
+#pragma GCC diagnostic pop
+
 // =============================================================================
 // 功能: 初始化UART对应的中断线，并初始化中断入口函数
 // 参数：SerialNo,串口号
@@ -324,8 +419,9 @@ static void __UART_IntInit(u32 port)
 {
     if(port>CN_UART2)
        return ;
-    uart_rx_callback_set(port, djybsp_uart_rx_isr, port);
-    uart_tx_fifo_needwr_callback_set(port,djybsp_uart_tx_isr,port);
+    uart_rx_callback_set(port, djybsp_uart_rx_isr, (void *)port);
+    uart_tx_fifo_needwr_callback_set(port,djybsp_uart_tx_isr,(void *)port);
+    uart_tx_end_callback_set(port,djybsp_uart_tx_end_isr,(void *)port);
 }
 
 // =============================================================================
@@ -335,7 +431,7 @@ static void __UART_IntInit(u32 port)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, va_list *arg0)
 {
     ptu32_t result = 0;
 
@@ -357,7 +453,11 @@ static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-            __UART_SetBaud(port,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(port, data);
+        }
             break;
         case CN_UART_EN_RTS:
             break;
@@ -372,7 +472,11 @@ static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, u32 data1,u32 data2)
         case CN_UART_DMA_UNUSED:
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(port,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(port,COM);
+        }
             break;
         default: break;
     }
@@ -396,14 +500,16 @@ ptu32_t ModuleInstall_UART(u32 port)
     switch(port)
     {
         case CN_UART1:
+            uart1_init();
             UART_SndBufLen = CFG_UART1_SENDBUF_LEN;
             UART_RxBufLen  = CFG_UART1_RECVBUF_LEN;
             break;
         case CN_UART2:
+            uart2_init();
             UART_SndBufLen = CFG_UART2_SENDBUF_LEN;
             UART_RxBufLen  = CFG_UART2_RECVBUF_LEN;
             break;
-        deault:printk("ModuleInstall_UART:port Err\r\n");break;
+        default:printk("ModuleInstall_UART:port Err\r\n");break;
     }
 
     if(port < CN_UART_NUM)
@@ -416,6 +522,7 @@ ptu32_t ModuleInstall_UART(u32 port)
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
 
+        Board_UartHalfDuplexRecv(port);
         pUartCB[port] = UART_InstallGeneral(&UART_Param);
         if( pUartCB[port] != NULL)
         {
@@ -452,16 +559,16 @@ char Uart_GetCharDirect(void)
     u8 result;
     while(1)
     {
-        if( (result = uart_read_byte(RxDirectPort))!=-1 )
+        if( ((char)(result = uart_read_byte(RxDirectPort)))!=-1 )
         {
             break;
         }
-        Djy_EventDelay(500);
+        DJY_EventDelay(500);
     }
     return result;
 }
 
-void bk_printf(const char *fmt, ...)
+__attribute__((weak)) void bk_printf(const char *fmt, ...)
 {
 
 }
@@ -486,7 +593,7 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
         PutStrDirect = NULL ;
     }
 
-    if(TxDirectPort >= 0)
+    if((s32)TxDirectPort >= 0)
     {
 //        __UART_HardInit(TxDirectPort);
         PutStrDirect = Uart_PutStrDirect;
@@ -505,7 +612,7 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
         GetCharDirect = NULL ;
     }
 
-    if(RxDirectPort >= 0)
+    if((s32)RxDirectPort >= 0)
     {
 //        if(TxDirectPort != RxDirectPort)
 //            __UART_HardInit(RxDirectPort);

@@ -1,0 +1,32 @@
+{
+	"board_name":"stm32f3-empty",
+	"cpus":{
+		"stm32f303xc":{
+			"clocks":{
+				
+			},
+			"chips":["EEPROM at24c128b",
+			"max14001"],
+			"peripherals":["cpu_peri_adc",
+			"cpu_peri_dma",
+			"cpu_peri_gpio",
+			"cpu_peri_hal",
+			"cpu_peri_iic",
+			"cpu_peri_spi",
+			"cpu_peri_systime",
+			"cpu_peri_timer",
+			"cpu_peri_uart"],
+			"mian_freq":0,
+			"memories":{
+				"memory1":{
+					"size":"0x2000",
+					"type":"RAM",
+					"start_addr":"0x10000000"
+				}
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

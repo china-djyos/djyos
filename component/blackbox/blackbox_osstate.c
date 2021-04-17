@@ -89,9 +89,9 @@ void  __BlackBox_OsStateInfoGather(ptu32_t *infoaddr,u32 *infolen)
 {
     memset(&s_tBlackBoxOsstateInfo,0,sizeof(s_tBlackBoxOsstateInfo));
     s_tBlackBoxOsstateInfo.blackboxtime = time(NULL);
-    s_tBlackBoxOsstateInfo.eventrunning_id = Djy_MyEventId();
-    s_tBlackBoxOsstateInfo.evttrunning_id  = Djy_MyEvttId();
-    Djy_GetEvttName(s_tBlackBoxOsstateInfo.evttrunning_id,\
+    s_tBlackBoxOsstateInfo.eventrunning_id = DJY_GetMyEventId();
+    s_tBlackBoxOsstateInfo.evttrunning_id  = DJY_GetMyEvttId();
+    DJY_GetEvttName(s_tBlackBoxOsstateInfo.evttrunning_id,\
                     s_tBlackBoxOsstateInfo.evttrunningname,CN_EVTTNAME_LIMIT);
     s_tBlackBoxOsstateInfo.magicnumber = CN_BLACKBOX_OSSTATEINFO_MAGICNUMBER;
     *infoaddr = (ptu32_t)(&s_tBlackBoxOsstateInfo);

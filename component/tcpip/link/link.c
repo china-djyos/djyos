@@ -89,14 +89,14 @@ typedef struct
     u32 framenum;
     u32 frameunknown;
     tagRcvHookItem *list;
-    mutex_t lock;
+    struct MutexLCB *lock;
 }tagRcvHookCB;
 static tagRcvHookCB  gRcvHookCB;
 //if you specified the special device, only the same device and the same proto frame
 //will passed into the hook;if the devhandler is NULL,then any proto with the same proto
 //will passed into the hook.
 //you could use this function to register some link protocol to do the functions
-bool_t LinkRegisterRcvHook(fnLinkProtoDealer hook,const char *ifname,u16 proto,
+bool_t Link_RegisterRcvHook(fnLinkProtoDealer hook,const char *ifname,u16 proto,
                             const char *hookname)
 {
     bool_t result = false;
@@ -112,18 +112,18 @@ bool_t LinkRegisterRcvHook(fnLinkProtoDealer hook,const char *ifname,u16 proto,
         return result;
     }
     memset((void *)item,0,sizeof(tagRcvHookItem));
-    item->iface = NetDevGet(ifname);
+    item->iface = NetDev_GetHandle(ifname);
     item->hook = hook;
     item->proto = proto;
     item->name = hookname;
 
-    if(mutex_lock(gRcvHookCB.lock))
+    if(Lock_MutexPend(gRcvHookCB.lock,CN_TIMEOUT_FOREVER))
     {
         item->nxt = gRcvHookCB.list;
         gRcvHookCB.list = item;
         TCPIP_DEBUG_INC(gRcvHookCB.itemtotal);
         result = true;
-        mutex_unlock(gRcvHookCB.lock);
+        Lock_MutexPost(gRcvHookCB.lock);
     }
     else
     {
@@ -139,13 +139,13 @@ bool_t LinkRegisterRcvHook(fnLinkProtoDealer hook,const char *ifname,u16 proto,
 //备注:
 //作者:zhangqf@下午7:45:38/2016年12月28日
 //-----------------------------------------------------------------------------
-bool_t LinkUnRegisterRcvHook(const char *hookname)
+bool_t Link_UnRegisterRcvHook(const char *hookname)
 {
     bool_t result = false;
     tagRcvHookItem *item;
     tagRcvHookItem *nxt;
 
-    if(mutex_lock(gRcvHookCB.lock))
+    if(Lock_MutexPend(gRcvHookCB.lock,CN_TIMEOUT_FOREVER))
     {
         item = gRcvHookCB.list;
         if(0 == strcmp(item->name,hookname))
@@ -176,21 +176,21 @@ bool_t LinkUnRegisterRcvHook(const char *hookname)
                 }
             }
         }
-        mutex_unlock(gRcvHookCB.lock);
+        Lock_MutexPost(gRcvHookCB.lock);
     }
     return result;
 }
 //use this function to do hook protocol deal
-static bool_t __RcvMonitor(struct NetDev *iface,u16 proto,struct NetPkg *pkg)
+static bool_t __Link_RcvMonitor(struct NetDev *iface,u16 proto,struct NetPkg *pkg)
 {
     bool_t  result = false;
     fnLinkProtoDealer hook = NULL;
     tagRcvHookItem *item;
     //find the hook first
-    if(mutex_lock(gRcvHookCB.lock))
+    if(Lock_MutexPend(gRcvHookCB.lock,CN_TIMEOUT_FOREVER))
     {
         item = gRcvHookCB.list;
-        if(NetDevType(iface) == EN_LINK_ETHERNET)
+        if(NetDev_GetType(iface) == EN_LINK_ETHERNET)
         {
             //here we recover the link head for the ethernet(14 bytes here 6 macdst 6 macsrc 2 type)
             PkgMoveOffsetUp(pkg,14);
@@ -209,7 +209,7 @@ static bool_t __RcvMonitor(struct NetDev *iface,u16 proto,struct NetPkg *pkg)
             }
             item = item->nxt;
         }
-        mutex_unlock(gRcvHookCB.lock);
+        Lock_MutexPost(gRcvHookCB.lock);
     }
 
     if(NULL != hook)
@@ -239,7 +239,7 @@ static struct LinkInterface  *pLinkHal[EN_LINK_LAST];
 //备注:
 //作者:zhangqf@下午8:22:20/2016年12月28日
 //-----------------------------------------------------------------------------
-static struct LinkOps *__FindOps(enum enLinkType type)
+static struct LinkOps *__Link_FindOps(enum enLinkType type)
 {
     struct LinkOps *ret = NULL;
     if((type < EN_LINK_LAST)&&(NULL != pLinkHal[type]))
@@ -256,12 +256,12 @@ static struct LinkOps *__FindOps(enum enLinkType type)
 //备注:
 //作者:zhangqf@下午7:48:16/2016年12月28日
 //-----------------------------------------------------------------------------
-bool_t LinkSend(struct NetDev *DevFace,struct NetPkg *pkg,u32 devtask,u16 proto,\
+bool_t Link_Send(struct NetDev *DevFace,struct NetPkg *pkg,u32 devtask,u16 proto,\
                 enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc)
 {
     bool_t ret = false;
     struct LinkOps *ops;
-    ops = NetDevLinkOps(DevFace);
+    ops = NetDev_GetLinkOps(DevFace);
     if(NULL != ops)
     {
         ret = ops->linkout(DevFace,pkg,devtask,proto,ver,ipdst,ipsrc);
@@ -281,8 +281,8 @@ bool_t LinkSend(struct NetDev *DevFace,struct NetPkg *pkg,u32 devtask,u16 proto,
 //    enLinkType linktype;
 //    struct LinkOps *ops;
 //
-//    linktype = NetDevType(iface);
-//    ops = __FindOps(linktype);
+//    linktype = NetDev_GetType(iface);
+//    ops = __Link_FindOps(linktype);
 //    if(NULL != ops)
 //    {
 //      ret = ops->linkin(iface,pkg);
@@ -302,7 +302,7 @@ bool_t LinkSend(struct NetDev *DevFace,struct NetPkg *pkg,u32 devtask,u16 proto,
 fnLinkProtoDealer  fnIPv6Deal;
 fnLinkProtoDealer  fnIPv4Deal;
 fnLinkProtoDealer  fnArpDeal;
-bool_t LinkPushRegister(u16 protocol,fnLinkProtoDealer dealer)
+bool_t Link_PushRegister(u16 protocol,fnLinkProtoDealer dealer)
 {
     bool_t ret = true;
     if(protocol == EN_LINKPROTO_IPV4)
@@ -332,7 +332,7 @@ bool_t LinkPushRegister(u16 protocol,fnLinkProtoDealer dealer)
 //      protocol，协议代号，如 IPV4、IPV6、ARP、RARP、自定义等
 //返回：true = 上层协议成功调用，false = 上层协议调用失败
 //-----------------------------------------------------------------------------
-bool_t LinkPush(struct NetDev  *iface,struct NetPkg *pkg,enum enLinkProto protocol)
+bool_t Link_Push(struct NetDev  *iface,struct NetPkg *pkg,enum enLinkProto protocol)
 {
     bool_t          ret=true;
     //we analyze the ethernet header first, which type it has
@@ -345,7 +345,8 @@ bool_t LinkPush(struct NetDev  *iface,struct NetPkg *pkg,enum enLinkProto protoc
                 ret = fnIPv4Deal(iface,pkg);
             }
             break;
-        case EN_LINKPROTO_IPV6:
+        case EN_LINKPROTO_IPV6: //在fnIPv4Deal(__IpPushNew)中，也有判断IP版本并分支处理
+                                //的代码，最终如何处理IPV6，待定
             if(NULL != fnIPv6Deal)
             {
                 ret = fnIPv6Deal(iface,pkg);
@@ -359,7 +360,7 @@ bool_t LinkPush(struct NetDev  *iface,struct NetPkg *pkg,enum enLinkProto protoc
             break;
 
         default:    //TODO：此处要改，结合 pDrive-fnrcvhook 来改
-            __RcvMonitor(iface,protocol,pkg);
+            __Link_RcvMonitor(iface,protocol,pkg);
             break;
     }
     return ret;
@@ -368,22 +369,22 @@ bool_t LinkPush(struct NetDev  *iface,struct NetPkg *pkg,enum enLinkProto protoc
 //------------------------------------------------------------------------------
 //功能：网卡设备推送数据到链路层，由网卡驱动调用，本函数只是个转接，将转向该网卡对应的链路
 //      层（由 enum enLinkType 定义，例如 以太网、裸数据接口等）
-bool_t NetDevPush(struct NetDev *iface,struct NetPkg *pkg)
+bool_t Link_NetDevPush(struct NetDev *iface,struct NetPkg *pkg)
 {
     bool_t ret = false;
     struct LinkOps *ops;
     if(NULL != iface)
     {
-        NetDevPkgrcvInc(iface);
+        NetDev_PkgrcvInc(iface);
 //      ret = LinkDeal(iface,pkg);
-        ops = NetDevLinkOps(iface);
+        ops = NetDev_GetLinkOps(iface);
         if(NULL != ops)
         {
             ret = ops->linkin(iface,pkg);
         }
         if(ret == false)
         {
-            NetDevPkgrcvErrInc(iface);
+            NetDev_PkgrcvErrInc(iface);
         }
     }
     return ret;
@@ -394,7 +395,7 @@ bool_t NetDevPush(struct NetDev *iface,struct NetPkg *pkg)
 //{
 //    bool_t ret = false;
 //    struct LinkOps *ops;
-//    ops = NetDevLinkOps(iface);
+//    ops = NetDev_GetLinkOps(iface);
 //    if(NULL != ops)
 //    {
 //        ret = ops->linkin(iface,pkg);
@@ -402,9 +403,9 @@ bool_t NetDevPush(struct NetDev *iface,struct NetPkg *pkg)
 //    return ret;
 //}
 //find a link ops here
-struct LinkOps  *LinkFindOps(enum enLinkType type)
+struct LinkOps  *Link_FindOps(enum enLinkType type)
 {
-    return __FindOps(type);
+    return __Link_FindOps(type);
 }
 //-----------------------------------------------------------------------------
 //功能:you could use this function to find a registered link type name
@@ -413,7 +414,7 @@ struct LinkOps  *LinkFindOps(enum enLinkType type)
 //备注:
 //作者:zhangqf@下午6:44:54/2017年1月3日
 //-----------------------------------------------------------------------------
-const char *LinkTypeName(enum enLinkType type)
+const char *Link_TypeName(enum enLinkType type)
 {
     const char *name = "Unknown";
     if((type < EN_LINK_LAST)&&(NULL != pLinkHal[type]))
@@ -429,7 +430,7 @@ const char *LinkTypeName(enum enLinkType type)
 //备注:
 //作者:zhangqf@下午8:25:38/2016年12月28日
 //-----------------------------------------------------------------------------
-bool_t LinkRegister(enum enLinkType type,const char *name,struct LinkOps *ops)
+bool_t Link_Register(enum enLinkType type,const char *name,struct LinkOps *ops)
 {
     bool_t result = false;
     struct LinkInterface *link = NULL;
@@ -453,7 +454,7 @@ bool_t LinkRegister(enum enLinkType type,const char *name,struct LinkOps *ops)
 //备注:
 //作者:zhangqf@下午1:55:39/2016年12月29日
 //-----------------------------------------------------------------------------
-bool_t LinkUnRegister(enum enLinkType type,const char *name)
+bool_t Link_UnRegister(enum enLinkType type,const char *name)
 {
     bool_t result = false;
     struct LinkInterface *link = NULL;
@@ -471,13 +472,13 @@ bool_t LinkUnRegister(enum enLinkType type,const char *name)
 
 
 //do the hook debug module
-static bool_t __LinkHookShell(void)
+static bool_t __Link_HookShell(void)
 {
     int i = 0;
     tagRcvHookItem *item;
 
     debug_printf("link","LinkHookModule\n\r");
-    if(mutex_lock(gRcvHookCB.lock))
+    if(Lock_MutexPend(gRcvHookCB.lock,CN_TIMEOUT_FOREVER))
     {
         debug_printf("link","Item:Total:%d  FrameRcvTotal:%d FrameRcvUnknown:%d\n\r",\
                 gRcvHookCB.itemtotal,gRcvHookCB.framenum,gRcvHookCB.frameunknown);
@@ -491,17 +492,17 @@ static bool_t __LinkHookShell(void)
             debug_printf("link","No.%-4d   %-8s  %-8x  %-8x  %-8x  %s\n\r",\
                     i++,item->name?item->name:"NULL",\
                     item->proto,(u32)item->hook,\
-                    item->framenum,NetDevName(item->iface));
+                    item->framenum,NetDev_GetName(item->iface));
             item = item->nxt;
         }
-        mutex_unlock(gRcvHookCB.lock);
+        Lock_MutexPost(gRcvHookCB.lock);
     }
     return true;
 }
 
 
 //usage:use this shell to show all the link type supported
-static bool_t __LinkTypeShell(void)
+static bool_t __Link_TypeShell(void)
 {
     u8 i;
     struct LinkInterface *link;
@@ -519,16 +520,16 @@ static bool_t __LinkTypeShell(void)
 
 //static bool_t __LinkShell(char *param)
 
-bool_t net_link(char *param)
+bool_t Link_net(char *param)
 {
     bool_t ret = true;
     if((NULL == param)||(0 == strcmp(param,"-t")))
     {
-        ret = __LinkTypeShell();
+        ret = __Link_TypeShell();
     }
     else if(0 == strcmp(param,"-h"))
     {
-        ret = __LinkHookShell();
+        ret = __Link_HookShell();
     }
     else
     {
@@ -545,12 +546,12 @@ bool_t net_link(char *param)
 // RETURN     :
 // DESCRIPTION:uptils now, we do nothing here
 // =============================================================================
-bool_t LinkInit(void)
+bool_t Link_Init(void)
 {
     //the gLinkHook module must be initialized
     memset((void *)&gRcvHookCB,0,sizeof(gRcvHookCB));
-    gRcvHookCB.lock = mutex_init(NULL);
+    gRcvHookCB.lock = Lock_MutexCreate(NULL);
     return true;
 }
-ADD_TO_ROUTINE_SHELL(net_link,net_link,"usage:net_link [-t (show types)]/[-h (show hooks)]");
+ADD_TO_ROUTINE_SHELL(net_link,Link_net,"usage:net_link [-t (show types)]/[-h (show hooks)]");
 

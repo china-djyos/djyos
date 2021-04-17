@@ -71,13 +71,22 @@
 #if(CN_CPU_OPTIONAL_CACHE==1)
 #include "set-cache.h"
 #endif
-#include <osboot.h>
-#include <device/flash/flash.h>
+#include <blackbox.h>
+//#include <device/djy_flash.h>
 #include "dbug.h"
-#include "project_config.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+#include "include/Iboot_info.h"
 #if (CFG_RUNMODE_BAREAPP == 0)
 
-static struct SemaphoreLCB *ptUpdateIbootSemp;
+#define IAPBUF_SIZE   512
+extern void CPU_Reboot();
+extern void CPU_Reset();
+extern void CPU_RestartSystem(u32 key);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // ============================================================================
 // 功能：设置运行iboot
 // 参数：
@@ -91,8 +100,8 @@ bool_t  runiboot(char *param)
      Cache_CleanData();
      Cache_InvalidInst();
 #endif
-     reset();
-    return false;
+    CPU_Reset();
+    return true;
 }
 
 // ============================================================================
@@ -108,9 +117,11 @@ bool_t  runapp(char *param)
      Cache_CleanData();
      Cache_InvalidInst();
 #endif
-     reset();
-    return false;
+    CPU_Reset();
+    return true;
 }
+
+
 
 // ============================================================================
 // 功能：设置运行iboot并更新iboot
@@ -118,66 +129,257 @@ bool_t  runapp(char *param)
 // 返回：
 // 备注：
 // ============================================================================
-bool_t runibootui(char *param)
-{
-    Set_RunIbootUpdateIboot();
-#if(CN_CPU_OPTIONAL_CACHE==1)
-     Cache_CleanData();
-     Cache_InvalidInst();
-#endif
-     reset();
-    return false;
-}
+// bool_t  updateruniboot(char *param)
+//{
+//    Set_RunIbootUpdateIboot();
+//#if(CN_CPU_OPTIONAL_CACHE==1)
+//     Cache_CleanData();
+//     Cache_InvalidInst();
+//#endif
+//     CPU_Reset();
+//    return false;
+//}
 
-// ============================================================================
-// 功能：设置运行iboot并更新iboot
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
- bool_t  updateruniboot(char *param)
-{
-    Set_RunIbootUpdateIboot();
-#if(CN_CPU_OPTIONAL_CACHE==1)
-     Cache_CleanData();
-     Cache_InvalidInst();
-#endif
-     reset();
-    return false;
-}
+ // ============================================================================
+ // 功能：根据字符串设置升级成功后是运行app还是iboot
+ // 参数：
+ // 返回：true -- 设置成功；false -- 没有设置
+ // 备注：
+ // ============================================================================
+ bool_t runapp_or_runiboot(char *mode)
+ {
+      if(strcmp(mode, "runapp") == 0)
+          Iboot_SetUpdateRunModet(1);
+      else if(strcmp(mode, "runiboot") == 0)
+              Iboot_SetUpdateRunModet(0);
+      else
+          return false;
 
+      return true;
+ }
 // ============================================================================
-// 功能：升级APP
-// 参数：无
+// 功能：设置升级APP标志和在交互信息中填充待升级app路径
+// 参数：param -- 待升级app路径
 // 返回：
 // 备注：
 // ============================================================================
 //bool_t Sh_UpdateApp(char *param)
 bool_t updateapp(char *param)
 {
-    runiboot(0);
+    bool_t res = true;
+    char *word_param, *next_param;
+    Iboot_SetRunIbootUpdateApp();
+
+    word_param = shell_inputs(param,&next_param);
+    if(word_param == NULL)
+    {
+        res = Iboot_FillMutualUpdatePath(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
+        Iboot_SetUpdateRunModet(1);      //启动后运行app
+    }
+    else
+    {
+        if(runapp_or_runiboot(word_param) == false)
+        {
+            res = Iboot_FillMutualUpdatePath(word_param, strlen(word_param));
+            word_param = shell_inputs(next_param,&next_param);
+            if(word_param != NULL)
+            {
+                if(runapp_or_runiboot(word_param) == false)
+                    Iboot_SetUpdateRunModet(1);      //未指定升级成功后运行app还是iboot，则运行iboot
+            }
+            else
+                Iboot_SetUpdateRunModet(1);      //启动后运行app
+        }
+        else
+        {
+            word_param = shell_inputs(next_param,&next_param);
+            if(word_param != NULL)
+                res = Iboot_FillMutualUpdatePath(word_param, strlen(word_param));
+            else
+                res = Iboot_FillMutualUpdatePath(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
+        }
+    }
+
+    if(res == false)
+        error_printf("iap"," file name is longer than 40.");
+    else
+        runiboot(0);
+
+    DJY_EventDelay(5000*1000);      //延时一下，让升级过程中的信息能打印出来
     return (TRUE);
 }
 
 // ============================================================================
-// 功能：升级Iboot
-// 参数：无
+// 功能：升级App事件，
+// 参数：无。
+// 返回：0（无意义）。
+// 备注
+// ============================================================================
+bool_t Iboot_UpdateApp(void)
+{
+    char apppath[MutualPathLen];
+    char xipapppath[MutualPathLen];
+    struct stat test_stat;
+    FILE *srcapp = NULL;
+    FILE *xipapp;
+    s64 srcsize;
+    u8 buf[IAPBUF_SIZE];
+    u32 readsize,res;
+    char *file;
+    char percentage_last = 0, percentage = 0;
+
+    if((Iboot_GetUpdateSource() == 0) && (Iboot_GetUpdateApp() == true))
+    {
+        if(!stat(CFG_FORCED_UPDATE_PATH,&test_stat))
+            srcapp = fopen(CFG_FORCED_UPDATE_PATH, "r+");
+
+        if(srcapp == NULL)
+        {
+            if(Iboot_GetMutualUpdatePath(apppath, sizeof(apppath)) == false)
+            {
+                error_printf("IAP","app path get fail  .\r\n");
+                DJY_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
+                return TRUE;
+            }
+            srcapp = fopen(apppath, "r+");
+        }
+        else
+        {
+            strcpy(apppath, CFG_FORCED_UPDATE_PATH);
+            Iboot_SetUpdateRunModet(1);
+        }
+        if(srcapp != NULL)
+        {
+            info_printf("IAP","app update start.\r\n");
+            file = strrchr(apppath, '/');
+            if(strlen(file) > 31)
+            {
+                error_printf("IAP","Filename is too long  %s ,\r\n",file);
+                DJY_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
+                return TRUE;
+            }
+            if(file)
+            {
+                sprintf(xipapppath, "%s%s", "/xip-app", file);
+                xipapp = fopen(xipapppath, "w+");
+                if(xipapp != NULL)
+                {
+                    stat(apppath,&test_stat);
+                    srcsize = test_stat.st_size;
+                    printf("\r\nloading       ");
+                    while(1)
+                    {
+                        percentage = 100 - ((char)((srcsize * 100)/ test_stat.st_size));
+                        if(percentage != percentage_last)
+                        {
+                            printf("\b\b\b%2d%%",percentage);
+                            percentage_last = percentage;
+                        }
+                        readsize = fread(buf, 1, IAPBUF_SIZE, srcapp);
+                        if((readsize != IAPBUF_SIZE) && srcsize >= IAPBUF_SIZE)
+                        {
+                            printf("Iap read file %s error \n\r",apppath);
+                            break;
+                        }
+                        if(readsize != IAPBUF_SIZE)
+                        {
+                            printf("read file %s End \r\n ",apppath);
+                        }
+
+                        res = fwrite(buf, 1, readsize, xipapp);
+                        if(res != readsize)
+                        {
+                            printf("write file xip-app error  \r\n ");
+                        }
+                        srcsize -= readsize;
+                        if(srcsize == 0)
+                        {
+                            info_printf("IAP","App update success.  waiting to restart.\r\n");
+                            Iboot_ClearRunIbootUpdateApp();
+                            break;
+                        }
+                    }
+                    fclose(srcapp);
+                    fclose(xipapp);
+                    if(srcsize !=0)
+                    {
+                        error_printf("IAP","app update error .\r\n");
+                        DJY_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
+                    }
+                    else
+                        Iboot_UpdateToRun();
+                }
+                else
+                {
+                    error_printf("IAP","cannot open source file xip-app .\r\n");
+                    DJY_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
+                }
+            }
+            else
+            {
+                error_printf("IAP","App file error .\r\n");
+                DJY_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
+            }
+        }
+        else
+        {
+            error_printf("IAP","file \"%s\" is not found.\r\n", apppath);
+            DJY_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
+        }
+    }
+
+    return TRUE;
+}
+
+// ============================================================================
+// 功能：设置升级iboot标志和在交互信息中填充待升级iboot路径
+// 参数：param -- 待升级iboot路径
 // 返回：
 // 备注：
 // ============================================================================
-char iapibootname[512];
-#define IAPBUF_SIZE   512
-bool (*Update_and_run_mode)(char *param);
-
-bool updateiboot(char *param)
+bool_t Iboot_Update(char *param)
 {
-    if(param == NULL)
-        strcpy(iapibootname,CFG_IBOOT_UPDATE_NAME);
+    bool_t res = true;
+    char *word_param, *next_param;
+    Iboot_SetRunAppUpdateIboot();
+
+    word_param = shell_inputs(param,&next_param);
+    if(word_param == NULL)
+    {
+        res = Iboot_FillMutualUpdatePath(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
+        Iboot_SetUpdateRunModet(0);      //启动后运行iboot
+    }
     else
-        strcpy(iapibootname,param);
-   Update_and_run_mode = NULL;
-   Lock_SempPost(ptUpdateIbootSemp);
-   return true;
+    {
+        if(runapp_or_runiboot(word_param) == false)
+        {
+            res = Iboot_FillMutualUpdatePath(word_param, strlen(word_param));
+            word_param = shell_inputs(next_param,&next_param);
+            if(word_param != NULL)
+            {
+                if(runapp_or_runiboot(word_param) == false)
+                    Iboot_SetUpdateRunModet(0);      //未指定升级成功后运行app还是iboot，则运行iboot
+            }
+            else
+                Iboot_SetUpdateRunModet(0);      //启动后运行iboot
+        }
+        else
+        {
+            word_param = shell_inputs(next_param,&next_param);
+            if(word_param != NULL)
+                res = Iboot_FillMutualUpdatePath(word_param, strlen(word_param));
+            else
+                res = Iboot_FillMutualUpdatePath(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
+        }
+    }
+
+    if(res == false)
+        error_printf("iap"," file name is longer than 40.");
+    else
+        runapp(0);
+
+    DJY_EventDelay(5000*1000);      //延时一下，让升级过程中的信息能打印出来
+    return (TRUE);
 }
 
 // ============================================================================
@@ -186,7 +388,8 @@ bool updateiboot(char *param)
 // 返回：1（无意义）。
 // 备注
 // ============================================================================
-static ptu32_t __UpdateIboot(void)
+bool (*Update_and_run_mode)(char *param);
+ptu32_t Iboot_AppUpdateIboot(void)
 {
     FILE *srciboot;
     FILE *xipiboot;
@@ -194,104 +397,190 @@ static ptu32_t __UpdateIboot(void)
     u32 readsize,res;
     struct stat test_stat;
     s64 srcsize;
+    char iapibootname[MutualPathLen];
+    char percentage_last = 0, percentage = 0;
 
-    while(1)
+    info_printf("IAP","iboot update start.\r\n");
+    if(Iboot_GetMutualUpdatePath(iapibootname, sizeof(iapibootname)) == false)
     {
-       Lock_SempPend(ptUpdateIbootSemp,CN_TIMEOUT_FOREVER);
-       stat(iapibootname,&test_stat);
-       srcsize = test_stat.st_size;
-       srciboot = fopen(iapibootname, "r+");
-       if(srciboot==NULL)
+        error_printf("IAP","iboot name get fail  .\r\n");
+        DJY_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
+        return TRUE;
+    }
+
+    Update_and_run_mode = NULL;
+
+    srciboot = fopen(iapibootname, "r+");
+    if(srciboot != NULL)
+    {
+       xipiboot = fopen("/xip-iboot/iboot.bin", "w+");
+       if(xipiboot != NULL)
        {
-           error_printf("IAP","file \"%s\" is not found.\r\n", CFG_IBOOT_UPDATE_NAME);
-           break;
+           stat(iapibootname,&test_stat);
+           srcsize = test_stat.st_size;
+           printf("\r\nloading       ");
+           while(1)
+           {
+               percentage = 100 - ((char)((srcsize * 100)/ test_stat.st_size));
+               if(percentage != percentage_last)
+               {
+                   printf("\b\b\b%2d%%",percentage);
+                   percentage_last = percentage;
+               }
+               readsize = fread(buf, 1, IAPBUF_SIZE, srciboot);
+               if((readsize != IAPBUF_SIZE) && srcsize >= IAPBUF_SIZE)
+               {
+                   printf("Iap read file %s error \n\r",iapibootname);
+                   break;
+               }
+               if(readsize != IAPBUF_SIZE)
+               {
+                   printf("read file %s End \r\n ",iapibootname);
+               }
+
+               res = fwrite(buf, 1, readsize, xipiboot);
+               if(res != readsize)
+               {
+                   printf("write file xip-iboot error  \r\n ");
+               }
+               srcsize -= readsize;
+               if(srcsize == 0)
+               {
+                   info_printf("IAP","Iboot update success.\r\n");
+                   Iboot_ClearRunAppUpdateIboot();
+                   break;
+               }
+           }
+           fclose(srciboot);
+           fclose(xipiboot);
+           if(srcsize !=0)
+           {
+               error_printf("IAP","Iboot update error .\r\n");
+               DJY_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
+           }
+           else if(Update_and_run_mode != NULL)
+               Update_and_run_mode(NULL);
+           if(srcsize ==0)
+               Iboot_UpdateToRun();
        }
-       xipiboot = fopen("/xip-iboot/iboot.bin", "r+");
-       if(srciboot==NULL)
+       else
        {
            error_printf("IAP","cannot open source file xip-iboot .\r\n");
-           break;
+           DJY_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
        }
-       while(1)
-       {
-           readsize = fread(buf, 1, IAPBUF_SIZE, srciboot);
-           if((readsize != IAPBUF_SIZE) && srcsize >= IAPBUF_SIZE)
-           {
-               printf("Iap read file %s error \n\r",iapibootname);
-               break;
-           }
-           if(readsize != IAPBUF_SIZE)
-           {
-               printf("read file %s End \r\n ",iapibootname);
-           }
-
-           res = fwrite(buf, 1, readsize, xipiboot);
-           if(res != readsize)
-           {
-               printf("write file xip-iboot error  \r\n ");
-           }
-           srcsize -= readsize;
-           if(srcsize == 0)
-           {
-               info_printf("IAP","Iboot update success.\r\n");
-               break;
-           }
-       }
-       fclose(srciboot);
-       fclose(xipiboot);
-       if(srcsize !=0)
-           error_printf("IAP","Iboot update error .\r\n");
-       else if(Update_and_run_mode != NULL)
-           Update_and_run_mode(NULL);
-
-    }
-    return 0;
-}
-// ============================================================================
-// 功能：安装IAP组件。
-// 参数：无。
-// 返回：0（无意义）。
-// 备注
-// ============================================================================
-ptu32_t ModuleInstall_IAP(void)
-{
-     uint16_t evtt_id,event_id;
-    ptUpdateIbootSemp=Lock_SempCreate(1,0,CN_BLOCK_FIFO,"UpdateIbootSemp");
-    if(ptUpdateIbootSemp==NULL)
-    {
-        debug_printf("IAP","IAP ModuleInstall failed.\r\n");
-    }
-    evtt_id = Djy_EvttRegist(EN_CORRELATIVE,5,0,0,__UpdateIboot,
-              NULL,8192,"Update Iboot");
-    if(evtt_id!=CN_EVTT_ID_INVALID)
-    {
-       event_id=Djy_EventPop(evtt_id,NULL,0,0,0,0);
     }
     else
     {
-        Djy_EvttUnregist(evtt_id);
-        debug_printf("IAP","Update Iboot evtt pop failed.\r\n");
+       error_printf("IAP","file \"%s\" is not found.\r\n", iapibootname);
+       DJY_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
     }
-
-    return 0;
+    return TRUE;
 }
+
+//用户可以写该函数来指定怎么升级iboot
+__attribute__((weak)) bool_t Iboot_UserUpdateIboot(char *param)
+{
+    return false;
+}
+
+bool_t ModuleInstall_UpdateIboot(void)
+{
+    uint16_t evtt_Update = CN_EVTT_ID_INVALID;
+    char run_mode = Iboot_GetRunMode();
+    if(Iboot_UserUpdateIboot(0) == false)
+    {
+        if(Iboot_GetUpdateSource() == 0)
+        {
+            if(run_mode == 1)
+            {
+                if(Iboot_GetUpdateIboot() == true)
+                {
+                    evtt_Update = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                                                Iboot_AppUpdateIboot, NULL, CFG_MAINSTACK_LIMIT, "update iboot");
+                }
+            }
+            else
+                return false;
+
+            if(evtt_Update != CN_EVTT_ID_INVALID)
+            {
+                if(DJY_EventPop(evtt_Update, NULL, 0, 0, 0, 0) != CN_EVENT_ID_INVALID)
+                {
+                    if(run_mode == 1)
+                        info_printf("XIP","add iboot update function.\r\n");
+
+                    return true;
+                }
+            }
+            return false;
+        }
+        else
+            return false;
+    }
+    return true;
+}
+
 
 ADD_TO_ROUTINE_SHELL(runiboot,runiboot,NULL);
 ADD_TO_ROUTINE_SHELL(runapp,runapp,"直接运行APP(仅在采取内存标示确定加载项目时有效)");
 //ADD_TO_ROUTINE_SHELL(runibootui,runibootui,"设置运行iboot并更新iboot并升级iboot");
 //ADD_TO_ROUTINE_SHELL(updateruniboot,updateruniboot,"设置运行iboot并升级iboot");
-//ADD_TO_ROUTINE_SHELL(updateapp,updateapp,"update app lication");
-ADD_TO_ROUTINE_SHELL(updateiboot,updateiboot,"Update Iboot.");
+ADD_TO_ROUTINE_SHELL(updateapp,updateapp,"update app lication");
+ADD_TO_ROUTINE_SHELL(updateiboot,Iboot_Update,"Update Iboot.");
 
-#endif      //for (CFG_RUNMODE_BAREAPP == 0)
-
-
+#endif
 
 
+//add some boot commands
+//static bool_t rebootshell(char *param)
+bool_t rebootshell(char *param)
+{
 
+    CPU_Reboot( );
+    return true;
+}
+#pragma GCC diagnostic pop
 
+//static bool_t resetshell(char *param)
+bool_t resetshell(char *param)
+{
+    u32 key = 0;
+    if(NULL != param)
+    {
+        key = strtoul(param,NULL,0);
+    }
+    CPU_Reset(key);
+    return true;
+}
+//static bool_t reloadshell(char *param)
+bool_t restart(char *param)
+{
+    u32 key = 0;
+    if(NULL != param)
+    {
+        key = strtoul(param,NULL,0);
+    }
+    CPU_RestartSystem(key);
+    return true;
+}
 
+//static bool_t bootaddressshell(char *param)
+bool_t bootaddress(char *param)
+{
+    u32 addr;
+    u32 InitCpu_Addr;
+    addr = strtoul(param,NULL,0);
 
+    debug_printf("OsStart","%s:addr:0x%08x\n\r",__FUNCTION__,addr);
+    InitCpu_Addr = *(u32*)addr;
+    ((void (*)(void))(InitCpu_Addr))();
+
+    return true;
+}
+ADD_TO_ROUTINE_SHELL(restart,restart,"usage:restart [key](if key is 0XAA55AA55 then will not record)");
+ADD_TO_ROUTINE_SHELL(bootaddress,bootaddress,"usage:bootaddress [address]");
+ADD_TO_ROUTINE_SHELL(rebootshell,rebootshell,"usage:rebootshell [key](if key is 0XAA55AA55 then will not record)");
+ADD_TO_ROUTINE_SHELL(resetshell,resetshell,"usage:resetshell [key](if key is 0XAA55AA55 then will not record)");
 
 
 

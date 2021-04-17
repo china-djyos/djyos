@@ -8,9 +8,13 @@
 #include "drv_model_pub.h"
 #include "icu_pub.h"
 #include "sys_ctrl_pub.h"
+#include "intc_pub.h"
+#include "rtos_pub.h"
+
+#if CFG_USB
 #include "usb_msd.h"
 #include "target_util_pub.h"
-#include "intc_pub.h"
+
 #include "board.h"
 #include "ps.h"
 #include "brd_cnf.h"
@@ -30,7 +34,6 @@ uint32_t usb_connected_flag = 0;
 #else
 #endif
 
-#if CFG_USB
 static DD_OPERATIONS usb_op =
 {
     usb_open,
@@ -63,7 +66,7 @@ void usb_event_post(void)
 {
     if(ubg_semaphore)
     {
-        rtos_set_semaphore(&ubg_semaphore);
+        bk_rtos_set_semaphore(&ubg_semaphore);
     }
     else
     {
@@ -78,7 +81,7 @@ void usb_thread_background(void *arg)
 
     while(1)
     {
-        result = rtos_get_semaphore(&ubg_semaphore, BEKEN_WAIT_FOREVER);
+        result = bk_rtos_get_semaphore(&ubg_semaphore, BEKEN_WAIT_FOREVER);
         if(kNoErr == result)
         {
             ret = MUSB_NoneRunBackground();
@@ -121,7 +124,7 @@ UINT32 usb_sw_open(void)
     if(NULL == ubg_thread_handle)
     {
         /* usb backgroud thread create*/
-        ret = rtos_create_thread(&ubg_thread_handle,
+        ret = bk_rtos_create_thread(&ubg_thread_handle,
                                  THD_UBG_PRIORITY,
                                  "ubg_thread",
                                  (beken_thread_function_t)usb_thread_background,
@@ -136,7 +139,7 @@ UINT32 usb_sw_open(void)
 
     if(NULL == ubg_semaphore)
     {
-        ret = rtos_init_semaphore(&ubg_semaphore, 10);
+        ret = bk_rtos_init_semaphore(&ubg_semaphore, 10);
         if (kNoErr != ret)
         {
             USB_PRT("create background sema failed\r\n");
@@ -397,6 +400,100 @@ UINT32 usb_ctrl(UINT32 cmd, void *param)
 void usb_isr(void)
 {
     MGC_AfsUdsIsr();
+}
+
+#endif
+
+#if (CFG_SOC_NAME == SOC_BK7221U)
+UINT32 usb_plug_inout_open(UINT32 op_flag);
+UINT32 usb_plug_inout_close(void);
+
+USB_PLUG_INOUT_ST usb_plug;
+static DD_OPERATIONS usb_plug_op =
+{
+    usb_plug_inout_open,
+    usb_plug_inout_close,
+    NULL,
+    NULL,
+    NULL
+};
+
+static void usb_plug_inout_icu_int_open(void)
+{
+    UINT32 param;
+    param = (FIQ_USB_PLUG_INOUT_BIT);
+    sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
+}
+
+static void usb_plug_inout_icu_int_close(void)
+{
+    UINT32 param;
+    param = (FIQ_USB_PLUG_INOUT_BIT);
+    sddev_control(ICU_DEV_NAME, CMD_ICU_INT_DISABLE, &param);
+}
+
+UINT32 usb_plug_inout_open(UINT32 op_flag)
+{
+    UINT32 param;
+    USB_PLUG_INOUT_ST *cfg;
+
+    cfg = (USB_PLUG_INOUT_ST*)op_flag;
+    usb_plug.handler = cfg->handler;
+    usb_plug.usr_data = cfg->usr_data;
+
+    param = 0;
+    sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_USB_POWERUP, &param);
+    
+    usb_plug_inout_icu_int_open();
+    
+    param = 1;
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_EN_USB_PLUG_IN_INT, &param);
+
+    param = 1;
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_EN_USB_PLUG_OUT_INT, &param);
+
+    if(usb_is_plug_in())
+        param = USB_PLUG_IN_EVENT;
+    else
+        param = USB_PLUG_OUT_EVENT;
+
+    if(usb_plug.handler)
+        usb_plug.handler(usb_plug.usr_data, param);
+	
+    return USB_PLUG_SUCCESS;
+}
+
+UINT32 usb_plug_inout_close(void)
+{
+    UINT32 param;
+    param = 0;
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_EN_USB_PLUG_IN_INT, &param);
+
+    param = 0;
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_EN_USB_PLUG_OUT_INT, &param);
+
+    usb_plug_inout_icu_int_close();
+
+    param = 0;
+    sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_USB_POWERDOWN, &param);
+
+    usb_plug.handler = NULL;
+    usb_plug.usr_data = NULL;
+
+	return 0;
+}
+
+void usb_plug_inout_init(void) 
+{
+    usb_plug.handler = NULL;
+    usb_plug.usr_data = NULL;
+    intc_service_register(FIQ_USB_PLUG_INOUT, PRI_FIQ_USB_PLUG_INOUT, usb_plug_inout_isr);
+    ddev_register_dev(USB_PLUG_DEV_NAME, &usb_plug_op);
+}
+
+void usb_plug_inout_exit(void)
+{
+    ddev_unregister_dev(USB_PLUG_DEV_NAME);
 }
 
 #endif

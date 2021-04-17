@@ -65,14 +65,15 @@
 #include "lowpower.h"
 #include "djyos.h"
 //#include "core_cmFunc.h"
-#include "project_config.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
 extern   uint32_t   msp_top[ ];
 //extern void __set_PSP(uint32_t topOfProcStack);
 //extern void __set_PRIMASK(uint32_t priMask);
 //extern void __set_CONTROL(uint32_t control);
 
-extern void IAP_SelectLoadProgam(void);
+extern void Iboot_IAP_SelectLoadProgam(void);
 //static void __set_PSP(uint32_t topOfProcStack)
 //{
 //  __asm volatile ("MSR psp, %0\n" : : "r" (topOfProcStack) : "sp");
@@ -168,18 +169,18 @@ void Init_Cpu(void)
     SDRAM_Init();
 
 #if (CFG_RUNMODE_BAREAPP == 1)
-    Load_Preload();
+    Iboot_LoadPreload();
 #else
-    IAP_SelectLoadProgam();
+    Iboot_IAP_SelectLoadProgam();
 #endif
 }
 
-extern void Load_Preload(void);
+extern void Iboot_LoadPreload(void);
 void AppStart(void)
 {
     __set_MSP((uint32_t)msp_top);
     __set_PSP((uint32_t)msp_top);
-    Load_Preload();
+    Iboot_LoadPreload();
 }
 
 
@@ -208,7 +209,7 @@ void IAP_GpioPinInit(void)
 //      加载的函数，特别是库函数。
 //      本函数必须提供，如果没有设置相应硬件，可以简单返回false。
 //-----------------------------------------------------------------
-bool_t IAP_IsForceIboot(void)
+bool_t Iboot_IAP_IsForceIboot(void)
 {
 //    u32 flag;
 //    IAP_GpioPinInit( );
@@ -225,9 +226,10 @@ bool_t IAP_IsForceIboot(void)
 #ifdef CFG_CPU_ZQ12XX_CK
 #include "csi_core.h"
 #include "arch_feature.h"
-#include "project_config.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-extern void Load_Preload(void);
+extern void Iboot_LoadPreload(void);
 
 void Init_Cpuc(void)
 {
@@ -237,9 +239,9 @@ void Init_Cpuc(void)
 //  csi_dcache_enable();
 
 #if (CFG_RUNMODE_BAREAPP == 1)
-    Load_Preload();
+    Iboot_LoadPreload();
 #else
-    IAP_SelectLoadProgam();
+    Iboot_IAP_SelectLoadProgam();
 #endif
 }
 
@@ -248,7 +250,7 @@ void IAP_GpioPinInit(void)
 
 }
 
-bool_t IAP_IsForceIboot(void)
+bool_t Iboot_IAP_IsForceIboot(void)
 {
     return false;
 }

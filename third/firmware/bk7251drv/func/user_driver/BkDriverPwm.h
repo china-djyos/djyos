@@ -31,7 +31,7 @@
 
 #pragma once
 #include "include.h"
-
+#include "rtos_pub.h"
 /** @addtogroup BK_PLATFORM
   * @{
   */

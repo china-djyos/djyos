@@ -1,0 +1,10 @@
+{
+	"compile-option":{
+		
+	},
+	"instructionset":"arm",
+	"march":"armv5te",
+	"vendor-option":{
+		
+	}
+}

@@ -80,7 +80,7 @@
 __asm_reset_thread:
     ldr     r2,[r1,#4]          /* 取线程栈顶指针 */
     mov     r12,#0x01000000     /* xpsr的初始值 */
-    ldr     r3,=__Djy_VmEngine  /* 取线程引擎指针 */
+    ldr     r3,=__DJY_VmEngine  /* 取线程引擎指针 */
     stmfd   r2!,{r3,r12}        /* 存pc，xpsr */
     sub     r2,r2,#14*4         /* 后退14个寄存器,初始状态r0-r12中，除r0外均无意义， */
                                 /* __vm_engine函数不返回，lr也无意义 */
@@ -113,7 +113,7 @@ __asm_reset_thread:
 __asm_reset_switch:
     ldr     sp,[r2,#4]          /* 取老线程栈顶指针 */
     mov     r12,#0x01000000     /* xpsr的初始值 */
-    ldr     r11,=__Djy_VmEngine    /* 取线程引擎指针 */
+    ldr     r11,=__DJY_VmEngine    /* 取线程引擎指针 */
     push    {r11,r12}           /* 存pc,xpsr */
     sub     sp,sp,#14*4         /* 后退14个寄存器,初始状态r0-r12中，除r0外均无意义，
                                    __vm_engine函数不返回，lr也无意义，至此，完成老线程复位*/
@@ -229,13 +229,15 @@ __asm_switch_context_int:
 @----保存上下文---------------------------------------------------------------
 @功能: 保存当前线程的上下文，但不切换,专用于进入CN_SLEEP_L3之前调用.
 @参数: running_vm，当前线程的控制块指针，即&vm->stack。
-@参数: WakeUpAddr, 唤醒后的返回地址.
+@参数: SaveRamL3, 把执行过step1的内存保存到flash中.
+@参数: EntrySleep, 进入低功耗.
 @返回:  无
 @函数原型: void __LP_BSP_AsmSaveReg(struct tagThreadVm *running_vm，
                     bool_t (*SaveRamL3)(void),
-                    void (*EntrySleepL3)(void))
+                    void (*EntrySleep)(void))
 @-----------------------------------------------------------------------------
 */
+
 .text
 .align 2
 .global __LP_BSP_AsmSaveReg
@@ -252,6 +254,7 @@ __LP_BSP_AsmSaveReg:
     push    {r2}
     blx      r1                  /* 调用保存RAM到非易失存储器的函数*/
     pop     {r2}
+    mov 	r0, #0x4			/* 选择休眠方式:L3 */
     blx      r2                  /* 调用进入SLEEP3的函数 */
     bx      lr
 

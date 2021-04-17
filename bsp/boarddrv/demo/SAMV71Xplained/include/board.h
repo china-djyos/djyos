@@ -53,7 +53,7 @@ extern "C" {
 
 void Board_UartHalfDuplexSend(u8 SerialNo);
 void Board_UartHalfDuplexRecv(u8 SerialNo);
-bool_t Board_GpioInit(void);
+bool_t Board_Init(void);
 
 #ifdef __cplusplus
 }

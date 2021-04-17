@@ -62,8 +62,6 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern void Board_GpioInit(void);
-//    Board_GpioInit();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -72,7 +70,7 @@
 //attribute:bsp                       //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:required                     //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                       //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                     //初始化时机，可选值：early，medium，later。
+//init time:early                     //初始化时机，可选值：early，medium，later, pre-main。
                                       //表示初始化时间，分别是早期、中期、后期
 //dependence:"kernel","stm32f4","cpu onchip gpio"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                       //选中该组件时，被依赖组件将强制选中，
@@ -218,7 +216,7 @@ bool_t Board_EthGpioInit(void)
     GPIO_AFSet(GPIO_G,14,11);   //PG14,AF11
 
     GPIO_SettoLow(GPIO_D,PIN3);
-    Djy_EventDelay(10*1000);
+    DJY_EventDelay(10*1000);
     GPIO_SettoHigh(GPIO_D,PIN3);
     return true;
 }
@@ -322,6 +320,9 @@ void Board_UartHalfDuplexRecv(u8 SerialNo)
 #define PAout(n)                       BIT_ADDR(GPIOA_ODR_Addr,n)  //输出
 #define PBout(n)                       BIT_ADDR(GPIOB_ODR_Addr,n)  //输出
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level)
 {
     switch(SPIPort)
@@ -336,6 +337,8 @@ bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level)
     }
     return true;
 }
+#pragma GCC diagnostic pop
+
 static void Board_NORGpioInit (void )
 {
 
@@ -357,7 +360,7 @@ static void Board_NORGpioInit (void )
 // 返回：无
 // =============================================================================
 
-void Board_GpioInit(void)
+void Board_Init(void)
 {
     Board_EthGpioInit();//网络
     Board_UartGpioInit(CN_UART1);
@@ -369,9 +372,9 @@ void Board_GpioInit(void)
 bool_t LAN8720_RESET(void)
 {
 //  PCF8574_WriteBit(ETH_RESET_IO,1);
-//  Djy_DelayUs(100*mS);
+//  DJY_DelayUs(100*mS);
 //  PCF8574_WriteBit(ETH_RESET_IO,0);
-//  Djy_DelayUs(100*mS);
+//  DJY_DelayUs(100*mS);
     //PD3上输出一个100mS的高电平脉冲
     return true;
 }

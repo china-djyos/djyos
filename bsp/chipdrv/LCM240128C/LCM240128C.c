@@ -19,7 +19,7 @@
 #include "cpu_peri.h"
 #include "os.h"
 #include "board-config.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include <shell.h>
 
 //坐标系说明,描述了显存偏移地址与屏上像素点的坐标映射关系,注意单色和灰度显示器
@@ -79,7 +79,7 @@ void InitLCM240128C(void)
     PatchF7Bug_ClearA0;
     ContrastLevel = CN_TONTRAST_LEVEL_DEFAULT;
     *CmdPort = 0xE2;                            // 设置温度补偿系数-0.05%/C
-    Djy_EventDelay(10*mS);
+    DJY_EventDelay(10*mS);
     *CmdPort = 0x25;                            // 设置温度补偿系数-0.05%/C
     *CmdPort = 0x2b;                            // 内部DC-DC
     *CmdPort = 0xc4;                            // LCD映像MY=1，MX=0，LC0=0
@@ -101,7 +101,7 @@ void InitLCM240128C(void)
     *CmdPort = 0x00; *CmdPort = 0x10;           // 设置起始列地址
     *CmdPort = 0x60; *CmdPort = 0x70;           // 设置起始行地址
 
-    Djy_EventDelay(50*mS);
+    DJY_EventDelay(50*mS);
 }
 
 //----LCD背光点亮------------------------------------------------------------
@@ -125,9 +125,9 @@ void LCD_BackLight(bool_t OnOff)
 void LCD_Reset(void)
 {
      PIO_Clear(LCD_RST);
-     Djy_EventDelay(10*mS);
+     DJY_EventDelay(10*mS);
      PIO_Set(LCD_RST);
-     Djy_EventDelay(50*mS);
+     DJY_EventDelay(50*mS);
 }
 
 
@@ -350,7 +350,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     if(realxsrc%2 == 0)
     {
         offset = ysrc * src_bitmap->linebytes + realxsrc/2;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
         PatchF7Bug_SetA0;
         for(loopy = 0; loopy < dst_rect->bottom - dst_rect->top; loopy++)
         {
@@ -392,7 +392,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
            *CmdPort = 0x60 + ((u8)dst_rect->top & 0x0f);
            *CmdPort = 0x70 + ((u8)(dst_rect->top)>> 4);// 设置起始行地址
             offset = ysrc * src_bitmap->linebytes + realxsrc/2;
-            Djy_DelayUs(1);
+            DJY_DelayUs(1);
             PatchF7Bug_SetA0;
             for(loopy = 0; loopy < dst_rect->bottom - dst_rect->top; loopy++)
             {
@@ -450,7 +450,7 @@ ptu32_t ModuleInstall_LCM240128C(const char *ChipName)
     static struct GkWinObj frame_win;
     static struct RectBitmap FrameBitmap;
 
-    Djy_EventDelay(10*mS);
+    DJY_EventDelay(10*mS);
     LCD_BackLight(1);
     LCD_Reset();
     InitLCM240128C( );
@@ -470,7 +470,6 @@ ptu32_t ModuleInstall_LCM240128C(const char *ChipName)
     tg_lcd_display.width = CN_LCD_XSIZE;
     tg_lcd_display.height = CN_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_GRAY4;
-    tg_lcd_display.reset_clip = false;
     tg_lcd_display.framebuf_direct = false;
     //无须初始化frame_buffer和desktop，z_topmost三个成员
 

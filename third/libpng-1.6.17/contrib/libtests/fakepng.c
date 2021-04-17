@@ -20,8 +20,8 @@ put_chunk(const unsigned char *chunk, uInt length)
 
    fwrite(chunk, length, 1, stdout);
 
-   crc = crc32(0, Z_NULL, 0);
-   put_uLong(crc32(crc, chunk, length));
+   crc = CRC_32(0, Z_NULL, 0);
+   put_uLong(CRC_32(crc, chunk, length));
 }
 
 const unsigned char signature[] =

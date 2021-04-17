@@ -1,9 +1,18 @@
 #include "include.h"
 #include "arm_arch.h"
 #include <string.h>
+#include <stdlib.h>
+//#include <rtthread.h>
 
-#include "sys_rtos.h"
-#include "uart_pub.h"
+static struct HeapCB *pMemHeap = NULL;
+
+void os_meminit(void)
+{
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+    pMemHeap = Heap_FindHeap("dtcm");
+    GLOBAL_INT_RESTORE();
+}
 
 INT32 os_memcmp(const void *s1, const void *s2, UINT32 n)
 {
@@ -25,70 +34,61 @@ void *os_memset(void *b, int c, UINT32 len)
     return (void *)memset(b, c, (unsigned int)len);
 }
 
+void *os_malloc(size_t size)
+{
+    void *ptr = NULL;
+    if(pMemHeap==NULL)
+        return NULL;
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+    ptr = M_MallocHeap(size,pMemHeap,0);
+    GLOBAL_INT_RESTORE();
+    return ptr;
+}
+
+void * os_zalloc(size_t size)
+{
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+    void *n = (void *)os_malloc(size);
+    GLOBAL_INT_RESTORE();
+    if (n)
+        memset(n, 0, size);
+    return n;
+}
+
 void *os_realloc(void *ptr, size_t size)
 {
-	#ifdef FIX_REALLOC_ISSUE
-    return pvPortRealloc(ptr, size);
-	#else
-	void *tmp;
+    void *tmp;
 
-    if(platform_is_in_interrupt_context())
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+    tmp = (void *)os_malloc(size);
+    GLOBAL_INT_RESTORE();
+    if(tmp)
     {
-        os_printf("realloc_risk\r\n");
+        memcpy(tmp, ptr, size);
+        GLOBAL_INT_DISABLE();
+        os_free(ptr);
+        GLOBAL_INT_RESTORE();
     }
 
-	tmp = (void *)pvPortMalloc(size);
-	if(tmp)
-	{
-		os_memcpy(tmp, ptr, size);
-		vPortFree(ptr);
-	}
+    return tmp;
+}
 
-	return tmp;
-	#endif
+void os_free(void *ptr)
+{
+    if(ptr)
+    {
+        GLOBAL_INT_DECLARATION();
+        GLOBAL_INT_DISABLE();
+        M_FreeHeap(ptr,pMemHeap);
+        GLOBAL_INT_RESTORE();
+    }
 }
 
 int os_memcmp_const(const void *a, const void *b, size_t len)
 {
     return memcmp(a, b, len);
 }
-
-#if !OSMALLOC_STATISTICAL
-void *os_malloc(size_t size)
-{
-    if(platform_is_in_interrupt_context())
-    {
-        os_printf("malloc_risk\r\n");
-    }
-    
-    return (void *)pvPortMalloc(size);
-}
-
-void * os_zalloc(size_t size)
-{
-	void *n = (void *)pvPortMalloc(size);
-    
-    if(platform_is_in_interrupt_context())
-    {
-        os_printf("zalloc_risk\r\n");
-    }
-    
-	if (n)
-		os_memset(n, 0, size);
-	return n;
-}
-
-void os_free(void *ptr)
-{
-    if(platform_is_in_interrupt_context())
-    {
-        os_printf("free_risk\r\n");
-    }
-    
-    if(ptr)
-    {        
-        vPortFree(ptr);
-    }
-}
-#endif
 // EOF

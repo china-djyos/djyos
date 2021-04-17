@@ -156,7 +156,7 @@ void NetHard_RcvIntIsr(void)
                 newpkg = false;
             }
         }
-        Djy_EventDelay(1*mS);
+        DJY_EventDelay(1*mS);
     }
     return;
 }
@@ -191,17 +191,17 @@ bool_t NetHard_AddNetDev(void)
     devpara.devfunc = 0;
 
     result = false;
-    pgChkNetDev = NetDevInstall(&devpara);
+    pgChkNetDev = NetDev_Install(&devpara);
     if(pgChkNetDev != NULL)
     {
         result = true;
     }
     //添加接收线程
-    evtt_id = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS-2, 0, 1,
+    evtt_id = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS-2, 0, 1,
             (ptu32_t (*)(void))NetHard_RcvIntIsr,NULL, 0x100, "NetHard_RcvIsr");
     if (evtt_id != CN_EVTT_ID_INVALID)
     {
-        evtt_id = Djy_EventPop(evtt_id, NULL, 0,0, 0, 0);
+        evtt_id = DJY_EventPop(evtt_id, NULL, 0,0, 0, 0);
     }
     return result;
 }

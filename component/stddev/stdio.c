@@ -64,6 +64,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <objhandle.h>
+#include <filesystems.h>
 #include <object.h>
 #include <device.h>
 #include <systime.h>
@@ -212,14 +213,14 @@ static struct objhandle *__stdio_open(struct Object *ob, u32 mode)
     s32 fd, res;
     u32 timeout = 0;
 
-    if(test_directory(mode))
+    if(Handle_FlagIsDirectory(mode))
     {
-        if(!obj_isMount(ob))
+        if(!File_ObjIsMount(ob))
             return (NULL); // 只有针对"stdio"目录的操作才是允许的
     }
     else
     {
-        stdio = (struct __stdio*)obj_GetPrivate(ob);
+        stdio = (struct __stdio*)OBJ_GetPrivate(ob);
         if(stdio->runmode & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW))
             fd = *stdio->fd.follow;
         else
@@ -230,12 +231,12 @@ static struct objhandle *__stdio_open(struct Object *ob, u32 mode)
             return (NULL); // 无法访问所定向的文件；
     }
 
-    hdl = handle_new();
+    hdl = Handle_New();
     if(hdl)
     {
-        handle_init(hdl, NULL, mode, 0);
+        Handle_Init(hdl, NULL, mode, 0);
         if(timeout)
-            handle_settimeout(hdl, timeout);
+            Handle_SetTimeOut(hdl, timeout);
     }
 
     return (hdl);
@@ -265,7 +266,8 @@ static s32 __stdio_close(struct objhandle *hdl)
         warning_printf("stdio","\"err\"(2) is closed.");
     }
 
-    return (handle_Delete(hdl));
+//  return (Handle_Delete(hdl));
+    return 0;
 }
 
 // ============================================================================
@@ -279,7 +281,7 @@ static s32 __stdio_redirect(struct objhandle *hdl, s32 fd)
 {
     struct __stdio *stdio;
 
-    if(isDirectory(hdl))
+    if(File_IsDirectory(hdl))
         return (-1); // 只有STDIO是目录，但其不允许重新定向；
 
     stdio = (struct __stdio*)handle_GetHostObjectPrivate(hdl);
@@ -308,7 +310,7 @@ s32 __stdio_multi(struct objhandle *hdl, u32 acts, s32 fd)
     s32 res = -1;
 
     stdio = (struct __stdio*)handle_GetHostObjectPrivate(hdl);
-    if((!(stdio->runmode & CN_STDIO_STDIN_MULTI))&&(!stdin_multiplexset));
+    if((!(stdio->runmode & CN_STDIO_STDIN_MULTI)) && (!stdin_multiplexset))
         return (-1); // 只有输入才存在多路复用集；
 
     switch (acts)
@@ -365,6 +367,9 @@ s32 __stdio_tag(struct objhandle *hdl, u32 acts, u32 flags)
 }
 #endif
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // ============================================================================
 // 功能：查询stdio状态；
 // 参数：ob -- stdio对象；
@@ -380,6 +385,8 @@ static s32 __stdio_stat(struct Object *ob, struct stat *data)
 
     return (0);
 }
+#pragma GCC diagnostic pop
+
 //
 //// ============================================================================
 //// 功能：STDIO timeout操作
@@ -394,11 +401,11 @@ static s32 __stdio_stat(struct Object *ob, struct stat *data)
 //    struct __stdio *stdio;
 //    s32 fd, res = 0;
 //
-//    if(isDirectory(hdl))
+//    if(File_IsDirectory(hdl))
 //    {
 //        // 只有STDIO是目录
 //        if(1 == acts)
-//            handle_settimeout(hdl, *timeout);
+//            Handle_SetTimeOut(hdl, *timeout);
 //        else
 //            *timeout = handle_gettimeout(hdl);
 //    }
@@ -415,7 +422,7 @@ static s32 __stdio_stat(struct Object *ob, struct stat *data)
 //            case 1:
 //                    res = fcntl(fd,  F_SETTIMEOUT, *timeout); // 设置被定向文件的timeout
 //                    if(!res)
-//                        handle_settimeout(hdl, *timeout);
+//                        Handle_SetTimeOut(hdl, *timeout);
 //                    break;
 //
 //            case 0:
@@ -614,8 +621,8 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
     s32 res;
     FILE *new_fp;
     struct objhandle *hdl = NULL;
-    extern s32 __filebuf_new(FILE *stream);
-    extern void __filebuf_del(FILE *stream);
+    extern s32 __File_BufNew(FILE *stream);
+    extern void __File_BufDel(FILE *stream);
 
     res = fstat(fp->fd, &info);
     if(res)
@@ -624,9 +631,9 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
     new_fp = (FILE*)&__stdio_filestruct[type];
     new_fp->ungetbuf = EOF;
     new_fp->flags = fp->flags;
-    if((Djy_GetRunMode() < CN_RUNMODE_MP) && (S_ISFLOW(info.st_mode)))
+    if((DJY_GetRunMode() < CN_RUNMODE_MP) && (S_ISFLOW(info.st_mode)))
     {
-        res = __filebuf_new(new_fp);
+        res = __File_BufNew(new_fp);
         if(res)
             goto __ERR_STDIO_SET;
     }
@@ -654,20 +661,20 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
                 }
             }
 
-            ob = obj_matchpath("/stdio/in", &notfound);
+            ob = OBJ_MatchPath("/stdio/in", &notfound);
             if(notfound)
             {
                 goto __ERR_STDIO_SET;
             }
 
-            hdl = handle_new();
+            hdl = Handle_New();
             if(!hdl)
             {
                 goto __ERR_STDIO_SET;
             }
 
-            handle_init(hdl, ob, mode, 0);
-            obj_LinkHandle(hdl, ob);
+            Handle_Init(hdl, ob, mode, 0);
+            OBJ_LinkHandle(hdl, ob);
             __stdio_lookup[0] = hdl;
             stdin->fd = 0;
             __stdio_in_out_err[0].fd.direct = fp->fd;
@@ -676,20 +683,20 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 
         case 1 :
         {
-            ob = obj_matchpath("/stdio/out", &notfound);
+            ob = OBJ_MatchPath("/stdio/out", &notfound);
             if(notfound)
             {
                 goto __ERR_STDIO_SET;
             }
 
-            hdl = handle_new();
+            hdl = Handle_New();
             if(!hdl)
             {
                 goto __ERR_STDIO_SET;
             }
 
-            handle_init(hdl, ob, mode, 0);
-            obj_LinkHandle(hdl, ob);
+            Handle_Init(hdl, ob, mode, 0);
+            OBJ_LinkHandle(hdl, ob);
             __stdio_lookup[1] = hdl;
             stdout->fd = 1;
             if(runmode & CN_STDIO_STDOUT_FOLLOW)
@@ -702,18 +709,18 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 
         case 2 :
         {
-            ob = obj_matchpath("/stdio/err", &notfound);
+            ob = OBJ_MatchPath("/stdio/err", &notfound);
             if(notfound)
                 goto __ERR_STDIO_SET;
 
-            hdl = handle_new();
+            hdl = Handle_New();
             if(!hdl)
             {
                 goto __ERR_STDIO_SET;
             }
 
-            handle_init(hdl, ob, mode, 0);
-            obj_LinkHandle(hdl, ob);
+            Handle_Init(hdl, ob, mode, 0);
+            OBJ_LinkHandle(hdl, ob);
             __stdio_lookup[2] = hdl;
             stderr->fd = 2;
             if(runmode & CN_STDIO_STDERR_FOLLOW)
@@ -732,7 +739,7 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 
 __ERR_STDIO_SET:
 
-    __filebuf_del(new_fp);
+    __File_BufDel(new_fp);
     free(new_fp);
     if(hdl)
         __stdio_close(hdl);
@@ -761,7 +768,7 @@ static s32 __stdio_build(u32 runmode)
     struct Object *stdio_root;
     u8 i;
 
-    stdio_root = obj_newchild(obj_root(), __stdio_ops, 0, "stdio");
+    stdio_root = OBJ_NewChild(OBJ_GetRoot(), __stdio_ops, 0, "stdio");
     if(!stdio_root)
         return (-1);
 
@@ -787,13 +794,13 @@ static s32 __stdio_build(u32 runmode)
         __stdio_in_out_err[2].fd.follow = &__stdio_in_out_err[0].fd.direct;
     }
 
-    if(!obj_newchild(stdio_root, __stdio_ops, (ptu32_t)(&__stdio_in_out_err[0]), "in"))
+    if(!OBJ_NewChild(stdio_root, __stdio_ops, (ptu32_t)(&__stdio_in_out_err[0]), "in"))
         return (-1);
 
-    if(!obj_newchild(stdio_root, __stdio_ops, (ptu32_t)(&__stdio_in_out_err[1]), "out"))
+    if(!OBJ_NewChild(stdio_root, __stdio_ops, (ptu32_t)(&__stdio_in_out_err[1]), "out"))
         return (-1);
 
-    if(!obj_newchild(stdio_root, __stdio_ops, (ptu32_t)(&__stdio_in_out_err[2]), "err"))
+    if(!OBJ_NewChild(stdio_root, __stdio_ops, (ptu32_t)(&__stdio_in_out_err[2]), "err"))
         return (-1);
 
     return (0);
@@ -810,7 +817,7 @@ static s32 __stdio_build(u32 runmode)
 s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
 {
     char *inname, *outname, *errname;
-    s32 res;
+    s32 res = -1;
     FILE *inFD, *fd;
     u32 runmode = 0;
     char *mode;
@@ -842,12 +849,20 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
 
     inFD = fopen(in,mode);
     inname = (char*)in;
-    res = __stdio_set(0, inFD, O_RDWR, runmode);
-    if(res)
+    if(inFD != NULL)
+    {
+        res = __stdio_set(0, inFD, O_RDWR, runmode);
+    }
+    else
+    {
+        res = -1;
+    }
+    if(res == -1)
     {
         debug_printf("module","STDIO install failed(\"in\" cannot set).");
         goto __INSTALL_STDIO_ERR;
     }
+
 
      // STDOUT 初始化
     if (runmode & CN_STDIO_STDOUT_FOLLOW)
@@ -861,8 +876,15 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
         outname = (char*)out;
     }
 
-    res = __stdio_set(1, fd, (O_RDWR | O_APPEND), runmode);
-    if(res)
+    if(fd != NULL)
+    {
+        res = __stdio_set(1, fd, (O_RDWR | O_APPEND), runmode);
+    }
+    else
+    {
+        res = -1;
+    }
+    if(res == -1)
     {
         debug_printf("module","STDIO install failed(\"out\" cannot set).");
         goto __INSTALL_STDIO_ERR;

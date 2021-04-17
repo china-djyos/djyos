@@ -1,0 +1,33 @@
+{
+	"board_name":"SAMV71Xplained",
+	"cpus":{
+		"ATSAMV70xxx":{
+			"clocks":{
+				
+			},
+			"chips":["EEPROM at24c02"],
+			"peripherals":["cpu_peri_bksram",
+			"cpu_peri_eefc",
+			"cpu_peri_gmac",
+			"cpu_peri_mcan",
+			"cpu_peri_nand",
+			"cpu_peri_pio",
+			"cpu_peri_qspi",
+			"cpu_peri_rtc",
+			"cpu_peri_spi",
+			"cpu_peri_systime",
+			"cpu_peri_tc",
+			"cpu_peri_twi",
+			"cpu_peri_uart",
+			"cpu_peri_wdt",
+			"xdma"],
+			"mian_freq":0,
+			"memories":{
+				
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

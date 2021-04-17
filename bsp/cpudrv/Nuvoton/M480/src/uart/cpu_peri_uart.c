@@ -56,7 +56,7 @@
 #include "errno.h"
 #include "systime.h"
 #include "cpu_peri.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "int.h"
 #include "djyos.h"
 #include "cpu_peri_dma.h"
@@ -102,7 +102,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","lock","uart device file","heap","cpu onchip dma","Nuvoton M480"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -185,7 +185,7 @@ static tagUartReg volatile * const tg_UART_Reg[] = {(tagUartReg *)CN_UART0_BASE,
                                                     (tagUartReg *)CN_UART4_BASE,
                                                     (tagUartReg *)CN_UART5_BASE};
 
-typedef uint32_t (* UartStartSend)(ptu32_t PrivateTag,uint32_t timeout);
+typedef uint32_t (* UartStartSend)(ptu32_t PrivateTag);
 //typedef u32 (* UartDirectSend)(ptu32_t PrivateTag,u8 *send_buf,u32 len,u32 timeout);
 typedef ptu32_t (*UartControl)(ptu32_t PrivateTag,uint32_t cmd, uint32_t data1,uint32_t data2);
 
@@ -433,12 +433,10 @@ static void __UART_GpioConfig(uint8_t SerialNo)
 //        data,结构体tagCOMParam类型的指针数值
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile *Reg,uint32_t port,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,uint32_t port,struct COMParam *COM)
 {
-    struct COMParam *COM;
-    if((data == 0) || (Reg == NULL))
+    if((COM == NULL) || (Reg == NULL))
         return;
-    COM = (struct COMParam *)data;
     __UART_BaudSet(Reg,port,COM->BaudRate);
 
     switch(COM->DataBits)               // data bits
@@ -606,7 +604,7 @@ bool_t __uart_dma_timeout(bool_t sending)
     while((sending == true)&& (timeout > 0))//超时
     {
         timeout--;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
     if(timeout == 0)
         return true;
@@ -668,7 +666,7 @@ u32 __UART_PDMA_SendStart(u32 port)
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static uint32_t __UART_SendStart (tagUartReg *Reg,uint32_t timeout)
+static uint32_t __UART_SendStart (tagUartReg *Reg)
 {
     uint8_t port;
     uint32_t delay=0;
@@ -822,10 +820,10 @@ void __UART_SetDmaUnUsed(uint32_t port)
 //      data,含义依cmd而定
 //返回: 无意义.
 //-----------------------------------------------------------------------------
-static ptu32_t __UART_Ctrl(tagUartReg *Reg,uint32_t cmd, uint32_t data1,uint32_t data2)
+static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 {
     ptu32_t result = 0;
-    uint32_t port;
+    u32 port;
 
     if(Reg == NULL)
         return 0;
@@ -850,7 +848,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,uint32_t cmd, uint32_t data1,uint32_t
             __UART_Disable(port);
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-            __UART_BaudSet(Reg,port, data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(Reg,port, data);
+        }
             break;
         case CN_UART_EN_RTS:
             //Reg->CR3 |= 0x100;
@@ -871,7 +873,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,uint32_t cmd, uint32_t data1,uint32_t
             __UART_SetDmaUnUsed(port);
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(Reg,port,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(Reg,port,COM);
+        }
             break;
         default: break;
     }
@@ -1090,7 +1096,7 @@ s32 Uart_PutStrDirect(const char *str,uint32_t len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;
@@ -1100,7 +1106,7 @@ s32 Uart_PutStrDirect(const char *str,uint32_t len)
     while((PutStrDirectReg->FIFO &(1<<28))!=(1<<28))
     {
         timeout -=10;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
         if(timeout < 10)
            break;
     }

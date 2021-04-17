@@ -79,7 +79,7 @@
 //attribute:bsp                           //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                        //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                           //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                        //初始化时机，可选值：early，medium，later。
+//init time:medium                        //初始化时机，可选值：early，medium，later, pre-main。
                                           //表示初始化时间，分别是早期、中期、后期
 //dependence:"ring buffer and line buffer","shell","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                           //选中该组件时，被依赖组件将强制选中，
@@ -643,7 +643,7 @@ bool_t canpkg(void)
 {
     uint8_t i,j;
     gs_CanDebugFlag=true;
-    Djy_EventDelay(3*1000*mS);
+    DJY_EventDelay(3*1000*mS);
     debug_printf("mcan","CAN Pkg Snd/Rcv:\r\n");
     debug_printf("mcan","%s Snd:\r\n",CN_PRINT_PREFIX);
     for(i=0;i<CN_DEBUG_CAN_CNT;i++)
@@ -1277,7 +1277,7 @@ uint32_t CAN_WriteData(uint8_t byChip, uint8_t* txBuf, uint32_t len)
         *(pDataStartAddr+1)=tmp;
         MCAN_SendTxDedBuffer(&mcan1Config,i);
         //等待10mS,以确认发送完毕
-        Djy_EventDelay(10*mS);
+        DJY_EventDelay(10*mS);
         //查询是否成功发送出去
         if(MCAN_IsBufferTxd(&mcan1Config,i))
         {
@@ -1494,7 +1494,7 @@ ptu32_t __Can_Monitor(void)
        {
            bQiYongFlag=true;
        }
-       Djy_EventDelay(CN_CAN_DEV_MONITOR_TIME);
+       DJY_EventDelay(CN_CAN_DEV_MONITOR_TIME);
        if(bQiYongFlag)
        {
            if(sndcnt==gs_u64HardSndCnt)
@@ -1540,15 +1540,15 @@ bool_t ModuleInstall_CAN(void)
     //CAN寄存器初始化(包括设置波特率等)
     MCAN_Init(&mcan1Config);
     MCAN_Shell_Module_Install();
-    evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,__Can_Monitor,
+    evtt = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,__Can_Monitor,
               CAN_MonitorStack,sizeof(CAN_MonitorStack),"CAN Monitor function");
     if(evtt!=CN_EVTT_ID_INVALID)
     {
-       Djy_EventPop(evtt,NULL,0,NULL,0,0);
+       DJY_EventPop(evtt,NULL,0,NULL,0,0);
     }
     else
     {
-       Djy_EvttUnregist(evtt);
+       DJY_EvttUnregist(evtt);
     }
 
     debug_printf("CAN","CAN install OK.\r\n");

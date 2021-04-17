@@ -272,7 +272,7 @@ typedef struct _uart_
 /*******************************************************************************
 * Function Declarations
 *******************************************************************************/
-
+#if CFG_UART_DEBUG_COMMAND_LINE
 extern UINT32 uart_sw_init(UINT8 ch);
 extern UINT32 uart_sw_uninit(UINT8 ch);
 extern void uart_fifo_flush(UINT8 ch);
@@ -293,6 +293,7 @@ extern UINT32 uart2_close(void);
 extern UINT32 uart2_read(char *user_buf, UINT32 count, UINT32 op_flag);
 extern UINT32 uart2_write(char *user_buf, UINT32 count, UINT32 op_flag);
 extern UINT32 uart2_ctrl(UINT32 cmd, void *parm);
+#endif
 
 int uart_read_byte(int uport);
 int uart_write_byte(int uport, char c);
@@ -302,4 +303,6 @@ int uart_tx_end_callback_set(int uport, uart_callback callback, void *param);
 void uart_set_tx_stop_end_int(UINT8 uport, UINT8 set);
 void uart_set_tx_fifo_needwr_int(UINT8 uport, UINT8 set);
 void bk_send_string_len(UINT8 uport, const char *string,uint32_t len);
+void uart_hw_set_change(UINT8 uport, uart_config_t *uart_config);
+
 #endif // _UART_H_

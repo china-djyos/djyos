@@ -97,6 +97,8 @@ bool_t Wdt_Delete(tagWdt *wdt);
 bool_t Wdt_Delete_s(tagWdt *wdt);
 bool_t Wdt_Clean(tagWdt *wdt);
 bool_t Wdt_Ctrl(tagWdt *wdt, u32 type, ptu32_t para);
+bool_t WdtHal_RegisterWdtChip(char *chipname, u32 yipcycle,\
+                              bool_t (*wdtchip_feed)(void));
 
 #ifdef __cplusplus
 }

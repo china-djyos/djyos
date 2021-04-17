@@ -50,7 +50,7 @@
 //#include "../core/inc/usbh_core.h"
 #include "cpu_peri_int_line.h"
 #include <int.h>
-#include <usb/usbh_lowlevel.h>
+#include <usbh_lowlevel.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -67,7 +67,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"int","time","lock","heap","stm32usb"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -183,7 +183,7 @@ void HAL_HCD_MspInit(HCD_HandleTypeDef *hhcd)
         for(;;)
         {
             if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13)) // TODO
-                Djy_EventDelay(100);
+                DJY_EventDelay(100);
             else
                 break;
         }
@@ -492,10 +492,10 @@ static USBH_StatusTypeDef __USBH_LL_ClosePipe(USBH_HandleTypeDef *phost, uint8_t
   *            @arg 1: PID_DATA
   * @param  pbuff: pointer to URB data
   * @param  length: length of URB data
-  * @param  do_ping: activate do ping protocol (for high speed only)
+  * @param  do_ping: activate do PING protocol (for high speed only)
   *          This parameter can be one of these values:
-  *           0: do ping inactive
-  *           1: do ping active
+  *           0: do PING inactive
+  *           1: do PING active
   * @retval USBH Status
   */
 static USBH_StatusTypeDef __USBH_LL_SubmitURB(USBH_HandleTypeDef *phost,
@@ -622,7 +622,7 @@ void __USBH_Delay(uint32_t Delay)
   osDelay(Delay);
 #else
   // HAL_Delay(Delay);
-  Djy_EventDelay(Delay);
+  DJY_EventDelay(Delay);
 #endif
 }
 #endif

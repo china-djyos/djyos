@@ -441,7 +441,7 @@ static USBH_StatusTypeDef USBH_HID_Process(USBH_HandleTypeDef *phost)
         HID_Handle->timer = phost->Timer;
         HID_Handle->DataReady = 0;
 #else
-        Djy_EventDelay(1000000); // 1s跑一次; 获取数据由命令自己去调用命令。
+        DJY_EventDelay(1000000); // 1s跑一次; 获取数据由命令自己去调用命令。
 #endif
 
         break;

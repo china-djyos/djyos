@@ -61,7 +61,7 @@
 #include "systime.h"
 #include "cpu_peri.h"
 #include "uartctrl.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include <silan_syscfg.h>
 #include <silan_uart.h>
 #include "cpu_peri_isr.h"
@@ -97,7 +97,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","lock","uart device file","uart device fileheap","cpu onchip dma"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -297,12 +297,11 @@ static void __UART_BaudSet(tagUartReg *Reg,u8 port,u32 baudrate)
 //      data，参数
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
 {
     struct COMParam *COM;
-    if((data == 0) || (Reg == NULL))
+    if((COM == NULL) || (Reg == NULL))
         return;
-    COM = (struct COMParam *)data;
     __UART_BaudSet(Reg,port,COM->BaudRate);
 
     __UART_Enable(Reg,0);
@@ -416,7 +415,7 @@ static void __UART_HardInit(u8 port)
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
+static u32 __UART_SendStart (tagUartReg *Reg)
 {
     u8 len=0,i,port;
     u8 fifo[64];
@@ -451,7 +450,7 @@ static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd,va_list *arg0)
 {
     ptu32_t result = 0;
     u32 port;
@@ -472,10 +471,18 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 //          __UART_Enable(Reg,0);
 //            break;
         case CN_UART_SET_BAUD:
-            __UART_BaudSet(Reg,port,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(Reg,port, data);
+        }
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(Reg,port,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(Reg,port,COM);
+        }
             break;
         case CN_UART_HALF_DUPLEX_SEND: //发送数据
             Board_UartHalfDuplexSend(port);
@@ -484,7 +491,7 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
             while(__UART_TxFIFO_Empty(Reg) && (timeout > 10))
             {
                 timeout -=10;
-                Djy_DelayUs(10);
+                DJY_DelayUs(10);
             }
             Board_UartHalfDuplexRecv(port);
             break;
@@ -494,7 +501,7 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
     }
     return result;
 }
-u8 g_testBuf[256] = {0};u16 g_Cnt = 0;u8 g_flag = true;u8 test_flag = false;u8 g_Ch;
+
 // =============================================================================
 // 功能：UART中断,若为idle中断，则从DMA缓冲区中读出数据，并重新启动DMA，否则调用HAL中断
 //       处理函数，最终会调用到HAL_UART_XXXXCallback（）
@@ -672,8 +679,8 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         }
         else
         {
-//          Djy_EventDelay(1000);
-            Djy_DelayUs(1000);
+//          DJY_EventDelay(1000);
+            DJY_DelayUs(1000);
         }
     }
 
@@ -699,7 +706,7 @@ char Uart_GetCharDirect(void)
             break;
         }
         printk("bsp uart\r\n");
-        Djy_EventDelay(500);
+        DJY_EventDelay(500);
     }
 
 //  Reg->IMSC &= ~((1<<4)|(1<<6));

@@ -293,7 +293,7 @@ void uart0_send(u8 *buf,u32 len)
 u32 uart0_read(u8 *buf,u32 len,u32 timeout)
 {
     u32 readed,completed=0,start_time,time=0;
-    start_time = (u32)DjyGetSysTime();
+    start_time = (u32)DJY_GetSysTime();
     while(1)
     {
 
@@ -307,7 +307,7 @@ u32 uart0_read(u8 *buf,u32 len,u32 timeout)
                 break;
             }else
             {
-                time = (u32)DjyGetSysTime() - start_time;     //回到while处再次读串口。
+                time = (u32)DJY_GetSysTime() - start_time;     //回到while处再次读串口。
             }
         }else
         {
@@ -597,7 +597,7 @@ void uart1_send(u8 *buf,u32 len)
 u32 uart1_read(u8 *buf,u32 len,u32 timeout)
 {
     u32 readed,completed=0,start_time,time=0;
-    start_time = (u32)DjyGetSysTime();
+    start_time = (u32)DJY_GetSysTime();
 
     while(1)
     {
@@ -614,7 +614,7 @@ u32 uart1_read(u8 *buf,u32 len,u32 timeout)
                 break;
             }else
             {
-                time = (u32)DjyGetSysTime() - start_time;     //回到while处再次读串口。
+                time = (u32)DJY_GetSysTime() - start_time;     //回到while处再次读串口。
             }
         }else
         {

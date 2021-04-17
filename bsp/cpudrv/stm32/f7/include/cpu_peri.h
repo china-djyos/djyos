@@ -73,6 +73,7 @@ extern "C" {
 #include "cpu_peri_rtc.h"
 #include "cpu_peri_nand.h"
 #include "cpu_peri_eth.h"
+#include "cpu_peri_qspi.h"
 //#include "get_cpuid.h"
 
 #include "stm32f7xx_hal_tim.h"

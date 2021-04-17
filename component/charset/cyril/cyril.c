@@ -208,7 +208,7 @@ void module_init_encode_cyril(ptu32_t para)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
         debug_printf("cyril","cyril encoding install fail\n\r");
         return 0;
     }
@@ -313,7 +313,7 @@ ptu32_t module_init_font_cyril16(ptu32_t para)
         return 1;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("cyril","cyril font install fail\n\r");
         return 0;
     }

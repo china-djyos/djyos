@@ -56,7 +56,7 @@ void djy_audio_dac_open(uint16_t buf_len,uint16_t channel,
 void djy_audio_dac_close(void);
 uint32_t djy_audio_dac_write(char *user_buf, uint32_t count);
 uint32_t djy_audio_dac_ctrl(uint32_t cmd, void *param);
-
+uint32_t djy_audio_dac_clear_buffer();
 #ifdef __cplusplus
 }
 #endif

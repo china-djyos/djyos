@@ -2413,7 +2413,7 @@ static uint32_t MMC_InitCard(MMC_HandleTypeDef *hmmc)
 	errorstate = EMMC_CMD_SendECSD(hmmc, ECSD, -1);
 	if(errorstate != 512)
 	{
-		Djy_DelayUs(2000*mS);
+		DJY_DelayUs(2000*mS);
 		errorstate = EMMC_CMD_SendECSD(hmmc, ECSD, -1);
 		if(errorstate != 512)
 		{
@@ -2513,7 +2513,7 @@ static uint32_t MMC_PowerON(MMC_HandleTypeDef *hmmc)
 
 		/* Get operating voltage*/
 		validvoltage = (((response >> 31) == 1) ? 1 : 0);
-		Djy_EventDelay(1);
+		DJY_EventDelay(1);
 	}
 
 	/* When power routine is finished and command returns valid voltage */

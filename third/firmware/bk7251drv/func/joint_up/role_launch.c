@@ -210,7 +210,7 @@ void rl_init(void)
 {
     OSStatus err = kNoErr;
     
-	err = rtos_init_oneshot_timer(&g_role_launch.rl_timer, 
+	err = rtos_init_oneshot_timer(&g_role_launch.rl_timer,
 									RL_LAUNCH_PERIOD, 
 									(timer_2handler_t)rl_launch_handler, 
 									NULL, 
@@ -228,15 +228,15 @@ void rl_uninit(void)
         rl_stop();
     }
     
-    err = rtos_deinit_oneshot_timer(&g_role_launch.rl_timer);
+    err = bk_rtos_deinit_oneshot_timer(&g_role_launch.rl_timer);
     ASSERT(kNoErr == err);  
     g_role_launch.rl_timer_flag = RL_TIMER_UNINIT;   
 }
-
+void rl_stop(void);
 void rl_start(void)
 {    
     OSStatus err = kNoErr;
-
+    rl_stop();
     JL_PRT("rl_start\r\n");
     if(0 == rtos_is_oneshot_timer_running(&g_role_launch.rl_timer))
     {

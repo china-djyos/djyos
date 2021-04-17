@@ -67,7 +67,7 @@
 #include "cpu_peri.h"
 extern struct IntLine* tg_pIntLineTable[];       //中断线查找表
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
-extern void __Djy_ScheduleAsynSignal(void);
+extern void __DJY_ScheduleAsynSignal(void);
 void (*fg_vect_table[CN_INT_LINE_LAST+1])(void)
                     __attribute__((section(".table.vectors")));
 
@@ -424,7 +424,7 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
     tg_int_global.nest_asyn_signal = 0;
     if(g_ptEventReady != g_ptEventRunning)
     {
-        __Djy_ScheduleAsynSignal();       //中断内调度
+        __DJY_ScheduleAsynSignal();       //中断内调度
     }
 
     g_bScheduleEnable = true;

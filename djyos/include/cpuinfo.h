@@ -61,10 +61,10 @@
 #define CODE_BEFORELOAD    __attribute__((section(".code.beforeload")))         //maybe called by the preload or critical
 #define DATA_BEFORELOAD    __attribute__((section(".data.beforeload")))         //maybe used by the preload or critical
 #define BSS_BEFORELOAD     __attribute__((section(".bss.beforeload")))          //maybe used by the preload or critical
-//this storage is loaded by the loader
-#define CODE_NORMAL    __attribute__((section(".code.normal")))                 //loaded by loader
-#define DATA_NORMAL    __attribute__((section(".data.normal")))                 //loaded by loader
-#define BSS_NORMAL     __attribute__((section(".bss.normal")))                  //loaded by loader
+//this storage is loaded by the Iboot_Loader
+#define CODE_NORMAL    __attribute__((section(".code.normal")))                 //loaded by Iboot_Loader
+#define DATA_NORMAL    __attribute__((section(".data.normal")))                 //loaded by Iboot_Loader
+#define BSS_NORMAL     __attribute__((section(".bss.normal")))                  //loaded by Iboot_Loader
 
 
 typedef enum
@@ -77,9 +77,9 @@ typedef enum
 
 #define CN_CPU_SIGNATURE    "SIGNATURE"   //该名字固定用作CPU的唯一ID签名信息，方便应用生成唯一ID
 
-CODE_BEFOREPRELOAD bool_t LogCpuMsg(const char *msgname, const void *msg,u8 msglen, enCpuMsgType type);
-bool_t ShowCpuInfo(char *param);
-s32  GetCpuInfo(const char *name,void *buf, u8 len);
+CODE_BEFOREPRELOAD bool_t Core_LogCpuMsg(const char *msgname, const void *msg,u8 msglen, enCpuMsgType type);
+bool_t Core_ShowCpuInfo(char *param);
+s32  Core_GetCpuInfo(const char *name,void *buf, u8 len);
 
 
 #endif /* SRC_DJYOS_INCLUDE_CPUINFO_H_ */

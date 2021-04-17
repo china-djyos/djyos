@@ -84,7 +84,7 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"lock"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -121,7 +121,7 @@ static struct MutexLCB s_tMsgQ_Mutex;
 //-----------------------------------------------------------------------------
 bool_t ModuleInstall_MsgQ (void)
 {
-    s_ptMsgQ_Dir = obj_newchild(obj_root(), (fnObjOps)-1, 0, "message queue");
+    s_ptMsgQ_Dir = OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)-1, 0, "message queue");
     if(!s_ptMsgQ_Dir)
     {
         error_printf("module","message queue");
@@ -149,7 +149,7 @@ struct MsgQueue *MsgQ_Create( s32 MaxMsgs,u32  MsgLength,u32 Options)
     MQ = M_Malloc(sizeof(struct MsgQueue)+MsgLength*MaxMsgs,0);
     if(MQ != NULL)
     {
-        MQ_Obj = obj_newchild(s_ptMsgQ_Dir, (fnObjOps)-1, (ptu32_t)MQ, NULL);
+        MQ_Obj = OBJ_NewChild(s_ptMsgQ_Dir, (fnObjOps)-1, (ptu32_t)MQ, NULL);
         if(MQ_Obj)
         {
             MQ->HostObj = MQ_Obj;
@@ -207,7 +207,7 @@ bool_t MsgQ_Delete(struct MsgQueue *pMsgQ)
         }
         else
         {
-            obj_Delete(pMsgQ->HostObj);          //删除信号量结点
+            OBJ_Delete(pMsgQ->HostObj);          //删除信号量结点
             Lock_SempDelete_s(&(pMsgQ->MsgSendSemp));
             Lock_SempDelete_s(&(pMsgQ->MsgRecvSemp));
             free(pMsgQ);

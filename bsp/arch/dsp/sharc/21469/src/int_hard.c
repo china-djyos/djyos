@@ -67,8 +67,8 @@
 
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
 extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
-extern void __Djy_ScheduleAsynSignal(void);
-void __Djy_EventReady(struct EventECB *event_ready);
+extern void __DJY_ScheduleAsynSignal(void);
+void __DJY_EventReady(struct EventECB *event_ready);
 
 extern u32 __read_imask_seg(void);              // RETURN imask
 extern u32 __read_lirptl_seg(void);         // RETURN lirptl
@@ -746,18 +746,18 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
     if(event != NULL)   //看同步指针中有没有事件(注：单个事件，不是队列)
     {
         event->event_result = isr_result;
-        __Djy_EventReady(event);   //把该事件放到ready队列
+        __DJY_EventReady(event);   //把该事件放到ready队列
         ptIntLine->sync_event = NULL;   //解除同步
     }
     if(ptIntLine->my_evtt_id != CN_INVALID_EVTT_ID)
     {
-        Djy_EventPop(ptIntLine->my_evtt_id,
+        DJY_EventPop(ptIntLine->my_evtt_id,
                         NULL,0,(ptu32_t)isr_result, (ptu32_t)ufl_line,0);
     }
     tg_int_global.nest_asyn_signal = 0;
 
     if(g_ptEventReady != g_ptEventRunning)
-        __Djy_ScheduleAsynSignal();       //执行中断内调度
+        __DJY_ScheduleAsynSignal();       //执行中断内调度
     g_bScheduleEnable = true;
     return;
 }

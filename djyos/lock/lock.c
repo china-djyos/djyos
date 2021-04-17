@@ -91,7 +91,7 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:none                //初始化时机，可选值：early，medium，later。
+//init time:none                //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -133,10 +133,10 @@ struct MemCellPool *g_ptLockPool;  //信号量结构内存池头指针
 static struct dListNode s_tSempHead = {&s_tSempHead, &s_tSempHead};
 static struct dListNode s_tMutexHead = {&s_tMutexHead, &s_tMutexHead};
 
-extern void __Djy_EventReady(struct EventECB *event_ready);
-extern void __Djy_ResumeDelay(struct EventECB *delay_event);
-extern void __Djy_AddToDelay(u32 u32l_uS);
-extern void __Djy_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32 Status);
+extern void __DJY_EventReady(struct EventECB *event_ready);
+extern void __DJY_ResumeDelay(struct EventECB *delay_event);
+extern void __DJY_AddToDelay(u32 u32l_uS);
+extern void __DJY_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32 Status);
 
 void __Lock_ShowSemp(void);
 void __Lock_ShowMutex(void);
@@ -179,7 +179,7 @@ ptu32_t __InitLock(void)
 
     //特别提示：因安装lock模块时，文件系统还没有安装完成，不能用正常的过程创建
     //和打开mutex和semaphore文件。
-//    s_ptSempObject = obj_search_child(OBJ_GetRoot( ), "semaphore");
+//    s_ptSempObject = OBJ_SearchChild(OBJ_GetRoot( ), "semaphore");
 //    OBJ_SetOps(s_ptSempObject,Lock_SempObjOps);
 //  s_ptSempFp = OBJ_GetFirstFile(s_ptSempObject);
 #if 0
@@ -187,7 +187,7 @@ ptu32_t __InitLock(void)
 
 //    OBJ_SetPrivate(s_ptSempObject, (ptu32_t)&s_tSempHead);
 
-//    s_ptMutexObject = obj_search_child(OBJ_GetRoot( ), "mutex");
+//    s_ptMutexObject = OBJ_SearchChild(OBJ_GetRoot( ), "mutex");
 //    OBJ_SetOps(s_ptMutexObject,Lock_MutexObjOps);
 //  s_ptMutexFp = OBJ_GetFirstFile(s_ptMutexObject);
     dListInit(&s_tMutexHead);
@@ -213,10 +213,10 @@ ptu32_t __InitLock(void)
 // ============================================================================
 s32 Lock_CreateObject(void)
 {
-    if(!obj_newchild(obj_root(), (fnObjOps)Lock_MutexObjOps, 0, "mutex"))
+    if(!OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)Lock_MutexObjOps, 0, "mutex"))
         return (-1);
 
-    if(!obj_newchild(obj_root(), (fnObjOps)Lock_SempObjOps, 0, "semaphore"))
+    if(!OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)Lock_SempObjOps, 0, "semaphore"))
         return (-1);
 
     return (0);
@@ -245,8 +245,7 @@ struct SemaphoreLCB *Lock_SempCreate(s32 lamps_limit,s32 init_lamp,
     semp->lamps_limit = lamps_limit;
     semp->lamp_counter = init_lamp;
     semp->semp_sync = NULL;
-    if(name != NULL)
-        strncpy(semp->name, name, 8);
+    semp->name = name;
     //把新节点挂到信号量队列下
     dListInsertAfter(&s_tSempHead, &semp->List);
 //  OBJ_AddChild(s_ptMutexObject,&semp->node,
@@ -276,8 +275,7 @@ struct SemaphoreLCB *Lock_SempCreate_s( struct SemaphoreLCB *semp,
     semp->lamps_limit = lamps_limit;
     semp->lamp_counter = init_lamp;
     semp->semp_sync = NULL;
-    if(name != NULL)
-        strncpy(semp->name, name, 8);
+    semp->name = name;
     //把新节点挂到信号量队列下
     dListInsertAfter(&s_tSempHead, &semp->List);
 
@@ -320,10 +318,10 @@ void Lock_SempPost(struct SemaphoreLCB *semp)
             event->multi_previous = NULL;
         }
         if(event->event_status & CN_STS_SYNC_TIMEOUT)
-            __Djy_ResumeDelay(event);    //如果事件在超时等待队列中，取出
+            __DJY_ResumeDelay(event);    //如果事件在超时等待队列中，取出
         event->wakeup_from = CN_STS_WAIT_SEMP;
         event->event_status = CN_STS_EVENT_READY;
-        __Djy_EventReady(event);
+        __DJY_EventReady(event);
     }
     Int_RestoreAsynSignal();
 }
@@ -374,10 +372,10 @@ void Lock_SempExpand(struct SemaphoreLCB *semp, s32 Num)
                 event->multi_previous = NULL;
             }
             if(event->event_status & CN_STS_SYNC_TIMEOUT)
-                __Djy_ResumeDelay(event);    //如果事件在超时等待队列中，取出
+                __DJY_ResumeDelay(event);    //如果事件在超时等待队列中，取出
             event->wakeup_from = CN_STS_WAIT_SEMP;
             event->event_status = CN_STS_EVENT_READY;
-            __Djy_EventReady(event);
+            __DJY_EventReady(event);
             BlockingNum--;
             if((BlockingNum == 0) || (semp->semp_sync == NULL) )
             {
@@ -412,7 +410,7 @@ bool_t Lock_SempPend(struct SemaphoreLCB *semp,u32 timeout)
         g_ptEventRunning->error_no = EN_LOCK_PARA_ERROR;
         return false;
     }
-    sch = Djy_QuerySch();
+    sch = DJY_QuerySch();
     Int_SaveAsynSignal();
     if(semp->lamps_limit == -1)   //本信号量有无限多信号灯
     {
@@ -440,7 +438,7 @@ bool_t Lock_SempPend(struct SemaphoreLCB *semp,u32 timeout)
         return false;   //没有取得信号灯返回
     }
 
-    __Djy_AddRunningToBlock(&(semp->semp_sync),semp->sync_order,timeout,CN_STS_WAIT_SEMP);
+    __DJY_AddRunningToBlock(&(semp->semp_sync),semp->sync_order,timeout,CN_STS_WAIT_SEMP);
 
     Int_RestoreAsynSignal();  //恢复中断，将触发上下文切换
     //检查从哪里返回，是超时还是同步事件完成。
@@ -591,8 +589,7 @@ struct MutexLCB *Lock_MutexCreate(const char *name)
     mutex->mutex_sync = NULL;
 //  mutex->prio_bak = CN_PRIO_INVALID;
     mutex->owner = NULL;
-    if(name != NULL)
-        strncpy(mutex->name, name, 8);
+    mutex->name = name;
     //把新节点挂到互斥量队列下
     dListInsertAfter(&s_tMutexHead, &mutex->List);
     //把新节点挂到信号量根节点下
@@ -618,8 +615,7 @@ struct MutexLCB *Lock_MutexCreate_s( struct MutexLCB *mutex,const char *name)
     mutex->mutex_sync = NULL;
 //  mutex->prio_bak = CN_PRIO_INVALID;
     mutex->owner = NULL;
-    if(name != NULL)
-        strncpy(mutex->name, name, 8);
+    mutex->name = name;
     //把新节点挂到互斥量队列下
     dListInsertAfter(&s_tMutexHead, &mutex->List);
     //把新节点挂到信号量根节点下
@@ -628,7 +624,7 @@ struct MutexLCB *Lock_MutexCreate_s( struct MutexLCB *mutex,const char *name)
     return mutex;
 }
 
-struct EventECB *__Djy_GetIdle(void);
+struct EventECB *__DJY_GetIdle(void);
 //----释放一个互斥量-----------------------------------------------------------
 //功能：释放互斥量，只有互斥量的拥有者才能释放互斥量。
 //参数：mutex,互斥量指针
@@ -656,7 +652,7 @@ void Lock_MutexPost(struct MutexLCB *mutex)
         }
     }
     if((mutex->owner != g_ptEventRunning)   //互斥量只能由拥有者释放
-        &&(mutex->owner != __Djy_GetIdle( ))) //考虑多事件调度开始前 pend 的互斥量
+        &&(mutex->owner != __DJY_GetIdle( ))) //考虑多事件调度开始前 pend 的互斥量
         return;
     Int_SaveAsynSignal();
     if(mutex->enable > 0)
@@ -686,13 +682,13 @@ void Lock_MutexPost(struct MutexLCB *mutex)
                 event->multi_previous = NULL;
             }
             if(event->event_status & CN_STS_SYNC_TIMEOUT)
-                __Djy_ResumeDelay(event);    //如果事件在超时等待队列中，取出
+                __DJY_ResumeDelay(event);    //如果事件在超时等待队列中，取出
             event->event_status = CN_STS_EVENT_READY;
             event->wakeup_from = CN_STS_WAIT_MUTEX;
 //          if( (mutex->prio_bak != CN_PRIO_INVALID)  //该互斥量发生了优先级继承
 //             ||(!Djy_IsEventPrioChanged(event->event_id))) //且无主动改变优先级
-            Djy_RestorePrio( );
-            __Djy_EventReady(event);
+            DJY_RestorePrio( );
+            __DJY_EventReady(event);
         }
     }
     Int_RestoreAsynSignal();
@@ -716,7 +712,7 @@ bool_t Lock_MutexPend(struct MutexLCB *mutex,u32 timeout)
     struct EventECB *pl_ecb;
     bool_t lamp,sch;
 
-    if(Djy_IsMultiEventStarted() == false)
+    if(DJY_IsMultiEventStarted() == false)
     {
         return true;        //如果调度还未开始则直接返回true
     }
@@ -752,7 +748,7 @@ bool_t Lock_MutexPend(struct MutexLCB *mutex,u32 timeout)
         mutex->enable++;
         return true;
     }
-    sch = Djy_QuerySch();
+    sch = DJY_QuerySch();
     Int_SaveAsynSignal();
     if(mutex->enable == 0)   //信号灯可用
     {
@@ -776,52 +772,11 @@ bool_t Lock_MutexPend(struct MutexLCB *mutex,u32 timeout)
         return false;   //没有取得互斥量返回
     }
 
-    __Djy_AddRunningToBlock(&(mutex->mutex_sync),CN_BLOCK_PRIO,timeout,CN_STS_WAIT_MUTEX);
-//  __Djy_CutReadyEvent(g_ptEventRunning);
-//  g_ptEventRunning->previous = NULL;
-//  g_ptEventRunning->next = NULL;
-//
-//  g_ptEventRunning->sync_head = &mutex->mutex_sync;
-//  if(mutex->mutex_sync == NULL)
-//  {//同步队列空,running事件自成双向循环链表
-//      g_ptEventRunning->multi_next = g_ptEventRunning;
-//      g_ptEventRunning->multi_previous = g_ptEventRunning;
-//      mutex->mutex_sync = g_ptEventRunning;
-//  }else
-//  {//同步队列非空,按优先级排序
-//      pl_ecb = mutex->mutex_sync;
-//      do
-//      { //找到一个优先级低于新事件的事件.
-//          if(pl_ecb->prio <= g_ptEventRunning->prio)
-//              pl_ecb = pl_ecb->multi_next;
-//          else
-//              break;
-//      }while(pl_ecb != mutex->mutex_sync);
-//      g_ptEventRunning->multi_next = pl_ecb;
-//      g_ptEventRunning->multi_previous = pl_ecb->multi_previous;
-//      pl_ecb->multi_previous->multi_next = g_ptEventRunning;
-//      pl_ecb->multi_previous = g_ptEventRunning;
-//      if(mutex->mutex_sync->prio > g_ptEventRunning->prio)
-//          mutex->mutex_sync = mutex->mutex_sync->multi_previous;
-//  }
-//  if(timeout != CN_TIMEOUT_FOREVER)
-//  {
-//      //事件状态设为等待信号量 + 超时
-//      g_ptEventRunning->event_status = CN_STS_WAIT_MUTEX +CN_STS_SYNC_TIMEOUT;
-//      __Djy_AddToDelay(timeout);
-//  }else
-//  {
-//      g_ptEventRunning->event_status = CN_STS_WAIT_MUTEX;  //事件状态设为等待信号量
-//  }
+    __DJY_AddRunningToBlock(&(mutex->mutex_sync),CN_BLOCK_PRIO,timeout,CN_STS_WAIT_MUTEX);
 
     //下面看看是否要做优先级继承
     pl_ecb = mutex->owner;
-    Djy_RaiseTempPrio(pl_ecb->event_id);
-//    if(pl_ecb->prio > g_ptEventRunning->prio)  //需要继承优先级
-//    {
-////        Djy_SetEventTempPrio(pl_ecb->event_id,g_ptEventRunning->prio);
-//        pl_ecb->prio = g_ptEventRunning->prio;
-//    }
+    DJY_RaiseTempPrio(pl_ecb->event_id);
     Int_RestoreAsynSignal();  //恢复中断，将触发上下文切换
     //检查从哪里返回，是超时还是同步事件完成。
     if(g_ptEventRunning->wakeup_from & CN_STS_SYNC_TIMEOUT)
@@ -956,7 +911,7 @@ void __Lock_ShowMutex(void)
         else
             debug_printf("lock","无        ");
 
-        if(Mutex->name[0] != '\0')
+        if((Mutex->name != NULL) && (Mutex->name[0] != '\0'))
         {
             debug_printf("lock","%s\r\n", Mutex->name);
         }else
@@ -967,6 +922,9 @@ void __Lock_ShowMutex(void)
             debug_printf("lock","信号量和互斥量总数:%d，空闲数: %d \r\n",
             CFG_LOCK_LIMIT,Mb_QueryFree(g_ptLockPool));
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //----互斥量文件操作函数-------------------------------------------------------
 //功能：只实现了一个功能，即：列出全部互斥量的参数和状态。
@@ -1025,7 +983,7 @@ void __Lock_ShowSemp(void)
         else
             debug_printf("lock","无        ");
 
-        if(Semp->name[0] != '\0')
+        if((Semp->name != NULL) && (Semp->name[0] != '\0'))
         {
             debug_printf("lock","%s\r\n", Semp->name);
         }
@@ -1067,4 +1025,5 @@ s32 Lock_SempObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
     return result;
 }
+#pragma GCC diagnostic pop
 

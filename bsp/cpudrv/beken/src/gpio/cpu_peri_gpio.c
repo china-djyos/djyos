@@ -50,18 +50,16 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//  extern int ModuleInstall_GPIO(void);
-//  ModuleInstall_GPIO();
 //%$#@end initcode  ****初始化代码结束
 //%$#@describe      ****组件描述开始
 //component name:"cpu onchip gpio"//gpio操作函数集
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                  //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//select:required               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                  //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                 //初始化时机，可选值：early，medium，later。
+//init time:early                 //初始化时机，可选值：early，medium，later, pre-main。
                                  //表示初始化时间，分别是早期、中期、后期
-//dependence                   //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"none"              //该组件的依赖组件名（可以是none，表示无依赖组件），
                                  //选中该组件时，被依赖组件将强制选中，
                                  //如果依赖多个组件，则依次列出
 //weakdependence:"none"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -147,7 +145,7 @@ uint32_t djy_gpio_read( GPIO_INDEX pin)
     return bk_gpio_input(pin);
 }
 
-int djy_gpio_attach_irq(GPIO_INDEX pin,uint32_t mode,
+s32 djy_gpio_attach_irq(GPIO_INDEX pin,uint32_t mode,
                             void (*hdr)(void *args), void *args)
 {
     if (pin >= GPIONUM)
@@ -167,7 +165,7 @@ int djy_gpio_attach_irq(GPIO_INDEX pin,uint32_t mode,
 }
 
 
-int djy_gpio_irq_enable( GPIO_INDEX pin, uint32_t enabled)
+s32 djy_gpio_irq_enable( GPIO_INDEX pin, uint32_t enabled)
 {
     if (pin >= GPIONUM)
         return -1;
@@ -179,8 +177,75 @@ int djy_gpio_irq_enable( GPIO_INDEX pin, uint32_t enabled)
     return 0;
 }
 
-int ModuleInstall_GPIO(void)
+s32 Djy_GpioInit(void)
 {
     memset(&gpio_dev, 0, sizeof(gpio_dev));
     return 0;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+s32 PIN_Init(void *str,char *data,u32 len)
+{
+    s32 ret = 0;
+    u32 pinx=0;
+    u32 mode=PIN_MODE_OUTPUT;
+    u32 pupd=PIN_MODE_INPUT;
+
+    if(len>=1)
+        pinx = data[0];
+    if(len>=2)
+        mode = data[1];
+    if(len>=3)
+        pupd = data[2];
+
+    if(mode == PIN_MODE_INPUT)
+    {
+        mode = pupd;
+    }
+
+    djy_gpio_mode(pinx,mode);
+
+    if(mode == PIN_MODE_OUTPUT && pupd == PIN_MODE_INPUT_PULLUP)
+    {
+        djy_gpio_write(pinx,1);
+    }
+    else if(mode == PIN_MODE_OUTPUT && pupd == PIN_MODE_INPUT_PULLDOWN)
+    {
+        djy_gpio_write(pinx,0);
+    }
+
+//    printf("str is %s\r\n",str);
+//    printf("len is %d\r\n",len);
+//    printf("pinx is %d\r\n",pinx);
+//    printf("mode is %d\r\n",mode);
+
+    return ret;
+}
+
+u32 PIN_Get(void *str,char *data,u32 len)
+{
+   return djy_gpio_read(data[0]);
+}
+
+void PIN_SettoHigh(void *str,char *data,u32 len)
+{
+    djy_gpio_write(data[0],1);
+}
+
+void PIN_SettoLow(void *str,char *data,u32 len)
+{
+    djy_gpio_write(data[0],0);
+}
+
+void PIN_PowerOn(void *str,char *data,u32 len)
+{
+    printf("PIN_PowerOn\r\n");
+}
+
+void PIN_PowerOff(void *str,char *data,u32 len)
+{
+    printf("PIN_PowerOff\r\n");
+}
+#pragma GCC diagnostic pop

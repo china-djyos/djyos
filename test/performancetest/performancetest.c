@@ -56,7 +56,8 @@
 #include "int.h"
 #include "lock.h"
 #include "atomic.h"
-#include "project_config.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 #include "stdlib.h"
 #include "string.h"
 #include "timer_hard.h"
@@ -129,7 +130,7 @@ ptu32_t Test_MutexHighPrioEvent(void)
     {
         TimeRecordStart = __Test_TimerStart();
         Lock_MutexPend(TestMutex, CN_TIMEOUT_FOREVER); //肯定导致阻塞，切换到高优先级线程
-        Djy_EventDelay(1000);
+        DJY_EventDelay(1000);
         Lock_MutexPost(TestMutex);   //释放会使高优先级线程得到互斥量，产生抢占
         if(TestEnd)
             break;
@@ -143,7 +144,7 @@ ptu32_t Test_MutexLowPrioEvent(void)
     while(1)                  //设置时候应为2的整数倍
     {
         Lock_MutexPend(TestMutex, CN_TIMEOUT_FOREVER);
-        Djy_EventDelay(1000);
+        DJY_EventDelay(1000);
         TimeRecordStart = __Test_TimerStart();
         Lock_MutexPost(TestMutex);   //释放会使高优先级线程得到互斥量，产生抢占
         if(TestEnd)
@@ -168,33 +169,33 @@ void Test_MutexTest(void)
         return;
     }
     //注册线程1 优先级为30,该线程优先级高,且先弹出，必先运行
-    evttID1 = Djy_EvttRegist(EN_CORRELATIVE,30,0,0,
+    evttID1 = DJY_EvttRegist(EN_CORRELATIVE,30,0,0,
                         Test_MutexHighPrioEvent,NULL,1000,NULL);
 
     if(evttID1 !=CN_EVTT_ID_INVALID)
     {
-        Djy_RegisterHook(evttID1,Test_HighPrioHook);
-        Djy_EventPop(evttID1,NULL,0,0,0,0);
+        DJY_RegisterHook(evttID1,Test_HighPrioHook);
+        DJY_EventPop(evttID1,NULL,0,0,0,0);
     }
      //注册线程2,优先级为40,该线程优先级低,
-    evttID2 = Djy_EvttRegist(EN_CORRELATIVE,40,0,0,
+    evttID2 = DJY_EvttRegist(EN_CORRELATIVE,40,0,0,
                         Test_MutexLowPrioEvent,NULL,1000,NULL);
 
     if(evttID2!=CN_EVTT_ID_INVALID)
     {
-        Djy_RegisterHook(evttID2,Test_LowPrioHook);
+        DJY_RegisterHook(evttID2,Test_LowPrioHook);
         //测试的时候保证当期线程的最高优先级为该B线程,防调度的时候第一个获取得到Cpu执行权的不是该线程
-        Djy_EventPop(evttID2,NULL,0,0,0,0);
+        DJY_EventPop(evttID2,NULL,0,0,0,0);
     }
-    Djy_SetEventPrio(Djy_MyEventId(), CN_PRIO_RRS);     //使被测试线程是高优先级线程
+    DJY_SetEventPrio(DJY_GetMyEventId(), CN_PRIO_RRS);     //使被测试线程是高优先级线程
     for(loop = 0; loop < sizeof(Cpu_Tatio) / sizeof(u8); loop++)
     {
-        atom_set32(&TestOffset,0);
-        atom_set32(&TestOffset2,0);
+        Atom_Set32(&TestOffset,0);
+        Atom_Set32(&TestOffset2,0);
         while(1)
         {
-            Djy_DelayUs(Cpu_Tatio[loop]*100);
-            Djy_EventDelay(10000 - Cpu_Tatio[loop]*100);
+            DJY_DelayUs(Cpu_Tatio[loop]*100);
+            DJY_EventDelay(10000 - Cpu_Tatio[loop]*100);
             if(TestOffset2>=CN_TEST_TIMES+2)         //测试完成则释放资源
             {
                 break;
@@ -206,9 +207,9 @@ void Test_MutexTest(void)
         printf("\r\r\n");
     }
     TestEnd = true;
-    Djy_EventDelay(2000);       //wait for release evtt
-    Djy_EvttUnregist(evttID1);
-    Djy_EvttUnregist(evttID2);
+    DJY_EventDelay(2000);       //wait for release evtt
+    DJY_EvttUnregist(evttID1);
+    DJY_EvttUnregist(evttID2);
     Lock_MutexDelete(TestMutex);
 }
 
@@ -228,7 +229,7 @@ ptu32_t Test_SempLowPrioEvent(void)
         Lock_SempPost(TestSemp);//释放的时候会产生调度,此时会重新切换回B线程
         if(TestEnd)
             break;
-        Djy_EventDelay(1000);
+        DJY_EventDelay(1000);
     }
     return 0;
 }
@@ -249,7 +250,7 @@ ptu32_t Test_SempHighPrioEvent(void)
         Lock_SempPend(TestSemp, CN_TIMEOUT_FOREVER);
         if(TestEnd)
             break;
-        Djy_EventDelay(1000);
+        DJY_EventDelay(1000);
     }
     return 0;
 }
@@ -352,35 +353,35 @@ void Test_SempTest(void)
         return;
     }
     //注册线程B 优先级为30,该线程优先级高,且先弹出，必先运行
-    evttID1 = Djy_EvttRegist(EN_CORRELATIVE,30,0,0,
+    evttID1 = DJY_EvttRegist(EN_CORRELATIVE,30,0,0,
                         Test_SempHighPrioEvent,NULL,3000,NULL);
 
     if(evttID1 !=CN_EVTT_ID_INVALID)
     {
         //注册线程B的钩子函数:注意-只要该线程引起调度(切换/切入以及切出都会调用)
-        Djy_RegisterHook(evttID1,Test_HighPrioHook);
-        Djy_EventPop(evttID1,NULL,0,0,0,0);
+        DJY_RegisterHook(evttID1,Test_HighPrioHook);
+        DJY_EventPop(evttID1,NULL,0,0,0,0);
     }
      //注册线程A,优先级为40,该线程优先级低,
-    evttID2 = Djy_EvttRegist(EN_CORRELATIVE,40,0,0,
+    evttID2 = DJY_EvttRegist(EN_CORRELATIVE,40,0,0,
                         Test_SempLowPrioEvent,NULL,3000,NULL);
 
     if(evttID2!=CN_EVTT_ID_INVALID)
     {
         //线程B注册钩子函数,钩子函数中判断是切入还是切出，A->B 还是B->A
-        Djy_RegisterHook(evttID2,Test_LowPrioHook);
+        DJY_RegisterHook(evttID2,Test_LowPrioHook);
         //测试的时候保证当期线程的最高优先级为该B线程,防调度的时候第一个获取得到Cpu执行权的不是该线程
-        Djy_EventPop(evttID2,NULL,0,0,0,0);
+        DJY_EventPop(evttID2,NULL,0,0,0,0);
     }
 
     for(loop = 0; loop < sizeof(Cpu_Tatio) / sizeof(u8); loop++)
     {
-        atom_set32(&TestOffset,0);
-        atom_set32(&TestOffset2,0);
+        Atom_Set32(&TestOffset,0);
+        Atom_Set32(&TestOffset2,0);
         while(1)
         {
-            Djy_DelayUs(Cpu_Tatio[loop]*100);
-            Djy_EventDelay(10000 - Cpu_Tatio[loop]*100);
+            DJY_DelayUs(Cpu_Tatio[loop]*100);
+            DJY_EventDelay(10000 - Cpu_Tatio[loop]*100);
             if(TestOffset2>=CN_TEST_TIMES+2)         //测试完成则释放资源
             {
                 break;
@@ -392,9 +393,9 @@ void Test_SempTest(void)
         printf("\r\n");
     }
     TestEnd = true;
-    Djy_EventDelay(2000);       //wait for release evtt
-    Djy_EvttUnregist(evttID1);
-    Djy_EvttUnregist(evttID2);
+    DJY_EventDelay(2000);       //wait for release evtt
+    DJY_EvttUnregist(evttID1);
+    DJY_EvttUnregist(evttID2);
     Lock_SempDelete(TestSemp);
 }
 
@@ -437,20 +438,20 @@ void Test_EventDelay(void)
     u16 evttID;
 
     TestEnd = false;
-    atom_set32(&TestOffset,0);
+    Atom_Set32(&TestOffset,0);
     //start to run low pro thread
-    evttID = Djy_EvttRegist(EN_CORRELATIVE,249,0,0,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE,249,0,0,
                             Test_DelayThreadLow,NULL,1000,NULL);
     //事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数
     if(evttID!=CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(evttID,NULL,0,0,0,0);
-        Djy_RegisterHook(evttID, Test_HighPrioHook);
+        DJY_EventPop(evttID,NULL,0,0,0,0);
+        DJY_RegisterHook(evttID, Test_HighPrioHook);
     }
     while(1)
     {
         TimeRecordStart = __Test_TimerStart();
-        Djy_EventDelay(1000);
+        DJY_EventDelay(1000);
         if(TestOffset>=CN_TEST_TIMES+2)         //测试完成则释放资源
         {
             break;
@@ -458,7 +459,7 @@ void Test_EventDelay(void)
     }
     Test_ShowValue(TimeRecord, 0, u32g_TimerFreq,"高优先级时间EventDelay导致切换到低优先级事件的切换时间");
     TestEnd = true;
-    Djy_EvttUnregist(evttID);
+    DJY_EvttUnregist(evttID);
 }
 //高优先级线程
 
@@ -467,7 +468,7 @@ ptu32_t Test_PopThreadHight(void)
     u32 ptimes = 1;
     while(1)
     {
-        Djy_WaitEvttPop(Djy_MyEvttId(), &ptimes, CN_TIMEOUT_FOREVER);
+        DJY_WaitEvttPop(DJY_GetMyEvttId(), &ptimes, CN_TIMEOUT_FOREVER);
         if(TestEnd)
             break;
     }
@@ -487,20 +488,20 @@ void Test_PopHighPrioEvent(void)
 
     printf(" ***************** 弹出高优先级事件导致抢占速度测试 ***************** \r\n\n");
     TestEnd = false;
-    atom_set32(&TestOffset,0);
+    Atom_Set32(&TestOffset,0);
     //start to run low pro thread
-    evttID = Djy_EvttRegist(EN_CORRELATIVE,30,0,0,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE,30,0,0,
                             Test_PopThreadHight,NULL,1000,NULL);
     if(evttID!=CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(evttID,NULL,0,0,0,0);
-        Djy_RegisterHook(evttID, Test_HighPrioHook);
+        DJY_EventPop(evttID,NULL,0,0,0,0);
+        DJY_RegisterHook(evttID, Test_HighPrioHook);
     }
     while(1)
     {
         TimeRecordStart = __Test_TimerStart();
-        Djy_EventPop(evttID,NULL,0,0,0,0);
-        Djy_EventDelay(1000);
+        DJY_EventPop(evttID,NULL,0,0,0,0);
+        DJY_EventDelay(1000);
         if(TestOffset>=CN_TEST_TIMES+2)         //测试完成则释放资源
         {
             break;
@@ -508,7 +509,7 @@ void Test_PopHighPrioEvent(void)
     }
     Test_ShowValue(TimeRecord, 0, u32g_TimerFreq,"弹出高优先级事件后切换到高优先级事件切换时间");
     TestEnd = true;
-    Djy_EvttUnregist(evttID);
+    DJY_EvttUnregist(evttID);
 }
 
 ptu32_t Test_IntSyncThread(void)
@@ -539,25 +540,25 @@ void Test_IntSync(void)
 
     printf(" ***************** 中断同步事件响应速度测试 ***************** \r\n\n");
     TestEnd = false;
-    atom_set32(&TestOffset,0);
-    atom_set32(&TestOffset2,0);
+    Atom_Set32(&TestOffset,0);
+    Atom_Set32(&TestOffset2,0);
 
-    evttID = Djy_EvttRegist(EN_CORRELATIVE,30,0,0,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE,30,0,0,
                             Test_IntSyncThread,NULL,2000,NULL);
     if(evttID!=CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(evttID,NULL,0,0,0,0);
-        Djy_RegisterHook(evttID, Test_IntSyncHook);
+        DJY_EventPop(evttID,NULL,0,0,0,0);
+        DJY_RegisterHook(evttID, Test_IntSyncHook);
     }
 
     for(loop = 0; loop < sizeof(Cpu_Tatio) / sizeof(u8); loop++)
     {
-        atom_set32(&TestOffset,0);
-        atom_set32(&TestOffset2,0);
+        Atom_Set32(&TestOffset,0);
+        Atom_Set32(&TestOffset2,0);
         while(1)
         {
-            Djy_DelayUs(Cpu_Tatio[loop]*100);
-            Djy_EventDelay(10000 - Cpu_Tatio[loop]*100);
+            DJY_DelayUs(Cpu_Tatio[loop]*100);
+            DJY_EventDelay(10000 - Cpu_Tatio[loop]*100);
             if(TestOffset2>=CN_TEST_TIMES+2)         //测试完成则释放资源
             {
                 break;
@@ -568,8 +569,8 @@ void Test_IntSync(void)
         printf("\r\n");
     }
     TestEnd = true;
-    Djy_EventDelay(2000);
-    Djy_EvttUnregist(evttID);
+    DJY_EventDelay(2000);
+    DJY_EvttUnregist(evttID);
 }
 
 ptu32_t SysMeaNoSwiPthread(void)
@@ -590,18 +591,18 @@ void Test_coreFunc(void)
     u32 loop;
 
     printf(" ***************** 核心功能函数执行时间测试 ***************** \r\n\n");
-    evttID = Djy_EvttRegist(EN_CORRELATIVE,249,0,0,
+    evttID = DJY_EvttRegist(EN_CORRELATIVE,249,0,0,
                     SysMeaNoSwiPthread,NULL,2000,NULL);
 
     if(evttID!=CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(evttID,NULL,0,0,0,0);
+        DJY_EventPop(evttID,NULL,0,0,0,0);
     }
     //测试Djy_EventPop执行时间，但不创建事件控制块
     for(loop = 0; loop < CN_TEST_TIMES+2; loop++)
     {
         TimeRecordStart = __Test_TimerStart();
-        Djy_EventPop(evttID,NULL,0,0,0,0);
+        DJY_EventPop(evttID,NULL,0,0,0,0);
         __Test_TimerEnd(&TimeRecordEnd);
         TimeRecord[loop] = TimeRecordEnd - TimeRecordStart - u32g_GetTimeCost;
     }
@@ -611,9 +612,9 @@ void Test_coreFunc(void)
     //测试Djy_EventPop执行时间，需要创建事件控制块
     for(loop = 0; loop < CN_TEST_TIMES+2; loop++)
     {
-        Djy_EventDelay(1000);   //将引发新弹出的事件处理完毕，使下一次弹出须创建事件控制块
+        DJY_EventDelay(1000);   //将引发新弹出的事件处理完毕，使下一次弹出须创建事件控制块
         TimeRecordStart = __Test_TimerStart();
-        Djy_EventPop(evttID,NULL,0,0,0,0);
+        DJY_EventPop(evttID,NULL,0,0,0,0);
         __Test_TimerEnd(&TimeRecordEnd);
         TimeRecord[loop] = TimeRecordEnd - TimeRecordStart - u32g_GetTimeCost;
     }
@@ -692,11 +693,11 @@ void Test_IntISRTest(EN_INT_FLAG MeaType)
     HardTimer_Ctrl(TimerHandle,EN_TIMER_SETINTPRO,MeaType);    //设置实时信号
     for(loop = 0; loop < sizeof(Cpu_Tatio) / sizeof(u8); loop++)
     {
-        atom_set32(&TestOffset,0);
+        Atom_Set32(&TestOffset,0);
         while(1)
         {
-            Djy_DelayUs(Cpu_Tatio[loop]*100);
-            Djy_EventDelay(10000 - Cpu_Tatio[loop]*100);
+            DJY_DelayUs(Cpu_Tatio[loop]*100);
+            DJY_EventDelay(10000 - Cpu_Tatio[loop]*100);
             if(TestOffset>=CN_TEST_TIMES+2)         //测试完成则释放资源
             {
                 break;

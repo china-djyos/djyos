@@ -28,7 +28,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"spi bus","cpu onchip spi"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -171,14 +171,14 @@ static bool_t _AD7606_ConvFinished(void)
     u32 timeout = 500;
     u32 data;
 
-    Djy_DelayUs(4);         //过采样的最大采样时间是315uS
+    DJY_DelayUs(4);         //过采样的最大采样时间是315uS
 
     while(1)
     {
         data = GPIO_DataGet(ADBUSY_PORT);
         if( (!(data & (1 << ADBUSY_PIN))) || (timeout == 0) )
             break;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
         timeout--;
     }
     if(timeout)

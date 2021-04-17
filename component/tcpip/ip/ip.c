@@ -122,6 +122,8 @@ bool_t IpUnInstallProto(const char *name,u8 proto,fnIpProto handler)
     return false;
 }
 
+#pragma GCC diagnostic pop
+
 //find the the hash
 tagIpProto *IpProtoFind(u8 proto)
 {
@@ -173,7 +175,7 @@ static bool_t  __IpPushNew(struct NetDev *iface,struct NetPkg *pkg)
     TCPIP_DEBUG_INC(gIpCtrl.debug.rcvnum);
     if((NULL != iface)&& (NULL!= pkg))
     {
-        devfunc = NetDevFunc(iface);
+        devfunc = NetDev_GetFunc(iface);
         ipv = *(u8 *)PkgGetCurrentBuffer(pkg);
 //      ipv = *(u8 *)(pkg->buf + pkg->offset);
         ipv = (ipv >>4)&CN_IP_VERMASK;
@@ -190,7 +192,7 @@ static bool_t  __IpPushNew(struct NetDev *iface,struct NetPkg *pkg)
             //do nothing here, unknown internet protocol version
         }
     }
-    return 0;
+    return ret;
 }
 
 // =============================================================================
@@ -372,8 +374,7 @@ bool_t IpInit(void)
     bool_t ret = false;
 //    Ipv4Init();
     memset((void *)&gIpCtrl,0,sizeof(gIpCtrl));
-    ret= LinkPushRegister(EN_LINKPROTO_IPV4,__IpPushNew);
+    ret= Link_PushRegister(EN_LINKPROTO_IPV4,__IpPushNew);
     return ret;
 }
 
-#pragma GCC diagnostic pop

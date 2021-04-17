@@ -99,7 +99,7 @@ static bool_t __wait_end_s29glxxx(u32 delay_us)
         b=*(u16 *)cn_flash_base_addr;
         if(a==b)
             return(true);
-        Djy_DelayUs(1);   //—” ±1uS
+        DJY_DelayUs(1);   //—” ±1uS
     }
     return(false);
 }
@@ -123,7 +123,7 @@ static bool_t __wait_erase_end_s29glxxx(void)
         b=*(u16 *)cn_flash_base_addr;
         if(a==b)
             return(true);
-        Djy_DelayUs(100000);
+        DJY_DelayUs(100000);
     }
     return(false);
 }

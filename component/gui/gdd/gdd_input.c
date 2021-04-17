@@ -60,19 +60,13 @@
 //------------------------------------------------------
 #include <stdint.h>
 #include <lock.h>
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include <hmi-input.h>
-#include <gui/gdd/gdd_private.h>
+#include    "gdd_private.h"
 #include "dbug.h"
 static tpInputMsgQ sg_ptGddMsgQ;
 
 
-
-tpInputMsgQ GDD_AddInputD()
-{
-
-   return  sg_ptGddMsgQ;
-}
 //-----------------------------------------------------------------------------
 //功能：添加输入设备，用于接收来自HMI设备的输入消息。
 //参数：用于GDD的输入设备名。注意，非设计用于GDD的输入设备，不放在这里。
@@ -121,9 +115,9 @@ bool_t GDD_DeleteInputDev(const char *InputDevName)
 //-----------------------------------------------------------------------------
 bool_t GDD_InputDevInit(void)
 {
-    GDD_StartTimer(GDD_CreateTimer(GetDesktopWindow( ), CN_HMIINPUT_TIMER_ID, 30));
+    GDD_StartTimer(GDD_CreateTimer(GDD_GetDesktopWindow( ), CN_HMIINPUT_TIMER_ID, 30));
 
-    sg_ptGddMsgQ = HmiIn_CreatInputMsgQ(20,"input_msg");
+    sg_ptGddMsgQ = HmiIn_CreatInputMsgQ(20);
 
     if(sg_ptGddMsgQ == NULL)
     {
@@ -148,7 +142,7 @@ void GDD_HmiInput(void)
         {
             struct SingleTouchMsg *TouchMsg;
             static s32 z=0;
-            s32 Touch_Msg;
+            u16 Touch_Msg;
             bool_t NC;
             POINT pt;
             RECT rc;
@@ -158,46 +152,48 @@ void GDD_HmiInput(void)
             __GDD_Lock();
             //TouchDown所在窗口.
             if(TouchMsg->display != NULL)
-                hwnd = GetWindowFromPoint(TouchMsg->display->desktop, &pt);
+                hwnd = GDD_GetWindowFromPoint(TouchMsg->display->desktop, &pt);
             else
-                hwnd = GetWindowFromPoint(GetDesktopWindow()->pGkWin, &pt);
-            //MoveWindow(sg_pMouseHwnd, pt.x-4, pt.y-4);
-            UpdateDisplay(CN_TIMEOUT_FOREVER);
+                hwnd = GDD_GetWindowFromPoint(GDD_GetDesktopWindow()->pGkWin, &pt);
+            //GDD_MoveWindow(sg_pMouseHwnd, pt.x-4, pt.y-4);
+//          GDD_UpdateDisplay(CN_TIMEOUT_FOREVER);
             if(hwnd != NULL)
             {
-                GetClientRectToScreen(hwnd,&rc);
-                if(PtInRect(&rc, &pt))
+                GDD_GetClientRectToScreen(hwnd,&rc);
+                if(GDD_PtInRect(&rc, &pt))
                     NC = false;
                 else
                     NC = true;
 
-                if(z == TouchMsg->z)    //相等，必然是按下并拖动
+                z = TouchMsg->z;
+                if(z>0)     //touch按下或者滑动
                 {
-                    if(NC )
-                        Touch_Msg = MSG_TOUCH_MOVE;
-                    else
-                        Touch_Msg = MSG_NCTOUCH_MOVE;
-                    PostMessage(hwnd, Touch_Msg, 0, (pt.y << 16) | pt.x);
-                }
-                else
-                {
-                    z = TouchMsg->z;
-                    if(z>0)     //touch按下，模拟成鼠标左键按下
+                    if((TouchMsg->MoveX ==0) && (TouchMsg->MoveY ==0))
                     {
                         if(NC)
                             Touch_Msg = MSG_NCTOUCH_DOWN;
                         else
                             Touch_Msg = MSG_TOUCH_DOWN;
                     }
-                    else        //touch离开，模拟成鼠标左键松开
+                    else
                     {
                         if(NC)
-                            Touch_Msg = MSG_NCTOUCH_UP;
+                            Touch_Msg = MSG_NCTOUCH_MOVE;
                         else
-                            Touch_Msg = MSG_TOUCH_UP;
+                            Touch_Msg = MSG_TOUCH_MOVE;
                     }
-                    PostMessage(hwnd, Touch_Msg, 0, (pt.y << 16) | pt.x);
                 }
+                else        //touch离开
+                {
+                    if(NC)
+                        Touch_Msg = MSG_NCTOUCH_UP;
+                    else
+                        Touch_Msg = MSG_TOUCH_UP;
+                }
+                GDD_PostMessage(hwnd, Touch_Msg,
+                            ((u16)(TouchMsg->MoveY) << 16) | (u16)(TouchMsg->MoveX),
+                            ((u16)(pt.y) << 16) | (u16)(pt.x));
+
             }
             __GDD_Unlock();
         }
@@ -208,7 +204,7 @@ void GDD_HmiInput(void)
             u8 val,event;
             u32 KeyTime;
 
-            hwnd = GetFocusWindow();
+            hwnd = GDD_GetFocusWindow();
             if(NULL != hwnd)
             {
                 key  = msg.input_data.key_board.key_value;
@@ -219,12 +215,12 @@ void GDD_HmiInput(void)
 
                 if(event==0x00)
                 {
-                    PostMessage(hwnd, MSG_KEY_DOWN, val, KeyTime);
+                    GDD_PostMessage(hwnd, MSG_KEY_DOWN, val, KeyTime);
                 }
 
                 if(event==0xF0)
                 {
-                    PostMessage(hwnd, MSG_KEY_UP, val, KeyTime);
+                    GDD_PostMessage(hwnd, MSG_KEY_UP, val, KeyTime);
                 }
             }
         }

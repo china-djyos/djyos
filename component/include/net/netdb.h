@@ -1,4 +1,4 @@
-//----------------------------------------------------
+//-----------------------------------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,8 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 //author:zhangqf
 //date  :下午12:51:14/2017年2月19日
 //usage :
@@ -56,19 +58,19 @@
 #ifndef __NETDB_H__
 #define __NETDB_H__
 
-extern int h_errno;
+extern s32 h_errno;
 //rpc_netdb.h
 struct rpcent
 {
   char *r_name;     /* Name of server for this rpc program.  */
   char **r_aliases; /* Alias list.  */
-  int r_number;     /* RPC program number.  */
+  s32 r_number;     /* RPC program number.  */
 };
 
-extern void setrpcent (int __stayopen) ;
+extern void setrpcent (s32 __stayopen) ;
 extern void endrpcent (void) ;
 extern struct rpcent *getrpcbyname (__const char *__name) ;
-extern struct rpcent *getrpcbynumber (int __number) ;
+extern struct rpcent *getrpcbynumber (s32 __number) ;
 extern struct rpcent *getrpcent (void) ;
 /* Address Information Errors.  The <netdb.h> header shall define the
  * following macros for use as error values for getaddrinfo() and
@@ -191,12 +193,34 @@ struct hostent
   char  *h_name;       /* Official name of the host. */
   char **h_aliases;    /* A pointer to an array of pointers to alternative
                             * host names, terminated by a null pointer. */
-  int        h_addrtype;   /* Address type.如 AF_INET  */
-  int        h_length;     /* The length, in bytes, of the address. */
+  s32        h_addrtype;   /* Address type.如 AF_INET  */
+  s32        h_length;     /* The length, in bytes, of the address. */
   char **h_addr_list;  /* A pointer to an array of pointers to network
                             * addresses (in network byte order) for the host,
                             * terminated by a null pointer. */
 };
+
+//添加hostent支持可重入问题。
+#define CN_RESULT_NUM     10
+#define DNS_NAME_LEN_MAX     64
+
+typedef struct StDnsResult{
+    char      arrDnsCNameAddr[CN_RESULT_NUM+1][DNS_NAME_LEN_MAX];
+    char      arrDnsINameAddrV4[CN_RESULT_NUM+1][4];
+}StDnsResult;
+
+typedef struct hostent_ext
+{
+    char *h_name;
+    char **h_aliases;
+    s32 h_addrtype;
+    s32 h_length;
+    char **h_addr_list;
+    char arr_name[100];
+    char *arr_aliases[CN_RESULT_NUM+1];
+    char *arr_addr_list[CN_RESULT_NUM+1];
+    struct StDnsResult dns_res;
+}hostent_ext;
 
 #define h_addr h_addr_list[0] /* For backward compatibility */
 
@@ -206,7 +230,7 @@ struct netent
                             * name of the host. */
   char **n_aliases;    /* A pointer to an array of pointers to alternative
                             * network names, terminated by a null pointer. */
-  int        n_addrtype;   /* The address type of the network. */
+  s32        n_addrtype;   /* The address type of the network. */
   uint32_t   n_net;        /* The network number, in host byte order. */
 };
 
@@ -216,7 +240,7 @@ struct protoent
   char **p_aliases;    /* A pointer to an array of pointers to
                             * alternative protocol names, terminated by a
                             * null pointer. */
-  int    p_proto;      /* The protocol number. */
+  s32    p_proto;      /* The protocol number. */
 };
 
 struct servent
@@ -225,7 +249,7 @@ struct servent
   char **s_aliases;    /* A pointer to an array of pointers to
                             * alternative service names, terminated by a
                             * null pointer.  */
-  int    s_port;       /* The port number at which the service resides,
+  s32    s_port;       /* The port number at which the service resides,
                             * in network byte order. */
   char  *s_proto;      /* The name of the protocol to use when
                             * contacting the service. */
@@ -233,10 +257,10 @@ struct servent
 
 struct addrinfo
 {
-  int        ai_flags;     /* Input flags.  */
-  int        ai_family;    /* Address family of socket.  */
-  int        ai_socktype;  /* Socket type.  */
-  int        ai_protocol;  /* Protocol of socket.  */
+  s32        ai_flags;     /* Input flags.  */
+  s32        ai_family;    /* Address family of socket.  */
+  s32        ai_socktype;  /* Socket type.  */
+  s32        ai_protocol;  /* Protocol of socket.  */
   socklen_t  ai_addrlen;   /* Length of socket address.  */
 
   struct sockaddr *ai_addr;      /* Socket address of socket.  */
@@ -244,15 +268,47 @@ struct addrinfo
   struct addrinfo *ai_next;      /* Pointer to next in list.  */
 };
 
-void NetDevPkgsndInc(struct NetDev *iface);
-void NetDevPkgsndErrInc(struct NetDev *iface);
-void NetDevPkgrcvInc(struct NetDev *iface);
-void NetDevPkgrcvErrInc(struct NetDev *iface);
+//外置协议栈接口定义，外置协议栈设备（例如cat.1）须实现这些接口，并在安装网卡时提供
+struct ExtStackOps
+{
+    //创建一个套接字，此函数4G模块无须实现。
+    s32 (*ExtSocket)(s32 family, s32 type, s32 protocol);
+    //绑定地址，此函数4G模块无须实现
+    s32 (*ExtBind)(s32 Sockfd,struct sockaddr *myaddr, s32 addrlen);
+    //启动一个tcp服务器，参数来自socket，当接收到客户端连接时，检查处于 CN_SOCKET_CLIENT
+    //状态的所有socket，看新连接属于谁，设置多路复用位
+    s32 (*ExtListen)(s32 Sockfd, s32 backlog);
+    //接受一个连接，此函数4G模块无须实现。
+    s32 (*ExtAccept)(s32 sockfd, struct SemaphoreLCB *rs);
+    //让一个客户端去连接服务器
+    s32 (*ExtConnect)(s32 sockfd,struct SemaphoreLCB *rs);
+    //发送数据
+    s32 (*ExtSend)(s32 sockfd, const void *msg, s32 len);
+    //接收数据
+    s32 (*ExtRecv)(s32 sockfd, void *buf,s32 len, u32 flags);
+    //直接发送数据到目的端
+    s32 (*ExtSendto)(s32 sockfd, const void *msg,s32 len, u32 flags,\
+              const struct sockaddr *addr, s32 addrlen);
+    //直接从目的端读取数据
+    s32 (*ExtRecvfrom)(s32 sockfd,void *buf, s32 len, u32 flags,\
+                struct sockaddr *addr, s32 *addrlen);
+    //关闭一个套接口
+    s32 (*ExtClose)(s32 sockfd);
+    //设置套接字选项
+    s32 (*ExtSetSockOpt)(s32 sockfd, s32 optname,const void *optval, s32 optlen);
+};
+
+
+void NetDev_PkgsndInc(struct NetDev *iface);
+void NetDev_PkgsndErrInc(struct NetDev *iface);
+void NetDev_PkgrcvInc(struct NetDev *iface);
+void NetDev_PkgrcvErrInc(struct NetDev *iface);
 struct servent *getservbyname(const char *name, const char *proto);
 struct hostent *gethostbyname(const char *name);
-int  gethostname(char *name, int len);
-int sethostname(const char *name, size_t len);
+struct hostent * gethostbyname_r(const char *name,struct hostent_ext *pnew);
+s32  gethostname(char *name, s32 len);
+s32 sethostname(const char *name, size_t len);
 
-int getaddrinfo( const char *hostname, const char *service, const struct addrinfo *hints, struct addrinfo **result );
+s32 getaddrinfo( const char *hostname, const char *service, const struct addrinfo *hints, struct addrinfo **result );
 void freeaddrinfo (struct addrinfo*ai);
 #endif /* __NETDB_H__ */

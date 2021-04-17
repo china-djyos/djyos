@@ -139,12 +139,12 @@ static inline __uint64_t __bswap64(__uint64_t _x)
 #define ___ntohl(x) __be32_to_cpu(x)
 #define ___ntohs(x) __be16_to_cpu(x)
 
-#if (!CFG_SUPPORT_RTT)
-#define htons(x) __htons(x)
-#define ntohs(x) __ntohs(x)
-#define htonl(x) __htonl(x)
-#define ntohl(x) __ntohl(x)
-#endif
+//#if (!CFG_SUPPORT_RTT)
+//#define htons(x) __htons(x)
+//#define ntohs(x) __ntohs(x)
+//#define htonl(x) __htonl(x)
+//#define ntohl(x) __ntohl(x)
+//#endif
 
 #endif // _GENERIC_H_
 

@@ -78,6 +78,7 @@
 #include "string.h"
 #include "stddef.h"
 #include "int_hard.h"
+#include "blackbox.h"
 #include "int.h"
 #include "djyos.h"
 
@@ -85,9 +86,10 @@
 
 struct IntLine *tg_pIntLineTable[CN_INT_LINE_LAST+1];
 struct IntMasterCtrl  tg_int_global;
+atom_low_t tg_IntAsynStatus;
 
-extern void __Djy_CutReadyEvent(struct EventECB *event);
-extern bool_t __Djy_Schedule(void);
+extern void __DJY_CutReadyEvent(struct EventECB *event);
+extern bool_t __DJY_Schedule(void);
 
 //----保存当前状态并禁止异步信号------------------------------------------------
 //功能：本函数是int_restore_asyn_signal()的姊妹函数，调用本函数使禁止次数增加，
@@ -101,12 +103,14 @@ void Int_SaveAsynSignal(void)
     if(tg_int_global.nest_asyn_signal != 0)
         return;
 
-    Int_CutAsynSignal();
+//  Int_CutAsynSignal();
+    if(tg_int_global.en_asyn_signal_counter==0)
+        tg_IntAsynStatus = Int_LowAtomStart();
     //达上限后再加会回绕到0
     if(tg_int_global.en_asyn_signal_counter != CN_LIMIT_UCPU)
         tg_int_global.en_asyn_signal_counter++;
     //原算法是从0->1的过程中才进入，但如果在en_asyn_signal_counter != 0的状态下
-    //因故障使中断关闭，将使用户后续调用的en_asyn_signal_counter起不到作用
+    //因故障使调度打开，将使用户后续调用的en_asyn_signal_counter起不到作用
     g_bScheduleEnable = false;
     return;
 }
@@ -152,18 +156,28 @@ void Int_RestoreAsynSignal(void)
         tg_int_global.en_asyn_signal_counter--;
     if(tg_int_global.en_asyn_signal_counter==0)
     {
-//        tg_int_global.en_asyn_signal = true;   //异步信号设为使能
-//        if(tg_int_global.en_trunk_counter == 0)
-//        {
-            g_bScheduleEnable = true;
-            if(g_ptEventRunning!= g_ptEventReady)
-            {
-                __Djy_Schedule();
+        g_bScheduleEnable = true;
+        //禁止中断期间，如果请求调度，将抛出异常，但依然执行调度，只能如此，因为禁止调度
+        //的话，将使程序根本无法运行，有些第三方库直接控制中断的，没办法。
+#ifndef CN_BEKEN_SDK_USE
+        if( Int_IsLowAtom(tg_IntAsynStatus))
+        {
+            struct BlackBoxThrowPara  parahead;
+            parahead.DecoderName = NULL;
+            parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
+            parahead.BlackBoxInfo = (u8*)"禁止中断期间发生调度";
+            parahead.BlackBoxInfoLen = sizeof("禁止中断期间请求调度");
+            parahead.BlackBoxType = CN_BLACKBOX_TYPE_SCH_DISABLE_INT;
+            BlackBox_ThrowExp(&parahead);
+        }
+#endif
+        if(g_ptEventRunning !=  g_ptEventReady)
+        {
+            __DJY_Schedule();
 //                Int_ContactAsynSignal();    //汇编中已经打开，无须再调用
-            }else
-                Int_ContactAsynSignal();
-//        }else
-//            Int_ContactAsynSignal();
+        }else
+            Int_LowAtomEnd(tg_IntAsynStatus);
+//          Int_ContactAsynSignal();
     }else
     {
         Int_CutAsynSignal();    //防止counter>0期间意外(bug)打开
@@ -526,9 +540,9 @@ bool_t Int_AsynSignalSync(ufast_t ufl_line)
     ptIntLine =tg_pIntLineTable[ufl_line];
     if( (ufl_line > CN_INT_LINE_LAST) || (ptIntLine == NULL) )
         return false;
-    if( !Djy_QuerySch())
+    if( !DJY_QuerySch())
     {   //禁止调度，不能进入异步信号同步状态。
-        Djy_SaveLastError(EN_KNL_CANT_SCHED);
+        DJY_SaveLastError(EN_KNL_CANT_SCHED);
         return false;
     }
     Int_SaveAsynSignal();   //在操作就绪队列期间不能发生中断
@@ -549,7 +563,7 @@ bool_t Int_AsynSignalSync(ufast_t ufl_line)
             return true;
         }
         //以下三行从就绪链表中取出running事件
-        __Djy_CutReadyEvent(g_ptEventRunning);
+        __DJY_CutReadyEvent(g_ptEventRunning);
         g_ptEventRunning->next = NULL;
         g_ptEventRunning->previous = NULL;
         g_ptEventRunning->event_status = CN_STS_WAIT_ASYN_SIGNAL;
@@ -590,7 +604,7 @@ bool_t Int_Register(ufast_t ufl_line)
     pIntLine->int_type = CN_ASYN_SIGNAL;    //设为异步信号
     pIntLine->clear_type = CN_INT_CLEAR_AUTO;//设为调用ISR前应答
     //所有中断函数指针指向空函数
-    pIntLine->ISR = (u32 (*)(ufast_t))NULL_func;
+    pIntLine->ISR = (u32 (*)(ufast_t))DJY_NullFunc;
     pIntLine->sync_event = NULL;                //同步事件空
     pIntLine->my_evtt_id = CN_EVTT_ID_INVALID;  //不弹出事件
 

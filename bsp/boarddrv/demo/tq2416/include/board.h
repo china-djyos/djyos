@@ -54,8 +54,6 @@ extern "C" {
 
 bool_t ModuleInstall_DM9000aBrd(const char *devname,u8 *mac);
 
-u32 TQ2416_EntrySleepReCall(u32 SleepLevel);
-u32 TQ2416_ExitSleepReCall(u32 SleepLevel);
 
 #ifdef __cplusplus
 }

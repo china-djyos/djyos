@@ -122,6 +122,12 @@
 
 #define ASO_IMDCT
 
+#define DJYOS
+
+#define FPM_ARM
+
+# define MAD_F_FRACBITS     28
+
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
 /* #undef WORDS_BIGENDIAN */

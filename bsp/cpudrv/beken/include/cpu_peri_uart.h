@@ -59,9 +59,9 @@
 extern "C" {
 #endif
 
-#define CN_UART1        (0U)
-#define CN_UART2        (1U)
-#define CN_UART_NUM     (2U)
+#define CN_UART1        (0)
+#define CN_UART2        (1)
+#define CN_UART_NUM     (2)
 
 
 #ifdef __cplusplus

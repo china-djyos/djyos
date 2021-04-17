@@ -51,7 +51,6 @@
 #include <types.h>
 #include <stddef.h>
 #include <list.h>
-//#include "project_config.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,0 +1,30 @@
+{
+	"board_name":"qh_1",
+	"cpus":{
+		"stm32f103xe":{
+			"clocks":{
+				
+			},
+			"chips":["EEPROM at24c02",
+			"LCD driver ili9325",
+			"stmpe811"],
+			"peripherals":["cpu_peri_dma",
+			"cpu_peri_emflash",
+			"cpu_peri_gpio",
+			"cpu_peri_iic",
+			"cpu_peri_lowpower",
+			"cpu_peri_rtc",
+			"cpu_peri_timer",
+			"cpu_peri_uart",
+			"cpu_peri_wdt",
+			"cpu_peri_hal"],
+			"mian_freq":0,
+			"memories":{
+				
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

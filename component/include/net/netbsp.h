@@ -52,7 +52,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define CN_ETH_MTU      1500
+#define CN_ETH_MTU      1400
 //一个PKGLST在传输的过程中，当某个PKG拥有CN_PKLGLST_END标记或者NULL == partnext，即可认为
 //该PKGLST结束，该特性在发送的时候尤其明显
 #define CN_PKLGLST_END   (1<<0)
@@ -60,42 +60,6 @@ struct NetPkg;
 struct NetDev;
 struct RoutItem4;
 struct RoutItem6;
-
-struct NetPkg *PkgMalloc(u16 bufsize,u8 flags);
-bool_t     PkgTryFreePart(struct NetPkg *pkg);
-bool_t     PkgTryFreeLst(struct NetPkg  *pkglst);
-bool_t     PkgTryFreeQ(struct NetPkg  *pkglst);
-bool_t     PkgCachedPart(struct NetPkg  *pkg);
-bool_t     PkgCachedLst(struct NetPkg   *pkglst);
-void PkgInit(struct NetPkg *pkg, u8 flag, u16 offset, u16 datalen, u8* buf);
-//struct NetPkg *PkgMalloc(u16 bufsize, u8 flags);
-//bool_t PkgTryFreePart(struct NetPkg *pkg);
-struct NetPkg *PkgGetNextUnit(struct NetPkg *NextUnit);
-void PkgSetNextUnit(struct NetPkg *pkg,struct NetPkg *NextUnit);
-u8* PkgGetCurrentBuffer(struct NetPkg *pkg);
-u8* PkgGetBuffer(struct NetPkg *pkg);
-void PkgSetBuffer(struct NetPkg *pkg, u8 *buf);
-u16 PkgGetDataLen(struct NetPkg *pkg);
-void PkgSetDataLen(struct NetPkg *pkg,u16 len);
-u16 PkgGetOffset(struct NetPkg *pkg);
-void PkgSetOffset(struct NetPkg *pkg,u16 offset);
-ptu32_t PkgGetPrivate(struct NetPkg *pkg);
-void PkgSetPrivate(struct NetPkg *pkg,ptu32_t PkgPrivate);
-bool_t PkgIsBufferEnd(struct NetPkg *pkg);
-void PkgMoveOffsetUp(struct NetPkg *pkg, u16 len);
-void PkgMoveOffsetDown(struct NetPkg *pkg, u16 len);
-u16 PkgListDatastatistics(struct NetPkg *pkg);
-u16 PkgFrameDatastatistics(struct NetPkg *pkg);
-u16 PkgListDataCopy(struct NetPkg *pkg,u8 *dst);
-u16 PkgFrameDataCopy(struct NetPkg *pkg,u8 *dst);
-void PkgCopyListToPkg(struct NetPkg *pkg,struct NetPkg *dst);
-void PkgCopyFrameToPkg(struct NetPkg *pkg,struct NetPkg *dst);
-//bool_t PkgTryFreeLst(struct NetPkg  *pkglst);
-//bool_t PkgTryFreeQ(struct NetPkg  *pkglst);
-//bool_t PkgCachedPart(struct NetPkg  *pkg);
-//bool_t PkgCachedLst(struct NetPkg   *pkglst);
-bool_t PkgModuleInit(void);
-//#define    PKG_ISLISTEND(pkg)      (pkg->pkgflag&CN_PKLGLST_END)
 
 //used to defines the net device task
 #define CN_IPDEV_TCPOCHKSUM  (1<<0)
@@ -154,7 +118,7 @@ enum EthFramType
 
 enum enLinkType
 {
-    EN_LINK_ETHERNET = 0,  //ethenet net device,ethernetII
+    EN_LINK_ETHERNET = 0,  //ethenet net device,ethernetII，即 802.3
     EN_LINK_RAW,           //raw,just do the ip frames,no other link
     EN_LINK_80211,
     EN_LINK_LAST,
@@ -173,11 +137,11 @@ enum enLinkProto
 enum NetDevEvent
 {
     //THE OLD ONES ARE DEPRECATED
-    EN_NETDEVEVENT_LINKDOWN = 0, //which means the phy down or network cable is pullout
-    EN_NETDEVEVENT_LINKUP,       //which means the phy up or network cable has been inserted ok
-    EN_NETDEVEVENT_IPGET,        //which means has get ip from dhcp or ppp
-    EN_NETDEVEVENT_IPRELEASE,    //which means has release ip to dhcp or ppp down
-    EN_NETDEVEVENT_RESET,        //which means the dev has been reset for some reason
+    EN_NETDEVEVENT_LINKDOWN = 0, //网卡停止工作，例如断电或者拔出网线
+    EN_NETDEVEVENT_LINKUP,       //网卡启动，例如接通电源或插入网线
+    EN_NETDEVEVENT_IPGET,        //from dhcp or ppp获得了IP
+    EN_NETDEVEVENT_IPRELEASE,    //release ip to dhcp or ppp down
+    EN_NETDEVEVENT_RESET,        //网卡因故被复位
     EN_NETDEVEVENT_BROAD_OVER,   //means the broad over
     EN_NETDEVEVENT_BROAD_LACK,   //means the broad lack
     EN_NETDEVEVENT_MULTI_OVER,   //means the multi over
@@ -207,45 +171,11 @@ struct NetDevPara
     fnIfSend       ifsend;   //dev snd function
 //  fnIfRecv       ifrecv;   //dev receive function，暂不用，考虑多路复用
     fnIfCtrl       ifctrl;   //dev ctrl or stat get fucntion
-    u32            devfunc;  //dev hard function,such as tcp chksum
+    u32            devfunc;  //网卡附加功能，参见netbsp.h中的 CN_IPDEV_TCPOCHKSUM 等定义
     u16            mtu;      //dev mtu
     void          *Private;  //the dev driver use this to has its owner property
     u8             mac[CN_MACADDR_LEN];   //mac address
 };
-struct NetDev   *NetDevInstall(struct NetDevPara *para);
-bool_t  NetDevUninstall(const char *name);
-const u8 *NetDevGetMac(struct NetDev *iface);
-const char *NetDevName(struct NetDev *iface);
-struct NetDev *NetDevGet(const char *ifname);
-bool_t NetDevSend(struct NetDev *iface,struct NetPkg *pkg,u32 devtask);
-bool_t NetDevPush(struct NetDev *iface,struct NetPkg *pkg);//if you get a package,you could call this function
-//handle :the netdevice you install (returned by NetDevInstall)
-//devname:if the netdevice is NULL,then we use the devname to search the device
-//hook   :which used to deal the device message has been triggled
-bool_t  NetDevRegisterEventHook(struct NetDev *handle, fnNetDevEventHook hook);
-//handle :the netdevice you install (returned by NetDevInstall)
-//devname:if the netdevice is NULL,then we use the devname to search the device
-//event  :the message want to send to the device
-bool_t  NetDevPostEvent(struct NetDev* handle,enum NetDevEvent event);
-bool_t  NetDevCtrl(struct NetDev* handle,enum NetDevCmd cmd, ptu32_t para);
-bool_t NetDevFlowSet(struct NetDev* handle,enum EthFramType type,\
-                     u32 llimit,u32 ulimit,u32 period,s32 enable);
-enum EthFramType NetDevFrameType(u8 *buf,u16 len);
-bool_t NetDevFlowCtrl(struct NetDev* handle,enum EthFramType type);
-
-void   *NetDevPrivate(struct NetDev *iface);
-
-////////////////////////defines for the link////////////////////////////////////////
-//the following we be cut in the socket.h
-//link function that driver should use
-//bool_t LinkPost(void* iface,struct NetPkg *pkg);
-//the hook function  module for the dev event
-//handle:which device has triggled the event
-//event :the message we has get
-//the user could use the following api to listen on more protocol or send specified frames
-typedef bool_t (*fnLinkProtoDealer)(struct NetDev *iface,struct NetPkg *pkg);
-bool_t LinkRegisterRcvHook(fnLinkProtoDealer hook, const char *ifname,u16 proto,const char *hookname);
-bool_t LinkUnRegisterRcvHook(const char *hookname);
 
 //////////////////////USED FOR THE ROUTER//////////////////////////////////
 //if you need to add a rout to the host,then the following will be used
@@ -272,14 +202,12 @@ typedef struct
     void *net;
     void *host;
     void *hop;
-    void *broad;
+    void *dns;
+    void *dnsbak;
     u8  prior;
     u16 flags;
     u16 mtu;
 }tagRouterPara;
-void  *RouterCreate(tagRouterPara *para);
-void   RouterRemoveByHandle(struct RoutItem4 *rout);
-void   RouterRemove(tagRouterPara *para);
 
 typedef struct
 {
@@ -290,7 +218,6 @@ typedef struct
     u32 dnsbak;
     u32 subnet;
     //above member has been abandoned
-    u32 broad;
     u32 multi;
     u32 hop;
     u32 host;
@@ -308,10 +235,109 @@ typedef struct
 }tagHostAddrV6;
 #define CN_ROUT_DHCP    (1<<0)  //use this bit to get ip address from the dhcp server
 #define CN_ROUT_NONE    (0)
+
+struct NetPkg *PkgMalloc(u16 bufsize,u8 flags);
+bool_t     PkgTryFreePart(struct NetPkg *pkg);
+//bool_t     PkgTryFreeLst(struct NetPkg  *pkglst);
+bool_t     PkgTryFreeQ(struct NetPkg  *pkglst);
+bool_t     PkgCachedPart(struct NetPkg  *pkg);
+bool_t     PkgCachedLst(struct NetPkg   *pkglst);
+void PkgInit(struct NetPkg *pkg, u8 flag, u16 offset, u16 datalen, u8* buf);
+//struct NetPkg *PkgMalloc(u16 bufsize, u8 flags);
+//bool_t PkgTryFreePart(struct NetPkg *pkg);
+struct NetPkg *PkgGetNextUnit(struct NetPkg *NextUnit);
+void PkgSetNextUnit(struct NetPkg *pkg,struct NetPkg *NextUnit);
+u8* PkgGetCurrentBuffer(struct NetPkg *pkg);
+u8* PkgGetBuffer(struct NetPkg *pkg);
+void PkgSetBuffer(struct NetPkg *pkg, u8 *buf);
+u16 PkgGetDataLen(struct NetPkg *pkg);
+void PkgSetDataLen(struct NetPkg *pkg,u16 len);
+u16 PkgGetOffset(struct NetPkg *pkg);
+void PkgSetOffset(struct NetPkg *pkg,u16 offset);
+ptu32_t PkgGetPrivate(struct NetPkg *pkg);
+void PkgSetPrivate(struct NetPkg *pkg,ptu32_t PkgPrivate);
+bool_t PkgIsBufferEnd(struct NetPkg *pkg);
+void PkgMoveOffsetUp(struct NetPkg *pkg, u16 len);
+void PkgMoveOffsetDown(struct NetPkg *pkg, u16 len);
+u16 PkgListDatastatistics(struct NetPkg *pkg);
+u16 PkgFrameDatastatistics(struct NetPkg *pkg);
+u16 PkgListDataCopy(struct NetPkg *pkg,u8 *dst);
+u16 PkgFrameDataCopy(struct NetPkg *pkg,u8 *dst);
+void PkgCopyListToPkg(struct NetPkg *pkg,struct NetPkg *dst);
+void PkgCopyFrameToPkg(struct NetPkg *pkg,struct NetPkg *dst);
+bool_t PkgModuleInit(void);
+
+struct in_addr;
+struct in6_addr;
+struct NetDev   *NetDev_Install(struct NetDevPara *para);
+bool_t  NetDev_Uninstall(const char *name);
+const u8 *NetDev_GetMac(struct NetDev *iface);
+struct NetDev *NetDev_ForEachFromDefault(struct NetDev *Current);
+const char *NetDev_GetName(struct NetDev *iface);
+struct NetDev *NetDev_GetHandle(const char *ifname);
+bool_t NetDev_Send(struct NetDev *iface,struct NetPkg *pkg,u32 devtask);
+bool_t Link_NetDevPush(struct NetDev *iface,struct NetPkg *pkg);//if you get a package,you could call this function
+//handle :the netdevice you install (returned by NetDev_Install)
+//devname:if the netdevice is NULL,then we use the devname to search the device
+//hook   :which used to deal the device message has been triggled
+bool_t  NetDev_RegisterEventHook(struct NetDev *handle, fnNetDevEventHook hook);
+//handle :the netdevice you install (returned by NetDev_Install)
+//devname:if the netdevice is NULL,then we use the devname to search the device
+//event  :the message want to send to the device
+bool_t  NetDev_PostEvent(struct NetDev* handle,enum NetDevEvent event);
+bool_t  NetDev_Ctrl(struct NetDev* handle,enum NetDevCmd cmd, ptu32_t para);
+bool_t NetDev_FlowSet(struct NetDev* handle,enum EthFramType type,\
+                     u32 llimit,u32 ulimit,u32 period,s32 enable);
+enum EthFramType NetDev_FrameType(u8 *buf,u16 len);
+bool_t NetDev_FlowCtrl(struct NetDev* handle,enum EthFramType type);
+s32 NetDev_DHCP_SET_GotIP_CB(const char *ifname, s32 (*cb_ip_got)(u32 *ip));
+
+void   *NetDev_GetPrivate(struct NetDev *iface);
+//here declares the function we need from other modules,and the application also
+//needs them
+u16 NetDev_GetMtu(struct NetDev *DevFace);
+u32 NetDev_GetFunc(struct NetDev *DevFace);
+enum enLinkType NetDev_GetType(struct NetDev *DevFace);
+struct LinkOps *NetDev_GetLinkOps(struct NetDev *DevFace);
+void NetDev_SetDefault(struct NetDev *NetDev);
+struct NetDev * NetDev_GetDefault(void);
+
 //usage:is ver is EN_IPV_4, then the netaddr is tagHostAddrV4,else  tagHostAddrV6
-bool_t RoutCreate(const char *ifname,enum_ipv_t ver,void *netaddr,u32 pro); //the parameter pro is abandoned
-bool_t DnsGet(enum_ipv_t ver,void *addr,void *addrbak);
-bool_t DnsSet(enum_ipv_t ver,void *addr,void *addrbak);
+bool_t NetDev_GetDefaultDns(enum_ipv_t ver,void *addr,void *addrbak);
+bool_t NetDev_SetDefaultDns(enum_ipv_t ver,void *addr,void *addrbak);
+bool_t NetDev_GetDns(enum_ipv_t ver,struct NetDev *NetDev,void *addr,void *addrbak);
+bool_t NetDev_SetDns(enum_ipv_t ver,struct NetDev *NetDev,void *addr,void *addrbak);
+bool_t NetDev_GetDefaultGateway(enum_ipv_t ver,void *addr);
+bool_t NetDev_SetDefaultGateway(enum_ipv_t ver,void *addr);
+bool_t NetDev_GetDefaultIP(enum_ipv_t ver,void *addr);
+bool_t NetDev_GetGateway(enum_ipv_t ver,struct NetDev *NetDev,void *addr);
+bool_t NetDev_SetGateway(enum_ipv_t ver,struct NetDev *NetDev,void *addr);
+struct RoutItem4 *NetDev_GetIPv4RoutEntry(struct NetDev *NetDev);
+struct RoutItem6 *NetDev_GetIPv6RoutEntry(struct NetDev *NetDev);
+void NetDev_SetIPv4RoutEntry(struct NetDev *NetDev, struct RoutItem4 *new_root);
+void NetDev_SetIPv6RoutEntry(struct NetDev *NetDev, struct RoutItem6 *new_root);
+void NetDev_AddIPv4RoutItem(struct NetDev *NetDev, struct RoutItem4 *v4Item);
+void NetDev_DelIPv4RoutItem(struct NetDev *NetDev, struct RoutItem4 *v4Item);
+void NetDev_AddIPv6RoutItem(struct NetDev *NetDev, struct RoutItem6 *v6Item);
+void NetDev_DelIPv6RoutItem(struct NetDev *NetDev, struct RoutItem6 *v4Item);
+u32 NetDev_GetIPv4Table(struct NetDev *NetDev, struct in_addr *v4Item);
+u32 NetDev_GetIPv6Table(struct NetDev *NetDev, struct in6_addr *v6Item);
+
+////////////////////////defines for the link////////////////////////////////////////
+//the following we be cut in the socket.h
+//link function that driver should use
+//bool_t LinkPost(void* iface,struct NetPkg *pkg);
+//the hook function  module for the dev event
+//handle:which device has triggled the event
+//event :the message we has get
+//the user could use the following api to listen on more protocol or send specified frames
+typedef bool_t (*fnLinkProtoDealer)(struct NetDev *iface,struct NetPkg *pkg);
+bool_t Link_RegisterRcvHook(fnLinkProtoDealer hook, const char *ifname,u16 proto,const char *hookname);
+bool_t Link_UnRegisterRcvHook(const char *hookname);
+
+void  *RouterCreate(tagRouterPara *para);
+void   RouterRemoveByHandle(struct RoutItem4 *rout);
+void   RouterRemove(tagRouterPara *para);
 
 
 #endif /* TCPIP_NETINCLUDE_NETBSP_H_ */

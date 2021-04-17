@@ -10922,22 +10922,43 @@ const WCHAR oem2uni[] = {
 
 
 
+#include <board-config.h>
+#include <endian.h>
+#include <loc_string.h>
 WCHAR ff_convert (  /* Converted code, 0 means conversion error */
     WCHAR   chr,    /* Character code to be converted */
     UINT    dir     /* 0: Unicode to OEMCP, 1: OEMCP to Unicode */
 )
 {
+#if 1
     WCHAR c;
-    if (dir)
-    {
-        mbtowc(&c,&chr,sizeof(WCHAR));
+    UINT temp;
+    if (chr < 0x80)
+    {   /* ASCII */
+        c = chr;
     }
     else
     {
-        wctomb(&c, chr);
+        if (dir)
+        {
+    //        mbtowc(&c,&chr,sizeof(WCHAR));
+            if(CN_CFG_BYTE_ORDER == CN_CFG_LITTLE_ENDIAN)
+            {
+                if(sizeof(unsigned short) == sizeof(WCHAR))    //fat文件系统会把字符，转成数字，系统如果是小端的话，要把这个数字，转换成大端。因为字符转Unicode是要大端的
+                    chr = swaps(chr);
+                else if(sizeof(unsigned int) == sizeof(WCHAR))
+                        chr = swapl(chr);
+            }
+                mbtowc(&temp,(char *)&chr,sizeof(WCHAR));
+            c = temp;
+        }
+        else
+        {
+            wctomb((char *)&c, chr);
+        }
     }
     return c;
-#if 0
+#else
     const WCHAR *p;
     WCHAR c;
     int i, n, li, hi;

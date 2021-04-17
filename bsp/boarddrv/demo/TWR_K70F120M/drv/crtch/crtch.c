@@ -69,19 +69,12 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_TOUCH_TWR_K70(struct GkWinObj *desktop,\
-//          const char *touch_dev_name);
-//    extern struct GkWinObj;
-//    struct GkWinObj *desktop;
-//    desktop = GK_GetDesktop(CFG_DESKTOP_NAME);
-//    if(NULL == desktop)
-//    {
-//        printf("Desktop Not Exist !\r\n");
-//    }
-//    else
-//   {
-//        ModuleInstall_TOUCH_TWR_K70(desktop,CFG_TOUCH_DEV_NAME);
-//   }
+//    extern bool_t ModuleInstall_TOUCH_TWR_K70(void);
+//    ModuleInstall_TOUCH_TWR_K70( );
+//#if(CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == true)
+//    extern bool_t GDD_AddInputDev(const char *InputDevName);
+//    GDD_AddInputDev(CFG_TOUCH_DEV_NAME);
+//#endif
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -90,7 +83,7 @@
 //attribute:bsp                                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                                     //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                                  //初始化时机，可选值：early，medium，later。
+//init time:medium                                  //初始化时机，可选值：early，medium，later, pre-main。
                                                     //表示初始化时间，分别是早期、中期、后期
 //dependence:"touch","graphical kernel","iicbus"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                                     //选中该组件时，被依赖组件将强制选中，
@@ -110,8 +103,8 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-#define CFG_DESKTOP_NAME                    "K70_DESKTOP"             //"name",桌面名称
-#define CFG_TOUCH_DEV_NAME                  "K70_TOUCH"               //"name",触摸名称
+#define CFG_DISPLAY_NAME            "K70_DISPLAY"             //"触摸设备所在显示器名称"
+#define CFG_TOUCH_DEV_NAME          "K70_TOUCH"               //"触摸设备名称"
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -362,9 +355,12 @@ static bool_t touch_hard_init(void);
 //      touch_dev_name:触摸屏设备名.
 //返回: 无
 //-----------------------------------------------------------------------------
-bool_t ModuleInstall_TOUCH_TWR_K70(struct GkWinObj *desktop,const char *touch_dev_name)
+bool_t ModuleInstall_TOUCH_TWR_K70(void)
 {
+    struct GkWinObj *desktop;
     static struct SingleTouchPrivate touch_dev;
+
+    desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
 
     ts_xsize =desktop->right-desktop->left;
     ts_ysize =desktop->bottom-desktop->top;
@@ -384,8 +380,8 @@ bool_t ModuleInstall_TOUCH_TWR_K70(struct GkWinObj *desktop,const char *touch_de
     }
     touch_ratio_adjust(desktop);
     touch_dev.read_touch = read_touch_data;
-    touch_dev.touch_loc.display = NULL;     //NULL表示用默认桌面
-    Touch_InstallDevice(touch_dev_name,&touch_dev);
+    touch_dev.touch_loc.display = GK_GetDisplay(CFG_DISPLAY_NAME);
+    Touch_InstallDevice(CFG_TOUCH_DEV_NAME,&touch_dev);
     return true;
 }
 
@@ -526,7 +522,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
 
             while(ts_is_down())
             {
-                Djy_DelayUs(100*mS);
+                DJY_DelayUs(100*mS);
             }
             pen_down_time=0;
             while(1)
@@ -543,7 +539,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
                 {
                     pen_down_time=0;
                 }
-                Djy_DelayUs(100*mS);
+                DJY_DelayUs(100*mS);
             }
 
             switch(step)
@@ -577,9 +573,9 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
         GK_SyncShow(1000*mS);
         while(ts_is_down())
         {
-            Djy_DelayUs(100*mS);
+            DJY_DelayUs(100*mS);
         }
-        Djy_DelayUs(500*mS);
+        DJY_DelayUs(500*mS);
 
     //    GK_DestroyWin(desktop);
         touch_init = fopen("sys:\\touch_init.dat","w+");

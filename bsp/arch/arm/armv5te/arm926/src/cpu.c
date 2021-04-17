@@ -189,7 +189,7 @@ u64 __DjyGetSysCnt(void)
 //      周期,需要使用原子操作。
 //参数：无
 //返回：当前时钟
-//说明: 这是一个桩函数,被systime.c文件的 DjyGetSysTime 函数调用。
+//说明: 这是一个桩函数,被systime.c文件的 DJY_GetSysTime 函数调用。
 //      如果systime不使用ticks作为时基，本函数可保持空函数。
 //-----------------------------------------------------------------------------
 u64 __DjyGetSysTime(void)
@@ -222,7 +222,7 @@ static u32 __DjyIsrTime(ptu32_t line)
 // 参数：无
 // 返回：无
 // =============================================================================
-void reboot(void)
+void CPU_Reboot(void)
 {
 
 }
@@ -231,7 +231,7 @@ void reboot(void)
 // 参数：无
 // 返回：无
 // =============================================================================
-void reset(void)
+void CPU_Reset(void)
 {
     volatile u32 *SWRST = (u32*)0x4C000044;
 
@@ -246,7 +246,7 @@ void reset(void)
 // 参数：无
 // 返回：无
 // =============================================================================
-void restart_system(void)
+void CPU_RestartSystem(void)
 {
 
 }

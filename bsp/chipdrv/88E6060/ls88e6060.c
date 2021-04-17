@@ -6,8 +6,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//  extern ptu32_t LS88e6060Init(u16 vlan[6]);
-//  LS88e6060ShellCmdInit();
+//  extern ptu32_t ModuleInstall_LS88e6060(void);
+//  ModuleInstall_LS88e6060();
 //%$#@end initcode  ****初始化代码结束
 //%$#@describe      ****组件描述开始
 //component name:"ls88e6060"//5口交换机驱动
@@ -15,9 +15,9 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"network config"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -32,7 +32,13 @@
 //#warning  " ls88e6060  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_LS88E6060    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,0,100,
+//%$#@num,0,255,
+#define CFG_VLAN_INIT_ADDR0      32           //"VLAN ADDR0"
+#define CFG_VLAN_INIT_ADDR1      32           //"VLAN ADDR1"
+#define CFG_VLAN_INIT_ADDR2      32           //"VLAN ADDR2"
+#define CFG_VLAN_INIT_ADDR3      32           //"VLAN ADDR3"
+#define CFG_VLAN_INIT_ADDR4      32           //"VLAN ADDR4"
+#define CFG_VLAN_INIT_ADDR5      31           //"VLAN ADDR5"
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
@@ -674,11 +680,18 @@ void LS88e6060ShellCmdInit(void)
 }
 
 //this is the 88e6060  initialize
-ptu32_t LS88e6060Init(u16 vlan[6])
+ptu32_t ModuleInstall_LS88e6060(void)
 {
     u8 i =0;
 
-    memcpy(gVlanInitialize,vlan,sizeof(gVlanInitialize));
+//    memcpy(gVlanInitialize,vlan,sizeof(gVlanInitialize));
+    gVlanInitialize[0] = CFG_VLAN_INIT_ADDR0;
+    gVlanInitialize[1] = CFG_VLAN_INIT_ADDR1;
+    gVlanInitialize[2] = CFG_VLAN_INIT_ADDR2;
+    gVlanInitialize[3] = CFG_VLAN_INIT_ADDR3;
+    gVlanInitialize[4] = CFG_VLAN_INIT_ADDR4;
+    gVlanInitialize[5] = CFG_VLAN_INIT_ADDR5;
+
     //check all the phy
     for(i =0; i< CN_DEV_NUM;i++)
     {

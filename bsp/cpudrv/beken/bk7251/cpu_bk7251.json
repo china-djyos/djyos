@@ -1,0 +1,24 @@
+{
+	"cpu_name":"bk7251",
+	"cores":[{
+		"resetAddr":"0x0",
+		"memories":{
+			"memory1":{
+				"size":"0x3b6000",
+				"type":"FLASH",
+				"startAddr":"0"
+			},
+			"memory2":{
+				"size":"0x40000",
+				"type":"RAM",
+				"startAddr":"0x400000"
+			},
+			"memory3":{
+				"size":"0x40000",
+				"type":"RAM",
+				"startAddr":"0x900000"
+			}
+		},
+		"coreClk":180
+	}]
+}

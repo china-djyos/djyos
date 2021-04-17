@@ -1,6 +1,6 @@
 #ifndef __AUDIO_PUB_H__
 #define __AUDIO_PUB_H__
-
+#include "common/typedef.h"        //lst
 #define AUD_FAILURE                  (1)
 #define AUD_SUCCESS                  (0)
 
@@ -58,7 +58,8 @@ enum
     AUD_ADC_CMD_PAUSE,
     AUD_ADC_CMD_DO_LINEIN_DETECT,
     AUD_ADC_CMD_SET_SAMPLE_RATE,
-    AUD_ADC_CMD_SET_VOLUME
+    AUD_ADC_CMD_SET_VOLUME,
+    AUD_ADC_CMD_SET_CHANNEL
 };
 
 typedef enum

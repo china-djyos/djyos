@@ -85,7 +85,7 @@ void start_menu(void)
   struct menu_item   *menutreenode;
   struct menu_displaypara  *operatingDispara;
   //设置鼠标焦点
-//  HmiIn_SetFocusDefault(Djy_MyEvttId());     //todo:设置焦点的函数变了。
+//  HmiIn_SetFocusDefault(DJY_GetMyEvttId());     //todo:设置焦点的函数变了。
 
   //开始测试菜单项
   printf("begin to test the menuitem tree!\n");
@@ -130,7 +130,7 @@ void start_menu(void)
     for ( ; ; )
     {
         //printf("---in main --3\n");
-//        input_msg = (struct InputDeviceMsg *)Djy_GetEventPara(NULL,NULL);
+//        input_msg = (struct InputDeviceMsg *)DJY_GetEventPara(NULL,NULL);
         if(HmiIn_ReadDefaultMsg(&input_msg,20*mS))
         {
             //查看是否单点触摸屏
@@ -158,7 +158,7 @@ void start_menu(void)
             }
 //          Djy_ParaUsed(0);
         }
-//      Djy_WaitEvttPop(Djy_MyEvttId(),NULL,20*mS);
+//      DJY_WaitEvttPop(DJY_GetMyEvttId(),NULL,20*mS);
     }
 }
 

@@ -55,7 +55,7 @@
 //------------------------------------------------------
 #include "stdint.h"
 
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "cpu_peri_uart.h"
 #include <cdef21469.h>
 #include "def21469.h"
@@ -78,7 +78,7 @@
 //attribute:bsp                       //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                    //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                       //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                    //初始化时机，可选值：early，medium，later。
+//init time:medium                    //初始化时机，可选值：early，medium，later, pre-main。
                                       //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","lock","uart device file"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                       //选中该组件时，被依赖组件将强制选中，
@@ -178,7 +178,7 @@ void __Uart_SendIntDisable(tag_UartReg volatile *reg)
 //参数: reg,被操作的寄存器组指针
 //返回: 无
 //-----------------------------------------------------------------------------
-void __Uart_SetBaud(tag_UartReg volatile *reg,u32 baud)
+void __UART_BaudSet(tag_UartReg volatile *reg,u32 baud)
 {
     u32 temp;
     /* Sets the Baud rate for UART0 */
@@ -195,7 +195,7 @@ void __Uart_SetBaud(tag_UartReg volatile *reg,u32 baud)
 //-----------------------------------------------------------------------------
 void __Uart_DefaultSet(tag_UartReg volatile *reg)
 {
-    __Uart_SetBaud(reg,115200);            //波特率设置
+    __UART_BaudSet(reg,115200);            //波特率设置
 
     /* Configures UART0 LCR */
     reg->rUART0LCR = UARTWLS8;              // word length 8
@@ -250,11 +250,11 @@ ptu32_t __Uart_Ctrl(djy_handle_t uart_dev,
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-            if(uart_port->baud !=data1)
-            {
-                uart_port->baud = data1;
-                __Uart_SetBaud((tag_UartReg *)uart_port->my_reg,data1);
-            }
+        if(uart_port->baud !=data1)
+        {
+            uart_port->baud = data1;
+            __UART_BaudSet((tag_UartReg *)uart_port->my_reg,data1);
+        }
             break;
         case CN_UART_RX_PAUSE:      //暂停接收
             __Uart_RecvIntDisable((tag_UartReg *)uart_port->my_reg);
@@ -295,7 +295,7 @@ u32 __Uart_SendDirectly(djy_handle_t uart_dev,
             && (timecount > 0))//超时或者发送缓冲为空时退出
         {
             timecount--;
-            Djy_DelayUs(1);
+            DJY_DelayUs(1);
         }
         if(timecount == 0)
             break;
@@ -307,7 +307,7 @@ u32 __Uart_SendDirectly(djy_handle_t uart_dev,
             && (timecount > 0))//超时或者发送缓冲为空时退出
         {
             timecount--;
-            Djy_DelayUs(1);
+            DJY_DelayUs(1);
         }
         if(timecount == 0)
             break;

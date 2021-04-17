@@ -125,7 +125,7 @@ void __GK_Bezier(struct GkscParaBezier *para);
 void __GK_Lineto(struct GkscParaLineto *para);
 void __GK_LinetoIe(struct GkscParaLineto *para);
 void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes);
-void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para);
+void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para);
 void __GK_GradientFillRect(struct GkscParaGradientFillWin *para);
 void __GK_FillWin(struct GkscParaFillWin *para);
 

@@ -14,9 +14,9 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"System:Message queue","none"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"message queue"    //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -31,8 +31,9 @@
 //#warning  " graphical_kernel  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_GRAPHICAL_KERNEL    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,256,16384,
-#define CFG_GKERNEL_CMD_DEEP        1024    //"缓冲区长度",gdd向gkernel传递命令的缓冲区长度（字节数）
+//%$#@num,128,16384,
+#define CFG_GKERNEL_CMD_DEEP        1024    //"命令缓冲区长度",上层应用（例如gdd）向gkernel传递命令的缓冲区长度（字节数）
+#define CFG_USER_REQUEST_DEEP       128     //"请求缓冲区长度",gkernel向上层请求命令的缓冲区长度（字节数）
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏

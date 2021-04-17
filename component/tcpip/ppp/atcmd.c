@@ -58,13 +58,11 @@
 #include <string.h>
 #include <os.h>
 #include <osarch.h>
+#include <misc/misc.h>
 //add your own specified header here
 #include <shell.h>
 #include "dbug.h"
 #include "iodev.h"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 static char pAtDevName[32]; //use this var to storage the at command device
 //-----------------------------------------------------------------------------
@@ -90,12 +88,16 @@ const char *AtDevGetDefault(void)
     return pAtDevName;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //bool_t AtDefaultDevGetShell(char *para)
 bool_t atdevget(char *para)
 {
     debug_printf("ATCOMMANDDEV","%s\n\r",AtDevGetDefault());
     return true;
 }
+#pragma GCC diagnostic pop
 
 //we use this for the at command
 //usage:we use this function to deal the at result as the args format
@@ -179,7 +181,7 @@ int AtCmd(const char *devname,char *cmd,u8 *buf,int buflen,int argc,char *argv[]
         goto EXIT_WRITEFAILED;
     }
 
-    Djy_EventDelay(1000*mS);//just wait for the echo back
+    DJY_EventDelay(1000*mS);//just wait for the echo back
     //if need the result,then we will wait for the timeout
     if((NULL != buf)&&(buflen>0))
     {
@@ -206,7 +208,7 @@ int AtCmd(const char *devname,char *cmd,u8 *buf,int buflen,int argc,char *argv[]
                 {
                     //do nothing
                 }
-                Djy_EventDelay(10*mS);//just wait for another package
+                DJY_EventDelay(10*mS);//just wait for another package
             }
             else
             {
@@ -800,6 +802,10 @@ s32 AtGetSignal(const char *atdev)
     }
     return result;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //static bool_t AtGetSignalShell(char *param)
 bool_t atsignal(char *param)
 {

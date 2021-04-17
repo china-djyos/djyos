@@ -54,7 +54,7 @@
 #include "cpu_peri.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "string.h"
 #include "uart_dma.h"
 #include "uart_dma.h"
@@ -107,7 +107,7 @@
 //attribute:bsp                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                     //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                   //初始化时机，可选值：early，medium，later。
+//init time:early                   //初始化时机，可选值：early，medium，later, pre-main。
                                     //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","lock","uart device file","cpu onchip xdma","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //选中该组件时，被依赖组件将强制选中，
@@ -310,7 +310,7 @@ static bool_t __UART_RxHadChar(tagUartReg volatile *reg)
 //参数: reg,被操作的寄存器组指针
 //返回: 无
 //-----------------------------------------------------------------------------
-static void __UART_SetBaud(tagUartReg volatile *reg,u32 baud)
+static void __UART_BaudSet(tagUartReg volatile *reg,u32 baud)
 {
     if(baud != 0)
     {
@@ -329,13 +329,13 @@ static void __UART_SetBaud(tagUartReg volatile *reg,u32 baud)
 //注意：ATMEL M7的UART不能修改数据位、停止位，但是在寄存器上面这些位预留，配置对UART无效
 //     ，只对USART有效
 //-----------------------------------------------------------------------------
-static void __UART_SetCom(tagUartReg volatile *reg,struct COMParam *Com)
+static void __UART_ComConfig(tagUartReg volatile *reg,struct COMParam *Com)
 {
     u32 mr;
     __UART_TxEnable(reg,0);
     __UART_RxEnable(reg,0);
 
-    __UART_SetBaud(reg,Com->BaudRate);
+    __UART_BaudSet(reg,Com->BaudRate);
 
     mr = (reg->UART_MR) & ( ~(7 << 9));
     //奇偶校验
@@ -782,7 +782,7 @@ static void __UART_HardInit(u8 SerialNo)
 
     reg = (tagUartReg *)tg_UART_Reg[SerialNo];
     __UART_ResetReg(reg);
-    __UART_SetBaud(reg,115200);            //波特率设置
+    __UART_BaudSet(reg,115200);            //波特率设置
     reg->UART_MR = 0x000;                  //偶校验，正常模式
     reg->UART_CR = ((1<<2)|(1<<3)|(1<<5)|
                     (1<<7)|(1<<8));         //接收发送都除能了
@@ -799,7 +799,7 @@ static void __UART_HardInit(u8 SerialNo)
 //       data,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 {
     u8 Port;
     s32 timeout = 10000;
@@ -836,14 +836,18 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-            __UART_SetBaud(Reg,data1);
-            if(Port >= CN_USART0)
-            {
-                s_UART_TimeOut[Port-CN_USART0] = data1;//timeout = 500ms
-            }
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(Reg, data);
+        }
             break;
         case CN_UART_COM_SET:
-            __UART_SetCom(Reg,(struct COMParam *)data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(Reg,COM);
+        }
             break;
 //        case CN_UART_HALF_DUPLEX_SEND:
 //            Board_UartHalfDuplexSend(Port);
@@ -852,7 +856,7 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 //            while((false == __UART_TxTranEmpty(Reg))&& (timeout > 10))
 //            {
 //                timeout -=10;
-//                Djy_DelayUs(10);
+//                DJY_DelayUs(10);
 //            }
 //            Board_UartHalfDuplexRecv(Port);
 //            break;
@@ -872,7 +876,7 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 //       timeout,超时时间，微秒
 // 返回: 发送的字节数
 // =============================================================================
-u32 __UART_SendStart(tagUartReg *Reg,u32 timeout)
+u32 __UART_SendStart(tagUartReg *Reg)
 {
     u8 Port,num;
     struct Object *UCB;
@@ -1060,7 +1064,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len) )
             break;

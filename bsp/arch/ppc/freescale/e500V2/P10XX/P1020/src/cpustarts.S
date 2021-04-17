@@ -142,10 +142,10 @@ __AsmRamStart:
 
 
     //do the cpu init
-    bl CpuInit
+    bl CPU_CpuInit
     //∑…œË∞…£¨…ŸƒÍ£°
     //start the os code
-    bl  Load_Preload
+    bl  Iboot_LoadPreload
 
   /*
 @-------------------------------------------------------------------------------

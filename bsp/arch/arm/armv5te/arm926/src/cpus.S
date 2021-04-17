@@ -86,7 +86,7 @@
 __asm_reset_thread:
         stmfd   sp!,{lr}
     ldr     r2,[r1,#4]          @取虚拟机栈顶指针
-    ldr     r3,=__Djy_VmEngine     @取虚拟机引擎指针
+    ldr     r3,=__DJY_VmEngine     @取虚拟机引擎指针
     stmfd   r2!,{r3}            @存pc，
     sub     r2,r2,#13*4         @后退13个寄存器,初始状态r1-r12随意，__vm_engine
                                                         @函数不返回，lr也无意义
@@ -119,9 +119,9 @@ __asm_reset_thread:
 __asm_reset_switch:
     .global __asm_reset_switch
     ldr     sp,[r2,#4]          @取老虚拟机栈顶指针
-    ldr     r12,=__Djy_VmEngine    @取虚拟机引擎指针
+    ldr     r12,=__DJY_VmEngine    @取虚拟机引擎指针
     stmfd   sp!,{r12}           @存pc
-    sub     sp,sp,#13*4         @后退13个寄存器,初始状态r1-r12随意.__Djy_VmEngine
+    sub     sp,sp,#13*4         @后退13个寄存器,初始状态r1-r12随意.__DJY_VmEngine
                                                         @函数不返回，lr也无意义
                                 @至此，完成老虚拟机复位
     stmfd   sp!,{r0}            @保存 thread_routine指针.

@@ -62,7 +62,7 @@
 // 	<e> BLE_APP_FFE0
 // 	<i> BLE_APP_FFE0 enable /disable 
 //  </e>
-#if ( 1 )
+#if ( 0 )
 #define CFG_APP_FFE0
 #endif
 
@@ -72,6 +72,22 @@
 //  </e>
 #if ( 1 )
 #define CFG_APP_FEB3
+#endif
+
+
+// 	<e> BLE_APP_MS
+// 	<i> BLE_APP_MS (Media) enable /disable 
+//  </e>
+#if ( 0 )
+#define CFG_APP_MS
+#endif
+
+
+// 	<e> BLE_APP_BTL
+// 	<i> BLE_APP_BTL enable /disable 
+//  </e>
+#if ( 1 )
+#define CFG_APP_BTL
 #endif
 
 
@@ -163,6 +179,19 @@
 #endif // (BLE_APP_FEB3)
 
 
+/// MS Media Service Application
+#if defined(CFG_APP_MS)
+#define BLE_APP_MS          1
+#else
+#define BLE_APP_MS          0
+#endif // defined(CFG_APP_MS)
+
+/// BTL Service Application
+#if defined(CFG_APP_BTL)
+#define BLE_APP_BTL          1
+#else
+#define BLE_APP_BTL          0
+#endif // defined(CFG_APP_BTL)
 
 /// Proximity  Service Application
 #if defined(CFG_APP_PXPR)

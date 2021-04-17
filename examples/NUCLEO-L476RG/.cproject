@@ -53,26 +53,29 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.unit.301023936" name="FPU Type" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.unit" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.unit.fpv4spd16" valueType="enumerated"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting.905543724" name="Create extended listing" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.1714242782" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
-							<builder arguments="SHELL=cmd.exe " buildPath="${workspace_loc:/ibootapp}/Iboot" id="ilg.gnuarmeclipse.managedbuild.cross.builder.2117188031" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
+							<builder arguments=" " buildPath="${workspace_loc:/ibootapp}/Iboot" id="ilg.gnuarmeclipse.managedbuild.cross.builder.2117188031" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1973155201" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.537697842" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.2048760237" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.295254312" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
-									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32L4=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32L476xx"/>
 								</option>
@@ -80,89 +83,41 @@
 							</tool>
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.139133937" name="Cross ARM GNU C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.1923777951" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/startup&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/blackbox&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/buffer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/utf8&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/dbug&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/flash&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/canbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus/ioiicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/spibus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/efs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/iap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gdd&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gkernel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/keypad&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/mouse&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/touch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/isbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/multiplex&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/shell&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/tcpip&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/timer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/wdt&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/ymodem&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/core&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/heap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/lock&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/msgqueue&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/drv/board&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/int&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/djyfs&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/userlib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/Include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1896801951" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
-									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32L4=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32L476xx"/>
 								</option>
@@ -170,84 +125,35 @@
 							</tool>
 							<tool command="${cross_prefix}${cross_cpp}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1587118629" name="Cross ARM GNU C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths.1655376661" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/startup&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/blackbox&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/buffer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/utf8&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/dbug&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/flash&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/canbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus/ioiicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/spibus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/efs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/iap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gdd&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gkernel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/keypad&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/mouse&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/touch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/isbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/multiplex&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/shell&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/tcpip&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/timer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/wdt&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/ymodem&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/core&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/heap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/lock&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/msgqueue&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/drv/board&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/int&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/djyfs&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/userlib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/Include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.518775643" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1480960829" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -255,9 +161,9 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.248576068" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.884807334" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
-									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32L4=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32L476xx"/>
 								</option>
@@ -276,7 +182,7 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.nostart.1763998564" name="Do not use standard start files (-nostartfiles)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.nostart" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.usenewlibnano.708764292" name="Use newlib-nano (--specs=nano.specs)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.usenewlibnano" value="true" valueType="boolean"/>
 							</tool>
-							<tool commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS} &amp;&amp; addsh.exe ${ConfigName}.elf" id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.1809932804" name="Cross ARM GNU C++ Linker" outputPrefix="" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker">
+							<tool commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} -Wl,--start-group ${INPUTS} -Wl,--end-group &amp;&amp; addsh.exe ${ConfigName}.elf" id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.1809932804" name="Cross ARM GNU C++ Linker" outputPrefix="" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.gcsections.148614316" name="Remove unused sections (-Xlinker --gc-sections)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.gcsections" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.paths.1130646555" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.paths" useByScannerDiscovery="false" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/libos_Iboot_Debug}&quot;"/>
@@ -380,26 +286,29 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.unit.407988092" name="FPU Type" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.unit" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.unit.fpv4spd16" valueType="enumerated"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting.2134836045" name="Create extended listing" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.421534861" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
-							<builder arguments="SHELL=cmd.exe " buildPath="${workspace_loc:/ibootapp}/libos_demo_o0" id="ilg.gnuarmeclipse.managedbuild.cross.builder.1254934872" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
+							<builder arguments=" " buildPath="${workspace_loc:/ibootapp}/libos_demo_o0" id="ilg.gnuarmeclipse.managedbuild.cross.builder.1254934872" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1228653403" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.389130257" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.219259614" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1841114543" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
-									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32L4=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32L476xx"/>
 								</option>
@@ -407,89 +316,41 @@
 							</tool>
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.936485050" name="Cross ARM GNU C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.2080674424" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/startup&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/blackbox&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/buffer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/utf8&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/dbug&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/flash&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/canbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus/ioiicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/spibus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/efs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/iap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gdd&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gkernel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/keypad&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/mouse&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/touch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/isbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/multiplex&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/shell&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/tcpip&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/timer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/wdt&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/ymodem&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/core&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/heap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/lock&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/msgqueue&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/drv/board&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/int&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/djyfs&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/userlib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/Include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.695216422" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
-									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32L4=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32L476xx"/>
 								</option>
@@ -497,84 +358,35 @@
 							</tool>
 							<tool command="${cross_prefix}${cross_cpp}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.958269063" name="Cross ARM GNU C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths.1690506451" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/startup&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/blackbox&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/buffer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/utf8&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/dbug&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/flash&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/canbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus/ioiicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/spibus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/efs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/iap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gdd&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gkernel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/keypad&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/mouse&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/touch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/isbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/multiplex&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/shell&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/tcpip&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/timer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/wdt&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/ymodem&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/core&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/heap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/lock&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/msgqueue&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/drv/board&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/int&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/djyfs&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/userlib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/Include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1018936559" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1419905374" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -582,9 +394,9 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1809513982" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.1092884201" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
-									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32L4=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32L476xx"/>
 								</option>
@@ -603,7 +415,7 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.nostart.1188170888" name="Do not use standard start files (-nostartfiles)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.nostart" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.usenewlibnano.2096782260" name="Use newlib-nano (--specs=nano.specs)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.usenewlibnano" value="true" valueType="boolean"/>
 							</tool>
-							<tool commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS} &amp;&amp; addsh.exe ${ConfigName}.elf" id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.1197629937" name="Cross ARM GNU C++ Linker" outputPrefix="" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker">
+							<tool commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} -Wl,--start-group ${INPUTS} -Wl,--end-group &amp;&amp; addsh.exe ${ConfigName}.elf" id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.1197629937" name="Cross ARM GNU C++ Linker" outputPrefix="" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.gcsections.313724583" name="Remove unused sections (-Xlinker --gc-sections)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.gcsections" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.paths.451919065" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.paths" useByScannerDiscovery="false" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/libos_Iboot_Release}&quot;"/>
@@ -707,26 +519,29 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.123799402" name="Endianness" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.little" valueType="enumerated"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting.787551283" name="Create extended listing" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.1262645140" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
-							<builder arguments="SHELL=cmd.exe" buildPath="${workspace_loc:/NUCLEO-L476RG}/libos_Iboot_Debug" enableCleanBuild="false" id="ilg.gnuarmeclipse.managedbuild.cross.builder.2122954268" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
+							<builder arguments=" " buildPath="${workspace_loc:/NUCLEO-L476RG}/libos_Iboot_Debug" enableCleanBuild="false" id="ilg.gnuarmeclipse.managedbuild.cross.builder.2122954268" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1439273365" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1764345165" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.392006877" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.625716104" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
-									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32L4=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32L476xx"/>
 								</option>
@@ -734,89 +549,41 @@
 							</tool>
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1786529040" name="Cross ARM GNU C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.540480867" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/startup&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/blackbox&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/buffer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/utf8&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/dbug&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/flash&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/canbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus/ioiicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/spibus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/efs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/iap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gdd&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gkernel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/keypad&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/mouse&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/touch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/isbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/multiplex&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/shell&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/tcpip&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/timer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/wdt&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/ymodem&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/core&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/heap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/lock&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/msgqueue&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/drv/board&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/int&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/djyfs&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/userlib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/Include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.113587813" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
-									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32L4=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32L476xx"/>
 								</option>
@@ -826,83 +593,35 @@
 							</tool>
 							<tool command="${cross_prefix}${cross_cpp}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.125675743" name="Cross ARM GNU C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths.762406504" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/startup&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/blackbox&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/buffer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/utf8&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/dbug&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/flash&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/canbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus/ioiicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/spibus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/efs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/iap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gdd&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gkernel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/keypad&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/mouse&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/touch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/isbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/multiplex&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/shell&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/tcpip&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/timer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/wdt&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/ymodem&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/core&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/heap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/lock&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/msgqueue&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/drv/board&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/int&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/djyfs&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/userlib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/Include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1936830791" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1538678162" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -910,9 +629,9 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1392614707" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.426510527" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
-									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32L4=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32L476xx"/>
 								</option>
@@ -951,7 +670,7 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool commandLinePattern="$(call loop, 50, ${INPUTS}, ${COMMAND} ${FLAGS} ${OUTPUT})" errorParsers="" id="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver.911722094" name="Cross ARM GNU Archiver" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver">
+							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver.911722094" name="Cross ARM GNU Archiver" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver">
 								<option id="gnu.both.lib.option.flags.1091757946" name="Archiver flags" superClass="gnu.both.lib.option.flags" useByScannerDiscovery="false" value="-rPu" valueType="string"/>
 								<outputType id="cdt.managedbuild.tool.gnu.archiver.output.1433029780" outputPrefix="" superClass="cdt.managedbuild.tool.gnu.archiver.output"/>
 							</tool>
@@ -969,7 +688,8 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="libos/component/misc|libos/bsp/cpudrv/scm6xx|libos/bsp/cpudrv/scm6xx/scm610|libos/bsp/cpudrv/beken|libos/bsp/cpudrv/beken/bk7251|libos/bsp/boarddrv/demo/bk7251_demo|libos/bsp/boarddrv/demo/APOLLO-STM32H7|libos/bsp/chipdrv/uc1698|libos/bsp/chipdrv/at24c08|libos/third/wolfssl-3.15.7|libos/third/wolfssh-1.3.0|libos/third/goahead-4.0.1|libos/third/firmware/scm6xx|libos/bsp/chipdrv/lan8742|libos/third/picasso|libos/third/mp4v2-2.0.0|libos/third/libpng-1.6.17|libos/third/libmad-0.15.1b|libos/third/libjpeg-turbo-1.4.1|libos/third/javascript|libos/third/giflib-5.1.3|libos/third/freetype2|userlib|libos/bsp/cpudrv/ZQ|libos/bsp/cpudrv/ZQ/zq12xx|libos/bsp/cpudrv/ZQ/zq12xx/zq1201|libos/bsp/cpudrv/stm32/L4/stm32l475xx|libos/bsp/cpudrv/stm32/L4/stm32l433xx|libos/bsp/cpudrv/stm32/h7|libos/bsp/cpudrv/stm32/h7/stm32h743xx|libos/bsp/cpudrv/stm32/f7|libos/bsp/cpudrv/stm32/f7/stm32f767xx|libos/bsp/cpudrv/stm32/f7/stm32f756xx|libos/bsp/cpudrv/stm32/f7/stm32f746xx|libos/bsp/cpudrv/stm32/f4|libos/bsp/cpudrv/stm32/f4/stm32f407xx|libos/bsp/cpudrv/stm32/f3|libos/bsp/cpudrv/stm32/f3/stm32f303xc|libos/bsp/cpudrv/stm32/f1|libos/bsp/cpudrv/stm32/f1/stm32f103xg|libos/bsp/cpudrv/stm32/f1/stm32f103xe|libos/bsp/cpudrv/samsung|libos/bsp/cpudrv/samsung/s3c2416|libos/bsp/cpudrv/Nuvoton|libos/bsp/cpudrv/Nuvoton/M480|libos/bsp/cpudrv/Nuvoton/M480/M487JIDAE|libos/bsp/cpudrv/imxrt|libos/bsp/cpudrv/imxrt/1050|libos/bsp/cpudrv/imxrt/1050/imxrt1052|libos/bsp/cpudrv/Atmel|libos/bsp/cpudrv/Atmel/SamV7|libos/bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx|libos/bsp/cpudrv/Atmel/Sam4e|libos/bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx|libos/bsp/cpudrv/windows|libos/bsp/cpudrv/Sharc21469|libos/bsp/cpudrv/samsung/s3c2440|libos/bsp/cpudrv/samsung/s3c2410|libos/bsp/cpudrv/p1020|libos/bsp/cpudrv/omapl138|libos/bsp/cpudrv/LPC|libos/bsp/cpudrv/FslKxx|libos/bsp/cpudrv/Atmel/Sam4s|libos/bsp/boarddrv/staged/目录说明.txt|libos/bsp/boarddrv/staged/windows|libos/bsp/boarddrv/staged/tq2440|libos/bsp/boarddrv/staged/SAM4E-EK|libos/bsp/boarddrv/staged/P1020_DDRTest|libos/bsp/boarddrv/staged/P1020RDB|libos/bsp/boarddrv/staged/iot-hall|libos/bsp/boarddrv/demo/ZQ1201|libos/bsp/boarddrv/demo/TWR_K70F120M|libos/bsp/boarddrv/demo/TWR_K60F120M|libos/bsp/boarddrv/demo/tq2416|libos/bsp/boarddrv/demo/stm32l475-empty|libos/bsp/boarddrv/demo/stm32l433-empty|libos/bsp/boarddrv/demo/STM32H743I-EVAL|libos/bsp/boarddrv/demo/STM32F756G-EVAL2|libos/bsp/boarddrv/demo/stm32f3-empty|libos/bsp/boarddrv/demo/stm32f103-empty|libos/bsp/boarddrv/demo/SAMV71Xplained|libos/bsp/boarddrv/demo/qh_1|libos/bsp/boarddrv/demo/NuvotonM487|libos/bsp/boarddrv/demo/NUCLEO-H743ZI|libos/bsp/boarddrv/demo/NUCLEO-F767ZI|libos/bsp/boarddrv/demo/NUCLEO-F746ZG|libos/bsp/boarddrv/demo/mcb1700|libos/bsp/boarddrv/demo/imxrt1052-evk|libos/bsp/boarddrv/demo/EXPLORER-stm32f4|libos/bsp/boarddrv/demo/APOLLO-STM32F7|libos/bsp/chipdrv/s29glxxx|libos/bsp/chipdrv/s25fl128|libos/bsp/chipdrv/m29w320|libos/bsp/chipdrv/m25p16|libos/bsp/chipdrv/AR8021|libos/bsp/chipdrv/ad7616|libos/third/firmware/FslKxx|libos/third/firmware/CMSIS|libos/third/firmware/bk7251drv|libos/djyos/msg|libos/component/pipe|libos/component/menu|libos/bsp/cpudrv/stm32/L4/src/wwdg|libos/bsp/cpudrv/stm32/L4/src/timer|libos/bsp/cpudrv/stm32/L4/src/systime|libos/bsp/cpudrv/stm32/L4/src/spi|libos/bsp/cpudrv/stm32/L4/src/iic|libos/bsp/cpudrv/stm32/L4/src/emflash|libos/bsp/chipdrv/w25qxx|libos/bsp/chipdrv/tca9535|libos/bsp/chipdrv/STMPE811|libos/bsp/chipdrv/sc1161y|libos/bsp/chipdrv/pcf8574|libos/bsp/chipdrv/nrsec3000|libos/bsp/chipdrv/mt29fxxx|libos/bsp/chipdrv/mma8451q|libos/bsp/chipdrv/mcp2515|libos/bsp/chipdrv/mcb1700lcd|libos/bsp/chipdrv/max98357|libos/bsp/chipdrv/max31865|libos/bsp/chipdrv/max14001|libos/bsp/chipdrv/max11410|libos/bsp/chipdrv/m24256|libos/bsp/chipdrv/LCM240128C|libos/bsp/chipdrv/lan8720|libos/bsp/chipdrv/ksz8081rnb/imxrt1052-evk|libos/bsp/chipdrv/k9f1208xxx|libos/bsp/chipdrv/ili9325|libos/bsp/chipdrv/ft5x26|libos/bsp/chipdrv/ft5406|libos/bsp/chipdrv/fram|libos/bsp/chipdrv/ds3232mz|libos/bsp/chipdrv/ds1390|libos/bsp/chipdrv/dm9000a|libos/bsp/chipdrv/dm9000|libos/bsp/chipdrv/AX88796|libos/bsp/chipdrv/at45db321|libos/bsp/chipdrv/at24c512c|libos/bsp/chipdrv/at24c128b|libos/bsp/chipdrv/at24c02a|libos/bsp/chipdrv/at24c02|libos/bsp/chipdrv/ads8688|libos/bsp/chipdrv/ads8664|libos/bsp/chipdrv/adm1032|libos/bsp/chipdrv/ad7606|libos/bsp/chipdrv/ad5697r|libos/bsp/chipdrv/88E6060|libos/bsp/chipdrv/88E1512|libos/bsp/chipdrv/39vf160|libos/third/zlib-1.2.8|libos/third/wolfssl-3.10.2|libos/third/usb|libos/third/sqlite3|libos/third/qrencode|libos/third/mosquitto-1.0|libos/third/lua-5.1.4|libos/third/LibVNCServer-0.9.9|libos/third/libghttp-1.0.9|libos/third/javascript/jerryscript|libos/third/javascript/iotjs|libos/third/javascript/duktape|libos/third/goahead-2.5.0|libos/third/fs/yaf2|libos/third/fs/fat|libos/third/firmware/stm32h7|libos/third/firmware/stm32f7|libos/third/firmware/stm32f4|libos/third/firmware/stm32f3|libos/third/firmware/stm32f1|libos/third/firmware/sldrv|libos/third/firmware/silan|libos/third/firmware/Sharc21469|libos/third/firmware/NuvotonM480|libos/third/firmware/lpc17xx|libos/third/firmware/lpc12xx|libos/third/firmware/imxrt1052|libos/third/firmware/csky|libos/third/firmware/AtmelSamV7|libos/third/firmware/AtmelSam4s|libos/third/firmware/AtmelSam4e|libos/third/cjson-code-73|libos/bsp/arch/arm/cortex-m/armv7-m|libos/bsp/arch/arm/cortex-m/armv6-m|libos/bsp/arch/arm/armv5te|libos/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7|libos/bsp/arch/arm/cortex-m/armv7-m/cortex-m3|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m1|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0+|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0|libos/bsp/arch/arm/armv5te/arm968e-s|libos/bsp/arch/arm/armv5te/arm926|libos/bsp/arch/windows|libos/bsp/arch/ppc|libos/bsp/arch/dsp|libos/bsp/arch/ck|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer|libos/bsp/cpudrv/stm32/f1/stm32f103zg|libos/bsp/boarddrv/user/BoardDemo11|libos/bsp/boarddrv/user/BoardDemo9|libos/bsp/boarddrv/user/BoardDemo8|libos/bsp/boarddrv/user/BoardDemo|libos/bsp/boarddrv/user/BoardDemo7|libos/bsp/boarddrv/user/BoardDemo6|libos/bsp/boarddrv/user/BoardDemo5|libos/bsp/boarddrv/user/BoardDemo4|libos/bsp/boarddrv/user/Board3|libos/bsp/boarddrv/user/BoardDemo2|libos/bsp/boarddrv/user/BoardDemo1|libos/bsp/cpudrv/stm22|libos/bsp/cpudrv/stm12|libos/bsp/cpudrv/imxrt/1050/src/semc|libos/bsp/cpudrv/stm32/h7/src/hal|libos/component/osboot|libos/Test|Test|iboot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/utils|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/patches|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests|libos/component/driver/pci|libos/libc/libm/test|libos/libc/libc/posix/wordfree.c|libos/libc/libc/posix/wordexp.c|libos/libc/libc/posix/telldir.c|libos/libc/libc/posix/seekdir.c|libos/libc/libc/posix/scandir.c|libos/libc/libc/posix/rewinddir.c|libos/libc/libc/posix/regfree.c|libos/libc/libc/posix/regexec.c|libos/libc/libc/posix/regerror.c|libos/libc/libc/posix/regcomp.c|libos/libc/libc/posix/readdir.c|libos/libc/libc/posix/readdir_r.c|libos/libc/libc/posix/posix_spawn.c|libos/libc/libc/posix/popen.c|libos/libc/libc/posix/opendir.c|libos/libc/libc/posix/isatty.c|libos/libc/libc/posix/glob.c|libos/libc/libc/posix/fnmatch.c|libos/libc/libc/posix/execvp.c|libos/libc/libc/posix/execve.c|libos/libc/libc/posix/execv.c|libos/libc/libc/posix/execlp.c|libos/libc/libc/posix/execle.c|libos/libc/libc/posix/execl.c|libos/libc/libc/posix/engine.c|libos/libc/libc/posix/creat.c|libos/libc/libc/posix/collcmp.c|libos/libc/libc/posix/collate.c|libos/libc/libc/posix/closedir.c|libos/libc/libc/posix/_isatty.c|libos/libc/libc/locale|app" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="DIDE/djysrc/bsp/arch/arm"/>
+						<entry excluding="libos/bsp/cpudrv/ZQ|libos/bsp/cpudrv/ZQ/zq12xx|libos/bsp/cpudrv/stm32/h7|libos/bsp/cpudrv/stm32/f7|libos/bsp/cpudrv/stm32/f4|libos/bsp/cpudrv/stm32/f3|libos/bsp/cpudrv/stm32/f1|libos/bsp/cpudrv/scm6xx|libos/bsp/cpudrv/samsung|libos/bsp/cpudrv/Nuvoton|libos/bsp/cpudrv/Nuvoton/M480|libos/bsp/cpudrv/imxrt|libos/bsp/cpudrv/imxrt/1050|libos/bsp/cpudrv/beken|libos/bsp/cpudrv/Atmel|libos/bsp/cpudrv/Atmel/SamV7|libos/bsp/cpudrv/Atmel/Sam4e|libos/third/micropython1.13|libos/bsp/boarddrv/user/UitdModule|libos/bsp/boarddrv/user/ShengTianlong|libos/userlib|libos/bsp/chipdrv/ips6404l|libos/bsp/chipdrv/gd5f1gq5x/gd5f1gq5x.c|libos/bsp/chipdrv/gd5f1gq5x/gd5f1gq5x_yaf|libos/third/firmware/STM32L4|libos/bsp/boarddrv/user/zs_watch|libos/bsp/boarddrv/user/Qucanji__node485|libos/bsp/boarddrv/user/qucanji|libos/bsp/boarddrv/user/MagicMirror_notp|libos/bsp/boarddrv/user/HealthBoxPlus|libos/bsp/boarddrv/user/HealthBox|libos/bsp/boarddrv/user/bk7251_erji|libos/bsp/boarddrv/user/bk7251_dmv1d0|libos/bsp/boarddrv/user/AiEasyTalk|libos/bsp/boarddrv/user/.git|libos/bsp/chipdrv/gt9271|libos/bsp/chipdrv/gt911|libos/bsp/chipdrv/gd25q64c/gd25q64c.c|libos/third/minilzo|libos/third/opusfile-0.11|libos/third/opus-1.3.1|libos/third/libogg-1.3.2|libos/bsp/chipdrv/tw6448eg03|libos/bsp/chipdrv/st7789v|libos/bsp/chipdrv/ssd2119|libos/bsp/chipdrv/gc9307|libos/bsp/chipdrv/gd25q64c/gd25q64c_fat|libos/bsp/chipdrv/ct1711|libos/third/firmware/bk7251drv3.0|libos/bsp/chipdrv/ft6236|libos/bsp/chipdrv/gd25q16c/gd25q16c.c|libos/third/mongoose-6.15|libos/bsp/chipdrv/st7796s|libos/bsp/chipdrv/gd25q16c/gd25_efs|libos/bsp/cpudrv/scm6xx/scm610|libos/bsp/cpudrv/beken/bk7251|libos/bsp/boarddrv/demo/bk7251_demo|libos/bsp/boarddrv/demo/APOLLO-STM32H7|libos/bsp/chipdrv/uc1698|libos/bsp/chipdrv/at24c08|libos/third/wolfssl-3.15.7|libos/third/wolfssh-1.3.0|libos/third/goahead-4.0.1|libos/third/firmware/scm6xx|libos/bsp/chipdrv/lan8742|libos/third/picasso|libos/third/mp4v2-2.0.0|libos/third/libpng-1.6.17|libos/third/libmad-0.15.1b|libos/third/libjpeg-turbo-1.4.1|libos/third/javascript|libos/third/giflib-5.1.3|libos/third/freetype2|userlib|libos/bsp/cpudrv/ZQ/zq12xx/zq1201|libos/bsp/cpudrv/stm32/L4/stm32l475xx|libos/bsp/cpudrv/stm32/L4/stm32l433xx|libos/bsp/cpudrv/stm32/h7/stm32h743xx|libos/bsp/cpudrv/stm32/f7/stm32f767xx|libos/bsp/cpudrv/stm32/f7/stm32f756xx|libos/bsp/cpudrv/stm32/f7/stm32f746xx|libos/bsp/cpudrv/stm32/f4/stm32f407xx|libos/bsp/cpudrv/stm32/f3/stm32f303xc|libos/bsp/cpudrv/stm32/f1/stm32f103xg|libos/bsp/cpudrv/stm32/f1/stm32f103xe|libos/bsp/cpudrv/samsung/s3c2416|libos/bsp/cpudrv/Nuvoton/M480/M487JIDAE|libos/bsp/cpudrv/imxrt/1050/imxrt1052|libos/bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx|libos/bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx|libos/bsp/cpudrv/windows|libos/bsp/cpudrv/Sharc21469|libos/bsp/cpudrv/samsung/s3c2440|libos/bsp/cpudrv/samsung/s3c2410|libos/bsp/cpudrv/p1020|libos/bsp/cpudrv/omapl138|libos/bsp/cpudrv/LPC|libos/bsp/cpudrv/FslKxx|libos/bsp/cpudrv/Atmel/Sam4s|libos/bsp/boarddrv/staged/目录说明.txt|libos/bsp/boarddrv/staged/windows|libos/bsp/boarddrv/staged/tq2440|libos/bsp/boarddrv/staged/SAM4E-EK|libos/bsp/boarddrv/staged/P1020_DDRTest|libos/bsp/boarddrv/staged/P1020RDB|libos/bsp/boarddrv/staged/iot-hall|libos/bsp/boarddrv/demo/ZQ1201|libos/bsp/boarddrv/demo/TWR_K70F120M|libos/bsp/boarddrv/demo/TWR_K60F120M|libos/bsp/boarddrv/demo/tq2416|libos/bsp/boarddrv/demo/stm32l475-empty|libos/bsp/boarddrv/demo/stm32l433-empty|libos/bsp/boarddrv/demo/STM32H743I-EVAL|libos/bsp/boarddrv/demo/STM32F756G-EVAL2|libos/bsp/boarddrv/demo/stm32f3-empty|libos/bsp/boarddrv/demo/stm32f103-empty|libos/bsp/boarddrv/demo/SAMV71Xplained|libos/bsp/boarddrv/demo/qh_1|libos/bsp/boarddrv/demo/NuvotonM487|libos/bsp/boarddrv/demo/NUCLEO-H743ZI|libos/bsp/boarddrv/demo/NUCLEO-F767ZI|libos/bsp/boarddrv/demo/NUCLEO-F746ZG|libos/bsp/boarddrv/demo/mcb1700|libos/bsp/boarddrv/demo/imxrt1052-evk|libos/bsp/boarddrv/demo/EXPLORER-stm32f4|libos/bsp/boarddrv/demo/APOLLO-STM32F7|libos/bsp/chipdrv/s29glxxx|libos/bsp/chipdrv/s25fl128|libos/bsp/chipdrv/m29w320|libos/bsp/chipdrv/m25p16|libos/bsp/chipdrv/AR8021|libos/bsp/chipdrv/ad7616|libos/third/firmware/FslKxx|libos/third/firmware/CMSIS|libos/third/firmware/bk7251drv|libos/djyos/msg|libos/component/pipe|libos/component/menu|libos/bsp/cpudrv/stm32/L4/src/wwdg|libos/bsp/cpudrv/stm32/L4/src/timer|libos/bsp/cpudrv/stm32/L4/src/systime|libos/bsp/cpudrv/stm32/L4/src/spi|libos/bsp/cpudrv/stm32/L4/src/iic|libos/bsp/cpudrv/stm32/L4/src/emflash|libos/bsp/chipdrv/w25qxx|libos/bsp/chipdrv/tca9535|libos/bsp/chipdrv/STMPE811|libos/bsp/chipdrv/sc1161y|libos/bsp/chipdrv/pcf8574|libos/bsp/chipdrv/nrsec3000|libos/bsp/chipdrv/mt29fxxx|libos/bsp/chipdrv/mma8451q|libos/bsp/chipdrv/mcp2515|libos/bsp/chipdrv/mcb1700lcd|libos/bsp/chipdrv/max98357|libos/bsp/chipdrv/max31865|libos/bsp/chipdrv/max14001|libos/bsp/chipdrv/max11410|libos/bsp/chipdrv/m24256|libos/bsp/chipdrv/LCM240128C|libos/bsp/chipdrv/lan8720|libos/bsp/chipdrv/ksz8081rnb/imxrt1052-evk|libos/bsp/chipdrv/k9f1208xxx|libos/bsp/chipdrv/ili9325|libos/bsp/chipdrv/ft5x26|libos/bsp/chipdrv/ft5406|libos/bsp/chipdrv/fram|libos/bsp/chipdrv/ds3232mz|libos/bsp/chipdrv/ds1390|libos/bsp/chipdrv/dm9000a|libos/bsp/chipdrv/dm9000|libos/bsp/chipdrv/AX88796|libos/bsp/chipdrv/at45db321|libos/bsp/chipdrv/at24c512c|libos/bsp/chipdrv/at24c128b|libos/bsp/chipdrv/at24c02a|libos/bsp/chipdrv/at24c02|libos/bsp/chipdrv/ads8688|libos/bsp/chipdrv/ads8664|libos/bsp/chipdrv/adm1032|libos/bsp/chipdrv/ad7606|libos/bsp/chipdrv/ad5697r|libos/bsp/chipdrv/88E6060|libos/bsp/chipdrv/88E1512|libos/bsp/chipdrv/39vf160|libos/third/zlib-1.2.8|libos/third/wolfssl-3.10.2|libos/third/usb|libos/third/sqlite3|libos/third/qrencode|libos/third/mosquitto-1.0|libos/third/lua-5.1.4|libos/third/LibVNCServer-0.9.9|libos/third/libghttp-1.0.9|libos/third/javascript/jerryscript|libos/third/javascript/iotjs|libos/third/javascript/duktape|libos/third/goahead-2.5.0|libos/third/fs/yaf2|libos/third/fs/fat|libos/third/firmware/stm32h7|libos/third/firmware/stm32f7|libos/third/firmware/stm32f4|libos/third/firmware/stm32f3|libos/third/firmware/stm32f1|libos/third/firmware/sldrv|libos/third/firmware/silan|libos/third/firmware/Sharc21469|libos/third/firmware/NuvotonM480|libos/third/firmware/lpc17xx|libos/third/firmware/lpc12xx|libos/third/firmware/imxrt1052|libos/third/firmware/csky|libos/third/firmware/AtmelSamV7|libos/third/firmware/AtmelSam4s|libos/third/firmware/AtmelSam4e|libos/third/cjson-code-73|libos/bsp/arch/arm/cortex-m/armv7-m|libos/bsp/arch/arm/cortex-m/armv6-m|libos/bsp/arch/arm/armv5te|libos/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7|libos/bsp/arch/arm/cortex-m/armv7-m/cortex-m3|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m1|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0+|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0|libos/bsp/arch/arm/armv5te/arm968e-s|libos/bsp/arch/arm/armv5te/arm926|libos/bsp/arch/windows|libos/bsp/arch/ppc|libos/bsp/arch/dsp|libos/bsp/arch/ck|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer|libos/bsp/cpudrv/stm32/f1/stm32f103zg|libos/bsp/boarddrv/user/BoardDemo11|libos/bsp/boarddrv/user/BoardDemo9|libos/bsp/boarddrv/user/BoardDemo8|libos/bsp/boarddrv/user/BoardDemo|libos/bsp/boarddrv/user/BoardDemo7|libos/bsp/boarddrv/user/BoardDemo6|libos/bsp/boarddrv/user/BoardDemo5|libos/bsp/boarddrv/user/BoardDemo4|libos/bsp/boarddrv/user/Board3|libos/bsp/boarddrv/user/BoardDemo2|libos/bsp/boarddrv/user/BoardDemo1|libos/bsp/cpudrv/stm22|libos/bsp/cpudrv/stm12|libos/bsp/cpudrv/imxrt/1050/src/semc|libos/bsp/cpudrv/stm32/h7/src/hal|libos/component/osboot|libos/Test|Test|iboot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/utils|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/patches|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests|libos/component/driver/pci|libos/libc/libm/test|libos/libc/libc/posix/wordfree.c|libos/libc/libc/posix/wordexp.c|libos/libc/libc/posix/telldir.c|libos/libc/libc/posix/seekdir.c|libos/libc/libc/posix/scandir.c|libos/libc/libc/posix/rewinddir.c|libos/libc/libc/posix/regfree.c|libos/libc/libc/posix/regexec.c|libos/libc/libc/posix/regerror.c|libos/libc/libc/posix/regcomp.c|libos/libc/libc/posix/readdir.c|libos/libc/libc/posix/readdir_r.c|libos/libc/libc/posix/posix_spawn.c|libos/libc/libc/posix/popen.c|libos/libc/libc/posix/opendir.c|libos/libc/libc/posix/isatty.c|libos/libc/libc/posix/glob.c|libos/libc/libc/posix/fnmatch.c|libos/libc/libc/posix/execvp.c|libos/libc/libc/posix/execve.c|libos/libc/libc/posix/execv.c|libos/libc/libc/posix/execlp.c|libos/libc/libc/posix/execle.c|libos/libc/libc/posix/execl.c|libos/libc/libc/posix/engine.c|libos/libc/libc/posix/creat.c|libos/libc/libc/posix/collcmp.c|libos/libc/libc/posix/collate.c|libos/libc/libc/posix/closedir.c|libos/libc/libc/posix/_isatty.c|libos/libc/libc/locale|app" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -1031,26 +751,29 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.738287638" name="Endianness" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.little" valueType="enumerated"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting.846080883" name="Create extended listing" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.1149778166" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
-							<builder arguments="SHELL=cmd.exe " autoBuildTarget="all" buildPath="${workspace_loc:/IbootApp}/libos_Iboot_Debug" cleanBuildTarget="clean" command="${cross_make}" enableCleanBuild="false" id="org.eclipse.cdt.build.core.internal.builder.1897059592" incrementalBuildTarget="all" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="org.eclipse.cdt.build.core.internal.builder"/>
+							<builder arguments=" " autoBuildTarget="all" buildPath="${workspace_loc:/IbootApp}/libos_Iboot_Debug" cleanBuildTarget="clean" command="${cross_make}" enableCleanBuild="false" id="org.eclipse.cdt.build.core.internal.builder.1897059592" incrementalBuildTarget="all" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="org.eclipse.cdt.build.core.internal.builder"/>
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.2054068003" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1134601589" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.708086960" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1415195647" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
-									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32L4=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32L476xx"/>
 								</option>
@@ -1058,89 +781,41 @@
 							</tool>
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.60760814" name="Cross ARM GNU C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.472897891" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/startup&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/blackbox&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/buffer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/utf8&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/dbug&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/flash&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/canbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus/ioiicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/spibus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/efs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/iap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gdd&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gkernel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/keypad&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/mouse&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/touch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/isbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/multiplex&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/shell&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/tcpip&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/timer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/wdt&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/ymodem&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/core&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/heap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/lock&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/msgqueue&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/drv/board&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/int&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/djyfs&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/userlib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/Include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1741702706" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
-									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32L4=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32L476xx"/>
 								</option>
@@ -1150,83 +825,35 @@
 							</tool>
 							<tool command="${cross_prefix}${cross_cpp}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1745645116" name="Cross ARM GNU C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths.588337770" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/startup&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/blackbox&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/buffer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset/utf8&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/charset&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/dbug&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/flash&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/canbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus/ioiicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/iicbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus/spibus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djybus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/efs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs/iap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/djyfs&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font/dotfont-gb2312&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/font&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gdd&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/gui/gkernel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/keypad&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/mouse&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input/touch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/hmi-input&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/isbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/multiplex&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/shell&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/tcpip&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/timer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/wdt&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/ymodem&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/core&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/heap&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/lock&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/msgqueue&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/drv/board&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/lowpower&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libm/common&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include/sys&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/L4/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/int&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/src&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NUCLEO-L476RG/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/djyfs&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/font&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/gui&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/misc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/net&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include/widget&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/OS_prjcfg&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/userlib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/STM32L4/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/Include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1292194584" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.649893695" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -1234,9 +861,9 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.124653474" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.315905285" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
-									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32L4=true"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32L4"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32L476xx"/>
 								</option>
@@ -1275,7 +902,7 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool commandLinePattern="$(call loop, 50, ${INPUTS}, ${COMMAND} ${FLAGS} ${OUTPUT})" errorParsers="" id="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver.940825874" name="Cross ARM GNU Archiver" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver">
+							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver.940825874" name="Cross ARM GNU Archiver" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver">
 								<option id="gnu.both.lib.option.flags.329666782" name="Archiver flags" superClass="gnu.both.lib.option.flags" useByScannerDiscovery="false" value="-rPu" valueType="string"/>
 								<outputType id="cdt.managedbuild.tool.gnu.archiver.output.717119498" outputPrefix="" superClass="cdt.managedbuild.tool.gnu.archiver.output"/>
 							</tool>
@@ -1293,7 +920,8 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="libos/component/misc|libos/bsp/cpudrv/scm6xx|libos/bsp/cpudrv/scm6xx/scm610|libos/bsp/cpudrv/beken|libos/bsp/cpudrv/beken/bk7251|libos/bsp/boarddrv/demo/bk7251_demo|libos/bsp/boarddrv/demo/APOLLO-STM32H7|libos/bsp/chipdrv/uc1698|libos/bsp/chipdrv/at24c08|libos/third/wolfssl-3.15.7|libos/third/wolfssh-1.3.0|libos/third/goahead-4.0.1|libos/third/firmware/scm6xx|libos/bsp/chipdrv/lan8742|libos/third/picasso|libos/third/mp4v2-2.0.0|libos/third/libpng-1.6.17|libos/third/libmad-0.15.1b|libos/third/libjpeg-turbo-1.4.1|libos/third/javascript|libos/third/giflib-5.1.3|libos/third/freetype2|userlib|libos/bsp/cpudrv/ZQ|libos/bsp/cpudrv/ZQ/zq12xx|libos/bsp/cpudrv/ZQ/zq12xx/zq1201|libos/bsp/cpudrv/stm32/L4/stm32l475xx|libos/bsp/cpudrv/stm32/L4/stm32l433xx|libos/bsp/cpudrv/stm32/h7|libos/bsp/cpudrv/stm32/h7/stm32h743xx|libos/bsp/cpudrv/stm32/f7|libos/bsp/cpudrv/stm32/f7/stm32f767xx|libos/bsp/cpudrv/stm32/f7/stm32f756xx|libos/bsp/cpudrv/stm32/f7/stm32f746xx|libos/bsp/cpudrv/stm32/f4|libos/bsp/cpudrv/stm32/f4/stm32f407xx|libos/bsp/cpudrv/stm32/f3|libos/bsp/cpudrv/stm32/f3/stm32f303xc|libos/bsp/cpudrv/stm32/f1|libos/bsp/cpudrv/stm32/f1/stm32f103xg|libos/bsp/cpudrv/stm32/f1/stm32f103xe|libos/bsp/cpudrv/samsung|libos/bsp/cpudrv/samsung/s3c2416|libos/bsp/cpudrv/Nuvoton|libos/bsp/cpudrv/Nuvoton/M480|libos/bsp/cpudrv/Nuvoton/M480/M487JIDAE|libos/bsp/cpudrv/imxrt|libos/bsp/cpudrv/imxrt/1050|libos/bsp/cpudrv/imxrt/1050/imxrt1052|libos/bsp/cpudrv/Atmel|libos/bsp/cpudrv/Atmel/SamV7|libos/bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx|libos/bsp/cpudrv/Atmel/Sam4e|libos/bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx|libos/bsp/cpudrv/windows|libos/bsp/cpudrv/Sharc21469|libos/bsp/cpudrv/samsung/s3c2440|libos/bsp/cpudrv/samsung/s3c2410|libos/bsp/cpudrv/p1020|libos/bsp/cpudrv/omapl138|libos/bsp/cpudrv/LPC|libos/bsp/cpudrv/FslKxx|libos/bsp/cpudrv/Atmel/Sam4s|libos/bsp/boarddrv/staged/目录说明.txt|libos/bsp/boarddrv/staged/windows|libos/bsp/boarddrv/staged/tq2440|libos/bsp/boarddrv/staged/SAM4E-EK|libos/bsp/boarddrv/staged/P1020_DDRTest|libos/bsp/boarddrv/staged/P1020RDB|libos/bsp/boarddrv/staged/iot-hall|libos/bsp/boarddrv/demo/ZQ1201|libos/bsp/boarddrv/demo/TWR_K70F120M|libos/bsp/boarddrv/demo/TWR_K60F120M|libos/bsp/boarddrv/demo/tq2416|libos/bsp/boarddrv/demo/stm32l475-empty|libos/bsp/boarddrv/demo/stm32l433-empty|libos/bsp/boarddrv/demo/STM32H743I-EVAL|libos/bsp/boarddrv/demo/STM32F756G-EVAL2|libos/bsp/boarddrv/demo/stm32f3-empty|libos/bsp/boarddrv/demo/stm32f103-empty|libos/bsp/boarddrv/demo/SAMV71Xplained|libos/bsp/boarddrv/demo/qh_1|libos/bsp/boarddrv/demo/NuvotonM487|libos/bsp/boarddrv/demo/NUCLEO-H743ZI|libos/bsp/boarddrv/demo/NUCLEO-F767ZI|libos/bsp/boarddrv/demo/NUCLEO-F746ZG|libos/bsp/boarddrv/demo/mcb1700|libos/bsp/boarddrv/demo/imxrt1052-evk|libos/bsp/boarddrv/demo/EXPLORER-stm32f4|libos/bsp/boarddrv/demo/APOLLO-STM32F7|libos/bsp/chipdrv/s29glxxx|libos/bsp/chipdrv/s25fl128|libos/bsp/chipdrv/m29w320|libos/bsp/chipdrv/m25p16|libos/bsp/chipdrv/AR8021|libos/bsp/chipdrv/ad7616|libos/third/firmware/FslKxx|libos/third/firmware/CMSIS|libos/third/firmware/bk7251drv|libos/djyos/msg|libos/component/pipe|libos/component/menu|libos/bsp/cpudrv/stm32/L4/src/wwdg|libos/bsp/cpudrv/stm32/L4/src/timer|libos/bsp/cpudrv/stm32/L4/src/systime|libos/bsp/cpudrv/stm32/L4/src/spi|libos/bsp/cpudrv/stm32/L4/src/iic|libos/bsp/cpudrv/stm32/L4/src/emflash|libos/bsp/chipdrv/w25qxx|libos/bsp/chipdrv/tca9535|libos/bsp/chipdrv/STMPE811|libos/bsp/chipdrv/sc1161y|libos/bsp/chipdrv/pcf8574|libos/bsp/chipdrv/nrsec3000|libos/bsp/chipdrv/mt29fxxx|libos/bsp/chipdrv/mma8451q|libos/bsp/chipdrv/mcp2515|libos/bsp/chipdrv/mcb1700lcd|libos/bsp/chipdrv/max98357|libos/bsp/chipdrv/max31865|libos/bsp/chipdrv/max14001|libos/bsp/chipdrv/max11410|libos/bsp/chipdrv/m24256|libos/bsp/chipdrv/LCM240128C|libos/bsp/chipdrv/lan8720|libos/bsp/chipdrv/ksz8081rnb/imxrt1052-evk|libos/bsp/chipdrv/k9f1208xxx|libos/bsp/chipdrv/ili9325|libos/bsp/chipdrv/ft5x26|libos/bsp/chipdrv/ft5406|libos/bsp/chipdrv/fram|libos/bsp/chipdrv/ds3232mz|libos/bsp/chipdrv/ds1390|libos/bsp/chipdrv/dm9000a|libos/bsp/chipdrv/dm9000|libos/bsp/chipdrv/AX88796|libos/bsp/chipdrv/at45db321|libos/bsp/chipdrv/at24c512c|libos/bsp/chipdrv/at24c128b|libos/bsp/chipdrv/at24c02a|libos/bsp/chipdrv/at24c02|libos/bsp/chipdrv/ads8688|libos/bsp/chipdrv/ads8664|libos/bsp/chipdrv/adm1032|libos/bsp/chipdrv/ad7606|libos/bsp/chipdrv/ad5697r|libos/bsp/chipdrv/88E6060|libos/bsp/chipdrv/88E1512|libos/bsp/chipdrv/39vf160|libos/third/zlib-1.2.8|libos/third/wolfssl-3.10.2|libos/third/usb|libos/third/sqlite3|libos/third/qrencode|libos/third/mosquitto-1.0|libos/third/lua-5.1.4|libos/third/LibVNCServer-0.9.9|libos/third/libghttp-1.0.9|libos/third/javascript/jerryscript|libos/third/javascript/iotjs|libos/third/javascript/duktape|libos/third/goahead-2.5.0|libos/third/fs/yaf2|libos/third/fs/fat|libos/third/firmware/stm32h7|libos/third/firmware/stm32f7|libos/third/firmware/stm32f4|libos/third/firmware/stm32f3|libos/third/firmware/stm32f1|libos/third/firmware/sldrv|libos/third/firmware/silan|libos/third/firmware/Sharc21469|libos/third/firmware/NuvotonM480|libos/third/firmware/lpc17xx|libos/third/firmware/lpc12xx|libos/third/firmware/imxrt1052|libos/third/firmware/csky|libos/third/firmware/AtmelSamV7|libos/third/firmware/AtmelSam4s|libos/third/firmware/AtmelSam4e|libos/third/cjson-code-73|libos/bsp/arch/arm/cortex-m/armv7-m|libos/bsp/arch/arm/cortex-m/armv6-m|libos/bsp/arch/arm/armv5te|libos/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7|libos/bsp/arch/arm/cortex-m/armv7-m/cortex-m3|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m1|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0+|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0|libos/bsp/arch/arm/armv5te/arm968e-s|libos/bsp/arch/arm/armv5te/arm926|libos/bsp/arch/windows|libos/bsp/arch/ppc|libos/bsp/arch/dsp|libos/bsp/arch/ck|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer|libos/bsp/cpudrv/stm32/f1/stm32f103zg|libos/bsp/boarddrv/user/BoardDemo11|libos/bsp/boarddrv/user/BoardDemo9|libos/bsp/boarddrv/user/BoardDemo8|libos/bsp/boarddrv/user/BoardDemo|libos/bsp/boarddrv/user/BoardDemo7|libos/bsp/boarddrv/user/BoardDemo6|libos/bsp/boarddrv/user/BoardDemo5|libos/bsp/boarddrv/user/BoardDemo4|libos/bsp/boarddrv/user/Board3|libos/bsp/boarddrv/user/BoardDemo2|libos/bsp/boarddrv/user/BoardDemo1|libos/bsp/cpudrv/stm22|libos/bsp/cpudrv/stm12|libos/bsp/cpudrv/imxrt/1050/src/semc|libos/bsp/cpudrv/stm32/h7/src/hal|libos/component/osboot|libos/Test|Test|iboot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/utils|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/patches|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests|libos/component/driver/pci|libos/libc/libm/test|libos/libc/libc/posix/wordfree.c|libos/libc/libc/posix/wordexp.c|libos/libc/libc/posix/telldir.c|libos/libc/libc/posix/seekdir.c|libos/libc/libc/posix/scandir.c|libos/libc/libc/posix/rewinddir.c|libos/libc/libc/posix/regfree.c|libos/libc/libc/posix/regexec.c|libos/libc/libc/posix/regerror.c|libos/libc/libc/posix/regcomp.c|libos/libc/libc/posix/readdir.c|libos/libc/libc/posix/readdir_r.c|libos/libc/libc/posix/posix_spawn.c|libos/libc/libc/posix/popen.c|libos/libc/libc/posix/opendir.c|libos/libc/libc/posix/isatty.c|libos/libc/libc/posix/glob.c|libos/libc/libc/posix/fnmatch.c|libos/libc/libc/posix/execvp.c|libos/libc/libc/posix/execve.c|libos/libc/libc/posix/execv.c|libos/libc/libc/posix/execlp.c|libos/libc/libc/posix/execle.c|libos/libc/libc/posix/execl.c|libos/libc/libc/posix/engine.c|libos/libc/libc/posix/creat.c|libos/libc/libc/posix/collcmp.c|libos/libc/libc/posix/collate.c|libos/libc/libc/posix/closedir.c|libos/libc/libc/posix/_isatty.c|libos/libc/libc/locale|app" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="DIDE/djysrc/bsp/arch/arm"/>
+						<entry excluding="libos/bsp/cpudrv/ZQ|libos/bsp/cpudrv/ZQ/zq12xx|libos/bsp/cpudrv/stm32/h7|libos/bsp/cpudrv/stm32/f7|libos/bsp/cpudrv/stm32/f4|libos/bsp/cpudrv/stm32/f3|libos/bsp/cpudrv/stm32/f1|libos/bsp/cpudrv/scm6xx|libos/bsp/cpudrv/samsung|libos/bsp/cpudrv/Nuvoton|libos/bsp/cpudrv/Nuvoton/M480|libos/bsp/cpudrv/imxrt|libos/bsp/cpudrv/imxrt/1050|libos/bsp/cpudrv/beken|libos/bsp/cpudrv/Atmel|libos/bsp/cpudrv/Atmel/SamV7|libos/bsp/cpudrv/Atmel/Sam4e|libos/third/micropython1.13|libos/bsp/boarddrv/user/UitdModule|libos/bsp/boarddrv/user/ShengTianlong|libos/userlib|libos/bsp/chipdrv/ips6404l|libos/bsp/chipdrv/gd5f1gq5x/gd5f1gq5x.c|libos/bsp/chipdrv/gd5f1gq5x/gd5f1gq5x_yaf|libos/third/firmware/STM32L4|libos/bsp/boarddrv/user/zs_watch|libos/bsp/boarddrv/user/Qucanji__node485|libos/bsp/boarddrv/user/qucanji|libos/bsp/boarddrv/user/MagicMirror_notp|libos/bsp/boarddrv/user/HealthBoxPlus|libos/bsp/boarddrv/user/HealthBox|libos/bsp/boarddrv/user/bk7251_erji|libos/bsp/boarddrv/user/bk7251_dmv1d0|libos/bsp/boarddrv/user/AiEasyTalk|libos/bsp/boarddrv/user/.git|libos/bsp/chipdrv/gt9271|libos/bsp/chipdrv/gt911|libos/bsp/chipdrv/gd25q64c/gd25q64c.c|libos/third/minilzo|libos/third/opusfile-0.11|libos/third/opus-1.3.1|libos/third/libogg-1.3.2|libos/bsp/chipdrv/tw6448eg03|libos/bsp/chipdrv/st7789v|libos/bsp/chipdrv/ssd2119|libos/bsp/chipdrv/gc9307|libos/bsp/chipdrv/gd25q64c/gd25q64c_fat|libos/bsp/chipdrv/ct1711|libos/third/firmware/bk7251drv3.0|libos/bsp/chipdrv/ft6236|libos/bsp/chipdrv/gd25q16c/gd25q16c.c|libos/third/mongoose-6.15|libos/bsp/chipdrv/st7796s|libos/bsp/chipdrv/gd25q16c/gd25_efs|libos/bsp/cpudrv/scm6xx/scm610|libos/bsp/cpudrv/beken/bk7251|libos/bsp/boarddrv/demo/bk7251_demo|libos/bsp/boarddrv/demo/APOLLO-STM32H7|libos/bsp/chipdrv/uc1698|libos/bsp/chipdrv/at24c08|libos/third/wolfssl-3.15.7|libos/third/wolfssh-1.3.0|libos/third/goahead-4.0.1|libos/third/firmware/scm6xx|libos/bsp/chipdrv/lan8742|libos/third/picasso|libos/third/mp4v2-2.0.0|libos/third/libpng-1.6.17|libos/third/libmad-0.15.1b|libos/third/libjpeg-turbo-1.4.1|libos/third/javascript|libos/third/giflib-5.1.3|libos/third/freetype2|userlib|libos/bsp/cpudrv/ZQ/zq12xx/zq1201|libos/bsp/cpudrv/stm32/L4/stm32l475xx|libos/bsp/cpudrv/stm32/L4/stm32l433xx|libos/bsp/cpudrv/stm32/h7/stm32h743xx|libos/bsp/cpudrv/stm32/f7/stm32f767xx|libos/bsp/cpudrv/stm32/f7/stm32f756xx|libos/bsp/cpudrv/stm32/f7/stm32f746xx|libos/bsp/cpudrv/stm32/f4/stm32f407xx|libos/bsp/cpudrv/stm32/f3/stm32f303xc|libos/bsp/cpudrv/stm32/f1/stm32f103xg|libos/bsp/cpudrv/stm32/f1/stm32f103xe|libos/bsp/cpudrv/samsung/s3c2416|libos/bsp/cpudrv/Nuvoton/M480/M487JIDAE|libos/bsp/cpudrv/imxrt/1050/imxrt1052|libos/bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx|libos/bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx|libos/bsp/cpudrv/windows|libos/bsp/cpudrv/Sharc21469|libos/bsp/cpudrv/samsung/s3c2440|libos/bsp/cpudrv/samsung/s3c2410|libos/bsp/cpudrv/p1020|libos/bsp/cpudrv/omapl138|libos/bsp/cpudrv/LPC|libos/bsp/cpudrv/FslKxx|libos/bsp/cpudrv/Atmel/Sam4s|libos/bsp/boarddrv/staged/目录说明.txt|libos/bsp/boarddrv/staged/windows|libos/bsp/boarddrv/staged/tq2440|libos/bsp/boarddrv/staged/SAM4E-EK|libos/bsp/boarddrv/staged/P1020_DDRTest|libos/bsp/boarddrv/staged/P1020RDB|libos/bsp/boarddrv/staged/iot-hall|libos/bsp/boarddrv/demo/ZQ1201|libos/bsp/boarddrv/demo/TWR_K70F120M|libos/bsp/boarddrv/demo/TWR_K60F120M|libos/bsp/boarddrv/demo/tq2416|libos/bsp/boarddrv/demo/stm32l475-empty|libos/bsp/boarddrv/demo/stm32l433-empty|libos/bsp/boarddrv/demo/STM32H743I-EVAL|libos/bsp/boarddrv/demo/STM32F756G-EVAL2|libos/bsp/boarddrv/demo/stm32f3-empty|libos/bsp/boarddrv/demo/stm32f103-empty|libos/bsp/boarddrv/demo/SAMV71Xplained|libos/bsp/boarddrv/demo/qh_1|libos/bsp/boarddrv/demo/NuvotonM487|libos/bsp/boarddrv/demo/NUCLEO-H743ZI|libos/bsp/boarddrv/demo/NUCLEO-F767ZI|libos/bsp/boarddrv/demo/NUCLEO-F746ZG|libos/bsp/boarddrv/demo/mcb1700|libos/bsp/boarddrv/demo/imxrt1052-evk|libos/bsp/boarddrv/demo/EXPLORER-stm32f4|libos/bsp/boarddrv/demo/APOLLO-STM32F7|libos/bsp/chipdrv/s29glxxx|libos/bsp/chipdrv/s25fl128|libos/bsp/chipdrv/m29w320|libos/bsp/chipdrv/m25p16|libos/bsp/chipdrv/AR8021|libos/bsp/chipdrv/ad7616|libos/third/firmware/FslKxx|libos/third/firmware/CMSIS|libos/third/firmware/bk7251drv|libos/djyos/msg|libos/component/pipe|libos/component/menu|libos/bsp/cpudrv/stm32/L4/src/wwdg|libos/bsp/cpudrv/stm32/L4/src/timer|libos/bsp/cpudrv/stm32/L4/src/systime|libos/bsp/cpudrv/stm32/L4/src/spi|libos/bsp/cpudrv/stm32/L4/src/iic|libos/bsp/cpudrv/stm32/L4/src/emflash|libos/bsp/chipdrv/w25qxx|libos/bsp/chipdrv/tca9535|libos/bsp/chipdrv/STMPE811|libos/bsp/chipdrv/sc1161y|libos/bsp/chipdrv/pcf8574|libos/bsp/chipdrv/nrsec3000|libos/bsp/chipdrv/mt29fxxx|libos/bsp/chipdrv/mma8451q|libos/bsp/chipdrv/mcp2515|libos/bsp/chipdrv/mcb1700lcd|libos/bsp/chipdrv/max98357|libos/bsp/chipdrv/max31865|libos/bsp/chipdrv/max14001|libos/bsp/chipdrv/max11410|libos/bsp/chipdrv/m24256|libos/bsp/chipdrv/LCM240128C|libos/bsp/chipdrv/lan8720|libos/bsp/chipdrv/ksz8081rnb/imxrt1052-evk|libos/bsp/chipdrv/k9f1208xxx|libos/bsp/chipdrv/ili9325|libos/bsp/chipdrv/ft5x26|libos/bsp/chipdrv/ft5406|libos/bsp/chipdrv/fram|libos/bsp/chipdrv/ds3232mz|libos/bsp/chipdrv/ds1390|libos/bsp/chipdrv/dm9000a|libos/bsp/chipdrv/dm9000|libos/bsp/chipdrv/AX88796|libos/bsp/chipdrv/at45db321|libos/bsp/chipdrv/at24c512c|libos/bsp/chipdrv/at24c128b|libos/bsp/chipdrv/at24c02a|libos/bsp/chipdrv/at24c02|libos/bsp/chipdrv/ads8688|libos/bsp/chipdrv/ads8664|libos/bsp/chipdrv/adm1032|libos/bsp/chipdrv/ad7606|libos/bsp/chipdrv/ad5697r|libos/bsp/chipdrv/88E6060|libos/bsp/chipdrv/88E1512|libos/bsp/chipdrv/39vf160|libos/third/zlib-1.2.8|libos/third/wolfssl-3.10.2|libos/third/usb|libos/third/sqlite3|libos/third/qrencode|libos/third/mosquitto-1.0|libos/third/lua-5.1.4|libos/third/LibVNCServer-0.9.9|libos/third/libghttp-1.0.9|libos/third/javascript/jerryscript|libos/third/javascript/iotjs|libos/third/javascript/duktape|libos/third/goahead-2.5.0|libos/third/fs/yaf2|libos/third/fs/fat|libos/third/firmware/stm32h7|libos/third/firmware/stm32f7|libos/third/firmware/stm32f4|libos/third/firmware/stm32f3|libos/third/firmware/stm32f1|libos/third/firmware/sldrv|libos/third/firmware/silan|libos/third/firmware/Sharc21469|libos/third/firmware/NuvotonM480|libos/third/firmware/lpc17xx|libos/third/firmware/lpc12xx|libos/third/firmware/imxrt1052|libos/third/firmware/csky|libos/third/firmware/AtmelSamV7|libos/third/firmware/AtmelSam4s|libos/third/firmware/AtmelSam4e|libos/third/cjson-code-73|libos/bsp/arch/arm/cortex-m/armv7-m|libos/bsp/arch/arm/cortex-m/armv6-m|libos/bsp/arch/arm/armv5te|libos/bsp/arch/arm/cortex-m/armv7e-m/cortex-m7|libos/bsp/arch/arm/cortex-m/armv7-m/cortex-m3|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m1|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0+|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0|libos/bsp/arch/arm/armv5te/arm968e-s|libos/bsp/arch/arm/armv5te/arm926|libos/bsp/arch/windows|libos/bsp/arch/ppc|libos/bsp/arch/dsp|libos/bsp/arch/ck|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer|libos/bsp/cpudrv/stm32/f1/stm32f103zg|libos/bsp/boarddrv/user/BoardDemo11|libos/bsp/boarddrv/user/BoardDemo9|libos/bsp/boarddrv/user/BoardDemo8|libos/bsp/boarddrv/user/BoardDemo|libos/bsp/boarddrv/user/BoardDemo7|libos/bsp/boarddrv/user/BoardDemo6|libos/bsp/boarddrv/user/BoardDemo5|libos/bsp/boarddrv/user/BoardDemo4|libos/bsp/boarddrv/user/Board3|libos/bsp/boarddrv/user/BoardDemo2|libos/bsp/boarddrv/user/BoardDemo1|libos/bsp/cpudrv/stm22|libos/bsp/cpudrv/stm12|libos/bsp/cpudrv/imxrt/1050/src/semc|libos/bsp/cpudrv/stm32/h7/src/hal|libos/component/osboot|libos/Test|Test|iboot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/utils|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/patches|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests|libos/component/driver/pci|libos/libc/libm/test|libos/libc/libc/posix/wordfree.c|libos/libc/libc/posix/wordexp.c|libos/libc/libc/posix/telldir.c|libos/libc/libc/posix/seekdir.c|libos/libc/libc/posix/scandir.c|libos/libc/libc/posix/rewinddir.c|libos/libc/libc/posix/regfree.c|libos/libc/libc/posix/regexec.c|libos/libc/libc/posix/regerror.c|libos/libc/libc/posix/regcomp.c|libos/libc/libc/posix/readdir.c|libos/libc/libc/posix/readdir_r.c|libos/libc/libc/posix/posix_spawn.c|libos/libc/libc/posix/popen.c|libos/libc/libc/posix/opendir.c|libos/libc/libc/posix/isatty.c|libos/libc/libc/posix/glob.c|libos/libc/libc/posix/fnmatch.c|libos/libc/libc/posix/execvp.c|libos/libc/libc/posix/execve.c|libos/libc/libc/posix/execv.c|libos/libc/libc/posix/execlp.c|libos/libc/libc/posix/execle.c|libos/libc/libc/posix/execl.c|libos/libc/libc/posix/engine.c|libos/libc/libc/posix/creat.c|libos/libc/libc/posix/collcmp.c|libos/libc/libc/posix/collate.c|libos/libc/libc/posix/closedir.c|libos/libc/libc/posix/_isatty.c|libos/libc/libc/locale|app" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

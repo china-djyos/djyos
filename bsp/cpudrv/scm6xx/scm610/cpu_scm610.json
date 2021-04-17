@@ -1,0 +1,6 @@
+{
+	"cpu_name":"scm610",
+	"cores":[{
+		"resetAddr":"0x00000004"
+	}]
+}

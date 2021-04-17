@@ -149,7 +149,7 @@ struct SYSCON_REG
     vu32 SCLKCON;            // 0x38
     vu32 PAD5;               // 0x3C
     vu32 PWRMODE;            // 0x40
-    vu32 SWRST;              // 0x44        // Software reset control
+    vu32 SWRST;              // 0x44        // Software CPU_Reset control
     vu32 PAD6;               // 0x48
     vu32 PAD7;               // 0x4C
     vu32 BUSPRI0;            // 0x50

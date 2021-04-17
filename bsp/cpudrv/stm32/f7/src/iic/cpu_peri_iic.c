@@ -66,7 +66,7 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    bool_t IIC_Init(u8 IIC_port);
+//bool_t ModuleInstall_IIC(ptu32_t port);
 //    #if CFG_IIC1_ENABLE== true
 //     ModuleInstall_IIC_Drv(CN_IIC1);
 //    #endif
@@ -82,14 +82,14 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu onchip iic"//CPU的iic总线驱动
-//parent:"iicbus","cpu onchip iic"//填写该组件的父组件名字，none表示没有父组件
+//component name:"cpu onchip iic"        //CPU的iic总线驱动
+//parent:"iicbus"                        //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                          //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                       //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                          //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                        //初始化时机，可选值：early，medium，later。
+//init time:early                        //初始化时机，可选值：early，medium，later, pre-main。
                                          //表示初始化时间，分别是早期、中期、后期
-//dependence:"iicbus"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"iicbus"                    //该组件的依赖组件名（可以是none，表示无依赖组件），
                                          //选中该组件时，被依赖组件将强制选中，
                                          //如果依赖多个组件，则依次列出
 //weakdependence:"none"                  //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -925,10 +925,10 @@ static bool_t Set_IIC_DMA_USED(ptu32_t port)
         return false;
     if(pStm32Icb[port].Dmabuf == NULL)
     {
-        heap =M_FindHeap("nocache");
+        heap =Heap_FindHeap("nocache");
         if(heap==NULL)
         {
-            heap =M_FindHeap("sys"); //如果没有“nocache”堆就使用系统堆
+            heap =Heap_FindHeap("sys"); //如果没有“nocache”堆就使用系统堆
             printf("警告UART%d:设置DMA 模式没有找到 nocache Heap",port+1);;
         }
         DmaBufLen =config[port].DmaBufLen;
@@ -1079,7 +1079,7 @@ static bool_t IIC_wait_flags(I2CType *reg,u32 flags,u32 *status)
     while ((!(*status & flags))&&timeout)
     {
         timeout--;
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         *status = reg->ISR;
     }
     if(timeout == 0)
@@ -1524,10 +1524,10 @@ bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
      {
           timeout++;
           GPIO_SettoLow(port,sck_pin);
-          Djy_DelayUs(10);
+          DJY_DelayUs(10);
 
           GPIO_SettoHigh(port,sck_pin);
-          Djy_DelayUs(10);
+          DJY_DelayUs(10);
 
           if(timeout>=100)
               return false;
@@ -1538,9 +1538,9 @@ bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
                          GPIO_OTYPE_OD,GPIO_SPEED_100M,GPIO_PUPD_PU);
     //产生停止信号 iic总线释放
     GPIO_SettoLow(port,sda_pin);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
     GPIO_SettoHigh(port,sda_pin);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
 
     return true;
 }

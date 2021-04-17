@@ -31,7 +31,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:none                //初始化时机，可选值：early，medium，later。
+//init time:none                //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -85,7 +85,7 @@ s32 genphy_update_link_88E1512(u32 addr)
         reg = tsec_phy_read(addr, devad, REGISTER(17));
         if(reg & 0x0400)        //是否连接上
             break;              //连接上了
-        Djy_DelayUs(1000);
+        DJY_DelayUs(1000);
     }
     if(reg & 0x0400)
         linked = 1;
@@ -172,7 +172,7 @@ s32 phy_config_88e1512(s32 addr,s32 supported)
     while ((reg & MARVEL_RESET) && timeout--)
     {
         reg = tsec_phy_read(addr, devad, REGISTER(20));
-        Djy_DelayUs(1000);
+        DJY_DelayUs(1000);
     }
     if (reg & MARVEL_RESET)
     {
@@ -242,7 +242,7 @@ void phy_reset_88e1512(s32 addr)
             printf("PHY status read failed\r\n");
             return;
         }
-        Djy_DelayUs(1000);
+        DJY_DelayUs(1000);
     }
 
     if (reg & MARVEL_RESET)

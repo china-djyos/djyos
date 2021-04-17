@@ -170,15 +170,44 @@
 #endif // (CFG_SOC_NAME == SOC_BK7231)
 
 #define SCTRL_ANALOG_CTRL3                    (SCTRL_BASE + 25 * 4)
+#define CHARGE_LC2CVDLYLV_MASK                 (0x7)
+#define CHARGE_LC2CVDLYLV_POS                  (29)
+#define CHARGE_VLCSWLV_MASK                     (0xF)
+#define CHARGE_VLCSWLV_POS                      (23)
+#define CHARGE_LCP_MASK                        (0x1F)
+#define CHARGE_LCP_POS                         (8)
 
 #define SCTRL_ANALOG_CTRL4                    (SCTRL_BASE + 26 * 4)
 #define VSEL_SYS_LDO_POSI                        (27)
 #define VSEL_SYS_LDO_MASK                        (0x3)
+#define CHARGE_MANMODE_MASK                        (0x7)
+#define CHARGE_MANMODE_POS                         (16)
 
 #define SCTRL_ANALOG_CTRL5                    (SCTRL_BASE + 0x1B*4)
 
 #if (CFG_SOC_NAME != SOC_BK7231)
 #define SCTRL_ANALOG_CTRL6                    (SCTRL_BASE + 0x1C*4)
+#define DPLL_CLK_FOR_AUDIO_EN                    (1 << 31)
+#define DPLL_CLK_FOR_USB_EN                      (1 << 30)
+#define DPLL_DIVIDER_CLK_SEL                     (1 << 29)
+#define DPLL_DIVIDER_CTRL_MASK                   (0x7)
+#define DPLL_DIVIDER_CTRL_POSI                   (26)
+#define DPLL_CLKOUT_PAD_EN                       (1 << 25)
+#define DPLL_XTAL26M_CLK_AUDIO_EN                (1 << 24)
+#define DPLL_REF_CLK_SELECT                      (1 << 23)
+#define DPLL_CHARGE_PUMP_CUR_CTRL_MASK           (0x7)
+#define DPLL_CHARGE_PUMP_CUR_CTRL_POSI           (20)
+#define DPLL_DPLL_VCO_BAND_MANUAL_EN             (1 << 19)
+#define DPLL_SPI_TRIGGER                         (1 << 18)
+#define DPLL_CLK_REF_LOOP_SEL                    (1 << 17)
+#define DPLL_KVCO_CTRL_MASK                      (0x3)
+#define DPLL_KVCO_CTRL_POSI                      (15)
+#define DPLL_VSEL_CAL                            (1 << 14)
+#define DPLL_RP_CTRL_LPF_MASK                    (0x7)
+#define DPLL_RP_CTRL_LPF_POSI                    (11)
+#define DPLL_RESET                               (1 << 3)
+
+
 
 #define SCTRL_EFUSE_CTRL                      (SCTRL_BASE + 0x1D*4)
 #define EFUSE_OPER_EN                            (1 << 0)
@@ -199,6 +228,12 @@
 #define SCTRL_BLE_SUBSYS_RESET_REQ            (SCTRL_BASE + 0x20*4)
 #if (CFG_SOC_NAME == SOC_BK7221U)
 #define SCTRL_CHARGE_STATUS                   (SCTRL_BASE + 0x21*4)
+#define CHARGE_VCAL_MASK                        (0x3F)
+#define CHARGE_VCAL_POS                         (5)
+#define CHARGE_LCAL_MASK                        (0x1F)
+#define CHARGE_LCAL_POS                         (11)
+#define CHARGE_VCVCAL_MASK                      (0x1F)
+#define CHARGE_VCVCAL_POS                       (0)
 
 #define SCTRL_ANALOG_CTRL7                    (SCTRL_BASE + 0x22*4)
 
@@ -210,6 +245,7 @@
 #define SPI_PWD_AUD_ADC_R                        (1 << 20)
 #define AUD_DAC_GAIN_MASK                        (0x1F)
 #define AUD_DAC_GAIN_POSI                        (2)
+#define AUD_DAC_MUTE_EN                          (1 << 0)
 
 #define SCTRL_ANALOG_CTRL9                    (SCTRL_BASE + 0x24*4)
 #define DAC_DIFF_EN                              (1 << 31)
@@ -234,6 +270,8 @@
 #define LPO_SRC_ROSC                             (0x0)
 #define LPO_SRC_32K_XTAL                         (0x1)
 #define LPO_SRC_32K_DIV                          (0x2)
+
+#define DEEP_SLEEP_LPO_SRC        LPO_SRC_32K_XTAL
 
 #define SCTRL_SLEEP                           (SCTRL_BASE + 65 * 4)
 #define PROCORE_DLY_POSI                            (20)
@@ -306,6 +344,16 @@
 #define GPIO_WAKEUP_TYPE_POSITIVE_EDGE           (0)
 #define GPIO_WAKEUP_TYPE_NEGATIVE_EDGE           (1)
 
+#define SCTRL_USB_PLUG_WAKEUP                   (SCTRL_BASE + 78 * 4)
+#define USB_PLUG_IN_EN_BIT                      (1 << 0)
+#define USB_PLUG_OUT_EN_BIT                     (1 << 1)
+#define USB_PLUG_IN_INT_BIT                     (1 << 2)
+#define USB_PLUG_OUT_INT_BIT                    (1 << 3)
+
+#define SCTRL_GPIO_WAKEUP_EN1                  (SCTRL_BASE + 81 * 4)
+#define SCTRL_GPIO_WAKEUP_TYPE1                (SCTRL_BASE + 82 * 4)
+#define SCTRL_GPIO_WAKEUP_INT_STATUS1          (SCTRL_BASE + 83 * 4)
+
 enum
 {
     SYSCTRL_GPIO00_ID = 0,
@@ -351,7 +399,7 @@ enum
 #define BLOCK_EN_VALID_MASK                      (0xFFFFF)
 
 #define BLK_EN_LINEIN                            (1 << 19)
-#define BLK_EN_MIC_R_CHANNEL                     (1 << 18)
+#define BLK_EN_MIC_QSPI_RAM_OR_FLASH                     (1 << 18)
 #define BLK_EN_MIC_L_CHANNEL                     (1 << 17)
 #define BLK_EN_AUDIO_R_CHANNEL                   (1 << 16)
 #define BLK_EN_AUDIO_L_CHANNEL                   (1 << 15)
@@ -363,7 +411,7 @@ enum
 #define BLK_EN_IO_LDO_LOW_POWER                  (1 << 09)
 #define BLK_EN_ANALOG_SYS_LDO                    (1 << 8)
 #define BLK_EN_DIGITAL_CORE_LDO_LOW_POWER        (1 << 07)
-#define BLK_EN_NC0                               (1 << 06)
+#define BLK_EN_DIGITAL_CORE                      (1 << 06)
 #define BLK_EN_DPLL_480M                         (1 << 05)
 #define BLK_EN_32K_XTAL                          (1 << 04)
 #define BLK_EN_26M_XTAL                          (1 << 03)
@@ -393,8 +441,10 @@ enum
 #define ROSC_CAL_TRIG_BIT                        (1 << 1)
 #define ROSC_CAL_EN_BIT                          (1 << 0)
 
-#define SCTRL_BLOCK_EN_MUX                     (SCTRL_BASE + 79 * 4)
+#define SCTRL_BLOCK_EN_MUX						(SCTRL_BASE + 79 * 4)
+#define SCTRL_ROSC_TIMER_PERIOD_HIGH		(SCTRL_BASE + 80*4)	
 
+#define SCTRL_SW_RETENTION                     (SCTRL_BASE + 84 * 4)
 
 #define DCO_CNTI_120M           (0x127U)  // set DCO out clk with 120M
 

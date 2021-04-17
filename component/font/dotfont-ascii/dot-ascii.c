@@ -10,7 +10,7 @@
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
 // 3. As a constituent part of djyos,do not transplant it to other software
-//    without specific prior written permission.
+//    without specific prior written permiss ion.
 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -76,20 +76,20 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"ascii dot font"//ascii字体
-//parent:"font"      //填写该组件的父组件名字，none表示没有父组件
+//component name:"ascii dot font"//ascii点阵字体，纯英文版本才需要勾选
+//parent:"font"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"font"  //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"font","ascii charset"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"gb2312 dot" //该组件的互斥组件名（可以是none，表示无互斥组件），
+//mutex:"gb2312 dot"            //该组件的互斥组件名（可以是none，表示无互斥组件），
                                 //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
@@ -123,9 +123,12 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #if CFG_ASCII_8X8 == true
 #include "dot-ascii8x8.h"
+
 
 bool_t __Font_Ascii8x8LoadFont(void *zk_addr);
 void __Font_Ascii8x8UnloadFont(void);
@@ -150,7 +153,7 @@ void __Font_Ascii8x8UnloadFont(void)
 //功能: 提取ascii 8*8点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
 //      符，ascii包含扩展的ascii码
 //参数: charcode，待显示的ascii码得ucs4编码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -231,7 +234,7 @@ bool_t ModuleInstall_FontAscii8x8(void)
         return true;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-ascii","ascii 8x8 font install fail\n\r");
         return false;
     }
@@ -266,7 +269,7 @@ void __Font_Ascii8x16UnloadFont(void)
 //功能: 提取ascii 8*16点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
 //      符，ascii包含扩展的ascii码
 //参数: charcode，待显示的ascii码得ucs4编码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -346,7 +349,7 @@ bool_t ModuleInstall_FontAscii8x16(void)
         return true;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-ascii","ascii 8x16 font install fail\n\r");
         return false;
     }
@@ -382,7 +385,7 @@ void __Font_Ascii6x12UnloadFont(void)
 //功能: 提取ascii 8*16点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
 //      符，ascii包含扩展的ascii码
 //参数: charcode，待显示的ascii码得ucs4编码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -462,7 +465,7 @@ bool_t ModuleInstall_FontAscii6x12(void)
         return true;
     }else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-ascii","ascii 6x12 font install fail\n\r");
         return false;
     }
@@ -508,7 +511,7 @@ bool_t __Font_Ascii12x24GetCharBitMap(u32 charcode, u32 size,u32 resv,
 //功能: 提取ascii 12*24点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
 //      符，ascii包含扩展的ascii码
 //参数: charcode，待显示的ascii码得ucs4编码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -579,7 +582,7 @@ bool_t ModuleInstall_FontAscii12x24(void)
     }
     else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-ascii","ascii 12x24 font install fail\n\r");
         return false;
     }
@@ -625,7 +628,7 @@ bool_t __Font_Ascii16x32GetCharBitMap(u32 charcode, u32 size,u32 resv,
 //功能: 提取ascii 12*24点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
 //      符，ascii包含扩展的ascii码
 //参数: charcode，待显示的ascii码得ucs4编码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -696,7 +699,7 @@ bool_t ModuleInstall_FontAscii16x32(void)
     }
     else
     {
-        Djy_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
         debug_printf("dot-ascii","ascii 16x32 font install fail\n\r");
         return false;
     }
@@ -728,6 +731,7 @@ bool_t ModuleInstall_FontAscii16x32(void)
 
 #endif      //CFG_ASCII_16X32_FANG == true
 
+#pragma GCC diagnostic pop
 
 void ModuleInstall_FontAscii(void)
 {

@@ -51,10 +51,10 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     hwnd =pMsg->hwnd;
     text_align_idx =0;
 
-    hdc=BeginPaint(hwnd);
-    GetClientRect(hwnd,&rc0);
-    SetFillColor(hdc,RGB(250,250,250));
-    FillRect(hdc,&rc0);
+    hdc=GDD_BeginPaint(hwnd);
+    GDD_GetClientRect(hwnd,&rc0);
+    GDD_SetFillColor(hdc,RGB(250,250,250));
+    GDD_FillRect(hdc,&rc0);
 
     prog1_val=0;
     prog2_val=0;
@@ -79,11 +79,11 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     pb2.TextColor =RGB(1,1,1);
     pb2.DrawTextFlag =DT_VCENTER|DT_CENTER;
 
-    GetClientRect(hwnd,&rc0);
-    CreateButton("关闭",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,RectW(&rc0)-64,RectH(&rc0)-28,60,24,hwnd,ID_CLOSE,NULL,NULL);
+    GDD_GetClientRect(hwnd,&rc0);
+    Widget_CreateButton("关闭",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-28,60,24,hwnd,ID_CLOSE,NULL,NULL);
 
-    CreateProgressBar("水平进度条1",WS_CHILD|PBS_HOR|WS_VISIBLE,8,36,128,28,hwnd,ID_PROGBAR1,&pb1,NULL);
-    CreateProgressBar("垂直进度条2",WS_CHILD|PBS_VER|WS_VISIBLE,160,36,28,128,hwnd,ID_PROGBAR2,&pb2,NULL);
+    Widget_CreateProgressBar("水平进度条1",WS_CHILD|PBS_HOR|WS_VISIBLE,8,36,128,28,hwnd,ID_PROGBAR1,(ptu32_t)&pb1,NULL);
+    Widget_CreateProgressBar("垂直进度条2",WS_CHILD|PBS_VER|WS_VISIBLE,160,36,28,128,hwnd,ID_PROGBAR2,(ptu32_t)&pb2,NULL);
 
     timer = GDD_CreateTimer(hwnd,1,3000);
     GDD_StartTimer(timer);
@@ -111,11 +111,11 @@ static ptu32_t HmiTimer(struct WindowMsg *pMsg)
                     pb1.DrawTextFlag =text_align[text_align_idx];
                     pb2.DrawTextFlag =text_align[text_align_idx];
 
-                    wnd =GetDlgItem(hwnd,ID_PROGBAR1);
-                    SendMessage(wnd,MSG_ProcessBar_SETDATA,(u32)&pb1,0);
+                    wnd =GDD_GetDlgItem(hwnd,ID_PROGBAR1);
+                    GDD_SendMessage(wnd,MSG_ProcessBar_SETDATA,(u32)&pb1,0);
 
-                    wnd =GetDlgItem(hwnd,ID_PROGBAR2);
-                    SendMessage(wnd,MSG_ProcessBar_SETDATA,(u32)&pb2,0);
+                    wnd =GDD_GetDlgItem(hwnd,ID_PROGBAR2);
+                    GDD_SendMessage(wnd,MSG_ProcessBar_SETDATA,(u32)&pb2,0);
                 }
                 break;
         case    2:
@@ -132,9 +132,9 @@ static ptu32_t HmiTimer(struct WindowMsg *pMsg)
                         prog1_val =100;
                         prog1_inc =-1;
                     }
-                    wnd =GetDlgItem(hwnd,ID_PROGBAR1);
+                    wnd =GDD_GetDlgItem(hwnd,ID_PROGBAR1);
                     pb1.Pos =prog1_val;
-                    SendMessage(wnd,MSG_ProcessBar_SETDATA,(u32)&pb1,0);
+                    GDD_SendMessage(wnd,MSG_ProcessBar_SETDATA,(u32)&pb1,0);
 
                     printf(text_buf,"进度:%d...",pb1.Pos);
 //                  SetWindowText(wnd,text_buf,1000);
@@ -150,16 +150,16 @@ static ptu32_t HmiTimer(struct WindowMsg *pMsg)
                         prog2_val =100;
                         prog2_inc =-1;
                     }
-                    wnd =GetDlgItem(hwnd,ID_PROGBAR2);
+                    wnd =GDD_GetDlgItem(hwnd,ID_PROGBAR2);
                     pb2.Pos =prog2_val;
-                    SendMessage(wnd,MSG_ProcessBar_SETDATA,(u32)&pb2,0);
+                    GDD_SendMessage(wnd,MSG_ProcessBar_SETDATA,(u32)&pb2,0);
 
                     printf(text_buf,"%d%%",pb2.Pos);
 //                  SetWindowText(wnd,text_buf,1000);
                     prog2_val += prog2_inc;
 
 
-                    InvalidateWindow(hwnd,FALSE);
+                    GDD_InvalidateWindow(hwnd,FALSE);
                 }
                 break;
     }
@@ -180,7 +180,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
         case ID_CLOSE:
             if(event==MSG_BTN_UP)
             {
-                PostMessage(hwnd,MSG_CLOSE,0,0);
+                GDD_PostMessage(hwnd,MSG_CLOSE,0,0);
             }
             break;
 
@@ -223,9 +223,9 @@ static ptu32_t HmiErasebkgnd(struct WindowMsg *pMsg)
     RECT rc0;
     hwnd =pMsg->hwnd;
     hdc =(HDC)pMsg->Param1;
-    GetClientRect(hwnd,&rc0);
-    SetFillColor(hdc,RGB(200,200,200));
-    FillRect(hdc,&rc0);
+    GDD_GetClientRect(hwnd,&rc0);
+    GDD_SetFillColor(hdc,RGB(200,200,200));
+    GDD_FillRect(hdc,&rc0);
     return true;
 }
 

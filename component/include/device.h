@@ -110,23 +110,23 @@ typedef s32 (*fnDevCntl) (struct objhandle *hdl, u32 cmd, va_list *args);
 
 
 s32 handle_IsBlockComplete(u32 flags);
-const char *dev_Name(struct Object *devo);
+const char *Device_GetName(struct Object *devo);
 //ptu32_t dev_GetDrvTagFromObj(struct obj *devo);
-struct Object *dev_Create(const char *name, fnDevOpen dopen, fnDevClose dclose,
+struct Object *Device_Create(const char *name, fnDevOpen dopen, fnDevClose dclose,
                         fnDevWrite dwrite, fnDevRead dread, fnDevCntl dcntl,
                         ptu32_t DrvTag);
 s32 dev_Delete(struct Object *dev);
-s32 dev_DeleteByName(const char *name);
-void dev_SetDrvTag(s32 fd,ptu32_t DrvTag);
-ptu32_t dev_SetUserTag(s32 fd,ptu32_t UserTag);
-ptu32_t dev_GetUserTag(s32 fd);
-ptu32_t dev_GetDrvTag(s32 fd);
+s32 Device_DeleteByName(const char *name);
+void Device_SetDrvTag(s32 fd,ptu32_t DrvTag);
+ptu32_t Device_SetUserTag(s32 fd,ptu32_t UserTag);
+ptu32_t Device_GetUserTag(s32 fd);
+ptu32_t Device_GetDrvTag(s32 fd);
 
-s32 DevOpen(const char *name, s32 flags,u32 timeout);
-s32 DevClose(s32 fd);
-s32 DevRead(s32 fd, void *buf, u32 len, u32 offset, u32 timeout);
-s32 DevWrite(s32 fd, void *buf, u32 len, u32 offset, u32 timeout);
-s32 DevCtrl(s32 fd, u32 cmd, ptu32_t data1, ptu32_t data2);
+s32 Device_Open(const char *name, s32 flags,u32 timeout);
+s32 Device_Close(s32 fd);
+s32 Device_Read(s32 fd, void *buf, u32 len, u32 offset, u32 timeout);
+s32 Device_Write(s32 fd, void *buf, u32 len, u32 offset, u32 timeout);
+s32 Device_Ctrl(s32 fd, u32 cmd, ptu32_t data1, ptu32_t data2);
 #ifdef __cplusplus
 }
 #endif

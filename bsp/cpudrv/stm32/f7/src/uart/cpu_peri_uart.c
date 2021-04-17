@@ -56,7 +56,7 @@
 #include <errno.h>
 #include <systime.h>
 #include "cpu_peri.h"
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "int.h"
 #include "djyos.h"
 #include "cpu_peri_uart.h"
@@ -113,7 +113,7 @@
 //attribute:bsp                    //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                 //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                    //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                  //初始化时机，可选值：early，medium，later。
+//init time:early                  //初始化时机，可选值：early，medium，later, pre-main。
                                    //表示初始化时间，分别是早期、中期、后期
 //dependence:"uart device file","int","cpu onchip dma"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                    //选中该组件时，被依赖组件将强制选中，
@@ -165,13 +165,21 @@
 
 //%$#@enum,true,false
 #define CFG_UART1_ENABLE           true        //"是否使用UART1",
+#define CFG_UART1_ENABLE_DMA       true        //"UART1使能DMA",
 #define CFG_UART2_ENABLE           false       //"是否使用UART2",
+#define CFG_UART2_ENABLE_DMA       false       //"UART2使能DMA",
 #define CFG_UART3_ENABLE           false       //"是否使用UART3",
+#define CFG_UART3_ENABLE_DMA       false       //"UART3使能DMA",
 #define CFG_UART4_ENABLE           false       //"是否使用UART4",
+#define CFG_UART4_ENABLE_DMA       false       //"UART4使能DMA",
 #define CFG_UART5_ENABLE           false       //"是否使用UART5",
+#define CFG_UART5_ENABLE_DMA       false       //"UART5使能DMA",
 #define CFG_UART6_ENABLE           false       //"是否使用UART6",
+#define CFG_UART6_ENABLE_DMA       false       //"UART6使能DMA",
 #define CFG_UART7_ENABLE           false       //"是否使用UART7",
+#define CFG_UART7_ENABLE_DMA       false       //"UART7使能DMA",
 #define CFG_UART8_ENABLE           false       //"是否使用UART8",
+#define CFG_UART8_ENABLE_DMA       false       //"UART8使能DMA",
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -244,6 +252,9 @@ static u8 *pUART_DmaRecvBuf[CN_UART_NUM][2];
 
 static struct UartGeneralCB *pUartCB[CN_UART_NUM];
 static u8 *sp_DmaRecvBuf[CN_UART_NUM];
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 //用于标识串口是否初始化标记，第0位表示UART0，第一位表UART1....
 //依此类推，1表示初始化，0表示未初始化
 static u8 sUartInited = 0;
@@ -263,6 +274,8 @@ __attribute__((weak))  void UART_OutLowPowerPinCfg(u8 SerialNo)
 {
     return ;
 }
+#pragma GCC diagnostic pop
+
 // =============================================================================
 static ptu32_t UART_ISR(ptu32_t port);
 static uint32_t UART_DmaRx_ISR(ptu32_t port);
@@ -392,7 +405,7 @@ bool_t UART_TxEnd(u8 port)
     while((false == __UART_TxTranEmpty(Reg))&& (timeout > 10))
     {
         timeout -=10;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
     }
     return true;
 }
@@ -492,7 +505,7 @@ static void __UART_ClkConfig(u8 SerialNo)
 // =============================================================================
 static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
 {
-    if((COM == 0) || (Reg == NULL))
+    if((COM == NULL) || (Reg == NULL))
         return;
     __UART_BaudSet(Reg,port,COM->BaudRate);
 
@@ -572,7 +585,7 @@ static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *
 
     switch(COM->StopBits)  //todu:F7的 0.5个停止位没有写进来
     {
-        Reg->CR2 &= ~(3<<12);
+//        Reg->CR2 &= ~(3<<12);
 //      case CN_UART_STOPBITS_0_5;  Reg->CR2 |= (1<<12);break;
         case CN_UART_STOPBITS_1:    Reg->CR2 |= (0<<12);break;
         case CN_UART_STOPBITS_1_5:  Reg->CR2 |= (3<<12);break;
@@ -720,7 +733,7 @@ bool_t __uart_dma_timeout(bool_t sending)
     while((sending == true)&& (timeout > 0))//超时
     {
         timeout--;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
     if(timeout == 0)
         return true;
@@ -776,13 +789,16 @@ u32 __UART_DMA_SendStart(u32 port)
     return 0;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // 功能: 启动串口发送，其目的是触发中断，用中断方式发送数据。
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
+static u32 __UART_SendStart (ptu32_t MyReg)
 {
+    tagUartReg *Reg = (tagUartReg *)MyReg;
     u8 port;
 
     switch((u32)Reg)
@@ -813,6 +829,7 @@ static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
     __UART_TxIntEnable(s_UART_DmaUsed[port],port);
     return 1;
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // 功能: 设置uart使用dma收发，根据stm32各串口的收发dma通道配置寄存器。将重新初
@@ -829,7 +846,7 @@ void __UART_SetDmaUsed(u32 port)
 
     if(s_UART_DmaUsed[port] == CN_DMA_USED)
         return ;
-    heap =M_FindHeap("nocache");
+    heap =Heap_FindHeap("nocache");
     if(heap==NULL)
         return;
 
@@ -1141,7 +1158,7 @@ uint32_t UART_DmaRx_ISR(ptu32_t port)
     else//区发生缓冲区环绕
     {
         recvs = &DmaRecvBufold[DmaRecvBufLen]-sp_DmaRecvBuf[port];
-        num = UART_PortWrite(pUartCB[port],sp_DmaRecvBuf[port],newrcvlen);
+        num = UART_PortWrite(pUartCB[port],sp_DmaRecvBuf[port],recvs);
         if(num != recvs)
             UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
 
@@ -1230,7 +1247,7 @@ u32 UART_ISR(ptu32_t port)
 ptu32_t ModuleInstall_UART(u32 serial_no)
 {
     struct UartParam UART_Param;
-
+    bool_t dmause;
     switch(serial_no)
     {
     case CN_UART1://串口1
@@ -1241,6 +1258,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART1_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART1_ENABLE_DMA;
         break;
     case CN_UART2://串口2
         UART_Param.Name         = "UART2";
@@ -1250,6 +1268,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART2_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART2_ENABLE_DMA;
         break;
 
     case CN_UART3://串口3
@@ -1260,6 +1279,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART3_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART3_ENABLE_DMA;
         break;
 
     case CN_UART4://串口4
@@ -1270,6 +1290,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART4_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART4_ENABLE_DMA;
         break;
     case CN_UART5://串口5
         UART_Param.Name         = "UART5";
@@ -1279,6 +1300,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART5_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART5_ENABLE_DMA;
         break;
     case CN_UART6://串口6
         UART_Param.Name         = "UART6";
@@ -1288,6 +1310,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART6_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART6_ENABLE_DMA;
         break;
     case CN_UART7://串口7
         UART_Param.Name         = "UART7";
@@ -1297,6 +1320,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART7_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART7_ENABLE_DMA;
         break;
     case CN_UART8://串口8
         UART_Param.Name         = "UART8";
@@ -1306,18 +1330,26 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART8_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART8_ENABLE_DMA;
         break;
     default:
         return 0;
     }
     UART_Param.mode = CN_UART_GENERAL;
-    pUART_DmaSendBuf[serial_no]=NULL;
-    pUART_DmaRecvBuf[serial_no][0]=NULL;
-    pUART_DmaRecvBuf[serial_no][1]=NULL;
     Board_UartHalfDuplexRecv(serial_no);
     //硬件初始化
     __UART_HardInit(serial_no);
     __UART_IntInit(serial_no);
+    if(dmause)
+    {
+        __UART_SetDmaUsed(serial_no);
+    }
+    else
+    {
+        pUART_DmaSendBuf[serial_no]=NULL;
+        pUART_DmaRecvBuf[serial_no][0]=NULL;
+        pUART_DmaRecvBuf[serial_no][1]=NULL;
+    }
     sUartInited |= (0x01 << serial_no);
     pUartCB[serial_no] = UART_InstallGeneral(&UART_Param);
     if( pUartCB[serial_no] == NULL)
@@ -1353,7 +1385,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
         while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
         {
             timeout -=10;
-            Djy_DelayUs(10);
+            DJY_DelayUs(10);
         }
         if( (timeout <= 10) || (result == len))
             break;
@@ -1363,7 +1395,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
     while((PutStrDirectReg->ISR &(1<<6))!=(1<<6))
     {
         timeout -=10;
-        Djy_DelayUs(10);
+        DJY_DelayUs(10);
         if(timeout < 10)
            break;
     }
@@ -1386,7 +1418,7 @@ char Uart_GetCharDirect(void)
     GetCharDirectReg->CR1 &= ~((1<<7)); //disable send INT
     GetCharDirectReg->ICR |= (1<<3);    //清溢出错误标志：轮询接收有可能接收不及时产生溢出错误
     while(__UART_RxHadChar(GetCharDirectReg) == false)
-        Djy_EventDelay(1000);
+        DJY_EventDelay(1000);
 
     result = GetCharDirectReg->RDR;
     PutStrDirectReg->CR1 = CR_Bak;                         //restore send INT

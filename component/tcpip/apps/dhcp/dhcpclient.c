@@ -56,40 +56,42 @@
 #include "dbug.h"
 #include "../../common/router.h"
 
-typedef struct
+typedef struct __tagTaskItem
 {
-    void                      *nxt;            //the task lst, for the extend fuction
+    struct __tagTaskItem      *nxt;            //the task lst, for the extend fuction
     u32                        stat;           //the task stat
     u32                        timeout;        //when timeout,do the
     u32                        transID;        //trans action ID
     u8                         mac[CN_MACADDR_LEN]; //the rout mac
 //    tagDhcpReplyPara           replypara;      //used to record the reply
     const char                *ifname;         //dev name
-    struct RoutItem4          *routwan;       //if get the gateway,create one here
+//  struct RoutItem4          *routwan;       //if get the gateway,create one here
     struct RoutItem4          *routlan;       //for the local router
     u32                        offerip;
     u32                        offerserver;
+    s32                        is_exist_ip;     //IP Got previous.
+    s32                        try_cnts;
     struct SemaphoreLCB*       sem; //notify dhcp get ip successfully
 }tagTaskItem;
 typedef enum
 {
-    EN_CLIENT_DICOVER,  //which means the task has snd the discover request
-    EN_CLIENT_REQUEST,  //which means the task has recieve the offer and snd the request
-    EN_CLIENT_STABLE,   //which means the task has recieve the ack of the request from the server
-    EN_CLIENT_INFORM,   //which means the task has recieve the ack of the request from the server
+    EN_CLIENT_DICOVER,  //which means the task has snd the discover request客户端已经已经发出了分配IP请求
+    EN_CLIENT_REQUEST,  //which means the task has recieve the offer and snd the request客户端已经已经发出请求并收到服务器的offer。
+    EN_CLIENT_STABLE,   //which means the task has recieve the ack of the request from the server客户端已经收到服务器的应答
+    EN_CLIENT_INFORM,   //客户端已经正确收到服务器分配的ipv4地址。
 }enDhcpClientStat;
 
 #define CN_DHCP_TICKER_CYCLE 100    //100ms run once
-#define CN_DHCP_TIMEOUT      0x10   //if not reply in the time, then will snd again
+#define CN_DHCP_TIMEOUT      10     //CN_DHCP_TICKER_CYCLE * CN_DHCP_TIMEOUT if not reply in the time, then will snd again
 #define CN_DHCP_CLIENTTXID   0x10000000
 //rebuild the dhcp client task
 typedef struct
 {
-    mutex_t         lock; //clien list lock
+    struct MutexLCB *lock; //clien list lock
     tagTaskItem    *lst;  //client list here
     u32             txid;
     tagDhcpMsg      msg;
-    int             sockfd; //the client sock here
+    s32             sockfd; //the client sock here
     void           *ticker; //dhcp ticks here
 }tagDhcpClientCB;
 static tagDhcpClientCB gClientCB;
@@ -116,24 +118,24 @@ enDHCPStatus DHCP_ConnetStatus(enDHCPCmd cmd,enDHCPStatus status)
     }
     return temp_flag;
 }
-//WaitDhcpDone
+//DHCP_WaitDhcpDone
 //ifname: interface name of net card
 //timeout: microsecond
-int WaitDhcpDone(char *ifname, unsigned int timeout)
+s32 DHCP_WaitDhcpDone(char *ifname, u32 timeout)
 {
-    int ret = 0;
+    s32 ret = 0;
     tagTaskItem     *tmp;
 
-    s64 timemark = DjyGetSysTime(); //microsecond
-    unsigned int spend=0;
-    while (mutex_lock(gClientCB.lock))
+    s64 timemark = DJY_GetSysTime(); //microsecond
+    u32 spend=0;
+    while (Lock_MutexPend(gClientCB.lock,CN_TIMEOUT_FOREVER))
     {
         tmp = gClientCB.lst;
         while(NULL != tmp) {
             if(strcmp(tmp->ifname,  ifname) == 0) {
-                mutex_unlock(gClientCB.lock);
+                Lock_MutexPost(gClientCB.lock);
                 if (tmp->sem) {
-                    ret = semp_pendtimeout(tmp->sem, timeout-spend);
+                    ret = Lock_SempPend(tmp->sem, timeout-spend);
                 }
                 return ret;
             }
@@ -141,34 +143,42 @@ int WaitDhcpDone(char *ifname, unsigned int timeout)
                 tmp = tmp->nxt;
             }
         }
-        mutex_unlock(gClientCB.lock);
-        spend = DjyGetSysTime()-timemark;
+        Lock_MutexPost(gClientCB.lock);
+        spend = DJY_GetSysTime()-timemark;
         if (spend > timeout) {
             break;
         }
         else {
-            Djy_EventDelay(1); //re-schedule
+            DJY_EventDelay(300*1000); //re-schedule
         }
     }
 
     return ret;
 }
 
-//do the reply message deal
-static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
+//------------------------------------------------------------------------------
+//功能：处理收到的DHCP应答包
+//参数：msg，接收到的 DHCP 应答包消息
+//返回：true = 成功解析
+//-----------------------------------------------------------------------------
+s32 __NetDev_DHCP_GotIP(struct NetDev *pNetDev, u32 ip_temp);
+static bool_t __DHCP_CpyReplyMsg(tagDhcpMsg *msg)
 {
+    u32              renew_counter;
     u32              txid;
     tagTaskItem     *tmp;
     bool_t           result = false;
-    tagRouterPara    routpara;
-    tagHostAddrV4    addr;
+    tagRouterPara    para;
+    u32 hop,subnet,ip,submask,dns,dnsbak;
     tagDhcpReplyPara reply;
+    struct NetDev *NetDev;
+
     if(msg->op != DHCP_BOOTREPLY)
     {
         return result;
     }
     memset(&reply,0,sizeof(reply));
-    pasteDhcpReplyMsg(&reply,msg);
+    DHCP_PasteDhcpReplyMsg(&reply,msg);
 
     txid = ntohl(msg->xid);
     tmp = gClientCB.lst;
@@ -186,60 +196,52 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
             else if(reply.msgtype == DHCP_ACK)
             {
                 tmp->stat = EN_CLIENT_INFORM;
-                tmp->timeout = reply.leasetime;
+                renew_counter = reply.leasetime*10;//reply.leasetime: seconds, timer 100ms everytime
+                tmp->timeout = renew_counter>>1; //renew_counter must before timeout
                 //here we also to update the rout info
                 //we get the new router,so must del the old one
                 if(tmp->routlan)
                 {
                     RouterRemoveByHandle(tmp->routlan);
                 }
-                if(tmp->routwan)
-                {
-                    RouterRemoveByHandle(tmp->routwan);
-                }
-                //NOW SET THE DNS HERE
-                //OK,NOW CREATE THE WAN ROUT
-                memset(&addr,0,sizeof(addr));
-                memset(&routpara,0,sizeof(routpara));
-                addr.host = reply.offerip;
-                addr.hop = reply.router;
-                addr.mask = INADDR_ANY;
-                addr.net = INADDR_ANY;//could match any one
-                addr.broad = INADDR_BROADCAST;
-                routpara.ifname = tmp->ifname;
-                routpara.ver = EN_IPV_4;
-                routpara.host = &addr.host;
-                routpara.net = &addr.net;
-                routpara.mask = &addr.mask;
-                routpara.broad =&addr.broad;
-                routpara.hop = &addr.hop;
-                routpara.prior = CN_ROUT_PRIOR_ANY;
-                tmp->routwan = RouterCreate(&routpara);
-                //CREATE THE LOCAL ROUT
-                memset(&addr,0,sizeof(addr));
-                addr.host = reply.offerip;
-                addr.mask = reply.ipmask;
-                addr.net = addr.host &addr.mask;
-                addr.broad = (~(addr.mask))|addr.net;
-                routpara.ifname = tmp->ifname;
-                routpara.ver = EN_IPV_4;
-                routpara.host = &addr.host;
-                routpara.net = &addr.net;
-                routpara.mask = &addr.mask;
-                routpara.broad =&addr.broad;
-                routpara.hop = NULL;
-                routpara.prior = CN_ROUT_PRIOR_UNI;
-                tmp->routlan = RouterCreate(&routpara);
-                DnsSet(EN_IPV_4,&reply.dns1,&reply.dns2);
-                NetDevPostEvent(NetDevGet(tmp->ifname),EN_NETDEVEVENT_IPGET);
+                NetDev = NetDev_GetHandle(tmp->ifname);
+
+                memset(&para,0,sizeof(para));
+
+                ip      = reply.offerip;
+                submask = reply.ipmask;
+                hop     = reply.router;
+                dns     = reply.dns1;
+                dnsbak  = reply.dns2;
+                subnet = ip & submask;
+
+                para.ver = EN_IPV_4;
+                para.ifname = tmp->ifname;
+                para.mask = &submask;
+                para.net = &subnet;
+                para.host = &ip;
+//              para.hop = &hop;
+//              para.dns = &dns;
+//              para.dnsbak = &dnsbak;
+                para.prior = CN_ROUT_PRIOR_UNI;
+                para.flags = 0;
+
+                NetDev_SetDns(EN_IPV_4,NetDev, &dns, &dnsbak);
+                NetDev_SetGateway(EN_IPV_4,NetDev, &hop);
+                tmp->routlan = RouterCreate(&para);
+                NetDev_PostEvent(NetDev_GetHandle(tmp->ifname),EN_NETDEVEVENT_IPGET);
                 DHCP_ConnetStatus(EN_DHCP_SET_STATUS_CMD,EN_DHCP_CONNET_STATUS);
                 if(tmp->sem) {
-                    semp_post(tmp->sem);
+                    Lock_SempPost(tmp->sem);
                 }
+                __NetDev_DHCP_GotIP(NetDev_GetHandle(tmp->ifname), reply.offerip);
+                tmp->is_exist_ip = 0;
+                result = true;
             }
             else if(reply.msgtype == DHCP_NAK)
             {
                 tmp->stat = EN_CLIENT_DICOVER;
+                tmp->is_exist_ip = 0;
                 tmp->timeout = 0;
             }
             break;
@@ -253,7 +255,7 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
     return result;
 }
 
-static void __dealTask(void)
+static void __DHCP_DealTask(void)
 {
     tagTaskItem      *task;
 
@@ -272,7 +274,7 @@ static void __dealTask(void)
                 reqpara.transaction = task->transID;
                 reqpara.reqip = INADDR_ANY;
 
-                makeDhcpRequestMsg(&gClientCB.msg,&reqpara);
+                DHCP_MakeDhcpRequestMsg(&gClientCB.msg,&reqpara);
                 send(gClientCB.sockfd,(void *)&gClientCB.msg,sizeof(gClientCB.msg),0);
                 task->timeout = CN_DHCP_TIMEOUT;
             }
@@ -283,11 +285,25 @@ static void __dealTask(void)
                 reqpara.msgtype = DHCP_REQUEST;
                 reqpara.transaction = task->transID;
                 reqpara.reqip = task->offerip;
-                reqpara.dhcpserver = task->offerserver;
+                if (task->is_exist_ip) {
+                    reqpara.dhcpserver = 0;
+                }
+                else {
+                    reqpara.dhcpserver = task->offerserver;
+                }
 
-                makeDhcpRequestMsg(&gClientCB.msg,&reqpara);
+                DHCP_MakeDhcpRequestMsg(&gClientCB.msg,&reqpara);
                 send(gClientCB.sockfd,(void *)&gClientCB.msg,sizeof(gClientCB.msg),0);
                 task->timeout = CN_DHCP_TIMEOUT;
+                if(task->try_cnts++ > 8) {//超时复位从头申请,8秒没回应,就重来，这过程基本都很快才合理。
+                    printf("==warning: EN_CLIENT_REQUEST, timeout, begin from EN_CLIENT_DICOVER==!!!\r\n");
+                    task->stat = EN_CLIENT_DICOVER;
+                    task->transID = gClientCB.txid++;
+                    task->timeout = 0;
+                    task->offerip = 0;
+                    task->is_exist_ip = 0;
+                    task->try_cnts = 0;
+                }
             }
             else
             {
@@ -308,74 +324,159 @@ static void __dealTask(void)
 }
 
 //dhcpclient ticker
-static void __DhcpclientTicker(void)
+static void __DHCP_ClientTicker(void)
 {
-    int               recvlen =0;
-    if(mutex_lock(gClientCB.lock))
+    s32 recvlen =0;
+    if(Lock_MutexPend(gClientCB.lock,CN_TIMEOUT_FOREVER))
     {
         do{
+            //sockfd被设置为非阻塞
             recvlen = recv(gClientCB.sockfd, (void *)&gClientCB.msg, sizeof(gClientCB.msg), 0);
             if(recvlen >0) //if any message here
             {
-                __cpyReplyMsg(&gClientCB.msg);
+                __DHCP_CpyReplyMsg(&gClientCB.msg);
             }
         }while(recvlen > 0);
-        __dealTask();//check all the task,if any work need to do
-        mutex_unlock(gClientCB.lock);
+        __DHCP_DealTask();//check all the task,if any work need to do
+        Lock_MutexPost(gClientCB.lock);
     }
 
     return ;
 }
+void   RouterRemoveByHandle(struct RoutItem4 *rout);
 
-//if you want to use the interface to get a ipv4 dynamic, then call this function
-bool_t DhcpAddClientTask(const char *ifname)
+void DhcpclientDeleteAllTask(void)
 {
+//  tagTaskItem      *task;
+//  tagTaskItem      *task_tmp;
+//  //OK,NOW ADD IT TO THE QUEUE
+//  if(Lock_MutexPend(gClientCB.lock))
+//  {
+//      task = gClientCB.lst;
+//      while (task) {
+//          task_tmp = task;
+//          task = task->nxt;
+//          gClientCB.lst = task;
+//
+//          //delete task_tmp
+//          if(task_tmp->routwan){
+//              RouterRemoveByHandle(task_tmp->routwan);
+//              task->routwan = 0;
+//          }
+//          if(task_tmp->routlan){
+//              RouterRemoveByHandle(task_tmp->routlan);
+//              task_tmp->routlan = 0;
+//          }
+//          if(task_tmp->sem) {
+//              Lock_SempDelete(task_tmp->sem);
+//              task_tmp->sem = 0;
+//          }
+//          net_free(task_tmp);
+//          printf("-------------DhcpclientDeleteAllTask----------------\r\n");
+//      }
+//      Lock_MutexPost(gClientCB.lock);
+//  }
+}
+void RouterRemoveByNetDev(const char *ifname);
+void DhcpclientDeleteTask(const char *ifname)
+{
+    tagTaskItem      *task;
+    tagTaskItem      *task_tmp;
+    in_addr_t        addr= INADDR_NONE;
+    if(Lock_MutexPend(gClientCB.lock,CN_TIMEOUT_FOREVER))
+    {
+        task = gClientCB.lst;
+        while (task) {//网卡名必须一致
+            task_tmp = task;
+            task = task->nxt;
+            gClientCB.lst = task;
+            //printf("task_tmp->ifname:%s, ifname:%s\r\n", task_tmp->ifname, ifname);
+            if (strcmp(task_tmp->ifname, ifname)==0) {
+                //delete task_tmp
+                RouterRemoveByNetDev(ifname);//删除某网卡下所有路由
+                NetDev_SetGateway(EN_IPV_4,NetDev_GetHandle(ifname), &addr);
+                if(task_tmp->sem) {
+                    Lock_SempDelete(task_tmp->sem);
+                    task_tmp->sem = 0;
+                }
+                net_free(task_tmp);
+            }
+            //printf("-------------DhcpclientDeleteTask----------------\r\n");
+        }
+        Lock_MutexPost(gClientCB.lock);
+    }
+
+}
+
+//s32 __NetDev_DHCP_SET_GotIP_CB(const char *ifname, s32 (*cb_ip_got)(u32 *ip));
+//s32 dhcp_setip_cb(const char *ifname, s32 (*cb_ip_set)(u32 ip));
+//s32 net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp);
+//if you want to use the interface to get a ipv4 dynamic, then call this function
+
+//-----------------------------------------------------------------------------
+//功能：添加获取IPv4的任务，客户端需要动态获取IP地址时，调用本函数
+//参数：ifname，网卡名
+//      OldIP，期待分配的IP，一般是系统重启或网络重启后，直接请求原来使用的IP，绝大多数
+//          情况下，DHCP服务器中的IP条目仍在，申请会很快。
+//返回：成功 = true；失败 = false//
+//-----------------------------------------------------------------------------
+struct NetDev;
+void NetDev_SetDefault(struct NetDev *NetDev);
+bool_t DHCP_AddClientTask(const char *ifname, u32 OldIP)
+{
+    if(gClientCB.sockfd == 0)
+        DHCP_ClientInit();
     bool_t ret = false;
     tagTaskItem *task;
-    tagHostAddrV4 addr;
-    tagRouterPara  routpara; //use this to make the router
-    //first we will do some thing here
-    memset(&addr,0,sizeof(addr));
-    addr.broad = INADDR_BROADCAST;
-    //prepare the parameters
-    memset(&routpara,0,sizeof(routpara));
-    routpara.ifname = ifname;
-    routpara.ver = EN_IPV_4;
-    routpara.host = &addr.host;
-    routpara.net = &addr.net;
-    routpara.mask = &addr.mask;
-    routpara.broad = &addr.broad;
-    routpara.hop = &addr.hop;
-    routpara.prior = CN_ROUT_PRIOR_ANY;
+//    tagHostAddrV4 addr;
+//    tagRouterPara  routpara; //use this to make the router
+
+    //每次添加任务前删除这个网卡的所有dhcp任务
+    DhcpclientDeleteTask(ifname);
+    NetDev_SetDefault(NetDev_GetHandle(ifname));
     task = net_malloc(sizeof(tagTaskItem));
+
     if(NULL == task) //no mem here
     {
         error_printf("dhcp","%s:MEMERR\n\r",__FUNCTION__);
         goto EXIT_MEM;
     }
     memset((void *)task, 0, sizeof(tagTaskItem));
-    task->stat = EN_CLIENT_DICOVER;
+//  u32 ip_temp = 0;
+//  if(net_get_dhcp_ip(NetDev_GetHandle(ifname), &ip_temp))
+    if(OldIP != 0)
+    {
+        task->stat = EN_CLIENT_REQUEST;
+        task->offerip = OldIP;
+        task->is_exist_ip = 1;
+    }
+    else {
+        task->stat = EN_CLIENT_DICOVER;
+        task->is_exist_ip = 0;
+    }
     task->timeout = 0;
     task->ifname = ifname;
-    task->sem = semp_init(1,0,ifname);
+    task->sem = Lock_SempCreate(1,0,CN_BLOCK_FIFO,ifname);
     if(!task->sem) {
         error_printf("dhcp","%s: sem_init FAILED\n\r",__FUNCTION__);
         goto EXIT_ROUTWAN;
     }
-    memcpy(task->mac,NetDevGetMac(NetDevGet(ifname)),CN_MACADDR_LEN);
+
+    memcpy(task->mac,NetDev_GetMac(NetDev_GetHandle(ifname)),CN_MACADDR_LEN);
     task->transID = gClientCB.txid++;
-    task->routwan = RouterCreate(&routpara); //has create one
-    if(NULL == task->routwan)
-    {
-        error_printf("dhcp","%s:ROUTWAN\n\r",__FUNCTION__);
-        goto EXIT_ROUTWAN;
-    }
+
+//  task->routwan = RouterCreate(&routpara); //has create one
+//  if(NULL == task->routwan)
+//  {
+//      error_printf("dhcp","%s:ROUTWAN\n\r",__FUNCTION__);
+//      goto EXIT_ROUTWAN;
+//  }
     //OK,NOW ADD IT TO THE QUEUE
-    if(mutex_lock(gClientCB.lock))
+    if(Lock_MutexPend(gClientCB.lock,CN_TIMEOUT_FOREVER))
     {
         task->nxt = gClientCB.lst;
         gClientCB.lst = task;
-        mutex_unlock(gClientCB.lock);
+        Lock_MutexPost(gClientCB.lock);
     }
     else
     {
@@ -386,11 +487,11 @@ bool_t DhcpAddClientTask(const char *ifname)
     return ret;
 
 EXIT_QUEERR:
-    RouterRemoveByHandle(task->routwan);
-    task->routwan = NULL;
+//  RouterRemoveByHandle(task->routwan);
+//  task->routwan = NULL;
 EXIT_ROUTWAN:
     if(task->sem) {
-       semp_del(task->sem);
+       Lock_SempDelete(task->sem);
        task->sem = NULL;
     }
     net_free(task);
@@ -398,15 +499,16 @@ EXIT_MEM:
     return ret;
 }
 
+
 //the first time to get the ip from the server is init->discover->request->stable
 //then if you want to extend the lease time, then:request,if receive ack, then goto
 //the stable, if nack then goto discover and so the whole flow again
-//do the client socket int ,after this ,we could read and write the client socket,
+//do the client socket s32 ,after this ,we could read and write the client socket,
 //which means we could do the client socket communicate; this func returns the
 //socket of the client
-static int __sockfdinit(void)
+static s32 __DHCP_SockFdInit(void)
 {
-    int ret = -1;
+    s32 ret = -1;
     struct sockaddr_in ipportaddr;
 
     ret = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //USE THE DEFAULE UDP PROGRAM
@@ -432,7 +534,7 @@ static int __sockfdinit(void)
         closesocket(ret);
         goto ERR_SOCKET;
     }
-    int opt = 1;
+    s32 opt = 1;
     if(0 != setsockopt(ret,SOL_SOCKET,SO_NONBLOCK,&opt, sizeof(opt)))
     {
         closesocket(ret);
@@ -452,26 +554,28 @@ ERR_SOCKET:
     return ret;
 }
 //this is main dhcp client module
-static bool_t  DhcpClientInit(void)
+bool_t  DHCP_ClientInit(void)
 {
     bool_t  ret = false;
 
+    if(gClientCB.sockfd != 0)
+        return ret;
     memset(&gClientCB,0,sizeof(gClientCB));
     gClientCB.txid = CN_DHCP_CLIENTTXID;
-    gClientCB.lock = mutex_init(NULL);
+    gClientCB.lock = Lock_MutexCreate(NULL);
     if(NULL == gClientCB.lock)
     {
         error_printf("dhcp","%s:LOCL CREATE FAILED\n\r",__FUNCTION__);
         goto EXIT_LOCK;
     }
-    gClientCB.ticker = NetTickerIsrInstall("DHCPCLIENT",__DhcpclientTicker,\
+    gClientCB.ticker = NetTickerIsrInstall("DHCPCLIENT",__DHCP_ClientTicker,\
                                             CN_DHCP_TICKER_CYCLE);
     if(NULL == gClientCB.ticker)
     {
         error_printf("dhcp","%s:TICKER CREATE FAILED\n\r",__FUNCTION__);
         goto EXIT_TICKER;
     }
-    gClientCB.sockfd = __sockfdinit();
+    gClientCB.sockfd = __DHCP_SockFdInit();
     if(-1 == gClientCB.sockfd)
     {
         error_printf("dhcp","SOCKFD INITIALIZE FAILED");
@@ -483,21 +587,9 @@ EXIT_SOCKFD:
     NetTickerIsrRemove(gClientCB.ticker);
     gClientCB.ticker = NULL;
 EXIT_TICKER:
-    mutex_del(gClientCB.lock);
+    Lock_MutexDelete(gClientCB.lock);
     gClientCB.lock = NULL;
 EXIT_LOCK:
     return ret;
 }
-
-//this is the dhcp entry
-bool_t ServiceDhcpcInit(void)
-{
-    bool_t result;
-    result = DhcpClientInit();
-    return result;
-}
-
-
-
-
 

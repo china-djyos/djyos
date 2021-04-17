@@ -84,7 +84,7 @@ static tagDhcpClient   *pDhcpClientQ;
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //bool_t showDhcpClient(char *param)
-bool_t dhcpdclient(char *param)
+bool_t DHCP_ShowClient(char *param)
 {
     tagDhcpClient *client;
     u32 num = 1;
@@ -101,8 +101,10 @@ bool_t dhcpdclient(char *param)
     return true;
 }
 
+#pragma GCC diagnostic pop
+
 //return -1 invalid while others ok
-static int __mallocIp()
+static int __DHCP_MallocIp()
 {
     int result;
     int bytes;
@@ -128,7 +130,7 @@ static int __mallocIp()
     }
     return result;
 }
-static int __freeIp(int offset)
+static int __DHCP_FreeIp(int offset)
 {
     int result = -1;
     int bytes;
@@ -143,7 +145,7 @@ static int __freeIp(int offset)
 }
 
 //if any client match the mac, then return the match one, else net_malloc one
-static tagDhcpClient *__newClient(u8 *mac)
+static tagDhcpClient *__DHCP_NewClient(u8 *mac)
 {
     tagDhcpClient *result;
 
@@ -163,7 +165,7 @@ static tagDhcpClient *__newClient(u8 *mac)
         result = (tagDhcpClient *)net_malloc(sizeof(tagDhcpClient));
         if(NULL != result)
         {
-            result->offset = __mallocIp();
+            result->offset = __DHCP_MallocIp();
             if(-1 != result->offset)
             {
                 memcpy(result->clientmac,mac,CN_MACADDR_LEN);
@@ -184,7 +186,7 @@ static tagDhcpClient *__newClient(u8 *mac)
     return result;
 }
 
-static void __delClient(tagDhcpClient *client)
+static void __DHCP_DelClient(tagDhcpClient *client)
 {
     tagDhcpClient *tmp;
     if(NULL != client)
@@ -212,14 +214,14 @@ static void __delClient(tagDhcpClient *client)
         }
 
         //net_free the client ip and the mem
-        __freeIp(client->offset);
+        __DHCP_FreeIp(client->offset);
         net_free((void *)client);
     }
     return;
 }
 
 
-static void __buildReplyPara(tagDhcpClient *client,tagDhcpReplyPara *para,u32 txid,u8 msgtype)
+static void __DHCP_BuildReplyPara(tagDhcpClient *client,tagDhcpReplyPara *para,u32 txid,u8 msgtype)
 {
     u32    ip;
 
@@ -260,7 +262,7 @@ static void __buildReplyPara(tagDhcpClient *client,tagDhcpReplyPara *para,u32 tx
 //do the client socket int ,after this ,we could read and write the client socket,
 //which means we could do the client socket communicate; this func returns the
 //socket of the client
-static int __initSocket(void)
+static int __DHCP_InitSocket(void)
 {
     int result = -1;
     struct sockaddr_in ipportaddr;
@@ -311,14 +313,14 @@ SOCKET_EXIT_FAILED:
 }
 
 static tagDhcpReplyPara  gDhcpServerPara;
-ptu32_t __DhcpServerMain(void)
+ptu32_t __DHCP_ServerMain(void)
 {
     int                 recvlen;
     int                 serversock;
     tagDhcpRequestPara  request;
     tagDhcpClient      *client;
 
-    serversock = __initSocket();
+    serversock = __DHCP_InitSocket();
     if(serversock != -1)
     {
         while(1)
@@ -328,50 +330,50 @@ ptu32_t __DhcpServerMain(void)
                 if(recvlen >0)
                 {
                     //now paste client request message
-                    if(pasteDhcpRequestMsg(&request,&gDhcpClientMsg))
+                    if(DHCP_PasteDhcpRequestMsg(&request,&gDhcpClientMsg))
                     {
 
                         //ok now deal it
-                        client = __newClient(request.clientmac);
+                        client = __DHCP_NewClient(request.clientmac);
                         if(NULL != client)
                         {
                             if(request.msgtype == DHCP_DISCOVER)
                             {
-                                __buildReplyPara(client,&gDhcpServerPara,\
+                                __DHCP_BuildReplyPara(client,&gDhcpServerPara,\
                                         request.transaction,DHCP_OFFER);
-                                makeDhcpReplyMsg(&gDhcpClientMsg,&gDhcpServerPara);
+                                DHCP_MakeDhcpReplyMsg(&gDhcpClientMsg,&gDhcpServerPara);
                                 send(serversock,&gDhcpClientMsg,sizeof(gDhcpClientMsg),0);
                             }
                             else if(request.msgtype == DHCP_REQUEST)
                             {
-                                __buildReplyPara(client,&gDhcpServerPara,\
+                                __DHCP_BuildReplyPara(client,&gDhcpServerPara,\
                                         request.transaction,DHCP_ACK);
-                                makeDhcpReplyMsg(&gDhcpClientMsg,&gDhcpServerPara);
+                                DHCP_MakeDhcpReplyMsg(&gDhcpClientMsg,&gDhcpServerPara);
                                 send(serversock,&gDhcpClientMsg,sizeof(gDhcpClientMsg),0);                          }
                             else if(request.msgtype == DHCP_INFORM)
                             {
-                                __buildReplyPara(client,&gDhcpServerPara,\
+                                __DHCP_BuildReplyPara(client,&gDhcpServerPara,\
                                         request.transaction,DHCP_ACK);
-                                makeDhcpReplyMsg(&gDhcpClientMsg,&gDhcpServerPara);
+                                DHCP_MakeDhcpReplyMsg(&gDhcpClientMsg,&gDhcpServerPara);
                                 send(serversock,&gDhcpClientMsg,sizeof(gDhcpClientMsg),0);                          }
                             else  //maybe lease
                             {
                                 //del the client
-                                __delClient(client);
+                                __DHCP_DelClient(client);
                             }
                         }
                     }
                 }
             }while(recvlen >0);
             //each seconds we will be runing
-            Djy_EventDelay(1000*mS);
+            DJY_EventDelay(1000*mS);
         }
     }
     return 0;
 }
 
 //this is main dhcp client module
-bool_t  ModuleInstall_DhcpServer(ptu32_t para)
+bool_t  DHCP_ServerInit(void)
 {
     bool_t  ret = false;
 
@@ -393,13 +395,13 @@ bool_t  ModuleInstall_DhcpServer(ptu32_t para)
     serverip = ntohl(serverip);
     ipmask = ntohl(ipmask);
     offset = (~ipmask)&serverip;
-    if(offset < CFG_DHCPD_IPNUM)  //mark it in the bitmap
+    if(offset < CFG_DHCPD_IPNUM)  //如果自身IP也在IP池内，标记之
     {
         bytes = offset/8;
         bits = offset%8;
         gDhcpServerIpBitmap[bytes] = 1<<bits;
     }
-    ret = taskcreate("DHCPD",0x800,CN_PRIO_RRS,__DhcpServerMain,NULL);
+    ret = taskcreate("DHCPD",0x800,CN_PRIO_RRS,__DHCP_ServerMain,NULL);
     if (ret == false) {
         debug_printf("dhcp","TFTPD:TASK CREATE ERR\n\r");
         goto EXIT_TASK;
@@ -413,13 +415,12 @@ EXIT_TASK:
 BITMAP_FAILED:
     return ret;
 }
-bool_t ServiceDhcpdInit(void)
-{
+//bool_t DHCP_ServiceDhcpdInit(void)
+//{
+//
+//    bool_t result;
+//    result = DHCP_ServerInit( );
+//    return result;
+//}
+ADD_TO_ROUTINE_SHELL(dhcpdclient,DHCP_ShowClient,"usage:dhcpdclient:show all the client");
 
-    bool_t result;
-    result = ModuleInstall_DhcpServer(0);
-    return result;
-}
-ADD_TO_ROUTINE_SHELL(dhcpdclient,dhcpdclient,"usage:dhcpdclient:show all the client");
-
-#pragma GCC diagnostic pop

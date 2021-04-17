@@ -1,11 +1,11 @@
+#include <mem_pub.h>
 #include "include.h"
 #include "arm_arch.h"
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "str_pub.h"
-#include "mem_pub.h"
+#include <str_pub.h>
 
 char *os_strchr(const char *s, int c)
 {

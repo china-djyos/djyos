@@ -54,9 +54,10 @@
 #include "stddef.h"
 #include "int.h"
 #include "systime.h"
-#include <sys/time.h>
+#include <time.h>
 #include "component_config_time.h"
-static s64 sgRtcTimeSet = 946684800000000;//手动设置或从RTC中读取的时间，初始值=2000/1/1
+//手动设置或从RTC中读取的时间，距离1970/1/1的微秒数，初始值=2000/1/1/0时
+static s64 sgRtcTimeSet = 946684800000000;
 static s64               sgRtcUpdateTime2SysTime;  //读取或者设置RTC时间时系统的运行时刻
 static fnRtc_GetTime    fnRtcGetTime = NULL;      //获取RTC设备RTC时间
 static fnRtc_SetTime    fnRtcSetTime = NULL;      //设置RTC设备RTC时间
@@ -96,7 +97,7 @@ s64 __Rtc_Time(s64 *rtctime)
     s64 systime;
     atom_low_t atom;
 
-    systime = DjyGetSysTime();
+    systime = DJY_GetSysTime();
 
     if((sgRtcUpdateTime2SysTime/CN_RTC_UNIT_SECOND) ==(systime/CN_RTC_UNIT_SECOND))
     {
@@ -182,7 +183,7 @@ s64 __Rtc_TimeUs(s64 *rtctime)
     s64 systime;
     atom_low_t atom;
 
-    systime = DjyGetSysTime();
+    systime = DJY_GetSysTime();
     //we'd better to get the RTC time now
     if(NULL == fnRtcGetTime)
     {
@@ -252,7 +253,7 @@ bool_t __Rtc_SetTime(s64 rtctime)
 
     s64 systime;
 
-    systime = DjyGetSysTime();
+    systime = DJY_GetSysTime();
 
     if(NULL == fnRtcSetTime)
     {

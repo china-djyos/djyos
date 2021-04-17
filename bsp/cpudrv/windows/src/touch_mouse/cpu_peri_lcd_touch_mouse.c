@@ -23,7 +23,7 @@
 #include "hmi-input.h"
 #include "cpu_peri.h"
 #include "cpu.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include "touch.h"
 
 //坐标系说明,描述了显存偏移地址与屏上像素点的坐标映射关系,注意单色和灰度显示器
@@ -494,13 +494,12 @@ ptu32_t ModuleInstall_Lcd(char *DisplayName,char *HeapName)
     tg_lcd_display.frame_buffer = &frame_win;
 
 
-    tg_lcd_display.xmm = 0;
-    tg_lcd_display.ymm = 0;
+    tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
+    tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
     tg_lcd_display.width = CN_LCD_XSIZE;
     tg_lcd_display.height = CN_LCD_YSIZE;
 //  tg_lcd_display.pixel_format = CN_SYS_PF_RGB565;
     tg_lcd_display.pixel_format = CN_LCD_PIXEL_FORMAT;
-    tg_lcd_display.reset_clip = false;
     tg_lcd_display.framebuf_direct = false;
     //无须初始化frame_buffer和desktop，z_topmost三个成员
 
@@ -518,7 +517,7 @@ ptu32_t ModuleInstall_Lcd(char *DisplayName,char *HeapName)
     tg_lcd_display.draw.GetPixelFromScreen = __lcd_get_pixel_screen;
     tg_lcd_display.draw.GetRectFromScreen = __lcd_get_rect_screen;
 
-    tg_lcd_display.DisplayHeap = M_FindHeap(HeapName);
+    tg_lcd_display.DisplayHeap = Heap_FindHeap(HeapName);
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
     if(GK_InstallDisplay(&tg_lcd_display,DisplayName))

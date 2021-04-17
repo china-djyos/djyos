@@ -66,14 +66,18 @@ extern "C" {
 struct ST_TouchAdjust
 {
     s32 ratio_x,ratio_y;        //定点小数，低16位是小数位。
-    s32 offset_x,offset_y;       //定点小数，低16位是小数位。
+    s32 offset_x,offset_y;      //定点小数，低16位是小数位。
 };
 
+#define CN_NO_TOUCH     0       //没有触摸
+#define CN_TOUCHING     1       //正在接触
+#define CN_GOT_TOUCH    2       //该接触点已发送
+#define CN_MOVING       3       //正在滑动
 struct SingleTouchPrivate
 {
     ufast_t (*read_touch)(struct SingleTouchMsg *touch_data);
     struct SingleTouchMsg touch_loc;
-    bool_t status;
+    u8 TouchStatus;
 };
 
 s32 Touch_InstallDevice(char *touch_name,struct SingleTouchPrivate *touch_pr);

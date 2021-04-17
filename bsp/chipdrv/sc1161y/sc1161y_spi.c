@@ -73,7 +73,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"lock","spi bus","cpu onchip spi"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -116,7 +116,7 @@ static struct SemaphoreLCB sSc1161ySemp;   //芯片互斥访问保护
 void SC1161Y_CsActive(void)
 {
     SPI_CsActive(s_ptSc1161yDev,SC1161Y_TIMEOUT);
-    Djy_DelayUs(50);
+    DJY_DelayUs(50);
 }
 
 // =============================================================================
@@ -127,7 +127,7 @@ void SC1161Y_CsActive(void)
 void SC1161Y_CsInActive(void)
 {
     SPI_CsInactive(s_ptSc1161yDev);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
 }
 // =============================================================================
 //功能：SPI读写函数，因为SPI是读写同时进行的，因此读写函数一体
@@ -220,7 +220,7 @@ u32 SC1161Y_Read(u8* pbRdBuf,u32 timeout)
 
     if(NULL == pbRdBuf)
         return DataLen;
-//  Djy_EventDelay(timeout);
+//  DJY_EventDelay(timeout);
     if(Lock_SempPend(&sSc1161ySemp,SC1161Y_TIMEOUT))
     {
         SC1161Y_CsActive();
@@ -243,7 +243,7 @@ u32 SC1161Y_Read(u8* pbRdBuf,u32 timeout)
             }
             if( (i != RD_DATA_HEAD_LEN) || (Timeout < 100) || (Ret != true))
                 break;
-            Djy_EventDelay(100);
+            DJY_EventDelay(100);
             Timeout -= 100;
         }
 

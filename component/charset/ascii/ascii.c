@@ -77,12 +77,12 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"ascii charset"//ascii字符集
+//component name:"ascii charset"      //ascii字符集，纯英文版本才需要勾选
 //parent:"Nls Charset"//填写该组件的父组件名字，none表示没有父组件
 //attribute:system                    //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                    //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                       //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                    //初始化时机，可选值：early，medium，later。
+//init time:medium                    //初始化时机，可选值：early，medium，later, pre-main。
                                       //表示初始化时间，分别是早期、中期、后期
 //dependence:"Nls Charset"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                       //选中该组件时，被依赖组件将强制选中，
@@ -90,7 +90,7 @@
 //weakdependence:"none"               //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                       //选中该组件时，被依赖组件不会被强制选中，
                                       //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"gb2312 charset"//该组件的互斥组件名（可以是none，表示无互斥组件），
+//mutex:"gb2312 charset"              //该组件的互斥组件名（可以是none，表示无互斥组件），
                                       //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
@@ -108,26 +108,30 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-s32 AsciiMbToUcs4(u32* pwc, const char* s, s32 n);
-s32 AsciiMbsToUcs4s(u32* pwcs, const char* mbs, s32 n);
-s32 AsciiUcs4ToMb(char* s, u32 wc);
-s32 AsciiUcs4sToMbs(char* mbs, const u32* pwcs, s32 n);
+s32 ASCII_MbToUcs4(u32* pwc, const char* s, s32 n);
+s32 ASCII_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n);
+s32 ASCII_Ucs4ToMb(char* s, u32 wc);
+s32 ASCII_Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // 注释参照 charset.h-> struct Charset -> GetOneMb
-s32 AsciiGetOneMb(const char* mbs,s32 n)
+s32 ASCII_GetOneMb(const char* mbs,s32 n)
 {
     if (mbs == NULL)
     {
         return 0;
     }
-    else if(*mbs >= 0x80)       //串结束符也是合法字符
+    else if(*(u8*)mbs >= (u8)0x80)
         return -1;
+    else if(*mbs == 0)
+        return 0;
     else
         return 1;
 }
 
 // 注释参照 charset.h-> struct Charset -> MbToUcs4
-s32 AsciiMbToUcs4(u32* pwc, const char* mbs,s32 n)
+s32 ASCII_MbToUcs4(u32* pwc, const char* mbs,s32 n)
 {
     u8 c;
     s32 result;
@@ -140,7 +144,7 @@ s32 AsciiMbToUcs4(u32* pwc, const char* mbs,s32 n)
     if(c == 0)
     {
         result = 0;
-    }else if(c < 0x80)
+    }else if(c < (u8)0x80)
     {
         result = 1;
     }
@@ -150,10 +154,11 @@ s32 AsciiMbToUcs4(u32* pwc, const char* mbs,s32 n)
         *pwc = c;
     return result;
 }
+#pragma GCC diagnostic pop
 
 // 注释参照 charset.h-> struct Charset -> MbsToUcs4s
 //todo：扩展ascii码怎么算?
-s32 AsciiMbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
+s32 ASCII_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
 {
     s32 wcn,len;
     if(mbs == NULL)
@@ -164,7 +169,7 @@ s32 AsciiMbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
         len = CN_LIMIT_SINT32;
     for(wcn = 0; wcn < len; wcn++)
     {
-        if( (mbs[wcn] == 0) || (mbs[wcn] >= 0x80) )
+        if( (mbs[wcn] == 0) || ((u8)mbs[wcn] >= (u8)0x80) )
         {
             if(pwcs != NULL)
                 pwcs[wcn] = (u32)0;
@@ -180,7 +185,7 @@ s32 AsciiMbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
 }
 
 // 注释参照 charset.h-> struct Charset -> Ucs4ToMb
-s32 AsciiUcs4ToMb(char* mbs, u32 wc)
+s32 ASCII_Ucs4ToMb(char* mbs, u32 wc)
 {
 
     if(wc < 0x80){
@@ -193,7 +198,7 @@ s32 AsciiUcs4ToMb(char* mbs, u32 wc)
 }
 
 // 注释参照 charset.h-> struct Charset -> Ucs4sToMbs
-s32 AsciiUcs4sToMbs(char* mbs, const u32* pwcs, s32 n)
+s32 ASCII_Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n)
 {
     s32 asciin,len;
     if(pwcs == NULL)
@@ -233,18 +238,18 @@ bool_t ModuleInstall_CharsetAscii(void)
 
     encoding.max_len = 1;
     encoding.EOC_Size = 1;
-    encoding.GetOneMb = AsciiGetOneMb;
-    encoding.MbToUcs4 = AsciiMbToUcs4;
-    encoding.Ucs4ToMb = AsciiUcs4ToMb;
-    encoding.MbsToUcs4s = AsciiMbsToUcs4s;
-    encoding.Ucs4sToMbs = AsciiUcs4sToMbs;
+    encoding.GetOneMb = ASCII_GetOneMb;
+    encoding.MbToUcs4 = ASCII_MbToUcs4;
+    encoding.Ucs4ToMb = ASCII_Ucs4ToMb;
+    encoding.MbsToUcs4s = ASCII_MbsToUcs4s;
+    encoding.Ucs4sToMbs = ASCII_Ucs4sToMbs;
     if( Charset_NlsInstallCharset(&encoding, CN_NLS_CHARSET_ASCII))
     {
         debug_printf("ascii","ASCII encoding install sucess\r\n");
         return true;
     }else
     {
-        Djy_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
         debug_printf("ascii","ASCII encoding install fail\n\r");
         return false;
     }

@@ -65,11 +65,11 @@
 extern "C" {
 #endif
 
-bool_t SetFocusWindow(HWND hwnd);
-HWND    GetFocusWindow(void);
-bool_t IsFocusEnable(HWND hwnd);
-bool_t  IsFocusWindow(HWND hwnd);
-bool_t IsFocusAncestor(HWND hwnd);
+bool_t GDD_SetFocusWindow(HWND hwnd);
+HWND    GDD_GetFocusWindow(void);
+bool_t GDD_IsFocusEnable(HWND hwnd);
+bool_t  GDD_IsFocusWindow(HWND hwnd);
+bool_t GDD_IsFocusAncestor(HWND hwnd);
 
 
 #if __cplusplus

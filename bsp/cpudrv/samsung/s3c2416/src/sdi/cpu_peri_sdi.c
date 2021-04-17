@@ -461,7 +461,7 @@ int chk_SD_OCR(void)
 
             return 1;   // Success
         }
-        Djy_DelayUs(200000); // Wait Card power up status
+        DJY_DelayUs(200000); // Wait Card power up status
     }
     rSDICSTA=0xa00; // Clear cmd_end(with rsp)
     return 0;       // Fail

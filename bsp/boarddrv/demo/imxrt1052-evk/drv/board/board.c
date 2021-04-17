@@ -48,9 +48,6 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern void ClockSetXtal(void);
 //    ClockSetXtal();
-//
-//    extern void Board_GpioInit(void);
-//    Board_GpioInit();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -59,7 +56,7 @@
 //attribute:bsp                       //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:required                     //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                       //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                    //初始化时机，可选值：early，medium，later。
+//init time:early                    //初始化时机，可选值：early，medium，later, pre-main。
                                       //表示初始化时间，分别是早期、中期、后期
 //dependence:"kernel","imxrt1052","cpu onchip clock","cpu onchip gpio"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                       //选中该组件时，被依赖组件将强制选中，
@@ -353,7 +350,7 @@ void Board_ETH_Gpio_Init(void)
     /* pull up the ENET_INT before RESET. */
     GPIO_WritePinOutput(GPIO1, 10, 1);
     GPIO_WritePinOutput(GPIO1, 9, 0);
-    Djy_EventDelay(1*mS);
+    DJY_EventDelay(1*mS);
     GPIO_WritePinOutput(GPIO1, 9, 1);
 }
 
@@ -729,7 +726,7 @@ void Board_SPI_Gpio_Init(void)
  * Description   : Configures pin routing and optionally pin electrical features.
  *
  * END ****************************************************************************************************************/
-void Board_GpioInit(void) {
+void Board_Init(void) {
    CLOCK_EnableClock(kCLOCK_Iomuxc);           /* iomuxc clock (iomuxc_clk_enable): 0x03u */
 
    IOMUXC_SetPinMux(

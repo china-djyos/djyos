@@ -1052,11 +1052,11 @@ static bool_t SH_USB_Debug(char *pParam)
 
                 pollExit = 3;
 
-                thread = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                thread = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
                                         USBH_TouchPollThread, NULL, 0x1000, "USB touch poll");
                 if(thread != CN_EVTT_ID_INVALID)
                 {
-                    Djy_EventPop(thread, NULL, 0, period, 0, 0);
+                    DJY_EventPop(thread, NULL, 0, period, 0, 0);
                     return (TRUE);
                 }
 
@@ -1218,7 +1218,7 @@ u32 USBH_TouchPollThread(void)
     u32 period = 0;
     extern s32 TOUCH_DirectRead(u8 *pButton, u32 *pX, u32 *pY);
 
-    Djy_GetEventPara((ptu32_t*)&period, NULL);
+    DJY_GetEventPara((ptu32_t*)&period, NULL);
     if(!period)
         period = 10000; // д╛хо10ms
 
@@ -1243,7 +1243,7 @@ u32 USBH_TouchPollThread(void)
             break;
         }
 
-        Djy_EventDelay(period);
+        DJY_EventDelay(period);
     }
 
     return (0);

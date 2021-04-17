@@ -92,7 +92,7 @@ struct copy_table{
 //      加载的函数，特别是库函数。
 //      本函数必须提供，如果没有设置相应硬件，可以简单返回false。
 //-----------------------------------------------------------------
-__attribute__((weak))  bool_t IAP_IsForceIboot()
+__attribute__((weak))  bool_t Iboot_IAP_IsForceIboot()
 {
     return false;
 }
@@ -101,15 +101,14 @@ __attribute__((weak))  bool_t IAP_IsForceIboot()
 //参数: 无。
 //返回: 无。
 //----------------------------------------------------------------------------
-void IAP_SelectLoadProgam(void)
+void Iboot_IAP_SelectLoadProgam(void)
 {
 #if (CFG_RUNMODE_BAREAPP == 1)
-        Load_Preload();   //运行Iboot
+        Iboot_LoadPreload();   //直接加载运行APP
 #else
+    Iboot_SiIbootAppInfoInit();
 
-    Si_IbootAppInfoInit();
-
-    if(IAP_IsForceIboot())//硬件设置运行iboot
+    if(Iboot_IAP_IsForceIboot())//硬件设置运行iboot
     {
         Run_Iboot(HEARD_SET_RUN_IBOOT);//填充硬件设置运行iboot信息
     }
@@ -130,7 +129,7 @@ void IAP_SelectLoadProgam(void)
 
 }
 
-void Pre_Start(void);
+void Iboot_PreStart(void);
 
 extern struct copy_table preload_copy_table;
 
@@ -140,9 +139,9 @@ extern struct copy_table preload_copy_table;
 //返回: 无。
 //----------------------------------------------------------------------------
 //备注: 本函数移植敏感，与开发系统有关，也与目标硬件配置有关
-void Load_Preload(void)
+void Iboot_LoadPreload(void)
 {
-//    void (*volatile pl_1st)(void) = Pre_Start;
+//    void (*volatile pl_1st)(void) = Iboot_PreStart;
 
     volatile u32 *src,*des;
     volatile u32 i, j;
@@ -170,7 +169,7 @@ void Load_Preload(void)
     Cache_config();
 #endif
 
-    Pre_Start();   //用指针做远程调用
+    Iboot_PreStart();
 }
 
 extern struct copy_table sysload_copy_table;
@@ -181,7 +180,7 @@ extern struct copy_table sysload_copy_table;
 //返回: 无。
 //----------------------------------------------------------------------------
 //备注: 本函数移植敏感，与开发系统有关，也与目标硬件配置有关
-void loader(void)
+void Iboot_Loader(void)
 {
    volatile  u32 *src,*des;
    volatile  u32 i, j;
@@ -213,28 +212,30 @@ void loader(void)
 void Heap_StaticModuleInit(void);
 void Int_Init(void);
 void critical(void);
-void Sys_Start(void);
+void SYS_Start(void);
+void __libc_init_array(void);
+void __libc_fini_array(void);
 //----操作系统内核加载程序-----------------------------------------------------
 //功能：加载所有操作系统内核代码，以及在si模式下全部应用程序代码。
 //参数: 无。
 //返回: 无。
 //备注: 本函数移植敏感，与开发系统有关，也与目标硬件配置有关
 //----------------------------------------------------------------------------
-void Pre_Start(void)
+void Iboot_PreStart(void)
 {
-    extern bool_t HardExp_Init(void);
+    extern void HardExp_Init(void);
     //自此可以调用malloc族函数，用准静态堆分配算法，若要释放内存，要求严格配对
     //调用malloc-free函数，或者不调用
     Heap_StaticModuleInit();
     HardExp_Init();
     Int_Init();
     critical();
-    loader();
+    Iboot_Loader();
     //__libc_init_array和__libc_fini_array均由ld产生静态数组的方式调用全局构造和析构
     //函数，进适用于SI模式，动态加载需要重新设计。
     //只管到loader，没有涉及preloader，故紧急代码等不允许用c++写。
     __libc_init_array();
-    Sys_Start();        //开始启动系统
+    SYS_Start();        //开始启动系统
     __libc_fini_array();
 }
 

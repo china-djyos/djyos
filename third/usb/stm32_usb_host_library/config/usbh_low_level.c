@@ -233,10 +233,10 @@ USBH_StatusTypeDef USBH_LL_ClosePipe (USBH_HandleTypeDef *pHost, uint8_t pipe)
 //                1: PID_DATA
 //      pbuff -- pointer to URB data
 //      length -- Length of URB data
-//      do_ping -- activate do ping protocol (for high speed only)
+//      do_ping -- activate do PING protocol (for high speed only)
 //                 This parameter can be one of the these values:
-//                  0 : do ping inactive 
-//                  1 : do ping active 
+//                  0 : do PING inactive 
+//                  1 : do PING active 
 // ·µ»Ø£º
 // ±¸×¢£º
 // ============================================================================

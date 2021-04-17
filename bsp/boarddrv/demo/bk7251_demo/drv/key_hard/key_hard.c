@@ -61,28 +61,33 @@
 #include "stddef.h"
 #include "cpu_peri.h"
 #include "keyboard.h"
+#include "board.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_Keyboard(const char *dev_name);
-//    ModuleInstall_Keyboard(CFG_KEYBOARD_NAME);
+//    extern bool_t ModuleInstall_KeyBoardHal(const char *dev_name);
+//    ModuleInstall_KeyBoardHal(CFG_KEYBOARD_NAME);
+//#if(CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == true)
+//    extern bool_t GDD_AddInputDev(const char *InputDevName);
+//    GDD_AddInputDev(CFG_KEYBOARD_NAME);
+//#endif
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
 //component name:"keyboard hard driver"//板件的键盘驱动
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//parent:"key board"            //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"key board"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"key board","cpu onchip gpio"        //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"graphical decorate development"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -97,13 +102,14 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-#define CFG_KEYBOARD_NAME              "KEYBOARD"        //"name",配置键盘名称
+#define CFG_KEYBOARD_NAME              "KEYBOARD"        //"键盘名",配置键盘名称
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+#if 0       //以下是秒热茶机板件的代码
 #define TOUCH_KEY_DISINFECTANT  GPIO1   // 【消毒】按键
 #define TOUCH_KEY_WATER1        GPIO11  // 【记忆水量1】按键
 #define TOUCH_KEY_WATER2        GPIO10  // 【记忆水量2】按键
@@ -117,7 +123,7 @@ u32 keyboard_scan(void);
 //参数: 无
 //返回: 无
 //-----------------------------------------------------------------------------
-bool_t ModuleInstall_Keyboard(const char *dev_name)
+bool_t ModuleInstall_KeyBoardHal(const char *dev_name)
 {
     static struct KeyBoardPrivate key_brd;
 
@@ -192,4 +198,63 @@ u32 keyboard_scan(void)
         }
     }
     return(readed);
+}
+
+#endif
+extern int djy_adc_read(uint16_t channel);
+u32 keyboard_scan(void);
+//----初始化键盘模块-----------------------------------------------------------
+//功能: 初始化一个由windows的键盘和按钮模拟的键盘，该键盘供8个键。
+//参数: 无
+//返回: 无
+//-----------------------------------------------------------------------------
+bool_t ModuleInstall_KeyBoardHal(const char *dev_name)
+{
+    static struct KeyBoardPrivate key_brd;
+
+    key_brd.read_keyboard = keyboard_scan;
+    Keyboard_InstallDevice(dev_name, &key_brd);
+    key_brd.vtime_limit = 0;
+    key_brd.vtime_count = 100;
+    key_brd.key_bak = 0;
+    key_brd.key_now = 0;
+    return true;
+}
+
+u32 keyboard_scan(void)
+{
+    int Vol,i = 0;
+    u32 readed = 0;
+    enum EasyKeyValue current_key = NO_KEY;
+    Vol = djy_adc_read(2);
+
+    if(Vol < 2200)
+    {
+        if(Vol > 1550)
+            current_key = COMEBACK_KEY;
+        else if(Vol > 950)
+            current_key = VOL_UP_KEY;
+        else if(Vol > 300)
+            current_key = VOL_DOWN_KEY;
+        else if(Vol >= 0)
+            current_key = PAUSE_PLAY_KEY;
+
+        readed |= (u32)(current_key<<(i<<3));
+        i++;
+    }
+    if(djy_gpio_read(GPIO13))
+    {
+        current_key = POWER_KEY;
+        readed |= (u32)(current_key<<(i<<3));
+        i++;
+    }
+    if(djy_gpio_read(GPIO8))
+    {
+        current_key = HEADSET_STATE;
+        readed |= (u32)(current_key<<(i<<3));
+        i++;
+    }
+
+//    printf("key = %d\r\n", current_key);
+    return readed;
 }

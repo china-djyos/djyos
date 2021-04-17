@@ -69,6 +69,10 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern bool_t ModuleInstall_KeyBoardHard(ptu32_t para);
 //    ModuleInstall_KeyBoardHard(CFG_KEYBOARD_VTIME);
+//#if(CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == true)
+//    extern bool_t GDD_AddInputDev(const char *InputDevName);
+//    GDD_AddInputDev(CFG_KEYBOARD_NAME);
+//#endif
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -77,7 +81,7 @@
 //attribute:bsp                           //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                        //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                           //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                        //初始化时机，可选值：early，medium，later。
+//init time:medium                        //初始化时机，可选值：early，medium，later, pre-main。
                                           //表示初始化时间，分别是早期、中期、后期
 //dependence:"key board","cpu onchip gpio"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                           //选中该组件时，被依赖组件将强制选中，
@@ -98,6 +102,7 @@
 #define CFG_KEYBOARD_VTIME              (100*1000)   //"防抖时间",配置键盘100mS的防抖时间
 //%$#@enum,true,false
 //%$#@string,1,10,
+#define CFG_KEYBOARD_NAME              "KEYBOARD"        //"name",配置键盘名称
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif

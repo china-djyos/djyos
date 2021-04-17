@@ -32,7 +32,7 @@
  */
 #include <stdint.h>
 #include <os.h>
-#include "md5.h"
+#include <misc/md5.h>
 
 #include <string.h>
 
@@ -41,15 +41,15 @@
  ***********************************************************************
  **  Message-digest routines:                                         **
  **  To form the message digest for a message M                       **
- **    (1) Initialize a context buffer mdContext using MD5Init        **
- **    (2) Call MD5Update on mdContext and M                          **
- **    (3) Call MD5Final on mdContext                                 **
+ **    (1) Initialize a context buffer mdContext using MD5_Init        **
+ **    (2) Call MD5_Update on mdContext and M                          **
+ **    (3) Call MD5_Final on mdContext                                 **
  **  The message digest is now in mdContext->digest[0...15]           **
  ***********************************************************************
  */
 
 /* forward declaration */
-static void Transform (u32_t *buf, u32_t *in);
+static void MD5_Transform (u32_t *buf, u32_t *in);
 
 static unsigned char PADDING[64] = {
   0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -104,11 +104,10 @@ static unsigned char PADDING[64] = {
 #endif
 #endif
 
-/* The routine MD5Init initializes the message-digest context
+/* The routine MD5_Init initializes the message-digest context
    mdContext. All fields are set to zero.
  */
-void
-MD5Init (MD5_CTX *mdContext)
+void MD5_Init (MD5_CTX *mdContext)
 {
   mdContext->i[0] = mdContext->i[1] = (u32_t)0;
 
@@ -119,12 +118,11 @@ MD5Init (MD5_CTX *mdContext)
   mdContext->buf[3] = (u32_t)0x10325476UL;
 }
 
-/* The routine MD5Update updates the message-digest context to
+/* The routine MD5_Update updates the message-digest context to
    account for the presence of each of the characters inBuf[0..inLen-1]
    in the message whose digest is being computed.
  */
-void
-MD5Update(MD5_CTX *mdContext, unsigned char *inBuf, unsigned int inLen)
+void MD5_Update(MD5_CTX *mdContext, unsigned char *inBuf, unsigned int inLen)
 {
   u32_t in[16];
   int mdi;
@@ -157,17 +155,16 @@ MD5Update(MD5_CTX *mdContext, unsigned char *inBuf, unsigned int inLen)
                 (((u32_t)mdContext->in[ii+1]) << 8)  |
                 ((u32_t)mdContext->in[ii]);
       }
-      Transform (mdContext->buf, in);
+      MD5_Transform (mdContext->buf, in);
       mdi = 0;
     }
   }
 }
 
-/* The routine MD5Final terminates the message-digest computation and
+/* The routine MD5_Final terminates the message-digest computation and
    ends with the desired message digest in mdContext->digest[0...15].
  */
-void
-MD5Final (unsigned char hash[], MD5_CTX *mdContext)
+void MD5_Final (unsigned char hash[], MD5_CTX *mdContext)
 {
   u32_t in[16];
   int mdi;
@@ -183,7 +180,7 @@ MD5Final (unsigned char hash[], MD5_CTX *mdContext)
 
   /* pad out to 56 mod 64 */
   padLen = (mdi < 56) ? (56 - mdi) : (120 - mdi);
-  MD5Update (mdContext, PADDING, padLen);
+  MD5_Update (mdContext, PADDING, padLen);
 
   /* append length in bits and transform */
   for (i = 0, ii = 0; i < 14; i++, ii += 4) {
@@ -192,7 +189,7 @@ MD5Final (unsigned char hash[], MD5_CTX *mdContext)
             (((u32_t)mdContext->in[ii+1]) << 8)  |
             ((u32_t)mdContext->in[ii]);
   }
-  Transform (mdContext->buf, in);
+  MD5_Transform (mdContext->buf, in);
 
   /* store buffer in digest */
   for (i = 0, ii = 0; i < 4; i++, ii += 4) {
@@ -209,8 +206,7 @@ MD5Final (unsigned char hash[], MD5_CTX *mdContext)
 
 /* Basic MD5 step. Transforms buf based on in.
  */
-static void
-Transform (u32_t *buf, u32_t *in)
+static void MD5_Transform (u32_t *buf, u32_t *in)
 {
   u32_t a = buf[0], b = buf[1], c = buf[2], d = buf[3];
 

@@ -25,7 +25,7 @@ struct rts_cts_st {
     uint8_t ra[6];    // the receive address
     uint8_t ta[6];    // the transmite address
     int8_t  rssi;
-    uint8_t security; 
+    uint8_t security;
     uint16_t seq;
     uint32_t last_len;
     uint32_t last_time;
@@ -72,16 +72,16 @@ void beacon_update(uint8_t *bssid, uint8_t security)
 static void report_lsig(int len, int8_t rssi, int index)
 {
     hal_wifi_link_info_t info;
-	monitor_data_cb_t fn;
+    monitor_data_cb_t fn;
     uint8_t data[64]; // mac header & qos & vector
     uint16_t seq_frag;
     int i = 0;
-    uint32_t time = rtos_get_time();
-    
+    uint32_t time = bk_rtos_get_time();
+
     if (rts_tbl[index].security == 0xFF) {
         return;
     }
-    
+
     if ((len == rts_tbl[index].last_len) && (time < rts_tbl[index].last_time+2)) {
         rts_tbl[index].last_time = time;
         return;
@@ -89,26 +89,26 @@ static void report_lsig(int len, int8_t rssi, int index)
 
     if (len < 24)
         return;
-    
+
     info.rssi = -rssi;
 
     data[i++] = 0x88; // data
     if (rts_tbl[index].security == WLAN_ENC_OPEN) {
         data[i++] = 0x1;
     } else {
-        data[i++] = 0x41; // protect data; 
+        data[i++] = 0x41; // protect data;
     }
 
     data[i++] = 0x30; // duration
     data[i++] = 0;
-    
+
     os_memcpy(&data[i], rts_tbl[index].ra, 6);
     i+=6;
     os_memcpy(&data[i], rts_tbl[index].ta, 6);
     i+=6;
     os_memset(&data[i], 0xFF, 6);
     i+=6;
-    
+
     seq_frag = rts_tbl[index].seq;
     seq_frag <<= 4;
     os_memcpy(&data[i], &seq_frag, 2);
@@ -130,8 +130,8 @@ static void report_lsig(int len, int8_t rssi, int index)
     rts_tbl[index].last_len = len;
     rts_tbl[index].last_time = time;
 
-	fn = bk_wlan_get_monitor_cb();		
-	(*fn)((uint8_t *)data, len, &info);
+    fn = bk_wlan_get_monitor_cb();
+    (*fn)((uint8_t *)data, len, &info);
 }
 
 void lsig_input(int len, int8_t rssi, uint32_t time_ms)
@@ -140,8 +140,8 @@ void lsig_input(int len, int8_t rssi, uint32_t time_ms)
     int i, delta;
     uint32_t min_time = 0, rep_index = 0;
 
-    len -= 8; // remove FCS 
-    
+    len -= 8; // remove FCS
+
     if (last_rts.time_ms + 1 > time_ms) {//  RTS match
         rts_match = 1;
     }
@@ -154,7 +154,7 @@ void lsig_input(int len, int8_t rssi, uint32_t time_ms)
             }
         } else {
             delta = rts_tbl[i].rssi - rssi;
-            if ((delta>-5) && (delta<5)) { // DO report for each RSSI match. 
+            if ((delta>-5) && (delta<5)) { // DO report for each RSSI match.
                 report_lsig(len, rssi, i);
                 reported++;
             }
@@ -162,13 +162,13 @@ void lsig_input(int len, int8_t rssi, uint32_t time_ms)
     }
     if ((rts_match != 1) || (reported != 0))
         return;
-    
+
     // new entry
     if (rts_tbl_num < MAX_RTS_TBL) {
         os_memcpy(rts_tbl[rts_tbl_num].ra, last_rts.ra, 12);
         rts_tbl[rts_tbl_num].security = 0xFF;
         rts_tbl[rts_tbl_num].rssi = rssi;
-        rts_tbl[rts_tbl_num].last_time = rtos_get_time();
+        rts_tbl[rts_tbl_num].last_time = bk_rtos_get_time();
         rts_tbl[rts_tbl_num].last_len = len;
         rts_tbl_num++;
         return;
@@ -188,7 +188,7 @@ void lsig_input(int len, int8_t rssi, uint32_t time_ms)
     rts_tbl[rep_index].security = 0xFF;
     rts_tbl[rep_index].rssi = rssi;
     rts_tbl[rep_index].last_len = len;
-    rts_tbl[rep_index].last_time = rtos_get_time();
+    rts_tbl[rep_index].last_time = bk_rtos_get_time();
 }
 
 

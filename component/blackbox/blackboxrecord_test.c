@@ -93,7 +93,7 @@ static void __WelcomMsgShow(void)
     debug_printf("null","****************EXCEPTIONRECORDERTESTVERSION******************\n\r");
     debug_printf("null","WELCOME TO EXCEPTION RECORDER TEST\n\r");
     debug_printf("null","VERSION:%s BUILDTIME:%s:%s\n\r",CN_EXCEPTIONTEST_VERSION,__DATE__,__TIME__);
-    debug_printf("null","AUTHOR :%s:%s\n\r","Zhangqf","zhangqf1314@sznari.com");
+    debug_printf("null","AUTHOR :%s:%s\n\r","luost","lst@djyos.com");
     debug_printf("null","*************************************************************\n\r");
     return;
 }
@@ -138,7 +138,7 @@ static void __CounterLeftShow(const char *msg,s32 counter)
     for(i = counter;i>0;i--)
     {
         debug_printf("null","%s:%04d(seconds)",msg,i);
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
     }
     printf("\r\n");
     return;
@@ -491,6 +491,148 @@ static bool_t __RecordTest(u32 timestotal,u32 msglen)
     return ret;
 }
 
+//you also could use this function to make a task to do the auto test
+ptu32_t __RecordTestTask(void)
+{
+    //do the bkpsram exception record test
+    __CounterLeftShow("TEST WILL START",10);
+    u32 times;
+    time_t time_now;
+    time_now = time(NULL);
+    srand((u32)time_now);
+    times = (u32)rand()%100000;
+    if(times == 0 )
+    {
+        times =9997;
+    }
+    if(__RecordTest(times,0))
+    {
+        __CounterLeftShow("SYSTEM WILL RESET FOR ANOTHER TEST",10);
+        debug_printf("null","RESET THE SYSTEM\n\r");
+        CPU_Reset(0xaa55aa55);
+    }
+    else
+    {
+        debug_printf("null","THE TEST TASK WILL QUIT FOR FAILURE\n\r");
+    }
+
+    return 0;
+}
+
+
+
+// =============================================================================
+// 函数功能:板件异常记录存储测试机，开发的异常存储方案可以使用该函数进行初步的测试，看是否能够满足存储需求
+// 输入参数：opt，异常存储操作接口
+//        maxlen,单次写入的最大长度，即单条异常信息的最大长度(headinfo oststateinfo hookinfo throwinfo之和)
+//               if 0 we will use the default CN_TEST_LENMAX
+//        autotest,true表示将启动一个任务自动测试，否则需要在shell中手动使用相关命令进行测试
+//        debugmsg,true表示输出测试过程中的详细信息（调试信息比较多），否则只输出测试进度和测试结果
+// 输出参数：无
+// 返回值  ：true 注册成功，false 注册失败
+// 说明：注册的过程中会调用用户的注册的SCAN函数进行扫描;测试过程中会有很多内存的分配和释放操作，务必保证内存够用，内存分配机制完善
+// =============================================================================
+bool_t ModuleInstall_BlackBoxRecordTest(struct BlackBoxRecordOperate *opt,u32 maxlen,bool_t autotest,bool_t debugmsg)
+{
+    bool_t ret = false;
+    //check the parameter and determine the task we will do
+    //check the operation
+    if(NULL == opt)
+    {
+        debug_printf("null","CHECK:ERR :OPT NULL,WILL EXIT\n\r");
+        return ret;
+    }
+    if(NULL == opt->fnBlackBoxRecordScan)
+    {
+        debug_printf("null","CHECK:WARN:SCAN FUNCTION NULL,BUT CONTINUE\n\r");
+    }
+    else
+    {
+        opt->fnBlackBoxRecordScan();
+    }
+    if(NULL == opt->fnBlackBoxRecordSave)
+    {
+        debug_printf("null","CHECK:ERR :MSGSAVE FUNCTION NULL,WILL EXITE\n\r");
+        return ret;
+    }
+    if(NULL == opt->fnBlackBoxRecordGet)
+    {
+        debug_printf("null","CHECK:ERR :MSGGET FUNCTION NULL,WILL EXITE\n\r");
+        return ret;
+    }
+    if(NULL == opt->fnBlackBoxRecordCheckNum)
+    {
+        debug_printf("null","CHECK:ERR :MSGCHECKNUM FUNCTION NULL,WILL EXITE\n\r");
+        return ret;
+    }
+    if(NULL == opt->fnBlackBoxRecordCheckLen)
+    {
+        debug_printf("null","CHECK:ERR :MSGCHECKLEN FUNCTION NULL,WILL EXITE\n\r");
+        return ret;
+    }
+    if(NULL == opt->fnBlackBoxRecordClean)
+    {
+        debug_printf("null","CHECK:WARN:MSGCLEAN FUNCTION NULL,BUT CONTINUE\n\r");
+    }
+    gTestConfig.opt = *opt;
+    if(0 == maxlen)
+    {
+        gTestConfig.maxlen = CN_TEST_LENMAX;
+    }
+    else
+    {
+        gTestConfig.maxlen = maxlen;
+    }
+    gTestConfig.autotest = autotest;
+    gTestConfig.debugmsg = debugmsg;
+    //malloc the memory from the system
+    gTestConfig.buf2rcv = malloc(gTestConfig.maxlen);
+    if(NULL == gTestConfig.buf2rcv)
+    {
+        debug_printf("null","ERR:RCVBUF MEM MALLOC ERR\n\r");
+        return ret;
+    }
+    gTestConfig.buf2snd = malloc(gTestConfig.maxlen);
+    if(NULL == gTestConfig.buf2snd)
+    {
+        debug_printf("null","ERR:SNDBUF MEM MALLOC ERR\n\r");
+        return ret;
+    }
+    //here we'd better to initialize the send and receive buffer with random data
+    u32 i =0;
+    u8 data;
+    for(i =0;i<gTestConfig.maxlen;i++)
+    {
+        data = (u8)(u32)rand();
+        gTestConfig.buf2snd[i]=data;
+
+    }
+    for(i =0;i<gTestConfig.maxlen;i++)
+    {
+        data = (u8)(u32)rand();
+        gTestConfig.buf2rcv[i]=data;
+    }
+
+    //install the shell command here
+    ret = true;
+
+    //if auto test,we will make a task here to do the test
+    if(gTestConfig.autotest)
+    {
+        u16 evttID;
+        evttID = DJY_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0, (ptu32_t(*)(void))__RecordTestTask,\
+                                                NULL, 0x1000, "BLACKBOXRECORDERTEST");
+        if(evttID==CN_EVTT_ID_INVALID)
+        {
+            ret = false;
+        }
+        else
+        {
+            DJY_EventPop(evttID, NULL, 0, 0, 0, 0);
+        }
+    }
+    return ret;
+}
 
 //you could use this function to add one messages -t times -l maxlenth
 //static bool_t __RecordTestShell(char *param)
@@ -627,148 +769,6 @@ bool_t blackboxrtest(char *param)
     }
 
     return true;
-}
-//you also could use this function to make a task to do the auto test
-ptu32_t __RecordTestTask(void)
-{
-    //do the bkpsram exception record test
-    __CounterLeftShow("TEST WILL START",10);
-    u32 times;
-    time_t time_now;
-    time_now = time(NULL);
-    srand((u32)time_now);
-    times = (u32)rand()%100000;
-    if(times == 0 )
-    {
-        times =9997;
-    }
-    if(__RecordTest(times,0))
-    {
-        __CounterLeftShow("SYSTEM WILL RESET FOR ANOTHER TEST",10);
-        debug_printf("null","RESET THE SYSTEM\n\r");
-        reset(0xaa55aa55);
-    }
-    else
-    {
-        debug_printf("null","THE TEST TASK WILL QUIT FOR FAILURE\n\r");
-    }
-
-    return 0;
-}
-
-
-
-// =============================================================================
-// 函数功能:板件异常记录存储测试机，开发的异常存储方案可以使用该函数进行初步的测试，看是否能够满足存储需求
-// 输入参数：opt，异常存储操作接口
-//        maxlen,单次写入的最大长度，即单条异常信息的最大长度(headinfo oststateinfo hookinfo throwinfo之和)
-//               if 0 we will use the default CN_TEST_LENMAX
-//        autotest,true表示将启动一个任务自动测试，否则需要在shell中手动使用相关命令进行测试
-//        debugmsg,true表示输出测试过程中的详细信息（调试信息比较多），否则只输出测试进度和测试结果
-// 输出参数：无
-// 返回值  ：true 注册成功，false 注册失败
-// 说明：注册的过程中会调用用户的注册的SCAN函数进行扫描;测试过程中会有很多内存的分配和释放操作，务必保证内存够用，内存分配机制完善
-// =============================================================================
-bool_t ModuleInstall_BlackBoxRecordTest(struct BlackBoxRecordOperate *opt,u32 maxlen,bool_t autotest,bool_t debugmsg)
-{
-    bool_t ret = false;
-    //check the parameter and determine the task we will do
-    //check the operation
-    if(NULL == opt)
-    {
-        debug_printf("null","CHECK:ERR :OPT NULL,WILL EXIT\n\r");
-        return ret;
-    }
-    if(NULL == opt->fnBlackBoxRecordScan)
-    {
-        debug_printf("null","CHECK:WARN:SCAN FUNCTION NULL,BUT CONTINUE\n\r");
-    }
-    else
-    {
-        opt->fnBlackBoxRecordScan();
-    }
-    if(NULL == opt->fnBlackBoxRecordSave)
-    {
-        debug_printf("null","CHECK:ERR :MSGSAVE FUNCTION NULL,WILL EXITE\n\r");
-        return ret;
-    }
-    if(NULL == opt->fnBlackBoxRecordGet)
-    {
-        debug_printf("null","CHECK:ERR :MSGGET FUNCTION NULL,WILL EXITE\n\r");
-        return ret;
-    }
-    if(NULL == opt->fnBlackBoxRecordCheckNum)
-    {
-        debug_printf("null","CHECK:ERR :MSGCHECKNUM FUNCTION NULL,WILL EXITE\n\r");
-        return ret;
-    }
-    if(NULL == opt->fnBlackBoxRecordCheckLen)
-    {
-        debug_printf("null","CHECK:ERR :MSGCHECKLEN FUNCTION NULL,WILL EXITE\n\r");
-        return ret;
-    }
-    if(NULL == opt->fnBlackBoxRecordClean)
-    {
-        debug_printf("null","CHECK:WARN:MSGCLEAN FUNCTION NULL,BUT CONTINUE\n\r");
-    }
-    gTestConfig.opt = *opt;
-    if(0 == maxlen)
-    {
-        gTestConfig.maxlen = CN_TEST_LENMAX;
-    }
-    else
-    {
-        gTestConfig.maxlen = maxlen;
-    }
-    gTestConfig.autotest = autotest;
-    gTestConfig.debugmsg = debugmsg;
-    //malloc the memory from the system
-    gTestConfig.buf2rcv = malloc(gTestConfig.maxlen);
-    if(NULL == gTestConfig.buf2rcv)
-    {
-        debug_printf("null","ERR:RCVBUF MEM MALLOC ERR\n\r");
-        return ret;
-    }
-    gTestConfig.buf2snd = malloc(gTestConfig.maxlen);
-    if(NULL == gTestConfig.buf2snd)
-    {
-        debug_printf("null","ERR:SNDBUF MEM MALLOC ERR\n\r");
-        return ret;
-    }
-    //here we'd better to initialize the send and receive buffer with random data
-    u32 i =0;
-    u8 data;
-    for(i =0;i<gTestConfig.maxlen;i++)
-    {
-        data = (u8)(u32)rand();
-        gTestConfig.buf2snd[i]=data;
-
-    }
-    for(i =0;i<gTestConfig.maxlen;i++)
-    {
-        data = (u8)(u32)rand();
-        gTestConfig.buf2rcv[i]=data;
-    }
-
-    //install the shell command here
-    ret = true;
-
-    //if auto test,we will make a task here to do the test
-    if(gTestConfig.autotest)
-    {
-        u16 evttID;
-        evttID = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0, (ptu32_t(*)(void))__RecordTestTask,\
-                                                NULL, 0x1000, "BLACKBOXRECORDERTEST");
-        if(evttID==CN_EVTT_ID_INVALID)
-        {
-            ret = false;
-        }
-        else
-        {
-            Djy_EventPop(evttID, NULL, 0, 0, 0, 0);
-        }
-    }
-    return ret;
 }
 ADD_TO_ROUTINE_SHELL(blackboxrtest,blackboxrtest,"usage:blackboxrtest [test/func] [subcmdparas]");
 

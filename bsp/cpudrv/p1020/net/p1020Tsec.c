@@ -584,7 +584,7 @@ bool_t __TsecInitPhy(struct tsec_info_struct *tsec_info)
         __TsecSerdesConfig(priv);
 
     /* Wait 15ms to make sure the PHY has come out of hard reset */
-    Djy_DelayUs(15000);
+    DJY_DelayUs(15000);
 
     //config the PHY
     if(priv->interface == PHY_INTERFACE_MODE_GMII)//eTSEC1,RMII
@@ -662,7 +662,7 @@ bool_t __TsecDataInitialize(u8  devno)
 
     /* Reset the MAC */
     setbits_be32(&priv->regs->maccfg1, MACCFG1_SOFT_RESET);
-    Djy_DelayUs(2);  /* Soft Reset must be asserted for 3 TX clocks */
+    DJY_DelayUs(2);  /* Soft Reset must be asserted for 3 TX clocks */
     clrbits_be32(&priv->regs->maccfg1, MACCFG1_SOFT_RESET);
 
     /* Try to initialize PHY here, and return */
@@ -1140,7 +1140,7 @@ bool_t ModuleInstall_Tsec(ptu32_t para)
                 devpara.name = "TsecDriver";
                 devpara.Private = devno;
 
-                pgTsecNetDev[devno] = NetDevInstall(&devpara);
+                pgTsecNetDev[devno] = NetDev_Install(&devpara);
                 if(pgTsecNetDev[devno]!= NULL)
                 {
                     result = true;

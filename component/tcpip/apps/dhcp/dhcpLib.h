@@ -70,14 +70,39 @@
 #define DHCP_BOOTREQUEST    1
 #define DHCP_BOOTREPLY      2
 
-/* DHCP message type */
+/* DHCP 报文类型 */
+//DHCP客户端在请求IP地址时并不知道DHCP服务器的位置，因此DHCP客户端会在本地网络内以
+//广播方式发送Discover请求报文，以发现网络中的DHCP服务器。所有收到Discover报文的
+//DHCP服务器都会发送应答报文，DHCP客户端据此可以知道网络中存在的DHCP服务器的位置。
 #define DHCP_DISCOVER       1   //客户端发送广播包在网络上寻找 DHCP 服务器
-#define DHCP_OFFER          2   //服务器发送吗，单播，含 IP、MAC地址以及地址租期
+//DHCP服务器收到Discover报文后，就会在所配置的地址池中查找一个合适的IP地址，加上相应
+//的租约期限和其他配置信息（如网关、DNS服务器等），构造一个Offer报文，发送给DHCP客户端，
+//告知用户本服务器可以为其提供IP地址。但这个报文只是告诉DHCP客户端可以提供IP地址，
+//最终还需要客户端通过ARP来检测该IP地址是否重复。
+#define DHCP_OFFER          2   //服务器发送，单播，含 IP、MAC地址以及地址租期
+//DHCP客户端可能会收到很多Offer请求报文，所以必须在这些应答中选择一个。通常是选择
+//第一个Offer应答报文的服务器作为自己的目标服务器，并向该服务器发送一个广播的Request
+//请求报文，通告选择的服务器，希望获得所分配的IP地址。另外，DHCP客户端在成功获取IP
+//地址后，在地址使用租期达到50%时，会向DHCP服务器发送单播Request请求报文请求续延租约，
+//如果没有收到ACK报文，在租期达到87.5%时，会再次发送广播的Request请求报文以请求续延租约。
 #define DHCP_REQUEST        3   //客户端发送，广播包，功能：1、请求配置信息；2、确认信息是否仍然有效；3、延长租期
+//DHCP客户端收到DHCP服务器ACK应答报文后，通过地址冲突检测发现服务器分配的地址冲突或者
+//由于其他原因导致不能使用，则会向DHCP服务器发送Decline请求报文，通知服务器所分配的
+//IP地址不可用，以期获得新的IP地址。
 #define DHCP_DECLINE        4   //客户端发送，告知服务器此地址已被使用
+//DHCP服务器收到Request请求报文后，根据Request报文中携带的用户MAC来查找有没有相应的
+//租约记录，如果有则发送ACK应答报文，通知用户可以使用分配的IP地址。
 #define DHCP_ACK            5   //服务器发送 DHCP ACK 单播包，确认主机的请求
+//如果DHCP服务器收到Request请求报文后，没有发现有相应的租约记录或者由于某些原因无法
+//正常分配IP地址，则向DHCP客户端发送NAK应答报文，通知用户无法分配合适的IP地址。
 #define DHCP_NAK            6   //服务器发送，告知地址无效或租期已满
+//当DHCP客户端不再需要使用分配IP地址时（一般出现在客户端关机、下线等状况）就会主动向
+//DHCP服务器发送RELEASE请求报文，告知服务器用户不再需要分配IP地址，请求DHCP服务器释放
+//对应的IP地址。
 #define DHCP_RELEASE        7   //客户端发送，告知服务器地址不再使用
+//DHCP客户端如果需要从DHCP服务器端获取更为详细的配置信息，则向DHCP服务器发送Inform
+//请求报文；DHCP服务器在收到该报文后，将根据租约进行查找到相应的配置信息后，向DHCP
+//客户端发送ACK应答报文。目前基本上不用了。
 #define DHCP_INFORM         8   //客户端发送，请求配置参数，IP地址已经有了。
 
 /* DHCP option and value (cf. RFC1533) */
@@ -212,12 +237,12 @@ typedef struct
 }tagDhcpReplyPara;
 
 
-void makeDhcpRequestMsg(tagDhcpMsg *msg,tagDhcpRequestPara *para);
-void showDhcpRequestMsg(tagDhcpRequestPara *para);
-void showDhcpReplyMsg(tagDhcpReplyPara *para);
-bool_t pasteDhcpReplyMsg(tagDhcpReplyPara *para,tagDhcpMsg *msg);
-void makeDhcpReplyMsg(tagDhcpMsg *msg,tagDhcpReplyPara *para);
-bool_t pasteDhcpRequestMsg(tagDhcpRequestPara *para,tagDhcpMsg *msg);
+void DHCP_MakeDhcpRequestMsg(tagDhcpMsg *msg,tagDhcpRequestPara *para);
+void DHCP_ShowDhcpRequestMsg(tagDhcpRequestPara *para);
+void DHCP_ShowDhcpReplyMsg(tagDhcpReplyPara *para);
+bool_t DHCP_PasteDhcpReplyMsg(tagDhcpReplyPara *para,tagDhcpMsg *msg);
+void DHCP_MakeDhcpReplyMsg(tagDhcpMsg *msg,tagDhcpReplyPara *para);
+bool_t DHCP_PasteDhcpRequestMsg(tagDhcpRequestPara *para,tagDhcpMsg *msg);
 
 
 

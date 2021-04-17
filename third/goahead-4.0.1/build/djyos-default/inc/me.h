@@ -7,8 +7,6 @@
 
 /* Settings */
 
-#include "component_config_goahead401.h"
-
 #define __djyos__  1
 #define __arm__  1
 

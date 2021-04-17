@@ -50,99 +50,71 @@
 #include "hard-exp.h"
 #include "board-config.h"
 
-extern void Load_Preload(void);
+uint32_t djy_switch_interrupt_flag __attribute__ ((section(".data.interrupt")));
+uint32_t *djy_interrupt_from_thread __attribute__ ((section(".data.interrupt")));
+uint32_t *djy_interrupt_to_thread __attribute__ ((section(".data.interrupt")));
 
-extern void __Djy_VmEngine(ptu32_t (*thread_routine)(void));
+//// =============================================================================
+//// 功能：在系统起来以后需把各种标志复位
+//// 参数：无
+//// 返回：无
+//// =============================================================================
+//__attribute__((weak)) void __InitTimeBase(void)
+//{
+//    djy_switch_interrupt_flag = 0;
+//    djy_interrupt_from_thread = NULL;
+//    djy_interrupt_to_thread = NULL;
+//}
+//
 
-uint32_t djy_switch_interrupt_flag = 0;
-uint32_t *djy_interrupt_from_thread = NULL;
-uint32_t *djy_interrupt_to_thread = NULL;
-static uint64_t gRunTicks = 0;
-static bool_t gResumeTickFlag = false;
-/*??????????????:pc,lr,r12-r4,r3-r0,spsr*/
-void *__asm_reset_thread(ptu32_t (*thread_routine)(void),
-                            struct ThreadVm  *vm)
-{
-    uint32_t *stk = vm->stack_top;
-    *(--stk) = (uint32_t)__Djy_VmEngine;         /* entry point */
-    *(--stk) = (uint32_t)__Djy_VmEngine;          /* lr */
-    stk -=12;
-    *(--stk) = (uint32_t)thread_routine;           /*R0*/
-    /* cpsr */
-	if ((uint32_t)thread_routine & 0x01)
-		*(--stk) = SVCMODE | 0x20;			/* thumb mode */
-	else
-		*(--stk) = SVCMODE;					/* arm mode   */
-    vm->stack = stk;
-    return stk;
-}
 
-// =============================================================================
-// 功能：在系统起来以后需把各种标志复位
-// 参数：无
-// 返回：无
-// =============================================================================
-__attribute__((weak)) void __InitTimeBase(void)
-{}
-
-// =============================================================================
-// 功能：初始化systick
-// 参数：无
-// 返回：无
-// =============================================================================
-__attribute__((weak)) void __DjyInitTick(void)
-{
-    HardExp_ConnectSystick(Djy_ScheduleIsr);
-}
-
-// =============================================================================
-// 功能：获取系统时间
-// 参数：无
-// 返回：当前us数
-// =============================================================================
-__attribute__((weak))   uint64_t __DjyGetSysTime(void)
-{
-    s64 time = 0;
-    time = gRunTicks*CN_CFG_TICK_US;
-    return (uint64_t)time;
-}
-
-__attribute__((weak)) uint64_t __DjyGetTicks(void)
-{
-    return gRunTicks;
-}
+//__attribute__((weak)) uint64_t __DjyGetTicks(void)
+//{
+//    return gRunTicks;
+//}
 
 //??????????
-__attribute__((weak)) void DjySetUpdateTickFlag(bool_t flag)
-{
-    gResumeTickFlag = flag;
-}
+//__attribute__((weak)) void DjySetUpdateTickFlag(bool_t flag)
+//{
+//    gResumeTickFlag = flag;
+//}
+//
+//__attribute__((weak)) bool_t DjyGetUpdateTickFlag(void)
+//{
+//    return gResumeTickFlag;
+//}
+//
+////??????????
+//__attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
+//{
+//    gRunTicks += ticks;
+//}
 
-__attribute__((weak)) bool_t DjyGetUpdateTickFlag(void)
-{
-    return gResumeTickFlag;
-}
+// ============================================================================
+// ARM9的reboot、reset和restart_system，在对应的cpudrv里实现，不放在这里实现
+// ============================================================================
+#if 0
+#include <Iboot_Info.h>
 
-//??????????
-__attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
-{
-    gRunTicks += ticks;
-}
-
-
-
-//void reboot(u32 key)
+extern void Iboot_LoadPreload(void);
+//void CPU_Reboot(u32 key)
 //{
 //
 //}
 
-void reset(u32 key)
+void CPU_Reset(u32 key)
 {
-
+    Iboot_SetSoftResetFlag();
+#if (CFG_RUNMODE_BAREAPP == 0)
+    Iboot_SetPreviouResetFlag();
+#endif
+    void (*fn_start)();
+    fn_start = 0x0;
+    fn_start();
+//  _start();
 }
-
-void restart_system(u32 key)
+void CPU_RestartSystem(u32 key)
 {
-    Load_Preload();
+    Iboot_LoadPreload();
 }
-
+#endif

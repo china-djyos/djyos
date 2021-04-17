@@ -66,7 +66,7 @@ ptu32_t __Tcp_ServerTast( void )
     int                 sFd;
     int                 iMsgLen;
 
-    Djy_GetEventPara((ptu32_t *)&sFd,NULL);
+    DJY_GetEventPara((ptu32_t *)&sFd,NULL);
     while(1)
     {
         iMsgLen = recv( sFd, byMsgBuf, TCP_PKG_BUF_LEN, 0);
@@ -126,7 +126,7 @@ int Tcp_SvrStart(void)
         return -1;
     }
 
-    evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS - 20,0,0,
+    evtt = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS - 20,0,0,
                                 __Tcp_ServerTast,NULL,4096, "TCP_SVR_Event");
 
     if(evtt == CN_EVTT_ID_INVALID)
@@ -136,12 +136,12 @@ int Tcp_SvrStart(void)
         return -1;
     }
 
-    Djy_EventPop(evtt,NULL,0,(ptu32_t)sFd,0,0);
+    DJY_EventPop(evtt,NULL,0,(ptu32_t)sFd,0,0);
     printf("TCP Server Start Receive Packet!\r\n");
     while(1)
     {
         rcvLast = iMsgCnt;
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
         printf("TCP Server Receive Speed = %d bytes/s.\r\n",iMsgCnt-rcvLast);
     }
 

@@ -65,6 +65,7 @@
 #include "systime.h"
 #include "djyos.h"
 #include "shell.h"
+#include "wdt_soft.h"
 #include "blackbox.h"
 #include "dbug.h"
 #include "component_config_core.h"
@@ -78,6 +79,10 @@ extern struct EventECB  *s_ptEventFree; //空闲链表头,不排序
 bool_t event(char *param);
 bool_t evtt(char *param);
 bool_t stack(char *param);
+bool_t spyk(u16 pl_ecb);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // ============================================================================
 // 功能：显示事件列表
@@ -85,29 +90,22 @@ bool_t stack(char *param);
 // 返回：
 // 备注：
 // ============================================================================
-//bool_t Sh_ShowEvent(char *param)
 bool_t event(char *param)
 {
     u16 pl_ecb;
-    u32 time1,MemSize,StackSize;
+    u32 time1,MemSize,StackSize,heapsize=0,maxsize=0;
     char *name;
+    bool_t native = false;
 
     MemSize = 0;
-    printf("事件号  类型号  优先级 CPU  栈尺寸   类型名");
+    printf("事件号  类型号  优先级 CPU  栈尺寸   动态内存 最大内存   类型名：总时间(us)");
     for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
     {
         if(g_tECB_Table[pl_ecb].previous !=
                         (struct EventECB*)&s_ptEventFree)
         {
-            // printf("%05d %05d     ",pl_ecb,g_ptECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK));
-            // printf("%03d    ",g_ptECB_Table[pl_ecb].prio);
-            // printf("%02d%%  %8x",time1,g_ptECB_Table[pl_ecb].vm->stack_size);
 #if CFG_OS_TINY == false
-#if (CN_USE_TICKLESS_MODE)
-            time1 = g_tECB_Table[pl_ecb].consumed_cnt_second/(CN_CFG_TIME_BASE_HZ/100);
-#else
             time1 = g_tECB_Table[pl_ecb].consumed_time_second/10000;
-#endif
             name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
 #else
             time1 = 0;
@@ -115,32 +113,95 @@ bool_t event(char *param)
 #endif  //CFG_OS_TINY == false
             if(NULL == g_tECB_Table[pl_ecb].vm)
             {
-//                printf("knlshell","%02d%%  %08x %s",0,0,name);
                 StackSize = 0;
             }
             else
             {
                 StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
-//                printf("knlshell","%02d%%  %08x %s",time1,g_tECB_Table[pl_ecb].vm->stack_size,name);
-//                MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
             }
-//            printf("knlshell","\n\r");
 
-            printf("\r\n%05d   %05d   %03d    %02d%%  %08x %s",\
+            printf("\r\n%05d   %05d   %03d    %02d%%  %08x %08x %08x %s : %lld",\
                    pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK),\
-                    g_tECB_Table[pl_ecb].prio,time1,\
-                    StackSize,name);
-
-            MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
+                                    g_tECB_Table[pl_ecb].prio,time1,\
+                                    StackSize, g_tECB_Table[pl_ecb].HeapSize,
+                                    g_tECB_Table[pl_ecb].HeapSizeMax, name,
+                                    g_tECB_Table[pl_ecb].consumed_time);
+            heapsize += g_tECB_Table[pl_ecb].HeapSize;
+            maxsize += g_tECB_Table[pl_ecb].HeapSizeMax;
+            MemSize += StackSize;
+            if(g_tECB_Table[pl_ecb].HeapSize > 0x80000000)
+                native = true;
         }
         else
         {
-//          printf("knlshell","%5d   空闲",pl_ecb);
         }
     }
 
-    printf("\r\n所有事件栈尺寸总计:         %08x", MemSize);
+    printf("\r\n所有事件栈尺寸总计:         %08x %08x %08x", MemSize,heapsize,maxsize);
     printf("\r\n允许的事件总数:             %d", CFG_EVENT_LIMIT);
+    if(native == true)
+        printf("\r\n温馨提示：个别事件使用的动态内存统计出现非常大的值，请不要惊慌，说明您的代码中存在"
+               "\r\n非对称内存分配与释放的情况，即A事件分配的内存，在B事件释放");
+    return true;
+}
+bool_t eventk(char *param)
+{
+    u16 pl_ecb,busy = CN_EVENT_ID_INVALID;
+    u32 time1,MemSize,StackSize,heapsize=0,maxsize=0;
+    char *name;
+    bool_t native = false;
+
+    MemSize = 0;
+    printk("事件号  类型号  优先级 CPU  栈尺寸   动态内存 最大内存   类型名：总时间(us)");
+    for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
+    {
+        if(g_tECB_Table[pl_ecb].previous !=
+                        (struct EventECB*)&s_ptEventFree)
+        {
+#if CFG_OS_TINY == false
+            time1 = g_tECB_Table[pl_ecb].consumed_time_second/10000;
+            name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
+#else
+            time1 = 0;
+            name = "unkown";
+#endif  //CFG_OS_TINY == false
+            if(time1 >50)
+                busy = pl_ecb;
+            if(NULL == g_tECB_Table[pl_ecb].vm)
+            {
+                StackSize = 0;
+            }
+            else
+            {
+                StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
+            }
+
+            printk("\r\n%05d   %05d   %03d    %02d%%  %08x %08x %08x %s : %lld",\
+                   pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK),\
+                    g_tECB_Table[pl_ecb].prio,time1,\
+                    StackSize, g_tECB_Table[pl_ecb].HeapSize,
+                    g_tECB_Table[pl_ecb].HeapSizeMax, name,
+                    g_tECB_Table[pl_ecb].consumed_time);
+            heapsize += g_tECB_Table[pl_ecb].HeapSize;
+            maxsize += g_tECB_Table[pl_ecb].HeapSizeMax;
+            MemSize += StackSize;
+            if(g_tECB_Table[pl_ecb].HeapSize > 0x80000000)
+                native = true;
+        }
+        else
+        {
+        }
+    }
+
+    printk("\r\n所有事件栈尺寸总计:         %08x %08x %08x", MemSize,heapsize,maxsize);
+    printk("\r\n允许的事件总数:             %d", CFG_EVENT_LIMIT);
+    if(native == true)
+        printk("\r\n温馨提示：个别事件使用的动态内存统计出现非常大的值，请不要惊慌，说明您的代码中存在"
+               "\r\n非对称内存分配与释放的情况，即A事件分配的内存，在B事件释放");
+    if(busy == CN_EVENT_ID_INVALID)
+        printk("当前没有事件占用CPU超过50%%");
+    else
+        spyk(busy);
     return true;
 }
 
@@ -156,6 +217,7 @@ bool_t evtt(char *param)
     u16 pl_ecb;
     u32 MemSize;
     char *name;
+
     MemSize = 0;
     printf("类型号  优先级 处理函数  栈需求   名字\r\n");
     for(pl_ecb = 0; pl_ecb < CFG_EVENT_TYPE_LIMIT; pl_ecb++)
@@ -200,7 +262,7 @@ bool_t evtt(char *param)
 //bool_t Sh_ShowStack(char *param)
 bool_t stack(char *param)
 {
-    u16 pl_ecb;
+    u32 pl_ecb;
     u32 loop,StackSize,pads;
     u32 *stack;
     char *name;
@@ -251,41 +313,13 @@ bool_t stack(char *param)
     printf("\n\r栈指针是最后一次上下文切换时保存的值");
     return (TRUE);
 }
-
-// ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-#if CFG_OS_TINY == false
-ptu32_t Debug_Scan(void)
+u32 knlYipHook(struct Wdt *wdt)
 {
-    u32 pl_ecb;
-
-    while(1)
-    {
-
-        for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
-        {
-#if (CN_USE_TICKLESS_MODE)
-            g_tECB_Table[pl_ecb].consumed_cnt_second =
-                              (u32)g_tECB_Table[pl_ecb].consumed_cnt
-                            - g_tECB_Table[pl_ecb].consumed_cnt_record;
-            g_tECB_Table[pl_ecb].consumed_cnt_record =
-                            (u32)g_tECB_Table[pl_ecb].consumed_cnt;
-#else
-            g_tECB_Table[pl_ecb].consumed_time_second =
-                              (u32)g_tECB_Table[pl_ecb].consumed_time
-                            - g_tECB_Table[pl_ecb].consumed_time_record;
-            g_tECB_Table[pl_ecb].consumed_time_record =
-                            (u32)g_tECB_Table[pl_ecb].consumed_time;
-#endif
-        }
-        Djy_EventDelay(1000*mS);
-    }
+    printk("--------idle wdt yit--------");
+    eventk(NULL);
+    return 0;
 }
-#endif  //CFG_OS_TINY == false
+#pragma GCC diagnostic pop
 
 // ============================================================================
 // 功能：统计一定内事件运行占用率
@@ -298,29 +332,35 @@ ptu32_t kernel_spy(void)
 #if CFG_OS_TINY == false
     u32 pl_ecb;
     u32 cycle;
-
-    Djy_GetEventPara((ptu32_t*)(&cycle), NULL);
+    struct Wdt *wdt;
+    DJY_GetEventPara((ptu32_t*)(&cycle), NULL);
+    cycle *=mS;
+#if(CFG_IDLE_MONITOR_CYCLE > 0)
+#if(DEBUG == 1)
+    wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, knlYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
+#else
+    wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
+#endif  //for (DEBUG != 1)
+#endif  //for (CFG_IDLE_MONITOR_CYCLE > 0)
     while(1)
     {
 
         for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
         {
-#if (CN_USE_TICKLESS_MODE)
-            g_tECB_Table[pl_ecb].consumed_cnt_second =
-                              (u32)g_tECB_Table[pl_ecb].consumed_cnt
-                            - g_tECB_Table[pl_ecb].consumed_cnt_record;
-            g_tECB_Table[pl_ecb].consumed_cnt_record =
-                            (u32)g_tECB_Table[pl_ecb].consumed_cnt;
-#else
            g_tECB_Table[pl_ecb].consumed_time_second =
                               (u32)g_tECB_Table[pl_ecb].consumed_time
                             - g_tECB_Table[pl_ecb].consumed_time_record;
            g_tECB_Table[pl_ecb].consumed_time_record =
                             (u32)g_tECB_Table[pl_ecb].consumed_time;
-#endif
         }
-
-        Djy_EventDelay(cycle*mS); // 延时1秒；
+#if(CFG_IDLE_MONITOR_CYCLE > 0)
+        //如果idle事件运行时间超过 1/16，则喂狗
+        if(g_tECB_Table[0].consumed_time_second > (cycle >> 4))
+        {
+            Wdt_Clean(wdt);
+        }
+#endif  //for (CFG_IDLE_MONITOR_CYCLE > 0)
+        DJY_EventDelay(cycle); // 延时1秒；
     }
 #endif
 }
@@ -338,35 +378,125 @@ s32 kernel_command(void)
     u32 cycle = 1000; // 1s时间，监测周期
 
 
-    res = Djy_EvttRegist(EN_CORRELATIVE, 1, 0, 0,
+    res = DJY_EvttRegist(EN_CORRELATIVE, 1, 0, 0,
                         kernel_spy, NULL, 1024, "kernel spy");
     if(res==CN_EVTT_ID_INVALID)
         return(-1);
 
-    Djy_EventPop(res, NULL, 0, (ptu32_t)cycle, 0, 0);
+    DJY_EventPop(res, NULL, 0, (ptu32_t)cycle, 0, 0);
     return (0);
 }
 
-#if 0
-// ============================================================================
-// 功能：初始化调试信息模块，创建调试信息事件类型并启动之
-// 参数：无
-// 返回：无
-// 备注：
-// ============================================================================
-void ModuleInstall_DebugInfo(ptu32_t para)
+bool_t spy(char *param)
 {
-    u16 evtt_debug;
-    para = para;        //消除编译器告警
+    u16 pl_ecb;
+    u32 loop,StackSize,pads;
+    u32 *stack;
+    char *name;
+
+    printf("\r\n事件号 线程   栈底     栈指针   栈尺寸   剩余量   类型名");
+    pl_ecb = atoi(param);
+    if(g_tECB_Table[pl_ecb].previous !=
+                    (struct EventECB*)&s_ptEventFree)
+    {
+        printf("\n\r");
+        printf("%05d  ",pl_ecb);
+        if(g_tECB_Table[pl_ecb].vm)
+            printf("已分配 ");
+        else
+        {
+            printf("未分配 ");
+            return true ;
+        }
+        StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
+        pads = 0x64646464;
+        stack = (u32*)(&(g_tECB_Table[pl_ecb].vm[1]));
+        for(loop = 0; loop < (StackSize>>2)-1; loop++)
+        {
+            if(stack[loop] != pads)
+            {
+                break;
+            }
+        }
 #if CFG_OS_TINY == false
-    evtt_debug = Djy_EvttRegist(EN_CORRELATIVE,1,0,0,
-                                 Debug_Scan,NULL,1024,"debug_info");
-    if(evtt_debug == CN_EVTT_ID_INVALID)
-        return;
-    Djy_EventPop(evtt_debug,NULL,0,0,0,0);
+        name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
+#else
+        name = "unkown";
 #endif  //CFG_OS_TINY == false
+        printf("%08x %08x %08x %08x %s",
+                    (ptu32_t)(&g_tECB_Table[pl_ecb].vm[1]),
+                    (ptu32_t)(g_tECB_Table[pl_ecb].vm->stack),
+                    StackSize,(loop<<2),name);
+        stack = g_tECB_Table[pl_ecb].vm->stack;
+        printf("\n\r%x: ",(u32)stack);
+        for(;stack < g_tECB_Table[pl_ecb].vm->stack_top; stack++)
+        {
+            if((u32)stack % 32 == 0)
+                printf("\n\r%x: ",(u32)stack);
+            printf(" %08x",*stack);
+        }
+    }
+    else
+    {
+        printf("%05d  空闲事件控制块",pl_ecb);
+    }
+    return (TRUE);
 }
-#endif
+bool_t spyk(u16 pl_ecb)
+{
+    u32 loop,StackSize,pads;
+    u32 *stack;
+    char *name;
+
+    printk("\r\n事件号 线程   栈底     栈指针   栈尺寸   剩余量   类型名");
+    if(g_tECB_Table[pl_ecb].previous !=
+                    (struct EventECB*)&s_ptEventFree)
+    {
+        printk("\n\r");
+        printk("%05d  ",pl_ecb);
+        if(g_tECB_Table[pl_ecb].vm)
+            printk("已分配 ");
+        else
+        {
+            printk("未分配 ");
+            return true ;
+        }
+        StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
+        pads = 0x64646464;
+        stack = (u32*)(&(g_tECB_Table[pl_ecb].vm[1]));
+        for(loop = 0; loop < (StackSize>>2)-1; loop++)
+        {
+            if(stack[loop] != pads)
+            {
+                break;
+            }
+        }
+#if CFG_OS_TINY == false
+        name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
+#else
+        name = "unkown";
+#endif  //CFG_OS_TINY == false
+        printk("%08x %08x %08x %08x %s",
+                    (ptu32_t)(&g_tECB_Table[pl_ecb].vm[1]),
+                    (ptu32_t)(g_tECB_Table[pl_ecb].vm->stack),
+                    StackSize,(loop<<2),name);
+        stack = g_tECB_Table[pl_ecb].vm->stack;
+        printk("\n\r%x: ",(u32)stack);
+        for(;stack < g_tECB_Table[pl_ecb].vm->stack_top; stack++)
+        {
+            if((u32)stack % 32 == 0)
+                printk("\n\r%x: ",(u32)stack);
+            printk(" %08x",*stack);
+        }
+    }
+    else
+    {
+        printk("%05d  空闲事件控制块",pl_ecb);
+    }
+    return (TRUE);
+}
+
+ADD_TO_ROUTINE_SHELL(spy,spy,"");
 ADD_TO_ROUTINE_SHELL(stack,stack,"显示系统中所有已经分配线程的事件的栈信息");
 ADD_TO_ROUTINE_SHELL(event,event,"显示事件表");
 ADD_TO_ROUTINE_SHELL(evtt,evtt,"显示事件类型表");

@@ -83,9 +83,9 @@
 //attribute:system                        //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                        //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                           //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                        //初始化时机，可选值：early，medium，later。
+//init time:medium                        //初始化时机，可选值：early，medium，later, pre-main。
                                           //表示初始化时间，分别是早期、中期、后期
-//dependence:"message queue","graphical kernel"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"message queue"              //该组件的依赖组件名（可以是none，表示无依赖组件），
                                           //选中该组件时，被依赖组件将强制选中，
                                           //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"                   //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -101,7 +101,7 @@
 //%$#@target = header                      //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_HUMAN_MACHINE_INTERFACE    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
-#define CFG_HMIIN_DEV_LIMIT     2       //"name",人机交互输入设备数量，如键盘、鼠标等
+#define CFG_HMIIN_DEV_LIMIT     2       //"输入设备数量上限",人机交互输入设备数量，如键盘、鼠标等
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
@@ -127,12 +127,12 @@ tpInputMsgQ tg_pHmiInputMsgQ;    //  标准输入设备的消息队列
 bool_t ModuleInstall_HmiIn(void)
 {
     static struct HMI_InputDeviceObj root;
-    struct HMI_InputDeviceObj *StdinDeviceMem;
+    struct HMI_InputDeviceObj *StdinDeviceMem = NULL;
 
-    tg_pHmiInputMsgQ = HmiIn_CreatInputMsgQ(10,"HmiInDev");
+    tg_pHmiInputMsgQ = HmiIn_CreatInputMsgQ(10);
     if(tg_pHmiInputMsgQ == NULL)
         goto ExitMsgQ;
-    s_ptHmiInDeviceDir = obj_newchild(obj_root(), (fnObjOps)-1, (ptu32_t)&root, "hmi input device");
+    s_ptHmiInDeviceDir = OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)-1, (ptu32_t)&root, "hmi input device");
     if(s_ptHmiInDeviceDir == NULL)
     {
         goto ExitDir;
@@ -142,7 +142,7 @@ bool_t ModuleInstall_HmiIn(void)
     StdinDeviceMem = M_Malloc(sizeof( struct HMI_InputDeviceObj),0);
     if(StdinDeviceMem == NULL)
     {
-        goto ExitDir;
+        goto ExitMem;
     }
     g_ptHmiInDevicePool = Mb_CreatePool((void*)StdinDeviceMem,
                                     CFG_HMIIN_DEV_LIMIT,
@@ -157,10 +157,10 @@ bool_t ModuleInstall_HmiIn(void)
     return true;
 
 ExitPool:
-    obj_Delete(s_ptHmiInDeviceDir);
-ExitDir:
     free(StdinDeviceMem);
 ExitMem:
+    OBJ_Delete(s_ptHmiInDeviceDir);
+ExitDir:
     HmiIn_DeleteInputMsgQ(tg_pHmiInputMsgQ);
 ExitMsgQ:
     return false;
@@ -176,7 +176,7 @@ s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_ty
 {
     struct HMI_InputDeviceObj *Djy_HmiIn;
 
-    if(obj_search_child(s_ptHmiInDeviceDir,device_name))
+    if(OBJ_SearchChild(s_ptHmiInDeviceDir,device_name))
     {
         return -1;
     }
@@ -186,7 +186,7 @@ s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_ty
         Djy_HmiIn = M_Malloc(sizeof(struct HMI_InputDeviceObj),0);
         if(Djy_HmiIn != NULL)
         {
-            Djy_HmiIn->HostObj = obj_newchild(s_ptHmiInDeviceDir, (fnObjOps)-1, (ptu32_t)Djy_HmiIn, device_name);
+            Djy_HmiIn->HostObj = OBJ_NewChild(s_ptHmiInDeviceDir, (fnObjOps)-1, (ptu32_t)Djy_HmiIn, device_name);
             if(!Djy_HmiIn->HostObj)
             {
                 Mb_Free(g_ptHmiInDevicePool, Djy_HmiIn);
@@ -202,7 +202,7 @@ s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_ty
         }
         else
         {
-            Djy_SaveLastError(EN_MEM_TRIED);
+            DJY_SaveLastError(EN_MEM_TRIED);
             debug_printf("hmi-input","function %s 内存不足\n\r", __FUNCTION__);
             return -1;
         }
@@ -216,7 +216,7 @@ s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_ty
 //      Name, 输入消息队列的名字
 //返回: 新创建的输入消息队列指针
 //----------------------------------------------------------------------------
-tpInputMsgQ HmiIn_CreatInputMsgQ(u32 MsgNum,const char *Name)
+tpInputMsgQ HmiIn_CreatInputMsgQ(u32 MsgNum)
 {
     return MsgQ_Create(MsgNum,sizeof(struct InputDeviceMsg),CN_MSGQ_TYPE_FIFO);
 }
@@ -246,10 +246,10 @@ bool_t HmiIn_SetFocus(const char *device_name, tpInputMsgQ FocusMsgQ)
     struct HMI_InputDeviceObj *result;
     struct Object *focus;
 
-    focus = obj_search_child(s_ptHmiInDeviceDir,device_name);
+    focus = OBJ_SearchChild(s_ptHmiInDeviceDir,device_name);
     if(focus != NULL)
     {
-        result = (struct HMI_InputDeviceObj *)obj_GetPrivate(focus);
+        result = (struct HMI_InputDeviceObj *)OBJ_GetPrivate(focus);
         result->FocusMsgQ = FocusMsgQ;
         return true;
     }
@@ -269,10 +269,10 @@ enum _STDIN_INPUT_TYPE_ HmiIn_CheckDevType(const char *device_name)
     struct HMI_InputDeviceObj *InputDev;
     struct Object *input;
 
-    input = obj_search_child(s_ptHmiInDeviceDir,device_name);
+    input = OBJ_SearchChild(s_ptHmiInDeviceDir,device_name);
     if(input != NULL)
     {
-        InputDev = (struct HMI_InputDeviceObj *)obj_GetPrivate(input);
+        InputDev = (struct HMI_InputDeviceObj *)OBJ_GetPrivate(input);
         return InputDev->input_type;
     }
     else
@@ -316,7 +316,7 @@ tpInputMsgQ HmiIn_GetFocusDefault(void)
 //    start = &(s_ptHmiInDeviceDir->stdin_device_node);
 //    current = start;
 //    while((target =
-//        obj_foreach_scion(start,current))!=NULL)
+//        OBJ_ForeachScion(start,current))!=NULL)
 //    {
 //        ((struct StdinDeviceRsc *)target)->focus_evtt = focus_evtt;
 //        current = target;
@@ -333,7 +333,7 @@ tpInputMsgQ HmiIn_GetFocusDefault(void)
 //      msg_size，输入消息的长度，字节数
 //返回: true=成功，false=失败，一般是因为输入设备未安装。
 //-----------------------------------------------------------------------------
-bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data, u32 msg_size)
+bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data)
 {
     struct Object  *current;
     struct HMI_InputDeviceObj *InputDevice;
@@ -341,11 +341,10 @@ bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data, u32 msg_size)
     tpInputMsgQ InputMsgQ;
 
     current = s_ptHmiInDeviceDir;
-
     //在资源队列中查找stdin_id对应的输入设备
-    while((current = obj_foreach_child(s_ptHmiInDeviceDir, current)) != NULL)
+    while((current = OBJ_ForeachChild(s_ptHmiInDeviceDir, current)) != NULL)
     {
-        InputDevice = (struct HMI_InputDeviceObj *)obj_GetPrivate(current);
+        InputDevice = (struct HMI_InputDeviceObj *)OBJ_GetPrivate(current);
         if(InputDevice->device_id == stdin_id)
             break;
     }
@@ -405,12 +404,12 @@ bool_t HmiIn_UnInstallDevice(const char *device_name)
 {
     struct Object  *current;
     struct HMI_InputDeviceObj *Djy_HmiIn;
-    current = obj_search_child(s_ptHmiInDeviceDir,device_name);
+    current = OBJ_SearchChild(s_ptHmiInDeviceDir,device_name);
     if(current == NULL)
         return false;
 
-    Djy_HmiIn = (struct HMI_InputDeviceObj *)obj_GetPrivate(current);
-    if(!obj_Delete(current))
+    Djy_HmiIn = (struct HMI_InputDeviceObj *)OBJ_GetPrivate(current);
+    if(!OBJ_Delete(current))
     {
         Mb_Free(g_ptHmiInDevicePool,Djy_HmiIn);
         return true;

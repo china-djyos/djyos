@@ -105,10 +105,11 @@ struct Mouse3D_Msg
 //单点触摸屏，即最常用的触摸屏
 struct SingleTouchMsg
 {
-    s64 time;              //按键事件发生时间,US数
+    s64 time;               //按键事件发生时间,US数
     //指明触摸事件对应的屏幕，NULL表示默认显示器，如果只有一个屏也可设为NULL。
     struct DisplayObj *display;
-    s32 x,y,z;  //x,y表示触摸位置，z>0标志触摸压力，0标志未触摸
+    s32 x,y,z;              //x,y表示触摸位置，z>0标志触摸压力，0标志未触摸
+    s16 MoveX,MoveY;        //每ms移动的微米数
 };
 
 //多点触摸屏
@@ -154,7 +155,7 @@ bool_t ModuleInstall_HmiIn(void);
 s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_type,
                         void *myprivate);
 bool_t HmiIn_UnInstallDevice(const char *device_name);
-tpInputMsgQ HmiIn_CreatInputMsgQ(u32 MsgNum,const char *Name);
+tpInputMsgQ HmiIn_CreatInputMsgQ(u32 MsgNum);
 bool_t HmiIn_DeleteInputMsgQ(tpInputMsgQ InputMsgQ);
 bool_t HmiIn_ReadMsg(tpInputMsgQ InputMsgQ,
                      struct InputDeviceMsg *MsgBuf,u32 TimeOut);
@@ -163,7 +164,7 @@ bool_t HmiIn_SetFocus(const char *device_name,tpInputMsgQ FocusMsgQ);
 enum _STDIN_INPUT_TYPE_ HmiIn_CheckDevType(const char *device_name);
 void HmiIn_SetFocusDefault(tpInputMsgQ FocusMsgQ);
 tpInputMsgQ HmiIn_GetFocusDefault(void);
-bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data, u32 msg_size);
+bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data);
 
 #ifdef __cplusplus
 }

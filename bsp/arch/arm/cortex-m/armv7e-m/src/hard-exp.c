@@ -80,7 +80,7 @@
 #include "tickless.h"
 #endif
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
-extern void __Djy_ScheduleAsynSignal(void);
+extern void __DJY_ScheduleAsynSignal(void);
 
 //异常向量表的外部声名
 extern void HardExp_SystickHandler(void);
@@ -115,16 +115,16 @@ static void __Exp_TableSet(void)
     g_u32ExpTable[CN_SYSVECT_RESET]             = (uint32_t)Init_Cpu;
     g_u32ExpTable[CN_SYSVECT_NMI]               = (uint32_t) HardExp_HardfaultHandler;
     g_u32ExpTable[CN_SYSVECT_HARD_FAULT]        = (uint32_t) HardExp_HardfaultHandler;
-    g_u32ExpTable[CN_SYSVECT_MEMMANAGE_FAULT]  = (uint32_t) HardExp_MemfaultHandler;
+    g_u32ExpTable[CN_SYSVECT_MEMMANAGE_FAULT]   = (uint32_t) HardExp_MemfaultHandler;
     g_u32ExpTable[CN_SYSVECT_BUS_FAULT]         = (uint32_t) HardExp_BusfaultHandler;
-    g_u32ExpTable[CN_SYSVECT_USAGE_FAULT]   = (uint32_t) HardExp_UsagefaultHandler;
+    g_u32ExpTable[CN_SYSVECT_USAGE_FAULT]       = (uint32_t) HardExp_UsagefaultHandler;
     g_u32ExpTable[7]                            = (uint32_t) HardExp_HardfaultHandler;
     g_u32ExpTable[8]                            = (uint32_t) HardExp_HardfaultHandler;
     g_u32ExpTable[9]                            = (uint32_t) HardExp_HardfaultHandler;
-    g_u32ExpTable[10]                       = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[10]                           = (uint32_t) HardExp_HardfaultHandler;
     g_u32ExpTable[CN_SYSVECT_SVC]               = (u32)HardExp_SvcHandler;
     g_u32ExpTable[CN_SYSVECT_DEBUG]             = (uint32_t) HardExp_HardfaultHandler;
-    g_u32ExpTable[13]                       = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[13]                           = (uint32_t) HardExp_HardfaultHandler;
     g_u32ExpTable[CN_SYSVECT_PENDSV]            = (uint32_t) HardExp_HardfaultHandler;
     g_u32ExpTable[CN_SYSVECT_SYSTICK]           = (u32)HardExp_SystickHandler;
 
@@ -155,39 +155,6 @@ void __SwapExpCpuInfoByEndian(struct SysExceptionInfo *cpuinfo)
         *temp = swapl(*temp);
         temp++;
     }
-}
-
-// =============================================================================
-// 功能:SYSTICK函数关联函数，将指定的tick函数初始化，在Exp_SystickTickHandler被调用
-// 参数:tick,SYSTICK的用户服务函数
-// 返回:无
-// =============================================================================
-void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
-{
-    user_systick = tick;
-}
-
-// =============================================================================
-// 功能:在Cortex M系统内核中，内核系统定时器SYSTICI定时中断属于异常，该函数是从异常
-//      向量表的汇编程序中跳到C的服务函数，它实现系统TICK服务
-// 参数:无
-// 返回:无
-// =============================================================================
-void Exp_SystickTickHandler(void)
-{
-    g_bScheduleEnable = false;
-    tg_int_global.en_asyn_signal_counter = 1;
-    tg_int_global.nest_asyn_signal = 1;
-    if(!DjyGetUpdateTickFlag())
-        DjyUpdateTicks(1);
-    else
-        DjySetUpdateTickFlag(false);
-    user_systick((CN_USE_TICKLESS_MODE==1)?0:1);
-    tg_int_global.nest_asyn_signal = 0;
-    tg_int_global.en_asyn_signal_counter = 0;
-    if(g_ptEventReady != g_ptEventRunning)
-        __Djy_ScheduleAsynSignal();       //执行中断内调度
-    g_bScheduleEnable = true;
 }
 
 // =============================================================================

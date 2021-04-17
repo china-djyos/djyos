@@ -12,18 +12,23 @@
 #include "common.h"
 #include "trace.h"
 #include "eloop.h"
-#include "bk_patch/signal.h"
+#include "bk_patch/signal.h" //区分bk库里和libc里的头文件相同问题
 #include "errno-base.h"
 #include "sk_intf.h"
 #include "main_none.h"
 #include "mac.h"
-
 #include "error.h"
 #include "rtos_pub.h"
 #include "rw_pub.h"
 
-
 static struct eloop_data eloop;
+
+extern beken_queue_t wpah_queue;
+
+int eloop_get_signal_count(void)
+{
+   return eloop.signal_count;
+}
 
 int eloop_init(void)
 {
@@ -184,8 +189,6 @@ int eloop_register_timeout(unsigned int secs,
 			void *user_data)
 {
 	os_time_t now_sec;	
-	uint32_t clk_time;
-    OSStatus err = kNoErr;
 	struct eloop_timeout *timeout, *tmp;
 
 	ASSERT(handler);
@@ -384,9 +387,9 @@ static void eloop_handle_alarm(int sig)
 		   "Killing program forcefully.\n");
 }
 
-void eloop_handle_signal(int sig)
+int eloop_handle_signal(int sig)
 {
-	int i;
+	int i, ret;
 	GLOBAL_INT_DECLARATION();
 
 #ifndef CONFIG_NATIVE_WINDOWS
@@ -399,15 +402,19 @@ void eloop_handle_signal(int sig)
 	}
 #endif /* CONFIG_NATIVE_WINDOWS */
 
+	ret = 1;
 	GLOBAL_INT_DISABLE();
 	eloop.signaled++;
 	for (i = 0; i < eloop.signal_count; i++) {
 		if (eloop.signals[i].sig == sig) {
 			eloop.signals[i].signaled++;
+			ret = 0;
 			break;
 		}
 	}
 	GLOBAL_INT_RESTORE();
+
+	return ret;
 }
 
 int eloop_signal_is_registered(int sig)
@@ -426,6 +433,38 @@ int eloop_signal_is_registered(int sig)
 	GLOBAL_INT_RESTORE();
 
 	return hit_flag;
+}
+
+void eloop_process_flush_signals(void)
+{
+	int i,sig;
+	int sig_count;
+	void *user_data;
+	eloop_signal_handler handler;
+	GLOBAL_INT_DECLARATION();
+
+	GLOBAL_INT_DISABLE();
+	if (eloop.signaled == 0)
+	{
+		GLOBAL_INT_RESTORE();
+		return;
+	}
+	eloop.signaled = 0;
+	sig_count = eloop.signal_count;
+	bk_printf("[wzl]flush_signals:%d\r\n", sig_count);
+
+	if (eloop.pending_terminate) {
+		eloop.pending_terminate = 0;
+	}
+	GLOBAL_INT_RESTORE();
+	
+	for (i = 0; i < sig_count; i++) {	
+		GLOBAL_INT_DISABLE();
+		if (eloop.signals[i].signaled) {
+			eloop.signals[i].signaled = 0;
+		}
+		GLOBAL_INT_RESTORE();
+	}
 }
 
 static void eloop_process_pending_signals(void)
@@ -589,11 +628,7 @@ void eloop_reader_dispatch(int sk)
 
 void eloop_handler_sock_event(int flag)
 {
-    int i;
     int sk;	
-    void *eloop_data = 0;
-    void *user_data = 0;
-    eloop_sock_handler handler;
 
     // invild vif indx
     if(flag == 0xff)
@@ -640,7 +675,6 @@ void eloop_timeout_run(void)
 	}
 }
 
-extern beken_queue_t wpah_queue;
 void eloop_run(void)
 {
 	struct os_reltime tv, now;
@@ -653,6 +687,8 @@ void eloop_run(void)
 		eloop.writers.count > 0 || eloop.exceptions.count > 0))
 	{
 		struct eloop_timeout *timeout;
+
+		timeout_ms = BEKEN_WAIT_FOREVER;
 		
 		if (eloop.pending_terminate) {
 			/*
@@ -666,7 +702,19 @@ void eloop_run(void)
 			if (eloop.terminate)
 				break;
 		}
-
+        
+		if(hostapd_is_exiting())
+		{
+			hostapd_exit_handler();
+			hostapd_exit_done();
+		}
+		
+		if(supplicant_is_exiting())
+		{
+			supplicant_exit_handler();
+			supplicant_exit_done();
+		}
+        
 		timeout = dl_list_first(&eloop.timeout, struct eloop_timeout,
 					list);
 		if (timeout) {
@@ -679,7 +727,7 @@ void eloop_run(void)
 		}
 		
         if(wpah_queue) {
-            ret = rtos_pop_from_queue(&wpah_queue, &msg, timeout_ms);
+            ret = bk_rtos_pop_from_queue(&wpah_queue, &msg, timeout_ms);
             if(kNoErr == ret)
             {
             	flag = msg.argu;
@@ -764,9 +812,6 @@ void eloop_destroy(void)
 
 void eloop_free_resource(void)
 {
-	struct eloop_timeout *timeout, *prev;
-	struct os_reltime now;
-
     if(eloop.readers.count == 0) {
 	    eloop_sock_table_destroy(&eloop.readers);
         eloop.readers.table = NULL;
@@ -790,4 +835,5 @@ void eloop_wait_for_read_sock(int sock)
 {
 }
 //eof
+
 

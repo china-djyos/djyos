@@ -34,9 +34,9 @@ extern int	psMd5Final(psMd5Context_t *md, unsigned char *hash);
 /* Uncomment below for old API Compatibility */
 /*
 typedef psMdContext_t		MD5_CONTEXT;
-#define MD5Init(A)			psMd5Init(A)
-#define MD5Update(A, B, C)	psMd5Update(A, B, C);
-#define MD5Final(A, B)		psMd5Final(B, A);
+#define MD5_Init(A)			psMd5Init(A)
+#define MD5_Update(A, B, C)	psMd5Update(A, B, C);
+#define MD5_Final(A, B)		psMd5Final(B, A);
 */
 
 #endif /* WEBS_SSL_SUPPORT */

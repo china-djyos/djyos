@@ -68,9 +68,11 @@
 #include <loc_string.h>
 #include "systime.h"
 #include "gkernel.h"
-#include "gk_syscall.h"
+#include "gk_usercall.h"
 #include "gk_win.h"
-#include <gui/gkernel/gk_display.h>
+#include <gdd.h>
+#include <msgqueue.h>
+#include <gui/gk_display.h>
 //----创建桌面-----------------------------------------------------------------
 //功能: 创建桌面，新显示器加入后，首先要创建桌面才能使用。桌面其实和一个普通窗口
 //      非常类似，差别主要在于:
@@ -98,12 +100,13 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
     struct GkscParaCreateDesktop para;
     struct GkWinObj *result = NULL;
     struct GkWinObj *desktop;
-    DisplayObject = obj_search_child(obj_root(), "display");         //取显示器目录
-    DisplayObject = obj_search_child(DisplayObject, DisplayName);    //取显示器对象
+    DisplayObject = OBJ_SearchChild(OBJ_GetRoot(), "display");         //取显示器目录
+    DisplayObject = OBJ_SearchChild(DisplayObject, DisplayName);    //取显示器对象
     desktop = malloc(sizeof(struct GkWinObj));
     if((NULL == DisplayObject) || (NULL == desktop))
         return result;
-    para.display = (struct DisplayObj *)obj_GetPrivate(DisplayObject);
+    memset(desktop, 0, sizeof(struct GkWinObj));
+    para.display = (struct DisplayObj *)OBJ_GetPrivate(DisplayObject);
     para.desktop = desktop;
     para.name = (char *)DesktopName;
     para.width = width;
@@ -116,6 +119,27 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
     return result;
 }
 
+//----获取显示器指针-------------------------------------------------------------
+//功能: 根据显示器名，获得显示器的指针。
+//参数: display_name，显示器的名字
+//返回: 如果找到，则返回指针，否则返回NULL
+//-----------------------------------------------------------------------------
+struct DisplayObj *GK_GetDisplay(const char *display_name)
+{
+    struct DisplayObj *display = NULL;
+    struct Object *DispObj;
+    DispObj = OBJ_SearchChild(OBJ_GetRoot( ),"display");
+    if(DispObj != NULL)
+    {
+        DispObj = OBJ_SearchChild(DispObj,display_name);
+        if(DispObj != NULL)
+        {
+            display = (struct DisplayObj *)OBJ_GetPrivate(DispObj);
+        }
+    }
+    return display;
+}
+
 //----获取桌面指针-------------------------------------------------------------
 //功能: 根据显示器名，获得桌面的指针。该指针指向一个窗口控制块
 //参数: display_name，桌面所在显示器的名字
@@ -125,13 +149,13 @@ struct GkWinObj *GK_GetDesktop(const char *display_name)
 {
     struct DisplayObj *display = NULL;
     struct Object *DispObj;
-    DispObj = obj_search_child(obj_root( ),"display");
+    DispObj = OBJ_SearchChild(OBJ_GetRoot( ),"display");
     if(DispObj != NULL)
     {
-        DispObj = obj_search_child(DispObj,display_name);
+        DispObj = OBJ_SearchChild(DispObj,display_name);
         if(DispObj != NULL)
         {
-            display = (struct DisplayObj *)obj_GetPrivate(DispObj);
+            display = (struct DisplayObj *)OBJ_GetPrivate(DispObj);
         }
     }
     if(display != NULL)
@@ -154,19 +178,19 @@ struct GkWinObj *GK_GetDesktop(const char *display_name)
 //      RopMode, 混合码，参见 CN_ROP_ALPHA_SRC_MSK 族常量定义,0表示无特殊功能
 //返回: true=创建成功，false=创建失败
 //-----------------------------------------------------------------------------
-bool_t GK_CreateWin(struct GkWinObj *parent,
-                         struct GkWinObj *newwin,
+struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
                          s32 left,s32 top,s32 right,s32 bottom,
                          u32 color,u32 buf_mode,
                          const char *name,u16 PixelFormat,u32 HyalineColor,
-                         u32 BaseColor,struct RopGroup RopMode)
+                         u32 BaseColor,struct RopGroup RopMode,
+                         bool_t unfill)
 {
     struct GkscParaCreateGkwin para;
     struct GkWinObj *result;
-    if((NULL == parent) || (NULL == newwin))
+    if(NULL == parent)
         return false;
     para.parent_gkwin = parent;
-    para.gkwin = newwin;
+//  para.gkwin = newwin;
     para.result = &result;
     para.left = left;
     para.top = top;
@@ -179,10 +203,11 @@ bool_t GK_CreateWin(struct GkWinObj *parent,
     para.HyalineColor = HyalineColor;
     para.BaseColor = BaseColor;
     para.RopCode = RopMode;
+    para.unfill = unfill;
     __GK_SyscallChunnel(CN_GKSC_CREAT_GKWIN,CN_TIMEOUT_FOREVER,
                             &para,sizeof(para),NULL,0);
-    if(para.result == NULL)
-        return false;
+    if(*para.result == NULL)
+        return NULL;
     else
     {
         //gui kernel创建窗口时,如果是buf窗口,则在创建的同时完成了填充,否则,
@@ -190,12 +215,12 @@ bool_t GK_CreateWin(struct GkWinObj *parent,
         //非buf窗口不能再创建同时填充的原因是,填充非buf窗口是直接绘制在screen
         //或者framebuffer上的,而创建窗口时,剪切域尚未建立.直到调用 GK_SyncShow
         //后，可视域才能创建好。
-        if(newwin->wm_bitmap == NULL)   //wm_bitmap==NULL 表示无窗口缓冲区。
-        {
-            GK_SyncShow(CN_TIMEOUT_FOREVER);
-            GK_FillWin(newwin,color,0);
-        }
-        return true;
+//      if((result)->wm_bitmap == NULL)   //wm_bitmap==NULL 表示无窗口缓冲区。
+//      {
+//          GK_SyncShow(CN_TIMEOUT_FOREVER);
+//          GK_FillWin(result,color,0);
+//      }
+        return result;
     }
 }
 //----异步填充窗口-------------------------------------------------------------
@@ -229,12 +254,10 @@ void GK_SyncShow(u32 SyncTime)
 //功能: 重新刷新显示器,不管是否有更新。GK_SyncShow只是刷新有改变的部分,
 //      GK_ApiRefresh则是不管有没有改变,全部重刷,但只针对具体显示器。
 //      在以下情况应该调用本函数:
-//      1. 有镜像显示器驱动程序发出请求.
+//      1. 由镜像显示器驱动程序调用，镜像显示器插入时，必须调用。
 //      2. 显示器本身从休眠醒来,且显示器内部没有缓冲.
 //      3. 检测到新显示器插入.
 //参数: Display, 被刷新的显示器
-//      SyncTime, 同步超时时间
-//      color，填充颜色
 //返回: 无
 //-----------------------------------------------------------------------------
 void GK_RefreshDisplay(struct DisplayObj *Display)
@@ -326,7 +349,7 @@ void GK_DrawText(struct GkWinObj *gkwin,
     para.color = color;
     para.Rop2Code = Rop2Code;
     TextBytes = strlen(text);
-    TextBytes += GetEOC_Size(pCharset);
+    TextBytes += Charset_Get_EOC_Size(pCharset);
     __GK_SyscallChunnel(CN_GKSC_DRAW_TEXT,SyncTime,
                         &para,sizeof(para),(void*)text,TextBytes);
     return;
@@ -422,7 +445,7 @@ void GK_DrawBitMap(struct GkWinObj *gkwin,
                     u32 HyalineColor,struct RopGroup RopCode,u32 SyncTime)
 {
     struct GkscParaDrawBitmapRop para;
-    memset(&para,sizeof(para),0);
+    memset(&para,0,sizeof(para));
     if(NULL == gkwin)
         return;
     else
@@ -522,7 +545,7 @@ struct GkWinObj* GK_GetWinFromPt(struct GkWinObj *desktop,
             VisibleHead = VisibleClip;
             while(VisibleClip != NULL)
             {
-                if(PtInRect(&VisibleClip->rect,pt))
+                if(GDD_PtInRect(&VisibleClip->rect,pt))
                 {
                     result = current;
                     break;
@@ -559,8 +582,8 @@ struct GkWinObj* GK_GetTwig(struct GkWinObj *Ancestor)
 
     if(NULL == Ancestor)
         return NULL;
-    result = obj_twig(Ancestor->HostObj);
-    return (struct GkWinObj*)obj_GetPrivate(result);
+    result = OBJ_GetTwig(Ancestor->HostObj);
+    return (struct GkWinObj*)OBJ_GetPrivate(result);
 }
 
 //---遍历后代窗口--------------------------------------------------------------
@@ -575,8 +598,8 @@ struct GkWinObj* GK_TraveScion(struct GkWinObj *Ancestor,struct GkWinObj *Curren
 
     if((NULL == Ancestor) || (NULL == Current))
         return NULL;
-    result = obj_foreach_scion(Ancestor->HostObj, Current->HostObj);
-    return (struct GkWinObj*)obj_GetPrivate(result);
+    result = OBJ_ForeachScion(Ancestor->HostObj, Current->HostObj);
+    return (struct GkWinObj*)OBJ_GetPrivate(result);
 }
 
 //---遍历子窗口--------------------------------------------------------------
@@ -591,8 +614,8 @@ struct GkWinObj* GK_TraveChild(struct GkWinObj *Parent,struct GkWinObj *Current)
 
     if((NULL == Parent) || (NULL == Current))
         return NULL;
-    result = obj_foreach_child(Parent->HostObj, Current->HostObj);
-    return (struct GkWinObj*)obj_GetPrivate(result);
+    result = OBJ_ForeachChild(Parent->HostObj, Current->HostObj);
+    return (struct GkWinObj*)OBJ_GetPrivate(result);
 }
 
 //----过继窗口-----------------------------------------------------------------
@@ -721,7 +744,7 @@ bool_t GK_SetRopCode(struct GkWinObj *gkwin,
                         struct RopGroup RopCode,u32 SyncTime)
 {
     struct GkscParaSetRopCode para;
-    memset(&para,sizeof(para),0);
+    memset(&para,0,sizeof(para));
     if(NULL == gkwin)
         return false;
     if(memcmp(&RopCode, &gkwin->RopCode, sizeof(RopCode) )== 0)
@@ -744,7 +767,7 @@ bool_t GK_SetHyalineColor(struct GkWinObj *gkwin,u32 HyalineColor)
     struct GkscParaSetHyalineColor para;
     if(NULL == gkwin)
         return false;
-    if(HyalineColor == gkwin->HyalineColor)
+    if((HyalineColor == gkwin->HyalineColor) && (1 == gkwin->RopCode.HyalineEn))
         return true;
     para.gkwin = gkwin;
     para.HyalineColor = HyalineColor;
@@ -840,7 +863,7 @@ void GK_SetUserTag(struct GkWinObj *gkwin,void *Tag)
 struct GkWinObj *GK_GetParentWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj*)obj_GetPrivate(obj_parent(gkwin->HostObj));
+        return (struct GkWinObj*)OBJ_GetPrivate(OBJ_GetParent(gkwin->HostObj));
     else
         return NULL;
 }
@@ -852,7 +875,7 @@ struct GkWinObj *GK_GetParentWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetChildWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_GetPrivate(obj_child(gkwin->HostObj));
+        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetChild(gkwin->HostObj));
     else
         return NULL;
 }
@@ -865,7 +888,7 @@ struct GkWinObj *GK_GetChildWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetPreviousWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_GetPrivate(obj_prev(gkwin->HostObj));
+        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetPrev(gkwin->HostObj));
     else
         return NULL;
 }
@@ -878,7 +901,7 @@ struct GkWinObj *GK_GetPreviousWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetNextWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_GetPrivate(obj_next(gkwin->HostObj));
+        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetNext(gkwin->HostObj));
     else
         return NULL;
 }
@@ -891,7 +914,7 @@ struct GkWinObj *GK_GetNextWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetFirstWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_GetPrivate(obj_head(gkwin->HostObj));
+        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetHead(gkwin->HostObj));
     else
         return NULL;
 }
@@ -904,7 +927,7 @@ struct GkWinObj *GK_GetFirstWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetLastWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_GetPrivate(obj_twig(gkwin->HostObj));
+        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetTwig(gkwin->HostObj));
     else
         return NULL;
 }
@@ -966,8 +989,32 @@ bool_t GK_IsWinVisible(struct GkWinObj *gkwin)
 {
     if(NULL == gkwin)
         return false;
-    if(gkwin->visible_clip == NULL)
+    if(gkwin->WinProperty.Visible == 0)
         return false;
     else
         return true;
 }
+
+extern struct GkChunnel g_tGkChunnel;
+
+u32 GK_ReadRequest(u8 *Request, u16 bufsize, u32 timeout)
+{
+    u16 id,size;
+
+    if(bufsize > CN_USERCALL_MSG_SIZE)
+        size = CN_USERCALL_MSG_SIZE;
+    else
+        size = bufsize;
+
+    if(MsgQ_Receive(g_tGkChunnel.usercall_msgq,Request,size,timeout))
+    {
+//      id   = *Request + *((Request+1)<<8);
+//      size = Request[1];
+//      Request = &Request[4];
+        id = *(u16*)Request;
+        return id;
+    }
+    else
+        return CN_GKUC_NULL;
+}
+

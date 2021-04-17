@@ -32,11 +32,11 @@ static ptu32_t HmiCreateMove(struct WindowMsg  *pMsg)
     x2_inc =2;
     y2_inc =1;
     bMoveMainWin=FALSE;
-    GetClientRect(hwnd,&rc);
-    hwnd_BTN1 =CreateButton("关闭1",WS_CHILD|WS_BORDER|WS_VISIBLE,RectW(&rc)-64,RectH(&rc)-28,60,24,hwnd,ID_CLOSE,NULL,NULL);
-    hwnd_BTN2 =CreateButton("关闭2",WS_CHILD|WS_BORDER|WS_VISIBLE,10,34,100,50,hwnd,ID_CLOSE,NULL,NULL);
+    GDD_GetClientRect(hwnd,&rc);
+    hwnd_BTN1 =Widget_CreateButton("关闭1",WS_CHILD|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc)-64,GDD_RectH(&rc)-28,60,24,hwnd,ID_CLOSE,NULL,NULL);
+    hwnd_BTN2 =Widget_CreateButton("关闭2",WS_CHILD|WS_BORDER|WS_VISIBLE,10,34,100,50,hwnd,ID_CLOSE,NULL,NULL);
 
-    CreateButton("移动主窗口",WS_CHILD|BS_HOLD|WS_VISIBLE|WS_BORDER,4,RectH(&rc)-28,100,54,hwnd,ID_MOVE_1,NULL,NULL);
+    Widget_CreateButton("移动主窗口",WS_CHILD|BS_HOLD|WS_VISIBLE|WS_BORDER,4,GDD_RectH(&rc)-28,100,54,hwnd,ID_MOVE_1,NULL,NULL);
     timer = GDD_CreateTimer(hwnd,0,200);
     GDD_StartTimer(timer);
     timer = GDD_CreateTimer(hwnd,1,150);
@@ -65,7 +65,7 @@ static ptu32_t HmiTimerMove(struct WindowMsg  *pMsg)
                     break;
                 }
 
-                GetWindowRect(hwnd,&rc);
+                GDD_GetWindowRect(hwnd,&rc);
 
                 if(rc.left > 200)
                 {
@@ -89,16 +89,16 @@ static ptu32_t HmiTimerMove(struct WindowMsg  *pMsg)
 
                 rc.left+=x_inc;
                 rc.top+=y_inc;
-                MoveWindow(hwnd,rc.left,rc.top);//相对父窗口客户区的位置
+                GDD_MoveWindow(hwnd,rc.left,rc.top);//相对父窗口客户区的位置
             }
             break;
         case 1:
         {
 
-            GetClientRect(hwnd,&rc0);
-            ClientToScreen(hwnd,(POINT*)&rc0,2);
+            GDD_GetClientRect(hwnd,&rc0);
+            GDD_ClientToScreen(hwnd,(POINT*)&rc0,2);
 
-            GetWindowRect(hwnd_BTN1,&rc);
+            GDD_GetWindowRect(hwnd_BTN1,&rc);
 
             if((rc.right) >= (rc0.right))
             {
@@ -122,17 +122,17 @@ static ptu32_t HmiTimerMove(struct WindowMsg  *pMsg)
 
             rc.left +=x1_inc;
             rc.top +=y1_inc;
-//            ScreenToWindow(hwnd,(POINT*)&rc,2);
-            ScreenToClient(hwnd,(POINT*)&rc,2);
-            MoveWindow(hwnd_BTN1,rc.left,rc.top);//相对父窗口客户区的位置
+//            GDD_ScreenToWindow(hwnd,(POINT*)&rc,2);
+            GDD_ScreenToClient(hwnd,(POINT*)&rc,2);
+            GDD_MoveWindow(hwnd_BTN1,rc.left,rc.top);//相对父窗口客户区的位置
         }break;
 
         case 2:
         {
-            GetClientRect(hwnd,&rc0);
-            ClientToScreen(hwnd,(POINT*)&rc0,2);//相对屏幕坐标
+            GDD_GetClientRect(hwnd,&rc0);
+            GDD_ClientToScreen(hwnd,(POINT*)&rc0,2);//相对屏幕坐标
 
-            GetWindowRect(hwnd_BTN2,&rc);//相对屏幕坐标
+            GDD_GetWindowRect(hwnd_BTN2,&rc);//相对屏幕坐标
             if((rc.right) >= (rc0.right))
             {
                 x2_inc =-7;
@@ -155,16 +155,16 @@ static ptu32_t HmiTimerMove(struct WindowMsg  *pMsg)
 
             rc.left +=x2_inc;
             rc.top +=y2_inc;
-//            ScreenToWindow(hwnd,(POINT*)&rc,2);
-            ScreenToClient(hwnd,(POINT*)&rc,2);//屏幕坐标转换为客户区
-            MoveWindow(hwnd_BTN2,rc.left,rc.top);//相对父窗口客户区的位置
+//            GDD_ScreenToWindow(hwnd,(POINT*)&rc,2);
+            GDD_ScreenToClient(hwnd,(POINT*)&rc,2);//屏幕坐标转换为客户区
+            GDD_MoveWindow(hwnd_BTN2,rc.left,rc.top);//相对父窗口客户区的位置
         }
         break;
         default:
             break;
         }
 
-        InvalidateWindow(hwnd,TRUE);
+        GDD_InvalidateWindow(hwnd,TRUE);
 
     return true;
 }
@@ -188,7 +188,7 @@ static ptu32_t HmiNotifyMove(struct WindowMsg  *pMsg)
         case MSG_BTN_UP:    //按钮弹起
             if(id==ID_CLOSE)
             {
-                PostMessage(hwnd,MSG_CLOSE,0,0);
+                GDD_PostMessage(hwnd,MSG_CLOSE,0,0);
             }
 
             if(id==ID_MOVE_1)
@@ -210,17 +210,17 @@ static ptu32_t HmiPaintMove(struct WindowMsg  *pMsg)
     char wbuf[32];
 
     hwnd =pMsg->hwnd;
-    hdc =BeginPaint(hwnd);
+    hdc =GDD_BeginPaint(hwnd);
 
-    GetClientRect(hwnd,&rc0);
-    SetTextColor(hdc,RGB(0,240,0));
-    SetFillColor(hdc,RGB(40,40,40));
-    SetDrawColor(hdc,RGB(0,240,0));
+    GDD_GetClientRect(hwnd,&rc0);
+    GDD_SetTextColor(hdc,RGB(0,240,0));
+    GDD_SetFillColor(hdc,RGB(40,40,40));
+    GDD_SetDrawColor(hdc,RGB(0,240,0));
 
-    GetWindowRect(hwnd,&rc);
+    GDD_GetWindowRect(hwnd,&rc);
     sprintf(wbuf,"当前主窗口位置: %d,%d",rc.left,rc.top);
-    DrawText(hdc,wbuf,-1,&rc0,DT_LEFT|DT_VCENTER|DT_BORDER|DT_BKGND);
-    EndPaint(hwnd,hdc);
+    GDD_DrawText(hdc,wbuf,-1,&rc0,DT_LEFT|DT_VCENTER|DT_BORDER|DT_BKGND);
+    GDD_EndPaint(hwnd,hdc);
     return true;
 }
 

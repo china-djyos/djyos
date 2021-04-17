@@ -81,11 +81,12 @@ char g_cTmWdays[][8] = {"ÐÇÆÚÌì", "ÐÇÆÚÒ»", "ÐÇÆÚ¶þ", "ÐÇÆÚÈý", "ÐÇÆÚËÄ", "ÐÇÆÚÎ
 //¹¦ÄÜ: °Ñ·Ö½âÊ±¼ä£¨ÄêÔÂÈÕÊ±·ÖÃë£©×ª»»³ÉÈÕÀúÊ±¼ä(1970ÄêÒÔÀ´µÄÃëÊý),
 //²ÎÊý: dt£¬ÄêÔÂÈÕÊ±·ÖÃëÐÎÊ½µÄÊ±¼ä
 //·µ»Ø: ·Ö½âÊ±¼ä
+//×¢£º±¾º¯ÊýÀ´Ô´ÓÚLinux£¬ÍøÉÏËÑ¡°719499¡±¿ÉÒÔµÃµ½±¾º¯ÊýËã·¨µÄÏêÏ¸ËµÃ÷
 //----------------------------------------------------------------------------
-s64 Tm_MkTime(struct tm *dt)
+s64 Time_MkTime(struct tm *dt)
 {
-    u32 year = dt->tm_year;
-    u32 mon  = dt->tm_mon;
+    u32 year = dt->tm_year + 1900;  //×¢Òâtm_yearµÄº¬Òå
+    u32 mon  = dt->tm_mon + 1;
 
     //½«Ê±¼äºóÍÆÁ½¸öÔÂ£¬Ôò²»ÓÃÅÐ¶ÏÈòÄê¶þÔÂ·Ö½ç
     //Ö±½ÓÓÃyear/4 - year/100 + year/400
@@ -105,10 +106,10 @@ s64 Tm_MkTime(struct tm *dt)
 //²ÎÊý: dt£¬ÄêÔÂÈÕÊ±·ÖÃëÐÎÊ½µÄÊ±¼ä
 //·µ»Ø: ·Ö½âÊ±¼ä
 //----------------------------------------------------------------------------
-s64 Tm_MkTimeUs(struct tm *dt)
+s64 Time_MkTimeUs(struct tm *dt)
 {
     s64 us;
-    us = Tm_MkTime(dt);
+    us = Time_MkTime(dt);
     us *= 1000000;
     us += dt->tm_us;
     return us;
@@ -120,7 +121,7 @@ s64 Tm_MkTimeUs(struct tm *dt)
 //      result£¬ÓÃÀ´·µ»Ø½á¹ûµÄÖ¸Õë£¬±ØÐë·Ç¿Õ
 //·µ»Ø: ·Ö½âÊ±¼ä
 //----------------------------------------------------------------------------
-struct tm *Tm_GmTime_r(const s64 *time,struct tm *result)
+struct tm *Time_GmTime_r(const s64 *time,struct tm *result)
 {
     s64 temp_time;
     if(result == NULL)
@@ -134,7 +135,7 @@ struct tm *Tm_GmTime_r(const s64 *time,struct tm *result)
     {
         temp_time = *time - ((s64)sg_s32MyTimezone*3600);
     }
-    return Tm_LocalTime_r(&temp_time,result);
+    return Time_LocalTime_r(&temp_time,result);
 }
 
 //----°ÑÈÕÀúÊ±¼ä×ª³É¸ñÁÖÍþÖÎ·Ö½âÊ±¼ä-------------------------------------------
@@ -143,7 +144,7 @@ struct tm *Tm_GmTime_r(const s64 *time,struct tm *result)
 //²ÎÊý: time,1970ÄêÀ´µÄÃëÊý,¸ø¿ÕÖ¸ÕëÔòÖ±½ÓÊ¹ÓÃÈÕÀúÊ±¼ä
 //·µ»Ø: ·Ö½âÊ±¼ä
 //----------------------------------------------------------------------------
-struct tm *Tm_GmTime(const s64 *time)
+struct tm *Time_GmTime(const s64 *time)
 {
     static struct tm datetime;
     s64 temp_time;
@@ -156,7 +157,7 @@ struct tm *Tm_GmTime(const s64 *time)
     {
         temp_time = *time - ((s64)sg_s32MyTimezone*3600);
     }
-    return Tm_LocalTime_r(&temp_time,&datetime);
+    return Time_LocalTime_r(&temp_time,&datetime);
 }
 
 //----°ÑÈÕÀúÊ±¼ä×ª³É¸ñÁÖÍþÖÎ·Ö½âÊ±¼ä(us)---------------------------------------
@@ -165,7 +166,7 @@ struct tm *Tm_GmTime(const s64 *time)
 //      result£¬ÓÃÀ´·µ»Ø½á¹ûµÄÖ¸Õë£¬±ØÐë·Ç¿Õ
 //·µ»Ø: ·Ö½âÊ±¼ä
 //----------------------------------------------------------------------------
-struct tm *Tm_GmTimeUs_r(const s64 *time,struct tm *result)
+struct tm *Time_GmTimeUs_r(const s64 *time,struct tm *result)
 {
     s64 temp_time;
     if(result == NULL)
@@ -179,7 +180,7 @@ struct tm *Tm_GmTimeUs_r(const s64 *time,struct tm *result)
     {
         temp_time = *time - ((s64)sg_s32MyTimezone*3600)*1000000;
     }
-    return Tm_LocalTimeUs_r(&temp_time,result);
+    return Time_LocalTimeUs_r(&temp_time,result);
 }
 
 //----°ÑÈÕÀúÊ±¼ä×ª³É¸ñÁÖÍþÖÎ·Ö½âÊ±¼ä(us)---------------------------------------
@@ -188,7 +189,7 @@ struct tm *Tm_GmTimeUs_r(const s64 *time,struct tm *result)
 //²ÎÊý: time,1970ÄêÀ´µÄÎ¢ÃëÊý,¸ø¿ÕÖ¸ÕëÔòÖ±½ÓÊ¹ÓÃÈÕÀúÊ±¼ä
 //·µ»Ø: ·Ö½âÊ±¼ä
 //----------------------------------------------------------------------------
-struct tm *Tm_GmTimeUs(const s64 *time)
+struct tm *Time_GmTimeUs(const s64 *time)
 {
     static struct tm datetime;
     s64 temp_time;
@@ -201,7 +202,7 @@ struct tm *Tm_GmTimeUs(const s64 *time)
     {
         temp_time = *time - ((s64)sg_s32MyTimezone*3600)*1000000;
     }
-    return Tm_LocalTimeUs_r(&temp_time,&datetime);
+    return Time_LocalTimeUs_r(&temp_time,&datetime);
 }
 
 //----°ÑÈÕÀúÊ±¼ä(Ãë)×ª³É±¾µØ·Ö½âÊ±¼ä-------------------------------------------
@@ -210,7 +211,7 @@ struct tm *Tm_GmTimeUs(const s64 *time)
 //      result£¬ÓÃÀ´·µ»Ø½á¹ûµÄÖ¸Õë£¬±ØÐë·Ç¿Õ
 //·µ»Ø: ·Ö½âÊ±¼ä
 //-----------------------------------------------------------------------------
-struct tm *Tm_LocalTime_r(const s64 *time,struct tm *result)
+struct tm *Time_LocalTime_r(const s64 *time,struct tm *result)
 {
     u32 second, minute, hour;
     u32 day, month, year;
@@ -251,7 +252,7 @@ struct tm *Tm_LocalTime_r(const s64 *time,struct tm *result)
         years--;
         temp += 365;
     }
-    dayth = temp - leap_years + 1;    // ±¾Äê¶ÈµÚxÌì£¨Èç1ÔÂ1ÈÕ0Ê±ÎªµÚ1Ìì£©
+    dayth = temp - leap_years;    // ±¾Äê¶ÈµÚxÌì£¨Èç1ÔÂ1ÈÕ0Ê±ÎªµÚ1Ìì£©
 
     year = 1970 + years;    //Î´×÷ÈòÄêµ÷Õû£¬1400¶àÄêºó»á³ö´í¡£
 
@@ -271,25 +272,25 @@ struct tm *Tm_LocalTime_r(const s64 *time,struct tm *result)
     }
 
     month = 0;                      // 0~11
-    tmp_month_days = g_u32MonthDays[month-1];
-    while (dayth > tmp_month_days)
+    day = dayth;
+    tmp_month_days = g_u32MonthDays[month];
+    while (dayth >= tmp_month_days)
     {
         dayth -= tmp_month_days;
-        tmp_month_days = g_u32MonthDays[month];
         month++;
+        tmp_month_days = g_u32MonthDays[month];
     }
-    day = dayth;
 
     day_of_week = (days + 4) % 7;
 
     result->tm_yday = day;           // days since January 1 -[0,365]
     result->tm_us = 0;               // usÇåÁã
-    result->tm_sec  = second;        // seconds after the minute - [0,59]
-    result->tm_min  = minute;        // minutes after the hour - [0,59]
+    result->tm_sec = second;        // seconds after the minute - [0,59]
+    result->tm_min = minute;        // minutes after the hour - [0,59]
     result->tm_hour = hour;          // hours since midnight - [0,23]
     result->tm_wday = day_of_week;   // days since Sunday - [0,6]
-    result->tm_mday = day;           // day of the month - [1,31]
-    result->tm_mon  = month;         // months since January - [0,11]
+    result->tm_mday = dayth+1;           // day of the month - [1,31]
+    result->tm_mon = month;         // months since January - [0,11]
     result->tm_year = year - 1900;   // years 1970-£¬±íÊ¾ÎªÓë1900ÄêµÄ²îÖµ
 
     return result;
@@ -301,11 +302,11 @@ struct tm *Tm_LocalTime_r(const s64 *time,struct tm *result)
 //²ÎÊý: time,1970ÄêÀ´µÄÃëÊý,¸ø¿ÕÖ¸ÕëÔòÖ±½ÓÊ¹ÓÃÈÕÀúÊ±¼ä
 //·µ»Ø: ·Ö½âÊ±¼ä
 //-----------------------------------------------------------------------------
-struct tm *Tm_LocalTime(const s64 *time)
+struct tm *Time_LocalTime(const s64 *time)
 {
     static struct tm datetime;
 
-    return Tm_LocalTime_r(time,&datetime);
+    return Time_LocalTime_r(time,&datetime);
 }
 
 //----°ÑÈÕÀúÊ±¼ä(Ãë)×ª³É±¾µØ·Ö½âÊ±¼ä-------------------------------------------
@@ -314,7 +315,7 @@ struct tm *Tm_LocalTime(const s64 *time)
 //      result£¬ÓÃÀ´·µ»Ø½á¹ûµÄÖ¸Õë£¬±ØÐë·Ç¿Õ
 //·µ»Ø: ·Ö½âÊ±¼ä
 //-----------------------------------------------------------------------------
-struct tm *Tm_LocalTimeUs_r(const s64 *time_us,struct tm *result)
+struct tm *Time_LocalTimeUs_r(const s64 *time_us,struct tm *result)
 {
     s64 temp_time;
     s64 temp_us;
@@ -331,7 +332,7 @@ struct tm *Tm_LocalTimeUs_r(const s64 *time_us,struct tm *result)
         temp_us = *time_us%1000000;
         temp_time = *time_us/1000000;
     }
-    Tm_LocalTime_r(&temp_time,result);
+    Time_LocalTime_r(&temp_time,result);
     result->tm_us = temp_us;
     return result;
 }
@@ -341,7 +342,7 @@ struct tm *Tm_LocalTimeUs_r(const s64 *time_us,struct tm *result)
 //²ÎÊý: time,1970ÄêÀ´µÄÎ¢ÃëÊý,¸ø¿ÕÖ¸ÕëÔòÖ±½ÓÊ¹ÓÃÈÕÀúÊ±¼ä
 //·µ»Ø: ·Ö½âÊ±¼ä
 //-----------------------------------------------------------------------------
-struct tm *Tm_LocalTimeUs(s64 *time_us)
+struct tm *Time_LocalTimeUs(s64 *time_us)
 {
     static struct tm datetime;
     s64 temp_us;
@@ -358,7 +359,7 @@ struct tm *Tm_LocalTimeUs(s64 *time_us)
         temp_time = *time_us/1000000;
     }
 
-    Tm_LocalTime_r(&temp_time,&datetime);
+    Time_LocalTime_r(&temp_time,&datetime);
     datetime.tm_us = temp_us;
     return &datetime;
 }
@@ -370,7 +371,7 @@ struct tm *Tm_LocalTimeUs(s64 *time_us)
 //·µ»Ø: 1=³É¹¦£¬ÆäËûÖµ:¶ÔÓ¦µÄ´íÎó´úÂë
 //-----------------------------------------------------------------------------
 //2011/10/28,22:37:50:
-s32 Tm_SetDateTimeStr(char *buf)
+s32 Time_SetDateTimeStr(char *buf)
 {
     s64 nowtime;
     struct tm ptDateTime;
@@ -451,7 +452,8 @@ s32 Tm_SetDateTimeStr(char *buf)
         return EN_CLOCK_SEC_ERROR;
     }
 
-    nowtime = Tm_MkTimeUs(&ptDateTime);
+    ptDateTime.tm_year -= 1900;
+    nowtime = Time_MkTimeUs(&ptDateTime);
     //use the rtc module to set
     __Rtc_SetTime(nowtime);
     return 1;
@@ -466,10 +468,10 @@ s32 Tm_SetDateTimeStr(char *buf)
 //²ÎÊý: tm,µ±Ç°Ê±¼ä£¬°´ÄêÔÂÈÕÊ±·ÖÃë·Ö½â
 //·µ»Ø: ÎÞ
 //-----------------------------------------------------------------------------
-void Tm_SetDateTime(struct tm *tm)
+void Time_SetDateTime(struct tm *tm)
 {
     s64 nowtime;
-    nowtime = Tm_MkTimeUs(tm);
+    nowtime = Time_MkTimeUs(tm);
     //use the rtc module to set
     __Rtc_SetTime(nowtime);
 }
@@ -480,9 +482,9 @@ void Tm_SetDateTime(struct tm *tm)
 //      buf£¬ÓÃÓÚ·µ»Ø½á¹ûµÄÊý×éµØÖ·£¬ÖÁÉÙ21×Ö½Ú¡£
 //·µ»Ø: ·Ö½âÊ±¼ä
 //----------------------------------------------------------------------------
-void Tm_AscTime(struct tm *tm, char buf[])
+void Time_AscTime(struct tm *tm, char buf[])
 {
-    itoa(tm->tm_year, &buf[0], 10);
+    itoa(tm->tm_year + 1900, &buf[0], 10);
     buf[4] = '/';
     itoa(tm->tm_mon, &buf[5], 10);
     if(buf[6] == '\0')  //É¾³ý×Ö·û´®½áÎ²£¬ÓÃ0Ìî³ä
@@ -529,9 +531,9 @@ void Tm_AscTime(struct tm *tm, char buf[])
 //      buf£¬ÓÃÓÚ·µ»Ø½á¹ûµÄÊý×éµØÖ·£¬ÖÁÉÙ24×Ö½Ú¡£
 //·µ»Ø: ×Ö·û´®
 //----------------------------------------------------------------------------
-void Tm_AscTimeMs(struct tm *tm, char buf[])
+void Time_AscTimeMs(struct tm *tm, char buf[])
 {
-    Tm_AscTime(tm,buf);
+    Time_AscTime(tm,buf);
     buf[19] = ':';
     itoa(tm->tm_us/1000, &buf[20], 10);
     buf[23] = '\0';
@@ -544,9 +546,9 @@ void Tm_AscTimeMs(struct tm *tm, char buf[])
 //      buf£¬ÓÃÓÚ·µ»Ø½á¹ûµÄÊý×éµØÖ·£¬ÖÁÉÙ27×Ö½Ú¡£
 //·µ»Ø: ×Ö·û´®
 //----------------------------------------------------------------------------
-void Tm_AscTimeUs(struct tm *tm, char buf[])
+void Time_AscTimeUs(struct tm *tm, char buf[])
 {
-    Tm_AscTime(tm,buf);
+    Time_AscTime(tm,buf);
     buf[19] = ':';
     itoa(tm->tm_us, &buf[20], 10);
     buf[26] = '\0';
@@ -558,7 +560,7 @@ void Tm_AscTimeUs(struct tm *tm, char buf[])
 //²ÎÊý: ret,·Ç¿ÕÔò·µ»ØÈÕÀúÊ±¼ä¡£
 //·µ»Ø: ÈÕÀúÊ±¼ä
 //-----------------------------------------------------------------------------
-s64 Tm_Time(s64 *ret)
+s64 Time_Time(s64 *ret)
 {
     return __Rtc_Time(ret);
 }
@@ -567,7 +569,7 @@ s64 Tm_Time(s64 *ret)
 //²ÎÊý: ret,·Ç¿ÕÔò·µ»ØÈÕÀúÊ±¼ä¡£
 //·µ»Ø: ÈÕÀúÊ±¼ä
 //-----------------------------------------------------------------------------
-s64 Tm_TimeUs(s64 *ret)
+s64 Time_TimeUs(s64 *ret)
 {
     return __Rtc_TimeUs(ret);
 }
@@ -603,7 +605,7 @@ static const char *pMonth[CN_MONTH_MAX] ={
 
 struct tm *localtime_r(const time_t *timep, struct tm *result)
 {
-    return Tm_LocalTime_r(timep,result);
+    return Time_LocalTime_r(timep,result);
 }
 struct tm *localtime(const time_t *timep)
 {
@@ -612,15 +614,14 @@ struct tm *localtime(const time_t *timep)
     return localtime_r(timep,&result);
 }
 
-//TODO,modified by zqf,gmtime return the year from 1900
-//     and moth is is 0 to 11
+//     moth is is 0 to 11
 struct tm *gmtime_r(const time_t *timep, struct tm *result)
 {
     struct tm *myresult;
-    myresult = Tm_GmTime_r(timep,result);
+    myresult = Time_GmTime_r(timep,result);
     if(NULL != myresult)
     {
-        myresult->tm_year -= 1900;
+//      myresult->tm_year -= 1900;
         myresult->tm_mon -= 1;
     }
     return myresult;
@@ -634,7 +635,7 @@ struct tm *gmtime(const time_t *timep)
 
 time_t mktime(struct tm *tm)
 {
-    return Tm_MkTime(tm);
+    return Time_MkTime(tm);
 }
 //put the break-down time to the char string
 char *asctime_r(const struct tm *tm,char *buf)
@@ -681,7 +682,7 @@ char *ctime(const time_t *timep)
 
 time_t time(time_t *t)
 {
-    return Tm_Time(t);
+    return Time_Time(t);
 }
 
 //TODO£º²¹³ä timezone Ïà¹Ø´úÂë
@@ -691,7 +692,7 @@ s32 gettimeofday(struct timeval *tv, struct timezone *tz)
 
     if(NULL != tv)
     {
-        tv->tv_usec = Tm_TimeUs(NULL);
+        tv->tv_usec = Time_TimeUs(NULL);
         tv->tv_sec = (time_t)(tv->tv_usec / 1000000);
         result = 0;
     }
@@ -712,7 +713,7 @@ s32 settimeofday(const struct timeval *tv, const struct timezone *tz)
         time_p = localtime_r(&timetmp,&time_tm);
         if(NULL != time_p)
         {
-            Tm_SetDateTime(time_p);
+            Time_SetDateTime(time_p);
             result = 0;
         }
 

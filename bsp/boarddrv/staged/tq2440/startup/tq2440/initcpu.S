@@ -154,7 +154,7 @@ copy_isr:
     bic     sp,sp,#0x07
     nop
     nop
-    bl      Load_Preload
+    bl      Iboot_LoadPreload
 
 
 .end

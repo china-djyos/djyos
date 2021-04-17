@@ -437,7 +437,7 @@ void fsl_pci_init(struct pci_controller *hose, struct fsl_pci_info *pci_info)
     pci_hose_read_config_dword(hose, dev, PCI_LCR, &temp32);
     temp32 &= ~0x03;        /* Disable ASPM  */
     pci_hose_write_config_dword(hose, dev, PCI_LCR, temp32);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
 
 #endif
     if (pcie_cap == PCI_CAP_ID_EXP)
@@ -466,7 +466,7 @@ void fsl_pci_init(struct pci_controller *hose, struct fsl_pci_info *pci_info)
                 /* assert PCIe reset */
                 setbits_be32(&pci->pdb_stat, 0x08000000);
                 (void) in_be32(&pci->pdb_stat);
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
                 fslpcie_debug("  Asserting PCIe reset @%p = %x\r\n",
                               &pci->pdb_stat, in_be32(&pci->pdb_stat));
                 /* clear PCIe reset */
@@ -476,7 +476,7 @@ void fsl_pci_init(struct pci_controller *hose, struct fsl_pci_info *pci_info)
                 {
                     pci_hose_read_config_word(hose, dev, PCI_LTSSM,
                                               &ltssm);
-                    Djy_DelayUs(1000);
+                    DJY_DelayUs(1000);
                     fslpcie_debug("....PCIe link error. "
                                   "LTSSM=0x%02x.\r\n", ltssm);
                 }

@@ -77,12 +77,12 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"gb2312 charset"//gb2312字符集
-//parent:"Nls Charset"//填写该组件的父组件名字，none表示没有父组件
+//component name:"gb2312 charset"    //gb2312字符集
+//parent:"Nls Charset"               //填写该组件的父组件名字，none表示没有父组件
 //attribute:system                   //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                   //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                      //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                   //初始化时机，可选值：early，medium，later。
+//init time:medium                   //初始化时机，可选值：early，medium，later, pre-main。
                                      //表示初始化时间，分别是早期、中期、后期
 //dependence:"Nls Charset"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                      //选中该组件时，被依赖组件将强制选中，
@@ -109,10 +109,10 @@
 //@#$%component end configure
 
 
-s32 GB2312MbToUcs4 (u32 *pwc, const char *mbs, s32 n);
-s32 GB2312MbsToUcs4s(u32* pwcs, const char* mbs, s32 n);
-s32 GB2312Ucs4ToMb(char* s, u32 wc);
-s32 GB2312Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n);
+s32 Gb2312_MbToUcs4 (u32 *pwc, const char *mbs, s32 n);
+s32 Gb2312_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n);
+s32 Gb2312_Ucs4ToMb(char* s, u32 wc);
+s32 Gb2312_Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n);
 
 typedef struct {
   u16 indx; /* index into big table */
@@ -1185,7 +1185,7 @@ static const u16 cg_gb2312_2uni_16_87[6768] = {
 };
 
 // 注释参照 charset.h-> struct Charset -> GetOneMb
-s32 GB2312GetOneMb(const char* mbs,s32 n)
+s32 Gb2312_GetOneMb(const char* mbs,s32 n)
 {
     u8 c1,c2;
     u32 i;
@@ -1196,7 +1196,12 @@ s32 GB2312GetOneMb(const char* mbs,s32 n)
     }
     c1 = mbs[0];
 
-    if(c1 < 0x80)       //串结束符也是合法字符
+    if(c1 == 0x0)
+    {
+        return 0;
+    }
+
+    if(c1 < 0x80)
     {
         return 1;
     }
@@ -1225,7 +1230,7 @@ s32 GB2312GetOneMb(const char* mbs,s32 n)
 }
 
 // 注释参照 charset.h-> struct Charset -> MbToUcs4
-s32 GB2312MbToUcs4 (u32 *pwc, const char *mbs, s32 n)
+s32 Gb2312_MbToUcs4 (u32 *pwc, const char *mbs, s32 n)
 {
     u8 c1,c2;
     u32 i;
@@ -1281,11 +1286,16 @@ s32 GB2312MbToUcs4 (u32 *pwc, const char *mbs, s32 n)
         return -1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // 注释参照 charset.h-> struct Charset -> MbsToUcs4s
-s32 GB2312MbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
+// todo:待实现
+s32 Gb2312_MbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
 {
     return 0;
 }
+#pragma GCC diagnostic pop
 
 //按unicode升序排列的EUC-CN编码表
 static const u16 gb2312_2charset[7445] = {
@@ -2713,7 +2723,7 @@ static const Summary16 gb2312_uni2indx_pageff[15] = {
 };
 
 // 注释参照 charset.h-> struct Charset -> Ucs4ToMb
-s32 GB2312Ucs4ToMb (char* mb, u32 wc)
+s32 Gb2312_Ucs4ToMb (char* mb, u32 wc)
 {
     u16 used;
     u16 i, c;
@@ -2728,7 +2738,7 @@ s32 GB2312Ucs4ToMb (char* mb, u32 wc)
 //gb2312编码
     summary = NULL;
 
-    if (wc >= 0x0000 && wc < 0x0460)
+    if (wc > 0x0000 && wc < 0x0460)
         summary = &gb2312_uni2indx_page00[(wc>>4)];
     else if (wc >= 0x2000 && wc < 0x2650)
         summary = &gb2312_uni2indx_page20[(wc>>4)-0x200];
@@ -2764,11 +2774,17 @@ __illegal:
     return -1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // 注释参照 charset.h-> struct Charset -> Ucs4sToMbs
-s32 GB2312Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n)
+//TODO:待实现
+s32 Gb2312_Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n)
 {
     return 0;
 }
+
+#pragma GCC diagnostic pop
 
 //----安装gb2312字符集----------------------------------------------------------
 //功能: 安装gb2312字符集，当系统使用西方字符界面时，使用这个字符集。特别注意，
@@ -2783,18 +2799,18 @@ bool_t ModuleInstall_CharsetGb2312(void)
 
     encoding.max_len = 2;
     encoding.EOC_Size = 1;
-    encoding.GetOneMb = GB2312GetOneMb;
-    encoding.MbToUcs4 = GB2312MbToUcs4;
-    encoding.Ucs4ToMb = GB2312Ucs4ToMb;
-    encoding.MbsToUcs4s = GB2312MbsToUcs4s;
-    encoding.Ucs4sToMbs = GB2312Ucs4sToMbs;
+    encoding.GetOneMb = Gb2312_GetOneMb;
+    encoding.MbToUcs4 = Gb2312_MbToUcs4;
+    encoding.Ucs4ToMb = Gb2312_Ucs4ToMb;
+    encoding.MbsToUcs4s = Gb2312_MbsToUcs4s;
+    encoding.Ucs4sToMbs = Gb2312_Ucs4sToMbs;
     if( Charset_NlsInstallCharset(&encoding, CN_NLS_CHARSET_GB2312))
     {
         debug_printf("gb2312","gb2312 encoding install sucess\n\r");
         return true;
     }else
     {
-        Djy_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
+        DJY_SaveLastError(EN_GK_CHARSET_INSTALL_ERROR);
         debug_printf("gb2312","gb2312 encoding install fail\n\r");
         return false;
     }

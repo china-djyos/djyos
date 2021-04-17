@@ -39,13 +39,13 @@ OSStatus bk_pwm_initialize(bk_pwm_t pwm, uint32_t frequency, float duty_cycle)
 
     /*init pwm*/
     param.channel         = (uint8_t)pwm;
-    param.cfg.bits.en     = PWM_DISABLE;
-    param.cfg.bits.int_en = PWM_INT_EN;
+    param.cfg.bits.en     = PWM_INT_EN;
+    param.cfg.bits.int_en = PWM_INT_DIS;
     param.cfg.bits.mode   = PMODE_PWM;
     param.cfg.bits.clk    = PWM_CLK_26M;
     param.p_Int_Handler   = 0;
     param.duty_cycle      = duty_cycle;
-    param.end_value       = frequency;  // ?????
+    param.end_value       = frequency;  // 设置PWM频率
 
     ret = sddev_control(PWM_DEV_NAME, CMD_PWM_INIT_PARAM, &param);
     ASSERT(PWM_SUCCESS == ret);

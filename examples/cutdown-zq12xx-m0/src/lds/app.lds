@@ -16,7 +16,7 @@ SECTIONS
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-         KEEP(*(.IbootAppInfo .IbootAppInfo.*))  
+         KEEP(*(.IbootAppInfo .IbootAppInfo.*))
     }>RAM1
 
     /*iboot.lds中InitStack大小及位置必须与应用程序中debug/release.lds*/
@@ -27,7 +27,7 @@ SECTIONS
         msp_bottom = .;
         KEEP(* (.data.InitStack))
         msp_top = ALIGN(0x08);
-   }>RAM1 
+   }>RAM1
 
     vectorTab :
     {
@@ -36,10 +36,10 @@ SECTIONS
         KEEP(*(.isr_vector .isr_vector.*))
          isr_vector_tab_end = .;
     }>VerctorFlash
-    
+
     text_startup_rROM_lROM :
     {
-    	. = ALIGN(0x08);
+        . = ALIGN(0x08);
         KEEP(*libos_App.a:hard-exps.o (.text .text.* .rodata .rodata.*))
         KEEP(*libos_App.a:initcpuc.o (.text .text.* .rodata .rodata.*))
         KEEP(*libos_App.a:pre_loader.o (.text .text.* .rodata .rodata.*))
@@ -60,16 +60,16 @@ SECTIONS
         *libos_App.a:list.o (.text .text.* .rodata .rodata.*)
     }>Flash
 
-	QSpi_Flash :
+        QSpi_Flash :
     {
-    	. = ALIGN(0x04);
+        . = ALIGN(0x04);
         Lock_Cache_Add_Start = .;
         KEEP(*os_Iboot_Debug.a:norflash.o (.text .text.* .rodata .rodata.*))
          . = ALIGN(0x04);
         Lock_Cache_Add_End = .;
-    
-    }>Flash 
-    
+
+    }>Flash
+
     M0BootRisc :
     {
         Risc_Boot_Addr_Start = .;
@@ -132,15 +132,15 @@ SECTIONS
     }>ExtRam
 
     routine_shell_data_section :
-	{
-   		 KEEP(* (.ro_shell_data))
- 	 }>ExtRam AT>Flash
- 	
+        {
+                 KEEP(* (.ro_shell_data))
+         }>ExtRam AT>Flash
+
     expand_shell_data_section :
-	{
- 	     KEEP(* (.ex_shell_data))
- 	 }>ExtRam AT>Flash
- 	 
+        {
+             KEEP(* (.ex_shell_data))
+         }>ExtRam AT>Flash
+
     preload_cp_table :
     {
         . = ALIGN(0x08);
@@ -185,16 +185,16 @@ SECTIONS
         LONG(ADDR(zi_sysload_rExtRam_lExtRam))
         LONG(SIZEOF(zi_sysload_rExtRam_lExtRam))
         LONG(0)
-        
-       	LONG(LOADADDR(routine_shell_data_section))
-		LONG(ADDR(routine_shell_data_section))
-		LONG(SIZEOF(routine_shell_data_section))
-		LONG(1)
-		
-		LONG(LOADADDR(expand_shell_data_section))
-		LONG(ADDR(expand_shell_data_section))
-		LONG(SIZEOF(expand_shell_data_section))
-		LONG(1)
+
+        LONG(LOADADDR(routine_shell_data_section))
+                LONG(ADDR(routine_shell_data_section))
+                LONG(SIZEOF(routine_shell_data_section))
+                LONG(1)
+
+                LONG(LOADADDR(expand_shell_data_section))
+                LONG(ADDR(expand_shell_data_section))
+                LONG(SIZEOF(expand_shell_data_section))
+                LONG(1)
     }>Flash
 
     heap_rRAM1_lRAM1 (NOLOAD) :
@@ -203,14 +203,14 @@ SECTIONS
         sys_heap_bottom = .;
     }>RAM1
     sys_heap_top = Ram1Start + Ram1Size;
-    
+
     heap_rExtRam_lExtRam (NOLOAD) :
     {
         . = ALIGN(0x08);
         extram_heap_bottom = .;
     }>ExtRam
     extram_heap_top = ExtRamStart + ExtRamSize;
-       
+
     /*sdram area*/
     heap_rExtRam_lSdRam (NOLOAD) :
     {
@@ -240,7 +240,7 @@ SECTIONS
         BYTE(0)                     /*串结束，"sys"是堆的名字*/
 
         . = ALIGN(0x04);
-        
+
         LONG(1)                     /*表示该堆由1段内存组成*/
         LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
         LONG(0)                     /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
@@ -254,9 +254,9 @@ SECTIONS
         BYTE(0x61)                  /*'a'*/
         BYTE(0x6d)                  /*'m'*/
         BYTE(0)                     /*串结束，"extram"是堆的名字*/
-        
+
         . = ALIGN(0x04);
-        
+
         LONG(1)                     /*表示该堆由1段内存组成*/
         LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
         LONG(0)                     /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
@@ -270,10 +270,10 @@ SECTIONS
         BYTE(0x6d)                  /*'m'*/
         BYTE(0)                     /*串结束，"sdram"是堆的名字*/
 
-		. = ALIGN(0x04);
+                . = ALIGN(0x04);
         LONG(0)                     /*结束标志*/
     }>Flash
-    
+
 
     Iboot_Info :
     {
@@ -287,44 +287,44 @@ SECTIONS
         gc_pAppOffset = .;          /* APP空间偏置  为了访问下面四个字节 */
         gc_pAppRange = .;           /* APP空间范围 */
         gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
-        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */ 
+        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */
         gc_AppAddr = .;             /*函数指针变量，该标号 ->指向APP的起始地址  为的是访问下面long的数值,下面数值地址即为app 入口函数地址*/
         __AppStart = .;           /*函数指针变量，指向APP的Preload函数  该标号 ->指向APP的起始地址  为的是访问下面long的数值,下面数值地址即为app 入口函数地址*/
     }>Flash
-    
+
     shell_config_section :
-	{
-   		KEEP(*(.shellconfig))
- 	}>Flash
-    
+        {
+                KEEP(*(.shellconfig))
+        }>Flash
+
     routine_shell_section :
-	{
-   		 KEEP(* (.ro_shell_cmd))
-   		 KEEP(* (.ro_shell_data))
- 	}>Flash
- 	
+        {
+                 KEEP(* (.ro_shell_cmd))
+                 KEEP(* (.ro_shell_data))
+        }>Flash
+
     expand_shell_section :
-	{
- 	     KEEP(* (.ex_shell_cmd))
- 	     KEEP(* (.ex_shell_data))
- 	      . = ALIGN(0x08);
- 	}>Flash
- 	
- 	Shell_Info :
+        {
+             KEEP(* (.ex_shell_cmd))
+             KEEP(* (.ex_shell_data))
+              . = ALIGN(0x08);
+        }>Flash
+
+        Shell_Info :
     {
         p_shell_info = .;
-        LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-    }>Flash 
-    
- /*   
+        LONG(restore) /* 该bin文件的起始地址*/
+        LONG(IbootSize) /* 该bin文件允许大小*/
+    }>Flash
+
+ /*
     QSpi_Flash:
     {
         Lock_Cache_Add_Start = .;
         *os_Iboot_Debug.a:norflash.o (.text .text.* .rodata .rodata.*)
         Lock_Cache_Add_End = .;
-    
-    }>Flash 
+
+    }>Flash
 */
 }
 /**** The End ****/

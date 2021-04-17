@@ -90,7 +90,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"spi bus"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -535,7 +535,7 @@ static s32 __SPI_Read( tagSpiReg * Reg )
     while ( ( (Reg->SR & SPI_SR_RXP) == 0 ) && (time > 0))
     {
         time --;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
 
     if(time == 0)
@@ -555,7 +555,7 @@ static s32 __SPI_Write( tagSpiReg * Reg,u8 wData )
     while ( ( (Reg->SR & SPI_SR_TXP) == 0 ) && (time > 0) )
     {
         time --;
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
     }
     if(time == 0)
         return -1;
@@ -572,7 +572,7 @@ static s32 __SPI_Write( tagSpiReg * Reg,u8 wData )
 //    while ( ( (Reg->SR & SPI_SR_TXE) == 0 ) && (time > 0) )
 //    {
 //        time --;
-//        Djy_DelayUs(1);
+//        DJY_DelayUs(1);
 //    }
 //    if(time == 0)
 //        return -1;
@@ -581,7 +581,7 @@ static s32 __SPI_Write( tagSpiReg * Reg,u8 wData )
 //    while ( ( (Reg->SR & SPI_SR_RXNE) == 0 ) && (time > 0))
 //    {
 //        time --;
-//        Djy_DelayUs(1);
+//        DJY_DelayUs(1);
 //    }
 //    if(time == 0)
 //        return -1;

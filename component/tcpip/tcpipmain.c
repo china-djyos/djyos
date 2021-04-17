@@ -55,7 +55,7 @@
 #include "component_config_tcpip.h"
 
 #define CN_TCPIP_VERSION    "V1.2.0"
-#define CN_TCPIP_AUTHOR     "luost@sznari.com,zhangqf1314@163.com"
+
 //static bool_t __TcpIpVersion(char *param)
 bool_t tcpipver(char *param)
 {
@@ -64,9 +64,6 @@ bool_t tcpipver(char *param)
     info_printf("tcpip","VERSION  :%s ",CN_TCPIP_VERSION);
     info_printf("tcpip","TIME     :%s ",__TIME__);
     info_printf("tcpip","DATE     :%s ",__DATE__);
-    info_printf("tcpip","SUBMIT2  :Any idea, please contact with us");
-    info_printf("tcpip","ChangeLog:");
-    info_printf("tcpip","FUNCTIONS:/ETHERNET/PPP/IPV4/TCP/UDP/ICMP/FTP/TFTP/SNTP/TELNET/DHCP/PING");
     return true;
 }
 
@@ -87,6 +84,47 @@ static void __LoadLog(const char *name,bool_t ret)
 bool_t ModuleInstall_TcpIp(void)
 {
     bool_t ret;
+#if CFG_MODULE_ENABLE_EXTSTACK
+    //do the NETDEVICE LAYER initialize
+    extern bool_t NetDev_Init(void);
+    ret = NetDev_Init();
+    __LoadLog("NETDEV",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    extern bool_t RouterInit(void);
+    ret = RouterInit();
+    __LoadLog("ROUTER",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    //do the transport layer initialize
+    extern bool_t TPLInit(void);
+    ret = TPLInit();
+    __LoadLog("TPL",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    extern bool_t ExtStackInit(void);
+    ret = ExtStackInit();
+    __LoadLog("ExtStackInit",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+
+    //do the socket interface initialize
+    extern bool_t SocketInit(void);
+    ret = SocketInit();
+    __LoadLog("SOCKET",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+#else
     tcpipver(NULL);
 
     extern bool_t OsArchInit();
@@ -105,8 +143,8 @@ bool_t ModuleInstall_TcpIp(void)
         goto TCPIP_INITERR;
     }
     //do the link init
-    extern bool_t LinkInit(void);
-    ret = LinkInit();
+    extern bool_t Link_Init(void);
+    ret = Link_Init();
     __LoadLog("LINK",ret);
     if(false == ret)
     {
@@ -120,16 +158,16 @@ bool_t ModuleInstall_TcpIp(void)
     {
         goto TCPIP_INITERR;
     }
-    extern bool_t LinkRawInit(void);
-    ret = LinkRawInit();
+    extern bool_t Link_RawInit(void);
+    ret = Link_RawInit();
     __LoadLog("LINKRAW",ret);
     if(false == ret)
     {
         goto TCPIP_INITERR;
     }
     //do the NETDEVICE LAYER initialize
-    extern bool_t NetDevInit(void);
-    ret = NetDevInit();
+    extern bool_t NetDev_Init(void);
+    ret = NetDev_Init();
     __LoadLog("NETDEV",ret);
     if(false == ret)
     {
@@ -223,8 +261,8 @@ bool_t ModuleInstall_TcpIp(void)
         }
 #endif
         //add the tcpip service
-    extern bool_t ServiceInit(void);
-    ret = ServiceInit();
+    extern bool_t TCPIP_ServiceInit(void);
+    ret = TCPIP_ServiceInit();
     __LoadLog("SERVICE",ret);
     if(false == ret)
     {
@@ -233,6 +271,7 @@ bool_t ModuleInstall_TcpIp(void)
     info_printf("tcpip","*********DJY TCP/IP INIT SUCCESS**********************");
 
     return ret;
+#endif
 
 TCPIP_INITERR:
     error_printf("tcpip","*********DJY TCP/IP INIT  FAILED**********************");

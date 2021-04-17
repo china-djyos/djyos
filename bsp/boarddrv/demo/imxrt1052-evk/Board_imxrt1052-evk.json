@@ -1,0 +1,26 @@
+{
+	"board_name":"imxrt1052-evk",
+	"cpus":{
+		"imxrt1052":{
+			"clocks":{
+				
+			},
+			"chips":["touchscreen ft5406"],
+			"peripherals":["cpu_peri_clock",
+			"cpu_peri_eth",
+			"cpu_peri_iic",
+			"cpu_peri_lcd",
+			"cpu_peri_semc",
+			"cpu_peri_spi",
+			"cpu_peri_timer",
+			"cpu_peri_uart"],
+			"mian_freq":0,
+			"memories":{
+				
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

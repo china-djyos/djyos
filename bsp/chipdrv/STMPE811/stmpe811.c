@@ -70,20 +70,12 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    struct GkWinObj;
-//    extern ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop);
-//    extern struct GkWinObj *GK_GetDesktop(const char *display_name);
-//    struct GkWinObj *stmpe811_desktop;
-//    stmpe811_desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
-//    if(NULL == stmpe811_desktop)
-//    {
-//        printf("stmpe811_desktop Not Exist !\r\n");
-//    }
-//    else
-//    {
-//        ModuleInstall_Touch_Stmpe811(stmpe811_desktop);
-//    }
+//    extern ptu32_t ModuleInstall_Touch_Stmpe811(void);
+//    ModuleInstall_Touch_Stmpe811(stmpe811_desktop);
+//#if(CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == true)
 //    extern bool_t GDD_AddInputDev(const char *InputDevName);
 //    GDD_AddInputDev(CFG_STMPE811_TOUCH_DEV_NAME);
+//#endif
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -92,7 +84,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:later               //初始化时机，可选值：early，medium，later。
+//init time:later               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"graphical kernel","rtc","lock","touch","iicbus","graphical decorate development"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -115,8 +107,8 @@
 //%$#@enum,0x41,0x44,
 #define CFG_STMPE811_DEVADDR            0x41            //"设备地址"，IIC总线上的设备地址
 //%$#@string,1,30,
-#define CFG_STMPE811_TOUCH_DEV_NAME      "TOUCH_STMPE811"     //"触摸设备名称",触摸设备的名称
-#define CFG_STMPE811_DESKTOP_NAME  "LCD_DESKTOP_STMPE811"     //"触摸显示桌面",触摸屏所在桌面的名称
+#define CFG_STMPE811_TOUCH_DEV_NAME   "TOUCH_STMPE811"       //"触摸屏名称",配置触摸屏名称
+#define CFG_STMPE811_DISPLAY_NAME        "LCD_DESKTOP_STMPE811"      //"显示器名称",配置触摸屏所在显示器的名称
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -207,36 +199,36 @@ static bool_t touch_hard_init(void)
     if(chipid ==0x811)
     {
         TS_Write(SYS_CTRL2, 1, 0x0C);                   //打开TSC及ADC的时钟
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(INT_EN, 1, 0x07);                      //使能中断
         //ADC分辨率（12bit），参考电压（内部）及采样时间（124）
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(ADC_CTRL1 , 1, 0x68);
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(ADC_CTRL2 , 1, 0x01);                  //ADC采样频率（3.25Mhz）
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(GPIO_AF , 1, 0x00);                    //端口选择为触摸屏使用
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(TSC_CFG, 1, 0x92);                     //TSC_CFG
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write (FIFO_TH, 1, 16);             //触摸屏的触发门限1（测量的是单击）
         //TS_Write (FIFO_TH, 1, 0x05);         //触摸屏的触发门限5（测量的是轨迹）
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(FIFO_STA, 1, 0x01);                    //FIFO复位
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(FIFO_STA, 1, 0x00);
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(TSC_FRACT_XYZ, 1, 0x07);
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(TSC_I_DRIVE, 1, 0x01);
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
 
         TS_Write(TSC_CTRL, 1, 0x01 | stmpe811_opmode<<1); //使能TSC
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(INT_STA, 1, 0xFF);                       //清除所有中断
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
         TS_Write(INT_CTRL, 1, 0x01);                      //不使能TSC
-        Djy_DelayUs(100);
+        DJY_DelayUs(100);
 
 
         return true;
@@ -344,11 +336,11 @@ static ufast_t read_touch_stmpe811(struct SingleTouchMsg *touch_data)
         if (TS_Read(FIFO_SIZE, 1))
         {
             TS_Write(INT_STA, 1, 0xFF);                //清除所有中断
-            Djy_EventDelay(100);
+            DJY_EventDelay(100);
             TS_Write(FIFO_STA, 1, 0x01);                //FIFO复位
-            Djy_EventDelay(100);
+            DJY_EventDelay(100);
             TS_Write(FIFO_STA, 1, 0x00);
-            Djy_EventDelay(100);
+            DJY_EventDelay(100);
         }
         return 1;
     }
@@ -396,7 +388,7 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
         GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
         GK_SyncShow(CN_TIMEOUT_FOREVER);
         while(!read_touch_stmpe811(&touch_xyz0));           //记录触摸屏第一点校正值
-        Djy_DelayUs(300);
+        DJY_DelayUs(300);
 //这里的松手检测是通过读检查fifo中是否有坐标点数据来实现的，
 //有数据清空并延时0.1s再检测，软件可以不用考虑防抖。
         do
@@ -404,14 +396,14 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
             if (TS_Read(FIFO_SIZE, 1))
             {
                 TS_Write(INT_STA, 1, 0xFF);                //清除所有中断
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
                 TS_Write(FIFO_STA, 1, 0x01);                //FIFO复位
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
                 TS_Write(FIFO_STA, 1, 0x00);
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
             }
 
-            Djy_DelayUs(1000*100);
+            DJY_DelayUs(1000*100);
             sta=TS_Read (INT_STA, 1);
         }while(sta&2);//fifo中有数据则重读，无数据则认为松手
 
@@ -432,11 +424,11 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
         if (TS_Read(FIFO_SIZE, 1))
         {
             TS_Write(INT_STA, 1, 0xFF);                //清除所有中断
-            Djy_DelayUs(100);
+            DJY_DelayUs(100);
             TS_Write(FIFO_STA, 1, 0x01);                //FIFO复位
-            Djy_DelayUs(100);
+            DJY_DelayUs(100);
             TS_Write(FIFO_STA, 1, 0x00);
-            Djy_DelayUs(100);
+            DJY_DelayUs(100);
         }
 
         while(!read_touch_stmpe811(&touch_xyz1));           //记录触摸屏第二点校正值
@@ -446,14 +438,14 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
             if (TS_Read(FIFO_SIZE, 1))
             {
                 TS_Write(INT_STA, 1, 0xFF);                //清除所有中断
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
                 TS_Write(FIFO_STA, 1, 0x01);                //FIFO复位
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
                 TS_Write(FIFO_STA, 1, 0x00);
-                Djy_DelayUs(100);
+                DJY_DelayUs(100);
             }
 
-            Djy_DelayUs(1000*100);
+            DJY_DelayUs(1000*100);
             sta=TS_Read (INT_STA, 1);
         }while(sta&2);//等待松手
 
@@ -480,17 +472,19 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
 //参数: display_name,本触摸屏对应的显示器名(资源名)
 //返回: true,成功;false,失败
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop)
+ptu32_t ModuleInstall_Touch_Stmpe811(void)
 {
+    struct GkWinObj *desktop;
     static struct SingleTouchPrivate stmpe811;
 
+    desktop = GK_GetDesktop(CFG_STMPE811_DISPLAY_NAME);
     if(!STMPE811_Init("IIC2" ))//将器件挂到IIC2总线上
         return false;
     if(!touch_hard_init())//触摸屏初始化
          return false;
     touch_ratio_adjust(desktop);          //屏幕校准
     stmpe811.read_touch = read_touch_stmpe811;//读触摸点的坐标函数
-    stmpe811.touch_loc.display = NULL;     //NULL表示用默认桌面
+    stmpe811.touch_loc.display = GK_GetDisplay(CFG_STMPE811_DISPLAY_NAME);
     Touch_InstallDevice(CFG_STMPE811_TOUCH_DEV_NAME,&stmpe811);//添加驱动到Touch
     return true;
 }

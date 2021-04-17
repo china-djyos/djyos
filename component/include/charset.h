@@ -89,7 +89,7 @@ struct Charset
 //      n，最大检测长度，-1表示检测全串。
 //返回: 0: mbs是NULL指针。
 //      -1:mbs指向的不是合法多字节字符。
-//      其他：被转换的字符长度（字节数）,注意，串结束符也是合法字符
+//      其他：被转换的字符长度（字节数）
 //说明：返回的多字节字符，即mbs指向的字符。
     s32 (*GetOneMb)(const char* mbs, s32 n);
 
@@ -141,7 +141,7 @@ struct Charset
 };
 
 
-ptu32_t ModuleInstall_Charset(ptu32_t para);
+ptu32_t ModuleInstall_Charset(void);
 bool_t  Charset_NlsInstallCharset(struct Charset *encoding,const char* name);
 struct Charset* Charset_NlsGetCurCharset(void);
 struct Charset* Charset_NlsSetCurCharset(struct Charset* encoding);

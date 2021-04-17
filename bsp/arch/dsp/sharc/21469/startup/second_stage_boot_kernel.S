@@ -54,7 +54,7 @@
 .message/suppress 2024;
 
 .global _load_application_parallel;
-#define reset 0x8C003
+#define CPU_Reset 0x8C003
 .extern final_init_loop;
 .extern ___lib_RSTI;
 
@@ -378,7 +378,7 @@ final_init:
     DO ___lib_RSTI UNTIL EQ;    // Set bottom-of-loop address (loopstack) to 0x90004
                             // and top-of-loop address (PC Stack) to the address
                             // of the next instruction.
-    PCSTK=reset;            // Change top-of-loop value from the address of
+    PCSTK=CPU_Reset;            // Change top-of-loop value from the address of
                             // this instruction to 0x90003..
 
 
@@ -388,7 +388,7 @@ final_init:
      dm(DMAC0) = ustat1;        // enable final DMA for external port 0
 
     //---- Initiate self-modifying sequence ------------------------------------
-    JUMP reset (DB);        // Causes 0x8c003 to be the return address when this
+    JUMP CPU_Reset (DB);        // Causes 0x8c003 to be the return address when this
                             // DMA completes and the RTI at 0x8c050 is executed.
         IDLE;               // After IDLE, patch then start
         LIRPTL=0;           // clear any interrupts on way to 0x8c003

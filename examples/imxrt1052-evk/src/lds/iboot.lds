@@ -6,37 +6,37 @@ INCLUDE  ../src/lds/memory.lds
 /*正确的写法，可参看console中输出的命令行*/
 
 SECTIONS
-{       
-	Flash_Config :
-	{
-		. = ALIGN(4);
-   		 __FLASH_BASE = .;
-    	KEEP(*(.boot_hdr_f .boot_hdr_f.*))     /* flash config section */
-    	. = ALIGN(4);
-	}>FlashConfig
-	
-	Ivt_Table :
-	{
-		. = ALIGN(4);
-		KEEP(*(.boot_hdr_ivt .boot_hdr_ivt.*))           /* ivt section */
-		KEEP(*(.boot_hdr_boot_data .boot_hdr_boot_data.*))     /* boot section */
-		KEEP(*(.boot_hdr_dcd_data .boot_hdr_dcd_data.*))      /* dcd section */
-    	. = ALIGN(4);
-	}>IvtTable 
-	
+{
+        Flash_Config :
+        {
+                . = ALIGN(4);
+                 __FLASH_BASE = .;
+        KEEP(*(.boot_hdr_f .boot_hdr_f.*))     /* flash config section */
+        . = ALIGN(4);
+        }>FlashConfig
+
+        Ivt_Table :
+        {
+                . = ALIGN(4);
+                KEEP(*(.boot_hdr_ivt .boot_hdr_ivt.*))           /* ivt section */
+                KEEP(*(.boot_hdr_boot_data .boot_hdr_boot_data.*))     /* boot section */
+                KEEP(*(.boot_hdr_dcd_data .boot_hdr_dcd_data.*))      /* dcd section */
+        . = ALIGN(4);
+        }>IvtTable
+
     Rom_Start :
     {
-        restore = .; 
+        restore = .;
     }>InnerFlash
-    
+
     /*Revam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/
     /*的pg_IapVar变量从该段内分配，且该段在iboot.lds和debug/release.lds保持一致*/
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-         KEEP(*(.IbootAppInfo .IbootAppInfo.*))  
+         KEEP(*(.IbootAppInfo .IbootAppInfo.*))
     }>RAM1
-    
+
     stack_rRAM1_lRAM1 (NOLOAD) :
     {
         . = ALIGN(0x08);
@@ -44,7 +44,7 @@ SECTIONS
         KEEP(* (.data.InitStack))
         msp_top = ALIGN(0x08);
     }>RAM1
-            
+
     text_startup_rIbootRom_lIbootRom :
     {
        . = ALIGN(0x08);
@@ -69,15 +69,15 @@ SECTIONS
         *src/iboot/critical/*.o (.text .text.* .rodata .rodata.*)
         *libos_Iboot.a:heap-static.o (.text .text.* .rodata .rodata.*)
         *libos_Iboot.a:list.o (.text .text.* .rodata .rodata.*)
-    }>InnerFlash 
-   
+    }>InnerFlash
+
     text_sysload_rIbootRom_lIbootRom :
-    {       
+    {
        . = ALIGN(0x08);
         * (.text .text.* .rodata .rodata.* )
         g_pAppCodeEndRamAddr = .;
-    }>InnerFlash 
-	
+    }>InnerFlash
+
     rw_preload_rRAM1_lIbootRom :
     {
        . = ALIGN(0x08);
@@ -111,14 +111,14 @@ SECTIONS
         *libos_Iboot.a:heap-static.o (.bss .bss.* COMMON)
         *libos_Iboot.a:list.o (.bss .bss.* COMMON)
     }>RAM1
-   
+
     rw_sysload_rNOCACHE_lIbootRom :
     {
        . = ALIGN(0x08);
         * (NonCacheable)
     }>NOCACHE AT>InnerFlash
 
-	rw_sysload_rRAM1_lIbootRom :
+        rw_sysload_rRAM1_lIbootRom :
     {
        . = ALIGN(0x08);
         * (.data .data.*)
@@ -129,17 +129,17 @@ SECTIONS
        . = ALIGN(0x08);
         * (.bss .bss.* COMMON)
     }>RAM1
-    
+
         routine_shell_data_section :
-	{
-   		 KEEP(* (.ro_shell_data))
- 	 }>RAM1 AT>InnerFlash
- 	
+        {
+                 KEEP(* (.ro_shell_data))
+         }>RAM1 AT>InnerFlash
+
     expand_shell_data_section :
-	{
- 	     KEEP(* (.ex_shell_data))
- 	 }>RAM1 AT>InnerFlash
- 	 
+        {
+             KEEP(* (.ex_shell_data))
+         }>RAM1 AT>InnerFlash
+
     preload_cp_table :
     {
        . = ALIGN(0x08);
@@ -161,16 +161,16 @@ SECTIONS
         LONG(ADDR(zi_preload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_preload_rRAM1_lRAM1))
         LONG(0)
-        
+
         LONG(LOADADDR(routine_shell_data_section))
-		LONG(ADDR(routine_shell_data_section))
-		LONG(SIZEOF(routine_shell_data_section))
-		LONG(1)
-		
-		LONG(LOADADDR(expand_shell_data_section))
-		LONG(ADDR(expand_shell_data_section))
-		LONG(SIZEOF(expand_shell_data_section))
-		LONG(1)
+                LONG(ADDR(routine_shell_data_section))
+                LONG(SIZEOF(routine_shell_data_section))
+                LONG(1)
+
+                LONG(LOADADDR(expand_shell_data_section))
+                LONG(ADDR(expand_shell_data_section))
+                LONG(SIZEOF(expand_shell_data_section))
+                LONG(1)
     }>InnerFlash
 
     sysload_cp_table :
@@ -189,39 +189,39 @@ SECTIONS
         LONG(ADDR(rw_sysload_rRAM1_lIbootRom))
         LONG(SIZEOF(rw_sysload_rRAM1_lIbootRom))
         LONG(1)
-        
+
         LONG(LOADADDR(rw_sysload_rNOCACHE_lIbootRom))
         LONG(ADDR(rw_sysload_rNOCACHE_lIbootRom))
         LONG(SIZEOF(rw_sysload_rNOCACHE_lIbootRom))
         LONG(1)
-		
+
         LONG(LOADADDR(zi_sysload_rRAM1_lRAM1))
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
     }>InnerFlash
-    
+
     heap_rRAM1_lRAM1 (NOLOAD) :
     {
        . = ALIGN(0x08);
         sys_heap_bottom = .;
     }>RAM1
     sys_heap_top = InnerRam1Start + InnerRam1Size;
-    
+
     heap_rRAM2_lRAM2 (NOLOAD) :
     {
        . = ALIGN(0x08);
         ocram_heap_bottom = .;
     }>RAM2
     ocram_heap_top = InnerRam2Start + InnerRam2Size;
-    
+
     heap_rSDRAM_lSDRAM (NOLOAD) :
     {
        . = ALIGN(0x08);
         sdram_heap_bottom = .;
     }>SDRAM
     sdram_heap_top = SdramStart + SdramSize;
-    
+
     heap_cp_table :
     {
         . = ALIGN(0x08);
@@ -240,39 +240,39 @@ SECTIONS
         BYTE(0x79)                  /*'y'*/
         BYTE(0x73)                  /*'s'*/
         BYTE(0)                     /*串结束，"sys"是堆的名字*/
-        
-        . = ALIGN(0x04);     
- 	    LONG(1)                      /*表示该堆由1段内存组成*/
- 	    LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
- 	    LONG(0)                    /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
- 	    LONG(ocram_heap_bottom)      /*第一段基址，须符合对齐要求*/
- 	    LONG(ocram_heap_top)         /*第一段地址上限（不含），须符合对齐要求*/
+
+        . = ALIGN(0x04);
+            LONG(1)                      /*表示该堆由1段内存组成*/
+            LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
+            LONG(0)                    /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
+            LONG(ocram_heap_bottom)      /*第一段基址，须符合对齐要求*/
+            LONG(ocram_heap_top)         /*第一段地址上限（不含），须符合对齐要求*/
         LONG(128)                    /*第一段页尺寸=128bytes*/
- 	    BYTE(0x6f)                    /*'o'*/
- 	    BYTE(0x63)                    /*'c'*/
- 	    BYTE(0x72)                   /*'r'*/
- 	    BYTE(0x61)                   /*'a'*/
- 	    BYTE(0x6d)                   /*'m'*/
- 	    BYTE(0)                      /*串结束，"ocram"是堆的名字*/
-        
-        . = ALIGN(0x04);     
- 	    LONG(1)                      /*表示该堆由1段内存组成*/
- 	    LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
- 	    LONG(0)                    /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
- 	    LONG(sdram_heap_bottom)      /*第一段基址，须符合对齐要求*/
- 	    LONG(sdram_heap_top)         /*第一段地址上限（不含），须符合对齐要求*/
+            BYTE(0x6f)                    /*'o'*/
+            BYTE(0x63)                    /*'c'*/
+            BYTE(0x72)                   /*'r'*/
+            BYTE(0x61)                   /*'a'*/
+            BYTE(0x6d)                   /*'m'*/
+            BYTE(0)                      /*串结束，"ocram"是堆的名字*/
+
+        . = ALIGN(0x04);
+            LONG(1)                      /*表示该堆由1段内存组成*/
+            LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
+            LONG(0)                    /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
+            LONG(sdram_heap_bottom)      /*第一段基址，须符合对齐要求*/
+            LONG(sdram_heap_top)         /*第一段地址上限（不含），须符合对齐要求*/
         LONG(128)                    /*第一段页尺寸=128bytes*/
- 	    BYTE(0x73)                    /*'s'*/
- 	    BYTE(0x64)                    /*'d'*/
- 	    BYTE(0x72)                   /*'r'*/
- 	    BYTE(0x61)                   /*'a'*/
- 	    BYTE(0x6d)                   /*'m'*/
- 	    BYTE(0)                      /*串结束，"sdram"是堆的名字*/
-        
+            BYTE(0x73)                    /*'s'*/
+            BYTE(0x64)                    /*'d'*/
+            BYTE(0x72)                   /*'r'*/
+            BYTE(0x61)                   /*'a'*/
+            BYTE(0x6d)                   /*'m'*/
+            BYTE(0)                      /*串结束，"sdram"是堆的名字*/
+
         . = ALIGN(0x04);
         LONG(0)                     /*结束标志*/
     }>InnerFlash
-    
+
     Iboot_Info :
     {
         . = ALIGN(0x08);
@@ -292,7 +292,7 @@ SECTIONS
 
     Iboot_AppInfo :
     {
- 
+
         gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
         . += 256;
         gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */
@@ -300,30 +300,30 @@ SECTIONS
         gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址*/
         __AppStart = .;             /*函数指针变量，指向APP的Preload函数*/
     }>InnerFlash
-    
+
     shell_config_section :
-	{
-   		KEEP(*(.shellconfig))
- 	}>InnerFlash
-    
+        {
+                KEEP(*(.shellconfig))
+        }>InnerFlash
+
     routine_shell_section :
-	{
-   		 KEEP(* (.ro_shell_cmd))
-   		 KEEP(* (.ro_shell_data))
- 	}>InnerFlash
- 	
+        {
+                 KEEP(* (.ro_shell_cmd))
+                 KEEP(* (.ro_shell_data))
+        }>InnerFlash
+
     expand_shell_section :
-	{
- 	     KEEP(* (.ex_shell_cmd))
- 	     KEEP(* (.ex_shell_data))
- 	      . = ALIGN(0x08);
- 	}>InnerFlash
- 	
- 	Shell_Info :
+        {
+             KEEP(* (.ex_shell_cmd))
+             KEEP(* (.ex_shell_data))
+              . = ALIGN(0x08);
+        }>InnerFlash
+
+        Shell_Info :
     {
         p_shell_info = .;
-        LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-    }>InnerFlash 
-    
+        LONG(restore) /*  该bin文件的起始地址*/
+        LONG(IbootSize) /* 该bin文件允许大小*/
+    }>InnerFlash
+
 }

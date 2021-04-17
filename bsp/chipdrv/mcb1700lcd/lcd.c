@@ -53,7 +53,7 @@
 #include "cpu_peri.h"
 #include "djyos.h"
 #include "gkernel.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include "lcd.h"
 #include "lcd_spidrv.h"
 #include "heap.h"
@@ -73,7 +73,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"graphical kernel","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -787,12 +787,11 @@ ptu32_t LCD_ModuleInit(void)
     __lcd_mcbqvga_init( );
     tg_lcd_display.frame_buffer = NULL;
 
-    tg_lcd_display.xmm = 0;
-    tg_lcd_display.ymm = 0;
+    tg_lcd_display.width_um = 0;
+    tg_lcd_display.height_um = 0;
     tg_lcd_display.width = CFG_LCD_XSIZE;
     tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_RGB565;
-    tg_lcd_display.reset_clip = false;
     tg_lcd_display.framebuf_direct = false;
     //无须初始化frame_buffer和desktop，z_topmost三个成员
 
@@ -809,7 +808,7 @@ ptu32_t LCD_ModuleInit(void)
     tg_lcd_display.draw.GetPixelFromScreen = __lcd_get_pixel_screen;
     tg_lcd_display.draw.GetRectFromScreen = __lcd_get_rect_screen;
 
-    tg_lcd_display.DisplayHeap = (struct HeapCB *)M_FindHeap("sys");
+    tg_lcd_display.DisplayHeap = (struct HeapCB *)Heap_FindHeap("sys");
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
     GK_InstallDisplay(&tg_lcd_display,(char*)CFG_LCD_HEAP_NAME);

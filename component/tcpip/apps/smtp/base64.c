@@ -12,7 +12,7 @@
 
 const char * base64char = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-char * base64_encode( u8 * bindata, char * base64, int binlength )
+char * Base64_Encode( char * bindata, char * base64, int binlength )
 {
     int i, j;
     unsigned char current;
@@ -51,7 +51,7 @@ char * base64_encode( u8 * bindata, char * base64, int binlength )
     return base64;
 }
 
-int base64_decode( const char * base64, unsigned char * bindata )
+int Base64_Decode( const char * base64, char * bindata )
 {
     int i, j;
     unsigned char k;
@@ -98,13 +98,13 @@ int base64_decode( const char * base64, unsigned char * bindata )
 
 void encode(FILE * fp_in, FILE * fp_out)
 {
-    unsigned char bindata[2050];
+    char bindata[2050];
     char base64[4096];
     size_t bytes;
     while ( !feof( fp_in ) )
     {
         bytes = fread( bindata, 1, 2049, fp_in );
-        base64_encode( bindata, base64, bytes );
+        Base64_Encode( bindata, base64, bytes );
         fprintf( fp_out, "%s", base64 );
     }
 }
@@ -112,7 +112,7 @@ void encode(FILE * fp_in, FILE * fp_out)
 void decode(FILE * fp_in, FILE * fp_out)
 {
     int i;
-    unsigned char bindata[2050];
+    char bindata[2050];
     char base64[4096];
     size_t bytes;
     while ( !feof( fp_in ) )
@@ -125,18 +125,18 @@ void decode(FILE * fp_in, FILE * fp_out)
             else if ( base64[i] == '\n' || base64[i] == '\r' )
                 i --;
         }
-        bytes = base64_decode( base64, bindata );
+        bytes = Base64_Decode( base64, bindata );
         fwrite( bindata, bytes, 1, fp_out );
     }
 }
-bool_t base64EncodeTest(void)
+bool_t Base64_EncodeTest(void)
 {
     const char *argv[]=
     {
-        "zhangqf1314@163.com",
-        "zqf0123456",
-        "zhangqf@sznari.com",
-        "zqf@2012",
+        "lst2012@yeah.net",
+        "lst0123456",
+        "lst@djyos.com",
+        "lst@2012",
     };
     int argc= sizeof(argv)/sizeof(char *);
 
@@ -145,13 +145,13 @@ bool_t base64EncodeTest(void)
     {
         memset(buf,0,64);
         debug_printf("base64","original:%s\n\r",argv[i]);
-        base64_encode((u8 *)argv[i],buf,strlen(argv[i]));
+        Base64_Encode((char *)argv[i],buf,strlen(argv[i]));
         debug_printf("base64","encode:%s\n\r",(char *)buf);
     }
     return true;
 }
 
-bool_t base64DecodeTest(void)
+bool_t Base64_DecodeTest(void)
 {
     const char *argv[]=
     {
@@ -162,12 +162,12 @@ bool_t base64DecodeTest(void)
     };
     int argc= sizeof(argv)/sizeof(char *);
 
-    u8 buf[64];
+    char buf[64];
     for(int i =0;i < argc;i++)
     {
         memset(buf,0,64);
         debug_printf("base64","original:%s\n\r",argv[i]);
-        base64_decode(argv[i],buf);
+        Base64_Decode(argv[i],buf);
         debug_printf("base64","decode:%s\n\r",(char *)buf);
     }
     return true;

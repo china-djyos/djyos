@@ -85,12 +85,19 @@ struct IntReg     //at 0xe000e100,
 extern struct IntReg volatile * const pg_int_reg;
 extern u32 u32g_vect_table[];
 
+//bool_t Int_IsLowAtom(atom_low_t AtomStatus);
+//bool_t Int_IsHighAtom(atom_low_t AtomStatus);
 void __Int_ClearAllLine(void);
 void __Int_InitHard(void);
 void __Int_EngineReal(ufast_t ufl_line);
 void __Int_EngineAsynSignal(ufast_t ufl_line);
 void __Int_EngineAll(ufast_t ufl_line);
-
+void portENABLE_INT(void);
+s32 portDISABLE_INT(void);
+void portENABLE_IRQ(void);
+s32 portDISABLE_IRQ(void);
+void portENABLE_FIQ(void);
+s32 portDISABLE_FIQ(void);
 #ifdef __cplusplus
 }
 #endif

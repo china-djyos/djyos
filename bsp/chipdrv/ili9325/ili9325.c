@@ -59,7 +59,7 @@
 #include "string.h"
 
 #include "gkernel.h"
-#include <gui/gkernel/gk_display.h>
+#include <gui/gk_display.h>
 #include "board.h"
 #include "ili9325.h"
 #include "djyos.h"
@@ -79,7 +79,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"graphical kernel","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -243,7 +243,7 @@ void __lcd_ili9325_init(void)
     lcd_backlight_off();
     __lcd_reset();
 
-    Djy_DelayUs(100000);
+    DJY_DelayUs(100000);
 
     if( __ili9325_read_reg() != 0x9325)
     {
@@ -267,22 +267,22 @@ void __lcd_ili9325_init(void)
     __ili9325_write_reg(0x0012, 0x0000);            // VREG1OUT voltage
     __ili9325_write_reg(0x0013, 0x0000);            // VDV[4:0] for VCOM amplitude
 
-    Djy_DelayUs(5000);
+    DJY_DelayUs(5000);
 
     __ili9325_write_reg(0x0010, 0x1690);            // SAP, BT[3:0], AP, DSTB, SLP, STB
     __ili9325_write_reg(0x0011, 0x0227);            // R11H=0x0221 at VCI=3.3V, DC1[2:0], DC0[2:0], VC[2:0]
 
-    Djy_DelayUs(5000);
+    DJY_DelayUs(5000);
 
     __ili9325_write_reg(0x0012, 0x001d);           // External reference voltage= Vci;001d
 
-    Djy_DelayUs(5000);
+    DJY_DelayUs(5000);
 
     __ili9325_write_reg(0x0013, 0x0800);           // R13H=1D00 when R12H=009D;VDV[4:0] for VCOM amplitude
     __ili9325_write_reg(0x0029, 0x0014);           // R29H=0013 when R12H=009D;VCM[5:0] for VCOMH
     __ili9325_write_reg(0x002b, 0x000B);           // Frame Rate = 96Hz
 
-    Djy_DelayUs(5000);
+    DJY_DelayUs(5000);
 
     __ili9325_write_reg(0x0020, 0x0000);          // GRAM horizontal Address
     __ili9325_write_reg(0x0021, 0x0000);          // GRAM Vertical Address
@@ -729,12 +729,11 @@ ptu32_t ModuleInstall_ili9325(void)
     frame_win.wm_bitmap = &FrameBitmap;
     tg_lcd_display.frame_buffer = &frame_win;
 
-    tg_lcd_display.xmm = 0;
-    tg_lcd_display.ymm = 0;
+    tg_lcd_display.width_um = 0;
+    tg_lcd_display.height_um = 0;
     tg_lcd_display.width = CFG_LCD_XSIZE;
     tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_RGB565;
-    tg_lcd_display.reset_clip = false;
     tg_lcd_display.framebuf_direct = false;
     //无须初始化frame_buffer和desktop，z_topmost三个成员
 
@@ -753,7 +752,7 @@ ptu32_t ModuleInstall_ili9325(void)
 
 //    tg_lcd_display.bmmalloc = lcd_bmmalloc;
 
-    tg_lcd_display.DisplayHeap = M_FindHeap(CFG_ILI9325_HEAP_NAME);
+    tg_lcd_display.DisplayHeap = Heap_FindHeap(CFG_ILI9325_HEAP_NAME);
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
     GK_InstallDisplay(&tg_lcd_display,CFG_ILI9325_DISPLAY_NAME);

@@ -20,7 +20,7 @@ read_one_file(FILE *ip, const char *name)
 {
    uLong length = 0;
    uLong a32 = adler32(0, NULL, 0);
-   uLong c32 = crc32(0, NULL, 0);
+   uLong c32 = CRC_32(0, NULL, 0);
    Byte header[132];
 
    for (;;)
@@ -37,7 +37,7 @@ read_one_file(FILE *ip, const char *name)
 
       ++length;
       a32 = adler32(a32, &b, 1);
-      c32 = crc32(c32, &b, 1);
+      c32 = CRC_32(c32, &b, 1);
    }
 
    if (ferror(ip))

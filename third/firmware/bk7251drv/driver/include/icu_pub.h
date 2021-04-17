@@ -39,11 +39,14 @@ enum
 #define PCLK_POSI_I2C1                       (1 << 2)
 #define PCLK_POSI_IRDA                       (1 << 3)
 #define PCLK_POSI_I2C2                       (1 << 4)
-#define PCLK_POSI_SPI                        (1 << 5)
-#define PCLK_POSI_SARADC                     (1 << 6)
+#define PCLK_POSI_SARADC                     (1 << 5)
+#define PCLK_POSI_SPI                        (1 << 6)
 #define PCLK_POSI_PWMS                       (1 << 7)
 #define PCLK_POSI_SDIO                       (1 << 8)
 #define PCLK_POSI_SARADC_AUD                 (1 << 9)
+#define PCLK_POSI_QSPI_DCO				 	 (0 << 16)
+#define PCLK_POSI_QSPI_26M				 	 (1 << 16)
+#define PCLK_POSI_QSPI_120M				 	 (2 << 16)
 
 /*CMD_CONF_PWM_PCLK, CMD_CONF_PWM_LPOCLK*/
 #define PWM_MUX_POSI                                (0)
@@ -57,6 +60,7 @@ enum
 #define PWD_TIMER_32K_CLK_BIT                                  (1 << 21)
 #define PWD_TIMER_26M_CLK_BIT                                  (1 << 20)
 #endif
+#define PWD_QSPI_CLK_BIT					 (1 << 23)
 #define PWD_FFT_CLK_BIT                      (1 << 19)
 #define PWD_USB_CLK_BIT                      (1 << 18)
 #define PWD_SDIO_CLK_BIT                     (1 << 17)
@@ -117,6 +121,7 @@ enum
 #define FIQ_MAILBOX1_BIT                     (1 << 25) 
 #define FIQ_MAILBOX0_BIT                     (1 << 24) 
 #endif // (CFG_SOC_NAME == SOC_BK7221U)
+#define FIQ_PSRAM_BIT						 (1 << 31)
 #define FIQ_SDIO_DMA_BIT                     (1 << 23) 
 #define FIQ_MAC_GENERAL_BIT                  (1 << 22) 
 #define FIQ_MAC_PROT_TRIGGER_BIT             (1 << 21) 

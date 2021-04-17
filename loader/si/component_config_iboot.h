@@ -5,8 +5,8 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //#if !defined (CFG_RUNMODE_BAREAPP)
-//    extern ptu32_t ModuleInstall_IAP(void);
-//    ModuleInstall_IAP( );
+//    extern bool_t ModuleInstall_UpdateIboot(void);
+//    ModuleInstall_UpdateIboot( );
 //#endif
 //%$#@end initcode  ****初始化代码结束
 
@@ -14,11 +14,11 @@
 //component name:"loader"       //加载器
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//select:required               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"heap"  //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"heap,emflash insatall xip"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -36,14 +36,19 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 #define CFG_UPDATEIBOOT_EN      false       //"是否支持在线更新Iboot"，
+#define CFG_START_APP_IS_VERIFICATION      true       //"启动app时是否执行校验功能"，
 //%$#@enum,EN_FORM_FILE,EN_DIRECT_RUN,
-#define  CFG_APP_RUNMODE  EN_DIRECT_RUN     //EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
+#define  CFG_APP_RUNMODE  EN_DIRECT_RUN     //"APP运行模式",EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
 //%$#@enum,VERIFICATION_NULL,VERIFICATION_CRC,VERIFICATION_MD5,VERIFICATION_SSL,
-#define  CFG_APP_VERIFICATION   VERIFICATION_NULL      //是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
+#define  CFG_APP_VERIFICATION   VERIFICATION_NULL   //"APP校验方法",
 //%$#@num,0,100,
-#define CFG_IBOOT_VERSION       01        //Iboot发布版本号
+#define CFG_IBOOT_VERSION_SMALL       00        //"Iboot版本号:低",xx.xx.__，APP忽略
+#define CFG_IBOOT_VERSION_MEDIUM      00        //"Iboot版本号:中",xx.__.xx，APP忽略
+#define CFG_IBOOT_VERSION_LARGE       01        //"Iboot版本号:高",__.xx.xx，APP忽略
 //%$#@string,1,128,
-#define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //"Iboot保存"
+#define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //"待升级iboot默认存储路径"
+#define CFG_APP_UPDATE_NAME        "/yaf2/app.bin"            //"待升级app默认存储路径"
+#define CFG_FORCED_UPDATE_PATH     "/SD/djyapp.bin"           //"强制升级的文件路径"
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 

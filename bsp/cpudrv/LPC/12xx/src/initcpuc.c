@@ -143,6 +143,6 @@ void Init_Cpu (void)
     //most of the I/O related peripherals won't work.
     pg_sysctrl_reg->SYSAHBCLKCTRL |= (1<<16);
 
-    Pre_Start();
+    Iboot_PreStart();
 }
 

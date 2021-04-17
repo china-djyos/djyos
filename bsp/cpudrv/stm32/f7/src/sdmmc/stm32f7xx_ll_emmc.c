@@ -70,7 +70,7 @@ u32 EMMC_CMD_Switch(MMC_HandleTypeDef *pHmmc, u32 dwArg)
 
     while(1)
     {
-        Djy_EventDelay(10);
+        DJY_EventDelay(10);
         if(count++ == SDMMC_MAX_TRIAL)
         {
             return (-1);
@@ -166,7 +166,7 @@ u32 EMMC_CMD_SendECSD(MMC_HandleTypeDef *pHmmc, u8 *pECSD, u32 dwTimeout)
     u32 *buf = (u32*)pECSD;
     u32 count = 0;
     u32 bytes = 0;
-    s64 tickStart = DjyGetSysTime();
+    s64 tickStart = DJY_GetSysTime();
 
     if((!pHmmc) || (!pECSD))
         return (-1);
@@ -224,7 +224,7 @@ u32 EMMC_CMD_SendECSD(MMC_HandleTypeDef *pHmmc, u8 *pECSD, u32 dwTimeout)
             break; // 数据已读完
         }
 
-        if((-1 != dwTimeout) && ((u32)(DjyGetSysTime() - tickStart) >=  dwTimeout))
+        if((-1 != dwTimeout) && ((u32)(DJY_GetSysTime() - tickStart) >=  dwTimeout))
         {
             __HAL_MMC_CLEAR_FLAG(pHmmc, SDMMC_STATIC_FLAGS);
             pHmmc->ErrorCode |= HAL_MMC_ERROR_TIMEOUT;

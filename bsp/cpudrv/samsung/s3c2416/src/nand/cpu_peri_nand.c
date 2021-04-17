@@ -55,14 +55,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <device.h>
-#include <device/flash/flash.h>
+#include <device/djy_flash.h>
 #include <cpu_peri.h>
 #include <djyos.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
 #include <dbug.h>
-#include <filesystems.h>
+#include <djyfs/filesystems.h>
 #include <math.h>
 #include "stm32f7xx_hal_conf.h"
 
@@ -82,7 +82,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"device file system","file system"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -173,7 +173,7 @@ s32 S3C2416_SpareProgram(u32 PageNo, const u8 *Data)
 
     SetNandCommand(PAGE_PROGRAM_CMD_BYTE2);// 写入Main数据完成
 
-    Djy_EventDelay(700);// 切出
+    DJY_EventDelay(700);// 切出
     WaitNandReady();//时序要求
 
     Ret = StatusOfNand();
@@ -217,7 +217,7 @@ s32 S3C2416_SpareRead(u32 PageNo, u8 *Data)
 
     SetNandCommand(PAGE_READ_CMD_BYTE2);
 
-    Djy_EventDelay(25);// 切出
+    DJY_EventDelay(25);// 切出
     WaitNandReady();//时序要求
 
     for(i = 0; i < s_ptNandInfo->OOB_Size; i++)
@@ -294,7 +294,7 @@ s32  S3C2416_PageProgram(u32 PageNo, const u8 *Data, u32 Flags)
 
     SetNandCommand(PAGE_PROGRAM_CMD_BYTE2);// 写入Main数据完成
 
-    Djy_EventDelay(700);// 切出
+    DJY_EventDelay(700);// 切出
     WaitNandReady();// 时序要求
 
     Ret = StatusOfNand();
@@ -388,7 +388,7 @@ s32  S3C2416_PageRead(u32 PageNo, u8 *Data, u32 Flags)
 
     SetNandCommand(PAGE_READ_CMD_BYTE2);
 
-    Djy_EventDelay(25);// 切出
+    DJY_EventDelay(25);// 切出
     WaitNandReady();// 时序要求
 
     for(i = 0; i < s_ptNandInfo->BytesPerPage; i++)
@@ -441,13 +441,13 @@ s32  S3C2416_PageRead(u32 PageNo, u8 *Data, u32 Flags)
                 case 1:// 1位错，可纠错
                 {
                     Data[(EccStatus >> 7) & 0x7ff] ^= (1 << ((EccStatus >> 4) & 0x7));
-                    TraceDrv(FLASH_TRACE_DEBUG, "fix: bit 0x%x in Byte 0x%x\r\n",
+                    debug_printf("nand driver"，"fix: bit 0x%x in Byte 0x%x\r\n",
                             ((EccStatus >> 4) & 0x7), ((EccStatus >> 7) & 0x7ff));
                     break;
                 }
                 case 2:// 错误位太多, 不可纠错
                 case 3:// ECC计算错误
-                    TraceDrv(FLASH_TRACE_DEBUG, "cannot be fixed");
+                    debug_printf("nand driver", "cannot be fixed");
                     Lock_MutexPost(NandFlashLock);
                     return (-3);
             }
@@ -483,7 +483,7 @@ s32 S3C2416_BlockErase(u32 BlkNo)
 
     SetNandCommand(BLOCK_ERASE_CMD_BYTE2);
 
-    Djy_EventDelay(3000);// 切出
+    DJY_EventDelay(3000);// 切出
     WaitNandReady();
 
     Ret = StatusOfNand();
@@ -686,7 +686,7 @@ s32 ModuleInstall_NAND(u32 doformat)
     nand_umedia->type = nand;
     nand_umedia->ubuf = (u8*)um + sizeof(struct umedia);
 
-    if(!dev_Create((const char*)NandFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
+    if(!Device_Create((const char*)NandFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
     {
         printf("\r\n: erro : device : %s addition failed.", NandFlashName);
         free(nand_umedia);
@@ -1363,13 +1363,13 @@ s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
     struct Object *targetobj;
     struct FsCore *super;
     s32 res,BlockNum;
-    targetobj = obj_matchpath(fs, &notfind);
+    targetobj = OBJ_MatchPath(fs, &notfind);
     if(notfind)
     {
         error_printf("nand"," not found need to install file system.");
         return -1;
     }
-    super = (struct FsCore *)obj_GetPrivate(targetobj);
+    super = (struct FsCore *)OBJ_GetPrivate(targetobj);
     super->MediaInfo = nand_umedia;
     super->MediaDrv = mediadrv;
     if(-1 == (s32)bend)
@@ -1388,7 +1388,7 @@ s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
     FullPath = malloc(res);
     memset(FullPath, 0, res);
     sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,NandFlashName); //获取该设备的全路径
-    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
+    File_BeMedia(FullPath,fs); //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);

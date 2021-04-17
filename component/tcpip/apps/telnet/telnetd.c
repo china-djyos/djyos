@@ -59,6 +59,7 @@
 // =============================================================================
 
 #include <device.h>
+#include <stdio.h>
 #include <ring.h>
 #include <sys/socket.h>
 #include "dbug.h"
@@ -76,7 +77,7 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"tcpip","tcp"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -121,7 +122,7 @@
 typedef struct
 {
     struct RingBuf       *ring;
-    semp_t                rcvsync;     //the read task will pend here
+    struct SemaphoreLCB  *rcvsync;     //the read task will pend here
     int                   clientfd;    //which connect to the server
     struct objhandle     *hdl;         //which will be created by open
 }tagDevTelnetd;
@@ -131,7 +132,7 @@ static tagDevTelnetd gDevTelnetd;
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //do the open
-static s32 __open(struct objhandle *hdl, u32 dwMode, u32 timeout)
+static s32 __Telnet_open(struct objhandle *hdl, u32 dwMode, u32 timeout)
 {
     s32 ret =-1;
     if(NULL == gDevTelnetd.hdl)
@@ -141,7 +142,7 @@ static s32 __open(struct objhandle *hdl, u32 dwMode, u32 timeout)
     }
     return ret;
 }
-static s32 __close(struct objhandle *hdl)
+static s32 __Telnet_close(struct objhandle *hdl)
 {
     s32 ret =-1;
     if(NULL == gDevTelnetd.hdl)
@@ -151,8 +152,10 @@ static s32 __close(struct objhandle *hdl)
     }
     return ret;
 }
+
+
 //install the device as an io device
-static s32 __write(struct objhandle *hdl,u8 *buf, u32 len,u32 offset, u32 timeout)
+static s32 __Telnet_write(struct objhandle *hdl,u8 *buf, u32 len,u32 offset, u32 timeout)
 {
     if(gDevTelnetd.clientfd >0)
     {
@@ -160,15 +163,15 @@ static s32 __write(struct objhandle *hdl,u8 *buf, u32 len,u32 offset, u32 timeou
     }
     return len;
 }
-static s32 __read(struct objhandle *hdl,u8 *buf,u32 len,u32 offset,u32 timeout)
+static s32 __Telnet_read(struct objhandle *hdl,u8 *buf,u32 len,u32 offset,u32 timeout)
 {
     u32 ret =0;
-    if(semp_pendtimeout(gDevTelnetd.rcvsync,timeout))
+    if(Lock_SempPend(gDevTelnetd.rcvsync,timeout))
     {
         ret = Ring_Read(gDevTelnetd.ring,buf,len);
         if(Ring_Check(gDevTelnetd.ring)) //still some data in the ring
         {
-            semp_post(gDevTelnetd.rcvsync);
+            Lock_SempPost(gDevTelnetd.rcvsync);
             fcntl(Handle2fd(gDevTelnetd.hdl),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
         }
         else
@@ -178,6 +181,7 @@ static s32 __read(struct objhandle *hdl,u8 *buf,u32 len,u32 offset,u32 timeout)
     }
     return ret;
 }
+#pragma GCC diagnostic pop
 
 #define CN_CLIENT_WELCOM   "Welcome TELNET FOR DJYOS\n\rENTER QUIT TO EXIT\n\r"
 
@@ -201,7 +205,7 @@ typedef struct
 #define CN_NVT_OPT_STATUS  5
 
 
-static void __telnetclientengine(int sock)
+static void __Telnet_ClientEngine(int sock)
 {
     char ch;
     int  len;
@@ -242,7 +246,7 @@ static void __telnetclientengine(int sock)
     }while(1);
 
     Ring_Write(gDevTelnetd.ring,(u8 *)opt,sizeof(tagNvtCmd));
-    semp_post(gDevTelnetd.rcvsync);
+    Lock_SempPost(gDevTelnetd.rcvsync);
     fcntl(Handle2fd(gDevTelnetd.hdl),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
     //OK,now send info here
     sendexact(sock,(u8 *)CN_CLIENT_WELCOM,strlen(CN_CLIENT_WELCOM));
@@ -253,7 +257,7 @@ static void __telnetclientengine(int sock)
         if(len == sizeof(ch))
         {
             Ring_Write(gDevTelnetd.ring,(u8 *)&ch,1);
-            semp_post(gDevTelnetd.rcvsync);
+            Lock_SempPost(gDevTelnetd.rcvsync);
             fcntl(Handle2fd(gDevTelnetd.hdl),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
         }
         else if(len == 0)
@@ -275,7 +279,7 @@ static void __telnetclientengine(int sock)
 // 返回值  ：
 // 说明    :
 // =============================================================================
-static ptu32_t __telnetdmain(void)
+static ptu32_t __Telnet_DomainMain(void)
 {
     struct sockaddr_in sa_server;
     int sockserver = -1;
@@ -283,7 +287,7 @@ static ptu32_t __telnetdmain(void)
     int sockopt = 1;
 
     //安装我们自己的 设备, TODO,这套接口作的有问题
-    if(NULL==dev_Create(CN_TELNET_DEVNAME,__open,__close,__write,__read,NULL,0))
+    if(NULL==Device_Create(CN_TELNET_DEVNAME,__Telnet_open,__Telnet_close,__Telnet_write,__Telnet_read,NULL,0))
     {
         printf("\r\n: info : net    : create dev %s failed.",CN_TELNET_DEVNAME);
         return 0;
@@ -332,7 +336,7 @@ ACCEPT_AGAIN:
             closesocket(sockclient);
             goto   ACCEPT_AGAIN;
         }
-        __telnetclientengine(sockclient);
+        __Telnet_ClientEngine(sockclient);
         closesocket(sockclient);
     }
     //anyway, could never reach here
@@ -340,7 +344,7 @@ ACCEPT_AGAIN:
     return 0;//never reach here
 }
 //THIS IS TELNET SERVER MODULE FUNCTION
-bool_t ServiceInit_Telnetd(void)
+bool_t Telnet_ServiceInit(void)
 {
     bool_t ret = false;
     memset(&gDevTelnetd,0,sizeof(gDevTelnetd));
@@ -351,13 +355,13 @@ bool_t ServiceInit_Telnetd(void)
         debug_printf("telnet","TELNETD RING CREATE FAILED\n\r");
         goto EXIT_RING;
     }
-    gDevTelnetd.rcvsync = semp_init(1,0,NULL);
+    gDevTelnetd.rcvsync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
     if(NULL == gDevTelnetd.rcvsync)
     {
         debug_printf("telnet","TELNETD RING CREATE FAILED\n\r");
         goto EXIT_SEMP;
     }
-    ret = taskcreate("telnet",0x800,CN_PRIO_RRS,__telnetdmain,NULL);
+    ret = taskcreate("telnet",0x800,CN_PRIO_RRS,__Telnet_DomainMain,NULL);
     if (ret == false) {
         debug_printf("telnet","TFTPD:TASK CREATE ERR\n\r");
         goto EXIT_TASK;
@@ -366,7 +370,7 @@ bool_t ServiceInit_Telnetd(void)
     return ret;
 
 EXIT_TASK:
-    semp_del(gDevTelnetd.rcvsync);
+    Lock_SempDelete(gDevTelnetd.rcvsync);
 EXIT_SEMP:
     Ring_Destroy(gDevTelnetd.ring);
     gDevTelnetd.ring = NULL;
@@ -374,4 +378,3 @@ EXIT_RING:
     return ret;
 }
 
-#pragma GCC diagnostic pop

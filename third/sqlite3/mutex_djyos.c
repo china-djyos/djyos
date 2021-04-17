@@ -64,13 +64,13 @@ struct sqlite3_mutex {
 ** intended for use only inside assert() statements.
 */
 static int djyMutexHeld(sqlite3_mutex *p){
-  return p->nRef!=0 && p->owner==(u32)Djy_MyEventId();
+  return p->nRef!=0 && p->owner==(u32)DJY_GetMyEventId();
 }
 static int djyMutexNotheld2(sqlite3_mutex *p, DWORD tid){
   return p->nRef==0 || p->owner!=tid;
 }
 static int djyMutexNotheld(sqlite3_mutex *p){
-  DWORD tid = (u32)Djy_MyEventId();
+  DWORD tid = (u32)DJY_GetMyEventId();
   return djyMutexNotheld2(p, tid);
 }
 #endif
@@ -230,7 +230,7 @@ static void djyMutexFree(sqlite3_mutex *p){
 */
 static void djyMutexEnter(sqlite3_mutex *p){
 #ifdef SQLITE_DEBUG
-  DWORD tid = (u32)Djy_MyEventId();
+  DWORD tid = (u32)DJY_GetMyEventId();
   assert( p->id==SQLITE_MUTEX_RECURSIVE || djyMutexNotheld2(p, tid) );
 #endif
   Lock_MutexPend(p->sql_mutex,CN_TIMEOUT_FOREVER);
@@ -245,7 +245,7 @@ static void djyMutexEnter(sqlite3_mutex *p){
 }
 static int djyMutexTry(sqlite3_mutex *p){
 #ifndef NDEBUG
-  DWORD tid = (u32)Djy_MyEventId();
+  DWORD tid = (u32)DJY_GetMyEventId();
 #endif
   int rc = SQLITE_BUSY;
   assert( p->id==SQLITE_MUTEX_RECURSIVE || djyMutexNotheld2(p, tid) );
@@ -279,7 +279,7 @@ static int djyMutexTry(sqlite3_mutex *p){
 */
 static void djyMutexLeave(sqlite3_mutex *p){
 #ifndef NDEBUG
-  DWORD tid = (u32)Djy_MyEventId();
+  DWORD tid = (u32)DJY_GetMyEventId();
   assert( p->nRef>0 );
   assert( p->owner==tid );
   p->nRef--;

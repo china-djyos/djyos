@@ -171,7 +171,7 @@ copy_isr_table:
     bic     sp,sp,#0x07
     nop
     nop
-    bl      Load_Preload
+    bl      Iboot_LoadPreload
     nop
     nop
     b   .
@@ -231,7 +231,7 @@ appcopy_isr_table:
     bic     sp,sp,#0x07
     nop
     nop
-    bl      Load_Preload
+    bl      Iboot_LoadPreload
     nop
     nop
     b   .

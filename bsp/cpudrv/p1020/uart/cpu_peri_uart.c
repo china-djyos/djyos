@@ -61,7 +61,7 @@
 #include "string.h"
 #include "stdio.h"
 
-#include <device/include/uart.h>
+#include <device/djy_uart.h>
 #include "cpu_peri_uart.h"
 
 #include "os.h"
@@ -88,7 +88,7 @@
 //attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium                      //初始化时机，可选值：early，medium，later。
+//init time:medium                      //初始化时机，可选值：early，medium，later, pre-main。
                                         //表示初始化时间，分别是早期、中期、后期
 //dependence:"uart device file","device file system","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
@@ -248,7 +248,7 @@ void __UART_IntInit(ptu32_t SerialNo)
 //      data,含义依cmd而定
 //返回: 无意义.
 //-----------------------------------------------------------------------------
-ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 {
     if(Reg == NULL)
         return 0;
@@ -270,7 +270,11 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-            __UART_BaudSet(Reg,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(Reg, data);
+        }
             break;
         case CN_UART_RX_PAUSE:      //暂停接收
             __UART_RxIntDisable(Reg);
@@ -300,7 +304,6 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
             break;
         }
         case CN_UART_COM_SET:
-//          __UART_ComConfig(Reg,data1);todo
             break;
         default: break;
     }
@@ -329,7 +332,7 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 //            && (timeout > 0))//超时或者发送缓冲为空时退出
 //        {
 //            timeout--;
-//            Djy_DelayUs(1);
+//            DJY_DelayUs(1);
 //        }
 //        if(timeout == 0)
 //            break;
@@ -345,7 +348,7 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 //参数: uart_dev,被操作的串口设备指针.
 //返回: 发送的个数
 //-----------------------------------------------------------------------------
-u32 __UART_SendStart(tagUartReg *Reg,u32 timeout)
+u32 __UART_SendStart(tagUartReg *Reg)
 {
     u8 trans,num,ch[16],port;
 

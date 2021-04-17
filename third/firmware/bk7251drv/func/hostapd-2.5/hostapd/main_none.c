@@ -30,10 +30,12 @@ void *wpa_hostapd_param = NULL;
 beken_queue_t wpah_queue = NULL;
 static struct hapd_global s_hapd_global;
 struct hapd_interfaces g_hapd_interfaces;
+uint32_t hostapd_exit_flag = 0;
 
 char *bss_iface = "wlan0";
 
 extern int ap_channel_switch(struct hostapd_iface *ap_iface, int new_freq);
+extern uint32_t wpa_hostapd_queue_poll(uint32_t param);
 
 void hostapd_cfg_defaults_bss(struct hostapd_bss_config *bss)
 {
@@ -317,10 +319,18 @@ static int hostapd_driver_init(struct hostapd_iface *iface)
 	params.bridge = os_calloc(hapd->iface->num_bss, sizeof(char *));
 	if (params.bridge == NULL)
 		return -1;
-	for (i = 0; i < hapd->iface->num_bss; i++) {
+	
+	for (i = 0; i < hapd->iface->num_bss; i++) 
+	{
 		struct hostapd_data *bss = hapd->iface->bss[i];
+		
 		if (bss->conf->bridge[0])
+		{
 			params.bridge[i] = bss->conf->bridge;
+		}
+
+		os_printf("[csa]csa_in_progress[%d:%d]-clear\r\n", i, bss->csa_in_progress);
+		bss->csa_in_progress = 0; /* test wangzhilei*/
 	}
 
     os_memcpy(hapd->own_addr, b, ETH_ALEN);
@@ -436,7 +446,6 @@ static int hostapd_global_run(struct hapd_interfaces *ifaces, int daemonize,
 			      const char *pid_file)
 {
 	if (daemonize && os_daemonize(pid_file)) {
-		wpa_printf(MSG_ERROR, "daemon: %s", strerror(errno));
 		return -1;
 	}
 
@@ -444,7 +453,6 @@ static int hostapd_global_run(struct hapd_interfaces *ifaces, int daemonize,
     
 	return 0;
 }
-
 
 const char * hostapd_msg_ifname_cb(void *ctx)
 {
@@ -462,7 +470,39 @@ static void hostapd_periodic(void *eloop_ctx, void *timeout_ctx)
 
 int hostapd_main_exit(void)
 {
+	hostapd_exit_flag = 1;
+
+	wpa_hostapd_queue_poll(0xff);
+	while(hostapd_exit_flag)
+	{
+		os_printf("hostapd_main_exiting\r\n");
+        GLOBAL_INT_DECLARATION();
+        GLOBAL_INT_DISABLE();
+        DJY_EventDelay(10 * 1000);
+        GLOBAL_INT_RESTORE();
+	}
+	
+	return 0;
+}
+
+int hostapd_exit_done(void)
+{
+	hostapd_exit_flag = 0;
+	os_printf("hostapd_exit_done\r\n");
+	
+	return 0;
+}
+
+int hostapd_is_exiting(void)
+{
+	return hostapd_exit_flag;
+}
+
+int hostapd_exit_handler(void)
+{
 	size_t i;
+
+	os_printf("hostapd_exit_handler\r\n");
 
 	if(g_hapd_interfaces.count == 0)
 	{
@@ -481,13 +521,12 @@ int hostapd_main_exit(void)
 		hostapd_interface_deinit_free(g_hapd_interfaces.iface[i]);
 		g_hapd_interfaces.iface[i] = NULL;
 	}
-	os_free(g_hapd_interfaces.iface);
+    os_free(g_hapd_interfaces.iface);
     g_hapd_interfaces.iface = NULL;
     g_hapd_interfaces.count = 0;
 
 	eloop_cancel_timeout(hostapd_periodic, &g_hapd_interfaces, NULL);
 	hostapd_global_deinit(NULL);
-
 
 	return 0;
 }
@@ -504,11 +543,11 @@ int hostapd_main_entry(int argc, char *argv[])
 	char *bss_config[1] = {CFG_BSS_CONFIG};
 	char *ap_iface_buf = CFG_AP_IFACE_CONFIG;
 
-	ap_iface_buf = os_malloc(strlen(CFG_AP_IFACE_CONFIG));
+	ap_iface_buf = os_zalloc(strlen(CFG_AP_IFACE_CONFIG) + 2);
 	if (0 == ap_iface_buf)
 		return -1;
 	
-	os_memcpy(ap_iface_buf, CFG_AP_IFACE_CONFIG,(strlen(CFG_AP_IFACE_CONFIG)));
+	os_memcpy(ap_iface_buf, CFG_AP_IFACE_CONFIG,(strlen(CFG_AP_IFACE_CONFIG) + 1));
 	if (os_program_init())
 	{
         os_free(ap_iface_buf);
@@ -614,6 +653,7 @@ int hostapd_main_entry(int argc, char *argv[])
 	ret = 0;
 	
 	os_free(ap_iface_buf);
+	ap_iface_buf = NULL;
 
 	return ret;
 
@@ -637,8 +677,12 @@ int hostapd_main_entry(int argc, char *argv[])
 
 	eloop_cancel_timeout(hostapd_periodic, &g_hapd_interfaces, NULL);
 	hostapd_global_deinit(pid_file);
+	
 	os_free(pid_file);
+	pid_file = NULL;
+	
     os_free(ap_iface_buf);
+	ap_iface_buf = NULL;
 
 	if (log_file)
 		wpa_debug_close_file();
@@ -653,7 +697,6 @@ int hostapd_main_entry(int argc, char *argv[])
 
 static void hostapd_thread_main( void *arg )
 {
-	OSStatus ret;
 	int daemonize = 0;
     char *pid_file = NULL;
 
@@ -662,20 +705,20 @@ static void hostapd_thread_main( void *arg )
     }
 }
 
-static void hostapd_thread_start(void)
+void hostapd_thread_start(void)
 {  
     OSStatus ret;
      
     if(wpah_queue == NULL) {
-    	ret = rtos_init_queue(&wpah_queue, 
+    	ret = bk_rtos_init_queue(&wpah_queue, 
     							"wpah_queue",
     							sizeof(WPAH_MSG_ST),
-    							40);
+    							64);
         ASSERT(kNoErr == ret);    
     }
 
     if((hostapd_thread_handle== NULL) && (NULL == wpas_thread_handle)) {
-        ret = rtos_create_thread(&hostapd_thread_handle, 
+        ret = bk_rtos_create_thread(&hostapd_thread_handle, 
                 THD_HOSTAPD_PRIORITY,
                 "hostapd_thread", 
                 (beken_thread_function_t)hostapd_thread_main, 
@@ -685,14 +728,14 @@ static void hostapd_thread_start(void)
     }
 }
 
-static void hostapd_thread_stop(void)
+void hostapd_thread_stop(void)
 {  
     OSStatus ret;
 	
-    ret = rtos_delete_thread(&hostapd_thread_handle);
+    ret = bk_rtos_delete_thread(&hostapd_thread_handle);
     ASSERT(kNoErr == ret);
     
-    ret = rtos_deinit_semaphore(&hostapd_sema);
+    ret = bk_rtos_deinit_semaphore(&hostapd_sema);
     ASSERT(kNoErr == ret);
 }
 
@@ -703,7 +746,7 @@ int hostapd_sem_wait(uint32_t ms)
 		return kTimeoutErr;
 	}
 	
-	return rtos_get_semaphore(&hostapd_sema, ms);
+	return bk_rtos_get_semaphore(&hostapd_sema, ms);
 }
 
 void hostapd_poll(void *param)
@@ -712,7 +755,8 @@ void hostapd_poll(void *param)
 	
 	if(hostapd_sema)
 	{
-    	ret = rtos_set_semaphore(&hostapd_sema);
+    	ret = bk_rtos_set_semaphore(&hostapd_sema);
+		ASSERT(kNoErr == ret);
 	}
 }
 
@@ -721,20 +765,27 @@ int hostapd_channel_switch(int new_freq)
     return ap_channel_switch(g_hapd_interfaces.iface[0], new_freq);
 }
 
-void wpa_hostapd_queue_poll(uint32_t param)
+uint32_t wpa_hostapd_queue_poll(uint32_t param)
 {
-	OSStatus ret;
+	OSStatus ret = 0;
     WPAH_MSG_ST msg;
     
-    if(wpah_queue) {
-        msg.argu = (u32)param; 
-        ret = rtos_push_to_queue(&wpah_queue, &msg, BEKEN_NO_WAIT);
-    	if(kNoErr != ret)
-    	{
-    		wpa_printf("wpa_hostapd_queue_poll failed\r\n");
-    	} 
-    }     
+    if(NULL == wpah_queue) 
+    {
+		goto poll_exit;
+    }
+
+    msg.argu = (u32)param; 
+    ret = bk_rtos_push_to_queue(&wpah_queue, &msg, BEKEN_NO_WAIT);
+	if(kNoErr != ret)
+	{
+		os_printf("wpa_hostapd_queue_poll_failed:%d\r\n", ret);
+	} 
+		
+poll_exit:
+	return ret;
 }
 
 // eof
+
 

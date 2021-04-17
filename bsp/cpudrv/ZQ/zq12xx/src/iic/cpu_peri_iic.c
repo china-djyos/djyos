@@ -73,7 +73,7 @@
 //attribute:bsp                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                     //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                   //初始化时机，可选值：early，medium，later。
+//init time:early                   //初始化时机，可选值：early，medium，later, pre-main。
                                     //表示初始化时间，分别是早期、中期、后期
 //dependence:"iicbus","int","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //选中该组件时，被依赖组件将强制选中，
@@ -190,7 +190,7 @@ static int __iic_wait_addr(volatile tagI2CReg *dev, int write)
     unsigned timeout = 0;
     do
     {
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
         csr = dev->SR1;
         csr|=(u16)(dev->SR2<<16);
         if (!(csr & I2C_SR1_ADDR_MASK))//地址没有发送发送
@@ -244,7 +244,7 @@ static int __iic_write_addr (volatile tagI2CReg *dev,
     dev->CR1 |=  I2C_CR1_START_MASK;
     while(!(dev->SR1&I2C_SR1_SB_MASK))//没有发送起始条件条件//
     {
-        Djy_DelayUs(1);
+        DJY_DelayUs(1);
         if(time++>(CONFIG_I2C_MBB_TIMEOUT))//????
             return 0;   //超时返回
     }
@@ -353,10 +353,10 @@ static bool_t _IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
      {
           timeout++;
           GPIO_SettoLow(port,1<<sck_pin);
-          Djy_DelayUs(10);
+          DJY_DelayUs(10);
 
           GPIO_SettoHigh(port,1<<sck_pin);
-          Djy_DelayUs(10);
+          DJY_DelayUs(10);
 
           if(timeout>=CONFIG_I2C_TIMEOUT)
               return false;
@@ -367,9 +367,9 @@ static bool_t _IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
     GPIO_CfgPinFunc(port,sda_pin,CN_GPIO_MODE_GPIO_OUT_OD_50Mhz);//TS_SDA
     //产生停止信号 iic总线释放
     GPIO_SettoLow(port,1<<sda_pin);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
     GPIO_SettoHigh(port,1<<sda_pin);
-    Djy_DelayUs(10);
+    DJY_DelayUs(10);
 
     return true;
 }

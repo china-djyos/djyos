@@ -49,13 +49,13 @@
 //其他说明:
 //修订历史:
 //2. ...
-//1. 日期: 
-//   作者: 
+//1. 日期:
+//   作者:
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
 
-#include "typedef.h"
+#include "common/typedef.h"
 #include "pwm_pub.h"
 #include "drv_model_pub.h"
 
@@ -73,7 +73,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"cpu onchip gpio"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //如果依赖多个组件，则依次列出
@@ -101,6 +101,13 @@
 
 //@#$%component end configure
 
+
+
+// =============================================================================
+// 功能：初始化PWM
+// 参数：channel：初始化的通道；frequency：周期时钟个数（周期=frequency*clk）；duty_cycle：占空比时钟个数（占空比= duty_cycle*clk）
+// 返回：0=成功，-1=失败
+// =============================================================================
 int djy_pwm_init(uint8_t channel, uint32_t frequency, uint32_t duty_cycle)
 {
     uint32_t ret;
@@ -147,8 +154,11 @@ int djy_pwm_stop(uint8_t channel)
     uint32_t param;
 
     param = channel;
+#if (CN_BEKEN_SDK_V3 == 1)
+    ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UNIT_DISABLE, &param);
+#else
     ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UINT_DISABLE, &param);
-
+#endif
     if (DRV_SUCCESS == ret)
     {
         return 0;

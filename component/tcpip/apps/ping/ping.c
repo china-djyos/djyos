@@ -50,6 +50,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <misc/misc.h>
 #include "dbug.h"
 #include "../../component_config_tcpip.h"
 
@@ -60,7 +61,7 @@
 #define CN_PING_WAIT_TIME         (1*1000*mS)
 #define CN_PING_DEFAULT_COUNTER   (4)
 #define CN_PING_DEFAULT_SIZE      (60)
-static void pingusage(void)
+static void PING_Usage(void)
 {
     debug_printf("ping","usage:\n\r\
 -l         length\n\r\
@@ -70,7 +71,7 @@ static void pingusage(void)
     return;
 }
 // =============================================================================
-// FUNCTION:This function is used to do the ping echo
+// FUNCTION:This function is used to do the PING echo
 // PARA  IN:param
 //         :must be in the style:host name   times
 // PARA OUT:
@@ -78,7 +79,7 @@ static void pingusage(void)
 // INSTRUCT:
 // =============================================================================
 //static bool_t pingshell(char *param)
-bool_t ping(char *param)
+bool_t PING(char *param)
 {
     s32 i;
     u32 ip;
@@ -101,7 +102,7 @@ bool_t ping(char *param)
     argc = getargs(argc-1,&argv[1],param);
     if(argc < 1)
     {
-        pingusage();
+        PING_Usage();
         return true;
     }
     else if(argc >1)
@@ -142,7 +143,7 @@ bool_t ping(char *param)
             else if(0 == strcmp(argv[i],"-help"))
             {
                 i++;
-                pingusage();
+                PING_Usage();
             }
             else
             {
@@ -160,7 +161,7 @@ bool_t ping(char *param)
         }
         else
         {
-            debug_printf("ping","%s:Unknown host:%s\n\r",__FUNCTION__,param);
+            printf("ping %s:Unknown host:%s\n\r",__FUNCTION__,param);
             return true;
         }
     }
@@ -177,24 +178,29 @@ bool_t ping(char *param)
     {
         return true;
     }
-    memset(buf,0x55,len);
+//  memset(buf,0x55,len);
+    //by chenws: 不可以设置为0x55, 有些服务器要求a-w重复，不然不回应。
+    //例如：ping 183.232.231.172
+    for(i=0; i<len; i++) {
+        buf[i] = 'a' + i%23;
+    }
     for(i = 0; i <times; i++)
     {
-        timestart = (u32)DjyGetSysTime();
+        timestart = (u32)DJY_GetSysTime();
         if(Icmp_EchoRequest(ip,buf,len,CN_PING_WAIT_TIME))
         {
-            timeend = (u32)DjyGetSysTime();
+            timeend = (u32)DJY_GetSysTime();
             timeused = (u32)(timeend - timestart);
-            debug_printf("ping","0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
-            Djy_EventDelay(waittime);
+            printf("ping  0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
+            DJY_EventDelay(waittime);
             numrcv++;
         }
         else
         {
-            debug_printf("ping","0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
+            printf("ping 0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
         }
     }
-        debug_printf("ping","%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
+        printf("ping %s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
     net_free(buf);
     return true;
 }
@@ -260,13 +266,13 @@ bool_t ping(char *param)
 //    memset(datapad,0x55,CN_PING_DEFAULT_SIZE);
 //    for(i = 0; i <times; i++)
 //    {
-//        timestart = (u32)DjyGetSysTime();
+//        timestart = (u32)DJY_GetSysTime();
 //        if(Icmp_EchoRequest(ip,datapad,CN_PING_DEFAULT_SIZE,CN_PING_WAIT_TIME))
 //        {
-//            timeend = (u32)DjyGetSysTime();
+//            timeend = (u32)DJY_GetSysTime();
 //            timeused = (u32)(timeend - timestart);
 //            debug_printf("ping","0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
-//            Djy_EventDelay(waittime);
+//            DJY_EventDelay(waittime);
 //            numrcv++;
 //        }
 //        else
@@ -281,9 +287,9 @@ bool_t ping(char *param)
 
 
 //THIS IS PING MODULE FUNCTION
-bool_t ServicePingInit(void)
+bool_t PING_ServicePingInit(void)
 {
         return (TRUE);
 }
-ADD_TO_ROUTINE_SHELL(ping,ping,"usage:ping hostname [options/-help]");
+ADD_TO_ROUTINE_SHELL(ping,PING,"usage:ping hostname [options/-help]");
 
