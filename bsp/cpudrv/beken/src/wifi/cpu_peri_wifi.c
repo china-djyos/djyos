@@ -535,7 +535,7 @@ int __NetDev_DHCP_SET_GotIP_CB(const char *ifname, int (*cb_ip_get)(u32 *ip));
 //------------------------------------------------------------------------------
 void DhcpStaStartIp(u32 AssignIP,s32 (*cb_ip_got)(u32 ip))
 {
-    __NetDev_DHCP_SET_GotIP_CB(CFG_WIFI_DEV_NAME, cb_ip_got);
+    NetDev_DHCP_SET_GotIP_CB(CFG_WIFI_DEV_NAME, cb_ip_got);
 //  dhcp_setip_cb(CFG_WIFI_DEV_NAME, cb_ip_set);
 
     DhcpclientDeleteAllTask();

@@ -1081,7 +1081,8 @@ bool_t XIP_AppFileCheckSubsection(s8 *addr, u8 *buf, s32 len, s8 *compare_addr)
             ret = true;
             for(i=0; i < sizeof(apphead->app_name); i++)
             {
-                if(apphead->app_name[i] != (s8)0xff)    //看文件头里的文件名是否为全ff，如果全是ff说明文件头已经参加过校验了
+                if(apphead->app_name[i] != (s8)0xff)    //看文件头里的文件名是否为全ff，
+                                                        //如果全是ff说明文件头已经参加过校验了
                     break;
             }
             if(i != sizeof(apphead->app_name))
