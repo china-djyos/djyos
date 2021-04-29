@@ -42,27 +42,39 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-// =============================================================================
-#ifndef __CPU_PERI_FLASH_H__
-#define __CPU_PERI_FLASH_H__
+#ifndef CONFIG_NET_H_
+#define CONFIG_NET_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "stdint.h"
 
-int ModuleInstall_Flash(void);
-bool_t flash_is_install(void);
-void djy_flash_erase(uint32_t address);
-void djy_flash_write(uint32_t address, const void *data, uint32_t size);
-void djy_flash_read(uint32_t address, void *data, uint32_t size);
-void djy_flash_read_crc(uint32_t address, void *data, uint32_t size);
-void SetOperFalshMode(bool_t flag);
-bool_t GetOperFalshMode(void);
+#include <stdint.h>
+
+#define NETC_USER_INPUT      (1<<0)      //键盘配网
+#define NETC_AP             (1<<1)      //网页配网
+#define NETC_AIRKISS        (1<<2)      //微信配网
+#define NETC_WAVE           (1<<3)      //声波配网
+
+
+struct NetcInfo
+{
+    s8 *ssid;       //待获取wifi账号的缓冲区
+    s8 ssid_len;    //待获取wifi账号的缓冲区长度
+    s8 *pwd;        //待获取wifi密码的缓冲区
+    s8 pwd_len;     //待获取wifi密码的缓冲区长度
+    s32 mode;       //配网模式
+    s8 *ap_ssid;    //网页配网时，设备做ap的ID
+    s8 *ap_key;     //网页配网时，设备做ap的秘钥
+
+};
+
+s32 NetcGetModes(void);
+s32 NetcStart(struct NetcInfo *Netc);
+s32 NetcEnd(s32 mode);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__CPU_PERI_FLASH_H__
-
+#endif /* CONFIG_NET_H_ */

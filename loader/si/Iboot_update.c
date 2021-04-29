@@ -173,14 +173,14 @@ bool_t updateapp(char *param)
     word_param = shell_inputs(param,&next_param);
     if(word_param == NULL)
     {
-        res = Iboot_FillMutualUpdatePath(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
+        res = set_upgrade_info(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
         Iboot_SetUpdateRunModet(1);      //启动后运行app
     }
     else
     {
         if(runapp_or_runiboot(word_param) == false)
         {
-            res = Iboot_FillMutualUpdatePath(word_param, strlen(word_param));
+            res = set_upgrade_info(word_param, strlen(word_param));
             word_param = shell_inputs(next_param,&next_param);
             if(word_param != NULL)
             {
@@ -194,9 +194,9 @@ bool_t updateapp(char *param)
         {
             word_param = shell_inputs(next_param,&next_param);
             if(word_param != NULL)
-                res = Iboot_FillMutualUpdatePath(word_param, strlen(word_param));
+                res = set_upgrade_info(word_param, strlen(word_param));
             else
-                res = Iboot_FillMutualUpdatePath(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
+                res = set_upgrade_info(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
         }
     }
 
@@ -228,7 +228,7 @@ bool_t Iboot_UpdateApp(void)
     char *file;
     char percentage_last = 0, percentage = 0;
 
-    if((Iboot_GetUpdateSource() == 0) && (Iboot_GetUpdateApp() == true))
+    if((Iboot_GetUpdateSource() == SOURCE_FILE) && (Iboot_GetUpdateApp() == true))
     {
         if(!stat(CFG_FORCED_UPDATE_PATH,&test_stat))
             srcapp = fopen(CFG_FORCED_UPDATE_PATH, "r+");
@@ -346,14 +346,14 @@ bool_t Iboot_Update(char *param)
     word_param = shell_inputs(param,&next_param);
     if(word_param == NULL)
     {
-        res = Iboot_FillMutualUpdatePath(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
+        res = set_upgrade_info(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
         Iboot_SetUpdateRunModet(0);      //启动后运行iboot
     }
     else
     {
         if(runapp_or_runiboot(word_param) == false)
         {
-            res = Iboot_FillMutualUpdatePath(word_param, strlen(word_param));
+            res = set_upgrade_info(word_param, strlen(word_param));
             word_param = shell_inputs(next_param,&next_param);
             if(word_param != NULL)
             {
@@ -367,9 +367,9 @@ bool_t Iboot_Update(char *param)
         {
             word_param = shell_inputs(next_param,&next_param);
             if(word_param != NULL)
-                res = Iboot_FillMutualUpdatePath(word_param, strlen(word_param));
+                res = set_upgrade_info(word_param, strlen(word_param));
             else
-                res = Iboot_FillMutualUpdatePath(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
+                res = set_upgrade_info(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
         }
     }
 
@@ -489,7 +489,7 @@ bool_t ModuleInstall_UpdateIboot(void)
     char run_mode = Iboot_GetRunMode();
     if(Iboot_UserUpdateIboot(0) == false)
     {
-        if(Iboot_GetUpdateSource() == 0)
+        if(Iboot_GetUpdateSource() == SOURCE_FILE)
         {
             if(run_mode == 1)
             {

@@ -59,10 +59,11 @@
 #include "string.h"
 #include "stdlib.h"
 #include <dbug.h>
+#include <xip.h>
 
-extern void AppStart(void);
-extern void Init_Cpu(void);
-extern void CPU_Reboot();
+//extern void AppStart(void);
+//extern void Init_Cpu(void);
+//extern void CPU_Reboot();
 extern void Iboot_LoadPreload(void);
 extern void * gc_pAppOffset;
 extern void __asm_bl_fun(void * fun_addr);
@@ -119,24 +120,40 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
 struct IbootAppInfo Iboot_App_Info __attribute__ ((section(".IbootAppInfo"))) ;
 
 //==============================================================================
-//功能：获取硬件上的标志    需要用户根据不同的环境自己编写，写在initcpuc.c文件当中
-//参数：POWER_ON_FLAG：获取上电复位硬件标志，0=无此硬件；1=有此硬件，
-//                  但无标志；2=有标志，阅后即焚；3=有，非阅后即焚
-//     HEAD_RESET_FLAG： 获取硬件复位标志，没有/不支持返回0
-//     HEAD_WDT_RESE： 获取硬件看门狗复位标志，没有/不支持返回0
-//     LOW_POWER_WAKEUP： 低功耗唤醒，没有/不支持返回0
-//==============================================================================
-__attribute__((weak))  u8  Get_Hardflag(enum hardflag flag)
+//功能：获取判断获取是否上电复位的方式
+//参数： ret,存实际的标志值，0表示上电复位，其他值表示非上电复位。若CPU有此硬件标志才调用）
+__attribute__((weak))  u8  Get_Hard_flag_mode(s8 *ret)
 {
+    u8 res;
+   res = RESET_FLAG_NO_HARD_FLAG;       //实际返回什么根据具体硬件来写
+   *ret = 0;                            //本标志应该来自具体硬件
+//  有此硬件但读时不自动清零的话，就要在这里把硬件寄存器清零
+    return res;
+}
+//==============================================================================
+//功能：获取硬件上的标志    需要用户根据不同的环境自己编写，写在initcpuc.c文件当中
+//参数：
+//     HEAD_RESET_FLAG： 获取硬件复位标志，没有/不支持返回0
+//     HEAD_WDT_RESET： 获取硬件看门狗复位标志，没有/不支持返回0
+//     LOW_POWER_WAKEUP： 低功耗唤醒，没有/不支持返回0
+//     POWER_ON_RESET：通过硬件获取是否上电复位
+//返回：      ret：1：是对应flag产生的复位，0：不是对方flag产生的复位   存实际的标志值，0表示上电复位，其他值表示非上电复位。若CPU有此硬件标志才调用）
+//==============================================================================
+__attribute__((weak))  u8  Get_Hard_flag(enum hardflag flag)
+{
+    u8 ret;
+    //如果是有标志阅后即焚的话，退出该函数时，需要保证该标志真的焚了
     switch (flag)
     {
-       case POWER_ON_FLAG  :  break;
-       case HEAD_RESET_FLAG:  break;
-       case HEAD_WDT_RESET :  break;
-       case LOW_POWER_WAKEUP: break;
+       case HARD_RESET_FLAG:  ret = 0; break;
+       case HARD_WDT_RESET :  ret = 0; break;
+       case LOW_POWER_WAKEUP: ret = 0; break;
+       case POWER_ON_RESET:
+           ret = 0;        //要根据实际情况来
+           break;
        default:               break;
     }
-    return 0;
+    return ret;
 }
 
 
@@ -641,16 +658,16 @@ static bool_t Iboot_VerificationAppInit(void *data)
 //    p_apphead->ManufacturerNameAddr      = 0xffffffffffffffff;
 //#endif
 
-    for( i=0;i<sizeof(p_productinfo->ProductionNumber);i++)
+    for( i=0;i<sizeof(p_productinfo->ProductionNumber);i++) //生产序号不参与校验
         p_productinfo->ProductionNumber[i]=0xff;
 
-    for( i=0;i<sizeof(p_productinfo->ProductionTime);i++)
+    for( i=0;i<sizeof(p_productinfo->ProductionTime);i++)   //生产时间不参与校验
         p_productinfo->ProductionTime[i]=0xff;
 
-    for( i=0;i<sizeof(p_apphead->app_name);i++)
+    for( i=0;i<sizeof(p_apphead->app_name);i++)             //app_name不参与校验
         p_apphead->app_name[i]=0xff;
 
-    for(u32 i =0;i<sizeof(p_apphead->verif_buf);i++)
+    for(u32 i =0;i<sizeof(p_apphead->verif_buf);i++)        //校验码本身不参与校验
         p_apphead->verif_buf[i]=0xff;
 
     if(p_apphead->verification == VERIFICATION_CRC)
@@ -904,7 +921,7 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
             break;
         }
 
-        case APP_HEAD_SN:
+        case APP_HEAD_FINGER:
         {
             int type_code_len, time_len, number_len;
 
@@ -935,7 +952,75 @@ len_error:
     return false;
 }
 
+extern u32 gc_ProductSn;
 
+//----------------------------------------------------------------------------
+//功能: 写指纹到iboot中
+//参数: time -- 生产时间缓冲区， time_len -- 生产时间缓冲区长度，num -- 生产序号缓冲区，num_len -- 生产序号缓冲区长度
+//返回: true: 成功； false ： 失败.
+//-----------------------------------------------------------------------------
+bool_t write_finger_to_iboot(s8 *time, u32 time_len, s8 *num, u32 num_len)
+{
+    u8 *iboot_sn_buf = 0;
+    ptu32_t iboot_sn_addr = 0,len;
+    struct ProductInfo *info;
+    len = time_len + num_len + sizeof(info->TypeCode);
+    iboot_sn_buf = malloc(len + 1);
+    if(iboot_sn_buf == NULL)
+        return false;
+
+    memset(iboot_sn_buf, 0 , len + 1);
+    iboot_sn_addr = (u32)(&gc_ProductSn) / 32 * 34;
+    if(iboot_sn_addr)
+    {
+        //连同CRC区域一起读出来，但实际上SN号里面不做CRC校验
+        djy_flash_read_crc(iboot_sn_addr, iboot_sn_buf, len);
+        if((iboot_sn_buf[0] == 0xff) && ((u8)time[0] != 0xff))
+        {   //iboot里没SN，程序里给出SN号，现在写SN
+            printf("write SN in iboot.\r\n");
+            memcpy(iboot_sn_buf, PRODUCT_PRODUCT_MODEL_CODE, sizeof(info->TypeCode));
+            memcpy(iboot_sn_buf + sizeof(info->TypeCode), time, time_len);
+            memcpy(iboot_sn_buf + sizeof(info->TypeCode) + time_len, num, num_len);
+
+//            flash_protection_op(0,FLASH_PROTECT_NONE);
+            djy_flash_write(iboot_sn_addr, iboot_sn_buf, len);
+//            flash_protection_op(0,FLASH_PROTECT_ALL);
+        }
+    }
+
+    free(iboot_sn_buf);
+    return true;
+}
+
+//----------------------------------------------------------------------------
+//功能: 读iboot中的指纹
+//参数: finger -- 存指纹缓冲区，len -- 缓冲区长度
+//返回: true: 成功； false ： 失败.
+//-----------------------------------------------------------------------------
+bool_t read_finger_from_iboot(s8 *finger, u32 buf_len)
+{
+    u32 iboot_sn_addr = 0, len;
+    struct ProductInfo *info;
+
+    len = sizeof(info->ProductionTime) + sizeof(info->ProductionNumber) + sizeof(info->TypeCode);
+
+     if(buf_len < len)
+     {
+         printk("finger buf len is error .\r\n");
+
+         return false;
+     }
+
+    iboot_sn_addr = (u32)(&gc_ProductSn) / 32 * 34;
+    if(iboot_sn_addr)
+    {
+        djy_flash_read_crc(iboot_sn_addr, finger, len);
+    }
+    else
+        return false;
+
+    return true;
+}
 
 
 //char ProductSN[DjyAppHead_SN_Len];
@@ -1008,7 +1093,7 @@ len_error:
 //==============================================================================
 u32 Iboot_GetAppHeadSize(void)
 {
-   return (u32)sizeof(struct AppHead);
+   return (u32)sizeof(struct AppHead) + sizeof(struct ProductInfo);
 }
 
 
@@ -1022,8 +1107,7 @@ bool_t XIP_AppFileCheckEasy(void * apphead)
     struct AppHead*  p_apphead = apphead;
     if(p_apphead->djy_flag[0]!='d' || \
        p_apphead->djy_flag[1]!='j' || \
-       p_apphead->djy_flag[2]!='y' ||\
-       p_apphead->app_head_size !=Iboot_GetAppHeadSize())
+       p_apphead->djy_flag[2]!='y')
     {
         return false;
     }
@@ -1321,27 +1405,33 @@ static bool_t Iboot_FillBoardName(char* board_name,char* buf,u8 maxlen)
 bool_t Iboot_SiIbootAppInfoInit()
 {
     bool_t PowerUp = false;
-    u8 hardflag = Get_Hardflag(POWER_ON_FLAG);
+    s8 flag = 1;
+    enum power_on_reset_flag hardflag = Get_Hard_flag_mode(&flag);
     switch (hardflag)
     {
-        case 0: //0=无此硬件
+        case RESET_FLAG_NO_HARD_FLAG:               //0=无此硬件
             if((Iboot_App_Info.previou_reset != PREVIOURESET_APP) && \
                (Iboot_App_Info.previou_reset != PREVIOURESET_IBOOT))
                 PowerUp = true;
             break;
-        case 1: break; //1=有此硬件，但无标志；
-        case 2: PowerUp = true;break; //2=有标志，阅后即焚；
-        case 3:
-            if(Get_Hardflag(POWER_ON_RESET) == 0)
+        case RESET_FLAG_NO_FLAG: break;             //1=有此硬件，没有上电复位标志；
+        case RESET_FLAG_FLAG_ONLY_READ_ONE:         //2=有标志，且自动清除
+//            if(flag == 0)
+//                PowerUp = true;
+//            break;
+        case RESET_FLAG_FLAG_READ_MANY:             //3=有标志，读后自动清除
+//            flag = Get_Hard_flag(POWER_ON_RESET);
+            if(flag)
                 PowerUp = true;
-            break; //3=有，非阅后即焚
+            break;
         default: //错误
             PowerUp = true;
             break;
     }
 #if (CFG_RUNMODE_BAREAPP == 0)
-    Iboot_GetIbootBulidTime(&Iboot_App_Info.iboot_build_year,&Iboot_App_Info.iboot_build_mon,&Iboot_App_Info.iboot_build_day,\
-    &Iboot_App_Info.iboot_build_hour,&Iboot_App_Info.iboot_build_min,&Iboot_App_Info.iboot_build_sec);
+    Iboot_GetIbootBulidTime(&Iboot_App_Info.iboot_build_year,&Iboot_App_Info.iboot_build_mon,
+            &Iboot_App_Info.iboot_build_day,&Iboot_App_Info.iboot_build_hour,
+            &Iboot_App_Info.iboot_build_min,&Iboot_App_Info.iboot_build_sec);
     Iboot_App_Info.iboot_ver_small = CFG_IBOOT_VERSION_SMALL;         //iboot 版本
     Iboot_App_Info.iboot_ver_medium = CFG_IBOOT_VERSION_MEDIUM;         //iboot 版本
     Iboot_App_Info.iboot_ver_large = CFG_IBOOT_VERSION_LARGE;         //iboot 版本
@@ -1350,7 +1440,7 @@ bool_t Iboot_SiIbootAppInfoInit()
     if(PowerUp == true)                        //上电复位初始化
     {
         Iboot_App_Info.previou_reset = 0;//复位前运行模式
-        Iboot_App_Info.runflag.heard_set_run_iboot   = 0;//硬件设置运行iboot
+        Iboot_App_Info.runflag.hard_set_run_iboot   = 0;//硬件设置运行iboot
         Iboot_App_Info.runflag.restart_run_iboot     = 0;//指示启动后运行Iboot
         Iboot_App_Info.runflag.restart_run_app       = 0;//指示启动后运行APP
         Iboot_App_Info.runflag.runmode_iboot         = 0;//当前运行模式是iboot
@@ -1370,14 +1460,14 @@ bool_t Iboot_SiIbootAppInfoInit()
         Iboot_App_Info.runflag.error_app_no_file     = 0;//没有这个文件或文件格式错误
         Iboot_App_Info.runflag.error_app_size        = 0;//app文件大小错误
         Iboot_App_Info.runflag.power_on_flag         = hardflag;//上电复位硬件标志0=无此硬件；1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
-        Iboot_App_Info.runflag.head_wdt_reset        = 0;//看门狗复位标志
+        Iboot_App_Info.runflag.hard_wdt_reset        = 0;//看门狗复位标志
         Iboot_App_Info.runflag.soft_reset_flag       = 0;//软件引起的内部复位
         Iboot_App_Info.runflag.reboot_flag           = 0;//CPU_Reboot 标志
-        Iboot_App_Info.runflag.head_reset_flag       = 0;//外部硬件复位标志
+        Iboot_App_Info.runflag.hard_reset_flag       = 0;//外部硬件复位标志
         Iboot_App_Info.runflag.restart_system_flag      = 0;//restart_system复位标志
         Iboot_App_Info.runflag.low_power_wakeup      = 0;//低功耗深度休眠中断唤醒标志
-        Iboot_App_Info.runflag.call_fun_resent       = 0;//1=内部复位/重启是主动调用相关函数引发的；0=异常重启
-        Iboot_App_Info.runflag.power_on_resent_flag  = 1;//上电复位标志，结合b18~19以及“上电标志”字判定
+        Iboot_App_Info.runflag.call_fun_reset       = 0;//1=内部复位/重启是主动调用相关函数引发的；0=异常重启
+        Iboot_App_Info.runflag.power_on_reset_flag  = 1;//上电复位标志，结合b18~19以及“上电标志”字判定
 
         Iboot_App_Info.reserved = 0;//保留
 #if (CFG_POWER_ON_RESET_TO_BOOT)
@@ -1388,16 +1478,16 @@ bool_t Iboot_SiIbootAppInfoInit()
     {
         Iboot_App_Info.runflag.error_app_no_file     = 0;//没有这个文件或文件格式错误
         Iboot_App_Info.runflag.power_on_flag = hardflag;
-        Iboot_App_Info.runflag.power_on_resent_flag  = 0;
-        if(Get_Hardflag(HEAD_RESET_FLAG))
-            Iboot_App_Info.runflag.head_reset_flag = 1;
+        Iboot_App_Info.runflag.power_on_reset_flag  = 0;
+        if(Get_Hard_flag(HARD_RESET_FLAG))
+            Iboot_App_Info.runflag.hard_reset_flag = 1;
         else
-            Iboot_App_Info.runflag.head_reset_flag = 0;
-        if(Get_Hardflag(HEAD_WDT_RESET))
-            Iboot_App_Info.runflag.head_wdt_reset = 1;
+            Iboot_App_Info.runflag.hard_reset_flag = 0;
+        if(Get_Hard_flag(HARD_WDT_RESET))
+            Iboot_App_Info.runflag.hard_wdt_reset = 1;
         else
-            Iboot_App_Info.runflag.head_wdt_reset = 0;
-        if(Get_Hardflag(LOW_POWER_WAKEUP))
+            Iboot_App_Info.runflag.hard_wdt_reset = 0;
+        if(Get_Hard_flag(LOW_POWER_WAKEUP))
             Iboot_App_Info.runflag.low_power_wakeup = 1;
         else
             Iboot_App_Info.runflag.low_power_wakeup = 0;
@@ -1428,7 +1518,7 @@ bool_t Iboot_SiIbootAppInfoInit()
 bool_t Iboot_ClearResetFlag()
 {
     Iboot_App_Info.runflag.soft_reset_flag = 0;
-    Iboot_App_Info.runflag.call_fun_resent = 0;//指令引起的复位
+    Iboot_App_Info.runflag.call_fun_reset = 0;//指令引起的复位
     return true;
 }
 
@@ -1454,7 +1544,7 @@ bool_t Iboot_SetAppVerFlag(u8 small, u8 medium, u8 large)
 //==============================================================================
 bool_t Iboot_SetSoftResetFlag()
 {
-    Iboot_App_Info.runflag.call_fun_resent = 1;
+    Iboot_App_Info.runflag.call_fun_reset = 1;
     Iboot_App_Info.runflag.soft_reset_flag = 1;
     Iboot_App_Info.runflag.reboot_flag = 0;
     Iboot_App_Info.runflag.restart_system_flag = 0;
@@ -1467,7 +1557,7 @@ bool_t Iboot_SetSoftResetFlag()
 //==============================================================================
 bool_t Iboot_SetRebootFlag()
 {
-    Iboot_App_Info.runflag.call_fun_resent = 1;
+    Iboot_App_Info.runflag.call_fun_reset = 1;
     Iboot_App_Info.runflag.reboot_flag = 1;
     Iboot_App_Info.runflag.restart_system_flag = 0;
     return true;
@@ -1479,7 +1569,7 @@ bool_t Iboot_SetRebootFlag()
 //==============================================================================
 bool_t Iboot_SetRestartAppFlag()
 {
-    Iboot_App_Info.runflag.call_fun_resent = 1;
+    Iboot_App_Info.runflag.call_fun_reset = 1;
     Iboot_App_Info.runflag.restart_system_flag = 1;
     return true;
 }
@@ -1491,7 +1581,7 @@ bool_t Iboot_SetRestartAppFlag()
 //==============================================================================
 bool_t Iboot_GetCallFunResent()
 {
-    if(Iboot_App_Info.runflag.call_fun_resent == 0)
+    if(Iboot_App_Info.runflag.call_fun_reset == 0)
         return true;
     else
         return false;
@@ -1540,7 +1630,7 @@ bool_t Iboot_GetRestartAppFlag()
 //==============================================================================
 bool_t Iboot_GetHeadResetFlag()
 {
-    if(Iboot_App_Info.runflag.head_reset_flag == 1)
+    if(Iboot_App_Info.runflag.hard_reset_flag == 1)
         return true;
     else
         return false;
@@ -1575,7 +1665,7 @@ char Iboot_GetPowerOnFlag(void)
 //==============================================================================
 bool_t Iboot_GetHeadWdtReset(void)
 {
-    if(Iboot_App_Info.runflag.head_wdt_reset == 1)
+    if(Iboot_App_Info.runflag.hard_wdt_reset == 1)
         return true;
     else
         return false;
@@ -1585,32 +1675,23 @@ bool_t Iboot_GetHeadWdtReset(void)
 //==============================================================================
 //功能：填待升级文件路径到交互信息
 //参数：AppPath -- 待升级的app路径；
-//返回： true/false
+//返回： true/false/
+//原名 ： Iboot_FillMutualUpdatePath
 //==============================================================================
-bool_t Iboot_FillMutualUpdatePath(char* Path, int len)
+bool_t set_upgrade_info(char* info, int len)
 {
 //    u8 i;
 
-    if(len > (int)sizeof(Iboot_App_Info.update_path))
+    if(len > (int)sizeof(Iboot_App_Info.up_info))
     {
         error_printf("IAP"," len exceed MutualPathLen.\r\n");
         return false;
     }
-    memset(Iboot_App_Info.update_path, 0, MutualPathLen);
-    memcpy(Iboot_App_Info.update_path, Path, len);
-//    for(i=0; i<len; i++)
-//    {
-//        if(*Path != 0)
-//            Iboot_App_Info.update_path[i] = *Path++;
-//        else
-//        {
-//            Iboot_App_Info.update_path[i] = *Path++;
-//            break;
-//        }
-//    }
+    memset(Iboot_App_Info.up_info.info, 0, MutualPathLen);
+    memcpy(Iboot_App_Info.up_info.info, info, len);
     if(len == MutualPathLen)
     {
-        Iboot_App_Info.update_path[MutualPathLen-1] = 0;
+        Iboot_App_Info.up_info.info[MutualPathLen-1] = 0;
         return false;
     }
     return true;
@@ -1624,15 +1705,15 @@ bool_t Iboot_FillMutualUpdatePath(char* Path, int len)
 //=============================================================================
 bool_t Run_Iboot(enum runibootmode mode)
 {
-    Iboot_App_Info.runflag.heard_set_run_iboot  = 0;
+    Iboot_App_Info.runflag.hard_set_run_iboot  = 0;
     Iboot_App_Info.runflag.restart_run_iboot    = 0;
 //    Iboot_App_Info.runflag.reboot_flag    = 0;
     Iboot_App_Info.runflag.runmode_iboot =1;
     Iboot_App_Info.runflag.runmode_app   =0;
     switch(mode)
     {
-        case HEARD_SET_RUN_IBOOT :
-            Iboot_App_Info.runflag.heard_set_run_iboot  = 1;
+        case HARD_SET_RUN_IBOOT :
+            Iboot_App_Info.runflag.hard_set_run_iboot  = 1;
             break;
         case RAM_SET_RUN_IBOOT   :
 //            Iboot_App_Info.runflag.reboot_flag    = 1;
@@ -1701,7 +1782,7 @@ static bool_t __RunApp(void * apphead)
 //==============================================================================
 bool_t Run_App(enum runappmode mode)
 {
-    Iboot_App_Info.runflag.heard_set_run_iboot  = 0;
+    Iboot_App_Info.runflag.hard_set_run_iboot  = 0;
 
     switch (mode)
     {
@@ -1814,10 +1895,8 @@ bool_t Iboot_SetRunAppUpdateIboot()
 //参数：升级程序来源0文件 1——3待定义
 //返回值：true
 //==============================================================================
-bool_t Iboot_SetUpdateSource(char *param)
+bool_t Iboot_SetUpdateSource(enum update_source source)
 {
-    int source;
-    source = atoi(param);
     Iboot_App_Info.runflag.update_from = (u32)source;
     return true;
 }
@@ -1827,9 +1906,9 @@ bool_t Iboot_SetUpdateSource(char *param)
 //参数：无
 //返回值：升级程序来源0文件 1——3待定义
 //==============================================================================
-u32 Iboot_GetUpdateSource(void)
+enum update_source Iboot_GetUpdateSource(void)
 {
-     return Iboot_App_Info.runflag.update_from;
+     return (enum update_source)Iboot_App_Info.runflag.update_from;
 }
 //==============================================================================
 //功能：清除运行app并更新iboot标志
@@ -1903,7 +1982,7 @@ char Iboot_GetLastRunMode(void)
 //==============================================================================
 bool_t Iboot_GetHeardSetRunIboot(void)
 {
-    if(Iboot_App_Info.runflag.heard_set_run_iboot == 1)
+    if(Iboot_App_Info.runflag.hard_set_run_iboot == 1)
         return true;
     else
         return false;
@@ -1916,10 +1995,10 @@ bool_t Iboot_GetHeardSetRunIboot(void)
 bool_t Iboot_GetMutualUpdatePath(char *buf, u32 buf_len)
 {
     u32 len;
-    len = sizeof(Iboot_App_Info.update_path);
+    len = sizeof(Iboot_App_Info.up_info);
     if(buf_len >= len)
     {
-        memcpy(buf, Iboot_App_Info.update_path, len);
+        memcpy(buf, Iboot_App_Info.up_info.info, len);
         return true;
     }
     else
@@ -2063,7 +2142,7 @@ void Iboot_GetAppInfo(struct IbootAppInfo *get_info)
 //==============================================================================
 bool_t Iboot_GetPowerOnResentFlag(void)
 {
-    if(Iboot_App_Info.runflag.power_on_resent_flag == 1)
+    if(Iboot_App_Info.runflag.power_on_reset_flag == 1)
         return true;
     else
         return false;
@@ -2072,7 +2151,7 @@ bool_t Iboot_GetPowerOnResentFlag(void)
 static bool_t Iboot_IAP_Mode( )
 {
 #if (CFG_RUNMODE_BAREAPP == 0)
-    if(Iboot_App_Info.runflag.heard_set_run_iboot)
+    if(Iboot_App_Info.runflag.hard_set_run_iboot)
         printf( "硬件件设置运行iboot\n\r");
     if(Iboot_App_Info.runflag.restart_run_iboot)
         printf( "指示启动后运行Iboot   \r\n");
@@ -2106,21 +2185,21 @@ static bool_t Iboot_IAP_Mode( )
         printf( "App文件大小错误   \r\n");
 #endif
      //上电复位硬件标志0=无此硬件；1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
-    if(Iboot_App_Info.runflag.head_wdt_reset)
+    if(Iboot_App_Info.runflag.hard_wdt_reset)
         printf( "看门狗复位 \r\n");
     //看门狗复位标志
     if(Iboot_App_Info.runflag.soft_reset_flag)
         printf( "软件引起的内部复位 \r\n");
     if(Iboot_App_Info.runflag.reboot_flag)
         printf( "reboot 标志 \r\n");
-    if(Iboot_App_Info.runflag.head_reset_flag)
+    if(Iboot_App_Info.runflag.hard_reset_flag)
         printf( "外部硬件复位标志 \r\n");
 
     if(Iboot_App_Info.runflag.low_power_wakeup)
         printf( "低功耗深度休眠中断唤醒标志 \r\n");
-    if(Iboot_App_Info.runflag.call_fun_resent)
+    if(Iboot_App_Info.runflag.call_fun_reset)
         printf( "1=内部复位/重启是主动调用相关函数引发的；0=异常重启 \r\n");
-    if(Iboot_App_Info.runflag.power_on_resent_flag )
+    if(Iboot_App_Info.runflag.power_on_reset_flag )
         printf( "上电复位标志 \r\n");
 
     return true;
@@ -2128,7 +2207,7 @@ static bool_t Iboot_IAP_Mode( )
 #if (CFG_RUNMODE_BAREAPP == 0)
 ADD_TO_ROUTINE_SHELL(ibootinfo,ibootinfo,NULL);
 ADD_TO_ROUTINE_SHELL(appinfo,appinfo,NULL);
-ADD_TO_ROUTINE_SHELL(filesource,Iboot_SetUpdateSource,NULL);
+//ADD_TO_ROUTINE_SHELL(filesource,Iboot_SetUpdateSource,NULL);
 #endif      //for (CFG_RUNMODE_BAREAPP == 0)
 ADD_TO_ROUTINE_SHELL(iapmode,Iboot_IAP_Mode,NULL);
 
