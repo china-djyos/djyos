@@ -46,17 +46,24 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
+#include <typedef.h>
 #include <stdlib.h>
 #include <device.h>
+#include <sys_config.h>
+#include <sys_ctrl_pub.h>
+#include <djyos.h>
 #include <fat/port/drivers/fat_drivers.h>
 #include <fat/ff11/src/diskio.h>
 #include <sdcard/sdcard.h>
 #include <sdcard/sdio_driver.h>
+#include <gpio_pub.h>
+#include "cpu_peri.h"
 #include <dbug.h>
 #include <djyfs/filesystems.h>
 #include <string.h>
-#include <gpio_pub.h>
-#include "cpu_peri.h"
+#include <filesystems.h>
+#include <sdcard/sdio_driver.h>
+#include "project_config.h"
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
@@ -109,6 +116,8 @@ int SDCARD_Initialize(void);
 int SDCARD_Read(BYTE *Buff, DWORD Sector, UINT Count);
 int SDCARD_Write(BYTE *Buff, DWORD Sector, UINT Count);
 int SDCARD_Ioctl( BYTE Cmd, void *Buff);
+extern UINT32 sddev_control(char *dev_name, UINT32 cmd, VOID *param);
+extern void sdcard_uninitialize(void);
 
 static uint16_t evtt_sd_install;
 static uint16_t evtt_sd_uninstall;
@@ -543,4 +552,99 @@ int ModuleInstall_SDCARD(void)
     djy_gpio_irq_enable(GPIO12, 1);
 
     return 1;
+}
+
+// =============================================================================
+// 功能：    开sd卡电源，
+// 参数：    无
+// 返回：无
+// =============================================================================
+void sdcard_power_on(void)
+{
+    u32 param;
+    param = BLK_BIT_MIC_QSPI_RAM_OR_FLASH;                 //先使能电源
+    sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_ENABLE, &param);
+//    param = QSPI_IO_3_3V;
+//    sddev_control(SCTRL_DEV_NAME, CMD_QSPI_IO_VOLTAGE, &param);
+    param = PSRAM_VDD_3_3V_DEF;
+    sddev_control(SCTRL_DEV_NAME, CMD_QSPI_VDDRAM_VOLTAGE, &param);    //再设置电压
+}
+// =============================================================================
+// 功能：    关sd卡电源，
+// 参数：    无
+// 返回：无
+// =============================================================================
+void sdcard_power_off(void)
+{
+    u32 param;
+
+    sdcard_uninitialize();
+
+    param = BLK_BIT_MIC_QSPI_RAM_OR_FLASH;
+    sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_DISABLE, &param);
+//    param = QSPI_IO_1_8V;
+//    sddev_control(SCTRL_DEV_NAME, CMD_QSPI_IO_VOLTAGE, &param);
+    param = PSRAM_VDD_1_8V;
+    sddev_control(SCTRL_DEV_NAME, CMD_QSPI_VDDRAM_VOLTAGE, &param);
+}
+// =============================================================================
+// 功能：    掉电复位sd卡
+// 参数：    无
+// 返回：无
+// =============================================================================
+void pwoer_off_sdcard_reset(void)
+{
+    sdcard_power_off();
+    DJY_EventDelay(3000*1000);
+    sdcard_power_on();
+    DJY_EventDelay(2000*1000);
+}
+
+// =============================================================================
+// 功能： 软件复位SD卡，并且安装好fat文件系统
+// 参数：    无
+// 返回：无
+// =============================================================================
+bool_t soft_sdcard_reset(void)
+{
+    atom_high_t atom;
+    bool_t ret = false;
+    u32 len = strlen(CFG_FAT_MOUNT_POINT);
+    s8 *path = malloc(len + 1);
+    if(path)
+    {
+        sprintf(path,"%s%s", "/", CFG_FAT_MOUNT_POINT);
+        OBJ_SetPwd("/");    //卸载SD卡
+        UnfileSystem_FAT(path);
+        UninstallDevSdcard();
+        DJY_EventDelay(20*1000);
+        sdcard_uninitialize();
+
+        atom = Int_HighAtomStart();
+    //            sdcard_power_off();
+    //            Djy_DelayUs(500 * 1000);
+    //            sdcard_power_on();
+        DJY_DelayUs(200 * 1000);
+
+        if(!get_sdcard_is_ready())  //重新安装SD卡
+        {
+            if(sdcard_initialize() != SD_OK)
+            {
+                printf("SD initialize fail.\r\n");
+                Int_HighAtomEnd(atom);
+                free(path);
+                return ret;
+            }
+        }
+        if(OBJ_SearchChild(OBJ_GetRoot(), CFG_FAT_MOUNT_POINT) == NULL)
+            ModuleInstall_FAT(CFG_FAT_MOUNT_POINT, CFG_FAT_MS_INSTALLUSE, CFG_FAT_MEDIA_KIND);
+        if(InstallDevSdcard(CFG_FAT_MOUNT_POINT) == 0)
+        {
+            ret = true;
+        }
+        Int_HighAtomEnd(atom);
+        free(path);
+    }
+
+    return ret;
 }
