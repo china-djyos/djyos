@@ -866,7 +866,7 @@ struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param)
     if(uart_dev == NULL)
         goto exit_from_add_device;
 
-        info_printf("device","%s initialized in general mode.", Param->Name);
+    info_printf("device","%s initialized in general mode.", Param->Name);
     return (UGCB);
 
     //如果出现错误，则释放创建的资源，并返回空指针

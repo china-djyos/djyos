@@ -639,8 +639,6 @@ static ptu32_t Wdt_Service(void)
     tagWdt        *wdt;
     u32           waittime;
     tagWdtMsg     wdtmsg;
-    //将硬件狗从裸狗中接管过来
-//  WdtHal_BootEnd();
     // deal all the msg cached in the msgbox
     timenow = DJY_GetSysTime();
     while(MsgQ_Receive(ptWdtMsgBox,(u8 *)&wdtmsg,sizeof(tagWdtMsg),0))
@@ -847,7 +845,7 @@ tagWdt *Wdt_Create_s(tagWdt *wdt, char *dogname,u32 yip_cycle,
 }
 
 // =============================================================================
-// 函数功能：获取看门狗控制卡
+// 函数功能：获取看门狗控制块指针
 // 输入参数:wat_name：想获取的看门狗名字
 // 输出参数：NULL：未找到指定看门狗，其它：找到看门狗的地址
 // 返回值  ：true成功，false失败

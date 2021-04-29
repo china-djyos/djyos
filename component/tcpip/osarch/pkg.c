@@ -479,25 +479,25 @@ bool_t PkgModuleInit(void)
         error_printf("pkg","%s:create memory sync failed\r\n",__FUNCTION__);
         goto EXIT_SYNC;
     }
-    pPkgMemSrc = net_malloc(CFG_NETPKG_MEMSIZE);
-    if(NULL == pPkgMemSrc)
-    {
-        error_printf("pkg","%s:create memory block failed\r\n",__FUNCTION__);
-        goto EXIT_MEM;
-    }
-    pkg_heap_control = __PkgMenInit(pPkgMemSrc,CFG_NETPKG_MEMSIZE);
-    if(pkg_heap_control == NULL)
-    {
-        error_printf("pkg","%s:create memory block failed\r\n",__FUNCTION__);
-        goto EXIT_MEM;
-    }
+//    pPkgMemSrc = net_malloc(CFG_NETPKG_MEMSIZE);
+//    if(NULL == pPkgMemSrc)
+//    {
+//        error_printf("pkg","%s:create memory block failed\r\n",__FUNCTION__);
+//        goto EXIT_MEM;
+//    }
+//    pkg_heap_control = __PkgMenInit(pPkgMemSrc,CFG_NETPKG_MEMSIZE);
+//    if(pkg_heap_control == NULL)
+//    {
+//        error_printf("pkg","%s:create memory block failed\r\n",__FUNCTION__);
+//        goto EXIT_MEM;
+//    }
 
     result = true;
     return result;
 
-EXIT_MEM:
-    Lock_MutexDelete_s(pPkgQueLock);
-    pPkgQueLock = NULL;
+//EXIT_MEM:
+//    Lock_MutexDelete_s(pPkgQueLock);
+//    pPkgQueLock = NULL;
 EXIT_SYNC:
     result = false;
     return result;
