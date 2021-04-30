@@ -290,7 +290,3 @@ HWND Widget_CreateButton(  const char *Text,u32 Style,
     return pGddWin;
 }
 
-
-
-
-

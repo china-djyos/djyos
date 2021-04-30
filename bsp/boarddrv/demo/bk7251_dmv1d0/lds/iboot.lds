@@ -1,19 +1,12 @@
-ENTRY(AppStart);
+ENTRY(isr_vector);
 INCLUDE  ../src/lds/memory.lds
 
 SECTIONS
 {
-    Iboot_IbootFill :
+    Rom_Start :
     {
-        gc_IbootStart = .;
-    }>flash_app
-
-    Iboot_Apphead :
-    {
-        gc_AppStart = .;
-        KEEP(*(.DjyAppHead .DjyAppHead.*))
-        KEEP(*(.DjyProductInfo .DjyProductInfo.*))
-    }>flash_app
+        restore = .;
+    }>flash_iboot
 
     /*share_rRAM1_lRAM1段保存的是Iboot和APP共享信息，必须确保在同一地址，*/
     /*故在memory.lds中定义了一段指定地址的内存*/
@@ -35,23 +28,14 @@ SECTIONS
         msp_top = .;
     }>ram
 
-    /* vectors go to vectors region */
-    /*. = ORIGIN(flash_app);*/
     .vectors :
     {
-        KEEP(*(*.text.AppStart))
+        KEEP(*(*.vectors))
         . = ALIGN(4);
          KEEP(*initcpu.o(.text .text.* .rodata .rodata.*))
          KEEP(*pre_loader.o(.text .text.* .rodata .rodata.*))
          . = ALIGN(0x10);
-    } > flash_app
-
-    wifi_lib :
-    {
-        . = ALIGN(0x08);
-        *librwnx.a* (.text .text.* .rodata .rodata.*)
-        . = ALIGN(0x08);
-    } > flash_app
+    } > flash_iboot
 
     text_preload_rIbootRom_lIbootRom :
     {
@@ -66,14 +50,14 @@ SECTIONS
         *heap-static.o (.text .text.* .rodata .rodata.*)
         *list.o (.text .text.* .rodata .rodata.*)
         . = ALIGN(0x08);
-    }>flash_app
+    }>flash_iboot
 
     test_debug :
     {
         . = ALIGN(0x08);
         KEEP(*(*.test_debug))
         . = ALIGN(0x08);
-    }>ram AT>flash_app
+    }>ram AT>flash_iboot
 
     text_sysload_rIbootRom_lIbootRom :
     {
@@ -81,7 +65,7 @@ SECTIONS
         * (.text .text.* .rodata .rodata.* )
         g_pAppCodeEndRamAddr = .;
         . = ALIGN(0x08);
-    }>flash_app
+    }>flash_iboot
 
     rw_preload_rRAM1_lIbootRom :
     {
@@ -95,7 +79,7 @@ SECTIONS
         *heap-static.o (.data .data.*)
         *list.o (.data .data.*)
         . = ALIGN(0x08);
-    }>ram AT>flash_app
+    }>ram AT>flash_iboot
 
     zi_preload_rRAM1_lRAM1 (NOLOAD) :
     {
@@ -117,7 +101,7 @@ SECTIONS
         . = ALIGN(0x4) ;
         * (.data .data.*)
         . = ALIGN(0x4) ;
-    }>ram AT>flash_app
+    }>ram AT>flash_iboot
 
     zi_sysload_rRAM1_lRAM1 (NOLOAD) :
     {
@@ -126,22 +110,15 @@ SECTIONS
         . = ALIGN(0x4) ;
     }>ram
 
-    lcdbuffer (NOLOAD) :
-    {
-        . = ALIGN(0x04);
-        * (.lcdram)
-        . = ALIGN(0x4) ;
-    }>sdram
-
-     routine_shell_data_section :
+    routine_shell_data_section :
     {
         KEEP(* (.ro_shell_data))
-     }>ram AT>flash_app
+     }>ram AT>flash_iboot
 
     expand_shell_data_section :
     {
          KEEP(* (.ex_shell_data))
-     }>ram AT>flash_app
+     }>ram AT>flash_iboot
 
     preload_cp_table :
     {
@@ -180,7 +157,7 @@ SECTIONS
         LONG(ADDR(zi_preload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_preload_rRAM1_lRAM1))
         LONG(0)
-    }>flash_app
+    }>flash_iboot
 
     sysload_cp_table :
     {
@@ -203,7 +180,7 @@ SECTIONS
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
-    }>flash_app
+    }>flash_iboot
 
     heap_rRAM_lRAM (NOLOAD) :
     {
@@ -273,13 +250,13 @@ SECTIONS
 
         . = ALIGN(0x04);
         LONG(0)                     /*结束标志*/
-    }>flash_app
+    }>flash_iboot
 
     Iboot_Info :
     {
         gc_ptIbootSize = .;
         LONG(IbootSize)
-    }>flash_app
+    }>flash_iboot
 
     App_Info :
     {
@@ -288,30 +265,50 @@ SECTIONS
         LONG(IbootSize)
         gc_pAppRange = .;           /* APP空间范围 */
         LONG(LENGTH(flash_app))
-    }>flash_app
+    }>flash_iboot
+
+   Iboot_AppInfo :
+    {
+       /* . = restore + IbootSize;*/
+        gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
+        LONG( restore + IbootSize)
+        . += 256;
+        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */
+        LONG( restore + IbootSize + 256)
+        . += 256;
+        gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址*/
+        LONG( restore + IbootSize + 256 + 256)
+        __AppStart = .;           /*函数指针变量，指向APP的Preload函数*/
+        LONG( restore + IbootSize + 256 + 256)
+    }>flash_iboot
+
 
 
     shell_config_section :
     {
         KEEP(*(.shellconfig))
-    }>flash_app
+    }>flash_iboot
 
     routine_shell_section :
     {
         KEEP(* (.ro_shell_cmd))
-    }>flash_app
+    }>flash_iboot
 
     expand_shell_section :
     {
          KEEP(* (.ex_shell_cmd))
           . = ALIGN(0x08);
-    }>flash_app
+    }>flash_iboot
 
     Shell_Info :
     {
         p_shell_info = .;
-        LONG(gc_AppStart) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG(LENGTH(flash_app) + gc_AppStart) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-    }>flash_app
+        LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
+        LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
+    }>flash_iboot
 
+    product_sn :
+    {
+        gc_ProductSn = .;
+    }>flash_sn
 }

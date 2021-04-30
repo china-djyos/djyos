@@ -106,13 +106,13 @@
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯
 //@#$%component end configure
 
-extern bool_t flash_is_install(void);
+//extern bool_t flash_is_install(void);
 //extern void djy_flash_read(uint32_t address, void *data, uint32_t size);
-extern void djy_flash_write(uint32_t address, const void *data, uint32_t size);
-extern void djy_flash_erase(uint32_t address);
-extern s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...);
+//extern void djy_flash_write(uint32_t address, const void *data, uint32_t size);
+//extern void djy_flash_erase(uint32_t address);
+//extern s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...);
 extern s32 EmbFsInstallInit(const char *fs, s32 dwStart, s32 dwEnd,void *mediadrv);
-extern void djy_flash_read_crc(uint32_t address, void *data, uint32_t size);
+//extern void djy_flash_read_crc(uint32_t address, void *data, uint32_t size);
 
 extern void flash_protection_op(UINT8 mode, PROTECT_TYPE type);
 

@@ -41,74 +41,41 @@
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
-//-----------------------------------------------------------------------------
-//所属模块: BSP模块
-//作者:  罗侍田.
-//版本：V1.0.0
-//文件描述: 板件特性配置文件。
-//        CPU型号:STM32F103ZE
-//        板件型号:QH_1
-//        生产企业:爱好者团体
-//其他说明:
-//修订历史:
-//2. ...
-//1. 日期: 2009-10-31
-//   作者:  罗侍田.
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
 //------------------------------------------------------
-#ifndef __BOARD_CONFIG_H__
-#define __BOARD_CONFIG_H__
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-#ifdef __cplusplus
-extern "C" {
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"user audio buf"//
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:userlib                 //选填“third、system、bsp、userlib”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:later               //初始化时机，可选值：early，medium，later, pre-main。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"ring buffer and line buffer","lock"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_AUDIO_BUF == false )
+//#warning  " myname 组件参数未配置，使用默认配置"
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#define CFG_MODULE_ENABLE_AUDIO_BUF    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+//%$#@select
+//%$#@free,
 #endif
-//#include "dd_pub.h"
-
-#define Mhz 1000000
-#define CN_CFG_MCLK (180*Mhz)  //主频，内核要用，必须定义
-#define CN_CFG_FCLK CN_CFG_MCLK  //cm7自由运行外设时钟
-#define BOARD_MCK   (CN_CFG_MCLK/2) //的MCK
-
-#define SYSCLK_DIV  RCC_SYSCLK_DIV1
-#define AHB1_DIV RCC_HCLK_DIV4
-#define CN_CFG_PCLK1  (CN_CFG_MCLK/4)
-
-#define AHB2_DIV RCC_HCLK_DIV2
-#define CN_CFG_PCLK2  (CN_CFG_MCLK/2)
-
-#define CN_CFG_LSE (32768)
-#define CN_CFG_HSE (26*Mhz)
-
-/*____以下定义tick参数____*/
-#define CN_CFG_TICK_US 10000  //tick间隔，以us为单位。
-#define CN_CFG_TICK_HZ 100  //内核时钟频率，单位为hz。
-//#define CN_USE_TICKLESS_MODE    (0U)
-
-#define CN_CFG_FINE_US 0x00009d9  //1/26M,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
-#define CN_CFG_FINE_HZ CN_CFG_MCLK  //tick输入时钟频率，是CN_CFG_FINE_US的倒数
-
-//CPU架构相关配置,可选或者可能可选的才在这里配置,例如大小端,是可选的,在这里配置,
-//而CPU字长固定,故字长在BSP的arch.h文件中定义
-//存储器大小端的配置
-#define CN_CFG_LITTLE_ENDIAN        0
-#define CN_CFG_BIG_ENDIAN           1
-#define CN_CFG_BYTE_ORDER          CN_CFG_LITTLE_ENDIAN
-
-#define BOARD_GMAC_PHY_ADDR        1
-#define MAX_PIO_INTERRUPT_SOURCES  5
-
-
-#define CN_LCD_XSIZE   ((uint16_t)1024)             /* LCD PIXEL WIDTH */
-#define CN_LCD_YSIZE   ((uint16_t)600)             /* LCD PIXEL HEIGHT*/
-
-#define CN_CAN_NUM                    1
-
-#define DJY_BOARD       "BK7251Demo"
-#ifdef __cplusplus
-}
-#endif
-#endif // __CPU_OPTIONAL_H__
-
-
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
 

@@ -61,7 +61,7 @@ static DD_OPERATIONS flash_op =
 static void flash_get_current_flash_config(void)
 {
     int i;
-	
+
     for(i = 0; i < (sizeof(flash_config) / sizeof(flash_config_t) - 1); i++)
     {
         if(flash_id == flash_config[i].flash_id)
@@ -70,11 +70,11 @@ static void flash_get_current_flash_config(void)
             break;
         }
     }
-	
+
     if(i == (sizeof(flash_config) / sizeof(flash_config_t) - 1))
     {
         flash_current_config = &flash_config[i];
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
         os_printf("don't config this flash, choose default config\r\n");
 #endif
     }
@@ -111,9 +111,9 @@ static void flash_write_disable(void)
 
 static UINT16 flash_read_sr(UINT8 sr_width)
 {
-	UINT16 sr;
+    UINT16 sr;
     UINT32 value;
-	
+
     while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
 
     value = (FLASH_OPCODE_RDSR << OP_TYPE_SW_POSI) | OP_SW | WP_VALUE;
@@ -122,19 +122,19 @@ static UINT16 flash_read_sr(UINT8 sr_width)
 
     value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
     sr = value & 0x00FF;
-	
-	if(sr_width == 2)
-	{
-	    value = (FLASH_OPCODE_RDSR2 << OP_TYPE_SW_POSI) | OP_SW | WP_VALUE;
-	    REG_WRITE(REG_FLASH_OPERATE_SW, value);
-	    while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
 
-	    value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
-	    sr |= (value & 0x00FF) << 8;
-	}
-	
-	//os_printf("--read sr:%x--\r\n",sr);
-	
+    if(sr_width == 2)
+    {
+        value = (FLASH_OPCODE_RDSR2 << OP_TYPE_SW_POSI) | OP_SW | WP_VALUE;
+        REG_WRITE(REG_FLASH_OPERATE_SW, value);
+        while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
+
+        value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
+        sr |= (value & 0x00FF) << 8;
+    }
+
+    //os_printf("--read sr:%x--\r\n",sr);
+
     return sr;
 }
 
@@ -147,7 +147,7 @@ static void flash_write_sr(UINT8 sr_width,  UINT16 val)
     value &= ~(WRSR_DATA_MASK << WRSR_DATA_POSI);
 
     value |= (val << WRSR_DATA_POSI);
-    
+
     REG_WRITE(REG_FLASH_CONF, value);
     while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
 
@@ -206,7 +206,7 @@ static void flash_set_qe(void)
     REG_WRITE(REG_FLASH_CONF, value);
 
     value = REG_READ(REG_FLASH_OPERATE_SW);
-    
+
     if(1 == flash_current_config->sr_size)
     {
         value = (value & (ADDR_SW_REG_MASK << ADDR_SW_REG_POSI))
@@ -278,7 +278,7 @@ UINT8 flash_get_line_mode(void)
 void flash_set_line_mode(UINT8 mode)
 {
     UINT32 value;
-    
+
     if(1 == mode)
     {
         flash_clr_qwfr();
@@ -297,7 +297,7 @@ void flash_set_line_mode(UINT8 mode)
         value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
         value &= ~(M_VALUE_MASK << M_VALUE_POST);
         value |= (flash_current_config->m_value<< M_VALUE_POST);
-        
+
         REG_WRITE(REG_FLASH_SR_DATA_CRC_CNT, value);
 
         value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
@@ -320,7 +320,7 @@ static UINT32 flash_get_id(void)
 
     while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
 
-	flash_id = REG_READ(REG_FLASH_RDID_DATA_FLASH);
+    flash_id = REG_READ(REG_FLASH_RDID_DATA_FLASH);
     return flash_id;
 }
 
@@ -346,85 +346,85 @@ static UINT32 flash_read_mid(void)
 
 PROTECT_TYPE get_flash_protect(void)
 {
-	UINT16 sr_value, cmp, param, value, type;
+    UINT16 sr_value, cmp, param, value, type;
 
-	sr_value = flash_read_sr(flash_current_config->sr_size);
-	param = (sr_value >> flash_current_config->protect_post) & flash_current_config->protect_mask;
-	cmp = (sr_value >> flash_current_config->cmp_post) & 0x01;
-	value = (cmp << 8) | param;
-	
-	if(value == flash_current_config->protect_all)
-	{
-		type = FLASH_PROTECT_ALL;
-	}
-	else if(value == flash_current_config->protect_none)
-	{
-		type = FLASH_PROTECT_NONE;
-	}
-	else if(value == flash_current_config->protect_half)
-	{
-		type = FLASH_PROTECT_HALF;
-	}
-	else if(value == flash_current_config->unprotect_last_block)
-	{
-		type = FLASH_UNPROTECT_LAST_BLOCK;
-	}
-	else
-	{
-		type = -1;
-	}
+    sr_value = flash_read_sr(flash_current_config->sr_size);
+    param = (sr_value >> flash_current_config->protect_post) & flash_current_config->protect_mask;
+    cmp = (sr_value >> flash_current_config->cmp_post) & 0x01;
+    value = (cmp << 8) | param;
 
-	return type;
+    if(value == flash_current_config->protect_all)
+    {
+        type = FLASH_PROTECT_ALL;
+    }
+    else if(value == flash_current_config->protect_none)
+    {
+        type = FLASH_PROTECT_NONE;
+    }
+    else if(value == flash_current_config->protect_half)
+    {
+        type = FLASH_PROTECT_HALF;
+    }
+    else if(value == flash_current_config->unprotect_last_block)
+    {
+        type = FLASH_UNPROTECT_LAST_BLOCK;
+    }
+    else
+    {
+        type = -1;
+    }
+
+    return type;
 }
 
 static void set_flash_protect(PROTECT_TYPE type)
 {
     UINT32 param, value, cmp;
-	
-	switch (type)
-	{
-		case FLASH_PROTECT_NONE:
+
+    switch (type)
+    {
+        case FLASH_PROTECT_NONE:
             param = flash_current_config->protect_none & 0xff;
             cmp = (flash_current_config->protect_none >> 8) & 0xff;
             break;
-            
-		case FLASH_PROTECT_ALL:
-			param = flash_current_config->protect_all & 0xff;
-			cmp = (flash_current_config->protect_all >> 8) & 0xff;
-			break;
+
+        case FLASH_PROTECT_ALL:
+            param = flash_current_config->protect_all & 0xff;
+            cmp = (flash_current_config->protect_all >> 8) & 0xff;
+            break;
 
         case FLASH_PROTECT_HALF:
-			param = flash_current_config->protect_half & 0xff;
-			cmp = (flash_current_config->protect_half >> 8) & 0xff;
-			break;
+            param = flash_current_config->protect_half & 0xff;
+            cmp = (flash_current_config->protect_half >> 8) & 0xff;
+            break;
 
         case FLASH_UNPROTECT_LAST_BLOCK:
-			param = flash_current_config->unprotect_last_block& 0xff;
-			cmp = (flash_current_config->unprotect_last_block >> 8) & 0xff;
-			break;
-			
-		default:
-			param = flash_current_config->protect_all & 0xff;
+            param = flash_current_config->unprotect_last_block& 0xff;
+            cmp = (flash_current_config->unprotect_last_block >> 8) & 0xff;
+            break;
+
+        default:
+            param = flash_current_config->protect_all & 0xff;
             cmp = (flash_current_config->protect_all >> 8) & 0xff;
-			break;
-	}
-    
+            break;
+    }
+
     value = flash_read_sr(flash_current_config->sr_size);
 
-	if(((param << flash_current_config->protect_post) != 
+    if(((param << flash_current_config->protect_post) !=
         (value & (flash_current_config->protect_mask << flash_current_config->protect_post)))
         || ((cmp << flash_current_config->cmp_post) !=
         (value & (0x01 << flash_current_config->cmp_post))))
-	{
-        value = (value & (~(flash_current_config->protect_mask 
-			            << flash_current_config->protect_post))) 
-			            | (param << flash_current_config->protect_post);
-		value &= ~(1 << flash_current_config->cmp_post);
-		value |= ((cmp & 0x01) << flash_current_config->cmp_post);
-		
-		os_printf("--write status reg:%x,%x--\r\n", value, flash_current_config->sr_size);
-		flash_write_sr(flash_current_config->sr_size, value);
-	}
+    {
+        value = (value & (~(flash_current_config->protect_mask
+                        << flash_current_config->protect_post)))
+                        | (param << flash_current_config->protect_post);
+        value &= ~(1 << flash_current_config->cmp_post);
+        value |= ((cmp & 0x01) << flash_current_config->cmp_post);
+
+        os_printf("--write status reg:%x,%x--\r\n", value, flash_current_config->sr_size);
+        flash_write_sr(flash_current_config->sr_size, value);
+    }
 }
 
 static void flash_erase_sector(UINT32 address)
@@ -565,7 +565,7 @@ static void flash_write_data(UINT8 *buffer, UINT32 address, UINT32 len)
 
 void flash_protection_op(UINT8 mode, PROTECT_TYPE type)
 {
-	set_flash_protect(type);
+    set_flash_protect(type);
 }
 
 void flash_init(void)
@@ -573,21 +573,21 @@ void flash_init(void)
     UINT32 id;
 
     while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
-	
+
     id = flash_get_id();
-#if (!CFG_SUPPORT_DJYOS)	//CK	
+#if (!CFG_SUPPORT_DJYOS)    //CK
     FLASH_PRT("[Flash]id:0x%x\r\n", id);
 #endif
     flash_get_current_flash_config();
-	
-	set_flash_protect(FLASH_UNPROTECT_LAST_BLOCK);
-	
+
+    set_flash_protect(FLASH_UNPROTECT_LAST_BLOCK);
+
     flash_set_line_mode(flash_current_config->line_mode);
-      
+
     flash_set_clk(5);  // 60M
 
     ddev_register_dev(FLASH_DEV_NAME, &flash_op);
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
     os_printf("flash_init end\r\n");
 #endif
 }
@@ -637,13 +637,13 @@ UINT32 flash_ctrl(UINT32 cmd, void *parm)
     UINT32 reg;
     UINT32 ret = FLASH_SUCCESS;
     peri_busy_count_add();
-    
+
     if(4 == flash_current_config->line_mode)
     {
         flash_set_line_mode(LINE_MODE_TWO);
         //os_printf("change line mode 2\r\n");
     }
-        
+
     switch(cmd)
     {
     case CMD_FLASH_SET_CLK:
@@ -664,7 +664,7 @@ UINT32 flash_ctrl(UINT32 cmd, void *parm)
     case CMD_FLASH_SET_DCO:
         ret = sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_SET_FLASH_DCO, 0);
         ASSERT(DRV_FAILURE != ret);
-        
+
         reg = REG_READ(REG_FLASH_CONF);
         reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
         reg = reg | (9 << FLASH_CLK_CONF_POSI);
@@ -720,10 +720,10 @@ UINT32 flash_ctrl(UINT32 cmd, void *parm)
     case CMD_FLASH_READ_MID:
         (*(UINT32 *)parm) = flash_read_mid();
         break;
-		
-	case CMD_FLASH_GET_PROTECT:
-		(*(UINT32 *)parm) = get_flash_protect();
-		break;
+
+    case CMD_FLASH_GET_PROTECT:
+        (*(UINT32 *)parm) = get_flash_protect();
+        break;
 
     case CMD_FLASH_ERASE_SECTOR:
         address = (*(UINT32 *)parm);
@@ -733,19 +733,19 @@ UINT32 flash_ctrl(UINT32 cmd, void *parm)
     case CMD_FLASH_SET_HPM:
         flash_set_hpm();
         break;
-	
-	case CMD_FLASH_SET_PROTECT:
-		reg =  (*(UINT32 *)parm);
-		flash_protection_op(FLASH_XTX_16M_SR_WRITE_DISABLE, reg);
-		break;
-		
+
+    case CMD_FLASH_SET_PROTECT:
+        reg =  (*(UINT32 *)parm);
+        flash_protection_op(FLASH_XTX_16M_SR_WRITE_DISABLE, reg);
+        break;
+
     default:
         ret = FLASH_FAILURE;
         break;
     }
-    
+
     if(4 == flash_current_config->line_mode)
-    {        
+    {
         flash_set_line_mode(LINE_MODE_FOUR);
         //os_printf("change line mode 4\r\n");
     }

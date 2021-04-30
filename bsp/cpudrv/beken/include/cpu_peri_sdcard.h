@@ -61,6 +61,10 @@ extern "C" {
 
 s32 InstallDevSdcard(const char *fs);
 s32 UninstallDevSdcard(void);
+void sdcard_power_on(void);
+void sdcard_power_off(void);
+void pwoer_off_sdcard_reset(void);
+bool_t soft_sdcard_reset(void);
 
 #ifdef __cplusplus
 }

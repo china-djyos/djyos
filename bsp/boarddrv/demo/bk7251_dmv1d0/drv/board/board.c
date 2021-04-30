@@ -46,11 +46,17 @@
 
 #include "stdint.h"
 #include "stddef.h"
+#include <int.h>
 #include "mem_pub.h"
 #include "wdt_pub.h"
 #include <shell.h>
 #include "cpu_peri.h"
 #include "board.h"
+#include "icu_pub.h"
+#include "general_dma_pub.h"
+#include "bk_timer_pub.h"
+#include "pwm_pub.h"
+#include "mac_phy_bypass_pub.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -237,6 +243,8 @@ void Board_Init(void)
     intc_init();
     os_clk_init();
 
+//    void ble_init(void);
+//    ble_init();
 #if 0
     djy_gpio_mode(GPIO7,PIN_MODE_INPUT_PULLUP);  //wifi一键配置
     djy_gpio_mode(GPIO3,PIN_MODE_INPUT_PULLUP);  //音效模式
@@ -259,13 +267,15 @@ void Board_Init(void)
 //    djy_gpio_irq_enable( GPIO7, 1);
 
 
+    djy_gpio_mode(GPIO13, PIN_MODE_INPUT_PULLDOWN); //唤醒键
     djy_gpio_mode(GPIO10,PIN_MODE_OUTPUT);         //液晶背光
 //    djy_gpio_write(GPIO10,1);
 
     djy_gpio_mode(GPIO11,PIN_MODE_OUTPUT);        //液晶+触摸屏电源控制管脚
     djy_gpio_write(GPIO11,1);
 
-    djy_gpio_mode(GPIO8,PIN_MODE_INPUT);          //耳机检测脚使能
+    djy_gpio_mode(GPIO8,PIN_MODE_INPUT_PULLUP);          //按键
+    djy_gpio_mode(GPIO9,PIN_MODE_INPUT_PULLUP);          //按键
 #endif
 //    void uart1_exit(void);
 //    uart1_exit();
@@ -301,4 +311,36 @@ bool_t init_jtag(char *param)
 }
 
 ADD_TO_ROUTINE_SHELL(initjtag,init_jtag,"重新初始化 :COMMAND:init_jtag+enter");
+
+void ST7789V_GpioInit(void)
+{
+    gpio_config(GPIO15, GMODE_OUTPUT);  //1=读写数据端口，0=读写命令端口
+    gpio_output(GPIO15, 1);
+
+    gpio_config(GPIO19, GMODE_OUTPUT);  //rst
+    gpio_output(GPIO19, 1);
+
+    gpio_config(GPIO3, GMODE_OUTPUT);   //CS
+    gpio_output(GPIO3, 1);
+}
+
+void SPI_RST(u32 value)
+{
+    djy_gpio_write(GPIO19, value);
+}
+
+void SPI_RS(u32 value)
+{
+    djy_gpio_write(GPIO15, value);
+}
+
+void ST7789V_CsActive(void)
+{
+    gpio_output(GPIO3, 0);
+}
+void ST7789V_CsInactive(void)
+{
+    gpio_output(GPIO3, 1);
+}
+
 

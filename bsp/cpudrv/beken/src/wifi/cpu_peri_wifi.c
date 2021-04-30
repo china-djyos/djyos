@@ -51,6 +51,7 @@
 #include <board-config.h>
 #include <sys/socket.h>
 #include <netbsp.h>
+#include <net/arpa/inet.h>
 #include <dbug.h>
 #include "param_config.h"
 #include "shell.h"
@@ -141,7 +142,6 @@ struct BusMessage
 
 #define EthTxBufSize    1524
 static u8 gTxBuffer[EthTxBufSize];      //for sending copy frame
-static struct NetPbuf  tx_pbuf;
 static int gQuickConnect = 0;
 extern WIFI_CORE_T g_wifi_core;
 void SetQuickConnectFlag(int val)
@@ -224,7 +224,7 @@ int hexdump(int tag, const unsigned char *buf, int size)
 }
 #endif
 //extern void hexdump(const unsigned char* buf, int len);
-static bool_t __MacSnd(void* handle,struct NetPkg * pkg,u32 netdevtask)
+static bool_t __MacSnd(struct NetDev *handle,struct NetPkg * pkg,u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
@@ -495,9 +495,9 @@ bool_t __attribute__((weak)) FnNetDevEventHookEvent(struct NetDev* iface,enum Ne
 
 }
 
-static u8   gc_NetMac[CN_MACADDR_LEN] = { 0xC8, 0x47, 0x8C, 0x00, 0x00, 0x00};
+static char   gc_NetMac[CN_MACADDR_LEN] = { 0xC8, 0x47, 0x8C, 0x00, 0x00, 0x00};
 
-u8 *getnetmacaddr()
+char *getnetmacaddr()
 {
     return gc_NetMac;
 }
@@ -522,8 +522,6 @@ void DhcpStaClearIp(void)
 //__attribute__((weak)) int cb_ip_set(u32 ip){
 //    return 0;
 //}
-void DhcpclientDeleteAllTask(void);//清除以前连接的路由和dhcp任务
-int __NetDev_DHCP_SET_GotIP_CB(const char *ifname, int (*cb_ip_get)(u32 *ip));
 //int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(u32 ip));
 
 //------------------------------------------------------------------------------
@@ -533,9 +531,9 @@ int __NetDev_DHCP_SET_GotIP_CB(const char *ifname, int (*cb_ip_get)(u32 *ip));
 //      cb_ip_set，DHCP客户端获取IP后的回调函数。
 //返回：无
 //------------------------------------------------------------------------------
-void DhcpStaStartIp(u32 AssignIP,s32 (*cb_ip_got)(u32 ip))
+void DhcpStaStartIp(u32 AssignIP,s32 (*cb_ip_got)(u32 *ip))
 {
-    __NetDev_DHCP_SET_GotIP_CB(CFG_WIFI_DEV_NAME, cb_ip_got);
+    NetDev_DHCP_SET_GotIP_CB(CFG_WIFI_DEV_NAME, cb_ip_got);
 //  dhcp_setip_cb(CFG_WIFI_DEV_NAME, cb_ip_set);
 
     DhcpclientDeleteAllTask();
@@ -563,9 +561,6 @@ bool_t ModuleInstall_Wifi(void)
 
     FILE *fd = NULL;
     struct stat file_state;
-//  extern bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
-//                            bool_t loop,u32 loopcycle,\
-//                            bool_t (*rcvHook)(u8 *buf, u16 len));
 
     wifi_get_mac_address(getnetmacaddr(),CONFIG_ROLE_NULL);//防止重新设置MAC地址
     memset(&file_state, 0, sizeof(struct stat));
@@ -684,8 +679,6 @@ bool_t ModuleInstall_Wifi(void)
     info_printf("eth","%s:Install Net Device %s success\n\r",__FUNCTION__,CFG_WIFI_DEV_NAME);
     return true;
 
-RcvTaskFailed:
-    NetDev_GetUninstall(CFG_WIFI_DEV_NAME);
 NetInstallFailed:
     Lock_MutexDelete(pDrive->protect);
     pDrive->protect = NULL;
@@ -697,7 +690,7 @@ RCVSYNC_FAILED:
     return false;
 }
 
-extern struct NetDev;
+struct NetDev;
 void NetDev_SetDefault(struct NetDev *NetDev);
 void dhcpd_route_add_default()
 {
@@ -712,7 +705,7 @@ void dhcpd_route_add_default()
     ip      = inet_addr(CFG_DHCPD_SERVERIP);
     submask = inet_addr(CFG_DHCPD_NETIP);
     hop     = inet_addr(CFG_DHCPD_ROUTERIP);
-    dns     = inet_addr(CFG_DHCPD_DNS);
+    dns     = inet_addr(CFG_DHCPD_DNS     );
     dnsbak  = inet_addr(CFG_DHCPD_DNSBAK);
 
     subnet = ip & submask;

@@ -44,6 +44,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 #include <typedef.h>
+#include <sys_config.h>
 #include <sys_ctrl_pub.h>
 #include <djyos.h>
 #include <gpio_pub.h>

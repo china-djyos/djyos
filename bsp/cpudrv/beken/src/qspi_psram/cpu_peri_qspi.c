@@ -54,8 +54,10 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//#if CFG_INSTALL_QSPI_WHEN_SYSINIT == true
 //    extern int ModuleInstall_QSPI_PSRAM(void);
 //    ModuleInstall_QSPI_PSRAM();
+//#endif
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -83,6 +85,7 @@
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_QSPI    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 //%$#@enum,true,flase,
+#define CFG_INSTALL_QSPI_WHEN_SYSINIT    true        //"系统初始化时安装组件"
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
