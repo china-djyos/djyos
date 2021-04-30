@@ -1,0 +1,34 @@
+{
+	"board_name":"bk7251_dmv1d0",
+	"cpus":{
+		"bk7251":{
+			"clocks":{
+				
+			},
+			"chips":["touchscreen FT6236",
+			"nor flash gd25q16c",
+			"LCD driver ST7789V"],
+			"peripherals":["cpu onchip adc",
+			"cpu onchip audio in_out",
+			"cpu onchip flash",
+			"cpu onchip gpio",
+			"cpu onchip iwdt",
+			"cpu onchip MAC",
+			"cpu onchip pwm",
+			"cpu onchip timer",
+			"cpu onchip uart",
+			"cpu_peri_scard",
+			"embflash install efs",
+			"flash insatall xip",
+			"qspi",
+			"spi"],
+			"mian_freq":"180",
+			"memories":{
+				
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

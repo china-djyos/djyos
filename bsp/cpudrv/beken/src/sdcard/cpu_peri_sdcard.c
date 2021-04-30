@@ -118,6 +118,7 @@ int SDCARD_Write(BYTE *Buff, DWORD Sector, UINT Count);
 int SDCARD_Ioctl( BYTE Cmd, void *Buff);
 extern UINT32 sddev_control(char *dev_name, UINT32 cmd, VOID *param);
 extern void sdcard_uninitialize(void);
+extern SDIO_Error sdcard_initialize(void);
 
 static uint16_t evtt_sd_install;
 static uint16_t evtt_sd_uninstall;
@@ -481,7 +482,6 @@ static void sdcard_isr_uninitialize(void)
 // ============================================================================
 static ptu32_t sdcard_install_event(void)
 {
-    extern SDIO_Error sdcard_initialize(void);
     extern s32 ModuleInstall_FAT(const char *dir_name, u32 opt, void *data);
 
     if(!get_sdcard_is_ready())
@@ -505,7 +505,7 @@ static ptu32_t sdcard_install_event(void)
 // 返回:
 // 备注:
 // ============================================================================
-static void sdcard_uninstall_event(void)
+static ptu32_t sdcard_uninstall_event(void)
 {
     extern void sdcard_uninitialize(void);
     extern s32 UnfileSystem_FAT(const char *dir);
@@ -518,6 +518,7 @@ static void sdcard_uninstall_event(void)
     djy_gpio_attach_irq(GPIO12, PIN_IRQ_MODE_FALLING, (void *)sdcard_isr_initialize, 0);//设置卡被插上时的中断响应函数
     djy_gpio_irq_enable(GPIO12, 1);
     sdcard_uninitialize();
+    return 0;
 }
 
 // =============================================================================
@@ -610,7 +611,7 @@ bool_t soft_sdcard_reset(void)
     atom_high_t atom;
     bool_t ret = false;
     u32 len = strlen(CFG_FAT_MOUNT_POINT);
-    s8 *path = malloc(len + 1);
+    char *path = malloc(len + 1);
     if(path)
     {
         sprintf(path,"%s%s", "/", CFG_FAT_MOUNT_POINT);

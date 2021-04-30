@@ -68,6 +68,8 @@ struct FatDrvFuns
 
 s32 FatDrvInitialize(u8 DrvIndex, struct FatDrvFuns *DrvFuns);
 int get_ldnumber(const TCHAR** path); // ff.c中实现函数
+s32 ModuleInstall_FAT(const char *dir_name, u32 opt, void *data);
+s32 UnfileSystem_FAT(const char *dir_path);
 #ifdef __cplusplus
 }
 #endif
