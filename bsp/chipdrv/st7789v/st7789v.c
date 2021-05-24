@@ -103,17 +103,15 @@
 //#warning  " keyboard_hard_driver  组件参数未配置，使用默认配置"
 #define CFG_MODULE_ENABLE_LCD_DRIVER_ST7789V    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,24,32,
-#define  CFG_LCD_SIZE  24     //"LCD尺寸",
-//%$#@enum,1,2,
-#define  CFG_LCD_HORIZONTAL  2         //"LCD横竖屏",1为竖屏,2为横屏
+#define  CFG_LCD_SIZE  32     //"LCD尺寸",
 //%$#@enum,true,false,
 #define  CFG_LCD_TURN  false            //"纵坐标反转",纵坐标是否需要反转
 //%$#@num,0,65536,
 #define CFG_LCD_XSIZE   320             //"LCD宽度-像素数",
-#define CFG_LCD_YSIZE   480             //"LCD高度-像素数",
+#define CFG_LCD_YSIZE   240             //"LCD高度-像素数",
 //%$#@num,,,
-#define CFG_LCD_XSIZE_UM   36720            //"LCD宽度-微米数",
-#define CFG_LCD_YSIZE_UM   48960            //"LCD高度-微米数",
+#define CFG_LCD_XSIZE_UM   64800            //"LCD宽度-微米数",
+#define CFG_LCD_YSIZE_UM   48600            //"LCD高度-微米数",
 //%$#@enum,true,false,
 //%$#@string,1,10,
 #define CFG_ST7789V_DISPLAY_NAME        "lcdst7789v"    //"显示器名称",配置液晶显示的名称
@@ -369,7 +367,7 @@ void __lcd_ST7789V_init(void)
 
     WriteComm(0x36);
 
-#if (CFG_LCD_HORIZONTAL == 1)
+#if (CFG_LCD_XSIZE < CFG_LCD_YSIZE)
     #if  (CFG_LCD_TURN == false)
         WriteData(0x00);
     #else
@@ -458,11 +456,21 @@ void __lcd_ST7789V_init(void)
 //    delay_ms(200);
 
     WriteComm(0x36);   //memory access control
-#if (CFG_LCD_XSIZE == 240)
-    WriteData(0xc0);   //MY MX MV ML MH=0,BGR=1
+
+#if (CFG_LCD_XSIZE < CFG_LCD_YSIZE)
+    #if  (CFG_LCD_TURN == false)
+        WriteData(0x00);
+    #else
+        WriteData(0xc0);   //MY MX MV ML MH=0,BGR=1
+    #endif
 #else
-    WriteData(0xa0);   //MY MX MV ML MH=0,BGR=1
+    #if  (CFG_LCD_TURN == false)
+        WriteData(0xa0);
+    #else
+        WriteData(0x60);
+    #endif
 #endif
+
     WriteComm(0x3A);
     WriteData(0x05);
 
