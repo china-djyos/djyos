@@ -104,6 +104,10 @@
 #define CFG_MODULE_ENABLE_LCD_DRIVER_ST7789V    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,24,32,
 #define  CFG_LCD_SIZE  24     //"LCD尺寸",
+//%$#@enum,1,2,
+#define  CFG_LCD_HORIZONTAL  2         //"LCD横竖屏",1为竖屏,2为横屏
+//%$#@enum,true,false,
+#define  CFG_LCD_TURN  false            //"纵坐标反转",纵坐标是否需要反转
 //%$#@num,0,65536,
 #define CFG_LCD_XSIZE   320             //"LCD宽度-像素数",
 #define CFG_LCD_YSIZE   480             //"LCD高度-像素数",
@@ -364,7 +368,20 @@ void __lcd_ST7789V_init(void)
     WriteComm(0x11);
 
     WriteComm(0x36);
-    WriteData(0xa0);   //y轴相反：0x60
+
+#if (CFG_LCD_HORIZONTAL == 1)
+    #if  (CFG_LCD_TURN == false)
+        WriteData(0x00);
+    #else
+        WriteData(0xc0);
+    #endif
+#else
+    #if  (CFG_LCD_TURN == false)
+        WriteData(0xa0);
+    #else
+        WriteData(0x60);
+    #endif
+#endif
 
     WriteComm(0x3A);
     WriteData(0x55);
