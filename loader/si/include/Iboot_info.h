@@ -263,7 +263,7 @@ u32  XIP_GetAppSize(void * apphead);
 u32 Iboot_GetAppSize(void * apphead);
 char*  Iboot_GetAppName(void * apphead);
 bool_t XIP_IsRamIbootFlag();
-bool_t Iboot_FillMutualUpdatePath(char* Path,int len);
+bool_t set_upgrade_info(char* Path,int len);
 bool_t Run_Iboot(enum runibootmode mode);
 bool_t Run_App(enum runappmode mode);
 bool_t Iboot_UpdateToRun();

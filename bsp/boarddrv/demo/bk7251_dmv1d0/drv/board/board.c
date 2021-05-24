@@ -226,8 +226,6 @@ void Board_Init(void)
     Djy_GpioInit();
     os_meminit();
     drv_model_init();
-    gpio_config(GPIO9, GMODE_OUTPUT);   //设置控制喇叭的IO为输出模式
-    gpio_output(GPIO9, 0);              //开始设置为0 关闭喇叭
 //  g_dd_init();
     sctrl_init();
     icu_init();
@@ -267,15 +265,15 @@ void Board_Init(void)
 //    djy_gpio_irq_enable( GPIO7, 1);
 
 
-    djy_gpio_mode(GPIO13, PIN_MODE_INPUT_PULLDOWN); //唤醒键
+    djy_gpio_mode(GPIO13, GMODE_INPUT_PULLUP); //唤醒键
     djy_gpio_mode(GPIO10,PIN_MODE_OUTPUT);         //液晶背光
+    djy_gpio_mode(GPIO8,PIN_MODE_INPUT_PULLUP);          //按键
+    djy_gpio_mode(GPIO9,PIN_MODE_INPUT_PULLUP);          //按键
 //    djy_gpio_write(GPIO10,1);
 
     djy_gpio_mode(GPIO11,PIN_MODE_OUTPUT);        //液晶+触摸屏电源控制管脚
     djy_gpio_write(GPIO11,1);
 
-    djy_gpio_mode(GPIO8,PIN_MODE_INPUT_PULLUP);          //按键
-    djy_gpio_mode(GPIO9,PIN_MODE_INPUT_PULLUP);          //按键
 #endif
 //    void uart1_exit(void);
 //    uart1_exit();

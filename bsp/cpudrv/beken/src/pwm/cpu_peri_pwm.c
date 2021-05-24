@@ -101,11 +101,11 @@
 
 //@#$%component end configure
 
-
-
 // =============================================================================
 // 功能：初始化PWM
-// 参数：channel：初始化的通道；frequency：周期时钟个数（周期=frequency*clk）；duty_cycle：占空比时钟个数（占空比= duty_cycle*clk）
+// 参数：channel：初始化的通道；
+//      frequency：周期时钟个数（周期=frequency*clk）；
+//      duty_cycle：占空比时钟个数（占空比= duty_cycle*clk）
 // 返回：0=成功，-1=失败
 // =============================================================================
 int djy_pwm_init(uint8_t channel, uint32_t frequency, uint32_t duty_cycle)

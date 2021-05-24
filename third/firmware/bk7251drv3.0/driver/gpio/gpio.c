@@ -388,24 +388,14 @@ static void gpio_enable_second_function(UINT32 func_mode)
         break;
 
     case GFUNC_MODE_ADC4:
-#if (CFG_SUPPORT_DJYOS)	//CK，ADC通道4和5的管脚反了	
-        start_index = 2;
-        end_index = 2;
-#else
         start_index = 3;
         end_index = 3;
-#endif
         pmode = PERIAL_MODE_2;
         break; 
 
     case GFUNC_MODE_ADC5:
-#if (CFG_SUPPORT_DJYOS)	//CK
-        start_index = 3;
-        end_index = 3;
-#else
 	    start_index = 2;
         end_index = 2;	
-#endif
         pmode = PERIAL_MODE_2;
         break;
 
@@ -414,7 +404,7 @@ static void gpio_enable_second_function(UINT32 func_mode)
         end_index = 12;
         pmode = PERIAL_MODE_2;
         break;   
-        
+
    case GFUNC_MODE_ADC7:
         start_index = 13;
         end_index = 13;
