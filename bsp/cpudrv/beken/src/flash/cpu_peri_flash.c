@@ -577,7 +577,7 @@ bool_t flash_CheckCrc(u32 start, u32 len)
             if(flashcrc[verify] != flashbuf[verify].CrcUnit)
             {
                 result = false;
-                return result
+                return result;
             }
         }
     }
