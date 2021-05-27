@@ -95,8 +95,10 @@
 #define CFG_MODULE_ENABLE_TOUCHSCREEN_FT6236    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,24,32,
 #define  CFG_TOUCH_SIZE  32     //"触摸尺寸",
+//%$#@enum,true,false,
+#define  CFG_TOUCH_TURN  false          //"纵坐标反转",纵坐标是否需要反转
 //%$#@num,1,100,
-#define CT_MAX_TOUCH  5                         //"触控数",支持最多5点触摸
+#define CT_MAX_TOUCH  1                         //"触控数",目前只支持单点触控,支持最多5点触摸
 //%$#@enum,true,false,
 //%$#@string,1,128,
 #define CFG_TOUCH_ADJUST_FILE   "/efs/touch_init.dat"  //"矫正文件路径",保存触摸屏矫正参数的文件
@@ -140,6 +142,9 @@ static struct IIC_Device *ps_FT6236_Dev = NULL;
 static u32 s_FT6236_Timeout = CN_TIMEOUT_FOREVER;
 static struct SingleTouchPrivate FT6236;
 static struct ST_TouchAdjust tg_touch_adjust;
+
+//是否为竖屏标志位
+static bool_t vertical_screen_flag = true;
 __attribute__((weak))  void FT6236_Pin_Init(void)
 {
     return;
@@ -239,13 +244,29 @@ static bool_t FT6236_Scan(struct SingleTouchMsg *touch_data)
         FT6236_RD_Reg(FT6236_TPX_TBL[i],buf,4); //读取XY坐标值
         if( ((buf[0]&0XF0)==0X80) && ((buf[2]&0XF0)!=0Xf0))
         {
-            #if (CFG_TOUCH_SIZE == 24)
-            tch_x +=((s32)(buf[0]&0X0F)<<8)+buf[1];
-            tch_y +=((s32)(buf[2]&0X0F)<<8)+buf[3];
-            #elif (CFG_TOUCH_SIZE == 32)
-            tch_y +=((s32)(buf[0]&0X0F)<<8)+buf[1];
-            tch_x +=((s32)(buf[2]&0X0F)<<8)+buf[3];
-            #endif
+#if (CFG_TOUCH_SIZE == 24)
+            if(vertical_screen_flag)
+            {
+                tch_x +=((s32)(buf[0]&0X0F)<<8)+buf[1];
+                tch_y +=((s32)(buf[2]&0X0F)<<8)+buf[3];
+            }
+            else
+            {
+                tch_y +=((s32)(buf[0]&0X0F)<<8)+buf[1];
+                tch_x +=((s32)(buf[2]&0X0F)<<8)+buf[3];
+            }
+#elif (CFG_TOUCH_SIZE == 32)
+            if(vertical_screen_flag)
+            {
+                tch_x +=((s32)(buf[0]&0X0F)<<8)+buf[1];
+                tch_y +=((s32)(buf[2]&0X0F)<<8)+buf[3];
+            }
+            else
+            {
+                tch_y +=((s32)(buf[0]&0X0F)<<8)+buf[1];
+                tch_x +=((s32)(buf[2]&0X0F)<<8)+buf[3];
+            }
+#endif
 
             contact++;
         }
@@ -256,6 +277,7 @@ static bool_t FT6236_Scan(struct SingleTouchMsg *touch_data)
 
     tch_x /=contact;       //平均多次座标值
     tch_y /=contact;
+
     if(tg_touch_adjust.ratio_x != 0)
     {
         touch_data->x = ((tch_x << 16)- tg_touch_adjust.offset_x)
@@ -329,13 +351,49 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
 //        GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
 //        GK_SyncShow(CN_TIMEOUT_FOREVER);
 //        while(!FT6236_Scan(&touch_xyz0));//等待触摸
-        #if (CFG_TOUCH_SIZE == 24)
-        touch_xyz0.x = 220;
-        touch_xyz0.y = 20;
-        #elif (CFG_TOUCH_SIZE == 32)
-        touch_xyz0.y = 20;
-        touch_xyz0.x = 300;
-        #endif
+#if (CFG_TOUCH_SIZE == 24)
+        if(vertical_screen_flag)
+        {
+            #if(CFG_TOUCH_TURN == false)
+                touch_xyz0.x = 20;
+                touch_xyz0.y = 20;
+            #else
+                touch_xyz0.x = 220;
+                touch_xyz0.y = 300;
+            #endif
+        }
+        else
+        {
+            #if(CFG_TOUCH_TURN == false)
+                touch_xyz0.x = 300;
+                touch_xyz0.y = 20;
+            #else
+                touch_xyz0.x = 20;
+                touch_xyz0.y = 220;
+            #endif
+        }
+#elif (CFG_TOUCH_SIZE == 32)
+        if(vertical_screen_flag)
+        {
+            #if(CFG_TOUCH_TURN == false)
+                touch_xyz0.x = 20;
+                touch_xyz0.y = 20;
+            #else
+                touch_xyz0.x = 220;
+                touch_xyz0.y = 300;
+            #endif
+        }
+        else
+        {
+            #if(CFG_TOUCH_TURN == false)
+                touch_xyz0.x = 300;
+                touch_xyz0.y = 20;
+            #else
+                touch_xyz0.x = 20;
+                touch_xyz0.y = 220;
+            #endif
+        }
+#endif
 
         printf("采集坐标1:(%d,%d)\n\r",touch_xyz0.x,touch_xyz0.y);
 //        touch_check();
@@ -355,13 +413,49 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
 //        GK_SyncShow(CN_TIMEOUT_FOREVER);
 //
 //        while(!FT6236_Scan(&touch_xyz1)); //记录触摸屏第二点校正值
-        #if (CFG_TOUCH_SIZE == 24)
-        touch_xyz1.x = 20;
-        touch_xyz1.y = 300;
-        #elif (CFG_TOUCH_SIZE == 32)
-        touch_xyz1.y = 220;
-        touch_xyz1.x = 20;
-        #endif
+#if (CFG_TOUCH_SIZE == 24)
+        if(vertical_screen_flag)
+        {
+            #if(CFG_TOUCH_TURN == false)
+                touch_xyz1.x = 220;
+                touch_xyz1.y = 300;
+            #else
+                touch_xyz1.x = 20;
+                touch_xyz1.y = 20;
+            #endif
+        }
+        else
+        {
+            #if(CFG_TOUCH_TURN == false)
+                touch_xyz1.x = 20;
+                touch_xyz1.y = 220;
+            #else
+                touch_xyz1.x = 300;
+                touch_xyz1.y = 20;
+            #endif
+        }
+#elif (CFG_TOUCH_SIZE == 32)
+        if(vertical_screen_flag)
+        {
+            #if(CFG_TOUCH_TURN == false)
+                touch_xyz1.x = 220;
+                touch_xyz1.y = 300;
+            #else
+                touch_xyz1.x = 20;
+                touch_xyz1.y = 20;
+            #endif
+        }
+        else
+        {
+            #if(CFG_TOUCH_TURN == false)
+                touch_xyz1.x = 20;
+                touch_xyz1.y = 220;
+            #else
+                touch_xyz1.x = 300;
+                touch_xyz1.y = 20;
+            #endif
+        }
+#endif
 
         printf("采集坐标2:(%d,%d)\n\r",touch_xyz1.x,touch_xyz1.y);
 //        touch_check();
@@ -405,6 +499,12 @@ bool_t ModuleInstall_FT6236(void)
     if(NULL != s_FT6236_Dev)
     {
         desktop = GK_GetDesktop(CFG_TARGET_DISPLAY_NAME);
+
+        if((desktop->right-desktop->left) < (desktop->bottom-desktop->top))
+            vertical_screen_flag=true;
+        else
+            vertical_screen_flag=false;
+
         IIC_BusCtrl(s_FT6236_Dev,CN_IIC_SET_CLK,100*1000,0);
         ps_FT6236_Dev = s_FT6236_Dev;
         result=FT6236_Init();

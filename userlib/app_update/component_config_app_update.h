@@ -41,9 +41,18 @@
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
+<<<<<<< HEAD:bsp/boarddrv/demo/bk7251_dmv1d0/drv/sdcard_power/sdcard_power_ctrl.c
+//-----------------------------------------------------------------------------
+#include <typedef.h>
+#include <sys_config.h>
+#include <sys_ctrl_pub.h>
+#include <djyos.h>
+#include <gpio_pub.h>
+=======
 //------------------------------------------------------
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
+>>>>>>> remotes/origin/master:userlib/app_update/component_config_app_update.h
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****

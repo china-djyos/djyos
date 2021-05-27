@@ -188,7 +188,7 @@ struct RingBuf *AudioRingBufferInit(u32 len)
             if(buf)
                 return buf;
             else
-            Lock_SempDelete(ring_buf_read);
+                Lock_SempDelete(ring_buf_read);
         }
         Lock_SempDelete(ring_buf_write);
     }

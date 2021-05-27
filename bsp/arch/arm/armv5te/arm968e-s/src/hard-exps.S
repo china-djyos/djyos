@@ -1,9 +1,7 @@
 //#include "exp_vector.h"
-.globl Iboot_IAP_SelectLoadProgam
 .globl irq_handler
 .globl fiq_handler
 .globl Init_Cpu
-.globl Iboot_LoadPreload
 /*
  *==============================================================================
  */

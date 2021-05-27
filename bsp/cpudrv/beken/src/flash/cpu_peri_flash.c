@@ -164,7 +164,9 @@ static s32 SetFlash_Init(struct NorDescr *Description)
 
 // ============================================================================
 // 功能：读取带crc的flash数据
-// 参数：address -- 地址；data -- 读数据缓存；size -- 读取的字节数
+// 参数：address -- 地址；
+//      data -- 读数据缓存；
+//      size -- 读取的字节数
 // 返回：无
 // 备注：
 // ============================================================================
@@ -178,7 +180,9 @@ void djy_flash_read_crc(uint32_t address, void *data, uint32_t size)
 }
 // ============================================================================
 // 功能：读取不带crc的flash数据
-// 参数：address -- 地址；data -- 读数据缓存；size -- 读取的字节数
+// 参数：address -- 地址；计算了crc之后的物理地址。
+//      data -- 读数据缓存；
+//      size -- 读取的字节数
 // 返回：无
 // 备注：
 // ============================================================================
@@ -225,7 +229,9 @@ void djy_flash_read(uint32_t address, void *data, uint32_t size)
 
 // ============================================================================
 // 功能：写入带crc的flash数据
-// 参数：address -- 地址；data -- 读数据缓存；size -- 读取的字节数
+// 参数：address -- 地址；计算了crc之后的物理地址。
+//      data -- 读数据缓存；
+//      size -- 读取的字节数
 // 返回：无
 // 备注：
 // ============================================================================
@@ -534,7 +540,7 @@ s32 ModuleInstall_Flash(void)
 
 // =============================================================================
 // 功能：判断flash是否安装
-// 参数：  无
+// 参数：无
 // 返回：已成功安装（true）；未成功安装（false）；
 // 备注：
 // =============================================================================
@@ -543,5 +549,38 @@ bool_t flash_is_install(void)
     return sflashInited;
 }
 
+//因调试会导致BK7251内部flash的crc校验错乱，而只要访问crc错乱区域，CPU就会进入一种
+//“不可知”状态，连仿真器也连不上，只能使用烧录器重烧程序，给仿真调试带来极大的困难。
+//调用本函数前，如果程序未执行到crc错乱的地方，则能够被捕捉到。因此，本函数应及早调
+//用。一般来说，在程序刚刚启动时调用最好，此时尚未初始化串口，无法打印。
 
+struct flash_CrcUnit
+{
+    u8 DataUnit[32];
+    u16 CrcUnit;
+};
+//start是物理起始地址，len是物理长度，须是1088的整数倍（对应逻辑长度1Kbytes）
+bool_t flash_CheckCrc(u32 start, u32 len)
+{
+    struct flash_CrcUnit flashbuf[32];
+    u16 flashcrc[32];
+    bool_t result = true;;
+    u32 address,verify;
+    for(address = start; address < len; address +=sizeof(flashbuf))
+    {
+        flash_read((char *)flashbuf, sizeof(flashbuf), address);
+        for(verify = 0; verify < 32; verify++)
+            flashcrc[verify] = flashbuf[verify].CrcUnit;
+        calc_crc((u32 *)flashbuf, 32);     //计算32个单元的crc数据
+        for(verify = 0; verify < 32; verify++)
+        {
+            if(flashcrc[verify] != flashbuf[verify].CrcUnit)
+            {
+                result = false;
+                return result;
+            }
+        }
+    }
+    return result;
+}
 

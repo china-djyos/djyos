@@ -148,8 +148,8 @@ static uart_config_t djybsp_uart[CN_UART_NUM] = {
 
 static u16 UART_SndBufLen = 0;
 static u16 UART_RxBufLen = 0;
-static u32 TxDirectPort = 0;                  //用于printk发送的串口号
-static u32 RxDirectPort = 0;                  //用于直接接收的串口号
+static u8 TxDirectPort = CN_LIMIT_UINT8;        //用于printk发送的串口号
+static u8 RxDirectPort = CN_LIMIT_UINT8;        //用于直接接收的串口号
 static struct UartGeneralCB *pUartCB[CN_UART_NUM];
 static const char *sUartName[CN_UART_NUM] = {
         "UART1","UART2",
@@ -230,11 +230,11 @@ static void __UART_HardInit(u8 SerialNo)
     switch(SerialNo)
     {
         case CN_UART1:
-//            uart1_init();
+            uart1_init();
 //            __UART_BaudSet(SerialNo, 115200);
             break;
         case CN_UART2:
-//            uart2_init();
+            uart2_init();
             break;
     }
 }
@@ -305,20 +305,20 @@ static void __UART_ComConfig(u32 port,struct COMParam *COM)
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (uint8_t port)
+static u32 __UART_SendStart (ptu32_t port)
 {
 
     u8 val[256];
     u32 i = 0,len = 0;
     if(port>CN_UART2)
        return 0;
-    Board_UartHalfDuplexSend(port);//切换到发送
-    uart_set_tx_fifo_needwr_int(port,1);
+    Board_UartHalfDuplexSend((u8)port);//切换到发送
+    uart_set_tx_fifo_needwr_int((u8)port,1);
 
-    __UART_CloseInte(port);
-    uart_set_tx_stop_end_int(port, 1);
+    __UART_CloseInte((u8)port);
+    uart_set_tx_stop_end_int((u8)port, 1);
 
-    if(uart_is_tx_fifo_empty(port) == 1)
+    if(uart_is_tx_fifo_empty((u8)port) == 1)
     {
         len = UART_PortRead((struct UartGeneralCB *)pUartCB[port],val,256);
         if(0 != len)
@@ -331,7 +331,7 @@ static u32 __UART_SendStart (uint8_t port)
 
     }
 
-    __UART_OpenInte(port);
+    __UART_OpenInte((u8)port);
     return 1;
 }
 
@@ -349,7 +349,7 @@ static void djybsp_uart_rx_isr(s32 port, void *param)
     u32 num = 0;
 
     if(port>CN_UART2)
-        return 0;
+        return ;
 
     if(UART1_PORT == port)
         fifo_status_reg = REG_UART1_FIFO_STATUS;
@@ -366,24 +366,17 @@ static void djybsp_uart_rx_isr(s32 port, void *param)
     {
         if(num != UART_PortWrite((struct UartGeneralCB *)pUartCB[port],fifo,num) && (port ==1))
         {
-            void EnJtag(void);
             UART_ErrHandle((struct UartGeneralCB *)pUartCB[port],CN_UART_BUF_OVER_ERR);
-            printk("uart%d idle over!running=%d\r\n",port+1,g_ptEventRunning->event_id);
-            if(fifo[0] == 'p')
-            {
-                EnJtag();
-                while(1);
-            }
         }
     }
-    return 1;
+    return ;
 }
 
 static void djybsp_uart_tx_isr(s32 port, void *param)
 {
     uint8_t val = 0;
     if(port>CN_UART2)
-        return 0;
+        return ;
 
     while(uart_is_tx_fifo_full(port)==0)
     {
@@ -397,16 +390,16 @@ static void djybsp_uart_tx_isr(s32 port, void *param)
             break;
         }
     }
-    return 1;
+    return ;
 }
 
 static void djybsp_uart_tx_end_isr(s32 port, void *param)
 {
     if(port>CN_UART2)
-        return 0;
+        return ;
 
     Board_UartHalfDuplexRecv(port);
-    return 1;
+    return ;
 }
 #pragma GCC diagnostic pop
 
@@ -519,7 +512,7 @@ ptu32_t ModuleInstall_UART(u32 port)
         UART_Param.Baud         = 115200;
         UART_Param.TxRingBufLen = UART_SndBufLen;
         UART_Param.RxRingBufLen = UART_RxBufLen;
-        UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
+        UART_Param.StartSend    = __UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
 
         Board_UartHalfDuplexRecv(port);
@@ -593,9 +586,9 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
         PutStrDirect = NULL ;
     }
 
-    if((s32)TxDirectPort >= 0)
+    if(TxDirectPort != CN_LIMIT_UINT8)
     {
-//        __UART_HardInit(TxDirectPort);
+        __UART_HardInit(TxDirectPort);
         PutStrDirect = Uart_PutStrDirect;
     }
 
@@ -614,8 +607,8 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
 
     if((s32)RxDirectPort >= 0)
     {
-//        if(TxDirectPort != RxDirectPort)
-//            __UART_HardInit(RxDirectPort);
+        if(TxDirectPort != RxDirectPort)
+            __UART_HardInit(RxDirectPort);
         GetCharDirect = Uart_GetCharDirect;
     }
     return;

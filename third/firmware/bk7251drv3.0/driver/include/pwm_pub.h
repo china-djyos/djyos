@@ -1,6 +1,7 @@
 #ifndef _PWM_PUB_H_
 #define _PWM_PUB_H_
 
+#include "app/config/sys_config.h"  //不加这句，APP中引用时，pwm_param_t的end_value是16位的。
 #define PWM_FAILURE                (1)
 #define PWM_SUCCESS                (0)
 
@@ -89,8 +90,8 @@ typedef struct
     UINT16 end_value;
     UINT16 duty_cycle;
 #else
-	UINT32 end_value;
-	UINT32 duty_cycle;
+    UINT32 end_value;
+    UINT32 duty_cycle;
 #endif
     PFUNC p_Int_Handler;
 } pwm_param_t;

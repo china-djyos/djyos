@@ -68,9 +68,9 @@ extern "C" {
 #include    "gdd.h"
 #include    "gdd_widget.h"
 
-#define WS_TEXTBOX_R_W       ((u32)1<<8) //子窗口标志,控件窗口必须指定该标志.
-#define WS_TEXTBOX_R_O       ((u32)1<<9) //窗口是否可见
-#define WS_TEXTBOX_W_O       ((u32)1<<10) //窗口是否为禁止状态,如果指定该标志,窗口将不响应输入消息
+#define WS_TEXTBOX_R_W       ((u32)1<<8)  //可编辑文本框
+#define WS_TEXTBOX_R_O       ((u32)1<<9)  //只读文本框
+#define WS_TEXTBOX_W_O       ((u32)1<<10) //只写文本框
 
 
 //文本框Text内容操作控制码
