@@ -112,6 +112,7 @@
 #define CFG_ASCII_12X24_KAI   false         //"ASCII_12×24楷体",12*24点阵ascii字体_楷体
 #define CFG_ASCII_12X24_HEI   false         //"ASCII_12×24黑体",12*24点阵ascii字体_黑体
 #define CFG_ASCII_12X24_FANG  false         //"ASCII_12×24仿宋",12*24点阵ascii字体_仿宋
+#define CFG_ASCII_16X32_SONG  false         //"ASCII_16X32宋体",12*24点阵ascii字体_宋体
 #define CFG_ASCII_16X32_YUAN  false         //"ASCII_16×32圆体",16*32点阵ascii字体_圆体
 #define CFG_ASCII_16X32_KAI   false         //"ASCII_16×32楷体",16*32点阵ascii字体_楷体
 #define CFG_ASCII_16X32_HEI   false         //"ASCII_16×32黑体",16*32点阵ascii字体_黑体

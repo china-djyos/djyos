@@ -186,8 +186,8 @@ ptu32_t Touch_Scan(void)
                             touch_pr->TouchStatus = CN_GOT_TOUCH;
                             touch_temp.MoveX = 0;
                             touch_temp.MoveY = 0;
-                            printf("touch: x = %d ,y = %d \r\n",
-                                touch_temp.x, touch_temp.y);
+//                            printf("touch: x = %d ,y = %d \r\n",
+//                                touch_temp.x, touch_temp.y);
                             //发滑动数据=0的消息，即按下消息
                             HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp);
                         }
@@ -200,8 +200,8 @@ ptu32_t Touch_Scan(void)
                         touch_pr->touch_loc.z = touch_temp.z;
                         touch_temp.MoveX = DeltaX;
                         touch_temp.MoveY = DeltaY;
-                        printf("move: x = %d ,y = %d ,movx = %d ,movy = %d\r\n",
-                            touch_temp.x, touch_temp.y, touch_temp.MoveX, touch_temp.MoveY);
+//                        printf("move: x = %d ,y = %d ,movx = %d ,movy = %d\r\n",
+//                            touch_temp.x, touch_temp.y, touch_temp.MoveX, touch_temp.MoveY);
                         //发包含滑动数据的消息，即滑动消息
                         HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp);
                         //检测到滑动，200mS内不检测，以免连续快速发滑动消息
@@ -218,8 +218,8 @@ ptu32_t Touch_Scan(void)
                     touch_pr->touch_loc.MoveX = 0;
                     touch_pr->touch_loc.MoveY = 0;
                     touch_pr->TouchStatus = CN_NO_TOUCH;
-                    printf("touch left: x = %d ,y = %d \r\n",
-                        touch_pr->touch_loc.x, touch_pr->touch_loc.y);
+//                    printf("touch left: x = %d ,y = %d \r\n",
+//                        touch_pr->touch_loc.x, touch_pr->touch_loc.y);
                     HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_pr->touch_loc);
                 }
             }

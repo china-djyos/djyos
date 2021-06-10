@@ -1086,3 +1086,37 @@ s32 printk (const char *fmt, ...)
 }
 
 
+//下面两个函数不添加的话工程有可能会编译不过，目前不知道具体用法，合并到主分支时加上注释
+int sniprintf(char *buf, size_t buf_size, const char *fmt, ...)
+{
+    int result;
+    va_list ap;
+    va_start(ap, fmt);
+    char* pnew = (char*)malloc(strlen(fmt) + 1);
+    if (pnew == 0) return 0;
+    strcpy(pnew, fmt);
+    char *p = pnew;
+    while (*p) {
+        if (*p == '%' && *p != 0 && *(p + 1) == '.') {
+            p++;
+            *p = '0';
+        }
+        p++;
+    }
+    result = c_vsnprintf(buf, buf_size, pnew, ap);
+    va_end(ap);
+    if (pnew) free(pnew);
+    return result;
+}
+
+
+int siscanf(const char *ibuf, const char *fmt, ...)
+{
+    va_list ap;
+    int ret;
+    va_start(ap, fmt);
+    ret = vsscanf(ibuf, fmt, ap);
+    va_end(ap);
+    return(ret);
+}
+
