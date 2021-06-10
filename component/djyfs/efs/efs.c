@@ -1962,7 +1962,7 @@ static s32 Efs_Verify_Install(struct FsCore *pSuper)
         (memcmp(block_buf, "easyfile", 8)||
             memcmp(block_buf + FILE_VERIFITY_OFF, "easyfile", 8)) )
     {
-        printf("文件系统未建立!\r\n");
+        printf("文件系统未建立，创建之!\r\n");
         Lock_MutexPost(efs->block_buf_mutex);
         goto exit;
     }

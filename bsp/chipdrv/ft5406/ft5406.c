@@ -101,7 +101,7 @@
 //%$#@enum,100000,400000
 #define CFG_FT5406_RT_I2C_CLK_FRE   (100*1000)           //"总线速度",单位Hz
 
-//%$#@string,1,10,
+//%$#@string,1,16,
 #define CFG_FT5406_BUS_NAME          "I2C0"        //"IIC总线名称",触摸芯片使用的IIC总线名称
 #define CFG_FT5406_TOUCH_NAME        "TOUCH_FT5406"//"触摸屏名称",触摸芯片的名称
 #define CFG_FT5406_DISPLAY_NAME      ""            //"桌面名称",触摸屏所使用的桌面的名称
