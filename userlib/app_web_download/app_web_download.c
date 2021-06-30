@@ -5,6 +5,7 @@
 #include "ntp/ntp_time.h"
 #include "project_config.h"
 #include <time.h>
+#include "app_web_download.h"
 //#include "../comm/comm_api.h"
 //#ifndef free
 //#define free(x) M_Free(x)
@@ -300,6 +301,7 @@ static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_dat
     s8 *p = 0;
 
     switch (ev) {
+
     case MG_EV_CONNECT:
         if (*(s32 *)ev_data != 0) {
             /*  fprintf(stderr, "connect() failed: %s\n", strerror(*(s32 *)ev_data));*/
@@ -353,7 +355,7 @@ static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_dat
         }
         break;
     }
-#if 0
+#if 1
     case MG_EV_HTTP_CHUNK:
     {
         nc->flags = MG_F_DELETE_CHUNK;
@@ -364,9 +366,18 @@ static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_dat
                 printf("error: cb_ev_handler->realloc MG_EV_HTTP_CHUNK, p==null!\r\n");
                 break;
             }
+//            pQuestData->new_data = p;
+//            memcpy(&pQuestData->new_data[pQuestData->new_len], hm->body.p, hm->body.len);
+//            pQuestData->new_len += hm->body.len;
             pQuestData->new_data = p;
-            memcpy(&pQuestData->new_data[pQuestData->new_len], hm->body.p, hm->body.len);
-            pQuestData->new_len += hm->body.len;
+            pQuestData->new_len = hm->body.len+1;
+            memcpy(pQuestData->new_data, hm->body.p, hm->body.len);
+            pQuestData->new_data[hm->body.len] = 0;
+
+            if (DoUpgradeJson(pQuestData->new_data, pQuestData->new_len, pQuestData->new_data, pQuestData->new_len) > 0) {
+                printf("pQuestData->new_data is %s\r\n", pQuestData->new_data);
+                pQuestData->status = 1;
+            }
         }
         else if (hm->body.len == 0) {//end flag
             if (pQuestData->status != 0) break;
@@ -438,16 +449,17 @@ s32 DevUpgradeCommon(s8 *path, s8 *out_json, s32 len)
     nc->user_data = &user_data;
 
     u32 timemark = DJY_GetSysTime()/1000;
-    u32 timeout_ms = 15000;   //TODO超时时间太短了
+    u32 timeout_ms = 20000;   //TODO超时时间太短了
     while (user_data.status == 0) {
         if (DJY_GetSysTime()/1000-timemark > timeout_ms) {
-            printf("DevGetCommon: timeout break!\r\n");
+            printf("======DevGetCommon: timeout break!\r\n");
             break;
         }
 
         mg_mgr_poll(&mgr, 500);
         DJY_EventDelay(10*1000);
     }
+    printf("====user_data.status is %d\r\n",user_data.status);
     if (user_data.status == 1) {
         if (user_data.new_data)
         {
@@ -489,13 +501,14 @@ s32 DevUpgradeQuest(const s8 *serial_num, u8 *branch, s8 *out_json, s32 len)
     if(mhdr_get_station_status() != RW_EVT_STA_GOT_IP)
         return -1;
 
+    memset(finger,0,sizeof(finger));
     Iboot_GetAPP_ProductInfo(APP_HEAD_FINGER, finger, sizeof(finger));
 //    sprintf(path, "/api/version?sn=%s&branch=%s&version=%s&fingerprint%s&data=%s",
 //                                serial_num, branch, VersionNum, "QMNVLX20470000M", "NULL" );  //测试用的
-    sprintf(path, "/api/version?sn=%s&branch=%s&version=%s&fingerprint%s&data=%s", serial_num, branch, VersionNum, finger, "NULL" );
+    snprintf(path,sizeof(path),"/api/version?sn=%s&branch=%s&version=%s&fingerprint%s&data=%s", serial_num, branch, VersionNum, finger, "NULL" );
 
     s32 ret = DevUpgradeCommon(path, out_json, len);
-    printf("EXIT: %s!\r\n", __FUNCTION__);
+    printf("====EXIT:ret is %d  %s!\r\n",ret,__FUNCTION__);
     return ret;
 }
 
