@@ -222,7 +222,7 @@ static const u32 crc32_tab[] = {     // CRC polynomial 0xedb88320
 // ============================================================================
 // 功能：CRC32分步计算初始化
 // 参数：crc -- CRC值
-// 返回：0 -- 失败；-1 -- 失败；
+// 返回：0 -- 失败；1 -- 成功；
 // 备注：
 // ============================================================================
 static s32 iboot_Crc32init(u32 *crc)
@@ -230,13 +230,13 @@ static s32 iboot_Crc32init(u32 *crc)
     if(!crc)
         return (0);
     *crc = -1;
-    return (-1);
+    return (1);
 }
 
 // ============================================================================
 // 功能：CRC32分步计算
 // 参数：crc -- CRC值；buf -- 数据；len -- 数据长度；
-// 返回：成功（0）；失败（-1）；
+// 返回：0 -- 失败；1 -- 成功；
 // 备注：
 // ============================================================================
 static s32 iboot_Crc32run(u32 *crc, u8 *buf, u32 len)
@@ -245,7 +245,7 @@ static s32 iboot_Crc32run(u32 *crc, u8 *buf, u32 len)
     u32 tmp;
 
     if((!crc) || (!buf))
-        return (-1);
+        return (0);
 
     tmp = *crc;
     for(i = 0; i < len;i++)
@@ -253,13 +253,13 @@ static s32 iboot_Crc32run(u32 *crc, u8 *buf, u32 len)
 
     *crc = tmp;
 
-    return (0);
+    return (1);
 }
 
 // ============================================================================
 // 功能：CRC32分步计算退出
 // 参数：crc -- CRC值；
-// 返回：0 -- 失败；-1 -- 失败；
+// 返回：0 -- 失败；1 -- 成功；
 // 备注：
 // ============================================================================
 static s32 iboot_Crc32exit(u32 *crc)
@@ -273,7 +273,7 @@ static s32 iboot_Crc32exit(u32 *crc)
     tmp = ~tmp;
     *crc = tmp;
 
-    return (-1);
+    return (1);
 }
 #endif
 //#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
@@ -567,7 +567,14 @@ static void MD5_Transform (u32_t *buf, u32_t *in)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #if (CFG_RUNMODE_BAREAPP == 0)
-static bool_t Iboot_VerificationAppExit(void * apphead)
+
+//-----------------------------------------------------------------------------
+//功能：APP文件分步校验之：完成校验码计算，参见 Iboot_CheckAppHead 函数的注释
+//参数：apphead：djyapp.bin的文件信息头
+//返回：无
+//-----------------------------------------------------------------------------
+//原名：Iboot_VerificationAppExit
+void Iboot_CheckAppComplete(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
 
@@ -590,28 +597,17 @@ static bool_t Iboot_VerificationAppExit(void * apphead)
     {
 
     }
-
-//#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
-//    iboot_Crc32exit((u32*)p_apphead->verif_buf);
-//#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
-//    unsigned char hash[16];
-//    u32 i;
-//
-//    MD5Final(hash, (MD5_CTX*)p_apphead->verif_buf);
-//    for(i =0;i<sizeof(MD5_CTX);i++)
-//        p_apphead->verif_buf[i]=0xff;
-//    for(i =0;i<16;i++)
-//        p_apphead->verif_buf[i]=hash[i];
-//#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
-//
-//#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
-//
-//#endif
-
-    return true;
 }
 
-static bool_t Iboot_VerificationAppRun(void * apphead, u8 * buf, u32 len)
+//-----------------------------------------------------------------------------
+//功能：APP文件分步校验之：分批校验文件体，参见 Iboot_CheckAppHead 函数的注释
+//参数：apphead：djyapp.bin的文件信息头
+//      buf，本次校验的文件体部分
+//      len，本次校验的数据长度
+//返回：无
+//-----------------------------------------------------------------------------
+//原名：Iboot_VerificationAppRun
+void Iboot_CheckAppBody(void * apphead, u8 * buf, u32 len)
 {
     struct AppHead*  p_apphead = apphead;
 
@@ -627,36 +623,26 @@ static bool_t Iboot_VerificationAppRun(void * apphead, u8 * buf, u32 len)
     {
 
     }
-
-//#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
-//    iboot_Crc32run((u32*)p_apphead->verif_buf,buf,len);
-//#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
-//    MD5Update((MD5_CTX*)p_apphead->verif_buf, buf,len);
-//#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
-//
-//#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
-//
-//#endif
-    return true;
 }
 
 #pragma GCC diagnostic pop
 
-static bool_t Iboot_VerificationAppInit(void *data)
+//-----------------------------------------------------------------------------
+//功能：APP文件分步校验之：校验文件头部分，因嵌入式平台内存有限，许多时候不能一次性
+//      把整个文件读进内存中，故分步进行。各步骤的计算中间结果，都会保存在APPhead中。
+//      step1：计算文件头，包括APP头和产品信息头，Iboot_CheckAppHead 函数完成
+//      step2：分步计算剩下的整个文件，直到文件结束， Iboot_CheckAppBody 函数完成
+//      step3：完成校验码计算， Iboot_CheckAppComplete 函数完成
+//      step4：比较校验结果， Iboot_CheckAppCompare 函数完成
+//参数：apphead：djyapp.bin的文件信息头
+//返回：true = 需要校验；false=不需要校验，此时上层调用者只须检查文件长度
+//-----------------------------------------------------------------------------
+//原名：Iboot_VerificationAppInit
+bool_t Iboot_CheckAppHead(void *apphead)
 {
-    struct AppHead*  p_apphead = data;
-    struct ProductInfo* p_productinfo = data + sizeof(struct AppHead);
+    struct AppHead*  p_apphead = apphead;
+    struct ProductInfo* p_productinfo = apphead + sizeof(struct AppHead);
     u32 i;
-
-//    p_apphead->file_size = 0xFFFFFFFF;          //文件系统读到的文件大小   在线升级时 由文件系统填充编译时由外部工具填充
-//    p_apphead->ProductionNumber = 0xFFFFFFFF;
-
-//#if(CN_PTR_BITS < 64)
-//    p_apphead->ManufacturerNameAddr = 0xffffffff;
-//    p_apphead->ManufacturerNamereserved32    = 0xffffffff;
-//#else
-//    p_apphead->ManufacturerNameAddr      = 0xffffffffffffffff;
-//#endif
 
     for( i=0;i<sizeof(p_productinfo->ProductionNumber);i++) //生产序号不参与校验
         p_productinfo->ProductionNumber[i]=0xff;
@@ -670,10 +656,12 @@ static bool_t Iboot_VerificationAppInit(void *data)
     for(u32 i =0;i<sizeof(p_apphead->verif_buf);i++)        //校验码本身不参与校验
         p_apphead->verif_buf[i]=0xff;
 
-    if(p_apphead->verification == VERIFICATION_CRC)
+    if(p_apphead->verification == VERIFICATION_NULL)
+        return false;
+    else if(p_apphead->verification == VERIFICATION_CRC)
     {
         iboot_Crc32init((u32*)p_apphead->verif_buf);
-        iboot_Crc32run((u32*)p_apphead->verif_buf,data,sizeof(struct AppHead) + sizeof(struct ProductInfo));
+        iboot_Crc32run((u32*)p_apphead->verif_buf,apphead,sizeof(struct AppHead) + sizeof(struct ProductInfo));
     }
     else if(p_apphead->verification == VERIFICATION_MD5)
     {
@@ -681,44 +669,33 @@ static bool_t Iboot_VerificationAppInit(void *data)
         char *buf = (char *)&md5tmp;
         memset(&md5tmp, 0xff, sizeof(MD5_CTX));
         MD5_Init(&md5tmp);
-        MD5_Update(&md5tmp, data, sizeof(struct AppHead) + sizeof(struct ProductInfo));
+        MD5_Update(&md5tmp, apphead, sizeof(struct AppHead) + sizeof(struct ProductInfo));
         for(u32 i =0;i< sizeof(MD5_CTX);i++)
             p_apphead->verif_buf[i]=buf[i];
     }
     else if(p_apphead->verification == VERIFICATION_SSL)
     {
-
+        return false;
     }
-
-//#if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
-//    iboot_Crc32init((u32*)p_apphead->verif_buf);
-//    iboot_Crc32run((u32*)p_apphead->verif_buf,data,sizeof(struct AppHead) + sizeof(struct ProductInfo));
-//#elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
-//    MD5_CTX md5tmp;
-//    char *buf = (char *)&md5tmp;
-//    memset(&md5tmp, 0xff, sizeof(MD5_CTX));
-//    MD5Init(&md5tmp);
-//    MD5Update(&md5tmp, data, sizeof(struct AppHead) + sizeof(struct ProductInfo));
-//    for(u32 i =0;i< sizeof(MD5_CTX);i++)
-//        p_apphead->verif_buf[i]=buf[i];
-//#elif( CFG_APP_VERIFICATION  == VERIFICATION_SSL )
-//
-//#elif (CFG_APP_VERIFICATION  == VERIFICATION_NULL)
-//
-//#endif
-
-
     return true;
 }
-static bool_t  Iboot_VerificationCompare(void *apphead,void *appheadcmp)
+
+//-----------------------------------------------------------------------------
+//功能：APP文件分步校验之：校验文件头部分，参见 Iboot_CheckAppHead 函数的注释
+//参数：apphead：djyapp.bin的文件信息头
+//      apphead_back，备份的文件信息头
+//返回：true = 校验通过；false=校验失败
+//-----------------------------------------------------------------------------
+//原名：Iboot_VerificationCompare
+bool_t  Iboot_CheckAppCompare(void *apphead,void *apphead_back)
 {
     struct AppHead*  p_apphead = apphead;
-    struct AppHead*  p_appheadcmp = appheadcmp;
+    struct AppHead*  p_appheadcmp = apphead_back;
     u32 i;
     for(i=0;i<sizeof(p_apphead->verif_buf);i++)
     {
         if(p_apphead->verif_buf[i]!=p_appheadcmp->verif_buf[i]
-                    &&p_apphead->verif_buf[i]!=(char)0xFF)
+                    &&p_appheadcmp->verif_buf[i]!=(char)0xFF)
             return false;
     }
     return true;
@@ -935,8 +912,8 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
                 memcpy(date_buf, p_productinfo.TypeCode, type_code_len);
 
                 memcpy(date_buf + type_code_len, p_productinfo.ProductionTime, time_len);
-
                 memcpy(date_buf + type_code_len + time_len, p_productinfo.ProductionNumber, number_len);
+                date_buf[len-1] = '\0';
             }
             else
                 goto len_error;
@@ -1119,7 +1096,8 @@ bool_t XIP_AppFileCheckEasy(void * apphead)
 //参数：apphead：App信息块地址
 //返回：true：成功；false：失败。
 //==============================================================================
-bool_t XIP_AppFileCheck(void * apphead)
+//原名： XIP_AppFileCheck
+bool_t XIP_CheckAppInMemory(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     char apphead_and_productinfo[sizeof(struct AppHead)+sizeof(struct ProductInfo)];
@@ -1129,10 +1107,11 @@ bool_t XIP_AppFileCheck(void * apphead)
     if(p_apphead->verification != VERIFICATION_NULL)
     {
         memcpy(apphead_and_productinfo, apphead, sizeof(apphead_and_productinfo));
-        Iboot_VerificationAppInit(apphead_and_productinfo);
-        Iboot_VerificationAppRun(apphead_and_productinfo, apphead+AppHead_Len+ProductInfo_Len, p_apphead->app_bin_size-AppHead_Len-ProductInfo_Len);
-        Iboot_VerificationAppExit(apphead_and_productinfo);
-        if(false == Iboot_VerificationCompare(apphead,apphead_and_productinfo))
+        Iboot_CheckAppHead(apphead_and_productinfo);
+        Iboot_CheckAppBody(apphead_and_productinfo, apphead+AppHead_Len+ProductInfo_Len,
+                                p_apphead->app_bin_size-AppHead_Len-ProductInfo_Len);
+        Iboot_CheckAppComplete(apphead_and_productinfo);
+        if(false == Iboot_CheckAppCompare(apphead,apphead_and_productinfo))
         {
             Iboot_App_Info.runflag.error_app_check = 1;
             return false;
@@ -1141,61 +1120,98 @@ bool_t XIP_AppFileCheck(void * apphead)
     return true;
 }
 
-
-//==============================================================================
-//功能：App 文件的校验(分段)
-//      addr和compare_addr不要直接填写源app的地址，因为校验过程中会修改一点文件头，
-//      一般操作就把文件头读出来存两份，addr和compare_addr各一份。
-//参数：addr：计算校验码的文件头(文件描述信息和产品描述信息)，buf：文件数据缓冲区，len：数据长度，
-//      compare_addr：用于比较的文件头（文件描述信息和产品描述信息）
-//返回：true：成功；false：失败。
-//使用说明：开始校验和校验过程中都只需要填addr、buf和len，compare_addr参数是要对比的原始文件头，里面有原始校验码
-//          当compare_addr不为空时，则表示这是最后一次增加需要校验的数据，这次计算完后,
-//          就会去对比addr和compare_addr里的校验码是否一致，一致的话校验成功否则校验失败。
-//==============================================================================
-bool_t XIP_AppFileCheckSubsection(s8 *addr, u8 *buf, s32 len, s8 *compare_addr)
+//----------------------------------------------------------------------------
+//功能: 对文件系统里的文件进行校验
+//参数: path：文件路径
+//返回: true: 成功；false ： 失败.
+//-----------------------------------------------------------------------------
+//原名： app_check_from_fs
+bool_t XIP_CheckAppInFile(const char *path)
 {
-    struct AppHead *apphead = (struct AppHead *)addr, *compare_apphead = (struct AppHead *)compare_addr;
+    FILE *fp = NULL;
+    struct AppHead *apphead = NULL;
+    struct AppHead *apphead_back = NULL;
+    u8 *buf = NULL;
+    bool_t needcheck;
+    u32 file_size = 0, readsize, buf_len = 1024,headsize;
+    struct stat file_stat;
     bool_t ret = false;
-    u32 i;
-    if(addr != NULL)
-    {
-        if(apphead->verification != VERIFICATION_NULL)  //判断是否需要校验
-        {
-            ret = true;
-            for(i=0; i < sizeof(apphead->app_name); i++)
-            {
-                if(apphead->app_name[i] != (s8)0xff)    //看文件头里的文件名是否为全ff，
-                                                        //如果全是ff说明文件头已经参加过校验了
-                    break;
-            }
-            if(i != sizeof(apphead->app_name))
-            {
-                Iboot_VerificationAppInit(addr);    //文件名不为全ff，则先计算文件头的校验码
-            }
-            if(len != 0)
-                Iboot_VerificationAppRun(addr, buf, len);
 
-            if(compare_apphead != NULL)
+    if(stat(path,&file_stat) == -1)     //看文件是否存在
+    {
+        printk("update file stat get fail!\r\n");
+        return false;
+    }
+
+    fp = fopen(path, "r");
+    if(fp == NULL)
+    {
+        printf("update file open fail!\r\n");
+        return false;
+    }
+
+    headsize = sizeof(struct AppHead)+sizeof(struct ProductInfo);
+    apphead = (struct AppHead *)malloc(buf_len + 2 * headsize);     //存文件头信息
+    if(apphead)
+    {
+        apphead_back = (struct AppHead *)((u32)apphead + headsize);      //文件头信息备份
+        buf = (u8*)((u32)apphead_back + headsize);          //用于缓冲数据
+
+        readsize = fread(apphead, 1, headsize, fp);     //读文件头
+        if(readsize == headsize)
+        {
+            needcheck = Iboot_CheckAppHead(apphead);
+            if(needcheck == true)
             {
-                Iboot_VerificationAppExit(apphead);
-                return Iboot_VerificationCompare(compare_apphead,apphead);
+                memcpy(apphead_back, apphead, readsize);    //校验过程头部信息会别修改，故备份
+            }
+            file_size = readsize;
+            while(1)
+            {
+                readsize = fread(buf, 1, buf_len, fp);
+                //不能使用 struct AppHead的app_bin_size成员，有些特殊的CPU例如 beken（博通）
+                //会要求烧录的文件进行转换，使文件尺寸与编译出来的尺寸（app_bin_size)不同。
+                file_size += readsize;
+                if(readsize)
+                {
+                    if(needcheck == true)
+                    {
+                        Iboot_CheckAppBody(apphead, buf, readsize);
+                    }
+                }
+                else
+                {       //文件全读完了
+                    if(file_size != (u32)file_stat.st_size)
+                    {
+                        printf("file check : file size error\r\n");
+                        ret = false;
+                    }
+                    else if(needcheck == true)
+                    {
+                        Iboot_CheckAppComplete(apphead);
+                         //比较两个文件头里的校验码
+                        if(Iboot_CheckAppCompare(apphead,apphead_back) == false)
+                        {
+                            printf("file check error\r\n");
+                        }
+                        else
+                            ret = true;
+                    }
+                    else
+                        ret = true;
+                    break;
+                }
             }
         }
         else
-        {
-            ret = true;
-            info_printf("xip", "not need to check .\r\n");
-        }
+            printf("read file %s fail\r\n", path);
+
+        free(apphead);
     }
-    else
-    {
-        error_printf("xip", "param error \r\n");
-    }
+    fclose(fp);
+
     return ret;
 }
-
-
 
 //==============================================================================
 //功能：获取APP的运行地址
@@ -1466,7 +1482,7 @@ bool_t Iboot_SiIbootAppInfoInit()
         Iboot_App_Info.runflag.hard_reset_flag       = 0;//外部硬件复位标志
         Iboot_App_Info.runflag.restart_system_flag      = 0;//restart_system复位标志
         Iboot_App_Info.runflag.low_power_wakeup      = 0;//低功耗深度休眠中断唤醒标志
-        Iboot_App_Info.runflag.call_fun_reset       = 0;//1=内部复位/重启是主动调用相关函数引发的；0=异常重启
+        Iboot_App_Info.runflag.call_fun_reset       = 0;//1=复位/重启是主动调用相关函数引发的；0=异常重启
         Iboot_App_Info.runflag.power_on_reset_flag  = 1;//上电复位标志，结合b18~19以及“上电标志”字判定
 
         Iboot_App_Info.reserved = 0;//保留
@@ -1692,7 +1708,7 @@ bool_t set_upgrade_info(char* info, int len)
     if(len == MutualPathLen)
     {
         Iboot_App_Info.up_info.info[MutualPathLen-1] = 0;
-        return false;
+        return true;
     }
     return true;
 
@@ -1765,7 +1781,7 @@ static bool_t __RunApp(void * apphead)
         }
         if(i < sizeof(p_apphead->verif_buf))
         {
-            if(XIP_AppFileCheck(apphead) == false)
+            if(XIP_CheckAppInMemory(apphead) == false)
                 return false;
         }
     }
@@ -2198,7 +2214,9 @@ static bool_t Iboot_IAP_Mode( )
     if(Iboot_App_Info.runflag.low_power_wakeup)
         printf( "低功耗深度休眠中断唤醒标志 \r\n");
     if(Iboot_App_Info.runflag.call_fun_reset)
-        printf( "1=内部复位/重启是主动调用相关函数引发的；0=异常重启 \r\n");
+        printf( "本次复位/重启是主动调用相关函数引发的\r\n");
+    else
+        printf( "本次复位/重启是异常重启 \r\n");
     if(Iboot_App_Info.runflag.power_on_reset_flag )
         printf( "上电复位标志 \r\n");
 

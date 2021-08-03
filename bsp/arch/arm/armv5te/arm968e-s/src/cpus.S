@@ -161,10 +161,10 @@ __asm_switch_context_int:
     LDR     R2, =djy_switch_interrupt_flag
     MOV     R3, #1                          @; set flag to 1
     STR     R3, [R2]
-    LDR     R2, =djy_interrupt_from_thread   @; set rt_interrupt_from_thread
+    LDR     R2, =djy_interrupt_from_thread   @; set djy_interrupt_from_thread
     /*LDR     R1, [R1]*/
     STR     R1, [R2]
-    LDR     R2, =djy_interrupt_to_thread     @; set rt_interrupt_to_thread
+    LDR     R2, =djy_interrupt_to_thread     @; set djy_interrupt_to_thread
     /*LDR     R0, [R0]*/
     STR     R0, [R2]
 

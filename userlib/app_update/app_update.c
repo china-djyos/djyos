@@ -14,91 +14,9 @@
 #include <cpu_peri_flash.h>
 
 //----------------------------------------------------------------------------
-//功能: 对文件系统里的文件进行校验
-//参数: path：文件路径
-//返回: true: 成功；false ： 失败.
-//-----------------------------------------------------------------------------
-bool_t app_check_from_fs(const char *path)
-{
-    FILE *fp = NULL;
-    s8 *apphead = NULL;
-    s8 *apphead_back = NULL;
-    s8 *buf = NULL;
-    u32 file_size = 0, readsize, buf_len = 1024;
-    struct stat file_stat;
-    bool_t ret = false;
-
-    if(stat(path,&file_stat) == -1)     //看文件是否存在
-    {
-        printk("update file stat get fail!\r\n");
-        return false;
-    }
-
-    fp = fopen(path, "r");
-    if(fp == NULL)
-    {
-        printf("update file open fail!\r\n");
-        return false;
-    }
-
-    buf = (s8 *)malloc(buf_len);      //存读到的文件数据
-    if(buf)
-    {
-        apphead = (s8 *)malloc(sizeof(struct AppHead)+sizeof(struct ProductInfo));    //存文件头信息
-        if(apphead)
-        {
-            apphead_back = (s8 *)malloc(sizeof(struct AppHead)+sizeof(struct ProductInfo));   //备份文件头信息
-            if(apphead_back)
-            {
-                readsize = fread(apphead, 1, sizeof(struct AppHead)+sizeof(struct ProductInfo), fp);    //读文件头
-                if(readsize == (sizeof(struct AppHead)+sizeof(struct ProductInfo)))
-                {
-                    memcpy(apphead_back, apphead, readsize);
-                    file_size += readsize;
-                    while(1)
-                    {
-                        readsize = fread(buf, 1, buf_len, fp);
-                        if(readsize)
-                        {
-                            if(XIP_AppFileCheckSubsection(apphead, (u8 *)buf, readsize, NULL) == false)
-                            {
-                                printf("file check error\r\n");
-                                break;
-                            }
-                            file_size += readsize;
-                        }
-                        else
-                        {       //文件全读完了
-                            if(file_size != (u32)file_stat.st_size)
-                            {
-                                printf("file check : file size error\r\n");
-                            }
-                            if(XIP_AppFileCheckSubsection(apphead, (u8 *)buf, readsize, apphead_back) == false)   //比较两个文件头里的校验码
-                            {
-                                printf("file check error\r\n");
-                            }
-                            else
-                                ret = true;
-                            break;
-                        }
-                    }
-                }
-                else
-                    printf("read file %s fail\r\n", path);
-
-                free(apphead_back);
-            }
-            free(apphead);
-        }
-        free(buf);
-    }
-    fclose(fp);
-
-    return ret;
-}
-
-//----------------------------------------------------------------------------
-//功能: app发送，app的相关升级信息给iboot，
+//功能: 准备好升级，根据传来的参数，校验固件的正确性，设置好APP和iboot之间的共享RAM，
+//      但因为不同平台复位方式不同，复位前的准备工作不同，本函数这是准备好RAM，并不
+//      执行复位。
 //参数: info：升级相关信息，
 //返回: 0: 成功； -1 ： 失败.
 //原名： app_update_info_to_iboot
@@ -108,8 +26,6 @@ s32 set_upgrade_data(struct update_app_info *info)
     struct AppHead *apphead;
     u32 file_size;
     union update_info  up_info;
-    // s8 app_info[MutualPathLen]; //app和iboot的共享内存只留了40个字节来存升级相关信息
-//    u8 app_info_size = 0;
 
     if((info->time_buf_len > sizeof(up_info.ram.production_time))
         || (info->prod_num_buf_len > sizeof(up_info.ram.production_num)))
@@ -134,7 +50,7 @@ s32 set_upgrade_data(struct update_app_info *info)
             return -1;
         }
 
-        if(XIP_AppFileCheck(info->start_addr))
+        if(XIP_CheckAppInMemory(info->start_addr))
         {
             printf("File check correct\r\n");
 
@@ -145,31 +61,7 @@ s32 set_upgrade_data(struct update_app_info *info)
             memcpy(up_info.ram.production_num, info->prod_num_buf, info->prod_num_buf_len);   //产品序号
             memcpy(up_info.ram.file_name, info->file_name, info->file_name_len);
 
-
-            // memcpy(app_info + app_info_size, &info->start_addr, sizeof(info->start_addr));  //app在ram的起始地址
-            // app_info_size += sizeof(info->start_addr);
-
-            // memcpy(app_info + app_info_size, &file_size, sizeof(file_size));    //app文件大小
-            // app_info_size += sizeof(file_size);
-
-            // memcpy(app_info + app_info_size, info->time_buf, info->time_buf_len);   //生产时间
-            // app_info_size += info->time_buf_len;
-
-            // memcpy(app_info + app_info_size, info->prod_num_buf, info->prod_num_buf_len);   //产品序号
-            // app_info_size += info->prod_num_buf_len;
-
-            // if((app_info_size + info->file_name_len) > MutualPathLen)
-            // {
-            //     printk("ERROR: file_namd length exceeded!\r\n");    //判断app_info还够不够存文件名。
-            //     return -1;
-            // }
-            // memcpy(app_info + app_info_size, info->file_name, info->file_name_len);
-
-            // Iboot_FillMutualUpdatePath((char *)&up_info, sizeof(up_info));
             Iboot_SetUpdateSource(SOURCE_ADDR_MEMORY);  //设置升级方式为，从ram获取app数据
-            //
-            // Iboot_SetRunIbootUpdateApp();
-            // Set_RunIbootFlag();
         }
         else
         {
@@ -184,7 +76,7 @@ s32 set_upgrade_data(struct update_app_info *info)
             info_printf("up", "file path len overlong \r\n");
             return -1;
         }
-        if(app_check_from_fs((const char *)info->file_name))
+        if(XIP_CheckAppInFile((const char *)info->file_name))
         {
             printk("File check correct\r\n");
 
@@ -192,10 +84,7 @@ s32 set_upgrade_data(struct update_app_info *info)
             memcpy(up_info.file.production_num, info->prod_num_buf, info->prod_num_buf_len);   //产品序号
             memcpy(up_info.file.file_path, info->file_name, info->file_name_len);
 
-            // Iboot_FillMutualUpdatePath((char *)&up_info, sizeof(up_info));
             Iboot_SetUpdateSource(SOURCE_FILE);  //设置升级方式为，从ram获取app数据
-            // Iboot_SetRunIbootUpdateApp();
-            // Set_RunIbootFlag();
         }
         else
         {
@@ -213,7 +102,10 @@ s32 set_upgrade_data(struct update_app_info *info)
 
 //----------------------------------------------------------------------------
 //功能: 把app从可寻址内存写入到xip 文件系统中
-//参数: dir：待写入的目录，一般是/xpi-app，addr：内存起始地址，file_size：文件大小，file_name：文件名
+//参数: dir：待写入的目录，一般是/xpi-app，
+//      addr：内存起始地址，
+//      file_size：文件大小，
+//      file_name：文件名
 //返回: true: 成功； false ： 失败.
 //-----------------------------------------------------------------------------
 static bool_t app_ram_to_fs(s8 *dir, s8 *addr,u32 file_size, s8 *file_name)
@@ -294,11 +186,11 @@ s32 to_update_app(u32 app_max_size)
     u32 file_size = 0;
 //    u32 iboot_sn_addr = 0;
     struct stat file_state;
-    char production_num[sizeof(p_productinfo.ProductionNumber)], \
-                production_time[sizeof(p_productinfo.ProductionTime)];
+    char production_num[sizeof(p_productinfo.ProductionNumber)];
+    char production_time[sizeof(p_productinfo.ProductionTime)];
     u8 finger[sizeof(p_productinfo.ProductionNumber) + \
                   sizeof(p_productinfo.ProductionTime) + sizeof(p_productinfo.TypeCode)];
-    if(Iboot_GetUpdateApp() == true)
+    if(Iboot_GetUpdateApp() == true)        //todo,此判断可以去掉
     {
         if(!Iboot_GetMutualUpdatePath((char *)&up_info, sizeof(up_info)))
         {
@@ -312,12 +204,12 @@ s32 to_update_app(u32 app_max_size)
         {
             printk("p_productinfo type code error \r\n");
             return false;
-        }
+        }       //todo：这里设置指纹空的标志
 
         Iboot_GetProductInfo(&p_productinfo);   //获取还没升级前的文件头里的产品信息
         //如果版本号是0.0.0就把从服务器上获取到的生产时间和产品序号写到app文件头中，
         //否则就直接用原来app文件头里面的
-        if((p_productinfo.VersionNumber[0] == 0) &&
+        if((p_productinfo.VersionNumber[0] == 0) &&     //todo:考虑全擦掉的情形
                 (p_productinfo.VersionNumber[1] == 0) && (p_productinfo.VersionNumber[2] == 0))
         {
             if(Iboot_GetUpdateSource() == SOURCE_FILE)
@@ -398,7 +290,7 @@ s32 to_update_app(u32 app_max_size)
             printk("file_name   = %s,\r\n",file_name);
             if(file_size <= app_max_size)
             {
-                if(XIP_AppFileCheck(start_addr))
+                if(XIP_CheckAppInMemory(start_addr))
                 {
                     printk("File check success\r\n");
                     printf("Start erase flash\r\n");

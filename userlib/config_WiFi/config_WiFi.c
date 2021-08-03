@@ -49,7 +49,7 @@
 //======================================================================
 
 
-#include "config_net.h"
+#include "config_Wifi.h"
 #include <dbug.h>
 #include <systime.h>
 #include <cpu_peri_wifi.h>

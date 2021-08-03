@@ -148,7 +148,7 @@ void __Font_Ascii8x8UnloadFont(void)
     // Nothing ...
 }
 
-#define ASCII8x8_DEF_CHAR_CODE 0x00
+#define ASCII8x8_DEFAULT_CHAR_CODE 0x00
 
 //----点阵提取-----------------------------------------------------------------
 //功能: 提取ascii 8*8点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
@@ -171,7 +171,7 @@ bool_t __Font_Ascii8x8GetCharBitMap(u32 charcode, u32 size,u32 resv,
     // 得到字符字模在数组中的偏移量
     if(charcode > 0xff)
     {
-        offset = ASCII8x8_DEF_CHAR_CODE;
+        offset = ASCII8x8_DEFAULT_CHAR_CODE;
         result = false;
     }else
         offset = charcode*8;
@@ -241,123 +241,6 @@ bool_t ModuleInstall_FontAscii8x8(void)
     }
 }
 #endif      // CFG_ASCII_8X8 == true
-
-#if CFG_ASCII_8X16_SONG == true
-
-#include "dot-ascii8x16song.h"
-
-bool_t __Font_Ascii8x16LoadFont(void *);
-void __Font_Ascii8x16UnloadFont(void);
-bool_t __Font_Ascii8x16GetCharBitMap(u32 charcode, u32 size,u32 resv,
-                                    struct RectBitmap *bitmap);
-
-
-bool_t __Font_Ascii8x16LoadFont(void* zk)
-{
-    // Nothing ...
-
-    return true;
-}
-
-void __Font_Ascii8x16UnloadFont(void)
-{
-    // Nothing ...
-}
-
-#define ASCII8x16_DEF_CHAR_CODE 0x00
-
-//----点阵提取-----------------------------------------------------------------
-//功能: 提取ascii 8*16点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
-//      符，ascii包含扩展的ascii码
-//参数: charcode，待显示的ascii码得ucs4编码
-//      size，字号，本函数不用
-//      resv，无效
-//      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
-//返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
-//      默认字符的点阵
-//-----------------------------------------------------------------------------
-bool_t __Font_Ascii8x16GetCharBitMap(u32 charcode, u32 size,u32 resv,
-                                    struct RectBitmap *bitmap)
-{
-    u8 i;
-    u32 offset;
-    bool_t result = true;
-
-
-    // 得到字符字模在数组中的偏移量
-    if(charcode > 0xff)
-    {
-        offset = ASCII8x16_DEF_CHAR_CODE;
-        result = false;
-    }else
-        offset = charcode*16;
-    bitmap->PixelFormat = CN_SYS_PF_GRAY1;
-    bitmap->width = 8;
-    bitmap->height = 16;
-    bitmap->linebytes = 1;
-    if(bitmap->bm_bits != NULL)
-    {
-        for(i=0; i<16; i++)
-        {
-            bitmap->bm_bits[i] = cs_ascii_8x16[offset + i];
-        }
-    }
-    return result;
-}
-
-//----获取字符宽度-------------------------------------------------------------
-//功能: 取某字符的点阵宽度
-//参数: CharCode,被查询的字符
-//返回: 字符宽度
-//-----------------------------------------------------------------------------
-s32 __Font_Ascii8x16GetCharWidth(u32 CharCode)
-{
-    return 6;
-}
-
-//----获取字符高度-------------------------------------------------------------
-//功能: 取某字符的点阵高度
-//参数: CharCode,被查询的字符
-//返回: 字符高度
-//-----------------------------------------------------------------------------
-s32 __Font_Ascii8x16GetCharHeight(u32 CharCode)
-{
-    return 16;
-}
-
-//----安装ascii8x16字体--------------------------------------------------------
-//功能: 安装ascii字体，当系统使用西方字符界面时，使用这个字符集。特别注意，
-//      gb2312已经包含了英文字体，在使用中文的界面中可以不安装ascii字体。
-//参数: 无
-//返回: true=成功，false=失败
-//-----------------------------------------------------------------------------
-bool_t ModuleInstall_FontAscii8x16(void)
-{
-    static struct FontObj font_a8x16;
-
-    font_a8x16.MaxWidth = 8;
-    font_a8x16.MaxHeight = 16;
-    font_a8x16.Attr = CN_FONT_TYPE_DOT;
-    font_a8x16.LoadFont = __Font_Ascii8x16LoadFont;
-    font_a8x16.UnloadFont = __Font_Ascii8x16UnloadFont;
-    font_a8x16.GetBitmap = __Font_Ascii8x16GetCharBitMap;
-    font_a8x16.GetCharWidth = __Font_Ascii8x16GetCharWidth;
-    font_a8x16.GetCharHeight = __Font_Ascii8x16GetCharHeight;
-
-    if(Font_InstallFont(&font_a8x16, CN_FONT_ASCII_8x16))
-    {
-        debug_printf("dot-ascii","ascii 8x16 font install sucess\n\r");
-        return true;
-    }else
-    {
-        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
-        debug_printf("dot-ascii","ascii 8x16 font install fail\n\r");
-        return false;
-    }
-}
-
-#endif      //CFG_ASCII_8X16_SONG == true
-
 #if CFG_ASCII_6X12 == true
 
 #include "dot-ascii6x12.h"
@@ -380,7 +263,7 @@ void __Font_Ascii6x12UnloadFont(void)
     // Nothing ...
 }
 
-#define ASCII6x12_DEF_CHAR_CODE 0x00
+#define ASCII6x12_DEFAULT_CHAR_CODE 0x00
 
 //----点阵提取-----------------------------------------------------------------
 //功能: 提取ascii 8*16点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
@@ -403,7 +286,7 @@ bool_t __Font_Ascii6x12GetCharBitMap(u32 charcode, u32 size,u32 resv,
     // 得到字符字模在数组中的偏移量
     if(charcode > 0xff)
     {
-        offset = ASCII6x12_DEF_CHAR_CODE;
+        offset = ASCII6x12_DEFAULT_CHAR_CODE;
         result = false;
     }else
         offset = charcode*16;
@@ -474,6 +357,123 @@ bool_t ModuleInstall_FontAscii6x12(void)
 
 #endif      //CFG_ASCII_6X12 == true
 
+#if CFG_ASCII_8X16_SONG == true
+
+#include "dot-ascii8x16song.h"
+
+bool_t __Font_Ascii8x16LoadFont(void *);
+void __Font_Ascii8x16UnloadFont(void);
+bool_t __Font_Ascii8x16GetCharBitMap(u32 charcode, u32 size,u32 resv,
+                                    struct RectBitmap *bitmap);
+
+
+bool_t __Font_Ascii8x16LoadFont(void* zk)
+{
+    // Nothing ...
+
+    return true;
+}
+
+void __Font_Ascii8x16UnloadFont(void)
+{
+    // Nothing ...
+}
+
+#define ASCII8x16_DEFAULT_CHAR_CODE 0x00
+
+//----点阵提取-----------------------------------------------------------------
+//功能: 提取ascii 8*16点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
+//      符，ascii包含扩展的ascii码
+//参数: charcode，待显示的ascii码得ucs4编码
+//      size，字号，本函数不用
+//      resv，无效
+//      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
+//返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
+//      默认字符的点阵
+//-----------------------------------------------------------------------------
+bool_t __Font_Ascii8x16GetCharBitMap(u32 charcode, u32 size,u32 resv,
+                                    struct RectBitmap *bitmap)
+{
+    u8 i;
+    u32 offset;
+    bool_t result = true;
+
+
+    // 得到字符字模在数组中的偏移量
+    if(charcode > 0xff)
+    {
+        offset = ASCII8x16_DEFAULT_CHAR_CODE;
+        result = false;
+    }else
+        offset = charcode*16;
+    bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+    bitmap->width = 8;
+    bitmap->height = 16;
+    bitmap->linebytes = 1;
+    if(bitmap->bm_bits != NULL)
+    {
+        for(i=0; i<16; i++)
+        {
+            bitmap->bm_bits[i] = cs_ascii_8x16[offset + i];
+        }
+    }
+    return result;
+}
+
+//----获取字符宽度-------------------------------------------------------------
+//功能: 取某字符的点阵宽度
+//参数: CharCode,被查询的字符
+//返回: 字符宽度
+//-----------------------------------------------------------------------------
+s32 __Font_Ascii8x16GetCharWidth(u32 CharCode)
+{
+    return 6;
+}
+
+//----获取字符高度-------------------------------------------------------------
+//功能: 取某字符的点阵高度
+//参数: CharCode,被查询的字符
+//返回: 字符高度
+//-----------------------------------------------------------------------------
+s32 __Font_Ascii8x16GetCharHeight(u32 CharCode)
+{
+    return 16;
+}
+
+//----安装ascii8x16字体--------------------------------------------------------
+//功能: 安装ascii字体，当系统使用西方字符界面时，使用这个字符集。特别注意，
+//      gb2312已经包含了英文字体，在使用中文的界面中可以不安装ascii字体。
+//参数: 无
+//返回: true=成功，false=失败
+//-----------------------------------------------------------------------------
+bool_t ModuleInstall_FontAscii8x16(void)
+{
+    static struct FontObj font_a8x16;
+
+    font_a8x16.MaxWidth = 8;
+    font_a8x16.MaxHeight = 16;
+    font_a8x16.Attr = CN_FONT_TYPE_DOT;
+    font_a8x16.LoadFont = __Font_Ascii8x16LoadFont;
+    font_a8x16.UnloadFont = __Font_Ascii8x16UnloadFont;
+    font_a8x16.GetBitmap = __Font_Ascii8x16GetCharBitMap;
+    font_a8x16.GetCharWidth = __Font_Ascii8x16GetCharWidth;
+    font_a8x16.GetCharHeight = __Font_Ascii8x16GetCharHeight;
+
+    if(Font_InstallFont(&font_a8x16, CN_FONT_ASCII_8x16))
+    {
+        debug_printf("dot-ascii","ascii 8x16 font install sucess\n\r");
+        return true;
+    }else
+    {
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        debug_printf("dot-ascii","ascii 8x16 font install fail\n\r");
+        return false;
+    }
+}
+
+#endif      //CFG_ASCII_8X16_SONG == true
+
+
 #if CFG_ASCII_8X16_YUAN == true        //圆体
 
 #include "dot-ascii8x16yuan.h"
@@ -499,14 +499,14 @@ bool_t ModuleInstall_FontAscii6x12(void)
 #endif      //CFG_ASCII_8X16_FANG == true
 
 
-#if CFG_ASCII_12X24_SONG == true        //圆体
+#if CFG_ASCII_12X24_SONG == true        //宋体
 
 #include "dot-ascii12x24song.h"
 
 bool_t __Font_Ascii12x24GetCharBitMap(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
 
-#define ASCII12x24_DEF_CHAR_CODE 0x00
+#define ASCII12x24_DEFAULT_CHAR_CODE 0x00
 
 //----点阵提取-----------------------------------------------------------------
 //功能: 提取ascii 12*24点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
@@ -527,7 +527,7 @@ bool_t __Font_Ascii12x24GetCharBitMap(u32 charcode, u32 size,u32 resv,
 
     if(charcode > 0xff)
     {
-        offset = ASCII12x24_DEF_CHAR_CODE;
+        offset = ASCII12x24_DEFAULT_CHAR_CODE;
         result = false;
     }
     else
@@ -607,6 +607,92 @@ bool_t ModuleInstall_FontAscii12x24(void)
 
 #include "dot-ascii12x24hei.h"
 
+bool_t __Font_Ascii12x24heiGetCharBitMap(u32 charcode, u32 size,u32 resv,
+                                    struct RectBitmap *bitmap);
+
+#define ASCII12x24HEI_DEFAULT_CHAR_CODE 0x00
+
+//----点阵提取-----------------------------------------------------------------
+//功能: 提取ascii 12*24点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
+//      符，ascii包含扩展的ascii码
+//参数: charcode，待显示的ascii码得ucs4编码
+//      size，字号，本函数不用
+//      resv，无效
+//      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
+//返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
+//      默认字符的点阵
+//-----------------------------------------------------------------------------
+bool_t __Font_Ascii12x24heiGetCharBitMap(u32 charcode, u32 size,u32 resv,
+                                    struct RectBitmap *bitmap)
+{
+    u8 i;
+    u32 offset;
+    bool_t result = true;
+
+    if(charcode > 0xff)
+    {
+        offset = ASCII12x24HEI_DEFAULT_CHAR_CODE;
+        result = false;
+    }
+    else
+        offset = charcode*48;
+    bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+    bitmap->width = 12;
+    bitmap->height = 24;
+    bitmap->linebytes = 2;
+
+    if(bitmap->bm_bits != NULL)//画点阵的时候会画出16x24的图，但是下一个字符会在宽度为12的位置开始覆盖之后的点
+    {
+        for(i=0; i<48; i++)
+        {
+            bitmap->bm_bits[i] = cs_ascii_hei_12x24[offset + i];
+        }
+    }
+    return result;
+}
+
+s32 __Font_Ascii12x24heiGetCharWidth(u32 CharCode)
+{
+    return 12;
+}
+
+s32 __Font_Ascii12x24heiGetCharHeight(u32 CharCode)
+{
+    return 24;
+}
+
+//----安装ascii12x24黑体字体----------------------------------------------------
+//功能: 安装ascii字体，当系统使用西方字符界面时，使用这个字符集。特别注意，
+//      gb2312已经包含了英文字体，在使用中文的界面中可以不安装ascii字体。
+//参数: 无意义
+//返回: true=成功，false=失败
+//-----------------------------------------------------------------------------
+bool_t ModuleInstall_FontAscii12x24hei(void)
+{
+    static struct FontObj font_a12x24_hei;
+
+    font_a12x24_hei.MaxWidth = 12;
+    font_a12x24_hei.MaxHeight = 24;
+    font_a12x24_hei.Attr = CN_FONT_TYPE_DOT;
+    font_a12x24_hei.LoadFont = NULL;
+    font_a12x24_hei.UnloadFont = NULL;
+    font_a12x24_hei.GetBitmap = __Font_Ascii12x24heiGetCharBitMap;
+    font_a12x24_hei.GetCharWidth = __Font_Ascii12x24heiGetCharWidth;
+    font_a12x24_hei.GetCharHeight = __Font_Ascii12x24heiGetCharHeight;
+
+    if(Font_InstallFont(&font_a12x24_hei, CN_FONT_ASCII_12x24hei))
+    {
+        debug_printf("dot-ascii","ascii 12x24 hei font install sucess\n\r");
+        return true;
+    }
+    else
+    {
+        DJY_SaveLastError(EN_GK_FONT_INSTALL_ERROR);
+        debug_printf("dot-ascii","ascii 12x24 hei font install fail\n\r");
+        return false;
+    }
+}
+
 #endif      //CFG_ASCII_12X24_HEI == true
 
 #if CFG_ASCII_12X24_FANG == true         //仿宋
@@ -616,14 +702,14 @@ bool_t ModuleInstall_FontAscii12x24(void)
 #endif      //CFG_ASCII_12X24_FANG == true
 
 
-#if CFG_ASCII_16X32_SONG == true        //圆体
+#if CFG_ASCII_16X32_SONG == true        //宋体
 
 #include "dot-ascii16x32song.h"
 
 bool_t __Font_Ascii16x32GetCharBitMap(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
 
-#define ASCII16x32_DEF_CHAR_CODE 0x00
+#define ASCII16x32_DEFAULT_CHAR_CODE 0x00
 
 //----点阵提取-----------------------------------------------------------------
 //功能: 提取ascii 12*24点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
@@ -644,7 +730,7 @@ bool_t __Font_Ascii16x32GetCharBitMap(u32 charcode, u32 size,u32 resv,
 
     if(charcode > 0xff)
     {
-        offset = ASCII16x32_DEF_CHAR_CODE;
+        offset = ASCII16x32_DEFAULT_CHAR_CODE;
         result = false;
     }
     else

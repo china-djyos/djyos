@@ -22,7 +22,8 @@
 #include "spibus.h"
 #include "djybus.h"
 #include "driver.h"
-#include <device/include/unit_media.h>
+#include "shell.h"
+#include <device/unit_media.h>
 #include <device.h>
 #include <djyfs/filesystems.h>
 #include <include/spi_pub.h>
@@ -82,10 +83,19 @@ bool_t gd25q64c_Init_Flag=false;
 u16 gd25q64c_type          = 0xc816;
 u8 gd25q64c_MODE       = 0;            //QSPI模式标志:0,SPI模式;1,QPI模式.
 
-                                            //flash容量8M
-u32 gd25q64c_BlockrNum        = 128;          //一共128块
+//struct FlashDescrible
+//{
+//    u32 gd25q64c_BlockrNum        = 128;          //一共128块
+//    u32 gd25q64c_SectorsPerBlock  = 16;          //一个块16扇区
+//    u32 gd25q64c_SectorNum        = 2048;          //一共2048个扇区
+//    u32 gd25q64c_SectorSize       = 4096;          //扇区大小4096字节
+//    u32 gd25q64c_PagesPerSector   = 16;          //一个扇区16页
+//    u32 gd25q64c_PageSize         = 256;          //一页256字节数据
+//};
+
+u32 gd25q64c_BlockrNum        = 64;          //一共128块
 u32 gd25q64c_SectorsPerBlock  = 16;          //一个块16扇区
-u32 gd25q64c_SectorNum        = 2048;          //一共2048个扇区
+u32 gd25q64c_SectorNum        = 1024;          //一共2048个扇区
 u32 gd25q64c_SectorSize       = 4096;          //扇区大小4096字节
 u32 gd25q64c_PagesPerSector   = 16;          //一个扇区16页
 u32 gd25q64c_PageSize         = 256;          //一页256字节数据
@@ -141,7 +151,11 @@ __attribute__((weak)) void Gd25q64c_GpioInit(void)
 
 //=====================================================================
 //函数名：SPI发送接收函数
-//参数：发送的数据地址、数据长度、接受的数据地址、数据长度、偏移量（发送几个数之后再开始发一个收一个，前面是空读）
+//参数：sdata,待发送的数据地址、
+//      slen，数据长度、
+//      rdata，接受的数据地址、
+//      rlen，接收数据长度、
+//      RecvOff，接收偏移量（发送多少个数之后再开始发一个收一个，前面是空读）
 //返回值：true：成功 ； false:失败
 //功能：SPI发送接收
 //=====================================================================
@@ -154,7 +168,7 @@ static bool_t Gd25q64c_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen,u32 RecvOff)
 
 //=====================================================================
 //函数名：读状态寄存器指令
-//参数：想读的寄存器枚举量
+//参数：regno，想读的状态寄存器，如 gd25q64c_ReadStatusReg1
 //返回值：true：成功 ； false失败
 //功能：
 //=====================================================================
@@ -567,8 +581,9 @@ bool_t Gd25q64c_Erase_Chip(void)
 
 
 //=====================================================================
-//函数名：写一页
-//参数：发送缓冲区，页号
+//函数名：写一页，写之前确保无须擦除
+//参数：pBuffer，待写入的数据
+//      PageNum，页号
 //返回值：true -- 成功； false -- 失败
 //功能：
 //=====================================================================
@@ -617,7 +632,9 @@ bool_t Gd25q64c_WritePage(u8* pBuffer,u32 PageNum)
 
 //=====================================================================
 //函数名：不带擦除功能的写，写之前需要确保所写的地址范围内的数据全为0xff，否则会写入失败
-//参数：发送缓冲区，写地址，数据长度
+//参数：pBuffer，待写入的数据
+//      WriteAddr，写入地址
+//      NumByteToWrite，数据长度
 //返回值：true:成功；false：失败
 //功能：地址就是从QFLASH的第N个字节开始
 //=====================================================================
@@ -677,7 +694,8 @@ bool_t Gd25q64c_WriteNoErase(u8* pBuffer,u32 WriteAddr,u32 NumByteToWrite)
 }
 
 //=====================================================================
-//函数名：从某一地址开始写,带擦除的写
+//函数名：从某一地址开始写,写前先判断待写入的内容是否存在把原有内容从0改为1的比特，
+//      若有则先擦除整扇区，否则直接写入
 //参数：发送缓冲区，写地址，数据长度
 //返回值： true:成功；false：失败
 //功能：
@@ -690,11 +708,12 @@ bool_t Gd25q64c_Write(u8* pBuffer,u32 WriteAddr,u32 len)
     u16 sec_remain;
     u16 i;
     bool_t ret = true;
+    u8 data;
 
     Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
-    sec = WriteAddr / gd25q64c_SectorSize; //扇区地址
-    sec_off = WriteAddr % gd25q64c_SectorSize;//扇区偏移
-    sec_remain = gd25q64c_SectorSize- sec_off; //扇区剩余大小
+    sec = WriteAddr / gd25q64c_SectorSize;          //扇区地址
+    sec_off = WriteAddr % gd25q64c_SectorSize;      //扇区偏移
+    sec_remain = gd25q64c_SectorSize- sec_off;      //扇区剩余大小
 
     if(len <= sec_remain)
         sec_remain = len;
@@ -705,7 +724,8 @@ bool_t Gd25q64c_Write(u8* pBuffer,u32 WriteAddr,u32 len)
         {
             for(i=0; i < sec_remain; i++)
             {
-                if(Gd25Q64C_BUFFER[sec_off + i] != 0XFF)
+                data = Gd25Q64C_BUFFER[sec_off + i];
+                if((data | pBuffer[i]) != data)     //检查是否有从0改为1的bit
                     break;
             }
             if(i < sec_remain)    //需要擦除
@@ -766,7 +786,8 @@ bool_t Gd25q64c_Write(u8* pBuffer,u32 WriteAddr,u32 len)
 
 //=====================================================================
 //函数名：读一页
-//参数：接收缓冲区，页号
+//参数：pBuffer，接收缓冲区
+//      PageNum，页号
 //返回值： true:成功；false：失败
 //功能：
 //=====================================================================
@@ -806,7 +827,9 @@ bool_t Gd25q64c_ReadPage(u8* pBuffer,u32 PageNum)
 
 //=====================================================================
 //函数名：从某一地址开始读
-//参数：接收缓冲区，开始读取地址，读取长度
+//参数：PBuffer，接收缓冲区，
+//      ReadAddr，起始地址，
+//      NumByteToRead，读取数量
 //返回值：true:成功；false：失败
 //功能：
 //=====================================================================
@@ -865,13 +888,13 @@ bool_t Gd25q64c_Read(u8* pBuffer,u32 ReadAddr,u32 NumByteToRead)
 //返回值：其它:成功；-1：失败
 //功能：
 //=====================================================================
-u16 Gd25q64c_ReadID(void)
+u32 Gd25q64c_ReadID(void)
 {
     u8 sndbuf[4];
-    u8 rcvbuf[2];
-    u16 deviceid;
+    u8 rcvbuf[3];
+    u32 deviceid;
 
-    sndbuf[0]=gd25q64c_ManufactDeviceID;
+    sndbuf[0]=gd25q64c_JedecID;
     sndbuf[1]=0x00;
     sndbuf[2]=0x00;
     sndbuf[3]=0x00;
@@ -883,14 +906,15 @@ u16 Gd25q64c_ReadID(void)
     }
 
     Gd25q64c_CsActive();
-    if(Gd25q64c_TxRx(sndbuf,4,rcvbuf,2,4) == false)
+//  if(Gd25q64c_TxRx(sndbuf,4,rcvbuf,2,4) == false)
+    if(Gd25q64c_TxRx(sndbuf,1,rcvbuf,3,1) == false)
     {
         Gd25q64c_CsInactive();
         return -1;
     }
     Gd25q64c_CsInactive();
 
-    deviceid=(rcvbuf[0]<<8)|rcvbuf[1];
+    deviceid=(rcvbuf[0]<<16)|(rcvbuf[1]<<8)|(rcvbuf[2]);
     return deviceid;
 }
 
@@ -1037,7 +1061,7 @@ s32 __gd25q64c_req(enum ucmd cmd, ptu32_t args, ...)
 // =============================================================================
 s32 ModuleInstall_Gd25q64c(void)
 {
-    u16 temp;
+    u32 temp;
 
     pgd25q64c_Lock = Lock_MutexCreate("gd25q64c Lock");
     if(!pgd25q64c_Lock)
@@ -1048,16 +1072,17 @@ s32 ModuleInstall_Gd25q64c(void)
     Gd25q64c_GpioInit();
     temp=Gd25q64c_ReadID();
 
-    if(temp==gd25q64c_type)
-   {
-        printf("gd25q64c Read ID Success,ID:%x\r\n",gd25q64c_type);
-    }
-    else
-    {
-       printf("gd25q64c Read ID Error,True ID:%x",gd25q64c_type);
-       printf("    Read ID:%x\r\n",temp);
-       return false;
-    }
+    printf("gd25q64c Read ID Success,ID:%x\r\n",temp);
+//  if(temp==gd25q64c_type)
+//  {
+//      printf("gd25q64c Read ID Success,ID:%x\r\n",gd25q64c_type);
+//  }
+//  else
+//  {
+//     printf("gd25q64c Read ID Error,True ID:%x",gd25q64c_type);
+//     printf("    Read ID:%x\r\n",temp);
+//     return false;
+//  }
 
     if(!gd25q64_des)
     {
@@ -1071,7 +1096,7 @@ s32 ModuleInstall_Gd25q64c(void)
         gd25q64_des->PortType = NOR_SPI;
         gd25q64_des->Port = NULL;
         gd25q64_des->BytesPerPage = gd25q64c_PageSize;
-        gd25q64_des->SectorNum = gd25q64c_SectorNum;
+        gd25q64_des->SectorNum = gd25q64c_BlockrNum * gd25q64c_SectorsPerBlock;
         gd25q64_des->BlockNum = gd25q64c_BlockrNum;
         gd25q64_des->BlocksPerSector = 0;
         gd25q64_des->PagesPerSector = gd25q64c_PagesPerSector;
@@ -1173,4 +1198,83 @@ bool_t __GD25_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd, void *mediad
     return (true);
 }
 
+bool_t showpage(char *param)
+{
+    s32 temp;
+    u8 buf[256];
+    temp = atoi(param);
+    Gd25q64c_ReadPage(buf, temp);
+    for(temp = 0;temp<256;temp+=8)
+    {
+        printf("0x%2x 0x%2x 0x%2x 0x%2x 0x%2x 0x%2x 0x%2x 0x%2x\r\n", buf[temp], buf[temp + 1], buf[temp + 2], buf[temp + 3], buf[temp + 4], buf[temp + 5], buf[temp + 6], buf[temp + 7]);
+    }
+    return true;
+}
+
+u32  data[256],rd[256];
+bool_t test25(char *param)
+{
+    u32 loop,num;
+    s32 temp;
+    temp = atoi(param);
+
+    for(num = 0; num < 4096; num++)
+    {
+        for(loop = 0; loop < 256; loop++)
+        {
+            data[loop] = num*256+loop+temp;
+        }
+        Gd25q64c_Write(data, num*1024,1024);
+        Gd25q64c_Read(rd, num*1024,1024);
+        for(loop = 0; loop < 256; loop++)
+        {
+            if(data[loop] != rd[loop])
+            {
+                printf("********w25q test error,n = %d\r\n",num);
+                break;
+            }
+        }
+        if(num % 100 == 0)
+        {
+            printf("-------------writed %d pages\r\n",num);
+        }
+      DJY_EventDelay(1*1000);
+    }
+    return true;
+}
+
+bool_t testread(char *param)
+{
+    char *page_addr,*next_param;
+    u32 page,num,loop,n;
+
+    page_addr = shell_inputs(param,&next_param);
+
+    page = atoi(page_addr);
+    num = atoi(next_param);
+
+    Gd25q64c_Read(data, page*1024,1024);
+    for(loop = 0; loop < num; loop++)
+    {
+        Gd25q64c_Read(rd, page*1024,1024);
+        for(n = 0; n < 256; n++)
+        {
+            if(data[n] != rd[n])
+            {
+                printf("********w25q test error,n = %d\r\n",loop);
+                break;
+            }
+        }
+        if(loop % 100 == 0)
+        {
+            printf("-------------writed %d pages\r\n",loop);
+        }
+      DJY_EventDelay(1*1000);
+    }
+    return true;
+}
+ADD_TO_ROUTINE_SHELL(erase25, Gd25q64c_Erase_Chip,"擦除25系列spi norflash");
+ADD_TO_ROUTINE_SHELL(showpage, showpage,"显示一页内容");
+ADD_TO_ROUTINE_SHELL(test25, test25,"测试芯片");
+ADD_TO_ROUTINE_SHELL(testread, testread,"测试芯片");
 

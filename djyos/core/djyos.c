@@ -1094,6 +1094,7 @@ const struct EventECB cn_sys_event = {
                         0,                          //HeapSizeMax
                         CN_STS_EVENT_NORUN,          //wakeup_from
                         CN_STS_EVENT_READY,         //event_status
+                        0,                          //prio_raise_cnt
                         CN_PRIO_SYS_SERVICE,        //prio_base
                         CN_PRIO_SYS_SERVICE,        //prio
                         CN_EVTT_ID_BASE,            //evtt_id
@@ -1601,7 +1602,7 @@ bool_t DJY_SetEventPrio(u16 event_id,ufast_t new_prio)
 //参数: event_id，被操作的事件id
 //      new_prio,设置的新优先级
 //返回: true = 成功设置，false=失败，一般是优先级不合法
-//注意：修改成DJY_SetEventPrio函数后和C库有冲突，copy了一份，改了C库之后删掉
+//注意：名字改成DJY_SetEventPrio函数后和C库有冲突(__assert中)，copy了一份，改了C库之后删掉
 //-----------------------------------------------------------------------------
 bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio)
 {
@@ -1653,6 +1654,7 @@ bool_t DJY_RaiseTempPrio(u16 event_id)
 
     Int_SaveAsynSignal();
     pl_ecb = &g_tECB_Table[event_id];
+    pl_ecb->prio_raise_cnt++;
     if(g_ptEventRunning->prio < pl_ecb->prio)
     {
         //事件原来的状态，可能：1、处于就绪态，2、处于某种阻塞态。
@@ -1686,13 +1688,17 @@ bool_t DJY_RestorePrio(void)
 {
 
     Int_SaveAsynSignal();
-    if(g_ptEventRunning->prio != g_ptEventRunning->prio_base)
+    g_ptEventRunning->prio_raise_cnt--;
+    if(g_ptEventRunning->prio_raise_cnt == 0)
     {
-        //注：此三句的顺序不能变，因为prio的值对__Djy_CutReadyEvent函数执行
-        //    结果有影响
-        __DJY_CutReadyEvent(g_ptEventRunning);
-        g_ptEventRunning->prio = g_ptEventRunning->prio_base;
-        __DJY_EventReady(g_ptEventRunning);
+        if(g_ptEventRunning->prio != g_ptEventRunning->prio_base)
+        {
+            //注：此三句的顺序不能变，因为prio的值对__Djy_CutReadyEvent函数执行
+            //    结果有影响
+            __DJY_CutReadyEvent(g_ptEventRunning);
+            g_ptEventRunning->prio = g_ptEventRunning->prio_base;
+            __DJY_EventReady(g_ptEventRunning);
+        }
     }
     Int_RestoreAsynSignal();
     return true;

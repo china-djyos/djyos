@@ -1169,9 +1169,9 @@ static bool_t __File_FS_Format(char *Param)
     printf("文件系统格式化 ----");
 
     if(File_Format(Param))
-        printf("失败!");
+        printf("格式化失败!");
     else
-        printf("成功!");
+        printf("格式化成功!");
 
     printf("\r\n");
     return (TRUE);

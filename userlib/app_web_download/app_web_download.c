@@ -5,6 +5,7 @@
 #include "ntp/ntp_time.h"
 #include "project_config.h"
 #include <time.h>
+#include "app_web_download.h"
 //#include "../comm/comm_api.h"
 //#ifndef free
 //#define free(x) M_Free(x)
@@ -31,7 +32,6 @@ struct StUpdData {
 // 返回：len -- 处理完的数据长度；
 // 备注：
 // ============================================================================
-typedef s32 (*FUN_NET_PROC)(u8 *data, s32 len, s32 total, s32 timeout);
 struct StDlFileData {
     s32 media_type;//0: mp3, 1: wav
     volatile s32 is_break;
@@ -41,7 +41,7 @@ struct StDlFileData {
     volatile u32 timeout;
     volatile u32 body_size;
     volatile u32 mark_pos;
-    FUN_NET_PROC fun_net_do;
+    fnTransAppToIboot fun_net_do;
     s8 url[512];
 };
 
@@ -175,7 +175,7 @@ s32 WebDownload(s8 *host, s32 port, s8 *path,
     s32 ret = 0;
     u32 time_val = 0;
 
-    printf ("WebDownload: %s!\r\n", path);
+//  printf ("WebDownload: %s!\r\n", path);
 
 //  if (!is_wifi_connected())
     //lst todo：由网络管理组件提供判断网络是否连通的函数 NG_ConnectIsOK
@@ -353,7 +353,7 @@ static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_dat
         }
         break;
     }
-#if 0
+#if 1
     case MG_EV_HTTP_CHUNK:
     {
         nc->flags = MG_F_DELETE_CHUNK;
@@ -364,9 +364,18 @@ static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_dat
                 printf("error: cb_ev_handler->realloc MG_EV_HTTP_CHUNK, p==null!\r\n");
                 break;
             }
+//            pQuestData->new_data = p;
+//            memcpy(&pQuestData->new_data[pQuestData->new_len], hm->body.p, hm->body.len);
+//            pQuestData->new_len += hm->body.len;
             pQuestData->new_data = p;
-            memcpy(&pQuestData->new_data[pQuestData->new_len], hm->body.p, hm->body.len);
-            pQuestData->new_len += hm->body.len;
+            pQuestData->new_len = hm->body.len+1;
+            memcpy(pQuestData->new_data, hm->body.p, hm->body.len);
+            pQuestData->new_data[hm->body.len] = 0;
+
+            if (DoUpgradeJson(pQuestData->new_data, pQuestData->new_len, pQuestData->new_data, pQuestData->new_len) > 0) {
+                printf("pQuestData->new_data is %s\r\n", pQuestData->new_data);
+                pQuestData->status = 1;
+            }
         }
         else if (hm->body.len == 0) {//end flag
             if (pQuestData->status != 0) break;
@@ -438,7 +447,7 @@ s32 DevUpgradeCommon(s8 *path, s8 *out_json, s32 len)
     nc->user_data = &user_data;
 
     u32 timemark = DJY_GetSysTime()/1000;
-    u32 timeout_ms = 15000;   //TODO超时时间太短了
+    u32 timeout_ms = 20000;   //TODO超时时间太短了
     while (user_data.status == 0) {
         if (DJY_GetSysTime()/1000-timemark > timeout_ms) {
             printf("DevGetCommon: timeout break!\r\n");
@@ -483,19 +492,20 @@ s32 DevUpgradeQuest(const s8 *serial_num, u8 *branch, s8 *out_json, s32 len)
 
     sprintf(VersionNum, "%d.%d.%d", PRODUCT_VERSION_LARGE,
                     PRODUCT_VERSION_MEDIUM, PRODUCT_VERSION_SMALL);
-    printf("              --------send VersionNumber          = %s   ",VersionNum);
+    printf("--------send VersionNumber = %s   ",VersionNum);
 
-    printf("ENTRY: %s!\r\n", __FUNCTION__);
-    if(mhdr_get_station_status() != RW_EVT_STA_GOT_IP)
-        return -1;
+//    printf("ENTRY: %s!\r\n", __FUNCTION__);
+//    if(mhdr_get_station_status() != RW_EVT_STA_GOT_IP)    //这是7251的函数，平台相关了
+//        return -1;
 
+    memset(finger,0,sizeof(finger));
     Iboot_GetAPP_ProductInfo(APP_HEAD_FINGER, finger, sizeof(finger));
 //    sprintf(path, "/api/version?sn=%s&branch=%s&version=%s&fingerprint%s&data=%s",
 //                                serial_num, branch, VersionNum, "QMNVLX20470000M", "NULL" );  //测试用的
-    sprintf(path, "/api/version?sn=%s&branch=%s&version=%s&fingerprint%s&data=%s", serial_num, branch, VersionNum, finger, "NULL" );
+    snprintf(path,sizeof(path),"/api/version?sn=%s&branch=%s&version=%s&finger=%s&data=%s", serial_num, branch, VersionNum, finger, "NULL" );
 
     s32 ret = DevUpgradeCommon(path, out_json, len);
-    printf("EXIT: %s!\r\n", __FUNCTION__);
+    printf("====EXIT:ret is %d  %s!\r\n",ret,__FUNCTION__);
     return ret;
 }
 
@@ -519,10 +529,17 @@ s32 GetSrvUpgradeInfo(u8 *product_time, s32 prod_time_len, u8 *serial_num, s32 s
     return 0;
 }
 
-//功能：把设备信息发送给服务器，服务器返回升级json，内含 bin 文件的 URL。解析URL
-//      赋值给相关全局变量。
-s32 DevDoUpgrade(u8 *branch, u8 *SN)            //todo：增加发送指纹，与王西配合好
+// ============================================================================
+// 功能：检查是否有新版本，把设备信息发送给服务器，服务器返回升级json，内含 bin 文件
+//      的 URL。解析URL赋值给相关全局变量。
+// 参数：branch:服务器上的升级分支，
+//      SN:产品的SN号
+// 返回：返回0表示有新版本，为-1则表示没有新版本,
+// 备注：
+// ============================================================================
+s32 web_check_new_versions(u8 *branch, u8 *SN)
 {
+    memset(gupgrade_url, 0, sizeof(gupgrade_url));
     s32 ret = -1;
     s8 buf[30] = {0};
     cJSON *cjson = 0;
@@ -591,43 +608,6 @@ s32 DevDoUpgrade(u8 *branch, u8 *SN)            //todo：增加发送指纹，与王西配合
     }
 
     if (out_json) free(out_json);
-    return ret;
-}
-//"20191112550"
-//s32 str2bcd(s8 *strDate, u8 *buf, s32 len)
-//{
-//    u8 ch = 0;
-//    size_t i = 0;
-//    s32 j = 0;
-//    if (strDate == 0) return 0;
-//    for (i=0; i<strlen(strDate); i++){
-//        if (i % 2 == 0) {
-//            ch = (strDate[i] - '0') << 4;
-//        }
-//        else {
-//            ch |= (strDate[i] - '0');
-//            j = i / 2;
-//            if (j<len) {
-//                buf[j] = ch;
-//            }
-//        }
-//    }
-//    return j?j+1:0;
-//}
-
-
-// ============================================================================
-// 功能：检查是否有新版本
-// 参数：
-//      branch:服务器上的升级分支，
-//      SN:产品的SN号
-// 返回：返回0表示有新版本，为-1则表示没有新版本,
-// 备注：
-// ============================================================================
-s32 web_check_new_versions(u8 *branch, u8 *SN)
-{
-    memset(gupgrade_url, 0, sizeof(gupgrade_url));
-    DevDoUpgrade(branch, SN);
     if (gupgrade_url[0] != 0)
     {
         return 0;       //有新版本。

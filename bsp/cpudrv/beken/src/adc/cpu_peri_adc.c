@@ -59,9 +59,14 @@
 #include "drv_model_pub.h"
 #include "sys_ctrl_pub.h"
 #include "saradc_pub.h"
+#include "icu_pub.h"
+#include "intc_pub.h"
+#include "power_save_pub.h"
+#include "saradc/saradc.h"
 #include <lock.h>
 #include <string.h>
 #include <stdio.h>
+#include <systime.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -106,6 +111,9 @@
 //%$#@end exclude   ****组件描述结束
 
 //@#$%component end configure
+
+#define REG_READ(addr)          (*((volatile UINT32 *)(addr)))
+#define REG_WRITE(addr, _data)  (*((volatile UINT32 *)(addr)) = (_data))
 
 DD_HANDLE djy_adc_open(uint8_t channel, saradc_desc_t *adcDesc, uint8_t cntOfDataBuff)
 {
@@ -183,14 +191,10 @@ void djy_adc_close(DD_HANDLE handle)
 //static UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
 //static volatile DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
 
-struct MutexLCB *adc_mutex = NULL;
+struct MutexLCB *pg_tadc_mutex = NULL;
 
 int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
 {
-    if (adc_mutex == NULL) {
-        adc_mutex = Lock_MutexCreate("adc_mutex");
-    }
-
 #define ADC_TEMP_BUFFER_SIZE 2
     saradc_desc_t tmp_single_desc;
     UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
@@ -220,8 +224,7 @@ int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
     memset(tmp_single_buff, 0, sizeof(tmp_single_buff));
     tmp_single_desc.pData = &tmp_single_buff[0];
 
-    if (adc_mutex)
-        Lock_MutexPend(adc_mutex, 0xffffffff);
+    Lock_MutexPend(pg_tadc_mutex, 0xffffffff);
 
     tmp_single_hdl = ddev_open(SARADC_DEV_NAME, &status, (UINT32)&tmp_single_desc);
 
@@ -250,11 +253,91 @@ int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
     if (tryTimes <= 0) {
         ddev_close(tmp_single_hdl);
     }
-    if (adc_mutex)
-        Lock_MutexPost(adc_mutex);
+    Lock_MutexPost(pg_tadc_mutex);
 
     return tmpData;
 }
+#if 1
+
+//快速采样
+//
+s32 djy_adc_fast_read(u8 channel)
+{
+    UINT32 value = 0, reg;
+    u8 mode = (ADC_CONFIG_MODE_CONTINUE << 0) | (ADC_CONFIG_MODE_4CLK_DELAY << 2);
+    u8 pre_div = 0x10,samp_rate = 0x20,filter = 0;
+    u16 ad_date;
+    int voltage = 0xFFFFFFFF;
+
+    if(channel > SARADC_ADC_CHNL_MAX){
+        return SARADC_FAILURE;
+    }
+
+    reg = REG_READ(ICU_PERI_CLK_PWD);
+    reg &= ~PWD_SARADC_CLK_BIT;
+    REG_WRITE(ICU_PERI_CLK_PWD, reg);
+
+
+    // clear fifo
+    while((value & SARADC_ADC_FIFO_EMPTY) == 0) {
+        REG_READ(SARADC_ADC_DATA);
+        value = REG_READ(SARADC_ADC_CONFIG);
+    }
+
+    value = ((mode & SARADC_ADC_MODE_MASK) << SARADC_ADC_MODE_POSI)
+        | SARADC_ADC_CHNL_EN
+        | ((channel & SARADC_ADC_CHNL_MASK) << SARADC_ADC_CHNL_POSI)
+        | (((mode>>2)&0x01) << SARADC_ADC_DELAY_CLK_POSI)
+        | SARADC_ADC_INT_CLR
+        | ((pre_div & SARADC_ADC_PRE_DIV_MASK) << SARADC_ADC_PRE_DIV_POSI)
+        | ((samp_rate & SARADC_ADC_SAMPLE_RATE_MASK) << SARADC_ADC_SAMPLE_RATE_POSI)
+        | ((filter & SARADC_ADC_FILTER_MASK)<< SARADC_ADC_FILTER_POSI);
+    REG_WRITE(SARADC_ADC_CONFIG, value);
+
+#if (CFG_SOC_NAME != SOC_BK7231)
+    value = SARADC_ADC_SAT_ENABLE
+       //| ((0x01 & SARADC_ADC_SAT_CTRL_MASK) << SARADC_ADC_SAT_CTRL_POSI);
+       | ((0x03 & SARADC_ADC_SAT_CTRL_MASK) << SARADC_ADC_SAT_CTRL_POSI);
+    REG_WRITE(SARADC_ADC_SATURATION_CFG, value);
+#endif
+
+
+    Lock_MutexPend(pg_tadc_mutex, 0xffffffff);
+
+    value = REG_READ(SARADC_ADC_CONFIG);
+    value &= ~(SARADC_ADC_CHNL_MASK << SARADC_ADC_CHNL_POSI);
+    value |= (channel << SARADC_ADC_CHNL_POSI);
+    value |= SARADC_ADC_CHNL_EN;
+    REG_WRITE(SARADC_ADC_CONFIG, value);
+
+    value = REG_READ(SARADC_ADC_CONFIG);
+    while((value & SARADC_ADC_FIFO_EMPTY) != 0)
+    {
+        value = REG_READ(SARADC_ADC_CONFIG);
+    }
+
+    #if (CFG_SOC_NAME == SOC_BK7231)
+    ad_date = REG_READ(SARADC_ADC_DATA)&0x03FF;
+    #else
+    ad_date = REG_READ(SARADC_ADC_DAT_AFTER_STA)&0xFFFF;
+    #endif // (CFG_SOC_NAME == SOC_BK7231)
+    voltage = saradc_calculate_fast(ad_date);
+//    tmpData = voltage * 1000;
+
+    value = REG_READ(SARADC_ADC_CONFIG);
+    value &= ~(SARADC_ADC_MODE_MASK << SARADC_ADC_MODE_POSI);
+    value &= ~(SARADC_ADC_CHNL_EN);
+    REG_WRITE(SARADC_ADC_CONFIG, value);
+
+    reg = REG_READ(ICU_PERI_CLK_PWD);
+    reg |= PWD_SARADC_CLK_BIT;
+    REG_WRITE(ICU_PERI_CLK_PWD, reg);
+
+    Lock_MutexPost(pg_tadc_mutex);
+
+    return voltage;
+}
+#endif
 #if 0
 static void temp_single_detect_handler2(void)
 {
@@ -320,7 +403,22 @@ static void temp_single_get_desc_init(void)
 
 void ModuleInstall_ADC(void)
 {
+    UINT32 status;
     saradc_init();
+    Int_SaveAsynLine(IRQ_SARADC);
+    pg_tadc_mutex = Lock_MutexCreate("pg_tadc_mutex");
+//  memset(&tmp_single_desc, 0x00, sizeof(saradc_desc_t));
+//  tmp_single_desc.channel = 1;
+//  tmp_single_desc.data_buff_size = ADC_TEMP_BUFFER_SIZE;
+//  tmp_single_desc.mode = (ADC_CONFIG_MODE_CONTINUE << 0) | (ADC_CONFIG_MODE_4CLK_DELAY << 2);
+//  tmp_single_desc.has_data                = 0;
+//  tmp_single_desc.current_read_data_cnt   = 0;
+//  tmp_single_desc.current_sample_data_cnt = 0;
+//  tmp_single_desc.pre_div = 0x10;
+//  tmp_single_desc.samp_rate = 0x20;
+//  tmp_single_desc.pData = &tmp_single_buff[0];
+//  tmp_single_hdl = ddev_open(SARADC_DEV_NAME, &status, (UINT32)&tmp_single_desc);
+
 //    GLOBAL_INT_DECLARATION();
 
 //    temp_single_get_desc_init();

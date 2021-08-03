@@ -296,9 +296,9 @@ void GK_FillPartWin(struct GkWinRsc *gkwin,
 //功能: 用指定颜色填充一个窗口的一部分，颜色按alpha值渐变过渡
 //参数: gkwin，待填充的目标窗口
 //      rect，待填充的位置
-//      Color0,颜色1，含义见CN_FILLRECT_MODE_LR族常量定义
-//      Color1,颜色2，含义见CN_FILLRECT_MODE_LR族常量定义
-//      Mode,渐变模式,含义见CN_FILLRECT_MODE_LR族常量定义
+//      Color0,颜色1，含义见 CN_FILLRECT_MODE_LR 族常量定义
+//      Color1,颜色2，含义见 CN_FILLRECT_MODE_LR 族常量定义
+//      Mode,渐变模式,含义见 CN_FILLRECT_MODE_LR 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
 void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *rect,
@@ -434,7 +434,7 @@ void GK_LinetoIe(struct GkWinObj *gkwin, s32 x1,s32 y1,
 //      bitmap，待绘制的位图
 //      pattern，要设置的图案位图
 //      Rop4Msk，rop4操作才需要的掩码位图，一个单色位图
-//      KeyColor，透明色
+//      HyalineColor，透明色
 //      x、y，绘制的目标位置
 //      RopMode, 光栅码，参见 CN_ROP_ALPHA_SRC_MSK 族常量定义
 //返回: 无
@@ -680,7 +680,7 @@ void GK_ChangeWinArea(struct GkWinObj *gkwin, s32 left,s32 top,
 //----设置窗口的边界模式-------------------------------------------------------
 //功能: 设置窗口的边界模式。
 //参数: gkwin，目标窗口
-//      mode， 窗口的边界模式，CN_BOUND_LIMIT为受限，CN_BOUND_UNLIMIT为不受限
+//      mode， 窗口的边界模式，CN_BOUND_LIMIT 为受限，CN_BOUND_UNLIMIT为不受限
 //返回: 无
 //-----------------------------------------------------------------------------
 void GK_SetBoundMode(struct GkWinObj *gkwin, u32 mode)

@@ -261,8 +261,9 @@ struct EventECB
     //以下两行参见CN_STS_EVENT_READY系列定义
     u32 wakeup_from;            //用于查询事件进入就绪态的原因,todo,直接返回状态
     u32 event_status;           //当前状态,本变量由操作系统内部使用,
-    ufast_t  prio_base;         //临时调整优先级时，将不改变prio_base
-    ufast_t  prio;              //事件优先级
+    u32 prio_raise_cnt;         //优先级继承计数
+    u8  prio_base;         //临时调整优先级时，将不改变prio_base
+    u8  prio;              //事件优先级
 //  ufast_t  prio_new;       //优先级备份，用于修改处于阻塞态的事件优先级时，
                                 //暂存新优先级。
 

@@ -1203,6 +1203,41 @@ bool_t Heap_DynamicModuleInit(void)
     return true;
 }
 
+//lst debug
+//void *event11m[2000];
+//u32 moff = 0,foff = 0;
+//void save11(void *p)
+//{
+//    s32 loop;
+//    if((g_ptEventRunning->event_id == 10) && (p != NULL))
+//    {
+//        for(loop = moff; loop >0; loop--)
+//        {
+//            if(p == event11m[loop-1])
+//                printk("error = %x\r\n", p);
+//        }
+//        if(moff < 2000)
+//        {
+//            event11m[moff] = p;
+//            moff++;
+//        }
+//    }
+//}
+//void free11(void *p)
+//{
+//    s32 loop;
+//    if((p != NULL))
+//    {
+//        for(loop = moff - 1; loop >= 0; loop--)
+//        {
+//            if(event11m[loop] == p)
+//            {
+//                event11m[loop] += 1;
+//            }
+//        }
+//    }
+//}
+
 //----从内存堆中分配内存-------------------------------------------------------
 //功能：1.规格化内存尺寸，计算满足要求的最小内存尺寸，计算该块内存尺寸的阶数
 //      2.读取该级访问路径深度，沿访问路径逐级查找，直到找到空闲内存为止。
@@ -1231,7 +1266,7 @@ void *__Heap_MallocLcHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout)
         return NULL;
 
     //不能在此直接判断size是否满足,因为取得互斥量前可能重入而判断无效.
-    if(Lock_MutexPend(&Heap->HeapMutex, CN_TIMEOUT_FOREVER) == false)
+    if(Lock_MutexPend(&Heap->HeapMutex, timeout) == false)
         return NULL;
     en_scheduler = DJY_QuerySch( );
     //禁止调度条件下，如果当前没有足够的空闲内存，乖乖的走吧。
@@ -1295,7 +1330,7 @@ void *__Heap_MallocLc(ptu32_t size,u32 timeout)
 //返回：分配的内存指针，NULL表示没有内存可以分配
 //备注: 用此函数分配的内存,并不会在事件完成时被收回.
 //-----------------------------------------------------------------------------
-//#include "stm32f7xx.h"
+//#include "stm32f7xx.h" lst debug
 //#include <core_cm7.h>
 //struct recstack
 //{
@@ -1353,7 +1388,7 @@ void *__Heap_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
     if( (size == 0) || (Heap == NULL) )
         return NULL;
     //不能在此直接判断size是否满足,因为关取得互斥量前可能发生切换而判断无效.
-    if(Lock_MutexPend(&Heap->HeapMutex,CN_TIMEOUT_FOREVER) == false)
+    if(Lock_MutexPend(&Heap->HeapMutex,timeout) == false)
         return NULL;
     en_scheduler = DJY_QuerySch();
     //禁止调度条件下，如果当前没有足够的空闲内存，乖乖的走吧。
@@ -1571,6 +1606,7 @@ void *__Heap_MallocStack(struct EventECB *event, u32 size)
             result = ua_address;
         }
     }
+//    save11(result);     //lst debug
     return result;
 }
 
@@ -1742,7 +1778,7 @@ void *__Heap_Realloc(void *p, ptu32_t NewSize)
     if(p == NULL)
     {
         //若NewSize = 0,返回NULL
-        NewP = __Heap_Malloc(NewSize,CN_TIMEOUT_FOREVER);
+        NewP = __Heap_Malloc(NewSize,0);
         return NewP;
     }
 
@@ -1751,7 +1787,7 @@ void *__Heap_Realloc(void *p, ptu32_t NewSize)
         return p;
     else
     {
-        NewP = __Heap_Malloc(NewSize,CN_TIMEOUT_FOREVER);
+        NewP = __Heap_Malloc(NewSize,0);
         if(NewP)
         {
             memcpy(NewP,p,NewSize < OldSize ? NewSize:OldSize);
@@ -1846,6 +1882,7 @@ ptu32_t __Heap_FormatSize(ptu32_t size)
 //           如果是通用堆,则从这个堆开始在所有通用堆中查找pl_mem所在的堆
 //返回：错误返回flase,正确时返回true
 //-----------------------------------------------------------------------------
+extern struct EventECB g_tECB_Table[];
 void __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap)
 {
     struct HeapCession *Cession;
@@ -1935,12 +1972,14 @@ void __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     {
         case CN_MEM_DOUBLE_PAGE_LOCAL :
         {   //双页局部内存,CN_MEM_DOUBLE_PAGE_LOCAL + event id
+            event = &g_tECB_Table[pl_id[1]];
             pl_id[1] = CN_MEM_FREE_PAGE;
             uf_free_grade_th = 1;
             Lc = true;
         }break;
         case CN_MEM_MANY_PAGE_LOCAL :
         {   //多页局部内存:CN_MEM_MANY_PAGE_LOCAL+event id+阶号
+            event = &g_tECB_Table[pl_id[1]];
             uf_free_grade_th = (ufast_t)pl_id[2];
             pl_id[1] = CN_MEM_FREE_PAGE;
             pl_id[2] = CN_MEM_FREE_PAGE;
@@ -1952,12 +1991,14 @@ void __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap)
 //      }break;
         case CN_MEM_DOUBLE_PAGE_GLOBAL :
         {//双页全局内存:CN_MEM_DOUBLE_PAGE_GLOBAL + event id
+            event = &g_tECB_Table[pl_id[1]];
             pl_id[1] = CN_MEM_FREE_PAGE;
             uf_free_grade_th = 1;
             Lc = false;
         }break;
         case CN_MEM_MANY_PAGE_GLOBAL :
-        {//多页全局内存:CN_MEM_MANY_PAGE_GLOBAL+(event id)|CN_EVTT_ID_MASK+阶号.
+        {//多页全局内存:CN_MEM_MANY_PAGE_GLOBAL+(event id)+阶号.
+            event = &g_tECB_Table[pl_id[1]];
             uf_free_grade_th = (ufast_t)pl_id[2];
             pl_id[1] = CN_MEM_FREE_PAGE;
             pl_id[2] = CN_MEM_FREE_PAGE;
@@ -1969,6 +2010,7 @@ void __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap)
             //单页全局内存:event id + CN_EVTT_ID_MASK
 //          pl_id[0] = CN_MEM_FREE_PAGE;
             uf_free_grade_th = 0;
+            event = &g_tECB_Table[pl_id[0] & (~CN_EVTT_ID_MASK)];
             //检查事件号记录是否合法
             if((pl_id[0] & (~CN_EVTT_ID_MASK)) >= CFG_EVENT_LIMIT)
             {
@@ -1983,6 +2025,11 @@ void __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap)
             else
                 Lc = true;
         }break;
+    }
+    ua_temp1 = Cession->PageSize * (1 << uf_free_grade_th);
+//  if(g_ptEventRunning->HeapSize > ua_temp1)   //允许负数，更易于查问题
+    {
+        event->HeapSize -= ua_temp1;
     }
     pl_id[0] = CN_MEM_FREE_PAGE;
     pppl_bitmap=Cession->ppp_bitmap; //空闲金字塔位图指针的指针表的首指针
@@ -2100,11 +2147,6 @@ void __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     if((g_ptEventRunning->local_memory > 0) && (Lc))
     {
         g_ptEventRunning->local_memory--;
-    }
-    ua_temp1 = Cession->PageSize * (1 << uf_free_grade_th);
-//  if(g_ptEventRunning->HeapSize > ua_temp1)   //允许负数，更易于查问题
-    {
-        g_ptEventRunning->HeapSize -= ua_temp1;
     }
     //把内存等待队列中申请内存之和小于当前可用最大内存的几个事件放到ready队列
     //等待队列是双向循环链表

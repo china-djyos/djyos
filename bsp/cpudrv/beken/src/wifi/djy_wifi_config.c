@@ -107,9 +107,9 @@ struct pbuf *pbuf_alloc(pbuf_layer layer, u16 length, pbuf_type type)
     offset = 0;
 
     pak_len =  PBUF_MEM_ALIGN_SIZE(length) + PBUF_MEM_ALIGN_SIZE(sizeof(struct pbuf)+offset);
-    if((pbuf =  malloc(pak_len)) == NULL)
+    if((pbuf =  M_Malloc(pak_len,CN_TIMEOUT_FOREVER)) == NULL)
     {
-        printf("error :pbuf malloc event \n\r");
+        printf("error :pbuf malloc event %d\n\r",pak_len);
         return NULL;
     }
     pbuf->next  = NULL;
