@@ -87,7 +87,7 @@
 #define CFG_MODULE_ENABLE_FTP    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,,,
 //%$#@enum,true,false,
-#define     CFG_FTPD_ENABLE            false   //"ftp 服务器使能",暂未实现
+#define     CFG_FTPD_ENABLE            false   //"ftp 服务器使能"
 #define     CFG_FTPC_ENABLE            true    //"ftp 客户端使能"
 //%$#@string,1,256,
 //%$#@select

@@ -99,7 +99,6 @@
 //@#$%component end configure
 
 
-extern bool_t QSPI_Send_CMD(u32 instruction,u32 address,u32 dummyCycles,u32 instructionMode,u32 addressMode,u32 addressSize,u32 dataMode);
 u8 W25QXX_QPI_MODE=0;       //QSPI模式标志:0,SPI模式;1,QSPI模式.
 struct MutexLCB *W25qxx_Lock;           //芯片互斥访问保护
 struct NorDescr *W25qxx_description = NULL;

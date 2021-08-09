@@ -11,29 +11,42 @@
 #include "stdlib.h"
 void *djyos_realloc(void *p, size_t size)
 {
-  //printf("djyos_realloc: 0x%x, %d!\r\n", p, size);
-  void *rp = 0;
-  /* 释放size空间 */
-  if (size == 0) {
-      if (p) free(p);
-      return 0;
-  }
-  /* 申请size空间  */
-  if (p == 0 && size > 0) {
-      //printf("djyos_realloc->malloc(%d)!\r\n", size);
-      rp = malloc(size);
-      if (rp==0) {
-        printf("djyos_realloc, rp = NULL, size=%d!\r\n", size);
-      }
-      return rp;
-  }
-  /* 先拷贝原来的数据，由于原来的数据长度不知道，所以全部拷贝 */
- rp = malloc(size);
- if (rp && p) {
-     memcpy(rp, p, size);
-     free(p);
- }
-  return rp;
+    void *rp = 0;
+    rp = realloc(p, size);
+//  /* 释放size空间 */
+//  if (size == 0)
+//  {
+//      if (p) free(p);
+//  }
+//  else
+//  {
+//      printf("djyos_realloc: 0x%x, %d!\r\n", p, size);
+//      /* 申请size空间  */
+//      if (p == 0)
+//      {
+//          rp = malloc(size);
+//          if (rp==0)
+//          {
+//            printf("djyos_realloc, rp = NULL, size=%d!\r\n", size);
+//            bool_t event(char *param);   //lst debug
+//            bool_t heap(void);
+//            bool_t heap_spy(void);
+//            event(0);
+//            heap_spy();
+//            heap();
+//          }
+//      }
+//      else
+//      {
+//           rp = malloc(size);
+//           if (rp && p)
+//           {
+//               memcpy(rp, p, size);
+//               free(p);
+//           }
+//      }
+//  }
+    return rp;
 }
 
 
@@ -2431,7 +2444,7 @@ size_t mg_match_prefix(const char *pattern, int pattern_len, const char *str) {
 #define MG_MAX_HOST_LEN 200
 
 #ifndef MG_TCP_IO_SIZE
-#define MG_TCP_IO_SIZE 2920//1460
+#define MG_TCP_IO_SIZE 1460
 #endif
 #ifndef MG_UDP_IO_SIZE
 #define MG_UDP_IO_SIZE 1460
@@ -2994,6 +3007,8 @@ static int mg_do_recv(struct mg_connection *nc) {
       break;
     }
     if (nc->recv_mbuf.size < nc->recv_mbuf.len + len) {
+        if(Djy_MyEventId() == 12)       //lst dbg
+            res = 100;
       mbuf_resize(&nc->recv_mbuf, nc->recv_mbuf.len + len);
     }
     buf = nc->recv_mbuf.buf + nc->recv_mbuf.len;

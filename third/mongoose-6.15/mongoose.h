@@ -5024,7 +5024,7 @@ struct mg_ssi_call_ctx {
  * The user-defined event handler will receive following extra events:
  *
  * - MG_EV_HTTP_REQUEST: HTTP request has arrived. Parsed HTTP request
- *  is passed as
+ *   is passed as
  *   `struct http_message` through the handler's `void *ev_data` pointer.
  * - MG_EV_HTTP_REPLY: The HTTP reply has arrived. The parsed HTTP reply is
  *   passed as `struct http_message` through the handler's `void *ev_data`
@@ -5050,8 +5050,8 @@ struct mg_ssi_call_ctx {
  * - MG_EV_WEBSOCKET_FRAME: new WebSocket frame has arrived. `ev_data` is
  *   `struct websocket_message *`
  *
- * When compiled with MG_ENABLE_HTTP_STREAMING_MULTIPART, Mongoose parses
- * multipart requests and splits them into separate events:
+ *   When compiled with MG_ENABLE_HTTP_STREAMING_MULTIPART, Mongoose parses
+ *   multipart requests and splits them into separate events:
  * - MG_EV_HTTP_MULTIPART_REQUEST: Start of the request.
  *   This event is sent before body is parsed. After this, the user
  *   should expect a sequence of PART_BEGIN/DATA/END requests.
@@ -6269,8 +6269,9 @@ extern "C" {
 #define MG_DNS_ANY_RECORD 0xff
 #define MG_DNS_NSEC_RECORD 0x2f
 
-#define MG_MAX_DNS_QUESTIONS 32
-#define MG_MAX_DNS_ANSWERS 32
+//djyos中，改为由DIDE配置了
+//#define MG_MAX_DNS_QUESTIONS 32
+//#define MG_MAX_DNS_ANSWERS 32
 
 #define MG_DNS_MESSAGE 100 /* High-level DNS message event */
 

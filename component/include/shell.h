@@ -92,6 +92,7 @@ struct shell_cmd
                 const struct shell_cmd djysh_##cmdname = \
                         {.shell_fun_addr  = fun,.shell_help_addr = help,}
 
+//用法：“ADD_TO_IN_SHELL_DATA u32 sh;”      //把 sh 定义为可在shell中访问的变量
 #define ADD_TO_IN_SHELL_DATA  __attribute__((section(".ro_shell_data")))//添加常规shell数据
 #define ADD_TO_EX_SHELL_DATA    __attribute__((section(".ex_shell_data")))//拓展shell数据
 

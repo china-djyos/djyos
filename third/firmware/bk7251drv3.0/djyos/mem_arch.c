@@ -56,7 +56,7 @@ void *os_malloc(size_t size)
     void *ptr = NULL;
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
-    ptr = malloc(size);
+    ptr = M_Malloc(size,CN_TIMEOUT_FOREVER);
     GLOBAL_INT_RESTORE();
     return ptr;
 }
@@ -65,7 +65,7 @@ void * os_zalloc(size_t size)
 {
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
-    void *n = malloc(size);
+    void *n = M_Malloc(size,CN_TIMEOUT_FOREVER);
     GLOBAL_INT_RESTORE();
     if (n)
         os_memset(n, 0, size);
@@ -78,7 +78,7 @@ void *os_realloc(void *ptr, size_t size)
 
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
-    tmp = malloc(size);
+    tmp = M_Malloc(size,CN_TIMEOUT_FOREVER);
     GLOBAL_INT_RESTORE();
     if(tmp)
     {

@@ -66,11 +66,17 @@
 extern "C" {
 #endif
 
-#define CN_FONT_ASCII_8x8           "ascii8x8"      //ascii:8*8 点阵字体
-#define CN_FONT_ASCII_6x12          "ascii6x12"     //ascii:8*16点阵字体
-#define CN_FONT_ASCII_8x16          "ascii8x16"     //ascii:8*16点阵字体
-#define CN_FONT_ASCII_12x24         "ascii12x24"   //ascii:8*16点阵字体
-#define CN_FONT_ASCII_16x32         "ascii16x32"   //ascii:16*32点阵字体
+#define CN_FONT_ASCII_8x8           "ascii8x8"          //ascii:8*8 点阵字体
+#define CN_FONT_ASCII_6x12          "ascii6x12"         //ascii:8*16点阵字体
+#define CN_FONT_ASCII_8x16          "ascii8x16"         //ascii:8*16点阵字体
+#define CN_FONT_ASCII_12x24         "ascii12x24"        //ascii:8*16点阵字体
+#define CN_FONT_ASCII_16x32         "ascii16x32"        //ascii:16*32点阵字体
+
+#define CN_FONT_ASCII_8x8hei        "ascii8x8hei"       //ascii:8*8 点阵字体
+#define CN_FONT_ASCII_6x12hei       "ascii6x12hei"      //ascii:8*16点阵字体
+#define CN_FONT_ASCII_8x16hei       "ascii8x16hei"      //ascii:8*16点阵字体
+#define CN_FONT_ASCII_12x24hei      "ascii12x24hei"     //ascii:8*16点阵字体
+#define CN_FONT_ASCII_16x32hei      "ascii16x32hei"     //ascii:16*32点阵字体
 
 #ifdef __cplusplus
 }

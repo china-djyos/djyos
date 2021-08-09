@@ -27,7 +27,6 @@ struct update_app_info
     u8 file_name_len;
 };
 
-bool_t app_check_from_fs(const char *path);
 s32 set_upgrade_data(struct update_app_info *info);
 int to_update_app(u32 app_max_size);
 

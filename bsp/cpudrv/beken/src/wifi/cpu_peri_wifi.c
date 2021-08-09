@@ -497,11 +497,6 @@ bool_t __attribute__((weak)) FnNetDevEventHookEvent(struct NetDev* iface,enum Ne
 
 static char   gc_NetMac[CN_MACADDR_LEN] = { 0xC8, 0x47, 0x8C, 0x00, 0x00, 0x00};
 
-char *getnetmacaddr()
-{
-    return gc_NetMac;
-}
-
 //timeout: microsecond
 int PendDhcpDone(unsigned int timeout)
 {
@@ -562,7 +557,7 @@ bool_t ModuleInstall_Wifi(void)
     FILE *fd = NULL;
     struct stat file_state;
 
-    wifi_get_mac_address(getnetmacaddr(),CONFIG_ROLE_NULL);//防止重新设置MAC地址
+    wifi_get_mac_address(gc_NetMac,CONFIG_ROLE_NULL);//防止重新设置MAC地址
     memset(&file_state, 0, sizeof(struct stat));
     stat(CFG_MAC_DATA_FILE_NAME,&file_state);
     fd = fopen(CFG_MAC_DATA_FILE_NAME,"a+");
@@ -581,7 +576,7 @@ bool_t ModuleInstall_Wifi(void)
             {
                 if(fclose(fd) == -1)
                 {
-                    printf("befor remove close file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
+                    printf("before remove, close file \" %s \" fail\r\n",CFG_MAC_DATA_FILE_NAME);
                 }
                 else
                 {
