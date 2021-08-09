@@ -266,25 +266,32 @@ bool_t Gd25q64c_WriteEnableWait(void)
 {
     u8 sndbuf[1];
     u8 rcvbuf[1];
-    u32 wait = 2000000;
+    u32 wait = 50;
+    bool_t ret = true;
 
     sndbuf[0] = gd25q64c_ReadStatusReg1;
 
-    do
+    while(1)
     {
         Gd25q64c_CsActive();
 
         Gd25q64c_TxRx(sndbuf,1,rcvbuf,1,1);
 
         Gd25q64c_CsInactive();
-        wait --;
-        if(wait == 0)
+        if((rcvbuf[0] & 0x02) != 0x02)
         {
-            return false;
+            DJY_EventDelay(10*mS);
+            wait --;
+            if(wait == 0)
+            {
+                ret = false;
+                break;
+            }
         }
-    }while((rcvbuf[0] & 0x02) != 0x02);
-
-    return true;
+        else
+            break;
+    }
+    return ret;
 }
 
 //=====================================================================
@@ -297,25 +304,32 @@ bool_t Gd25q64c_WriteDisableWait(void)
 {
     u8 sndbuf[1];
     u8 rcvbuf[1];
-    u32 wait = 20000;
+    u32 wait = 50;
+    bool_t ret = true;
 
     sndbuf[0] = gd25q64c_ReadStatusReg1;
 
-    do
+    while(1)
     {
         Gd25q64c_CsActive();
 
         Gd25q64c_TxRx(sndbuf,1,rcvbuf,1,1);
 
         Gd25q64c_CsInactive();
-        wait --;
-        if(wait == 0)
+        if((rcvbuf[0] & 0x02) == 0x02)
         {
-            return false;
+            DJY_EventDelay(10*mS);
+            wait --;
+            if(wait == 0)
+            {
+                ret = false;
+                break;
+            }
         }
-    }while((rcvbuf[0] & 0x02) == 0x02);
-
-    return true;
+        else
+            break;
+    }
+    return ret;
 }
 
 //=====================================================================
@@ -951,7 +965,7 @@ s32 __gd25q64c_erase(u32 unit, struct uesz sz)
     u32 block;
 
     if(sz.unit)
-        block = unit / gd25q64_des->PagesPerBlock; // 看看这一页在哪个块（实际芯片的扇区）中
+        block = unit / gd25q64_des->PagesPerBlock; // 看看这一页在哪个块（手册中的扇区）中
     else if (sz.block)
         block = (u32)unit;
 

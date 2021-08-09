@@ -160,7 +160,7 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
     }
 }
 
-//返回：-1：下载时候 -2：下载超时
+//返回：-1：网络错误 -2：下载超时
 s32 WebDownload(s8 *host, s32 port, s8 *path,
                  fnTransAppToIboot fdo, s32 timeout_ms)
 {
@@ -226,17 +226,13 @@ s32 WebDownload(s8 *host, s32 port, s8 *path,
         time_val = DJY_GetSysTime()/1000 - pUserData->timemark;
         if (time_val > pUserData->timeout) {
             printf("==info: WebDownloadAndPlay break!==\r\n");
+            ret = -2;
             break;
         }
 //      if (media_is_stop()) {
 //          pUserData->timemark = DJY_GetSysTime()/1000;
 //      }
-        DJY_EventDelay(10*1000);
-    }
-
-    if (time_val <= pUserData->timeout)
-    {
-        ret = -2;
+        DJY_EventDelay(20*1000);
     }
 
 MGR_FREE:
@@ -663,7 +659,7 @@ s32 web_upgrade_firmware(fnTransAppToIboot fdo)
                 printf("web_up param error\r\n");
                 return -1;
             }
-            ret = WebDownload(domain, 80, p2, fdo, 5000);
+            ret = WebDownload(domain, 80, p2, fdo, 120000);
 
             printf("===================WebDownload ret=%d========================!\r\n", ret);
         }

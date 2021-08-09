@@ -177,7 +177,7 @@ static bool_t app_ram_to_fs(s8 *dir, s8 *addr,u32 file_size, s8 *file_name)
 //-----------------------------------------------------------------------------
 s32 to_update_app(u32 app_max_size)
 {
-    s32 ret = -1;
+    s32 ret = false;
     union update_info  up_info;
     s8 file_name[sizeof(up_info.ram.file_name)];
     struct ProductInfo p_productinfo;
@@ -300,7 +300,7 @@ s32 to_update_app(u32 app_max_size)
                         //把产品序号和文件头，写入app文件头中
                         Iboot_RewriteProductInfoNumTime(start_addr + sizeof(struct AppHead), production_time, production_num);
                         if(app_ram_to_fs(CFG_APP_SAVE_DIR, start_addr, file_size, file_name))
-                            ret = 0;
+                            ret = true;
                     }
                 }
                 else
@@ -309,7 +309,7 @@ s32 to_update_app(u32 app_max_size)
                 }
             }
             else
-                info_printf("up", "file size is overlong\r\n");
+                printk("file size is overlong\r\n");
 
         }
         else
