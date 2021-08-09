@@ -12,7 +12,7 @@
 #include <dbug.h>
 #include <djyfs/filesystems.h>
 #include <string.h>
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 #include "cpu_peri.h"
 #include "gd25q64c.h"
 
@@ -60,7 +60,12 @@
 
 
 u32 sector_num = 0;
-#define     SECTOR_SIZE     512         //文件系统配置的是512,这里对flash的操作也得按512来，不能按256来，（其实就是把页大小换成512）
+
+#if _MIN_SS == _MAX_SS
+#define     SECTOR_SIZE     _MIN_SS     //页尺寸必须按照文件系统的定义来
+#else
+#define     SECTOR_SIZE     256
+#endif
 
 int gd25q64c_status(void);
 int gd25q64c_initialize(void);
@@ -173,7 +178,7 @@ s32 gd25q64c_ioctl( u8 cmd, void *buff)
     switch (cmd) {
         /* Make sure that no pending write process */
         case CTRL_SYNC:
-            res = 0; // RES_OK;
+            res = 0; // RES_OK; todo:直接返回OK，如果真的有挂着的操作呢？
             break;
 
         /* Get number of sectors on the disk (DWORD) */
@@ -203,8 +208,9 @@ s32 gd25q64c_ioctl( u8 cmd, void *buff)
 
 // =============================================================================
 // 功能：在w25q中安装fat文件系统
-// 参数： TargetFs -- 要挂载的文件系统
-//      分区数据 -- 起始块，结束块数（擦除时不包括该块，只擦到该块的上一块），是否格式化；
+// 参数：TargetFs，要挂载的文件系统
+//       bend，结束块数（擦除时不包括该块，只擦到该块的上一块），
+//       doformat，1=安装时格式化，0=安装时不格式化
 // 返回：成功（true）；失败（false）；
 // 备注：
 // =============================================================================

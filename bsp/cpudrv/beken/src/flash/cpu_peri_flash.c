@@ -394,7 +394,6 @@ s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...)
 
             if(-1== end)
                 end = nordescription->SectorNum;// 结束的号；
-
             do
             {
                 djy_flash_erase((u32)((--end * ((u32)(nordescription->BytesPerPage * nordescription->PagesPerSector)))));
@@ -454,15 +453,16 @@ s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
      super->MediaInfo = flash_um;
      super->MediaDrv = mediadrv;
 
-     if(-1 == (s32)endblock)
-         endblock = bend = nordescription->SectorNum; // 最大块号
-
      super->MediaStart = bstart * nordescription->PagesPerSector; // 起始unit号
 
-     //计算总容量，，如果计算的总容量大于芯片的总容量了，则把芯片的总容量减起始位置
-     if(strstr(super->pFsType->pType, "XIP"))      //这里的XIP是指XIP-APP和XIP-IBOOT，如果这两个文件系统的pType改了，这里也要做相应的修改
+     //计算总容量，如果计算的总容量大于芯片的总容量了，则把芯片的总容量减起始位置
+     //这里的XIP是指XIP-APP和XIP-IBOOT，如果这两个文件系统的 pType 改了，这里也要做相应的修改
+     if(strstr(super->pFsType->pType, "XIP"))
      {
-         super->AreaSize = ((bend * nordescription->BytesPerPage * nordescription->PagesPerSector)- (super->MediaStart * nordescription->BytesPerPage)) * 34 / 32;
+
+         if(-1 == (s32)endblock)
+             endblock = nordescription->SectorNum*32/34;       // 最大块号
+         super->AreaSize = ((endblock * nordescription->BytesPerPage * nordescription->PagesPerSector)- (super->MediaStart * nordescription->BytesPerPage)) * 34 / 32;
          if(super->AreaSize + ((super->MediaStart * nordescription->BytesPerPage) * 34 / 32)  >
                                      nordescription->SectorNum * nordescription->BytesPerPage * nordescription->PagesPerSector)
          {
@@ -472,8 +472,11 @@ s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
          info_printf("embedf","%s fileOS total capacity(size : %lld)， available capacity (size : %lld).", fs, super->AreaSize,super->AreaSize / 34 * 32);
      }
      else
-     {      //不是XIP的文件系统，填什么区域就是什么区域，不会去做*34/32的偏移，在使用时，需要自行计算好位置。
-         super->AreaSize = (bend * nordescription->BytesPerPage * nordescription->PagesPerSector)- (super->MediaStart * nordescription->BytesPerPage);
+     {
+         if(-1 == (s32)endblock)
+             endblock = nordescription->SectorNum; // 最大块号
+         //不是XIP的文件系统，填什么区域就是什么区域，不会去做*34/32的偏移，在使用时，需要自行计算好位置。
+         super->AreaSize = (endblock * nordescription->BytesPerPage * nordescription->PagesPerSector)- (super->MediaStart * nordescription->BytesPerPage);
          if(super->AreaSize + (super->MediaStart * nordescription->BytesPerPage) >
                                      nordescription->SectorNum * nordescription->BytesPerPage * nordescription->PagesPerSector)
          {

@@ -78,7 +78,7 @@ struct objhandle{
     struct MultiplexObjectCB * pMultiplexHead; // 多路复用目标对象头指针；
     u32 MultiplexEvents;    // 对象的当前访问状态，如可读，可写等。24bit，高8位无效，
                             // 可用于多路复用；
-    ptu32_t UserTag;            // 用户标签，由用户设定该标签用途；
+    ptu32_t UserTag;        // 用户标签，由用户设定该标签用途；
     ptu32_t context;        // handle访问上下文
 };
 

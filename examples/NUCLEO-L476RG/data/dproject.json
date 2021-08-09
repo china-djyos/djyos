@@ -1,9 +1,10 @@
 {
-	"ide_version":"V1.7_20200624",
+	"ide_version":"V1.7_20210707",
 	"frameworks_checked":{
 		"app":[],
 		"iboot":[]
 	},
+	"target_nodes":[],
 	"libs_checked":{
 		"app":[],
 		"iboot":[]

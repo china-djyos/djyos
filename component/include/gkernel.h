@@ -216,8 +216,8 @@ struct RectBitmap        //矩形位图
     bool_t reversal;        //在两个矩形位图中位块传送时，本位图的纵坐标是否需要反转，
                             //因为在绘制位图时，本系统窗口以左上角为原点，但.bmp文件是以左下角为原点，
                             //故设置此标志位供驱动判定是否需要对其翻转。
-    ptu32_t ExColor;        //基本颜色(当pf_type == CN_SYS_PF_GRAY1~8，或者
-                            //  pf_type == CN_SYS_PF_ALPHA1~8)
+    ptu32_t ExColor;        //基本颜色(当 PixelFormat == CN_SYS_PF_GRAY1~8，或者
+                            //  PixelFormat == CN_SYS_PF_ALPHA1~8)
                             //调色板指针(PixelFormat == CN_SYS_PF_PALETTE1~8)
                             //pf_type取其他值时本成员无效
     u8  *bm_bits;           //指向存储像素阵列的数组

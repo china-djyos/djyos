@@ -4,7 +4,7 @@
 #include "cpu_peri.h"
 #include "systime.h"
 #include "stddef.h"
-#include <device/include/unit_media.h>
+#include <device/unit_media.h>
 
 enum ReadRegister
 {
@@ -24,6 +24,7 @@ enum ReadRegister
 #define gd25q64c_WriteEnable        0x06
 #define gd25q64c_WriteDisable       0x04
 #define gd25q64c_ManufactDeviceID   0x90
+#define gd25q64c_JedecID            0x9f
 #define gd25q64c_ReadData           0x03
 #define gd25q64c_QuadReadData       0x6B
 #define gd25q64c_FastReadData       0x0B
@@ -41,7 +42,7 @@ bool_t Gd25q64c_ReadSR(u8 regno, u8 *sta);
 bool_t Gd25q64c_WriteSR(u8 regno, u8 data);
 bool_t Gd25q64c_Write_Enable(void);
 bool_t Gd25q64c_Write_Disable(void);
-u16 Gd25q64c_ReadID(void);
+u32 Gd25q64c_ReadID(void);
 bool_t Gd25q64c_Read(u8* pBuffer,u32 ReadAddr,u32 NumByteToRead);
 bool_t Gd25q64c_ReadPage(u8* pBuffer,u32 PageNum);
 bool_t Gd25q64c_WaitReady(u32 timeout);

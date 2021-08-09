@@ -86,10 +86,10 @@ enum power_on_reset_flag{
 };
 
 
-enum productinfo
+enum productinfo    //获取产品信息的命令码
 {
     APP_HEAD_VERSION_NUM,        //APP版本xx.xx.xx，
-    APP_HEAD_RAW_VERSION_NUM,        //APP版本号，（直接获取数组里的数字）
+    APP_HEAD_RAW_VERSION_NUM,    //APP版本号，（直接获取数组里的数字）
     APP_HEAD_MANUFACTURER,       //厂商名
     APP_HEAD_CLASSIFY,           //产品分类
     APP_HEAD_TYPE,               //产品型号
@@ -105,7 +105,8 @@ enum productinfo
 enum update_source
 {
     SOURCE_FILE = 0,                //从文件系统
-    SOURCE_ADDR_MEMORY,         //从可寻址内存
+    SOURCE_ADDR_MEMORY,             //从可寻址内存（可能是RAM，也可能是flash）
+    SOURCE_OTHER                    //其他，例如没有安装文件系统的spiflash
 };
 
 union update_info{
@@ -126,7 +127,7 @@ union update_info{
 };
 
 //#define IBOOT_APP_INFO_VER                 (1)
-#define MutualPathLen   40   //在交互信息中存待升级文件路径的最大长度,就是update_path的长度
+#define MutualPathLen   40   //在交互信息中存待升级文件路径的最大长度,就是 up_info 的长度
 struct IbootAppInfo
 {
     #define PREVIOURESET_IBOOT   (0x12345678)//复位前运行iboot
@@ -144,7 +145,7 @@ struct IbootAppInfo
         u32 run_app_form_file     :1;//从文件中加载app
         u32 run_iboot_update_app  :1;//启动（Iboot）后，自动升级APP
         u32 run_app_update_iboot  :1;//启app后升级iboot自身
-        u32 update_from           :2;//升级文件来源0文件 1——3待定义
+        u32 update_from           :2;//升级文件来源:0文件,1:内存,2—3待定义
         u32 update_runmode        :1;//升级完成后运行0.iboot --  1.app
         u32 error_app_check       :1;//校验出错
         u32 error_app_no_file     :1;//没有这个文件或文件格式错误
@@ -220,8 +221,8 @@ struct ProductInfo
     const char ProductClassify[9];    //产品分类字符串，厂商在DIDE中配置
     const char ProductType[9];        //产品型号字符串，厂商在DIDE中配置
     const char TypeCode[6];           //产品型号数字编码
-    char ProductionTime[4];     //生产时间，BCD码，年+星期（3字节）.源码中填FF，生产时服务器下发，iboot写入
-    char ProductionNumber[5];   //产品序号，源码中填FF，生产时服务器下发，iboot写入
+    char ProductionTime[4];     //生产时间，BCD码，年+星期（3字节）.源码中填'*'，生产时服务器下发，iboot写入
+    char ProductionNumber[5];   //产品序号，源码中填'*'，生产时服务器下发，iboot写入
     char reserved8;             //保留
     char VersionNumber[3];      //APP版本xx.xx.xx，
     const char BoardType[16];   //板件型号
@@ -254,10 +255,9 @@ bool_t Iboot_GetProductInfo(void * ProductInfo);
 bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_len);
 bool_t Iboot_RewriteAppHeadFileInfo(void * apphead,const char*name,u32 filesize);
 bool_t Iboot_RewriteProductInfoNumTime(void * productinfo,const char* time,const char *num);
-bool_t Rewrite_AppHead_NumTime(void * apphead,const char* time,char *num);
 bool_t XIP_AppFileCheckEasy(void * apphead);
-bool_t XIP_AppFileCheckSubsection(s8 *addr, u8 *buf, s32 len, s8 *compare_addr);
-bool_t XIP_AppFileCheck(void * apphead);
+bool_t XIP_CheckAppInMemory(void * apphead);
+bool_t XIP_CheckAppInFile(const char *path);
 void * XIP_GetAppStartAddr(void * apphead);
 u32  XIP_GetAppSize(void * apphead);
 u32 Iboot_GetAppSize(void * apphead);
@@ -296,6 +296,10 @@ bool_t Iboot_GetHeardSetRunIboot(void);
 //char * Get_ProductSN(void);
 //char * Get_ProductVersion(void * apphead);
 //const char * Get_ManufacturerName(void);
+void Iboot_CheckAppComplete(void * apphead);
+void Iboot_CheckAppBody(void * apphead, u8 * buf, u32 len);
+bool_t Iboot_CheckAppHead(void *apphead);
+bool_t  Iboot_CheckAppCompare(void *apphead,void *apphead_back);
 
 bool_t  runiboot(char *param);
 bool_t  runapp(char *param);

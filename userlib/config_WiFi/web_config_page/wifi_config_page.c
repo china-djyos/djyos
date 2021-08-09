@@ -1,5 +1,5 @@
-#include "rw_pub.h"
 #include "mongoose.h"
+#include "rw_pub.h"
 static const char *s_http_port = "8080";
 //static struct mg_serve_http_opts s_http_server_opts;
 
@@ -456,7 +456,12 @@ void DjyWifi_StartScan(FUNC_2PARAM_PTR ind_cb);
 void ScanApCallBack(void *arg, uint8_t vif_idx);
 uint32_t DjyWifi_GetScanResult(struct sta_scan_res **scan_result);
 
-
+//------------------------------------------------------------------------------
+//功能：扫描到AP时的回调函数，把扫描到的AP添加到列表中
+//参数：arg，无用
+//      vif_idx，无用。
+//返回：无
+//------------------------------------------------------------------------------
 static int scan_flag = 0;
 void ScanApCallBack(void *arg, uint8_t vif_idx)
 {

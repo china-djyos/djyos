@@ -376,6 +376,13 @@ float saradc_calculate(UINT16 adc_val)
     return practic_voltage;
 }
 
+s32 saradc_calculate_fast(UINT16 adc_val)
+{
+    s32 practic_voltage;
+    practic_voltage = ((adc_val - saradc_val.low) * 1800);
+    practic_voltage = (practic_voltage / (saradc_val.high - saradc_val.low)) + 200;
+    return practic_voltage;
+}
 
 static UINT32 saradc_ctrl(UINT32 cmd, void *param)
 {
