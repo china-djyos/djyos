@@ -58,20 +58,14 @@
 extern int GetNetInfo(char *ssid, int ssid_len, char *passwd, int pwd_len);
 extern bool_t web_config_event_init();
 
-s32 config_net_modes = 0;
-
-s32 NetcGetModes(void)
-{
-    return config_net_modes;
-}
 
 // ============================================================================
-// 功能：开始配网，获取wifi账号和密码
+// 功能：开始网页配网，获取wifi账号和密码
 // 参数：para：配网参数；
 // 返回：0 -- 成功；-1 -- 失败；
 // 备注：
 // ============================================================================
-s32 NetcStart(struct NetcInfo *Netc)
+s32 Netc_WebStart(struct NetcInfo *Netc)
 {
     s32 ret = -1;
     switch(Netc->mode)
@@ -81,6 +75,8 @@ s32 NetcStart(struct NetcInfo *Netc)
         break;
 
         case NETC_AP:
+            DHCP_ServerInit();          //dhcp server
+            dhcpd_route_add_default();
             DjyWifi_ApOpen((char *)Netc->ap_ssid, (char *)Netc->ap_key);
             DJY_EventDelay(1000*mS);    //bk3.0的库打开AP到扫描wifi需要延时1秒，不然会core100%
             web_config_event_init();
@@ -112,7 +108,7 @@ s32 NetcStart(struct NetcInfo *Netc)
 // 返回：0 -- 成功；-1 -- 失败；
 // 备注：
 // ============================================================================
-s32 NetcEnd(s32 mode)
+s32 Netc_WebEnd(s32 mode)
 {
     s32 ret = -1;
     switch(mode)
@@ -141,24 +137,4 @@ s32 NetcEnd(s32 mode)
     return ret;
 }
 
-// =============================================================================
-// 功能：初始化配网功能
-// 参数：无
-// 返回：ture=成功，false=失败
-// =============================================================================
-bool_t ModuleInstall_ConfigNet(void)
-{
-    if(CFG_NETC_USER_INPUT_ENABLE == true)
-        config_net_modes |= NETC_USER_INPUT;
 
-    if(CFG_NETC_AP_ENABLE == true)
-        config_net_modes |= NETC_AP;
-
-    if(CFG_NETC_AIRKISS_ENABLE == true)
-        config_net_modes |= NETC_AIRKISS;
-
-    if(CFG_NETC_WAVE_ENABLE == true)
-        config_net_modes |= NETC_WAVE;
-
-    return true;
-}

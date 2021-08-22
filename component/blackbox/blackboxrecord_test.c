@@ -509,7 +509,7 @@ ptu32_t __RecordTestTask(void)
     {
         __CounterLeftShow("SYSTEM WILL RESET FOR ANOTHER TEST",10);
         debug_printf("null","RESET THE SYSTEM\n\r");
-        CPU_Reset(0xaa55aa55);
+        CPU_Reset();
     }
     else
     {

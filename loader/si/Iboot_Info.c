@@ -119,25 +119,28 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
 #endif      //for (CFG_RUNMODE_BAREAPP == 0)
 struct IbootAppInfo Iboot_App_Info __attribute__ ((section(".IbootAppInfo"))) ;
 
-//==============================================================================
-//功能：获取判断获取是否上电复位的方式
-//参数： ret,存实际的标志值，0表示上电复位，其他值表示非上电复位。若CPU有此硬件标志才调用）
-__attribute__((weak))  u8  Get_Hard_flag_mode(s8 *ret)
+//-----------------------------------------------------------------------------
+//功能：获取本次启动的复位方式
+//参数：ret,上电复位标志寄存器的值。
+//返回：上电复位标志
+//-----------------------------------------------------------------------------
+__attribute__((weak))  enum power_on_reset_flag  Get_PowerOnMode(s8 *ret)
 {
     u8 res;
-   res = RESET_FLAG_NO_HARD_FLAG;       //实际返回什么根据具体硬件来写
+    res = RESET_FLAG_NO_HARD_FLAG;       //实际返回什么根据具体硬件来写
    *ret = 0;                            //本标志应该来自具体硬件
 //  有此硬件但读时不自动清零的话，就要在这里把硬件寄存器清零
     return res;
 }
+
 //==============================================================================
-//功能：获取硬件上的标志    需要用户根据不同的环境自己编写，写在initcpuc.c文件当中
-//参数：
-//     HEAD_RESET_FLAG： 获取硬件复位标志，没有/不支持返回0
+//功能：获取硬件上的标志，需要用户根据不同的环境自己编写，写在initcpuc.c文件当中
+//参数：HEAD_RESET_FLAG： 获取硬件复位标志，没有/不支持返回0
 //     HEAD_WDT_RESET： 获取硬件看门狗复位标志，没有/不支持返回0
 //     LOW_POWER_WAKEUP： 低功耗唤醒，没有/不支持返回0
 //     POWER_ON_RESET：通过硬件获取是否上电复位
-//返回：      ret：1：是对应flag产生的复位，0：不是对方flag产生的复位   存实际的标志值，0表示上电复位，其他值表示非上电复位。若CPU有此硬件标志才调用）
+//返回：ret：1：是对应flag产生的复位，0：不是对应flag产生的复位，存实际的标志值，
+//      0表示上电复位，其他值表示非上电复位。若CPU有此硬件标志才调用）
 //==============================================================================
 __attribute__((weak))  u8  Get_Hard_flag(enum hardflag flag)
 {
@@ -644,16 +647,20 @@ bool_t Iboot_CheckAppHead(void *apphead)
     struct ProductInfo* p_productinfo = apphead + sizeof(struct AppHead);
     u32 i;
 
-    for( i=0;i<sizeof(p_productinfo->ProductionNumber);i++) //生产序号不参与校验
-        p_productinfo->ProductionNumber[i]=0xff;
+    //DIDE中计算校验码时，生产序号使用的是代码中填充的0x2a（即*号）
+    for( i=0;i<sizeof(p_productinfo->ProductionNumber);i++)
+        p_productinfo->ProductionNumber[i]=0x2a;
 
-    for( i=0;i<sizeof(p_productinfo->ProductionTime);i++)   //生产时间不参与校验
-        p_productinfo->ProductionTime[i]=0xff;
+    //DIDE中计算校验码时，生产时间使用的是代码中填充的0x2a（即*号）
+    for( i=0;i<sizeof(p_productinfo->ProductionTime);i++)
+        p_productinfo->ProductionTime[i]=0x2a;
 
-    for( i=0;i<sizeof(p_apphead->app_name);i++)             //app_name不参与校验
+    //DIDE中计算校验码时，生产序号使用的是代码中填充的0xff
+    for( i=0;i<sizeof(p_apphead->app_name);i++)
         p_apphead->app_name[i]=0xff;
 
-    for(u32 i =0;i<sizeof(p_apphead->verif_buf);i++)        //校验码本身不参与校验
+    //DIDE中计算校验码时，生产序号使用的是代码中填充的0xff
+    for(u32 i =0;i<sizeof(p_apphead->verif_buf);i++)
         p_apphead->verif_buf[i]=0xff;
 
     if(p_apphead->verification == VERIFICATION_NULL)
@@ -933,7 +940,10 @@ extern u32 gc_ProductSn;
 
 //----------------------------------------------------------------------------
 //功能: 写指纹到iboot中
-//参数: time -- 生产时间缓冲区， time_len -- 生产时间缓冲区长度，num -- 生产序号缓冲区，num_len -- 生产序号缓冲区长度
+//参数: time -- 生产时间缓冲区，
+//      time_len -- 生产时间缓冲区长度，
+//      num -- 生产序号缓冲区，
+//      num_len -- 生产序号缓冲区长度
 //返回: true: 成功； false ： 失败.
 //-----------------------------------------------------------------------------
 bool_t write_finger_to_iboot(s8 *time, u32 time_len, s8 *num, u32 num_len)
@@ -951,6 +961,7 @@ bool_t write_finger_to_iboot(s8 *time, u32 time_len, s8 *num, u32 num_len)
     if(iboot_sn_addr)
     {
         //连同CRC区域一起读出来，但实际上SN号里面不做CRC校验
+        //todo:此函数是 beken 芯片独有，造成平台依赖，修改之。
         djy_flash_read_crc(iboot_sn_addr, iboot_sn_buf, len);
         if((iboot_sn_buf[0] == 0xff) && ((u8)time[0] != 0xff))
         {   //iboot里没SN，程序里给出SN号，现在写SN
@@ -1160,11 +1171,8 @@ bool_t XIP_CheckAppInFile(const char *path)
         readsize = fread(apphead, 1, headsize, fp);     //读文件头
         if(readsize == headsize)
         {
+            memcpy(apphead_back, apphead, readsize);    //校验过程头部信息会别修改，故备份
             needcheck = Iboot_CheckAppHead(apphead);
-            if(needcheck == true)
-            {
-                memcpy(apphead_back, apphead, readsize);    //校验过程头部信息会别修改，故备份
-            }
             file_size = readsize;
             while(1)
             {
@@ -1180,7 +1188,7 @@ bool_t XIP_CheckAppInFile(const char *path)
                     }
                 }
                 else
-                {       //文件全读完了
+                {   //文件全读完了
                     if(file_size != (u32)file_stat.st_size)
                     {
                         printf("file check : file size error\r\n");
@@ -1422,7 +1430,7 @@ bool_t Iboot_SiIbootAppInfoInit()
 {
     bool_t PowerUp = false;
     s8 flag = 1;
-    enum power_on_reset_flag hardflag = Get_Hard_flag_mode(&flag);
+    enum power_on_reset_flag hardflag = Get_PowerOnMode(&flag);
     switch (hardflag)
     {
         case RESET_FLAG_NO_HARD_FLAG:               //0=无此硬件
@@ -1431,12 +1439,8 @@ bool_t Iboot_SiIbootAppInfoInit()
                 PowerUp = true;
             break;
         case RESET_FLAG_NO_FLAG: break;             //1=有此硬件，没有上电复位标志；
-        case RESET_FLAG_FLAG_ONLY_READ_ONE:         //2=有标志，且自动清除
-//            if(flag == 0)
-//                PowerUp = true;
-//            break;
-        case RESET_FLAG_FLAG_READ_MANY:             //3=有标志，读后自动清除
-//            flag = Get_Hard_flag(POWER_ON_RESET);
+        case RESET_FLAG_READ_AND_CLR:               //2=有标志，且读后自动清除
+        case RESET_FLAG_READ_NORMAL:                //3=有标志，读后不会自动清除
             if(flag)
                 PowerUp = true;
             break;
@@ -1485,6 +1489,7 @@ bool_t Iboot_SiIbootAppInfoInit()
         Iboot_App_Info.runflag.call_fun_reset       = 0;//1=复位/重启是主动调用相关函数引发的；0=异常重启
         Iboot_App_Info.runflag.power_on_reset_flag  = 1;//上电复位标志，结合b18~19以及“上电标志”字判定
 
+        Iboot_App_Info.UserTag = 0;                     //上电复位，用户标志被清零
         Iboot_App_Info.reserved = 0;//保留
 #if (CFG_POWER_ON_RESET_TO_BOOT)
         Set_RunIbootFlag();
@@ -1551,6 +1556,26 @@ bool_t Iboot_SetAppVerFlag(u8 small, u8 medium, u8 large)
     Iboot_App_Info.app_ver_large = large;         //app 版本
 
     return true;
+}
+
+//-----------------------------------------------------------------------------
+//功能：设置用户标签，该标签可用于指示APP在重启后完成一些特定的操作
+//参数：UserTag，待设置的标签
+//返回：无
+//------------------------------------------------------------------------------
+void Iboot_SetUserTag(u32 UserTag)
+{
+    Iboot_App_Info.UserTag = UserTag;
+}
+
+//-----------------------------------------------------------------------------
+//功能：获取用户标签，该标签可用于指示APP在重启后完成一些特定的操作
+//参数：无
+//返回：用户标签
+//------------------------------------------------------------------------------
+u32 Iboot_GetUserTag(void)
+{
+    return Iboot_App_Info.UserTag;
 }
 
 //==============================================================================
@@ -1700,14 +1725,14 @@ bool_t set_upgrade_info(char* info, int len)
 
     if(len > (int)sizeof(Iboot_App_Info.up_info))
     {
-        error_printf("IAP"," len exceed MutualPathLen.\r\n");
+        error_printf("IAP"," len exceed CN_UPDATE_PATH_LIMIT.\r\n");
         return false;
     }
-    memset(Iboot_App_Info.up_info.info, 0, MutualPathLen);
+    memset(Iboot_App_Info.up_info.info, 0, CN_UPDATE_PATH_LIMIT);
     memcpy(Iboot_App_Info.up_info.info, info, len);
-    if(len == MutualPathLen)
+    if(len == CN_UPDATE_PATH_LIMIT)
     {
-        Iboot_App_Info.up_info.info[MutualPathLen-1] = 0;
+        Iboot_App_Info.up_info.info[CN_UPDATE_PATH_LIMIT-1] = 0;
         return true;
     }
     return true;
@@ -1814,7 +1839,6 @@ bool_t Run_App(enum runappmode mode)
     return false;
 }
 
-extern void CPU_Reset(void);
 //=============================================================================
 //功能：文件升级后根据升级标志执行相应的iboot或APP
 //参数：无
@@ -2095,7 +2119,7 @@ static bool_t ibootinfo( )
             Iboot_App_Info.iboot_build_mon, Iboot_App_Info.iboot_build_day, Iboot_App_Info.iboot_build_hour, \
             Iboot_App_Info.iboot_build_min, Iboot_App_Info.iboot_build_sec);
 //    printf("Iboot start addr: 0x%8llx \n\r", Iboot_App_Info.ibootstartaddr);
-    printf("board name %s \n\r", Iboot_App_Info.board_name);
+    printf("board name : \n\r", Iboot_App_Info.board_name);
 
     return true;
 }
@@ -2149,7 +2173,7 @@ void Iboot_GetAppInfo(struct IbootAppInfo *get_info)
 {
     struct IbootAppInfo *info = get_info;
 
-    strncpy((char *)info, (const char *)&Iboot_App_Info, sizeof(struct IbootAppInfo));
+    memcpy((char *)info, (const char *)&Iboot_App_Info, sizeof(struct IbootAppInfo));
 }
 //==============================================================================
 //功能：获取上电复位标志

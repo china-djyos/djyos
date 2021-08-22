@@ -69,7 +69,7 @@ enum runappmode{
 
 enum hardflag
 {
-    POWER_ON_FLAG,      //获取上电复位硬件标志，NO_HARD_FLAG=无此硬件；NO_FLAG=有此硬件，但无标志；
+    POWER_ON_FLAG,      //上电复位硬件标志， NO_HARD_FLAG =无此硬件；NO_FLAG=有此硬件，但无标志；
                         //FLAG_ONLY_READ_ONE=有标志，阅后即焚；FLAG_READ_MANY=有，非阅后即焚
     HARD_RESET_FLAG,    //硬件复位标志
     HARD_WDT_RESET,     //硬件看门狗复位标志
@@ -80,9 +80,9 @@ enum hardflag
 
 enum power_on_reset_flag{
     RESET_FLAG_NO_HARD_FLAG,       //无此硬件
-    RESET_FLAG_NO_FLAG,            //有此硬件，但无标志
-    RESET_FLAG_FLAG_ONLY_READ_ONE, //有标志，阅后即焚
-    RESET_FLAG_FLAG_READ_MANY,     //有，非阅后即焚
+    RESET_FLAG_NO_FLAG,            //有此硬件，但无标志，代表不是上电复位
+    RESET_FLAG_READ_AND_CLR,       //是上电复位，该标志是“读清除”的
+    RESET_FLAG_READ_NORMAL,        //是上电复位，该标志非“读清除”的
 };
 
 
@@ -109,6 +109,8 @@ enum update_source
     SOURCE_OTHER                    //其他，例如没有安装文件系统的spiflash
 };
 
+//符号原名： MutualPathLen
+#define CN_UPDATE_PATH_LIMIT   40   //在交互信息中存待升级文件路径的最大长度,就是 up_info 的长度
 union update_info{
     struct ram_update_info {    //从可寻址内存升级时的信息结构
         s8 *start_add;
@@ -123,11 +125,10 @@ union update_info{
         s8 production_num[5];   //产品序号，
     }file;
 
-    char info[40];    //
+    char info[CN_UPDATE_PATH_LIMIT];    //
 };
 
 //#define IBOOT_APP_INFO_VER                 (1)
-#define MutualPathLen   40   //在交互信息中存待升级文件路径的最大长度,就是 up_info 的长度
 struct IbootAppInfo
 {
     #define PREVIOURESET_IBOOT   (0x12345678)//复位前运行iboot
@@ -135,60 +136,61 @@ struct IbootAppInfo
                                              //其他值表示上电或复位
     u32 previou_reset;                       //复位前运行模式
     struct{
-        u32 hard_set_run_iboot   :1;//硬件设置运行iboot
-        u32 restart_run_iboot     :1;//指示启动后运行Iboot
-        u32 restart_run_app       :1;//指示启动后运行APP
-        u32 runmode_iboot         :1;//当前运行模式是iboot
-        u32 runmode_app           :1;//当前运行模式为app
-        u32 Before_run_iboot      :1;//之前运行模式为iboot
-        u32 Before_run_app        :1;//之前运行模式为app
-        u32 run_app_form_file     :1;//从文件中加载app
-        u32 run_iboot_update_app  :1;//启动（Iboot）后，自动升级APP
-        u32 run_app_update_iboot  :1;//启app后升级iboot自身
-        u32 update_from           :2;//升级文件来源:0文件,1:内存,2—3待定义
-        u32 update_runmode        :1;//升级完成后运行0.iboot --  1.app
-        u32 error_app_check       :1;//校验出错
-        u32 error_app_no_file     :1;//没有这个文件或文件格式错误
-        u32 error_app_size        :1;//app文件大小错误
+        u32 hard_set_run_iboot    :1;   //指示启动后运行APP
+        u32 runmode_iboot         :1;   //硬件设置运行iboot
+        u32 restart_run_iboot     :1;   //指示启动后运行Iboot
+        u32 restart_run_app       :1;   //当前运行模式是iboot
+        u32 runmode_app           :1;   //当前运行模式为app
+        u32 Before_run_iboot      :1;   //之前运行模式为iboot
+        u32 Before_run_app        :1;   //之前运行模式为app
+        u32 run_app_form_file     :1;   //从文件中加载app
+        u32 run_iboot_update_app  :1;   //启动（Iboot）后，自动升级APP
+        u32 run_app_update_iboot  :1;   //启app后升级iboot自身
+        u32 update_from           :2;   //升级文件来源:0文件,1:内存,2—3待定义
+        u32 update_runmode        :1;   //升级完成后运行0.iboot --  1.app
+        u32 error_app_check       :1;   //校验出错
+        u32 error_app_no_file     :1;   //没有这个文件或文件格式错误
+        u32 error_app_size        :1;   //app文件大小错误
         //上电复位硬件标志0=无此硬件 1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
         u32 power_on_flag         :2;
-        u32 hard_wdt_reset        :1;//看门狗复位标志
-        u32 soft_reset_flag       :1;//软件引起的内部复位
-        u32 reboot_flag           :1;//CPU_Reboot 标志
-        u32 restart_system_flag      :1;//restart_system标志
-        u32 hard_reset_flag       :1;//外部硬件复位标志
-        u32 low_power_wakeup      :1;//低功耗深度休眠中断唤醒标志
-        u32 call_fun_reset        :1;//1=内部复位/重启是主动调用相关函数引发的；0=异常重启
-        u32 power_on_reset_flag  :1;//上电复位标志，结合b18~19以及“上电标志”字判定
-    }runflag; //运行标志
-    u64  reserved;//保留
-    u16  iboot_build_year;    /* years since 1900 */
-    u8   iboot_build_mon;     /* months since January [0-11] */
-    u8   iboot_build_day;    /* day of the month [1-31] */
-    u8   iboot_build_hour;    /* hours since midnight [0-23] */
-    u8   iboot_build_min;     /* minutes after the hour [0-59] */
-    u8   iboot_build_sec;     /* seconds after the minute [0-60] */
-    u16  app_build_year;    /* years since 1900 */
-    u8   app_build_mon;     /* months since January [0-11] */
-    u8   app_build_day;    /* day of the month [1-31] */
-    u8   app_build_hour;    /* hours since midnight [0-23] */
-    u8   app_build_min;     /* minutes after the hour [0-59] */
-    u8   app_build_sec;     /* seconds after the minute [0-60] */
-    u8   iboot_ver_small;         //iboot 版本 xx.xx.__
-    u8   iboot_ver_medium;        //iboot 版本 xx.__.xx
-    u8   iboot_ver_large;         //iboot 版本 __.xx.xx
-    u8   app_ver_small;           //app 版本 xx.xx.__
-    u8   app_ver_medium;          //app 版本 xx.__.xx
-    u8   app_ver_large;           //app 版本 __.xx.xx
-    char board_name[20];    //组件名
+        u32 hard_wdt_reset        :1;   //看门狗复位标志
+        u32 soft_reset_flag       :1;   //软件引起的内部复位
+        u32 reboot_flag           :1;   //CPU_Reboot 标志
+        u32 restart_system_flag   :1;   //restart_system标志
+        u32 hard_reset_flag       :1;   //外部硬件复位标志
+        u32 low_power_wakeup      :1;   //低功耗深度休眠中断唤醒标志
+        u32 call_fun_reset        :1;   //1=内部复位/重启是主动调用相关函数引发的；0=异常重启
+        u32 power_on_reset_flag   :1;   //上电复位标志，结合b18~19以及“上电标志”字判定
+    }runflag;                           //运行标志
+    u32  UserTag;                       //用户标志
+    u32  reserved;                      //保留
+    u16  iboot_build_year;              // years since 1900
+    u8   iboot_build_mon;               // months since January [0-11
+    u8   iboot_build_day;               // day of the month [1-31]
+    u8   iboot_build_hour;              // hours since midnight [0-23]
+    u8   iboot_build_min;               // minutes after the hour [0-59]
+    u8   iboot_build_sec;               // seconds after the minute [0-60]
+    u16  app_build_year;                // years since 1900
+    u8   app_build_mon;                 // months since January [0-11]
+    u8   app_build_day;                 // day of the month [1-31]
+    u8   app_build_hour;                // hours since midnight [0-23]
+    u8   app_build_min;                 // minutes after the hour [0-59]
+    u8   app_build_sec;                 // seconds after the minute [0-60]
+    u8   iboot_ver_small;               //iboot 版本 xx.xx.__
+    u8   iboot_ver_medium;              //iboot 版本 xx.__.xx
+    u8   iboot_ver_large;               //iboot 版本 __.xx.xx
+    u8   app_ver_small;                 //app 版本 xx.xx.__
+    u8   app_ver_medium;                //app 版本 xx.__.xx
+    u8   app_ver_large;                 //app 版本 __.xx.xx
+    char board_name[20];                //组件名
     union update_info  up_info;
 };
 
 struct AppHead
 {
-    char djy_flag[3];        //"djy"标志                    固定标志
+    char djy_flag[3];        //"djy"标志，固定标志
     u8   app_ver;            //信息块的版本
-    u32  file_size;          //文件系统读到的文件大小   在线升级时 由文件系统填充编译时由外部工具填充
+    u32  file_size;          //文件系统读到的文件大小，在线升级时，由文件系统填充，编译时由外部工具填充
 
     //以下定义不能修改，添加和修改都需要同步修改addver.exe 
     #define VERIFICATION_NULL     0
@@ -196,7 +198,7 @@ struct AppHead
     #define VERIFICATION_MD5      2
     #define VERIFICATION_SSL      3  //SSL安全证书
     u32  verification;    //校验方法默认校验方法为不校验，由外部工具根据配置修改
-    u32  app_bin_size;      //app bin文件大小 由外部工具填充
+    u32  app_bin_size;      //app bin文件大小，由外部工具填充
 #if(CN_PTR_BITS < 64)
     u32  virt_addr;        //运行地址
     u32  reserved32;      //保留
@@ -205,7 +207,7 @@ struct AppHead
 #endif
     u16  app_head_size;     //信息块的大小
     u8 start_app_is_verify;  //启动App之前是否进行校验
-    char reserved[5];          //保留
+    char reserved[5];        //保留
     char app_name[96];      //app的文件名 由外部工具填充该bin文件的文件名
     char verif_buf[128];     //校验码与校验方法对应的具体内容 由工具填充
 };
@@ -231,6 +233,8 @@ struct ProductInfo
 };
 
 //bool_t Set_RunIbootUpdateIboot();
+void Iboot_SetUserTag(u32 UserTag);
+u32 Iboot_GetUserTag(void);
 bool_t Iboot_SetRebootFlag();
 bool_t Iboot_SetSoftResetFlag();
 bool_t Iboot_SetRestartAppFlag();
@@ -300,6 +304,10 @@ void Iboot_CheckAppComplete(void * apphead);
 void Iboot_CheckAppBody(void * apphead, u8 * buf, u32 len);
 bool_t Iboot_CheckAppHead(void *apphead);
 bool_t  Iboot_CheckAppCompare(void *apphead,void *apphead_back);
+
+void CPU_Reset(void);
+void CPU_Reboot(void);
+void CPU_RestartSystem(void);
 
 bool_t  runiboot(char *param);
 bool_t  runapp(char *param);

@@ -151,7 +151,6 @@ s32 fat_gd25q64c_read(u8 *buff, DWORD sector, u32 count)
 s32 fat_gd25q64c_write(u8 *buff, DWORD sector, u32 count)
 {
     s32 res = 1; // RES_ERROR;
-
     if(Gd25q64c_Write(buff, ((u32)sector) * SECTOR_SIZE, count * SECTOR_SIZE))
         res = 0;
     else

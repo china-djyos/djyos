@@ -51,11 +51,6 @@
 			<locationURI>DJYOS_SRC_LOCATION/djyos</locationURI>
 		</link>
 		<link>
-			<name>src/libos/libc</name>
-			<type>2</type>
-			<locationURI>DJYOS_SRC_LOCATION/libc</locationURI>
-		</link>
-		<link>
 			<name>src/libos/loader</name>
 			<type>2</type>
 			<locationURI>DJYOS_SRC_LOCATION/loader</locationURI>

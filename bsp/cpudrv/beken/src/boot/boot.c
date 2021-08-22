@@ -73,17 +73,20 @@ static void bk_reboot(void)
 #endif
 }
 
-void CPU_Reboot(u32 key)
+void CPU_Reboot(void)
 {
     Iboot_SetRebootFlag();
 #if (CFG_RUNMODE_BAREAPP == 0)
     Iboot_SetPreviouResetFlag();
 #endif
-    bk_reboot();
+//  bk_reboot();
+    void (*fn_start)();
+    fn_start = 0x0;
+    fn_start();
 }
 
 
-void CPU_Reset(u32 key)
+void CPU_Reset(void)
 {
     Iboot_SetSoftResetFlag();
 #if (CFG_RUNMODE_BAREAPP == 0)
@@ -96,14 +99,14 @@ void CPU_Reset(u32 key)
     bk_reboot();
 }
 
-void CPU_RestartSystem(u32 key)
+void CPU_RestartSystem(void)
 {
     Iboot_SetRestartAppFlag();
 #if (CFG_RUNMODE_BAREAPP == 0)
     Iboot_SetPreviouResetFlag();
 #endif
-//    Iboot_LoadPreload();
-    void (*fn_start)();
-    fn_start = 0x0;
-    fn_start();
+    AppStart();
+//  void (*fn_start)();
+//  fn_start = 0x0;
+//  fn_start();
 }
