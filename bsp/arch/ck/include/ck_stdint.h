@@ -98,10 +98,10 @@ typedef scpu_t                  sfast_t;
 //typedef ufast_t                 bool_t;
 
 
-#define CN_CPU_BITS             32  
-#define CN_PTR_BITS             32  
+#define CN_CPU_BITS             32
+#define CN_PTR_BITS             32
 #define CN_CPU_BITS_SUFFIX_ZERO 5
-#define CN_BYTE_BITS            8   
+#define CN_BYTE_BITS            8
 
 #define CN_LIMIT_PTU32          CN_LIMIT_UINT32
 #define CN_MIN_PTU32            0
@@ -127,7 +127,7 @@ typedef scpu_t                  sfast_t;
 #define INT_MAX                 0x7fffffff
 #define UINT_MAX                0xffffffff
 
-typedef uint64_t                align_type;     
+typedef uint64_t                align_type;
 
 //typedef uint64_t                u64;
 //typedef sint64_t                s64;

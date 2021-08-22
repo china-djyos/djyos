@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#ifndef	__AP1508_DATATYPE_H__
-#define	__AP1508_DATATYPE_H__
+#ifndef __AP1508_DATATYPE_H__
+#define __AP1508_DATATYPE_H__
 
 #ifndef NULL
-#define	NULL  0x00
+#define NULL  0x00
 #endif
 
 #ifdef __SILAN_DRIVERS_CORE_CK__
@@ -77,8 +77,8 @@ typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
 
-			
-typedef	signed char         s8;
+
+typedef signed char         s8;
 typedef signed short        s16;
 typedef signed int          s32;
 typedef signed long long    s64;
@@ -86,10 +86,10 @@ typedef unsigned long long  u64;
 
 typedef unsigned char UINT8;
 typedef unsigned int UINT16;
-typedef	unsigned long int UINT32;
-typedef	char INT8;
+typedef unsigned long int UINT32;
+typedef char INT8;
 typedef int INT16;
-typedef	long int INT32;
+typedef long int INT32;
 typedef unsigned char uchar;
 typedef unsigned int uint;
 
@@ -135,7 +135,7 @@ typedef signed int          int32_t;
 typedef signed long long    int64_t;
 typedef unsigned long long  uint64_t;
 
-#define __IO				volatile
+#define __IO                volatile
 
 ///////////////////////////////////////////////////////////////////////////////////////
 #endif  // __DATATYPE_H__

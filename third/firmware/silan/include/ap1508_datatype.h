@@ -1,10 +1,10 @@
 
-#ifndef	__AP1508_DATATYPE_H__
-#define	__AP1508_DATATYPE_H__
+#ifndef __AP1508_DATATYPE_H__
+#define __AP1508_DATATYPE_H__
 
 #include "arch_stdint.h"
 #ifndef NULL
-#define	NULL  0x00
+#define NULL  0x00
 #endif
 
 #ifndef true
@@ -25,9 +25,9 @@
 #define STATUS_ERR  1
 #define STATUS_OK   0
 
-//#define u8  unsigned char 
-//#define u16  unsigned short 
-//#define u32  unsigned int 
+//#define u8  unsigned char
+//#define u16  unsigned short
+//#define u32  unsigned int
 
 #define  IN
 #define  OUT
@@ -85,7 +85,7 @@ typedef signed long long    int64_t;
 //
 //#define CN_LIMIT_UINT64         0xffffffffffffffff
 //#define CN_LIMIT_UINT32         0xffffffff
-//#define CN_LIMIT_UINT24			0xffffff
+//#define CN_LIMIT_UINT24           0xffffff
 //#define CN_LIMIT_UINT16         0xffff
 //#define CN_LIMIT_UINT8          0xff
 //#define CN_LIMIT_SINT64         0x7fffffffffffffff
@@ -103,7 +103,7 @@ typedef signed long long    int64_t;
 //#define CN_MIN_SINT8            0x80
 #endif
 
-#define __IO				volatile
+#define __IO                volatile
 
 #define __REG32(addr)             (*(volatile uint32_t*)(addr))
 #define __REG16(addr)             (*(volatile uint16_t*)(addr))

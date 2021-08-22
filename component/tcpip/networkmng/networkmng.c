@@ -9,8 +9,6 @@
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
-// 3. As a constituent part of djyos,do not transplant it to other software
-//    without specific prior written permission.
 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,7 +24,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
-// 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
+// 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
 //
 // 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
@@ -34,8 +32,6 @@
 // 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
 //    于散播包装中的媒介方式，重制上述之版权宣告、本条件列表，以及下述
 //    的免责声明。
-// 3. 本软件作为都江堰操作系统的组成部分，未获事前取得书面许可，不允许移植到非
-//    都江堰操作系统环境下运行。
 
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
@@ -46,46 +42,44 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-// =============================================================================
+//所属模块:网络管理模块
+//作者:  罗侍田.
+//版本：V1.0.0
+//文件描述:网络管理服务
+//其他说明:
+//修订历史:
+//1. 日期: 2021-08-19
+//   作者:  罗侍田.
+//   新版本号: V1.0.0
+//   修改说明: 原始版本
+//-----------------------------------------------------------------------------
 
-// 模块描述: 协议栈测试
-// 模块版本: V1.00
-// 创建人员: Administrator
-// 创建时间: 9:23:45 AM/Jul 7, 2014
-// =============================================================================
-// 程序修改记录(最新的放在最前面):
-// <版本号> <修改日期>, <修改人员>: <修改功能概述>
-// =============================================================================
-#include "stdint.h"
-#include "stddef.h"
-#include "stdio.h"
-#include "stdlib.h"
-
-#include "os.h"
-#include "shell.h"
-
-///////////////////////////////////////////////////////////////////////////////
-////测试代码和数据的cache lock功能
-//u32  spider_bss_test __attribute__((section(".Cached_bsssec")));
-//u32  spider_data_test __attribute__((section(".Cached_datasec")));
-//void code_test() __attribute__((section(".Cached_textsec")));
-
-extern bool_t TcpServer_SndTask(char *param);
-extern bool_t TcpServer_BlockSendTest(char *param);
-extern bool_t UdpServer_SndTask(char *param);
-extern bool_t UdpServer_RcvTask(char *param);
+#include <stdint.h>
+#include <stddef.h>
+static u32 sg_u32LinkNetNum = 0;
+//-----------------------------------------------------------------------------
+//功能：设置网络的连通状态，计数式，0表示无网络
+//参数：status，true表示网络连通，false表示断开
+//返回：当前连通的网卡数（不含自环网络）
 //------------------------------------------------------------------------------
-//monitor测试表
-//------------------------------------------------------------------------------
-
-
-void djyip_main(void)
+void Nmg_SetNetLink(bool_t status)
 {
-    printk("DJYOS NETSTACK TEST\n\r");
+    if(status == true)
+    {
+        sg_u32LinkNetNum++;
+    }
+    else
+    {
+        if(sg_u32LinkNetNum != 0)
+            sg_u32LinkNetNum--;
+    }
 }
-ADD_TO_ROUTINE_SHELL(tcpserversnd,TcpServer_SndTask,"tcpserver发送测试");
-ADD_TO_ROUTINE_SHELL(tcpserverblocksnd,TcpServer_BlockSendTest,"tcpserverblock发送测试");
-ADD_TO_ROUTINE_SHELL(udpserversnd,UdpServer_SndTask,"udpserver发送测试");
-ADD_TO_ROUTINE_SHELL(udpserverrcv,UdpServer_RcvTask,"udpserver接收测试");
 
+bool_t Nmg_NetIsLink(void)
+{
+    if(sg_u32LinkNetNum != 0)
+        return true;
+    else
+        return false;
+}
 

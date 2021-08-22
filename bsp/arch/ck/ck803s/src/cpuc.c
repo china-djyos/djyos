@@ -147,7 +147,7 @@ extern void Iboot_LoadPreload(void);
 // 参数：无
 // 返回：无
 // =============================================================================
-void CPU_Reboot()
+void CPU_Reboot(void)
 {
 
 
@@ -156,7 +156,7 @@ void CPU_Reboot()
         ((void (*)(void))(InitCpu_Addr))();
 }
 
-void CPU_Reset( )
+void CPU_Reset(void)
 {
     u32 InitCpu_Addr;
     InitCpu_Addr = *(u32*)0x02160000;
@@ -164,7 +164,7 @@ void CPU_Reset( )
 
 }
 
-void CPU_RestartSystem(u32 key)
+void CPU_RestartSystem(void)
 {
     Iboot_LoadPreload();
 }

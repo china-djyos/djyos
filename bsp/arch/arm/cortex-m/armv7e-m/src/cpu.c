@@ -143,7 +143,7 @@ typedef struct
 // 参数：无
 // 返回：无
 // =============================================================================
-void CPU_Reboot()
+void CPU_Reboot(void)
 {
     u32 InitCpu_Addr;
     Iboot_SetRebootFlag();
@@ -158,7 +158,7 @@ void CPU_Reboot()
 // 参数：无
 // 返回：无
 // =============================================================================
-void CPU_Reset()
+void CPU_Reset(void)
 {
     Iboot_SetSoftResetFlag();
     Iboot_SetPreviouResetFlag();
@@ -170,7 +170,7 @@ void CPU_Reset()
 // 参数：无
 // 返回：无
 // =============================================================================
-void CPU_RestartSystem()
+void CPU_RestartSystem(void)
 {
     DJY_DelayUs(10);
     __set_PSP((uint32_t)msp_top);

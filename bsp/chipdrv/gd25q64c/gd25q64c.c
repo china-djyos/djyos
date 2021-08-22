@@ -229,7 +229,7 @@ bool_t Gd25q64c_WriteSR(u8 regno, u8 data)
             break;
     }
 
-    if(Gd25q64c_WaitReady(2000000) == false)
+    if(Gd25q64c_WaitReady(80000*mS) == false)
     {
         printf("\r\n FLASH : debug : device is busy before Write Reg.");
         return -1;
@@ -256,81 +256,64 @@ bool_t Gd25q64c_WriteSR(u8 regno, u8 data)
     return 0;
 }
 
-//=====================================================================
-//函数名：写使能等待
-//参数：
-//返回值：true：成功 ； false：失败
-//功能：
-//=====================================================================
-bool_t Gd25q64c_WriteEnableWait(void)
-{
-    u8 sndbuf[1];
-    u8 rcvbuf[1];
-    u32 wait = 50;
-    bool_t ret = true;
-
-    sndbuf[0] = gd25q64c_ReadStatusReg1;
-
-    while(1)
-    {
-        Gd25q64c_CsActive();
-
-        Gd25q64c_TxRx(sndbuf,1,rcvbuf,1,1);
-
-        Gd25q64c_CsInactive();
-        if((rcvbuf[0] & 0x02) != 0x02)
-        {
-            DJY_EventDelay(10*mS);
-            wait --;
-            if(wait == 0)
-            {
-                ret = false;
-                break;
-            }
-        }
-        else
-            break;
-    }
-    return ret;
-}
-
-//=====================================================================
-//函数名：写失能等待
-//参数：
-//返回值：true：成功 ； false：失败
-//功能：
-//=====================================================================
-bool_t Gd25q64c_WriteDisableWait(void)
-{
-    u8 sndbuf[1];
-    u8 rcvbuf[1];
-    u32 wait = 50;
-    bool_t ret = true;
-
-    sndbuf[0] = gd25q64c_ReadStatusReg1;
-
-    while(1)
-    {
-        Gd25q64c_CsActive();
-
-        Gd25q64c_TxRx(sndbuf,1,rcvbuf,1,1);
-
-        Gd25q64c_CsInactive();
-        if((rcvbuf[0] & 0x02) == 0x02)
-        {
-            DJY_EventDelay(10*mS);
-            wait --;
-            if(wait == 0)
-            {
-                ret = false;
-                break;
-            }
-        }
-        else
-            break;
-    }
-    return ret;
-}
+////=====================================================================
+////函数名：写使能等待
+////参数：
+////返回值：true：成功 ； false：失败
+////功能：
+////=====================================================================
+//bool_t Gd25q64c_WriteEnableWait(u32 timeout)
+//{
+//    u8 sr1=1;
+//    u32 timeoutcnt=0;
+//
+//    if(Gd25q64c_ReadSR(StatusReg1, &sr1) == false)
+//        return false;
+//    while(1)   // 等待写使能位置位
+//    {
+//        if(Gd25q64c_ReadSR(StatusReg1, &sr1) == false)
+//            return false;
+//        if( (sr1 & 0x02) == 0x02)
+//            return true;
+//        DJY_EventDelay(10*mS);
+//        timeoutcnt += 10*mS;
+//        if(timeoutcnt >= timeout)
+//        {
+//            return false;
+//        }
+//    }
+//    return true;
+//}
+//
+//
+////=====================================================================
+////函数名：写失能等待
+////参数：
+////返回值：true：成功 ； false：失败
+////功能：
+////=====================================================================
+//bool_t Gd25q64c_WriteDisableWait(u32 timeout)
+//{
+//    u8 sr1=1;
+//    u32 timeoutcnt=0;
+//
+//    if(Gd25q64c_ReadSR(StatusReg1, &sr1) == false)
+//        return false;
+//    while(1)   // 等待BUSY位清空
+//    {
+//        if(Gd25q64c_ReadSR(StatusReg1, &sr1) == false)
+//            return false;
+//        if( (sr1 & 0x02) != 0x02)
+//            return true;
+//        DJY_EventDelay(10*mS);
+//        timeoutcnt += 10*mS;
+//        if(timeoutcnt >= timeout)
+//        {
+//            return false;
+//        }
+//    }
+//    return true;
+//}
 
 //=====================================================================
 //函数名：写使能
@@ -341,28 +324,30 @@ bool_t Gd25q64c_WriteDisableWait(void)
 bool_t Gd25q64c_Write_Enable(void)
 {
     u8 sndbuf[1];
-    u8 i = 0;
+    u8 sr1=1;
+    u32 timeoutcnt=0;
 
     sndbuf[0] = gd25q64c_WriteEnable;
 
-    for(i = 0; i < 3; i++)
+    while(1)   // 等待写使能位置位
     {
         Gd25q64c_CsActive();
 
         Gd25q64c_TxRx(sndbuf,1,NULL,0,0);
 
         Gd25q64c_CsInactive();
-
-        if(Gd25q64c_WriteEnableWait() == false)
+        if(Gd25q64c_ReadSR(StatusReg1, &sr1) == false)
+            return false;
+        if( (sr1 & 0x02) == 0x02)
+            return true;
+        DJY_EventDelay(10*mS);
+        timeoutcnt += 10*mS;
+        if(timeoutcnt >= 80000*mS)
         {
-            printf("\r\n gd25q64c Write Enable fail num = %d.\r\n", i);
+            printf("\r\n gd25q64c Write Enable fail.\r\n");
+            return false;
         }
-        else
-            break;
     }
-
-    if(i == 3)
-        return false;
     return true;
 
 }
@@ -375,27 +360,36 @@ bool_t Gd25q64c_Write_Enable(void)
 //功能：
 //=====================================================================
 bool_t Gd25q64c_Write_Disable(void)
+
 {
     u8 sndbuf[1];
+    u8 sr1=1;
+    u32 timeoutcnt=0;
 
     sndbuf[0] = gd25q64c_WriteDisable;
 
-    Gd25q64c_CsActive();
-
-    Gd25q64c_TxRx(sndbuf,1,NULL,0,0);
-
-    Gd25q64c_CsInactive();
-
-    if(Gd25q64c_WriteDisableWait() == false)
+    while(1)   // 等待写使能位清除
     {
-        printf("\r\n gd25q64c Write Disable fail.\r\n");
-        return false;
-    }
+        Gd25q64c_CsActive();
 
+        Gd25q64c_TxRx(sndbuf,1,NULL,0,0);
+
+        Gd25q64c_CsInactive();
+        if(Gd25q64c_ReadSR(StatusReg1, &sr1) == false)
+            return false;
+        if( (sr1 & 0x02) != 0x02)
+            return true;
+        DJY_EventDelay(10*mS);
+        timeoutcnt += 10*mS;
+        if(timeoutcnt >= 80000*mS)
+        {
+            printf("\r\n gd25q64c Write Enable fail.\r\n");
+            return false;
+        }
+    }
     return true;
 
 }
-
 //=====================================================================
 //函数名：等待QFLASH的busy位清空
 //参数：
@@ -409,13 +403,15 @@ bool_t Gd25q64c_WaitReady(u32 timeout)
 
     if(Gd25q64c_ReadSR(StatusReg1, &sr1) == false)
         return false;
-    while( (sr1 & 0x01) == 0x01)   // 等待BUSY位清空
+    while(1)   // 等待BUSY位清空
     {
         if(Gd25q64c_ReadSR(StatusReg1, &sr1) == false)
             return false;
-
-        timeoutcnt++;
-        if(timeoutcnt == timeout)
+        if( (sr1 & 0x01) != 0x01)
+            return true;
+        DJY_EventDelay(10*mS);
+        timeoutcnt += 10*mS;
+        if(timeoutcnt >= timeout)
         {
             return false;
         }
@@ -435,7 +431,7 @@ bool_t Gd25q64c_Erase_Sector(u32 SectorNum)
     u8 sndbuf[4];
     Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
 
-    if(Gd25q64c_WaitReady(2000000) == false)
+    if(Gd25q64c_WaitReady(80000*mS) == false)    //超时等于最大操作时间
     {
         Lock_MutexPost(pgd25q64c_Lock);
         printf("\r\n QFLASH : debug : device is busy before Sector Erase.");
@@ -467,12 +463,7 @@ bool_t Gd25q64c_Erase_Sector(u32 SectorNum)
     Gd25q64c_CsInactive();
 
 
-    if(Gd25q64c_WaitReady(2000000) == false)
-    {
-        Lock_MutexPost(pgd25q64c_Lock);
-        printf("\r\n QFLASH : debug : device is busy after Sector Erase.");
-        return false;
-    }
+//  Gd25q64c_WaitReady(200*mS);    //扇区擦除时间是200mS
     Lock_MutexPost(pgd25q64c_Lock);
     return true;
 }
@@ -489,7 +480,7 @@ bool_t Gd25q64c_Erase_Block(u32 BlockNum)
     u8 sndbuf[4];
     Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
 
-    if(Gd25q64c_WaitReady(2000000) == false)
+    if(Gd25q64c_WaitReady(80000*mS) == false)    //超时等于最大操作时间
     {
         Lock_MutexPost(pgd25q64c_Lock);
         printf("\r\n QFLASH : debug : device is busy before Sector Erase.");
@@ -521,12 +512,7 @@ bool_t Gd25q64c_Erase_Block(u32 BlockNum)
     Gd25q64c_CsInactive();
 
 
-    if(Gd25q64c_WaitReady(2000000) == false)
-    {
-        Lock_MutexPost(pgd25q64c_Lock);
-        printf("\r\n QFLASH : debug : device is busy after Sector Erase.");
-        return false;
-    }
+//  Gd25q64c_WaitReady(2000*mS);   //32K block擦除时间是1S，64K的是1.5S
     Lock_MutexPost(pgd25q64c_Lock);
     return true;
 }
@@ -544,7 +530,7 @@ bool_t Gd25q64c_Erase_Chip(void)
     u8 sndbuf[1];
     Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
 
-    if(Gd25q64c_WaitReady(2000000) == false)
+    if(Gd25q64c_WaitReady(80000*mS) == false)   //4Mbytes的芯片擦除时间最大80S
     {
         printf("\r\n FLASH : debug : device is busy before Chip Erase.");
         Lock_MutexPost(pgd25q64c_Lock);
@@ -571,21 +557,7 @@ bool_t Gd25q64c_Erase_Chip(void)
     Gd25q64c_CsInactive();
 
     printf("\r\n gd25q64c Erase, Please Wait.");
-    do
-    {
-        if(Gd25q64c_ReadSR(StatusReg1, &status) == false)
-        {
-            printf("\r\ngd25q64c Erase Chip fail\r\n");
-            Lock_MutexPost(pgd25q64c_Lock);
-            return false;
-        }
-        DJY_EventDelay(100);
-        if(time++ > 1000)
-        {
-            printf(".");
-            time = 0;
-        }
-    }while((status & 0x01) == 0x01);
+    Gd25q64c_WaitReady(80000*mS);   //4Mbytes的芯片擦除时间最大80S
 
     printf("\r\ngd25q64c Erase Chip Succeed\r\n");
     Lock_MutexPost(pgd25q64c_Lock);
@@ -609,7 +581,7 @@ bool_t Gd25q64c_WritePage(u8* pBuffer,u32 PageNum)
 
     WriteAddr = PageNum * gd25q64c_PageSize;
 
-    if(Gd25q64c_WaitReady(2000000) == false)
+    if(Gd25q64c_WaitReady(80000*mS) == false)
     {
         printf("\r\n FLASH : debug : device is busy before Page Write.");
         Lock_MutexPost(pgd25q64c_Lock);
@@ -721,8 +693,9 @@ bool_t Gd25q64c_Write(u8* pBuffer,u32 WriteAddr,u32 len)
     u16 sec_off;
     u16 sec_remain;
     u16 i;
-    bool_t ret = true;
     u8 data;
+    bool_t ret = true,temp;
+    u32 t,t1,t2;
 
     Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
     sec = WriteAddr / gd25q64c_SectorSize;          //扇区地址
@@ -734,7 +707,12 @@ bool_t Gd25q64c_Write(u8* pBuffer,u32 WriteAddr,u32 len)
 
     while(1)
     {
-        if(Gd25q64c_Read(Gd25Q64C_BUFFER, sec * gd25q64c_SectorSize, gd25q64c_SectorSize))
+//        extern u32 timesectorread,timesectorerase,timesectorwrite;       //toto,lst dbg
+//        t = DJY_GetSysTime();
+        temp = Gd25q64c_Read(Gd25Q64C_BUFFER, sec * gd25q64c_SectorSize, gd25q64c_SectorSize);
+//        t1 = DJY_GetSysTime();
+//        timesectorread += gd25q64c_SectorSize;
+        if(temp)
         {
             for(i=0; i < sec_remain; i++)
             {
@@ -744,13 +722,19 @@ bool_t Gd25q64c_Write(u8* pBuffer,u32 WriteAddr,u32 len)
             }
             if(i < sec_remain)    //需要擦除
             {
-                if(Gd25q64c_Erase_Sector(sec))
+                temp = Gd25q64c_Erase_Sector(sec);
+//                t = DJY_GetSysTime();
+//                timesectorerase ++;
+                if(temp)
                 {
                     for(i=0; i<sec_remain; i++)
                     {
                         Gd25Q64C_BUFFER[i + sec_off] = pBuffer[i];
                     }
-                    if(Gd25q64c_WriteNoErase(Gd25Q64C_BUFFER, sec*4096, 4096) == false)
+                    temp = Gd25q64c_WriteNoErase(Gd25Q64C_BUFFER, sec*4096, 4096);
+//                    t1 = DJY_GetSysTime();
+//                    timesectorwrite += t1 - t;
+                    if(temp == false)
                     {
                         ret = false;
                         break;
@@ -765,7 +749,10 @@ bool_t Gd25q64c_Write(u8* pBuffer,u32 WriteAddr,u32 len)
             }
             else
             {
-                if(Gd25q64c_WriteNoErase(pBuffer, WriteAddr, sec_remain) == false)
+                temp = Gd25q64c_WriteNoErase(pBuffer, WriteAddr, sec_remain);
+//                t = DJY_GetSysTime();
+//                timesectorwrite +=sec_remain;
+                if(temp == false)
                 {
                     ret = false;
                     break;
@@ -817,7 +804,7 @@ bool_t Gd25q64c_ReadPage(u8* pBuffer,u32 PageNum)
     sndbuf[2] = (ReadAddr >> 8) & 0xff;
     sndbuf[1] = (ReadAddr >> 16) & 0xff;
 
-    if(Gd25q64c_WaitReady(2000000) == false)
+    if(Gd25q64c_WaitReady(80000*mS) == false)
     {
         printf("\r\n FLASH : debug : device is busy before Page Read.");
         Lock_MutexPost(pgd25q64c_Lock);
@@ -850,6 +837,9 @@ bool_t Gd25q64c_ReadPage(u8* pBuffer,u32 PageNum)
 bool_t Gd25q64c_Read(u8* pBuffer,u32 ReadAddr,u32 NumByteToRead)
 {
     u8 sndbuf[4];
+
+//    u32 t;
+//    extern u32 timewait;       //toto,lst dbg
     Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
 
     sndbuf[0] = gd25q64c_ReadData;
@@ -857,13 +847,14 @@ bool_t Gd25q64c_Read(u8* pBuffer,u32 ReadAddr,u32 NumByteToRead)
     sndbuf[2] = (ReadAddr >> 8) & 0xff;
     sndbuf[1] = (ReadAddr >> 16) & 0xff;
 
-    if(Gd25q64c_WaitReady(2000000) == false)
+//    t = DJY_GetSysTime();
+    if(Gd25q64c_WaitReady(80000*mS) == false)
     {
         printf("\r\n FLASH : debug : device is busy before Memory Read.");
         Lock_MutexPost(pgd25q64c_Lock);
         return false;
     }
-
+//    timewait += DJY_GetSysTime() - t;
     Gd25q64c_CsActive();
 
     if(Gd25q64c_TxRx(sndbuf,4,pBuffer,NumByteToRead,4) == false)
@@ -913,7 +904,7 @@ u32 Gd25q64c_ReadID(void)
     sndbuf[2]=0x00;
     sndbuf[3]=0x00;
 
-    if(Gd25q64c_WaitReady(2000000) == false)
+    if(Gd25q64c_WaitReady(80000*mS) == false)
     {
         printf("\r\n QFLASH : debug : device is busy before Read ID.");
         return -1;
