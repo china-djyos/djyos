@@ -45,7 +45,7 @@
 #define CFG_IBOOT_VERSION_SMALL       00        //"Iboot版本号:低",xx.xx.__，APP忽略
 #define CFG_IBOOT_VERSION_MEDIUM      00        //"Iboot版本号:中",xx.__.xx，APP忽略
 #define CFG_IBOOT_VERSION_LARGE       01        //"Iboot版本号:高",__.xx.xx，APP忽略
-//%$#@string,1,128,
+//%$#@string,1,40,
 #define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //"待升级iboot默认存储路径"
 #define CFG_APP_UPDATE_NAME        "/yaf2/app.bin"            //"待升级app默认存储路径"
 #define CFG_FORCED_UPDATE_PATH     "/SD/djyapp.bin"           //"强制升级的文件路径"

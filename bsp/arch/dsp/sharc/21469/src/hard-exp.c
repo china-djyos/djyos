@@ -110,14 +110,6 @@ bool_t Sh_SoftwareReset(char *param);
 bool_t Sh_Reboot(char *param);
 bool_t Sh_RestartSystem(char *param);
 
-
- void CPU_Reset(void);
- void CPU_Reboot(void);
- void CPU_RestartSystem(void);
-
-
-
-
 //定义各种异常向量名字
 static char *s_pcMajorExpNameTab[CN_MAJOREXP_INVALID] =
 {

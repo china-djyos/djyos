@@ -67,7 +67,7 @@ void test_fun1(double num1,float num2,u64 num3,u32 num4,u32 num5,u64 num6)
 
 void test_fun2(u8 num1,u16 num2,u32 num3,u8 num4,u32 num5,u32 num6,u64 num7)
 {
-	vaule = num1+num2+num3+num4+num5+num6+num7;
+    vaule = num1+num2+num3+num4+num5+num6+num7;
     printf("test2    %d \n\r",vaule);
 }
 
@@ -81,17 +81,17 @@ void test_fun3(double num1,double num2,double num3,u32 num4,double num5)
 
 void test_fun4(double num1,float num2,u8 num3,u32 num4,u32 num5,s8 num6)
 {
-	test_data = num1+num2+num3+num4+num5+num6;
+    test_data = num1+num2+num3+num4+num5+num6;
     printf("test4   %f \n\r",test_data);
 }
 void test_fun5(double num1,float num2,u8 num3,u32 num4,double num5,double num6)
 {
-	test_data = num1+num2+num3+num4+num5+num6;
+    test_data = num1+num2+num3+num4+num5+num6;
     printf("test5   %f \n\r",test_data);
 }
 void test_fun6(double num1,float num2,u8 num3,u32 num4,u32 num5,double num6,double num7)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7;
+    test_data = num1+num2+num3+num4+num5+num6+num7;
     printf("test6   %d \n\r",(u32)test_data);
 }
 
@@ -99,39 +99,39 @@ void test_fun6(double num1,float num2,u8 num3,u32 num4,u32 num5,double num6,doub
 void test_fun7(u64 num1,u32 num2,u64 num3,u32 num4,u64 num5,u32 num6)
 {
 
-	vaule = num1+num2+num3+num4+num5+num6;
+    vaule = num1+num2+num3+num4+num5+num6;
     printf("test7   %d \n\r",vaule);
 
 }
 
 void test_fun8(u64 num1,u64 num2,u64 num3,u32 num4,u64 num5)
 {
-	vaule = num1+num2+num3+num4+num5;
+    vaule = num1+num2+num3+num4+num5;
     printf("test8    %d \n\r",vaule);
 }
 
 void test_fun9(u64 num1,u32 num2,u8 num3,u32 num4,u64 num5,u64 num6)
 {
-	vaule = num1+num2+num3+num4+num5+num6;
+    vaule = num1+num2+num3+num4+num5+num6;
     printf("test9   %d \n\r",vaule);
 }
 
 void test_fun10(u64 num1,u32 num2,u8 num3,u32 num4,u32 num5,u64 num6,u64 num7)
 {
-	vaule = num1+num2+num3+num4+num5+num6+num7;
+    vaule = num1+num2+num3+num4+num5+num6+num7;
     printf("test10   %d \n\r",vaule);
 }
 
 void test_fun11(u32 num1,u32 num2,u32 num3,u32 num4,double num5,u32 num6,double num7)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7;
+    test_data = num1+num2+num3+num4+num5+num6+num7;
     printf("test11   %f \n\r",test_data);
 }
 
 
 void test_fun12(u32 num1,u32 num2,u32 num3,u32 num4,u32 num5,u64 num6,double num7,u32 num8,u64 num9)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
+    test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
     printf("Test12   %f \n\r",test_data);
 }
 
@@ -139,97 +139,97 @@ void test_fun12(u32 num1,u32 num2,u32 num3,u32 num4,u32 num5,u64 num6,double num
 
 void test_fun13(u32 num1,u32 num2,u32 num3,u32 num4,u32 num5,u32 num6,u32 num7,double num8,double num9)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
+    test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
     printf("Test13   %f \n\r",test_data);
 }
 
 void test_fun14(u32 num1,u32 num2,u32 num3,u32 num4,double num5,u32 num6,u32 num7,u32 num8,double num9)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
+    test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
     printf("Test14   %f \n\r",test_data);
 }
 
 void test_fun15(u32 num1,u32 num2,u32 num3,u32 num4,double num5,double num6,u32 num7,u32 num8,u32 num9)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
+    test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
     printf("Test15   %f \n\r",test_data);
 }
 
 void test_fun16(u32 num1,u32 num2,u32 num3,u32 num4,double num5,u32 num6,u32 num7,double num8,double num9)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
+    test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
     printf("Test16   %f \n\r",test_data);
 }
 
 void test_fun17(u32 num1,u32 num2,u32 num3,u32 num4,double num5,u8 num6,u8 num7,u8 num8,double num9)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
+    test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
     printf("Test17   %f \n\r",test_data);
 }
 
 void test_fun18(u32 num1,u32 num2,u32 num3,u32 num4,double num5,u32 num6,u32 num7,u32 num8,u32 num9,double num10)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9+num10;
+    test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9+num10;
     printf("Test18   %f \n\r",test_data);
 }
 
 
 void test_fun19(u32 num1,u32 num2,u32 num3,u32 num4,u32 num5,u32 num6,u32 num7,u32 num8,u32 num9,double num10)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9+num10;
+    test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9+num10;
     printf("Test19   %f \n\r",test_data);
 }
 
 void test_fun20(u32 num1,u32 num2,u32 num3,u32 num4,u32 num5,double num6,u32 num7,u64 num8,u32 num9)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
+    test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
     printf("Test20   %f \n\r",test_data);
 }
 
 void test_fun21(u32 num1,u32 num2,u32 num3,u32 num4,u32 num5,u64 num6,u32 num7,double num8,u32 num9)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
+    test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
     printf("Test21   %f \n\r",test_data);
 }
 
 void test_fun22(u32 num1,u32 num2,u32 num3,u32 num4,u32 num5,double num6,u32 num7,double num8,u32 num9)
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
+    test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
     printf("Test22   %f \n\r",test_data);
 }
 
 void test_fun23(u32 num1,u32 num2,u32 num3,u32 num4,u32 num5,double num6,double num7,u64 num8,u32 num9)//num5 占用8字节 ，double型的值不通过压栈传递
 {
-	test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
+    test_data = num1+num2+num3+num4+num5+num6+num7+num8+num9;
     printf("Test23   %f \n\r",test_data);
 }
 
 void test_fun24(u32 num1,u32 num2,u32 num3,u32 num4,u32 num5,u64 num6)  //num5 占用8字节
 {
-	vaule = num1+num2+num3+num4+num5+num6;
+    vaule = num1+num2+num3+num4+num5+num6;
     printf("Test24  %d \n\r",vaule);
 }
 void test_fun25(u32 num1,u32 num2,u32 num3,u32 num4,u32 num5,u32 num6,u32 num7,u64 num8)  //num7 占用8字节
 {
-	vaule = num1+num2+num3+num4+num5+num6+num7+num8;
+    vaule = num1+num2+num3+num4+num5+num6+num7+num8;
     printf("Test25  %d \n\r",vaule);
 }
 void test_fun26(u32 num1,u32 num2,u32 num3,u32 num4,u32 num5,u32 num6,u32 num7,u32 num8,u32 num9,u64 num10)//num9 占用8字节
 {
-	vaule = num1+num2+num3+num4+num5+num6+num7+num8+num9+num10;
+    vaule = num1+num2+num3+num4+num5+num6+num7+num8+num9+num10;
     printf("Test26  %d \n\r",vaule);
 }
 
 void test_fun27(u32 num1,u32 num2,u32 num3,u32 num4,u64 num5,u32 num6,u32 num7,u32 num8,u64 num9)//num8 占用8字节
 {
-	vaule = num1+num2+num3+num4+num5+num6+num7+num8+num9;
+    vaule = num1+num2+num3+num4+num5+num6+num7+num8+num9;
     printf("Test27  %d \n\r",vaule);
 }
 //======================被调用函数测试====================================
 static bool_t AsmExecuteCmd (u8 num, void* fun)
 {
 #if (_D_FPU_USED == 1)
-	extern void __asm_ExecuteCmd(union Parameter *ptab,enum ParameterTypr *pflag,void* fun,u32 num);
+    extern void __asm_ExecuteCmd(union Parameter *ptab,enum ParameterTypr *pflag,void* fun,u32 num);
     __asm_ExecuteCmd (ParameterTab,ParameterFlagTab,fun,num);
 #endif
 
@@ -260,7 +260,7 @@ void test2(float n8,u16 n16,u32 n32,u64 n64,u64 n66,u8 aa,u16 uu)
 
 void asm_test(void)
 {
-	void *p_fun0;
+    void *p_fun0;
     void *p_fun1,*p_fun2,*p_fun3,*p_fun4,*p_fun5,*p_fun6,*p_fun7,*p_fun8,*p_fun9,*p_fun10,*p_fun11,*p_fun12;
     void *p_fun13,*p_fun14,*p_fun15,*p_fun16,*p_fun17,*p_fun18,*p_fun19,*p_fun20,*p_fun21,*p_fun22,*p_fun23,*p_fun24;
     void *p_fun25,*p_fun26,*p_fun27,*p_fun28,*p_fun29,*p_fun30;
@@ -1162,7 +1162,7 @@ void asm_test(void)
 ADD_TO_EX_SHELL bool_t daa(u8 num1,u16 num2,u32 num3,u64 num4)
 {
 
-	u32 vaule;
+    u32 vaule;
    vaule = num1+num2+num3+num4;
    printf("test1   %d \n\r",vaule);
 
@@ -1173,22 +1173,22 @@ ADD_TO_EX_SHELL bool_t daa(u8 num1,u16 num2,u32 num3,u64 num4)
 
 ADD_TO_EX_SHELL  bool_t dbb(double num1,float num2,u8 num3,u64 num4,u32 num5,u64 num6)
 {
-	double test_data;
-//	int test_data;
-	test_data = num1+num2+num3+num4+num5+num6;
-//	test_data = num3+num4+num5+num6;
-	printf("test2    %f \n\r",test_data);
+    double test_data;
+//  int test_data;
+    test_data = num1+num2+num3+num4+num5+num6;
+//  test_data = num3+num4+num5+num6;
+    printf("test2    %f \n\r",test_data);
     return true;
 
 }
 
 ADD_TO_EX_SHELL  bool_t dcc(u8 num1,u8 num2,u8 num3,u8 num4,u8 num5,\
-		u8 num6,u8 num7,u8 num8,u8 num9,u8 num10)
+        u8 num6,u8 num7,u8 num8,u8 num9,u8 num10)
 {
 
-	u32 vaule;
-	vaule = num1+num2+num3+num4+num5+num6+num7+num8+num9+num10;
-	  printf("test3   %d \n\r",vaule);
+    u32 vaule;
+    vaule = num1+num2+num3+num4+num5+num6+num7+num8+num9+num10;
+      printf("test3   %d \n\r",vaule);
 
     return true;
 
@@ -1197,21 +1197,21 @@ ADD_TO_EX_SHELL  bool_t dcc(u8 num1,u8 num2,u8 num3,u8 num4,u8 num5,\
 ADD_TO_EX_SHELL  bool_t ddd(u8 num1,u8 num2,u8 num3,u8 num4,u8 num5)
 {
 
-	u32 vaule;
-	vaule = num1+num2+num3+num4+num5;
-	  printf("test4   %d \n\r",vaule);
+    u32 vaule;
+    vaule = num1+num2+num3+num4+num5;
+      printf("test4   %d \n\r",vaule);
 
     return true;
 
 }
 
 ADD_TO_EX_SHELL  bool_t dee(u8 num1,u8 num2,u8 num3,u8 num4,u8 num5,\
-		u8 num6,u8 num7,u8 num8,u8 num9)
+        u8 num6,u8 num7,u8 num8,u8 num9)
 {
 
-	u32 vaule;
-	vaule = num1+num2+num3+num4+num5+num6+num7+num8+num9;
-	  printf("test5   %d \n\r",vaule);
+    u32 vaule;
+    vaule = num1+num2+num3+num4+num5+num6+num7+num8+num9;
+      printf("test5   %d \n\r",vaule);
 
     return true;
 
@@ -1289,8 +1289,8 @@ ADD_TO_EX_SHELL  bool_t dkk(double num1,double num2,double num3,\
 
 ADD_TO_EX_SHELL bool_t dll(u64 num1,u32 num2,u64 num3,u32 num4,u64 num5,u32 num6)
 {
-	u32 vaule;
-	vaule = num1+num2+num3+num4+num5+num6;
+    u32 vaule;
+    vaule = num1+num2+num3+num4+num5+num6;
     printf("test12   %d \n\r",vaule);
     return true;
 }

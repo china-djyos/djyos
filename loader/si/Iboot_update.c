@@ -80,48 +80,57 @@
 #if (CFG_RUNMODE_BAREAPP == 0)
 
 #define IAPBUF_SIZE   512
-extern void CPU_Reboot();
-extern void CPU_Reset();
-extern void CPU_RestartSystem(u32 key);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // ============================================================================
-// 功能：设置运行iboot
-// 参数：
+// 功能：重启并运行iboot，先设置好内存标志，然后重启系统。Reset要求硬件提供一块内存，
+//      在系统复位后能保留复位前的数据，一般SRAM才可以，甚至有些特殊的单片机如博通的
+//      BK7251，复位后片内RAM都被初始化为0xAA。
+// 参数：param，“1”代表使用 reset ，空或其他代表使用 reboot
 // 返回：
 // 备注：
 // ============================================================================
 bool_t  runiboot(char *param)
 {
+    s32 temp;
+    temp = atoi(param);
     Set_RunIbootFlag();
 #if(CN_CPU_OPTIONAL_CACHE==1)
-     Cache_CleanData();
-     Cache_InvalidInst();
+    Cache_CleanData();
+    Cache_InvalidInst();
 #endif
-    CPU_Reset();
+    if(temp == 1)
+        CPU_Reset();
+    else
+        CPU_Reboot();
     return true;
 }
 
 // ============================================================================
-// 功能：设置运行app
-// 参数：
+// 功能：重启并运行app，先设置好内存标志，然后重启系统。Reset要求硬件提供一块内存，
+//      在系统复位后能保留复位前的数据，一般SRAM才可以，甚至有些特殊的单片机如博通的
+//      BK7251，复位后片内RAM都被初始化为0xAA。
+// 参数：param，“1”代表使用 reset ，空或其他代表使用 reboot
 // 返回：
 // 备注：
 // ============================================================================
 bool_t  runapp(char *param)
 {
+    s32 temp;
+    temp = atoi(param);
     Set_RunAppFlag();
 #if(CN_CPU_OPTIONAL_CACHE==1)
-     Cache_CleanData();
-     Cache_InvalidInst();
+    Cache_CleanData();
+    Cache_InvalidInst();
 #endif
-    CPU_Reset();
+    if(temp == 1)
+        CPU_Reset();
+    else
+        CPU_Reboot();
     return true;
 }
-
-
 
 // ============================================================================
 // 功能：设置运行iboot并更新iboot
@@ -140,85 +149,89 @@ bool_t  runapp(char *param)
 //    return false;
 //}
 
- // ============================================================================
- // 功能：根据字符串设置升级成功后是运行app还是iboot
- // 参数：
- // 返回：true -- 设置成功；false -- 没有设置
- // 备注：
- // ============================================================================
- bool_t runapp_or_runiboot(char *mode)
- {
-      if(strcmp(mode, "runapp") == 0)
-          Iboot_SetUpdateRunModet(1);
-      else if(strcmp(mode, "runiboot") == 0)
-              Iboot_SetUpdateRunModet(0);
-      else
-          return false;
+//// ============================================================================
+//// 功能：设置升级APP标志和在交互信息中填充待升级app路径，然后重启进入iboot，将由
+////      iboot执行具体的升级工作。（即使当前运行模式是iboot，也重启）
+//// 参数：param -- 待升级app路径
+//// 返回：
+//// 备注：
+//// ============================================================================
+////bool_t Sh_UpdateApp(char *param)
+//bool_t updateapp(char *param)
+//{
+//    char *word_param, *next_param;
+//
+//    word_param = shell_inputs(param,&next_param);
+//    Iboot_SetRunIbootUpdateApp();
+//    if(word_param == NULL)
+//    {
+//        set_upgrade_info(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
+//    }
+//    else
+//    {
+//        if(strlen(word_param) < 31)    //31是update_info.file.file_path的尺寸，暂且写着，后改。
+//        {
+//            set_upgrade_info(word_param, sizeof(word_param));
+//        }
+//        else
+//        {
+//            set_upgrade_info(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
+//        }
+//    }
+//    Iboot_SetUpdateRunModet(1);      //启动后运行app
+//
+//    runiboot(0);
+//
+//    return (TRUE);
+//}
+//
+//// ============================================================================
+//// 功能：设置升级iboot标志和在交互信息中填充待升级iboot路径，然后重启进入app，将由
+////      app执行具体的升级工作。（即使当前运行模式是app，也重启），特别注意，APP中应
+////      该有升级相关代码，这些代码可能跟bsp有关，因为许多移植版本的中断和异常向量在
+////      iboot区间，运行中重写这些区域可能导致运行错误。
+//// 参数：param -- 待升级iboot路径
+//// 返回：
+//// 备注：
+//// ============================================================================
+//bool_t updateiboot(char *param)
+//{
+//    char *word_param, *next_param;
+//
+//    word_param = shell_inputs(param,&next_param);
+//    Iboot_SetRunAppUpdateIboot();
+//    if(word_param == NULL)
+//    {
+//        set_upgrade_info(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
+//    }
+//    else
+//    {
+//        if(strlen(word_param) < 31)    //31是update_info.file.file_path的尺寸，暂且写着，后改。
+//        {
+//            set_upgrade_info(word_param, sizeof(word_param));
+//        }
+//        else
+//        {
+//            set_upgrade_info(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
+//        }
+//    }
+//    Iboot_SetUpdateRunModet(0);      //启动后运行app
+//
+//    runapp(0);
+//
+//    return (TRUE);
+//}
 
-      return true;
- }
 // ============================================================================
-// 功能：设置升级APP标志和在交互信息中填充待升级app路径
-// 参数：param -- 待升级app路径
-// 返回：
-// 备注：
-// ============================================================================
-//bool_t Sh_UpdateApp(char *param)
-bool_t updateapp(char *param)
-{
-    bool_t res = true;
-    char *word_param, *next_param;
-    Iboot_SetRunIbootUpdateApp();
-
-    word_param = shell_inputs(param,&next_param);
-    if(word_param == NULL)
-    {
-        res = set_upgrade_info(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
-        Iboot_SetUpdateRunModet(1);      //启动后运行app
-    }
-    else
-    {
-        if(runapp_or_runiboot(word_param) == false)
-        {
-            res = set_upgrade_info(word_param, strlen(word_param));
-            word_param = shell_inputs(next_param,&next_param);
-            if(word_param != NULL)
-            {
-                if(runapp_or_runiboot(word_param) == false)
-                    Iboot_SetUpdateRunModet(1);      //未指定升级成功后运行app还是iboot，则运行iboot
-            }
-            else
-                Iboot_SetUpdateRunModet(1);      //启动后运行app
-        }
-        else
-        {
-            word_param = shell_inputs(next_param,&next_param);
-            if(word_param != NULL)
-                res = set_upgrade_info(word_param, strlen(word_param));
-            else
-                res = set_upgrade_info(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
-        }
-    }
-
-    if(res == false)
-        error_printf("iap"," file name is longer than 40.");
-    else
-        runiboot(0);
-
-    DJY_EventDelay(5000*1000);      //延时一下，让升级过程中的信息能打印出来
-    return (TRUE);
-}
-
-// ============================================================================
-// 功能：升级App事件，
+// 功能：升级App，
 // 参数：无。
 // 返回：0（无意义）。
 // 备注
 // ============================================================================
 bool_t Iboot_UpdateApp(void)
 {
-    char apppath[MutualPathLen];
-    char xipapppath[MutualPathLen];
+    char apppath[CN_UPDATE_PATH_LIMIT];
+    char xipapppath[CN_UPDATE_PATH_LIMIT];
     struct stat test_stat;
     FILE *srcapp = NULL;
     FILE *xipapp;
@@ -241,7 +254,7 @@ bool_t Iboot_UpdateApp(void)
                 DJY_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
                 return TRUE;
             }
-            srcapp = fopen(apppath, "r+");
+            srcapp = fopen(apppath, "r");
         }
         else
         {
@@ -332,57 +345,6 @@ bool_t Iboot_UpdateApp(void)
 }
 
 // ============================================================================
-// 功能：设置升级iboot标志和在交互信息中填充待升级iboot路径
-// 参数：param -- 待升级iboot路径
-// 返回：
-// 备注：
-// ============================================================================
-bool_t Iboot_Update(char *param)
-{
-    bool_t res = true;
-    char *word_param, *next_param;
-    Iboot_SetRunAppUpdateIboot();
-
-    word_param = shell_inputs(param,&next_param);
-    if(word_param == NULL)
-    {
-        res = set_upgrade_info(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
-        Iboot_SetUpdateRunModet(0);      //启动后运行iboot
-    }
-    else
-    {
-        if(runapp_or_runiboot(word_param) == false)
-        {
-            res = set_upgrade_info(word_param, strlen(word_param));
-            word_param = shell_inputs(next_param,&next_param);
-            if(word_param != NULL)
-            {
-                if(runapp_or_runiboot(word_param) == false)
-                    Iboot_SetUpdateRunModet(0);      //未指定升级成功后运行app还是iboot，则运行iboot
-            }
-            else
-                Iboot_SetUpdateRunModet(0);      //启动后运行iboot
-        }
-        else
-        {
-            word_param = shell_inputs(next_param,&next_param);
-            if(word_param != NULL)
-                res = set_upgrade_info(word_param, strlen(word_param));
-            else
-                res = set_upgrade_info(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
-        }
-    }
-
-    if(res == false)
-        error_printf("iap"," file name is longer than 40.");
-    else
-        runapp(0);
-
-    DJY_EventDelay(5000*1000);      //延时一下，让升级过程中的信息能打印出来
-    return (TRUE);
-}
-
-// ============================================================================
 // 功能：升级Iboot事件，
 // 参数：无。
 // 返回：1（无意义）。
@@ -397,7 +359,7 @@ ptu32_t Iboot_AppUpdateIboot(void)
     u32 readsize,res;
     struct stat test_stat;
     s64 srcsize;
-    char iapibootname[MutualPathLen];
+    char iapibootname[CN_UPDATE_PATH_LIMIT];
     char percentage_last = 0, percentage = 0;
 
     info_printf("IAP","iboot update start.\r\n");
@@ -525,8 +487,8 @@ ADD_TO_ROUTINE_SHELL(runiboot,runiboot,NULL);
 ADD_TO_ROUTINE_SHELL(runapp,runapp,"直接运行APP(仅在采取内存标示确定加载项目时有效)");
 //ADD_TO_ROUTINE_SHELL(runibootui,runibootui,"设置运行iboot并更新iboot并升级iboot");
 //ADD_TO_ROUTINE_SHELL(updateruniboot,updateruniboot,"设置运行iboot并升级iboot");
-ADD_TO_ROUTINE_SHELL(updateapp,updateapp,"update app lication");
-ADD_TO_ROUTINE_SHELL(updateiboot,Iboot_Update,"Update Iboot.");
+//ADD_TO_ROUTINE_SHELL(updateapp,updateapp,"update app lication");
+//ADD_TO_ROUTINE_SHELL(updateiboot,updateiboot,"Update Iboot.");
 
 #endif
 
@@ -544,43 +506,19 @@ bool_t rebootshell(char *param)
 //static bool_t resetshell(char *param)
 bool_t resetshell(char *param)
 {
-    u32 key = 0;
-    if(NULL != param)
-    {
-        key = strtoul(param,NULL,0);
-    }
-    CPU_Reset(key);
+    CPU_Reset();
     return true;
 }
 //static bool_t reloadshell(char *param)
 bool_t restart(char *param)
 {
-    u32 key = 0;
-    if(NULL != param)
-    {
-        key = strtoul(param,NULL,0);
-    }
-    CPU_RestartSystem(key);
+    CPU_RestartSystem();
     return true;
 }
 
-//static bool_t bootaddressshell(char *param)
-bool_t bootaddress(char *param)
-{
-    u32 addr;
-    u32 InitCpu_Addr;
-    addr = strtoul(param,NULL,0);
-
-    debug_printf("OsStart","%s:addr:0x%08x\n\r",__FUNCTION__,addr);
-    InitCpu_Addr = *(u32*)addr;
-    ((void (*)(void))(InitCpu_Addr))();
-
-    return true;
-}
 ADD_TO_ROUTINE_SHELL(restart,restart,"usage:restart [key](if key is 0XAA55AA55 then will not record)");
-ADD_TO_ROUTINE_SHELL(bootaddress,bootaddress,"usage:bootaddress [address]");
-ADD_TO_ROUTINE_SHELL(rebootshell,rebootshell,"usage:rebootshell [key](if key is 0XAA55AA55 then will not record)");
-ADD_TO_ROUTINE_SHELL(resetshell,resetshell,"usage:resetshell [key](if key is 0XAA55AA55 then will not record)");
+ADD_TO_ROUTINE_SHELL(reboot,rebootshell,"usage:rebootshell [key](if key is 0XAA55AA55 then will not record)");
+ADD_TO_ROUTINE_SHELL(reset,resetshell,"usage:resetshell [key](if key is 0XAA55AA55 then will not record)");
 
 
 

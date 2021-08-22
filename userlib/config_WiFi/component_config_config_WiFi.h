@@ -48,12 +48,10 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_ConfigNet(void);
-//    ModuleInstall_ConfigNet();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"wifi config"//
+//component name:"user wifi config"//
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:userlib                 //选填“third、system、bsp、userlib”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -76,11 +74,7 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CONFIG_NET    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,true,false
-#define CFG_NETC_USER_INPUT_ENABLE           false        //"是否使用用户输入密码",
-#define CFG_NETC_AP_ENABLE                  false       //"是否使用网页配网",
-#define CFG_NETC_AIRKISS_ENABLE             false        //"是否使用微信配网",
-#define CFG_NETC_WAVE_ENABLE                false       //"是否使用声波配网",
-//%$#@select
+//%$#@select,1
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束

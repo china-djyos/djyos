@@ -143,11 +143,6 @@ static enum EN_BlackBoxAction  __BlackBox_ResultMerge(enum EN_BlackBoxAction Res
     return result;
 }
 
-//if key is 0XAA55AA55 ,then will not record in the CPU_Reset CPU_Reboot and restart
-//else key will do record in the CPU_Reset CPU_Reboot or restart
-extern void CPU_Reset();
-extern void CPU_Reboot();
-extern void CPU_RestartSystem();
 // =============================================================================
 // 函数功能: 处理异常的最终结果
 // 输入参数:blackboxdealresult,异常结果

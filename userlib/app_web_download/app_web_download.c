@@ -33,9 +33,8 @@ struct StUpdData {
 // 备注：
 // ============================================================================
 struct StDlFileData {
-    s32 media_type;//0: mp3, 1: wav
     volatile s32 is_break;
-    volatile s32 status;
+    volatile s32 status;    //0=下载中，1=已完成，-1=出错
     volatile s32 is_start;
     volatile u32 timemark;
     volatile u32 timeout;
@@ -83,12 +82,14 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
         {
             //printf("=== read: %d ===!\r\n", io->len);
 
-            if (pUserData->is_start == 1) {
+            if (pUserData->is_start == 1)
+            {
                 pUserData->body_size = 0;
                 pUserData->mark_pos = 0;
                 pUserData->is_start = 0;
                 if (0 == memcmp(io->buf, "HTTP/1.1 200", strlen("HTTP/1.1 200"))||
-                    0 == memcmp(io->buf, "HTTP/1.1 206", strlen("HTTP/1.1 206"))) {
+                    0 == memcmp(io->buf, "HTTP/1.1 206", strlen("HTTP/1.1 206")))
+                {
 
                     printf("info: http download recv header ok!\r\n");
                     if ((p = strstr(io->buf, "\r\n\r\n"))) {
@@ -146,15 +147,7 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
     case MG_EV_CLOSE:
         {
             pUserData->status = 1;
-            pUserData->body_size = 0;
-            pUserData->mark_pos = 0;
             //printf("===============close socket=================!\r\n");
-            if (pUserData->media_type==1) {//wav
-//                WavDataEndPlay (); // TODO merlin 20191214
-            }
-            else if (pUserData->media_type==0) { //mp3
-//                Mp3DataEndPlay (); // TODO merlin 20191214
-            }
         }
         break;
     }
@@ -179,11 +172,6 @@ s32 WebDownload(s8 *host, s32 port, s8 *path,
 
 //  if (!is_wifi_connected())
     //lst todo：由网络管理组件提供判断网络是否连通的函数 NG_ConnectIsOK
-    if(mhdr_get_station_status() != RW_EVT_STA_GOT_IP)
-    {
-        pUserData->url[0] = 0;      //网络断开
-        return -1;
-    }
 
     temp = malloc(1024);
     if (temp == 0) goto FUN_RET;
@@ -234,7 +222,11 @@ s32 WebDownload(s8 *host, s32 port, s8 *path,
 //      }
         DJY_EventDelay(20*1000);
     }
-
+    if((userData.body_size != userData.mark_pos) || (userData.body_size == 0))
+    {
+        printf("download size error\r\n");
+        ret = -1;
+    }
 MGR_FREE:
     mg_mgr_free(&mgr);
     pUserData->url[0] = 0;
@@ -332,8 +324,10 @@ static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_dat
             memcpy(pQuestData->new_data, hm->body.p, hm->body.len);
             pQuestData->new_data[hm->body.len] = 0;
 
-            if (DoUpgradeJson(pQuestData->new_data, pQuestData->new_len, pQuestData->new_data, pQuestData->new_len) > 0) {
-                printf("pQuestData->new_data is %s\r\n", pQuestData->new_data);
+            if (DoUpgradeJson(pQuestData->new_data, pQuestData->new_len,
+                        pQuestData->new_data, pQuestData->new_len) > 0)
+            {
+//              printf("pQuestData->new_data is %s\r\n", pQuestData->new_data);
                 pQuestData->status = 1;
             }
             break;
@@ -488,7 +482,7 @@ s32 DevUpgradeQuest(const s8 *serial_num, u8 *branch, s8 *out_json, s32 len)
 
     sprintf(VersionNum, "%d.%d.%d", PRODUCT_VERSION_LARGE,
                     PRODUCT_VERSION_MEDIUM, PRODUCT_VERSION_SMALL);
-    printf("--------send VersionNumber = %s   ",VersionNum);
+//  printf("--------send VersionNumber = %s   ",VersionNum);
 
 //    printf("ENTRY: %s!\r\n", __FUNCTION__);
 //    if(mhdr_get_station_status() != RW_EVT_STA_GOT_IP)    //这是7251的函数，平台相关了
@@ -498,7 +492,8 @@ s32 DevUpgradeQuest(const s8 *serial_num, u8 *branch, s8 *out_json, s32 len)
     Iboot_GetAPP_ProductInfo(APP_HEAD_FINGER, finger, sizeof(finger));
 //    sprintf(path, "/api/version?sn=%s&branch=%s&version=%s&fingerprint%s&data=%s",
 //                                serial_num, branch, VersionNum, "QMNVLX20470000M", "NULL" );  //测试用的
-    snprintf(path,sizeof(path),"/api/version?sn=%s&branch=%s&version=%s&finger=%s&data=%s", serial_num, branch, VersionNum, finger, "NULL" );
+    snprintf(path,sizeof(path),"/api/version?sn=%s&branch=%s&version=%s&finger=%s&data=%s",
+        serial_num, branch, VersionNum, finger, "NULL" );
 
     s32 ret = DevUpgradeCommon(path, out_json, len);
     printf("====EXIT:ret is %d  %s!\r\n",ret,__FUNCTION__);
@@ -535,7 +530,6 @@ s32 GetSrvUpgradeInfo(u8 *product_time, s32 prod_time_len, u8 *serial_num, s32 s
 // ============================================================================
 s32 web_check_new_versions(u8 *branch, u8 *SN)
 {
-    memset(gupgrade_url, 0, sizeof(gupgrade_url));
     s32 ret = -1;
     s8 buf[30] = {0};
     cJSON *cjson = 0;
@@ -545,50 +539,57 @@ s32 web_check_new_versions(u8 *branch, u8 *SN)
 //    s8 VersionNum[13];
     cJSON*  results = 0;
     s8 *out_json = malloc(1024);
-    if (out_json==0) return -1;
+    if (out_json==0)
+        return ret;
     printf("\r\n SN_Num   = %s,\r\n", SN);
+    memset(gupgrade_url, 0, sizeof(gupgrade_url));
     memset(out_json, 0, 1024);
-    //从服务器拉取升级文件的信息
+    //从服务器拉取升级文件的信息，是一个json包
     if (DevUpgradeQuest((const s8 *)SN, branch, out_json, 1024) <= 0)
     {
         free(out_json);
         return ret;
     }
     //todo：根据真实数据包改写
-    cjson = cJSON_Parse(out_json);
+    cjson = cJSON_Parse(out_json);  //解析json包
     if (cjson)
     {
-        cjson_version = cJSON_GetObjectItem(cjson, "version");
-        if (cjson_version) {
+        cjson_version = cJSON_GetObjectItem(cjson, "version");//提取版本号字段
+        if (cjson_version)
+        {
             results = cJSON_GetObjectItem(cjson_version, "url");
-            if (results) {
-                printf("==url==: %s!\r\n", results->valuestring);
+            if (results)
+            {
+//              printf("==url==: %s!\r\n", results->valuestring);
                 strcpy((s8*)gupgrade_url, results->valuestring);
                 ret = 1;
             }
         }
-        //device
+        //device字段
         cjson_device = cJSON_GetObjectItem(cjson, "device");
         if (cjson_device)
         {
-            results = cJSON_GetObjectItem(cjson_device, "weekday");
+            results = cJSON_GetObjectItem(cjson_device, "weekday");//生产周次
             if (results)
             {
                 printf("==weekday==: %d!\r\n", results->valueint);
                 weeks = results->valueint;
             }
-            results = cJSON_GetObjectItem(cjson_device, "productNo");
+            results = cJSON_GetObjectItem(cjson_device, "productNo");   //生产序列号
             if (results)
             {
                 printf("==productNo==: %s!\r\n", results->valuestring);
                 memcpy(gserial_num, results->valuestring, sizeof(gserial_num));
             }
+            //生产时间，按年月日时分秒格式
             results = cJSON_GetObjectItem(cjson_device, "produceTime");
-            if (results)
+            if (results)    //根据时间和周次，生成指纹中要求的格式，两字节年+两字节周
             {
                 printf("==produceTime==: %s!\r\n", results->valuestring);
                 struct tm stm = { 0 };
-                s32 cnt = sscanf(results->valuestring, "%d-%d-%d %d:%d:%d", &stm.tm_year, &stm.tm_mon, &stm.tm_mday, &stm.tm_hour, &stm.tm_min, &stm.tm_sec);
+                s32 cnt = sscanf(results->valuestring, "%d-%d-%d %d:%d:%d",
+                        &stm.tm_year, &stm.tm_mon, &stm.tm_mday, &stm.tm_hour,
+                        &stm.tm_min, &stm.tm_sec);
                 if (cnt == 6)
                 {
                     memset(buf, 0, sizeof(buf));
@@ -659,9 +660,9 @@ s32 web_upgrade_firmware(fnTransAppToIboot fdo)
                 printf("web_up param error\r\n");
                 return -1;
             }
-            ret = WebDownload(domain, 80, p2, fdo, 120000);
+            ret = WebDownload(domain, 80, p2, fdo, 600000);
 
-            printf("===================WebDownload ret=%d========================!\r\n", ret);
+            printf("=================WebDownload ret=%d=================!\r\n", ret);
         }
     }
     return ret;

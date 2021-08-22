@@ -51,10 +51,11 @@ extern "C" {
 
 #include <stdint.h>
 
-#define NETC_USER_INPUT      (1<<0)      //¼üÅÌÅäÍø
+#define NETC_USER_INPUT     (1<<0)      //¼üÅÌÅäÍø
 #define NETC_AP             (1<<1)      //ÍøÒ³ÅäÍø
-#define NETC_AIRKISS        (1<<2)      //Î¢ÐÅÅäÍø
-#define NETC_WAVE           (1<<3)      //Éù²¨ÅäÍø
+#define NETC_BLE            (1<<2)      //ÍøÒ³ÅäÍø
+#define NETC_AIRKISS        (1<<3)      //Î¢ÐÅÅäÍø
+#define NETC_WAVE           (1<<4)      //Éù²¨ÅäÍø
 
 
 struct NetcInfo
@@ -69,9 +70,8 @@ struct NetcInfo
 
 };
 
-s32 NetcGetModes(void);
-s32 NetcStart(struct NetcInfo *Netc);
-s32 NetcEnd(s32 mode);
+s32 Netc_WebStart(struct NetcInfo *Netc);
+s32 Netc_WebEnd(s32 mode);
 
 #ifdef __cplusplus
 }
