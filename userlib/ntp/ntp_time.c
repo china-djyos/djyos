@@ -1,117 +1,240 @@
+#include <stdint.h>
 #include "ntp_time.h"
-#include "mongoose.h"
+#include <sys/socket.h>
+#include <netdb.h>
+#include <shell.h>
 
-#define u32 unsigned int
+#define NTP_TIMESTAMP_DELTA 2208988800ull
 
-
-struct tm *oss_gmtime(const time_t *time, int time_zone)
+// Structure that defines the 48 byte NTP packet protocol.
+struct ntp_packet
 {
-    static struct  tm result;
-    s64 temp_time;
-    if(time == NULL)
-    {
-        temp_time = __Rtc_Time(NULL);
-        temp_time += ((s64)8*3600);
-    }
-    else
-    {
-        temp_time = *time + ((s64)time_zone*3600);
-    }
-    return Time_LocalTime_r(&temp_time, &result);
-}
+    uint8_t li_vn_mode;      // Eight bits. li, vn, and mode.
+                             // li.   Two bits.   Leap indicator.
+                             // vn.   Three bits. Version number of the protocol.
+                             // mode. Three bits. Client will pick mode 3 for client.
 
-char *GTM_TIME(unsigned int timestamp, char *buf, int len)
-{
-    char GMT[100] = {0};
+    uint8_t stratum;         // Eight bits. Stratum level of the local clock.
+    uint8_t poll;            // Eight bits. Maximum interval between successive messages.
+    uint8_t precision;       // Eight bits. Precision of the local clock.
 
-    time_t t = timestamp;
-    strftime(GMT, sizeof(GMT), "%a, %d %b %Y %H:%M:%S GMT", oss_gmtime(&t, 0));
-    //mg_strftime_patch(GMT);
-    int min = strlen(GMT)+1;
-    min = min < len ? min : len;
-    memcpy(buf, GMT, min);
-    return buf;
-}
+    uint32_t rootDelay;      // 32 bits. Total round trip delay time.
+    uint32_t rootDispersion; // 32 bits. Max error aloud from primary clock source.
+    uint32_t refId;          // 32 bits. Reference clock identifier.
 
-static unsigned int gNtpTickSecOffset = 0;
-static unsigned int gNtpTickSecTimestamp = 0;
+    uint32_t refTm_s;        // 32 bits. Reference time-stamp seconds.
+    uint32_t refTm_f;        // 32 bits. Reference time-stamp fraction of a second.
+
+    uint32_t origTm_s;       // 32 bits. Originate time-stamp seconds.
+    uint32_t origTm_f;       // 32 bits. Originate time-stamp fraction of a second.
+
+    uint32_t rxTm_s;         // 32 bits. Received time-stamp seconds.
+    uint32_t rxTm_f;         // 32 bits. Received time-stamp fraction of a second.
+
+    uint32_t txTm_s;         // 32 bits and the most important field the client cares about. Transmit time-stamp seconds.
+    uint32_t txTm_f;         // 32 bits. Transmit time-stamp fraction of a second.
+
+}  __attribute__((packed));               // Total: 384 bits or 48 bytes.
+
+struct tm *oss_gmtime(const time_t *time, s32 time_zone);//删掉，改用 Time_ZoneTime
 
 
 char *arr_ntp_server[] = {
-        "ntp.ntsc.ac.cn",
-        "cn.pool.ntp.org",
-        "us.pool.ntp.org",
+    "time.windows.com",
+    "time1.cloud.tencent.com",
+    "time.asia.apple.com",
+    "ntp.ntsc.ac.cn",
+    "cn.ntp.org.cn",
+    "ntp.aliyun.com",
+    "asia.pool.ntp.org",
+    "cn.pool.ntp.org",
+    "us.pool.ntp.org",
 };
-int get_ntp_tiemstamp(u32 *ptimestamp, char *ntp_domain, int timeout_ms);
 
-int ntp_timestamp(u32 *ptimestamp, int timeout_ms)
+int get_ntp_tiemstamp(u32 *ptimestamp, char *ntp_domain, int timeout_ms)
 {
-    unsigned int timestamp = 0;
-    static int index = 0;
-    index++;
-    index = index % (sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0]));
-    int status = get_ntp_tiemstamp(&timestamp, arr_ntp_server[index], timeout_ms);
-    printf("info: get_ntp_tiemstamp, status:%d, index:%d, ntp_server:%s, timestamp=%d!\r\n", status, index, arr_ntp_server[index], timestamp);
-    if (status >= 0) {
-        *ptimestamp = timestamp;
+  u32 timestamp = 0;
+  int ret = 0;
+  int sockfd = -1, n; // Socket file descriptor and the n return result from writing/reading from the socket.
+  int portno = 123; // NTP UDP port number.
+  char* host_name = "us.pool.ntp.org"; // NTP server host-name.
+  if (ntp_domain) {
+      host_name = ntp_domain;
+  }
+
+  // Create and zero out the packet. All 48 bytes worth.
+  struct ntp_packet packet = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+  memset(&packet, 0, sizeof(struct ntp_packet));
+  // Set the first byte's bits to 00,011,011 for li = 0, vn = 3, and mode = 3. The rest will be left set to zero.
+
+  *((char *) &packet + 0) = 0x1b; // Represents 27 in base 10 or 00011011 in base 2.
+
+  // Create a UDP socket, convert the host-name to an IP address, set the port number,
+  // connect to the server, send the packet, and then read in the return packet.
+
+  struct sockaddr_in serv_addr; // Server address data structure.
+  struct hostent *server;      // Server data structure.
+  sockfd = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP ); // Create a UDP socket.
+
+  if ( sockfd < 0 ) {
+      ret = -1;
+      printf( "ERROR opening socket\r\n" );
+      goto FUN_RET;
+  }
+
+  int opt = 5*1000*mS;  //time out time
+  if (timeout_ms > 0) {
+      opt = timeout_ms * mS;
+  }
+  if(0 != setsockopt(sockfd, SOL_SOCKET,SO_RCVTIMEO,&opt,sizeof(opt)))
+  {
+      ret = -2;
+      goto FUN_RET;
+  }
+  struct hostent_ext *pnew = (struct hostent_ext*)malloc(sizeof(struct hostent_ext));
+  if (pnew == 0) {
+      printf("error: malloc failed!\r\n");
+      ret = -3;
+      goto FUN_RET;
+  }
+  server = gethostbyname_r(host_name, pnew); //Convert URL to IP.
+  //server = gethostbyname( host_name ); // Convert URL to IP.
+  if ( server == NULL ) {
+      ret = -4;
+      printf( "ERROR, no such host\r\n" );
+      goto FUN_RET;
+  }
+  // Zero out the server address structure.
+  memset((char*)&serv_addr, 0, sizeof(serv_addr));
+
+  serv_addr.sin_family = AF_INET;
+
+  // Copy the server's IP address to the server address structure.
+
+//bcopy( (char*)server->h_addr, ( char* ) &serv_addr.sin_addr.s_addr, server->h_length);
+  memcpy( ( char* ) &serv_addr.sin_addr.s_addr, (char*)server->h_addr, server->h_length);
+
+  // Convert the port number integer to network big-endian style and save it to the server address structure.
+  serv_addr.sin_port = htons(portno);
+
+  // Call up the server using its IP address and port number.
+  if (connect( sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr) ) < 0 ) {
+      ret = -5;
+      printf( "ERROR connecting\r\n" );
+      goto FUN_RET;
+  }
+
+  int addrlen = sizeof(struct sockaddr);
+  // Send it the NTP packet it wants. If n == -1, it failed.
+  n = sendto(sockfd, (char*)&packet, sizeof(struct ntp_packet), 0, (struct sockaddr *)&serv_addr, addrlen);
+  if ( n < 0 ) {
+      ret = -6;
+      printf( "ERROR writing to socket\r\n" );
+      goto FUN_RET;
+  }
+
+  // Wait and receive the packet back from the server. If n == -1, it failed.
+  addrlen = sizeof(struct sockaddr);
+  n = recvfrom(sockfd,  (char*)&packet, sizeof(struct ntp_packet), 0,
+                        (struct sockaddr *)&serv_addr, &addrlen);
+
+  if ( n < 0 ) {
+      ret = -7;
+      printf( "warnning: NTP timeout reading from socket, try again!\r\n" );
+      goto FUN_RET;
+  }
+  // These two fields contain the time-stamp seconds as the packet left the NTP server.
+  // The number of seconds correspond to the seconds passed since 1900.
+  // ntohl() converts the bit/byte order from the network's to host's "endianness".
+
+  packet.txTm_s = ntohl( packet.txTm_s ); // Time-stamp seconds.
+  packet.txTm_f = ntohl( packet.txTm_f ); // Time-stamp fraction of a second.
+
+  // Extract the 32 bits that represent the time-stamp seconds (since NTP epoch) from when the packet left the server.
+  // Subtract 70 years worth of seconds from the seconds since 1900.
+  // This leaves the seconds since the UNIX epoch of 1970.
+  // (1900)------------------(1970)**************************************(Time Packet Left the Server)
+  timestamp = packet.txTm_s-NTP_TIMESTAMP_DELTA;
+  printf("NTP CLIENT GET TIMESTAMP: %u\r\n", timestamp);
+  // Print the time we got from the server, accounting for local timezone and conversion from UTC time.
+  ret = 0;
+
+FUN_RET:
+    if (sockfd>=0) {
+        closesocket(sockfd);
+    }
+    if (pnew) free(pnew);
+    *ptimestamp  = timestamp;
+    return ret;
+}
+
+//-----------------------------------------------------------------------------
+
+s32 ntp_GetTimeStamp(u32 *ptimestamp, s32 timeout_ms)
+{
+    u32 timestamp = 0;
+    s32 index = 0;
+    s32 status;
+    u32 starttime;
+
+    starttime = DJY_GetSysTime();
+    while (1)
+    {
+        for(index = 0;  index < (sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0])); index++)
+        {
+            status = get_ntp_tiemstamp(&timestamp, arr_ntp_server[index], 1000);
+            if (status >=0)
+            {
+                printf("status:%d, ntp_server:%s!\r\n", status, arr_ntp_server[index]);
+                *ptimestamp = timestamp;
+                break ;
+            }
+        }
+        if((((u32)DJY_GetSysTime() - starttime) >= timeout_ms*1000) || (status >= 0))
+        {
+            break ;
+        }
     }
     return status;
 }
-int timestamp_http(unsigned int *timestamp, int timeout_ms);
-int  GetTimeStamp(unsigned int *timestamp_out, int timeout_ms)
+
+s32  GetTimeStamp(u32 *timestamp_out, s32 timeout_ms);//删掉，用 ntp_GetTimeStamp 替换
+
+
+bool_t testntp(char *param)
 {
-    static unsigned int cnts = 0;
-    unsigned int cur_tick_sec  = 0;
-    unsigned int timestamp = 0;
-    int status = 0;
-    if (gNtpTickSecOffset == 0 && gNtpTickSecTimestamp == 0) {
-        //status = NetGetTimeStamp(&timestamp, timeout_ms);
-        cnts++;
-        if (cnts%3 == 0) {
-            printf("info: timestamp_http get time!\r\n");
-            status = timestamp_http(&timestamp, timeout_ms);
+    u32 success[(sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0]))];
+    u32 fail[(sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0]))];
+    u32 sumtime[(sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0]))];
+    u32 timestamp = 0;
+    s32 index = 0;
+    s32 status;
+    u32 ttt;
+
+    while(1)
+    {
+        for(index = 0;  index < (sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0])); index++)
+        {
+            ttt = DJY_GetSysTime();
+            status = get_ntp_tiemstamp(&timestamp, arr_ntp_server[index], 1000);
+            ttt = DJY_GetSysTime() - ttt;
+            if (status >=0)
+            {
+                success[index]++;
+                sumtime[index] +=ttt;
+            }
+            else
+            {
+                fail[index]++;
+            }
         }
-        else {
-            printf("info: ntp_timestamp get time!\r\n");
-            status = ntp_timestamp(&timestamp, timeout_ms);
+        for(index = 0;  index < (sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0])); index++)
+        {
+            printf("成功%4d次,失败%4d,耗时%8dmS,%s\r\n",success[index],
+                    fail[index],sumtime[index]/1000,arr_ntp_server[index]);
         }
-        if (status >= 0 && timestamp) {
-            *timestamp_out = timestamp;
-            gNtpTickSecOffset = DJY_GetSysTime()/1000000;
-            gNtpTickSecTimestamp = timestamp;
-        }
-        else {
-            return -1;
-        }
-        printf("gNtpTickSecOffset = %d, gNtpTickSecTimestamp = %d!\r\n", gNtpTickSecOffset, gNtpTickSecTimestamp);
     }
-    cur_tick_sec = DJY_GetSysTime()/1000000;
-    *timestamp_out  = gNtpTickSecTimestamp + cur_tick_sec - gNtpTickSecOffset;
-    //printf("Tick Offset: %d, TimeStamp: %d, RTC TIME: %d!\r\n", gNtpTickSecOffset, gNtpTickSecTimestamp, *timestamp_out);
-    return 0;
+    return true;
 }
-
-
-int ClearTimeStamp()
-{
-    gNtpTickSecOffset = 0;
-    gNtpTickSecTimestamp = 0;
-    return 0;
-}
-
-int GetTimeHourMinute(int *hour, int *min)
-{
-    unsigned int timestamp_out = 0;
-    unsigned int cur_tick_sec  = 0;
-    cur_tick_sec = DJY_GetSysTime()/1000000;
-    timestamp_out  = gNtpTickSecTimestamp + cur_tick_sec - gNtpTickSecOffset;
-    time_t t = timestamp_out;
-    struct tm *ptm = oss_gmtime(&t, 8);
-    *hour = ptm->tm_hour;
-    *min = ptm->tm_min;
-    //printf("---->hour=%d, min=%d!\r\n", *hour, *min);
-    //strftime(GMT, sizeof(GMT), "%a, %d %b %Y %H:%M:%S GMT", oss_gmtime(&t, 0));
-    //printf("GetTimeHourMinute: %d, TimeStamp: %d, RTC TIME: %d!\r\n", gRtcTickSecOffset, gRtcTickSecTimestamp, timestamp_out);
-    return 0;
-}
+ADD_TO_ROUTINE_SHELL(testntp,testntp, "测试各ntp服务器响应时间");
 
