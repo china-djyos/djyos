@@ -1,15 +1,12 @@
+#include <stdint.h>
+#include <ntp.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <netdb.h>
+#include <shell.h>
 
 #define NTP_TIMESTAMP_DELTA 2208988800ull
 
-#define LI(packet)   (uint8_t) ((packet.li_vn_mode & 0xC0) >> 6) // (li   & 11 000 000) >> 6
-#define VN(packet)   (uint8_t) ((packet.li_vn_mode & 0x38) >> 3) // (vn   & 00 111 000) >> 3
-#define MODE(packet) (uint8_t) ((packet.li_vn_mode & 0x07) >> 0) // (mode & 00 000 111) >> 0
-
-  // Structure that defines the 48 byte NTP packet protocol.
-
+// Structure that defines the 48 byte NTP packet protocol.
 struct ntp_packet
 {
     uint8_t li_vn_mode;      // Eight bits. li, vn, and mode.
@@ -39,7 +36,21 @@ struct ntp_packet
 
 }  __attribute__((packed));               // Total: 384 bits or 48 bytes.
 
-struct hostent * gethostbyname_r(const char *name,struct hostent_ext *pnew);
+struct tm *oss_gmtime(const time_t *time, s32 time_zone);//删掉，改用 Time_ZoneTime
+
+
+char *arr_ntp_server[] = {
+    "time.windows.com",
+    "time1.cloud.tencent.com",
+    "time.asia.apple.com",
+    "ntp.ntsc.ac.cn",
+    "cn.ntp.org.cn",
+    "ntp.aliyun.com",
+    "asia.pool.ntp.org",
+    "cn.pool.ntp.org",
+    "us.pool.ntp.org",
+};
+
 int get_ntp_tiemstamp(u32 *ptimestamp, char *ntp_domain, int timeout_ms)
 {
   u32 timestamp = 0;
@@ -100,7 +111,8 @@ int get_ntp_tiemstamp(u32 *ptimestamp, char *ntp_domain, int timeout_ms)
 
   // Copy the server's IP address to the server address structure.
 
-  bcopy( (char*)server->h_addr, ( char* ) &serv_addr.sin_addr.s_addr, server->h_length);
+//bcopy( (char*)server->h_addr, ( char* ) &serv_addr.sin_addr.s_addr, server->h_length);
+  memcpy( ( char* ) &serv_addr.sin_addr.s_addr, (char*)server->h_addr, server->h_length);
 
   // Convert the port number integer to network big-endian style and save it to the server address structure.
   serv_addr.sin_port = htons(portno);
@@ -123,7 +135,8 @@ int get_ntp_tiemstamp(u32 *ptimestamp, char *ntp_domain, int timeout_ms)
 
   // Wait and receive the packet back from the server. If n == -1, it failed.
   addrlen = sizeof(struct sockaddr);
-  n = recvfrom(sockfd,  (char*)&packet, sizeof(struct ntp_packet), 0, (struct sockaddr *)&serv_addr, &addrlen);
+  n = recvfrom(sockfd,  (char*)&packet, sizeof(struct ntp_packet), 0,
+                        (struct sockaddr *)&serv_addr, &addrlen);
 
   if ( n < 0 ) {
       ret = -7;
@@ -154,3 +167,74 @@ FUN_RET:
     *ptimestamp  = timestamp;
     return ret;
 }
+
+//-----------------------------------------------------------------------------
+
+s32 ntp_GetTimeStamp(u32 *ptimestamp, s32 timeout_ms)
+{
+    u32 timestamp = 0;
+    s32 index = 0;
+    s32 status;
+    u32 starttime;
+
+    starttime = DJY_GetSysTime();
+    while (1)
+    {
+        for(index = 0;  index < (sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0])); index++)
+        {
+            status = get_ntp_tiemstamp(&timestamp, arr_ntp_server[index], 1000);
+            if (status >=0)
+            {
+                printf("status:%d, ntp_server:%s!\r\n", status, arr_ntp_server[index]);
+                *ptimestamp = timestamp;
+                break ;
+            }
+        }
+        if((((u32)DJY_GetSysTime() - starttime) >= timeout_ms*1000) || (status >= 0))
+        {
+            break ;
+        }
+    }
+    return status;
+}
+
+s32  GetTimeStamp(u32 *timestamp_out, s32 timeout_ms);//删掉，用 ntp_GetTimeStamp 替换
+
+
+bool_t testntp(char *param)
+{
+    u32 success[(sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0]))];
+    u32 fail[(sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0]))];
+    u32 sumtime[(sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0]))];
+    u32 timestamp = 0;
+    s32 index = 0;
+    s32 status;
+    u32 ttt;
+
+    while(1)
+    {
+        for(index = 0;  index < (sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0])); index++)
+        {
+            ttt = DJY_GetSysTime();
+            status = get_ntp_tiemstamp(&timestamp, arr_ntp_server[index], 1000);
+            ttt = DJY_GetSysTime() - ttt;
+            if (status >=0)
+            {
+                success[index]++;
+                sumtime[index] +=ttt;
+            }
+            else
+            {
+                fail[index]++;
+            }
+        }
+        for(index = 0;  index < (sizeof(arr_ntp_server)/sizeof(arr_ntp_server[0])); index++)
+        {
+            printf("成功%4d次,失败%4d,耗时%8dmS,%s\r\n",success[index],
+                    fail[index],sumtime[index]/1000,arr_ntp_server[index]);
+        }
+    }
+    return true;
+}
+ADD_TO_ROUTINE_SHELL(testntp,testntp, "测试各ntp服务器响应时间");
+

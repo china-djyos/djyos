@@ -249,6 +249,7 @@ bool_t RTC_SetTime(s64 time)
 ptu32_t ModuleInstall_RTC(void)
 {
     struct tm DateTime;
+    struct timeval tv;
 
     if(sptDS1390Dev = SPI_DevAdd(CFG_DS1390_BUS_NAME,"RTC_DS1390",0,8,\
             SPI_MODE_0,SPI_SHIFT_MSB,DS1390_SPI_SPEED,false))
@@ -263,8 +264,8 @@ ptu32_t ModuleInstall_RTC(void)
 
     if(true == rtc_time_get(&DateTime))
     {
-        tv.tv_sec  = rtc_time/1000000;
-        tv.tv_usec = rtc_time%1000000;
+        tv.tv_sec  = DateTime.tm_sec ;
+        tv.tv_usec = DateTime.tm_us ;
 
         settimeofday(&tv,NULL);
         if(!Rtc_RegisterDev(NULL,RTC_SetTime))
@@ -275,3 +276,4 @@ ptu32_t ModuleInstall_RTC(void)
 
     return 1;
 }
+

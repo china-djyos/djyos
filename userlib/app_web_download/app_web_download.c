@@ -2,7 +2,7 @@
 #include "cJSON.h"
 #include "rw_msg_pub.h"
 #include "Iboot_info.h"
-#include "ntp/ntp_time.h"
+#include <ntp.h>
 #include "project_config.h"
 #include <time.h>
 #include "app_web_download.h"
@@ -92,14 +92,16 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
                 {
 
                     printf("info: http download recv header ok!\r\n");
-                    if ((p = strstr(io->buf, "\r\n\r\n"))) {
+                    if ((p = strstr(io->buf, "\r\n\r\n")))
+                    {
                         p = p + 4; //p pto data
                         //memset(&shm, 0, sizeof(struct http_message));
                         //mg_http_parse_headers(io->buf, p, p-io->buf, &shm);
                         //printf("shm->body.len=%d!\r\n", shm.body.len);
                         //pUserData->body_size = shm.body.len;
                         s8 *plen = (s8*)c_strnstr(io->buf, "Content-Length:", io->len);
-                        if (!mg_ncasecmp(plen, "Content-Length:", 15)) {
+                        if (!mg_ncasecmp(plen, "Content-Length:", 15))
+                        {
                             pUserData->body_size = atoi(plen+15);
                             printf("media body size: %d!\r\n", pUserData->body_size);
                         }
@@ -117,7 +119,8 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
                     }
                     pUserData->status = 0;
                 }
-                else {
+                else
+                {
                     pUserData->status = -1;
                 }
             }
@@ -167,8 +170,9 @@ s32 WebDownload(s8 *host, s32 port, s8 *path,
     s8 *temp = 0;
     s32 ret = 0;
     u32 time_val = 0;
+    s32 timezone;
 
-//  printf ("WebDownload: %s!\r\n", path);
+    //  printf ("WebDownload: %s!\r\n", path);
 
 //  if (!is_wifi_connected())
     //lst todo：由网络管理组件提供判断网络是否连通的函数 NG_ConnectIsOK
@@ -181,8 +185,12 @@ s32 WebDownload(s8 *host, s32 port, s8 *path,
     pUserData = &userData;
     pUserData->fun_net_do = fdo;        //设置回调函数
 
-    GetTimeStamp(&timestamp, timeout_ms);
-    GTM_TIME(timestamp, GMT, sizeof(GMT));
+    ntp_GetTimeStamp(&timestamp, timeout_ms);
+    //一下三行替代GTM_TIME函数
+    gettimezone(&timezone);
+    timestamp += timezone*3600;
+    strftime(GMT, sizeof(GMT), "%a, %d %b %Y %H:%M:%S GMT", Time_LocalTime(&timestamp));
+//  GTM_TIME(timestamp, GMT, sizeof(GMT));
 
     mg_mgr_init(&mgr, NULL);
 
@@ -212,7 +220,8 @@ s32 WebDownload(s8 *host, s32 port, s8 *path,
     {
         mg_mgr_poll(&mgr, 500);
         time_val = DJY_GetSysTime()/1000 - pUserData->timemark;
-        if (time_val > pUserData->timeout) {
+        if (time_val > pUserData->timeout)
+        {
             printf("==info: WebDownloadAndPlay break!==\r\n");
             ret = -2;
             break;
@@ -362,8 +371,10 @@ static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_dat
             memcpy(pQuestData->new_data, hm->body.p, hm->body.len);
             pQuestData->new_data[hm->body.len] = 0;
 
-            if (DoUpgradeJson(pQuestData->new_data, pQuestData->new_len, pQuestData->new_data, pQuestData->new_len) > 0) {
-                printf("pQuestData->new_data is %s\r\n", pQuestData->new_data);
+            if (DoUpgradeJson(pQuestData->new_data, pQuestData->new_len,
+                            pQuestData->new_data, pQuestData->new_len) > 0)
+            {
+//                printf("pQuestData->new_data is %s\r\n", pQuestData->new_data);
                 pQuestData->status = 1;
             }
         }
@@ -381,8 +392,10 @@ static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_dat
             //process the whole body.
             pQuestData->status = -1;
 
-            if (DoUpgradeJson(pQuestData->new_data, pQuestData->new_len, pQuestData->new_data, pQuestData->new_len) > 0) {
-                printf("%s\r\n", pQuestData->new_data);
+            if (DoUpgradeJson(pQuestData->new_data, pQuestData->new_len,
+                            pQuestData->new_data, pQuestData->new_len) > 0)
+            {
+//              printf("%s\r\n", pQuestData->new_data);
                 pQuestData->status = 1;
             }
         }
@@ -431,7 +444,7 @@ s32 DevUpgradeCommon(s8 *path, s8 *out_json, s32 len)
 
 //  sprintf(url, "http://%s%s", pDevMgr->host, path);
     sprintf(url, "http://%s%s", PRODUCT_OTA_ADDRESS, path);
-    printf("url is %s\r\n", url);
+//    printf("url is %s\r\n", url);
     nc = mg_connect_http(&mgr, cb_upgrade_ev_handler, url, meta, 0);
     if (nc == 0) goto END_QUEST;
     nc->user_data = &user_data;
@@ -496,7 +509,7 @@ s32 DevUpgradeQuest(const s8 *serial_num, u8 *branch, s8 *out_json, s32 len)
         serial_num, branch, VersionNum, finger, "NULL" );
 
     s32 ret = DevUpgradeCommon(path, out_json, len);
-    printf("====EXIT:ret is %d  %s!\r\n",ret,__FUNCTION__);
+//    printf("====EXIT:ret is %d  %s!\r\n",ret,__FUNCTION__);
     return ret;
 }
 

@@ -115,9 +115,9 @@ s64 Time_MkTimeUs(struct tm *dt)
     return us;
 }
 
-//----把日历时间转成格林威治分解时间-------------------------------------------
-//功能: 把日历时间(1970年以来的秒数)转换成年月日时分秒,
-//参数: time,1970年来的秒数,给空指针则直接使用日历时间
+//----把本地日历时间转成格林威治分解时间-------------------------------------------
+//功能: 把本地日历时间(1970年以来的秒数)转换成年月日时分秒,
+//参数: time,1970年来的本地秒数,给空指针则直接使用日历时间
 //      result，用来返回结果的指针，必须非空
 //返回: 分解时间
 //----------------------------------------------------------------------------
@@ -138,10 +138,10 @@ struct tm *Time_GmTime_r(const s64 *time,struct tm *result)
     return Time_LocalTime_r(&temp_time,result);
 }
 
-//----把日历时间转成格林威治分解时间-------------------------------------------
-//功能: 把日历时间(1970年以来的秒数)转换成年月日时分秒,因共用一个静态缓冲区返回
+//----把本地日历时间转成格林威治分解时间-------------------------------------------
+//功能: 把本地日历时间(1970年以来的秒数)转换成年月日时分秒,因共用一个静态缓冲区返回
 //      结果，因此多次调用的话，结果只反映最后一次调用的值
-//参数: time,1970年来的秒数,给空指针则直接使用日历时间
+//参数: time,1970年来的本地秒数,给空指针则直接使用日历时间
 //返回: 分解时间
 //----------------------------------------------------------------------------
 struct tm *Time_GmTime(const s64 *time)
@@ -160,9 +160,9 @@ struct tm *Time_GmTime(const s64 *time)
     return Time_LocalTime_r(&temp_time,&datetime);
 }
 
-//----把日历时间转成格林威治分解时间(us)---------------------------------------
-//功能: 把日历时间(1970年以来的微秒数)转换成年月日时分秒+微秒,
-//参数: time,1970年来的微秒数,给空指针则直接使用日历时间
+//----把本地日历时间转成格林威治分解时间(us)---------------------------------------
+//功能: 把本地日历时间(1970年以来的微秒数)转换成年月日时分秒+微秒,
+//参数: time,1970年来的本地微秒数,给空指针则直接使用日历时间
 //      result，用来返回结果的指针，必须非空
 //返回: 分解时间
 //----------------------------------------------------------------------------
@@ -183,10 +183,10 @@ struct tm *Time_GmTimeUs_r(const s64 *time,struct tm *result)
     return Time_LocalTimeUs_r(&temp_time,result);
 }
 
-//----把日历时间转成格林威治分解时间(us)---------------------------------------
-//功能: 把日历时间(1970年以来的微秒数)转换成年月日时分秒+微秒,因共用一个静态缓冲
+//----把本地日历时间转成格林威治分解时间(us)---------------------------------------
+//功能: 把本地日历时间(1970年以来的微秒数)转换成年月日时分秒+微秒,因共用一个静态缓冲
 //      区返回结果，因此多次调用的话，结果只反映最后一次调用的值
-//参数: time,1970年来的微秒数,给空指针则直接使用日历时间
+//参数: time,1970年来的本地微秒数,给空指针则直接使用日历时间
 //返回: 分解时间
 //----------------------------------------------------------------------------
 struct tm *Time_GmTimeUs(const s64 *time)
@@ -202,6 +202,134 @@ struct tm *Time_GmTimeUs(const s64 *time)
     {
         temp_time = *time - ((s64)sg_s32MyTimezone*3600)*1000000;
     }
+    return Time_LocalTimeUs_r(&temp_time,&datetime);
+}
+//----把格林威治日历时间转成指定时区分解时间-------------------------------------------
+//功能: 把格林威治日历时间(1970年以来的秒数)转换成指定时区年月日时分秒,
+//参数: time,1970年来的格林威治秒数,给空指针则直接使用系统日历时间
+//      result，用来返回结果的指针，必须非空
+//      zone，目标时区，若不在（0~23）之内，则取本地时区
+//返回: 目标时区的分解时间
+//----------------------------------------------------------------------------
+struct tm *Time_ZoneTime_r(const s64 *time,struct tm *result,s32 zone)
+{
+    s64 temp_time;
+    if(result == NULL)
+        return NULL;
+    if(time == NULL)
+    {
+        temp_time = __Rtc_Time(NULL);
+        temp_time -= ((s64)sg_s32MyTimezone*3600);
+    }
+    else
+    {
+        temp_time = *time - ((s64)sg_s32MyTimezone*3600);
+    }
+    if( (zone < 0) ||(zone > 23) )    //要在24个时区内
+    {
+        temp_time = temp_time + ((s64)sg_s32MyTimezone*3600);
+    }
+    else
+    {
+        temp_time = temp_time + ((s64)zone*3600);
+    }
+
+    return Time_LocalTime_r(&temp_time,result);
+}
+
+//----把格林威治日历时间转成格林威治分解时间-------------------------------------------
+//功能: 把格林威治日历时间(1970年以来的秒数)转换成年月日时分秒,因共用一个静态缓冲区返回
+//      结果，因此多次调用的话，结果只反映最后一次调用的值
+//参数: time,1970年来的格林威治秒数,给空指针则直接使用日历时间
+//      zone，目标时区，若不在（0~23）之内，则取本地时区
+//返回：指定时区的分解时间
+//----------------------------------------------------------------------------
+struct tm *Time_ZoneTime(const s64 *time,s32 zone)
+{
+    static struct tm datetime;
+    s64 temp_time;
+    if(time == NULL)
+    {
+        temp_time = __Rtc_Time(NULL);
+        temp_time -= ((s64)sg_s32MyTimezone*3600);
+    }
+    else
+    {
+        temp_time = *time - (s64)sg_s32MyTimezone*3600;
+    }
+    if( (zone < 0) ||(zone > 23) )    //要在24个时区内
+    {
+        temp_time = temp_time + (s64)sg_s32MyTimezone*3600;
+    }
+    else
+    {
+        temp_time = temp_time + ((s64)zone*3600);
+    }
+    return Time_LocalTime_r(&temp_time,&datetime);
+}
+
+//----把格林威治日历时间转成格林威治分解时间(us)---------------------------------------
+//功能: 把格林威治日历时间(1970年以来的微秒数)转换成年月日时分秒+微秒,
+//参数: time,1970年来的格林威治微秒数,给空指针则直接使用日历时间
+//      result，用来返回结果的指针，必须非空
+//      zone，目标时区，若不在（0~23）之内，则取本地时区
+//返回: 分解时间
+//----------------------------------------------------------------------------
+struct tm *Time_ZoneTimeUs_r(const s64 *time,struct tm *result,s32 zone)
+{
+    s64 temp_time;
+    if(result == NULL)
+        return NULL;
+    if(time == NULL)
+    {
+        temp_time = __Rtc_TimeUs(NULL);
+        temp_time -= (s64)sg_s32MyTimezone*3600;
+    }
+    else
+    {
+        temp_time = *time - (s64)sg_s32MyTimezone*3600;
+    }
+    if( (zone < 0) ||(zone > 23) )    //要在24个时区内
+    {
+        temp_time = temp_time + ((s64)sg_s32MyTimezone*3600);
+    }
+    else
+    {
+        temp_time = temp_time + ((s64)zone*3600);
+    }
+    temp_time *= 1000000;
+    return Time_LocalTimeUs_r(&temp_time,result);
+}
+
+//----把格林威治日历时间转成格林威治分解时间(us)---------------------------------------
+//功能: 把格林威治日历时间(1970年以来的微秒数)转换成年月日时分秒+微秒,因共用一个静态缓冲
+//      区返回结果，因此多次调用的话，结果只反映最后一次调用的值
+//参数: time,1970年来的格林威治微秒数,给空指针则直接使用日历时间
+//      zone，目标时区，若不在（0~23）之内，则取本地时区
+//返回: 分解时间
+//----------------------------------------------------------------------------
+struct tm *Time_ZoneTimeUs(const s64 *time,s32 zone)
+{
+    static struct tm datetime;
+    s64 temp_time;
+    if(time == NULL)
+    {
+        temp_time = __Rtc_TimeUs(NULL);
+        temp_time -= (s64)sg_s32MyTimezone*3600;
+    }
+    else
+    {
+        temp_time = *time - (s64)sg_s32MyTimezone*3600;
+    }
+    if( (zone < 0) ||(zone > 23) )    //要在24个时区内
+    {
+        temp_time = temp_time + ((s64)sg_s32MyTimezone*3600);
+    }
+    else
+    {
+        temp_time = temp_time + ((s64)zone*3600);
+    }
+    temp_time *= 1000000;
     return Time_LocalTimeUs_r(&temp_time,&datetime);
 }
 
