@@ -51,14 +51,14 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"user ntp"//
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:userlib                 //选填“third、system、bsp、userlib”，本属性用于在IDE中分组
+//component name:"ntp"					//获取网络时间组件
+//parent:"tcpip"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:system                 //选填“third、system、bsp、userlib”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:later               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"cjson","mongoose","user misc http"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"cjson","mongoose"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），

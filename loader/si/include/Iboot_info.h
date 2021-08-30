@@ -106,7 +106,8 @@ enum update_source
 {
     SOURCE_FILE = 0,                //从文件系统
     SOURCE_ADDR_MEMORY,             //从可寻址内存（可能是RAM，也可能是flash）
-    SOURCE_OTHER                    //其他，例如没有安装文件系统的spiflash
+    SOURCE_OTHER1,                  //其他，例如没有安装文件系统的spiflash
+    SOURCE_OTHER2                   //其他，例如没有安装文件系统的spiflash
 };
 
 //符号原名： MutualPathLen

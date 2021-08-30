@@ -223,7 +223,7 @@ bool_t  runapp(char *param)
 //}
 
 // ============================================================================
-// 功能：升级App，
+// 功能：从文件中升级App，
 // 参数：无。
 // 返回：0（无意义）。
 // 备注
@@ -246,8 +246,9 @@ bool_t Iboot_UpdateApp(void)
         if(!stat(CFG_FORCED_UPDATE_PATH,&test_stat))
             srcapp = fopen(CFG_FORCED_UPDATE_PATH, "r+");
 
-        if(srcapp == NULL)
+        if(srcapp == NULL)  //强制的升级文件不存在
         {
+            //取从APP传过来的APP保存路径
             if(Iboot_GetMutualUpdatePath(apppath, sizeof(apppath)) == false)
             {
                 error_printf("IAP","app path get fail  .\r\n");
@@ -261,7 +262,7 @@ bool_t Iboot_UpdateApp(void)
             strcpy(apppath, CFG_FORCED_UPDATE_PATH);
             Iboot_SetUpdateRunModet(1);
         }
-        if(srcapp != NULL)
+        if(srcapp != NULL)  //顺利打开升级文件
         {
             info_printf("IAP","app update start.\r\n");
             file = strrchr(apppath, '/');
@@ -273,6 +274,7 @@ bool_t Iboot_UpdateApp(void)
             }
             if(file)
             {
+                //把新APP的文件名连到 "/xip-app" 后面，形成xip文件路径
                 sprintf(xipapppath, "%s%s", "/xip-app", file);
                 xipapp = fopen(xipapppath, "w+");
                 if(xipapp != NULL)
@@ -439,7 +441,11 @@ ptu32_t Iboot_AppUpdateIboot(void)
     return TRUE;
 }
 
-//用户可以写该函数来指定怎么升级iboot
+//------------------------------------------------------------------------------
+//功能：一个弱函数，用户可以自己在APP中重新实现，用来升级iboot。
+//参数：无效
+//返回：恒定返回false，用户重新实现则须返回true
+//------------------------------------------------------------------------------
 __attribute__((weak)) bool_t Iboot_UserUpdateIboot(char *param)
 {
     return false;
