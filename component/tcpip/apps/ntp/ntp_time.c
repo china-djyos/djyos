@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "ntp_time.h"
+#include <ntp.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <shell.h>

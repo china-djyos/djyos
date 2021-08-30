@@ -655,11 +655,11 @@ bool_t Iboot_CheckAppHead(void *apphead)
     for( i=0;i<sizeof(p_productinfo->ProductionTime);i++)
         p_productinfo->ProductionTime[i]=0x2a;
 
-    //DIDE中计算校验码时，生产序号使用的是代码中填充的0xff
+    //DIDE中计算校验码时，app文件名使用的是代码中填充的0xff
     for( i=0;i<sizeof(p_apphead->app_name);i++)
         p_apphead->app_name[i]=0xff;
 
-    //DIDE中计算校验码时，生产序号使用的是代码中填充的0xff
+    //DIDE中计算校验码时，校验码使用的是代码中填充的0xff
     for(u32 i =0;i<sizeof(p_apphead->verif_buf);i++)
         p_apphead->verif_buf[i]=0xff;
 
@@ -1849,16 +1849,16 @@ bool_t Iboot_UpdateToRun()
 
     if(Iboot_App_Info.runflag.update_runmode ==0)//iboot
     {
-        info_printf("IAP","Run iboot in 3 seconds.\r\n");
+        info_printf("IAP","About to run the iboot.\r\n");
         Iboot_App_Info.runflag.restart_run_iboot = 1;
     }
     else
     {
-        info_printf("IAP","Run app in 3 seconds.\r\n");
+        info_printf("IAP","About to run the APP.\r\n");
         Iboot_App_Info.runflag.restart_run_app = 1;
     }
-    DJY_EventDelay(3000*1000);      //延时一下，让升级过程中的信息能打印出来
-    CPU_Reset();
+    DJY_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
+    CPU_Reboot();
     return true;
 }
 //==============================================================================

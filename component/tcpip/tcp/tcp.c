@@ -2498,8 +2498,8 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
         ccb->rbuf.buflen += rcvlen;
         ccb->rbuf.rcvnxt = pkgstop;
     }
-    else if((pkgstop < pkgstart)&&((ccb->rbuf.rcvnxt > pkgstart)
-                                    ||(ccb->rbuf.rcvnxt < pkgstop)))
+    else if((pkgstop < pkgstart)&&((ccb->rbuf.rcvnxt > pkgstart)    //对应rcvnxt很大
+                                    ||(ccb->rbuf.rcvnxt < pkgstop)))//对应rcvnxt很小
     {
         //注：处理过程与上一个else if 一致
         //tcp序号发生回绕，期待接收的序号在数据包范围内，即收到的包部分已经被接收。
@@ -2601,9 +2601,12 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
             }
             else
             {
-                PkgSetNextUnit(ccb->rbuf.ptail,pkgcomb);
+                PkgSetNextUnit(recbuf->ptail,pkgcomb);
             }
             recbuf->ptail = pkgcomb;
+            ccb->pkgrecomblst = PkgGetNextUnit(pkgcomb);
+            PkgSetNextUnit(pkgcomb,NULL);
+            pkgcomb = ccb->pkgrecomblst;
             recbuf->buflen += pkglen;
             recbuf->rcvnxt += pkglen;
             rcvlen += pkglen;
@@ -2613,13 +2616,16 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
             //数据重叠是如何产生的呢？假设序号从0开始
             //对方发包序号   本方收包序号            对方收到应答序号
             //0~999         0~999（接收并确认）      1000
-            //1000~1999     未收到                   1000
+            //1000~1999     未收到                             1000
             //2000~2999     2000~2999（进重组队列）  1000
             //3000~3999     3000~3999（进重组队列）  1000
             //1000~2460     1000~2460（接收并确认）  4000
             //此时，重组队列中（2000~2999）这个包将有460字节与已接收数据重叠
             if((recbuf->rcvnxt - pkgstart) >= pkglen)
             {
+                ccb->pkgrecomblst = PkgGetNextUnit(pkgcomb);
+                PkgSetNextUnit(pkgcomb,NULL);
+                pkgcomb = ccb->pkgrecomblst;
                 PkgTryFreePart(pkgcomb);  //包中全部数据已经接收
             }
             else        //数据包部分应该接收
@@ -2633,7 +2639,9 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
                     PkgSetNextUnit(ccb->rbuf.ptail,pkgcomb);
                 }
                 recbuf->ptail = pkgcomb;
+                ccb->pkgrecomblst = PkgGetNextUnit(pkgcomb);
                 PkgSetNextUnit(pkgcomb,NULL);
+                pkgcomb = ccb->pkgrecomblst;
                 pkglen = pkglen - (recbuf->rcvnxt - pkgstart);
                 PkgMoveOffsetUp(pkgcomb,recbuf->rcvnxt - pkgstart);
                 recbuf->buflen += pkglen;
@@ -2645,8 +2653,6 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
         {
             break;
         }
-        ccb->pkgrecomblst = PkgGetNextUnit(ccb->pkgrecomblst);
-        pkgcomb = ccb->pkgrecomblst;
     }
 #endif      //for (CFG_TCP_REORDER == true)
     if(rcvlen > 0)

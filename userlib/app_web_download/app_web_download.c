@@ -2,7 +2,7 @@
 #include "cJSON.h"
 #include "rw_msg_pub.h"
 #include "Iboot_info.h"
-#include "ntp/ntp_time.h"
+#include <ntp.h>
 #include "project_config.h"
 #include <time.h>
 #include "app_web_download.h"
@@ -92,14 +92,16 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
                 {
 
                     printf("info: http download recv header ok!\r\n");
-                    if ((p = strstr(io->buf, "\r\n\r\n"))) {
+                    if ((p = strstr(io->buf, "\r\n\r\n")))
+                    {
                         p = p + 4; //p pto data
                         //memset(&shm, 0, sizeof(struct http_message));
                         //mg_http_parse_headers(io->buf, p, p-io->buf, &shm);
                         //printf("shm->body.len=%d!\r\n", shm.body.len);
                         //pUserData->body_size = shm.body.len;
                         s8 *plen = (s8*)c_strnstr(io->buf, "Content-Length:", io->len);
-                        if (!mg_ncasecmp(plen, "Content-Length:", 15)) {
+                        if (!mg_ncasecmp(plen, "Content-Length:", 15))
+                        {
                             pUserData->body_size = atoi(plen+15);
                             printf("media body size: %d!\r\n", pUserData->body_size);
                         }
@@ -117,7 +119,8 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
                     }
                     pUserData->status = 0;
                 }
-                else {
+                else
+                {
                     pUserData->status = -1;
                 }
             }
@@ -217,7 +220,8 @@ s32 WebDownload(s8 *host, s32 port, s8 *path,
     {
         mg_mgr_poll(&mgr, 500);
         time_val = DJY_GetSysTime()/1000 - pUserData->timemark;
-        if (time_val > pUserData->timeout) {
+        if (time_val > pUserData->timeout)
+        {
             printf("==info: WebDownloadAndPlay break!==\r\n");
             ret = -2;
             break;
