@@ -180,7 +180,7 @@ static inline void xip_app_unlock(struct __icore *core)
 }
 
 // ============================================================================
-// 功能：新建xip文件
+// 功能：新建xip文件数据结构
 // 参数：core -- xip文件系统信息；
 // 返回：成功（xip文件）； 失败(NULL);
 // 备注：
@@ -237,7 +237,8 @@ s32 xip_app_formatfilehead(struct __icore *core, struct __ifile *file)
 // 返回：失败（-1）；成功（0）。
 // 备注：
 // ============================================================================
-s32 xip_app_makefilehead(struct __icontext *cx,struct __icore *core, struct __ifile *file, const char *name)
+s32 xip_app_makefilehead(struct __icontext *cx,struct __icore *core,
+                                    struct __ifile *file, const char *name)
 {
     if(file->cxbase != cx->Wappsize)
         return -1;
@@ -262,7 +263,7 @@ static s32 xip_app_scanfiles(struct __icore *core)
     u32 size = Iboot_GetAppHeadSize();
     u8 * structFileHead = malloc(size);
     char *name;
-    struct __ifile *file;
+    struct __ifile *file=NULL;
     memset(structFileHead, 0xff, size);
     res = core->drv->xip_read_media(core, structFileHead,size, 0);
     if(res)
@@ -271,9 +272,9 @@ static s32 xip_app_scanfiles(struct __icore *core)
     // 当前只有一个文件
     file = xip_app_newfile(core);
     if(NULL == xip_app_decodefilehead(structFileHead, file))
-    {
-        // 当前逻辑不在上电检索文件的时候格式整个空间,而只格式一个头部。
-        // 必须要这个逻辑，因为在升级过程的中断，往往是头部不存在，而后续有内容。而第一次写入时，并不想照顾这个逻辑。
+    {   // 当前逻辑不在上电检索文件的时候格式整个空间,而只格式一个头部。
+        // 必须要这个逻辑，因为在升级过程的中断，往往是头部不存在，而后续有内容。
+        // 而第一次写入时，并不想照顾这个逻辑。
         res = xip_app_formatfilehead(core, file);
         goto Error; // 当前系统已无文件，后续逻辑不执行
     }
@@ -1233,15 +1234,15 @@ s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)
         return (-1); // 失败;
     }
 
-    mountobj = OBJ_NewChild(OBJ_GetRoot(), __File_MountOps, 0, EN_XIP_APP_TARGET);
+    mountobj = OBJ_NewChild(OBJ_GetRoot(), __File_MountOps, 0, CN_XIP_APP_MOUNT);
     if(NULL == mountobj)
     {
-        printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", EN_XIP_APP_TARGET);
+        printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", CN_XIP_APP_MOUNT);
         return (-1);
     }
 //    OBJ_DutyUp(mountobj);
     opt |= MS_DIRECTMOUNT;      //直接挂载不用备份
-    res = File_Mount(NULL, EN_XIP_APP_TARGET, "XIP-APP", opt, data);
+    res = File_Mount(NULL, CN_XIP_APP_MOUNT, "XIP-APP", opt, data);
     if(res == -1)
     {
         printf("\r\n: dbug : module : mount \"XIP-APP\" failed, cannot install.");

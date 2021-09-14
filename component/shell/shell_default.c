@@ -234,7 +234,7 @@ bool_t d(char *param)
             }
             break;
         case 4:
-            addr &= ~(ptu32_t)3;//只能从偶数开始
+            addr &= ~(ptu32_t)3;//只能从4字节对齐开始
             printf("0x%08x:", addr);
             for(len = 0; len < unit_num; len++)
             {
@@ -251,7 +251,7 @@ bool_t d(char *param)
             }
             break;
         case 8:
-            addr &= ~(ptu32_t)7;//只能从偶数开始
+            addr &= ~(ptu32_t)7;//只能从8字节对齐开始
             printf("0x%08x:", addr);
             for(len = 0; len < unit_num; len++)
             {

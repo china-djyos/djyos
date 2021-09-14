@@ -502,7 +502,7 @@ s32 DevUpgradeQuest(const s8 *serial_num, u8 *branch, s8 *out_json, s32 len)
 //        return -1;
 
     memset(finger,0,sizeof(finger));
-    Iboot_GetAPP_ProductInfo(APP_HEAD_FINGER, finger, sizeof(finger));
+    Iboot_GetProductInfo(APP_HEAD_FINGER, finger, sizeof(finger));
 //    sprintf(path, "/api/version?sn=%s&branch=%s&version=%s&fingerprint%s&data=%s",
 //                                serial_num, branch, VersionNum, "QMNVLX20470000M", "NULL" );  //测试用的
     snprintf(path,sizeof(path),"/api/version?sn=%s&branch=%s&version=%s&finger=%s&data=%s",
@@ -557,6 +557,9 @@ s32 web_check_new_versions(u8 *branch, u8 *SN)
     printf("\r\n SN_Num   = %s,\r\n", SN);
     memset(gupgrade_url, 0, sizeof(gupgrade_url));
     memset(out_json, 0, 1024);
+	//以下两行非常重要，iboot中以这些字段是否空来决定是否更新产品信息
+    Iboot_SetSerial(buf);		//清空struct IbootAppInfo的week字段
+    Iboot_SetWeek(buf);			//清空struct IbootAppInfo的serial字段
     //从服务器拉取升级文件的信息，是一个json包
     if (DevUpgradeQuest((const s8 *)SN, branch, out_json, 1024) <= 0)
     {
@@ -592,7 +595,8 @@ s32 web_check_new_versions(u8 *branch, u8 *SN)
             if (results)
             {
                 printf("==productNo==: %s!\r\n", results->valuestring);
-                memcpy(gserial_num, results->valuestring, sizeof(gserial_num));
+                Iboot_SetSerial(results->valuestring);
+//              memcpy(gserial_num, results->valuestring, sizeof(gserial_num));
             }
             //生产时间，按年月日时分秒格式
             results = cJSON_GetObjectItem(cjson_device, "produceTime");
@@ -609,7 +613,8 @@ s32 web_check_new_versions(u8 *branch, u8 *SN)
                     //sprintf(buf, "%04d%02d", stm.tm_year, weeks);
                     sprintf(buf, "%02d%02d", stm.tm_year%100, weeks);
                     printf("===>PRODUCT TIME: %s!\r\n", buf);
-                    memcpy(gproduct_time, buf, sizeof(gproduct_time));
+                    Iboot_SetWeek(buf);
+//                  memcpy(gproduct_time, buf, sizeof(gproduct_time));
                     ret = 1;
                 }
             }

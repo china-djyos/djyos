@@ -906,7 +906,7 @@ bool_t __lcd_blt_bm_to_bm( struct RectBitmap *dst_bitmap,
             }
             else
             {
-                if(src_bitmap->reversal == true)
+                if(src_bitmap->reversal == 1)
                 {
                     src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
                         +(src_bitmap->height - SrcRect->top-1) * src_bitmap->linebytes);
@@ -914,6 +914,42 @@ bool_t __lcd_blt_bm_to_bm( struct RectBitmap *dst_bitmap,
                     for(y = DstRect->top; y < DstRect->bottom; y++)
                     {
                         memcpy(dst_offset,src_offset,(DstRect->right-DstRect->left)<<1);
+                        dst_offset += dst_bitmap->linebytes >> 1;
+                        src_offset -= src_bitmap->linebytes >> 1;
+                    }
+                }
+                else if(src_bitmap->reversal == 2)  //用于特定用户180°旋转图形的操作
+                {
+                    src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
+                                              +SrcRect->top * src_bitmap->linebytes);
+                    src_offset += SrcRect->left;
+                    for(y = DstRect->top; y < DstRect->bottom; y++)
+                    {
+                        u32 n,m;
+//                      memcpy(dst_offset,src_offset,(DstRect->right-DstRect->left)<<1);
+                        m = DstRect->right-DstRect->left - 1;
+                        for(n = 0; n <= m; n++)
+                        {
+                            dst_offset[n] = src_offset[m-n];
+                        }
+                        dst_offset += dst_bitmap->linebytes >> 1;
+                        src_offset += src_bitmap->linebytes >> 1;
+                    }
+                }
+                else if(src_bitmap->reversal == 3)  //用于特定用户180°旋转图形的操作
+                {
+                    src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
+                        +(src_bitmap->height - SrcRect->top-1) * src_bitmap->linebytes);
+                    src_offset += SrcRect->left;
+                    for(y = DstRect->top; y < DstRect->bottom; y++)
+                    {
+                        u32 n,m;
+//                      memcpy(dst_offset,src_offset,(DstRect->right-DstRect->left)<<1);
+                        m = DstRect->right-DstRect->left - 1;
+                        for(n = 0; n <= m; n++)
+                        {
+                            dst_offset[n] = src_offset[m-n];
+                        }
                         dst_offset += dst_bitmap->linebytes >> 1;
                         src_offset -= src_bitmap->linebytes >> 1;
                     }

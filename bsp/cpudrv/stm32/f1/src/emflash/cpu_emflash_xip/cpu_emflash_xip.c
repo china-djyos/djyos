@@ -95,7 +95,6 @@
 #define CFG_EFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块。如果结束块是6，起始块是0，则该分区使用的块为0，1，2，3，4，5块
 //%$#@enum,true,false,
 #define CFG_EFLASH_XIP_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
-//%$#@string,1,32,
 //%$#@enum,"xip-app","xip-iboot",NULL
 #define CFG_EFLASH_XIPFSMOUNT_NAME   "xip-app"    //需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
 //%$#@string,1,10,

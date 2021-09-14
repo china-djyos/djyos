@@ -99,7 +99,6 @@
 #define CFG_EFLASH_XIP_PART_END        -1         //"分区结束块号，不含"，-1表示最后一块，CPU视角，物理块号*32/34
 //%$#@enum,true,false,
 #define CFG_EFLASH_XIP_PART_FORMAT     false      //"分区选项",是否需要格式化该分区。
-//%$#@string,1,32,
 //%$#@enum,"xip-app","xip-iboot",NULL
 #define CFG_EFLASH_XIPFSMOUNT_NAME   "xip-app"    //"文件系统的mount位置"
 //%$#@string,1,10,
@@ -137,11 +136,11 @@ struct __xip_drv XIP_FLASH_DRV =
     .xip_write_media = xip_flash_write
 };
 // ============================================================================
-// 功能：写数据
+// 功能：写数据，无论数据是否已经添加crc校验码。
 // 参数：core -- xip文件系统管理信息
 //      data -- 数据缓冲
 //      bytes -- 写字节数，不会超过一个缓存大小；
-//      pos -- 数据地址
+//      pos -- 数据地址，无论data是否包含crc，都是逻辑地址。
 // 返回：成功（0）；失败（-1）；将要没有可写空间（-2）；
 // 备注：当写到最后一个unit时，会尝试擦除
 // ============================================================================
@@ -161,18 +160,20 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 
     if(GetOperFalshMode() == true)
     {
-        unit = pos + (core->MStart * nordescription->BytesPerPage) * 34 / 32;    //算好crc的数据只需要把起始地址 * 34 / 32就可以了，后面的数据直接写就行了，因为已经有crc了
+        //data包含了crc，只需要把起始地址 * 34 / 32，后面的数据直接写就行了，因为已经有crc了
+        unit = pos + (core->MStart * nordescription->BytesPerPage) * 34 / 32;
     }
     else
     {
-        unit = (pos + (core->MStart * nordescription->BytesPerPage)) * 34 / 32;  //没有算好crc的数据则需要先算出数据地址，再整体 * 34 / 32，因为数据里没有crc，需要这里整体算好
+        //没有算好crc的数据则需要先算出数据地址，再整体 * 34 / 32，因为数据里没有crc，需要这里整体算好
+        unit = (pos + (core->MStart * nordescription->BytesPerPage)) * 34 / 32;
     }
     djy_flash_req(lock, CN_TIMEOUT_FOREVER);
-    if(strstr("xip-app",core->root->name))
+    if(strstr(CN_XIP_APP_PATH,core->root->name))
     {
         if(bytes > 0)
         {
-            while(check_len > 0)
+            while(check_len > 0)    //此循环检查flash是否已经擦除
             {
                 if(check_len > nordescription->BytesPerPage)
                     page_size = nordescription->BytesPerPage;
@@ -200,7 +201,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 
             if(pos == offset)
             {
-                if(GetOperFalshMode() == true)
+                if(GetOperFalshMode() == true)      //无须考虑crc，即文件已经算好crc
                 {
                     offset = (offset * 34 / 32) - offset;   //存在crc的bin文件，app的文件头要在这里先保留下来
                     app_head = malloc(offset + Iboot_GetAppHeadSize());
@@ -211,8 +212,8 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                     }
                     memcpy(app_head, cx->apphead, cx->Wappsize);
                     memcpy(app_head + cx->Wappsize, data, offset);
-                    //判断App中是否有提供SN号
-                    if(*(app_head + ((sizeof(struct AppHead) + (u32)offsetof(struct ProductInfo, ProductionTime)) / 32 * 34)) == 0xff)
+                    //判断App中是否有提供SN号，编译时生产周数和序号都填的是0x2a(*号)
+                    if(*(app_head + ((sizeof(struct AppHead) + (u32)offsetof(struct ProductInfo, ProductionTime)) / 32 * 34)) == '*')
                     {
                         iboot_sn_addr = (u32)(&gc_ProductSn) / 32 * 34;
                         if(iboot_sn_addr)
@@ -251,7 +252,8 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                             if(iboot_sn_buf[0] != 0xff)
                             {   //把iboot的SN复制到app的中
                                 memcpy(cx->apphead + (sizeof(struct AppHead) + (u32)offsetof(struct ProductInfo, ProductionTime)),
-                                                    iboot_sn_buf + sizeof(p_productinfo->TypeCode), sizeof(p_productinfo->ProductionTime) + sizeof(p_productinfo->ProductionNumber));
+                                            iboot_sn_buf + sizeof(p_productinfo->TypeCode),
+                                    sizeof(p_productinfo->ProductionTime) + sizeof(p_productinfo->ProductionNumber));
                             }
                         }
                     }
@@ -276,7 +278,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                     u8 flag = 1;
                     u32 app_head_size = offset + Iboot_GetAppHeadSize();
 
-//                    file->sz += file->cxbase;
+    //                    file->sz += file->cxbase;
                     fill_little_32bit(app_head + 4, 0, file->sz);
                     app_head += 32; //32为文件头信息的前32个字节
                     for(j = 0; j < 96 + 8; j++)     //这个96是在文件头里存app文件名数组的大小,加8是多出来的8个字节的CRC
@@ -342,7 +344,7 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
     }
     else
     {
-        if(strstr("xip-iboot",core->root->name))
+        if(strstr(CN_XIP_IBOOT_PATH,core->root->name))
         {
             djy_flash_write(unit, data, bytes);
         }

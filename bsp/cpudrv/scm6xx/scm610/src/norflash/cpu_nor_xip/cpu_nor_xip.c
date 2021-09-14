@@ -94,7 +94,6 @@
 #define CFG_NORFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块
 //%$#@enum,true,false,
 #define CFG_NORFLASH_XIP_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
-//%$#@string,1,32,
 //%$#@enum,EN_XIP_APP_TARGET,EN_XIP_IBOOT_TARGET,NULL
 #define CFG_NORFLASH_XIPFSMOUNT_NAME   EN_XIP_APP_TARGET    //需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
 //%$#@string,1,10,

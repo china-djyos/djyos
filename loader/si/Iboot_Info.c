@@ -709,7 +709,9 @@ bool_t  Iboot_CheckAppCompare(void *apphead,void *apphead_back)
 }
 //==============================================================================
 //功能：重写APP文件信息块的文件信息。
-//参数：apphead：App信息块地址；name：新的名字；filesize：新的文件大小
+//参数：apphead：App信息块地址；
+//      name：新的名字；
+//      filesize：新的文件大小
 //返回：true：成功；false：失败。
 //==============================================================================
 bool_t Iboot_RewriteAppHeadFileInfo(void * apphead,const char*name,u32 filesize)
@@ -736,15 +738,15 @@ bool_t Iboot_RewriteAppHeadFileInfo(void * apphead,const char*name,u32 filesize)
 //参数：productinfo：APP产品信息地址；num：产品序号；time：生产时间
 //返回：true：成功；false：失败。
 //==============================================================================
-bool_t Iboot_RewriteProductInfoNumTime(void * productinfo,const char* time,const char *num)
-{
-    struct ProductInfo* p_productinfo = productinfo;
-
-    memcpy(p_productinfo->ProductionNumber, num, sizeof(p_productinfo->ProductionNumber));
-    memcpy(p_productinfo->ProductionTime, time, sizeof(p_productinfo->ProductionTime));
-
-    return true;
-}
+//bool_t Iboot_RewriteProductInfoNumTime(void * productinfo,const char* time,const char *num)
+//{
+//    struct ProductInfo* p_productinfo = productinfo;
+//
+//    memcpy(p_productinfo->ProductionNumber, num, sizeof(p_productinfo->ProductionNumber));
+//    memcpy(p_productinfo->ProductionTime, time, sizeof(p_productinfo->ProductionTime));
+//
+//    return true;
+//}
 
 
 //==============================================================================
@@ -762,59 +764,47 @@ bool_t Iboot_GetAppHead(void * apphead)
 }
 
 //==============================================================================
-//功能：获取整个APP的产品信息。
-//参数：ProductInfo：存App信息块的地址；
-//返回：true：成功；false：失败。
-//==============================================================================
-bool_t Iboot_GetProductInfo(void * ProductInfo)
-{
-    struct ProductInfo* p_productinfo = ProductInfo;
-
-    memcpy(p_productinfo, gc_pAppOffset + sizeof(struct AppHead),  sizeof(struct ProductInfo));
-
-    return true;
-}
-
-
-//==============================================================================
 //功能：获取APP文件里的产品信息。
-//参数：type：app文件头中信息的类型,date_buf：存获取到数据的缓存,buf_len：date_buf的长度
+//参数：type：app文件头中信息的类型,
+//      date_buf：存获取到数据的缓存,
+//      buf_len：date_buf的长度
 //返回：true：成功；false：失败。
 //==============================================================================
-bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_len)
+bool_t Iboot_GetProductInfo(enum productinfo type, char *date_buf, u32 buf_len)
 {
     u32 len;
-    struct ProductInfo p_productinfo;
-    Iboot_GetProductInfo(&p_productinfo);
+    struct ProductInfo *p_productinfo;
+    p_productinfo = (struct ProductInfo *)gc_pAppOffset + sizeof(struct AppHead),
+                        sizeof(struct ProductInfo);
 
     switch(type)
     {
         case APP_HEAD_VERSION_NUM:
         {
-            len = sizeof(p_productinfo.VersionNumber) * 3;
-            if((p_productinfo.VersionNumber[0] <= 99) ||
-                    (p_productinfo.VersionNumber[1] <= 99) || (p_productinfo.VersionNumber[2] <= 99))
+            len = sizeof(p_productinfo->VersionNumber) * 3;
+            if((p_productinfo->VersionNumber[0] <= 99) ||
+                    (p_productinfo->VersionNumber[1] <= 99) || (p_productinfo->VersionNumber[2] <= 99))
             {
                 if(buf_len >= len)
-                    sprintf(date_buf, "%d.%d.%d", ((char *)p_productinfo.VersionNumber)[0],
-                            ((char *)p_productinfo.VersionNumber)[1] ,((char *)p_productinfo.VersionNumber)[2]);
+                    sprintf(date_buf, "%d.%d.%d", ((char *)p_productinfo->VersionNumber)[0],
+                            ((char *)p_productinfo->VersionNumber)[1] ,((char *)p_productinfo->VersionNumber)[2]);
                 else
                     goto len_error;
             }
             else
             {
-                error_printf("PrInfo","Version number error. version = %d.%d.%d, Version number <= 99",p_productinfo.VersionNumber[0]
-                                             ,p_productinfo.VersionNumber[1],p_productinfo.VersionNumber[2]);
+                error_printf("PrInfo","Version number error. version = %d.%d.%d, Version number <= 99",p_productinfo->VersionNumber[0]
+                                             ,p_productinfo->VersionNumber[1],p_productinfo->VersionNumber[2]);
                 return false;
             }
             break;
         }
         case APP_HEAD_RAW_VERSION_NUM:
         {
-            len = sizeof(p_productinfo.VersionNumber);
+            len = sizeof(p_productinfo->VersionNumber);
             if(buf_len >= len)
             {
-                memcpy(date_buf, p_productinfo.VersionNumber, len);
+                memcpy(date_buf, p_productinfo->VersionNumber, len);
             }
             else
                 goto len_error;
@@ -822,9 +812,9 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
         }
         case APP_HEAD_MANUFACTURER:
         {
-            len = strlen((char *)p_productinfo.ManufacturerNameAddr);
+            len = strlen((char *)p_productinfo->ManufacturerNameAddr);
             if(buf_len >= len)
-                memcpy(date_buf, (void *)p_productinfo.ManufacturerNameAddr, len);
+                memcpy(date_buf, (void *)p_productinfo->ManufacturerNameAddr, len);
             else
                 goto len_error;
             break;
@@ -832,9 +822,9 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
 
         case APP_HEAD_CLASSIFY:
         {
-            len = sizeof(p_productinfo.ProductClassify);
+            len = sizeof(p_productinfo->ProductClassify);
             if(buf_len >= len)
-                memcpy(date_buf, p_productinfo.ProductClassify, len);
+                memcpy(date_buf, p_productinfo->ProductClassify, len);
             else
                 goto len_error;
             break;
@@ -842,9 +832,9 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
 
         case APP_HEAD_TYPE:
         {
-            len = sizeof(p_productinfo.ProductType);
+            len = sizeof(p_productinfo->ProductType);
             if(buf_len >= len)
-                memcpy(date_buf, p_productinfo.ProductType, len);
+                memcpy(date_buf, p_productinfo->ProductType, len);
             else
                 goto len_error;
 
@@ -853,19 +843,19 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
 
         case APP_HEAD_TYPE_CODE:
         {
-            len = sizeof(p_productinfo.TypeCode);
+            len = sizeof(p_productinfo->TypeCode);
             if(buf_len >= len)
-                memcpy(date_buf, p_productinfo.TypeCode, len);
+                memcpy(date_buf, p_productinfo->TypeCode, len);
             else
                 goto len_error;
             break;
         }
 
-        case APP_HEAD_PRODUCTION_TIME:
+        case APP_HEAD_PRODUCTION_WEEK:
         {
-            len = sizeof(p_productinfo.ProductionTime);
+            len = sizeof(p_productinfo->ProductionTime);
             if(buf_len >= len)
-                memcpy(date_buf, p_productinfo.ProductionTime, len);
+                memcpy(date_buf, p_productinfo->ProductionTime, len);
             else
                 goto len_error;
 
@@ -874,9 +864,9 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
 
         case APP_HEAD_PRODUCTION_NUM:
         {
-            len = sizeof(p_productinfo.ProductionNumber);
+            len = sizeof(p_productinfo->ProductionNumber);
             if(buf_len >= len)
-                memcpy(date_buf, p_productinfo.ProductionNumber, len);
+                memcpy(date_buf, p_productinfo->ProductionNumber, len);
             else
                 goto len_error;
 
@@ -885,9 +875,9 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
 
         case APP_HEAD_BOARD_TYPE:
         {
-            len = sizeof(p_productinfo.BoardType);
+            len = sizeof(p_productinfo->BoardType);
             if(buf_len >= len)
-                memcpy(date_buf, p_productinfo.BoardType, len);
+                memcpy(date_buf, p_productinfo->BoardType, len);
             else
                 goto len_error;
 
@@ -896,9 +886,9 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
 
         case APP_HEAD_CPU_TYPE:
         {
-            len = sizeof(p_productinfo.CPU_Type);
+            len = sizeof(p_productinfo->CPU_Type);
             if(buf_len >= len)
-                memcpy(date_buf, p_productinfo.CPU_Type, len);
+                memcpy(date_buf, p_productinfo->CPU_Type, len);
             else
                 goto len_error;
 
@@ -909,17 +899,17 @@ bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_l
         {
             int type_code_len, time_len, number_len;
 
-            type_code_len = sizeof(p_productinfo.TypeCode);
-            time_len = sizeof(p_productinfo.ProductionTime);
-            number_len = sizeof(p_productinfo.ProductionNumber);
+            type_code_len = sizeof(p_productinfo->TypeCode);
+            time_len = sizeof(p_productinfo->ProductionTime);
+            number_len = sizeof(p_productinfo->ProductionNumber);
 
             len = type_code_len + time_len + number_len + 1;
             if(buf_len >= len)
             {
-                memcpy(date_buf, p_productinfo.TypeCode, type_code_len);
+                memcpy(date_buf, p_productinfo->TypeCode, type_code_len);
 
-                memcpy(date_buf + type_code_len, p_productinfo.ProductionTime, time_len);
-                memcpy(date_buf + type_code_len + time_len, p_productinfo.ProductionNumber, number_len);
+                memcpy(date_buf + type_code_len, p_productinfo->ProductionTime, time_len);
+                memcpy(date_buf + type_code_len + time_len, p_productinfo->ProductionNumber, number_len);
                 date_buf[len-1] = '\0';
             }
             else
@@ -939,44 +929,35 @@ len_error:
 extern u32 gc_ProductSn;
 
 //----------------------------------------------------------------------------
-//功能: 写指纹到iboot中
+//功能: 写指纹到iboot中，写入前先检查指纹区是否空
 //参数: time -- 生产时间缓冲区，
-//      time_len -- 生产时间缓冲区长度，
 //      num -- 生产序号缓冲区，
-//      num_len -- 生产序号缓冲区长度
 //返回: true: 成功； false ： 失败.
 //-----------------------------------------------------------------------------
-bool_t write_finger_to_iboot(s8 *time, u32 time_len, s8 *num, u32 num_len)
+bool_t write_finger_to_iboot(s8 *time, s8 *num)
 {
-    u8 *iboot_sn_buf = 0;
-    ptu32_t iboot_sn_addr = 0,len;
+    u8 iboot_sn_buf[16] = {0};
+    ptu32_t iboot_sn_addr = 0;
     struct ProductInfo *info;
-    len = time_len + num_len + sizeof(info->TypeCode);
-    iboot_sn_buf = malloc(len + 1);
-    if(iboot_sn_buf == NULL)
-        return false;
 
-    memset(iboot_sn_buf, 0 , len + 1);
-    iboot_sn_addr = (u32)(&gc_ProductSn) / 32 * 34;
+//  iboot_sn_addr = (u32)(&gc_ProductSn) / 32 * 34;
+    iboot_sn_addr = (u32)(&gc_ProductSn);
     if(iboot_sn_addr)
     {
-        //连同CRC区域一起读出来，但实际上SN号里面不做CRC校验
-        //todo:此函数是 beken 芯片独有，造成平台依赖，修改之。
-        djy_flash_read_crc(iboot_sn_addr, iboot_sn_buf, len);
+        djy_flash_read(iboot_sn_addr, iboot_sn_buf, 16);
         if((iboot_sn_buf[0] == 0xff) && ((u8)time[0] != 0xff))
         {   //iboot里没SN，程序里给出SN号，现在写SN
             printf("write SN in iboot.\r\n");
             memcpy(iboot_sn_buf, PRODUCT_PRODUCT_MODEL_CODE, sizeof(info->TypeCode));
-            memcpy(iboot_sn_buf + sizeof(info->TypeCode), time, time_len);
-            memcpy(iboot_sn_buf + sizeof(info->TypeCode) + time_len, num, num_len);
+            memcpy(iboot_sn_buf + sizeof(info->TypeCode), time, 4);
+            memcpy(iboot_sn_buf + sizeof(info->TypeCode) + 4, num, 5);
 
 //            flash_protection_op(0,FLASH_PROTECT_NONE);
-            djy_flash_write(iboot_sn_addr, iboot_sn_buf, len);
+            djy_flash_write_ori(iboot_sn_addr, iboot_sn_buf, 16);
 //            flash_protection_op(0,FLASH_PROTECT_ALL);
         }
     }
 
-    free(iboot_sn_buf);
     return true;
 }
 
@@ -999,10 +980,10 @@ bool_t read_finger_from_iboot(s8 *finger, u32 buf_len)
          return false;
      }
 
-    iboot_sn_addr = (u32)(&gc_ProductSn) / 32 * 34;
+    iboot_sn_addr = (u32)(&gc_ProductSn) ;
     if(iboot_sn_addr)
     {
-        djy_flash_read_crc(iboot_sn_addr, finger, len);
+        djy_flash_read(iboot_sn_addr, finger, len);
     }
     else
         return false;
@@ -1285,7 +1266,7 @@ char* Iboot_GetAppName(void * apphead)
 //    Iboot_App_Info.runflag.error_app_check = 0;
 //    Iboot_App_Info.runflag.error_app_size = 0;
 //
-//    Iboot_App_Info.runflag.run_iboot_update_app = 0;
+//    Iboot_App_Info.runflag.run_iboot_and_update_app = 0;
 //
 //    __asm_bl_fun((void*)p_apphead+sizeof(struct AppHead));
 //    return false;
@@ -1467,15 +1448,15 @@ bool_t Iboot_SiIbootAppInfoInit()
         Iboot_App_Info.runflag.runmode_app           = 0;//当前运行模式为app
         Iboot_App_Info.runflag.Before_run_iboot      = 0;//之前运行模式为iboot
         Iboot_App_Info.runflag.Before_run_app        = 0;//之前运行模式为app
-        #if (CFG_APP_RUNMODE == EN_FORM_FILE)
+        #if (CFG_APP_RUNMODE == CN_RUN_FORM_FILE)
                 Iboot_App_Info.runflag.run_app_form_file     = 1;//从文件中加载app
-        #elif (CFG_APP_RUNMODE == EN_DIRECT_RUN)
+        #elif (CFG_APP_RUNMODE == CN_DIRECT_RUN)
                 Iboot_App_Info.runflag.run_app_form_file     = 0;//从文件中加载app
         #endif
-        Iboot_App_Info.runflag.run_iboot_update_app  = 0;//启动（Iboot）后，自动升级APP
-        Iboot_App_Info.runflag.run_app_update_iboot  = 0;//启app后升级iboot自身
-        Iboot_App_Info.runflag.update_from           = 0;//升级文件来源0文件 1——3待定义
-        Iboot_App_Info.runflag.update_runmode        = 0;//升级完成后运行0.iboot --  1.app
+        Iboot_App_Info.runflag.run_iboot_and_update_app  = 0;//启动（Iboot）后，自动升级APP
+        Iboot_App_Info.runflag.run_app_and_update_iboot  = 0;//启动app后升级iboot自身
+        Iboot_App_Info.runflag.update_from           = 0;//升级文件来源0文件 ,1内存,2—3用户自定义
+        Iboot_App_Info.runflag.after_update_runmode  = 0;//升级完成后运行0.iboot --  1.app
         Iboot_App_Info.runflag.error_app_check       = 0;//校验出错
         Iboot_App_Info.runflag.error_app_no_file     = 0;//没有这个文件或文件格式错误
         Iboot_App_Info.runflag.error_app_size        = 0;//app文件大小错误
@@ -1492,7 +1473,7 @@ bool_t Iboot_SiIbootAppInfoInit()
         Iboot_App_Info.UserTag = 0;                     //上电复位，用户标志被清零
         Iboot_App_Info.reserved = 0;//保留
 #if (CFG_POWER_ON_RESET_TO_BOOT)
-        Set_RunIbootFlag();
+        Iboot_SetRunIbootFlag();
 #endif
     }
     else//非上电复位
@@ -1552,7 +1533,7 @@ bool_t Iboot_SetAppVerFlag(u8 small, u8 medium, u8 large)
 
 {
     Iboot_App_Info.app_ver_small = small;         //app 版本
-    Iboot_App_Info.app_ver_medium = medium;         //app 版本
+    Iboot_App_Info.app_ver_medium = medium;       //app 版本
     Iboot_App_Info.app_ver_large = large;         //app 版本
 
     return true;
@@ -1576,6 +1557,148 @@ void Iboot_SetUserTag(u32 UserTag)
 u32 Iboot_GetUserTag(void)
 {
     return Iboot_App_Info.UserTag;
+}
+
+//-----------------------------------------------------------------------------
+//功能：设置生产周次，即该产品是哪一年哪一周生产的
+//参数：week，指向一个4字节缓冲区
+//返回：无
+//------------------------------------------------------------------------------
+void Iboot_SetWeek(s8 *week)
+{
+    memcpy(Iboot_App_Info.production_week, week, 4);
+}
+
+//-----------------------------------------------------------------------------
+//功能：获取生产周次，即该产品是哪一年哪一周生产的
+//参数：week，接收结果，指向一个4字节缓冲区
+//返回：true = 成功读取week，false=交互信息中week信息空。
+//------------------------------------------------------------------------------
+bool_t Iboot_GetWeek(s8 *week)
+{
+    if (Iboot_App_Info.production_week[0] == 0)
+        return false;
+    else
+    {
+        memcpy(week, Iboot_App_Info.production_week, 4);
+        return true;
+    }
+}
+
+//-----------------------------------------------------------------------------
+//功能：设置生产系列号，即该产品是一周内不重复的生产序号
+//参数：serial，指向一个5字节缓冲区
+//返回：无
+//------------------------------------------------------------------------------
+void Iboot_SetSerial(s8 *serial)
+{
+    memcpy(Iboot_App_Info.production_week, serial, 5);
+}
+
+//-----------------------------------------------------------------------------
+//功能：获取生产系列号，即该产品是一周内不重复的生产序号
+//参数：serial，接收结果，指向一个5字节缓冲区
+//返回：true = 成功读取serial，false=交互信息中serial信息空。
+//------------------------------------------------------------------------------
+bool_t Iboot_GetSerial(s8 *serial)
+{
+    if (Iboot_App_Info.production_serial[0] == 0)
+        return false;
+    else
+    {
+        memcpy(serial, Iboot_App_Info.production_serial, 5);
+        return true;
+    }
+}
+
+//-----------------------------------------------------------------------------
+//功能：设置ota起始地址，ota下载的APP，将保存到这个可寻址的内存中。
+//参数：address，保存APP的地址
+//      size,app尺寸
+//返回：无
+//------------------------------------------------------------------------------
+void Iboot_SetOtaAddr(s8 *address, ptu32_t size)
+{
+    Iboot_App_Info.stored.ram.start_add = address;
+    Iboot_App_Info.stored.ram.app_size = size;
+}
+
+//-----------------------------------------------------------------------------
+//功能：获取ota起始地址，ota下载的APP，将保存到这个可寻址的内存中。
+//参数：address，接收地址的指针
+//      size，接收尺寸的指针
+//返回：无
+//------------------------------------------------------------------------------
+void Iboot_GetOtaAddr(s8 **address, ptu32_t *size)
+{
+    *address = Iboot_App_Info.stored.ram.start_add;
+    *size = Iboot_App_Info.stored.ram.app_size;
+}
+
+//-----------------------------------------------------------------------------
+//功能：设置ota 的存储参数，共31个字节(CN_APP_STORE_INFO_LIMIT)，存储参数描述ota下载
+//      的文件是怎么存储的，如果保存在文件中或可寻址内存中，存储参数的含义由系统解析，
+//      用户不用管，其他情况由用户解析，例如，如果APP存储在spi接口的flash中(非文件
+//      系统），参数用于约定偏移地址。
+//参数：address, 信息地址
+//      size, 信息尺寸
+//返回：无
+//------------------------------------------------------------------------------
+void Iboot_SetOtaUserInfo(s8 *address, ptu32_t size)
+{
+    if (size <= CN_APP_STORE_INFO_LIMIT)
+        memcpy(Iboot_App_Info.stored.pads, address,size);
+    else
+        memcpy(Iboot_App_Info.stored.pads, address,CN_APP_STORE_INFO_LIMIT);
+}
+
+//-----------------------------------------------------------------------------
+//功能：获取ota 的存储参数，共31个字节(CN_APP_STORE_INFO_LIMIT)，存储参数描述ota下载
+//      的文件是怎么存储的，如果保存在文件中或可寻址内存中，存储参数的含义由系统解析，
+//      用户不用管，其他情况由用户解析，例如，如果APP存储在spi接口的flash中(非文件
+//      系统），参数用于约定偏移地址。
+//参数：address, 信息地址
+//      size, 信息尺寸
+//返回：无
+//------------------------------------------------------------------------------
+void Iboot_GetOtaUserInfo(s8 *address, ptu32_t size)
+{
+    if (size <= CN_APP_STORE_INFO_LIMIT)
+        memcpy(address, Iboot_App_Info.stored.pads, size);
+    else
+        memcpy(address, Iboot_App_Info.stored.pads, CN_APP_STORE_INFO_LIMIT);
+}
+
+//-----------------------------------------------------------------------------
+//功能：设置ota 保存下载文件的文件路径，必须是绝对路径。注意，这个文件名并不是APP编译
+//      时的文件名，也不是保存在服务器上的文件名，而是ota把文件下载后，转存到本地的
+//      文件名，一般是loader模块配置常量 CFG_APP_UPDATE_NAME。
+//参数：filename, 信息地址
+//      size, 信息尺寸
+//返回：无
+//------------------------------------------------------------------------------
+void Iboot_SetOtaFilename(s8 *filename, ptu32_t size)
+{
+    if (size <= CN_APP_STORE_INFO_LIMIT)
+        memcpy(Iboot_App_Info.stored.pads, filename,size);
+    else
+        memcpy(Iboot_App_Info.stored.pads, filename,CN_APP_STORE_INFO_LIMIT);
+}
+
+//-----------------------------------------------------------------------------
+//功能：获取ota 保存下载文件的文件路径，必须是绝对路径。注意，这个文件名并不是APP编译
+//      时的文件名，也不是保存在服务器上的文件名，而是ota把文件下载后，转存到本地的
+//      文件名，一般是loader模块配置常量 CFG_APP_UPDATE_NAME。
+//参数：filename, 信息地址
+//      size, 信息尺寸
+//返回：无
+//------------------------------------------------------------------------------
+void Iboot_GetOtaFilename(s8 *filename, ptu32_t size)
+{
+    if (size <= CN_APP_STORE_INFO_LIMIT)
+        memcpy(filename, Iboot_App_Info.stored.pads, size);
+    else
+        memcpy(filename, Iboot_App_Info.stored.pads, CN_APP_STORE_INFO_LIMIT);
 }
 
 //==============================================================================
@@ -1719,26 +1842,26 @@ bool_t Iboot_GetHeadWdtReset(void)
 //返回： true/false/
 //原名 ： Iboot_FillMutualUpdatePath
 //==============================================================================
-bool_t set_upgrade_info(char* info, int len)
-{
-//    u8 i;
-
-    if(len > (int)sizeof(Iboot_App_Info.up_info))
-    {
-        error_printf("IAP"," len exceed CN_UPDATE_PATH_LIMIT.\r\n");
-        return false;
-    }
-    memset(Iboot_App_Info.up_info.info, 0, CN_UPDATE_PATH_LIMIT);
-    memcpy(Iboot_App_Info.up_info.info, info, len);
-    if(len == CN_UPDATE_PATH_LIMIT)
-    {
-        Iboot_App_Info.up_info.info[CN_UPDATE_PATH_LIMIT-1] = 0;
-        return true;
-    }
-    return true;
-
-
-}
+//bool_t set_upgrade_info(char* info, int len)
+//{
+////    u8 i;
+//
+//    if(len > (int)sizeof(Iboot_App_Info.stored))
+//    {
+//        error_printf("IAP"," len exceed CN_UPDATE_PATH_LIMIT.\r\n");
+//        return false;
+//    }
+//    memset(Iboot_App_Info.stored.info, 0, CN_UPDATE_PATH_LIMIT);
+//    memcpy(Iboot_App_Info.stored.info, info, len);
+//    if(len == CN_UPDATE_PATH_LIMIT)
+//    {
+//        Iboot_App_Info.stored.info[CN_UPDATE_PATH_LIMIT-1] = 0;
+//        return true;
+//    }
+//    return true;
+//
+//
+//}
 //=============================================================================
 //功能：根据启动模式填充信息
 //参数：mode：iboot的启动模式
@@ -1847,7 +1970,7 @@ bool_t Run_App(enum runappmode mode)
 bool_t Iboot_UpdateToRun()
 {
 
-    if(Iboot_App_Info.runflag.update_runmode ==0)//iboot
+    if(Iboot_App_Info.runflag.after_update_runmode ==0)//iboot
     {
         info_printf("IAP","About to run the iboot.\r\n");
         Iboot_App_Info.runflag.restart_run_iboot = 1;
@@ -1880,7 +2003,7 @@ bool_t Iboot_SetPreviouResetFlag()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Set_RunIbootFlag()
+bool_t Iboot_SetRunIbootFlag()
 {
     Iboot_App_Info.runflag.restart_run_iboot =1;
     return true;
@@ -1891,7 +2014,7 @@ bool_t Set_RunIbootFlag()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Set_RunAppFlag()
+bool_t Iboot_SetRunAppFlag()
 {
     Iboot_App_Info.runflag.restart_run_app =1;
     return true;
@@ -1902,9 +2025,9 @@ bool_t Set_RunAppFlag()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Iboot_SetRunIbootUpdateApp()
+bool_t Iboot_SetRunIbootAndUpdateApp()
 {
-    Iboot_App_Info.runflag.run_iboot_update_app =1;
+    Iboot_App_Info.runflag.run_iboot_and_update_app =1;
     return true;
 }
 
@@ -1913,9 +2036,9 @@ bool_t Iboot_SetRunIbootUpdateApp()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Iboot_ClearRunIbootUpdateApp()
+bool_t Iboot_ClearRunIbootAndUpdateApp()
 {
-    Iboot_App_Info.runflag.run_iboot_update_app =0;
+    Iboot_App_Info.runflag.run_iboot_and_update_app =0;
     return true;
 }
 
@@ -1924,9 +2047,20 @@ bool_t Iboot_ClearRunIbootUpdateApp()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t Iboot_SetRunAppUpdateIboot()
+bool_t Iboot_SetRunAppAndUpdateIboot()
 {
-    Iboot_App_Info.runflag.run_app_update_iboot =1;
+    Iboot_App_Info.runflag.run_app_and_update_iboot =1;
+    return true;
+}
+
+//==============================================================================
+//功能：清除运行app并更新iboot标志
+//参数：null
+//返回值：true
+//==============================================================================
+bool_t Iboot_ClearRunAppAndUpdateIboot()
+{
+    Iboot_App_Info.runflag.run_app_and_update_iboot =0;
     return true;
 }
 
@@ -1935,9 +2069,9 @@ bool_t Iboot_SetRunAppUpdateIboot()
 //参数：升级程序来源0文件 1——3待定义
 //返回值：true
 //==============================================================================
-bool_t Iboot_SetUpdateSource(enum update_source source)
+bool_t Iboot_SetUpdateSource(u32 source)
 {
-    Iboot_App_Info.runflag.update_from = (u32)source;
+    Iboot_App_Info.runflag.update_from = source;
     return true;
 }
 
@@ -1946,21 +2080,10 @@ bool_t Iboot_SetUpdateSource(enum update_source source)
 //参数：无
 //返回值：升级程序来源0文件 1——3待定义
 //==============================================================================
-enum update_source Iboot_GetUpdateSource(void)
+u32 Iboot_GetUpdateSource(void)
 {
-     return (enum update_source)Iboot_App_Info.runflag.update_from;
+     return Iboot_App_Info.runflag.update_from;
 }
-//==============================================================================
-//功能：清除运行app并更新iboot标志
-//参数：null
-//返回值：true
-//==============================================================================
-bool_t Iboot_ClearRunAppUpdateIboot()
-{
-    Iboot_App_Info.runflag.run_app_update_iboot =0;
-    return true;
-}
-
 //==============================================================================
 //功能：获取启动后是否运行app
 //参数：无
@@ -1975,13 +2098,13 @@ bool_t Iboot_GetRestartRunApp()
 }
 
 //==============================================================================
-//功能：获取app的加载方式
+//功能：查询APP是否从文件加载执行
 //参数：无
-//返回值：0 -- 直接运行；1 -- 从文件中加载
+//返回值：true = 从文件中加载，false = 非从文件加载（直接运行）
 //==============================================================================
-char Iboot_GetRunAppFormFile()
+bool_t Iboot_IsLoadAppFromFile()
 {
-    return Iboot_App_Info.runflag.run_app_form_file;
+    return (Iboot_App_Info.runflag.run_app_form_file == 1);
 }
 
 //==============================================================================
@@ -2032,21 +2155,22 @@ bool_t Iboot_GetHeardSetRunIboot(void)
 //参数：buf:存APP路径的缓存，buf_len：缓存长度
 //返回值：待升级app路径
 //==============================================================================
-bool_t Iboot_GetMutualUpdatePath(char *buf, u32 buf_len)
-{
-    u32 len;
-    len = sizeof(Iboot_App_Info.up_info);
-    if(buf_len >= len)
-    {
-        memcpy(buf, Iboot_App_Info.up_info.info, len);
-        return true;
-    }
-    else
-    {
-        error_printf("Mutual","buf : len = %d; data length to be get = %d ",buf_len,len);
-        return false;
-    }
-}
+//被 Iboot_SetOtaFilename 替代
+//bool_t Iboot_GetMutualUpdatePath(char *buf, u32 buf_len)
+//{
+//    u32 len;
+//    len = sizeof(Iboot_App_Info.stored);
+//    if(buf_len >= len)
+//    {
+//        memcpy(buf, Iboot_App_Info.stored.info, len);
+//        return true;
+//    }
+//    else
+//    {
+//        error_printf("Mutual","buf : len = %d; data length to be get = %d ",buf_len,len);
+//        return false;
+//    }
+//}
 //==============================================================================
 //功能：判断是否需要升级app
 //参数：无
@@ -2054,7 +2178,7 @@ bool_t Iboot_GetMutualUpdatePath(char *buf, u32 buf_len)
 //==============================================================================
 bool_t Iboot_GetUpdateApp(void)
 {
-    if(Iboot_App_Info.runflag.run_iboot_update_app == 1)
+    if(Iboot_App_Info.runflag.run_iboot_and_update_app == 1)
         return true;
     else
         return false;
@@ -2067,7 +2191,7 @@ bool_t Iboot_GetUpdateApp(void)
 //==============================================================================
 bool_t Iboot_GetUpdateIboot(void)
 {
-    if(Iboot_App_Info.runflag.run_app_update_iboot == 1)
+    if(Iboot_App_Info.runflag.run_app_and_update_iboot == 1)
         return true;
     else
         return false;
@@ -2119,7 +2243,7 @@ static bool_t ibootinfo( )
             Iboot_App_Info.iboot_build_mon, Iboot_App_Info.iboot_build_day, Iboot_App_Info.iboot_build_hour, \
             Iboot_App_Info.iboot_build_min, Iboot_App_Info.iboot_build_sec);
 //    printf("Iboot start addr: 0x%8llx \n\r", Iboot_App_Info.ibootstartaddr);
-    printf("board name : \n\r", Iboot_App_Info.board_name);
+    printf("board name : %s \n\r", Iboot_App_Info.board_name);
 
     return true;
 }
@@ -2148,9 +2272,10 @@ static bool_t appinfo( )
 //参数：0 -- 运行iboot；1 -- 运行app
 //返回值：true
 //==============================================================================
-bool_t Iboot_SetUpdateRunModet(u8 mode)
+//原名：Iboot_SetUpdateRunModet
+bool_t Iboot_SetAfterUpdateRunMode(u8 mode)
 {
-    Iboot_App_Info.runflag.update_runmode = mode;
+    Iboot_App_Info.runflag.after_update_runmode = mode;
 
     return true;
 }
@@ -2159,9 +2284,9 @@ bool_t Iboot_SetUpdateRunModet(u8 mode)
 //参数：无
 //返回值：0 -- 运行iboot；1 -- 运行app
 //==============================================================================
-char Iboot_GetUpdateRunModet(void)
+char Iboot_GetAfterUpdateRunModet(void)
 {
-    return Iboot_App_Info.runflag.update_runmode;
+    return Iboot_App_Info.runflag.after_update_runmode;
 }
 #endif
 //==============================================================================
@@ -2207,13 +2332,13 @@ static bool_t Iboot_IAP_Mode( )
         printf( "之前运行模式为app  \r\n");
     if(Iboot_App_Info.runflag.run_app_form_file)
         printf( "运行模式：从文件中加载app  \r\n");
-    if(Iboot_App_Info.runflag.run_iboot_update_app)
+    if(Iboot_App_Info.runflag.run_iboot_and_update_app)
         printf( "启动（Iboot）后，自动升级APP    \r\n");
-    if(Iboot_App_Info.runflag.run_app_update_iboot)
+    if(Iboot_App_Info.runflag.run_app_and_update_iboot)
         printf( "启iboot后升级iboot自身          \r\n");
     if(Iboot_App_Info.runflag.update_from)
         printf( "升级文件来源    %d   \r\n", Iboot_App_Info.runflag.update_from); //升级文件来源（默认为0不打印） 1——3待定义
-    if(Iboot_App_Info.runflag.update_runmode        )
+    if(Iboot_App_Info.runflag.after_update_runmode        )
         printf( "升级完成后运行  app \r\n");
     else
         printf( "升级完成后运行  iboot \r\n");
