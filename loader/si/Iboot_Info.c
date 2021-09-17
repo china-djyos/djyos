@@ -774,8 +774,7 @@ bool_t Iboot_GetProductInfo(enum productinfo type, char *date_buf, u32 buf_len)
 {
     u32 len;
     struct ProductInfo *p_productinfo;
-    p_productinfo = (struct ProductInfo *)gc_pAppOffset + sizeof(struct AppHead),
-                        sizeof(struct ProductInfo);
+    p_productinfo = (struct ProductInfo *)(gc_pAppOffset + sizeof(struct AppHead));
 
     switch(type)
     {
@@ -944,7 +943,8 @@ bool_t write_finger_to_iboot(s8 *time, s8 *num)
     iboot_sn_addr = (u32)(&gc_ProductSn);
     if(iboot_sn_addr)
     {
-        djy_flash_read(iboot_sn_addr, iboot_sn_buf, 16);
+//      djy_flash_read(iboot_sn_addr, iboot_sn_buf, 16);
+        memcpy(iboot_sn_buf, iboot_sn_addr, 16);
         if((iboot_sn_buf[0] == 0xff) && ((u8)time[0] != 0xff))
         {   //iboot里没SN，程序里给出SN号，现在写SN
             printf("write SN in iboot.\r\n");
@@ -981,12 +981,13 @@ bool_t read_finger_from_iboot(s8 *finger, u32 buf_len)
      }
 
     iboot_sn_addr = (u32)(&gc_ProductSn) ;
-    if(iboot_sn_addr)
-    {
-        djy_flash_read(iboot_sn_addr, finger, len);
-    }
-    else
-        return false;
+    memcpy(finger, iboot_sn_addr, 16);
+//  if(iboot_sn_addr)
+//  {
+//      djy_flash_read(iboot_sn_addr, finger, len);
+//  }
+//  else
+//      return false;
 
     return true;
 }

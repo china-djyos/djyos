@@ -302,6 +302,7 @@ static u8 readbuffer[DjyosHeadSize];
 // 返回：0（无意义）。
 // 备注
 // ============================================================================
+//原名：Iboot_UpdateApp
 bool_t WriteAppFromFile(u8 *production_time,u8* production_num)
 {
     char apppath[CN_UPDATE_PATH_LIMIT];
