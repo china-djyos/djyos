@@ -444,7 +444,7 @@ s32 DevUpgradeCommon(s8 *path, s8 *out_json, s32 len)
 
 //  sprintf(url, "http://%s%s", pDevMgr->host, path);
     sprintf(url, "http://%s%s", PRODUCT_OTA_ADDRESS, path);
-//    printf("url is %s\r\n", url);
+    printf("url is %s\r\n", url);
     nc = mg_connect_http(&mgr, cb_upgrade_ev_handler, url, meta, 0);
     if (nc == 0) goto END_QUEST;
     nc->user_data = &user_data;
@@ -516,6 +516,11 @@ s32 DevUpgradeQuest(const s8 *serial_num, u8 *branch, s8 *out_json, s32 len)
 static u8 gserial_num[5];
 static u8 gproduct_time[4];
 static u8 gupgrade_url[256];
+static  char gupgrade_version[20];
+char *Get_Upgrade_version(void)
+{
+    return gupgrade_version;
+}
 //获取服务器下发的生产时间和生产序号
 s32 GetSrvUpgradeInfo(u8 *product_time, s32 prod_time_len, u8 *serial_num, s32 ser_num_len)
 {
@@ -579,6 +584,13 @@ s32 web_check_new_versions(u8 *branch, u8 *SN)
 //              printf("==url==: %s!\r\n", results->valuestring);
                 strcpy((s8*)gupgrade_url, results->valuestring);
                 ret = 1;
+            }
+
+            results = cJSON_GetObjectItem(cjson_version, "version");
+            if (results){
+                printf("==version==: %s!\r\n", results->valuestring);
+                if(sizeof(gupgrade_version) > (strlen(results->valuestring)+1))
+                    strcpy((char*)gupgrade_version, results->valuestring);
             }
         }
         //device字段
