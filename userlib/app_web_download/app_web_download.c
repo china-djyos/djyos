@@ -486,7 +486,7 @@ END_QUEST:
     return ret;
 }
 
-s32 DevUpgradeQuest(const s8 *serial_num, u8 *branch, s8 *out_json, s32 len)
+s32 DevUpgradeQuest(const s8 *serial_num, u8 *user, s8 *out_json, s32 len)
 {
     s8 path[200] = { 0 };
     s8 VersionNum[13];
@@ -495,21 +495,16 @@ s32 DevUpgradeQuest(const s8 *serial_num, u8 *branch, s8 *out_json, s32 len)
 
     sprintf(VersionNum, "%d.%d.%d", PRODUCT_VERSION_LARGE,
                     PRODUCT_VERSION_MEDIUM, PRODUCT_VERSION_SMALL);
-//  printf("--------send VersionNumber = %s   ",VersionNum);
-
-//    printf("ENTRY: %s!\r\n", __FUNCTION__);
-//    if(mhdr_get_station_status() != RW_EVT_STA_GOT_IP)    //这是7251的函数，平台相关了
-//        return -1;
 
     memset(finger,0,sizeof(finger));
-    Iboot_GetAPP_ProductInfo(APP_HEAD_FINGER, finger, sizeof(finger));
-//    sprintf(path, "/api/version?sn=%s&branch=%s&version=%s&fingerprint%s&data=%s",
-//                                serial_num, branch, VersionNum, "QMNVLX20470000M", "NULL" );  //测试用的
-    snprintf(path,sizeof(path),"/api/version?sn=%s&branch=%s&version=%s&finger=%s&data=%s",
-        serial_num, branch, VersionNum, finger, "NULL" );
-
+    Iboot_GetProductInfo(APP_HEAD_FINGER, finger, sizeof(finger));
+    if (user == NULL)
+        snprintf(path,sizeof(path),"/api/version?sn=%s&version=%s&finger=%s",
+                serial_num, VersionNum, finger );
+    else
+        snprintf(path,sizeof(path),"/api/version?sn=%s&version=%s&finger=%s&%s",
+                serial_num, VersionNum, finger, user );
     s32 ret = DevUpgradeCommon(path, out_json, len);
-//    printf("====EXIT:ret is %d  %s!\r\n",ret,__FUNCTION__);
     return ret;
 }
 
@@ -533,6 +528,9 @@ s32 GetSrvUpgradeInfo(u8 *product_time, s32 prod_time_len, u8 *serial_num, s32 s
     return 0;
 }
 
+__attribute__((weak)) void OtaUserProcess(cJSON *dlparam)
+{
+}
 // ============================================================================
 // 功能：检查是否有新版本，把设备信息发送给服务器，服务器返回升级json，内含 bin 文件
 //      的 URL。解析URL赋值给相关全局变量。
@@ -541,13 +539,13 @@ s32 GetSrvUpgradeInfo(u8 *product_time, s32 prod_time_len, u8 *serial_num, s32 s
 // 返回：返回0表示有新版本，为-1则表示没有新版本,
 // 备注：
 // ============================================================================
-s32 web_check_new_versions(u8 *branch, u8 *SN)
+s32 web_check_new_versions(u8 *user, u8 *SN)
 {
     s32 ret = -1;
     s8 buf[30] = {0};
-    cJSON *cjson = 0;
-    cJSON *cjson_version = 0;
-    cJSON *cjson_device = 0;
+    cJSON *cjson = NULL;
+    cJSON *cjson_version = NULL;
+    cJSON *cjson_device = NULL;
     s32 weeks = 0;
 //    s8 VersionNum[13];
     cJSON*  results = 0;
@@ -557,14 +555,18 @@ s32 web_check_new_versions(u8 *branch, u8 *SN)
     printf("\r\n SN_Num   = %s,\r\n", SN);
     memset(gupgrade_url, 0, sizeof(gupgrade_url));
     memset(out_json, 0, 1024);
+    //以下两行非常重要，iboot中以这些字段是否空来决定是否更新产品信息
+    Iboot_SetSerial(buf);       //清空struct IbootAppInfo的week字段
+    Iboot_SetWeek(buf);         //清空struct IbootAppInfo的serial字段
     //从服务器拉取升级文件的信息，是一个json包
-    if (DevUpgradeQuest((const s8 *)SN, branch, out_json, 1024) <= 0)
+    if (DevUpgradeQuest((const s8 *)SN, user, out_json, 1024) <= 0)
     {
         free(out_json);
         return ret;
     }
     //todo：根据真实数据包改写
     cjson = cJSON_Parse(out_json);  //解析json包
+    OtaUserProcess(cjson);          //weak函数，用户可以在应用程序中重新实现
     if (cjson)
     {
         cjson_version = cJSON_GetObjectItem(cjson, "version");//提取版本号字段
@@ -592,7 +594,8 @@ s32 web_check_new_versions(u8 *branch, u8 *SN)
             if (results)
             {
                 printf("==productNo==: %s!\r\n", results->valuestring);
-                memcpy(gserial_num, results->valuestring, sizeof(gserial_num));
+                Iboot_SetSerial(results->valuestring);
+//              memcpy(gserial_num, results->valuestring, sizeof(gserial_num));
             }
             //生产时间，按年月日时分秒格式
             results = cJSON_GetObjectItem(cjson_device, "produceTime");
@@ -609,7 +612,8 @@ s32 web_check_new_versions(u8 *branch, u8 *SN)
                     //sprintf(buf, "%04d%02d", stm.tm_year, weeks);
                     sprintf(buf, "%02d%02d", stm.tm_year%100, weeks);
                     printf("===>PRODUCT TIME: %s!\r\n", buf);
-                    memcpy(gproduct_time, buf, sizeof(gproduct_time));
+                    Iboot_SetWeek(buf);
+//                  memcpy(gproduct_time, buf, sizeof(gproduct_time));
                     ret = 1;
                 }
             }

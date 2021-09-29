@@ -65,6 +65,7 @@
 #endif
 #include "dbug.h"
 #include "iboot_info.h"
+#include <xip.h>
 
 struct CopyRecord{
     u32 load_start_address;
@@ -117,9 +118,9 @@ void Iboot_IAP_SelectLoadProgam(void)
         Run_Iboot(RAM_SET_RUN_IBOOT);
     }
 
-#if (CFG_APP_RUNMODE == EN_FORM_FILE)
+#if (CFG_APP_RUNMODE == CN_RUN_FORM_FILE)
     if(false == Run_App(RUN_APP_FROM_FILE))//
-#elif (CFG_APP_RUNMODE == EN_DIRECT_RUN)
+#elif (CFG_APP_RUNMODE == CN_DIRECT_RUN)
     if(false == Run_App(RUN_APP_FROM_DIRECT))
 #else
     #error "error ： 没有定义APP加载方式！！";

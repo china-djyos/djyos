@@ -441,7 +441,7 @@ s32 ModuleInstall_XIP_FS(u32 opt, void *data,char * xip_target)
 // ============================================================================
 s32 ModuleInstall_XIP_IBOOT_FS(u32 opt, void *data)
 {
-    ModuleInstall_XIP_FS(opt,data,EN_XIP_IBOOT_TARGET);
+    ModuleInstall_XIP_FS(opt,data,CN_XIP_IBOOT_MOUNT);
     return 0;
 }
 

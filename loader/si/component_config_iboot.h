@@ -37,8 +37,8 @@
 //%$#@enum,true,false,
 #define CFG_UPDATEIBOOT_EN      false       //"是否支持在线更新Iboot"，
 #define CFG_START_APP_IS_VERIFICATION      true       //"启动app时是否执行校验功能"，
-//%$#@enum,EN_FORM_FILE,EN_DIRECT_RUN,
-#define  CFG_APP_RUNMODE  EN_DIRECT_RUN     //"APP运行模式",EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
+//%$#@enum,CN_RUN_FORM_FILE,CN_DIRECT_RUN,
+#define  CFG_APP_RUNMODE  CN_DIRECT_RUN     //"APP运行模式",CN_DIRECT_RUN=直接从flash中运行；CN_FORM_FILE=从文件系统加载到内存运行，
 //%$#@enum,VERIFICATION_NULL,VERIFICATION_CRC,VERIFICATION_MD5,VERIFICATION_SSL,
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL   //"APP校验方法",
 //%$#@num,0,100,
@@ -48,7 +48,6 @@
 //%$#@string,1,40,
 #define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //"待升级iboot默认存储路径"
 #define CFG_APP_UPDATE_NAME        "/yaf2/app.bin"            //"待升级app默认存储路径"
-#define CFG_FORCED_UPDATE_PATH     "/SD/djyapp.bin"           //"强制升级的文件路径"
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 

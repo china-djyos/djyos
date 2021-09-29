@@ -67,7 +67,6 @@ extern "C" {
 // IAP文件信息
 //
 struct __ifile{
-//  char *name; // 这个信息放置于object
     u32 cxbase; // 文件实际内容的偏置（文件头部信息存放于开始，存在一个偏置）。
     u32 sz; // 文件大小
     u32 status; // 文件状态；
@@ -91,7 +90,7 @@ struct __icontext{
 //
 struct __icore{
     void *vol; // 文件系统底层抽象，volume；
-    s16 bufsz; // 当大于零时，表示存在缓冲。需要原因，对于小数据量的多次写入会造成内部自带ECC的设备的ECC错误
+    s16 bufsz; // 当大于零时，表示存在缓冲。如无缓冲，频繁写入少量数据会造成内部自带ECC的设备的ECC错误
     u32 inhead; // 文件的一个区域内容是头部+部分内容，大小为bufsz；inhead这部分为部分内容的大小；
     s64 MStart;             // 在媒体中的起始unit,unit为单位；
     s64 ASize;               // 所在区域的总大小；Byte为单位；
@@ -108,11 +107,13 @@ struct __xip_drv{
     s32 (*xip_erase_media) (struct __icore *core, u32 bytes, u32 pos);
 };
 
-#define EN_FORM_FILE  0
-#define EN_DIRECT_RUN 1
+#define CN_RUN_FORM_FILE  0
+#define CN_DIRECT_RUN     1     //原名 EN_DIRECT_RUN
 
-#define EN_XIP_APP_TARGET     "xip-app"
-#define EN_XIP_IBOOT_TARGET   "xip-iboot"
+#define CN_XIP_APP_MOUNT        "xip-app"
+#define CN_XIP_APP_PATH         "/xip-app"
+#define CN_XIP_IBOOT_MOUNT      "xip-iboot"
+#define CN_XIP_IBOOT_PATH       "/xip-iboot"
 
 enum _ENUM_USE_CRC_
 {

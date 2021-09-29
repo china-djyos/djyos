@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -59,7 +59,7 @@
 //*******************************  Configure loader  ******************************************//
 #define CFG_UPDATEIBOOT_EN      false       //
 #define CFG_START_APP_IS_VERIFICATION      true       //
-#define  CFG_APP_RUNMODE  EN_DIRECT_RUN     //EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行
+#define  CFG_APP_RUNMODE  CN_DIRECT_RUN     //CN_DIRECT_RUN=直接从flash中运行；CN_FORM_FILE=从文件系统加载到内存运行
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL   //
 #define CFG_IBOOT_VERSION_SMALL       00        //xx.xx.__APP忽略
 #define CFG_IBOOT_VERSION_MEDIUM      00        //xx.__.xxAPP忽略
