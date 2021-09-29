@@ -79,8 +79,6 @@
 #include "include/Iboot_info.h"
 #if (CFG_RUNMODE_BAREAPP == 0)
 
-#define IAPBUF_SIZE   512
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
@@ -96,7 +94,7 @@ bool_t  runiboot(char *param)
 {
     s32 temp;
     temp = atoi(param);
-    Set_RunIbootFlag();
+    Iboot_SetRunIbootFlag();
 #if(CN_CPU_OPTIONAL_CACHE==1)
     Cache_CleanData();
     Cache_InvalidInst();
@@ -120,7 +118,7 @@ bool_t  runapp(char *param)
 {
     s32 temp;
     temp = atoi(param);
-    Set_RunAppFlag();
+    Iboot_SetRunAppFlag();
 #if(CN_CPU_OPTIONAL_CACHE==1)
     Cache_CleanData();
     Cache_InvalidInst();
@@ -162,7 +160,7 @@ bool_t  runapp(char *param)
 //    char *word_param, *next_param;
 //
 //    word_param = shell_inputs(param,&next_param);
-//    Iboot_SetRunIbootUpdateApp();
+//    Iboot_SetRunIbootAndUpdateApp();
 //    if(word_param == NULL)
 //    {
 //        set_upgrade_info(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
@@ -178,7 +176,7 @@ bool_t  runapp(char *param)
 //            set_upgrade_info(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
 //        }
 //    }
-//    Iboot_SetUpdateRunModet(1);      //启动后运行app
+//    Iboot_SetAfterUpdateRunMode(1);      //启动后运行app
 //
 //    runiboot(0);
 //
@@ -199,7 +197,7 @@ bool_t  runapp(char *param)
 //    char *word_param, *next_param;
 //
 //    word_param = shell_inputs(param,&next_param);
-//    Iboot_SetRunAppUpdateIboot();
+//    Iboot_SetRunAppAndUpdateIboot();
 //    if(word_param == NULL)
 //    {
 //        set_upgrade_info(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
@@ -215,82 +213,164 @@ bool_t  runapp(char *param)
 //            set_upgrade_info(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
 //        }
 //    }
-//    Iboot_SetUpdateRunModet(0);      //启动后运行app
+//    Iboot_SetAfterUpdateRunMode(0);      //启动后运行app
 //
 //    runapp(0);
 //
 //    return (TRUE);
 //}
 
+//----------------------------------------------------------------------------
+//功能: 把app从可寻址内存写入到xip文件系统中，由iboot调用，app头部需要在写入时修改的
+//      跟指纹相关的部分，已经修改好
+//参数: addr：内存起始地址，
+//      file_size：文件大小，
+//      file_name：app编译时的bin文件名，存在文件内部，不会因文件改名而被修改
+//返回: true: 成功； false ： 失败.
+//-----------------------------------------------------------------------------
+bool_t WriteAppFromRam(s8 *addr,u32 file_size, s8 *file_name)
+{
+    bool_t ret = false;
+    FILE *xipapp = 0;
+    u32 file_name_len,res, residue_size = (s32)file_size;
+    char *xipapppath;
+    char percentage_last = 0, percentage = 0;
+    file_name_len = strlen((const char *)file_name)+ strlen((const char *)CN_XIP_APP_PATH) + 2;
+    xipapppath = (char *)malloc(file_name_len);
+    if(xipapppath == NULL)
+        return ret;
+    sprintf(xipapppath, "%s/%s", CN_XIP_APP_PATH, file_name);
+    xipapp = fopen(xipapppath, "w+");
+    if(xipapp)
+    {
+        printf("open file success   %s ,\r\n", xipapppath);
+        printf("\r\nloading       ");
+        while(1)
+        {
+            percentage = 100 - ((char)((residue_size * 100)/ file_size));
+            if(percentage != percentage_last)
+            {
+                printf("\b\b\b%2d%%",percentage);
+                percentage_last = percentage;
+            }
+            if(residue_size > 1024)
+            {
+                res = fwrite(addr, 1, 1024, xipapp);
+                if(res != 1024)
+                    printf("write file xip-app error  \r\n ");
+                addr += res;
+                residue_size -= res;
+            }
+            else
+            {
+                res = fwrite(addr, 1, residue_size, xipapp);
+                if(res != residue_size)
+                    printf("write file xip-app error  \r\n ");
+                addr += res;
+                residue_size -= res;
+            }
+            if(residue_size == 0)
+            {
+                info_printf("IAP","app update success.\r\n");
+                Iboot_ClearRunIbootAndUpdateApp();
+                ret = true;
+                break;
+            }
+            if((s32)residue_size < 0)
+            {
+                info_printf("IAP","app update fail.\r\n");
+                break;
+            }
+        }
+        fclose(xipapp);
+        free(xipapppath);
+    }
+    else
+        printf("open file fail,\r\n");
+
+    return ret;
+}
+
+#define DjyosHeadSize    512
+#define IAPBUF_SIZE      DjyosHeadSize
+static u8 readbuffer[DjyosHeadSize];
+
 // ============================================================================
-// 功能：从文件中升级App，
-// 参数：无。
+// 功能：从文件中升级App，文件路径在iboot和app交互的96字节RAM中
+// 参数：production_time，生产时间缓冲区，年月星期，ASCII码，4字节
+//      production_num，生产序号缓冲区，一周内不重复，34进制，5字节
 // 返回：0（无意义）。
 // 备注
 // ============================================================================
-bool_t Iboot_UpdateApp(void)
+//原名：Iboot_UpdateApp
+bool_t WriteAppFromFile(u8 *production_time,u8* production_num)
 {
     char apppath[CN_UPDATE_PATH_LIMIT];
     char xipapppath[CN_UPDATE_PATH_LIMIT];
-    struct stat test_stat;
+    struct stat file_state;
+    struct AppHead *p_apphead;
+    struct ProductInfo *p_productinfo;
     FILE *srcapp = NULL;
     FILE *xipapp;
     s64 srcsize;
-    u8 buf[IAPBUF_SIZE];
     u32 readsize,res;
-    char *file;
+    bool_t ret;
+//  char *file;
     char percentage_last = 0, percentage = 0;
 
-    if((Iboot_GetUpdateSource() == SOURCE_FILE) && (Iboot_GetUpdateApp() == true))
+    Iboot_GetOtaFilename(apppath, CN_UPDATE_PATH_LIMIT);
+    if(apppath[0] != '/')       //路径须完整的全路径
     {
-        if(!stat(CFG_FORCED_UPDATE_PATH,&test_stat))
-            srcapp = fopen(CFG_FORCED_UPDATE_PATH, "r+");
-
-        if(srcapp == NULL)  //强制的升级文件不存在
+        printk(" file path error \r\n");
+        return false;
+    }
+    if(XIP_CheckAppInFile(apppath))
+    {
+        printk("verify file error \r\n");
+        return false;
+    }
+    memset(&file_state, 0, sizeof(struct stat));
+    if(stat(apppath,&file_state))
+    {
+        printk("get ota file fail\r\n");
+        return false;
+    }
+    srcapp = fopen(apppath, "r");
+    if(srcapp == NULL)
+    {
+        error_printf("IAP","file \"%s\" is not found.\r\n", apppath);
+        DJY_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
+    }
+    p_apphead = (struct AppHead *)readbuffer;
+    p_productinfo = (struct ProductInfo *)(p_apphead+1);
+    res = fread(readbuffer, 1, DjyosHeadSize,srcapp);
+    if(res == DjyosHeadSize)
+    {
+        srcsize = file_state.st_size;
+        if(srcsize  == p_apphead->app_bin_size)
         {
-            //取从APP传过来的APP保存路径
-            if(Iboot_GetMutualUpdatePath(apppath, sizeof(apppath)) == false)
+            info_printf("IAP","app update start...\r\n");
+            memcpy(p_productinfo->ProductionNumber, production_num, sizeof(p_productinfo->ProductionNumber));
+            memcpy(p_productinfo->ProductionTime, production_time, sizeof(p_productinfo->ProductionTime));
+//          file = strrchr(p_apphead->app_name, '/');
+            //把新APP的文件名连到 "/xip-app" 后面，形成xip文件路径
+            sprintf(xipapppath, "%s/%s", CN_XIP_APP_PATH, p_apphead->app_name);
+            if(!File_Format((const char *)CN_XIP_APP_PATH))
             {
-                error_printf("IAP","app path get fail  .\r\n");
-                DJY_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
-                return TRUE;
-            }
-            srcapp = fopen(apppath, "r");
-        }
-        else
-        {
-            strcpy(apppath, CFG_FORCED_UPDATE_PATH);
-            Iboot_SetUpdateRunModet(1);
-        }
-        if(srcapp != NULL)  //顺利打开升级文件
-        {
-            info_printf("IAP","app update start.\r\n");
-            file = strrchr(apppath, '/');
-            if(strlen(file) > 31)
-            {
-                error_printf("IAP","Filename is too long  %s ,\r\n",file);
-                DJY_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
-                return TRUE;
-            }
-            if(file)
-            {
-                //把新APP的文件名连到 "/xip-app" 后面，形成xip文件路径
-                sprintf(xipapppath, "%s%s", "/xip-app", file);
                 xipapp = fopen(xipapppath, "w+");
                 if(xipapp != NULL)
                 {
-                    stat(apppath,&test_stat);
-                    srcsize = test_stat.st_size;
-                    printf("\r\nloading       ");
+                    res = fwrite(readbuffer, 1, DjyosHeadSize, xipapp);
+                    srcsize -= res;
                     while(1)
                     {
-                        percentage = 100 - ((char)((srcsize * 100)/ test_stat.st_size));
+                        percentage = 100 - ((char)((srcsize * 100)/ file_state.st_size));
                         if(percentage != percentage_last)
                         {
                             printf("\b\b\b%2d%%",percentage);
                             percentage_last = percentage;
                         }
-                        readsize = fread(buf, 1, IAPBUF_SIZE, srcapp);
+                        readsize = fread(readbuffer, 1, IAPBUF_SIZE, srcapp);
                         if((readsize != IAPBUF_SIZE) && srcsize >= IAPBUF_SIZE)
                         {
                             printf("Iap read file %s error \n\r",apppath);
@@ -301,7 +381,7 @@ bool_t Iboot_UpdateApp(void)
                             printf("read file %s End \r\n ",apppath);
                         }
 
-                        res = fwrite(buf, 1, readsize, xipapp);
+                        res = fwrite(readbuffer, 1, readsize, xipapp);
                         if(res != readsize)
                         {
                             printf("write file xip-app error  \r\n ");
@@ -310,7 +390,7 @@ bool_t Iboot_UpdateApp(void)
                         if(srcsize == 0)
                         {
                             info_printf("IAP","App update success.  waiting to restart.\r\n");
-                            Iboot_ClearRunIbootUpdateApp();
+                            Iboot_ClearRunIbootAndUpdateApp();
                             break;
                         }
                     }
@@ -332,18 +412,23 @@ bool_t Iboot_UpdateApp(void)
             }
             else
             {
-                error_printf("IAP","App file error .\r\n");
-                DJY_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
+                printk("erase flash fail\r\n");
+                ret = false;
             }
         }
         else
         {
-            error_printf("IAP","file \"%s\" is not found.\r\n", apppath);
-            DJY_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
+            printk("file size is overlong\r\n");
         }
     }
+    else
+    {
+        printk("open ota file fail\r\n");
+        ret = false;
+    }
 
-    return TRUE;
+
+    return ret;
 }
 
 // ============================================================================
@@ -365,13 +450,13 @@ ptu32_t Iboot_AppUpdateIboot(void)
     char percentage_last = 0, percentage = 0;
 
     info_printf("IAP","iboot update start.\r\n");
-    if(Iboot_GetMutualUpdatePath(iapibootname, sizeof(iapibootname)) == false)
+    Iboot_GetOtaFilename(iapibootname, CN_UPDATE_PATH_LIMIT);
+    if(iapibootname[0] != '/')       //路径须完整的全路径
     {
-        error_printf("IAP","iboot name get fail  .\r\n");
+        printk(" file path error \r\n");
         DJY_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
-        return TRUE;
+        return false;
     }
-
     Update_and_run_mode = NULL;
 
     srciboot = fopen(iapibootname, "r+");
@@ -411,7 +496,7 @@ ptu32_t Iboot_AppUpdateIboot(void)
                if(srcsize == 0)
                {
                    info_printf("IAP","Iboot update success.\r\n");
-                   Iboot_ClearRunAppUpdateIboot();
+                   Iboot_ClearRunAppAndUpdateIboot();
                    break;
                }
            }
@@ -457,7 +542,7 @@ bool_t ModuleInstall_UpdateIboot(void)
     char run_mode = Iboot_GetRunMode();
     if(Iboot_UserUpdateIboot(0) == false)
     {
-        if(Iboot_GetUpdateSource() == SOURCE_FILE)
+        if(Iboot_GetUpdateSource() == CN_STORE_IN_FILE)
         {
             if(run_mode == 1)
             {

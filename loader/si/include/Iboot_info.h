@@ -94,39 +94,55 @@ enum productinfo    //获取产品信息的命令码
     APP_HEAD_CLASSIFY,           //产品分类
     APP_HEAD_TYPE,               //产品型号
     APP_HEAD_TYPE_CODE,          //产品型号数字编码
-    APP_HEAD_PRODUCTION_TIME,    //生产时间
+    APP_HEAD_PRODUCTION_WEEK,    //生产时间
     APP_HEAD_PRODUCTION_NUM,     //产品序号
     APP_HEAD_BOARD_TYPE,         //板件型号
     APP_HEAD_CPU_TYPE,           //cpu型号
 
     APP_HEAD_FINGER,                 //获取指纹号
 };
-//升级文件来源
-enum update_source
-{
-    SOURCE_FILE = 0,                //从文件系统
-    SOURCE_ADDR_MEMORY,             //从可寻址内存（可能是RAM，也可能是flash）
-    SOURCE_OTHER1,                  //其他，例如没有安装文件系统的spiflash
-    SOURCE_OTHER2                   //其他，例如没有安装文件系统的spiflash
-};
+//升级文件来源,原名：update_source
+//enum AppStoreMedia
+//{
+////  CN_STORE_IN_FILE = 0,         //从文件系统
+////  CN_STORE_IN_ADDRMEM,          //从可寻址内存（可能是RAM，也可能是flash）
+////  CN_STORE_IN_USER1,            //其他，例如没有安装文件系统的spiflash
+////  CN_STORE_IN_USER2             //其他，例如没有安装文件系统的spiflash
+//};
+#define CN_STORE_IN_FILE        0   //ota代码存储在文件中
+#define CN_STORE_IN_ADDRMEM     1   //ota代码存储在可寻址内存（可能是RAM，也可能是flash）
+#define CN_STORE_IN_USER1       2   //其他，例如没有安装文件系统的spiflash
+#define CN_STORE_IN_USER2       3   //其他，例如没有安装文件系统的spiflash
 
+//在交互信息中用于存储待升级APP信息的最大长度
+#define CN_APP_STORE_INFO_LIMIT 31
+//在交互信息中存待升级文件路径的最大长度,就是 up_info 的长度
 //符号原名： MutualPathLen
-#define CN_UPDATE_PATH_LIMIT   40   //在交互信息中存待升级文件路径的最大长度,就是 up_info 的长度
-union update_info{
-    struct ram_update_info {    //从可寻址内存升级时的信息结构
+#define CN_UPDATE_PATH_LIMIT    CN_APP_STORE_INFO_LIMIT
+//union update_info{
+//    struct ram_update_info {    //从可寻址内存升级时的信息结构
+//        s8 *start_add;
+//        u32 file_size;
+////      s8 production_time[4];     //生产时间，BCD码，年+星期（3字节）.
+////      s8 production_num[5];   //产品序号，
+////      s8 file_name[23];
+//    }ram;
+//    struct file_update_info {   //从文件系统升级时的信息结构
+////      s8 file_path[31];
+////      s8 production_time[4];     //生产时间，BCD码，年+星期（3字节）.
+////      s8 production_num[5];   //产品序号，
+//    }file;
+//    char file_path[CN_UPDATE_PATH_LIMIT];
+//    char info[CN_UPDATE_PATH_LIMIT];    //
+//    char pad[40];    //使结构的尺寸等于40字节
+//};
+union app_stored_info{
+    struct stored_inram {    //从可寻址内存升级时的信息结构
         s8 *start_add;
-        u32 file_size;
-        s8 production_time[4];     //生产时间，BCD码，年+星期（3字节）.
-        s8 production_num[5];   //产品序号，
-        s8 file_name[23];
+        u32 app_size;
     }ram;
-    struct file_update_info {   //从文件系统升级时的信息结构
-        s8 file_path[31];
-        s8 production_time[4];     //生产时间，BCD码，年+星期（3字节）.
-        s8 production_num[5];   //产品序号，
-    }file;
-
-    char info[CN_UPDATE_PATH_LIMIT];    //
+    char file_path[CN_UPDATE_PATH_LIMIT];
+    char pads[CN_APP_STORE_INFO_LIMIT];    //使结构的尺寸等于40字节
 };
 
 //#define IBOOT_APP_INFO_VER                 (1)
@@ -137,31 +153,31 @@ struct IbootAppInfo
                                              //其他值表示上电或复位
     u32 previou_reset;                       //复位前运行模式
     struct{
-        u32 hard_set_run_iboot    :1;   //指示启动后运行APP
-        u32 runmode_iboot         :1;   //硬件设置运行iboot
-        u32 restart_run_iboot     :1;   //指示启动后运行Iboot
-        u32 restart_run_app       :1;   //当前运行模式是iboot
-        u32 runmode_app           :1;   //当前运行模式为app
-        u32 Before_run_iboot      :1;   //之前运行模式为iboot
-        u32 Before_run_app        :1;   //之前运行模式为app
-        u32 run_app_form_file     :1;   //从文件中加载app
-        u32 run_iboot_update_app  :1;   //启动（Iboot）后，自动升级APP
-        u32 run_app_update_iboot  :1;   //启app后升级iboot自身
-        u32 update_from           :2;   //升级文件来源:0文件,1:内存,2—3待定义
-        u32 update_runmode        :1;   //升级完成后运行0.iboot --  1.app
-        u32 error_app_check       :1;   //校验出错
-        u32 error_app_no_file     :1;   //没有这个文件或文件格式错误
-        u32 error_app_size        :1;   //app文件大小错误
+        u32 hard_set_run_iboot    :1;   //0硬件要求强制运行iboot
+        u32 restart_run_iboot     :1;   //1指示启动后运行Iboot
+        u32 restart_run_app       :1;   //2指示启动后运行APP
+        u32 runmode_iboot         :1;   //3当前运行模式是iboot
+        u32 runmode_app           :1;   //4当前运行模式为app
+        u32 Before_run_iboot      :1;   //5之前运行模式为iboot
+        u32 Before_run_app        :1;   //6之前运行模式为app
+        u32 run_app_form_file     :1;   //7从文件中加载app
+        u32 run_iboot_and_update_app  :1;   //8启动（Iboot）后，自动升级APP
+        u32 run_app_and_update_iboot  :1;   //9启app后升级iboot自身
+        u32 update_from           :2;   //10~11升级文件来源:0文件,1:内存,2—3用户自定义
+        u32 after_update_runmode  :1;   //12升级完成后运行0.iboot --  1.app
+        u32 error_app_check       :1;   //13校验出错
+        u32 error_app_no_file     :1;   //14没有这个文件或文件格式错误
+        u32 error_app_size        :1;   //15 app文件大小错误
         //上电复位硬件标志0=无此硬件 1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
-        u32 power_on_flag         :2;
-        u32 hard_wdt_reset        :1;   //看门狗复位标志
-        u32 soft_reset_flag       :1;   //软件引起的内部复位
-        u32 reboot_flag           :1;   //CPU_Reboot 标志
-        u32 restart_system_flag   :1;   //restart_system标志
-        u32 hard_reset_flag       :1;   //外部硬件复位标志
-        u32 low_power_wakeup      :1;   //低功耗深度休眠中断唤醒标志
-        u32 call_fun_reset        :1;   //1=内部复位/重启是主动调用相关函数引发的；0=异常重启
-        u32 power_on_reset_flag   :1;   //上电复位标志，结合b18~19以及“上电标志”字判定
+        u32 power_on_flag         :2;   //16~17
+        u32 hard_wdt_reset        :1;   //18看门狗复位标志
+        u32 soft_reset_flag       :1;   //19软件引起的内部复位
+        u32 reboot_flag           :1;   //20 CPU_Reboot 标志
+        u32 restart_system_flag   :1;   //21 restart_system标志
+        u32 hard_reset_flag       :1;   //22外部硬件复位标志
+        u32 low_power_wakeup      :1;   //23低功耗深度休眠中断唤醒标志
+        u32 call_fun_reset        :1;   //24 1=内部复位/重启是主动调用相关函数引发的；0=异常重启
+        u32 power_on_reset_flag   :1;   //25上电复位标志，结合b16~17以及“上电标志”字判定
     }runflag;                           //运行标志
     u32  UserTag;                       //用户标志
     u32  reserved;                      //保留
@@ -183,8 +199,11 @@ struct IbootAppInfo
     u8   app_ver_small;                 //app 版本 xx.xx.__
     u8   app_ver_medium;                //app 版本 xx.__.xx
     u8   app_ver_large;                 //app 版本 __.xx.xx
-    char board_name[20];                //组件名
-    union update_info  up_info;
+    char board_name[20];                //板件名
+    s8   production_week[4];            //生产时间，两字节年+两字节星期组成，大端
+    s8   production_serial[5];          //一周内生产的产品串号，34进制，见文档
+//  union update_info  up_info;
+    union app_stored_info stored;       //保存APP的参数，例如起始地址、文件路径等
 };
 
 struct AppHead
@@ -234,8 +253,6 @@ struct ProductInfo
 };
 
 //bool_t Set_RunIbootUpdateIboot();
-void Iboot_SetUserTag(u32 UserTag);
-u32 Iboot_GetUserTag(void);
 bool_t Iboot_SetRebootFlag();
 bool_t Iboot_SetSoftResetFlag();
 bool_t Iboot_SetRestartAppFlag();
@@ -244,6 +261,18 @@ bool_t Iboot_SiIbootAppInfoInit();
 void Iboot_GetAppInfo(struct IbootAppInfo *get_info);
 //bool_t XIP_APPIsDebug(void );
 bool_t Iboot_SetAppVerFlag(u8 small, u8 medium, u8 large);
+void Iboot_SetUserTag(u32 UserTag);
+u32 Iboot_GetUserTag(void);
+void Iboot_SetWeek(s8 *week);
+bool_t Iboot_GetWeek(s8 *week);
+void Iboot_SetSerial(s8 *serial);
+bool_t Iboot_GetSerial(s8 *serial);
+void Iboot_SetOtaAddr(s8 *address, ptu32_t size);
+void Iboot_GetOtaAddr(s8 **address, ptu32_t *size);
+void Iboot_SetOtaUserInfo(s8 *address, ptu32_t size);
+void Iboot_GetOtaUserInfo(s8 *address, ptu32_t size);
+void Iboot_SetOtaFilename(s8 *filename, ptu32_t size);
+void Iboot_GetOtaFilename(s8 *filename, ptu32_t size);
 bool_t Iboot_SetAppBulidTime(u16 pyear,u8 pmon,u8 pday,u8 phour,u8 pmin,u8 psec);
 bool_t Iboot_GetPowerOnResentFlag(void);
 bool_t Iboot_GetCallFunResent();
@@ -256,10 +285,10 @@ bool_t Iboot_GetHeadResetFlag();
 bool_t Iboot_GetLowPowerWakeup();
 
 #if (CFG_RUNMODE_BAREAPP == 0)
-bool_t Iboot_GetProductInfo(void * ProductInfo);
-bool_t Iboot_GetAPP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_len);
+bool_t Iboot_GetProductInfo(enum productinfo type, char *date_buf, u32 buf_len);
+bool_t write_finger_to_iboot(s8 *time, s8 *num);
+bool_t read_finger_from_iboot(s8 *finger, u32 buf_len);
 bool_t Iboot_RewriteAppHeadFileInfo(void * apphead,const char*name,u32 filesize);
-bool_t Iboot_RewriteProductInfoNumTime(void * productinfo,const char* time,const char *num);
 bool_t XIP_AppFileCheckEasy(void * apphead);
 bool_t XIP_CheckAppInMemory(void * apphead);
 bool_t XIP_CheckAppInFile(const char *path);
@@ -268,29 +297,29 @@ u32  XIP_GetAppSize(void * apphead);
 u32 Iboot_GetAppSize(void * apphead);
 char*  Iboot_GetAppName(void * apphead);
 bool_t XIP_IsRamIbootFlag();
-bool_t set_upgrade_info(char* Path,int len);
+//bool_t set_upgrade_info(char* Path,int len);
 bool_t Run_Iboot(enum runibootmode mode);
 bool_t Run_App(enum runappmode mode);
 bool_t Iboot_UpdateToRun();
 bool_t Iboot_SetPreviouResetFlag();
-bool_t Set_RunIbootFlag();
-bool_t Set_RunAppFlag();
-bool_t Iboot_SetRunIbootUpdateApp();
-bool_t Iboot_SetRunAppUpdateIboot();
-bool_t Iboot_ClearRunIbootUpdateApp();
-bool_t Iboot_ClearRunAppUpdateIboot();
-bool_t Iboot_SetUpdateSource(enum update_source source);
-enum update_source Iboot_GetUpdateSource(void);
+bool_t Iboot_SetRunIbootFlag();
+bool_t Iboot_SetRunAppFlag();
+bool_t Iboot_SetRunIbootAndUpdateApp();
+bool_t Iboot_SetRunAppAndUpdateIboot();
+bool_t Iboot_ClearRunIbootAndUpdateApp();
+bool_t Iboot_ClearRunAppAndUpdateIboot();
+bool_t Iboot_SetUpdateSource(u32 source);
+u32 Iboot_GetUpdateSource(void);
 bool_t Iboot_GetRestartRunApp();
-char Iboot_GetRunAppFormFile();
+bool_t Iboot_IsLoadAppFromFile();
 char Iboot_GetRunMode(void);
 char Iboot_GetLastRunMode(void);
 bool_t Iboot_GetHeardSetRunIboot(void);
-bool_t Iboot_GetMutualUpdatePath(char *buf, u32 buf_len);
+//bool_t Iboot_GetMutualUpdatePath(char *buf, u32 buf_len);
 bool_t Iboot_GetUpdateApp(void);
 bool_t Iboot_GetUpdateIboot(void);
-bool_t Iboot_SetUpdateRunModet(u8 mode);
-char Iboot_GetUpdateRunModet(void);
+bool_t Iboot_SetAfterUpdateRunMode(u8 mode);
+char Iboot_GetAfterUpdateRunModet(void);
 u32  XIP_GetAppSize(void * apphead);
 u32  Iboot_GetAppHeadSize(void);
 bool_t Iboot_GetAppHead(void * apphead);
@@ -313,6 +342,7 @@ void CPU_RestartSystem(void);
 bool_t  runiboot(char *param);
 bool_t  runapp(char *param);
 
-bool_t Iboot_UpdateApp(void);
+bool_t WriteAppFromRam(s8 *addr,u32 file_size, s8 *file_name);
+bool_t WriteAppFromFile(u8 *production_time,u8* production_num);
 #endif
 #endif /* __IICBUS_H__ */

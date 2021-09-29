@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -93,7 +93,6 @@
 #define CFG_EFLASH_XIP_PART_START      6          //分区起始，填写块号，块号从0开始计算
 #define CFG_EFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块
 #define CFG_EFLASH_XIP_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
-#define CFG_EFLASH_XIPFSMOUNT_NAME   "xip-app"    //需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
 #define  CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP  true
 //*******************************  Configure ethernet phy lan8720  ******************************************//
 #define CFG_LAN8720_PHY_ADDRESS     0   //phy的物理地址，硬件一般设计为 0
@@ -128,7 +127,7 @@
 #define  CFG_MODULE_ENABLE_KERNEL_OBJECT_SYSTEM  true
 //*******************************  Configure loader  ******************************************//
 #define CFG_UPDATEIBOOT_EN      false       //
-#define  CFG_APP_RUNMODE  EN_DIRECT_RUN     //EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
+#define  CFG_APP_RUNMODE  CN_DIRECT_RUN     //CN_DIRECT_RUN=直接从flash中运行；CN_FORM_FILE=从文件系统加载到内存运行，
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL      //是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 #define CFG_IBOOT_VERSION       01        //Iboot发布版本号
 #define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //

@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -47,7 +47,7 @@
 #define  CFG_MODULE_ENABLE_KERNEL_OBJECT_SYSTEM  true
 //*******************************  Configure loader  ******************************************//
 #define CFG_UPDATEIBOOT_EN      false       //
-#define  CFG_APP_RUNMODE  EN_DIRECT_RUN     //EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
+#define  CFG_APP_RUNMODE  CN_DIRECT_RUN     //CN_DIRECT_RUN=直接从flash中运行；CN_FORM_FILE=从文件系统加载到内存运行，
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL      //是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 #define CFG_IBOOT_VERSION       01        //Iboot发布版本号
 #define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //
