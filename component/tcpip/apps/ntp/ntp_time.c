@@ -51,12 +51,21 @@ char *arr_ntp_server[] = {
     "us.pool.ntp.org",
 };
 
-int get_ntp_tiemstamp(u32 *ptimestamp, char *ntp_domain, int timeout_ms)
+//------------------------------------------------------------------------------
+//功能：从指定时间服务器获取格林威治时间，1970年来的秒数
+//参数：ptimestamp，接收时间的指针
+//      ntp_domain，时间服务器地址
+//      timeout_ms，超时时间，单位是ms
+//返回：0=成功；-1=建立socket错误；-2=socket选项设置错误；-3=内存分配失败；
+//      -4=找不到主机ntp_domain；-5=时间主机连接错误；-6=发送请求包失败
+//      -7=时间服务器响应超时
+//------------------------------------------------------------------------------
+static s32 get_ntp_tiemstamp(u32 *ptimestamp, char *ntp_domain, s32 timeout_ms)
 {
   u32 timestamp = 0;
-  int ret = 0;
-  int sockfd = -1, n; // Socket file descriptor and the n return result from writing/reading from the socket.
-  int portno = 123; // NTP UDP port number.
+  s32 ret = 0;
+  s32 sockfd = -1, n; // Socket file descriptor and the n return result from writing/reading from the socket.
+  s32 portno = 123; // NTP UDP port number.
   char* host_name = "us.pool.ntp.org"; // NTP server host-name.
   if (ntp_domain) {
       host_name = ntp_domain;
@@ -82,7 +91,7 @@ int get_ntp_tiemstamp(u32 *ptimestamp, char *ntp_domain, int timeout_ms)
       goto FUN_RET;
   }
 
-  int opt = 5*1000*mS;  //time out time
+  s32 opt = 5*1000*mS;  //time out time
   if (timeout_ms > 0) {
       opt = timeout_ms * mS;
   }
@@ -124,7 +133,7 @@ int get_ntp_tiemstamp(u32 *ptimestamp, char *ntp_domain, int timeout_ms)
       goto FUN_RET;
   }
 
-  int addrlen = sizeof(struct sockaddr);
+  s32 addrlen = sizeof(struct sockaddr);
   // Send it the NTP packet it wants. If n == -1, it failed.
   n = sendto(sockfd, (char*)&packet, sizeof(struct ntp_packet), 0, (struct sockaddr *)&serv_addr, addrlen);
   if ( n < 0 ) {
@@ -169,7 +178,12 @@ FUN_RET:
 }
 
 //-----------------------------------------------------------------------------
-
+//功能：获取时间戳，扫描arr_ntp_server中的9个时间服务器，从中获取时间，每个服务器扫描
+//      的等待超时时间设为1秒，总共等待 timeout_ms
+//参数：ptimestamp，接收时间的函数
+//      timeout_ms，超时时间，ms
+//返回：见 get_ntp_tiemstamp 函数
+//------------------------------------------------------------------------------
 s32 ntp_GetTimeStamp(u32 *ptimestamp, s32 timeout_ms)
 {
     u32 timestamp = 0;
@@ -197,9 +211,6 @@ s32 ntp_GetTimeStamp(u32 *ptimestamp, s32 timeout_ms)
     }
     return status;
 }
-
-s32  GetTimeStamp(u32 *timestamp_out, s32 timeout_ms);//删掉，用 ntp_GetTimeStamp 替换
-
 
 bool_t testntp(char *param)
 {
