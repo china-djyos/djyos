@@ -314,7 +314,7 @@ bool_t WriteAppFromFile(u8 *production_time,u8* production_num)
     FILE *xipapp;
     s64 srcsize;
     u32 readsize,res;
-    bool_t ret;
+    bool_t ret = false;
 //  char *file;
     char percentage_last = 0, percentage = 0;
 
@@ -324,7 +324,7 @@ bool_t WriteAppFromFile(u8 *production_time,u8* production_num)
         printk(" file path error \r\n");
         return false;
     }
-    if(XIP_CheckAppInFile(apppath))
+    if(!XIP_CheckAppInFile(apppath))
     {
         printk("verify file error \r\n");
         return false;
@@ -390,7 +390,8 @@ bool_t WriteAppFromFile(u8 *production_time,u8* production_num)
                         if(srcsize == 0)
                         {
                             info_printf("IAP","App update success.  waiting to restart.\r\n");
-                            Iboot_ClearRunIbootAndUpdateApp();
+//                            Iboot_ClearRunIbootAndUpdateApp();
+                            ret = true;
                             break;
                         }
                     }
@@ -401,8 +402,8 @@ bool_t WriteAppFromFile(u8 *production_time,u8* production_num)
                         error_printf("IAP","app update error .\r\n");
                         DJY_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
                     }
-                    else
-                        Iboot_UpdateToRun();
+//                    else
+//                        Iboot_UpdateToRun();
                 }
                 else
                 {

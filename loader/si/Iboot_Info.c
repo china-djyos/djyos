@@ -1188,7 +1188,7 @@ bool_t XIP_CheckAppInFile(const char *path)
                             ret = true;
                     }
                     else
-                        ret = true;
+                        ret = false;
                     break;
                 }
             }
