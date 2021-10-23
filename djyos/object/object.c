@@ -403,22 +403,22 @@ fnObjOps OBJ_GetOps(struct Object *ob)
     if(!ob)
         return (NULL);
 
-    return (ob->ops);
+    return (ob->ObjOps);
 }
 
 // ============================================================================
 // 功能：设置对象操作；
 // 参数：ob -- 对象；
-//      ops -- 对象操作；
+//      ObjOps -- 对象操作；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 OBJ_SetOps(struct Object *ob, fnObjOps ops)
+s32 OBJ_SetOps(struct Object *ob, fnObjOps ObjOps)
 {
     if(!ob)
         return (-1);
 
-    ob->ops = ops;
+    ob->ObjOps = ObjOps;
     return (0);
 }
 
@@ -680,7 +680,7 @@ s32 OBJ_ModuleInit(void)
     s_ptRootObject->name = "";
 //  s_ptRootObject->rights = S_IRWXUGO;       //根的默认权限是拥有所有权限
     s_ptRootObject->parent = NULL;
-    s_ptRootObject->ops = (fnObjOps)__OBJ_DefaultOps;
+    s_ptRootObject->ObjOps = (fnObjOps)__OBJ_DefaultOps;
     s_ptRootObject->BitFlag.temporary = 0;
     s_ptRootObject->BitFlag.inuse = 1;  //被设为当前目录，故初始化为1
     s_ptCurrentObject = s_ptRootObject;
@@ -1175,7 +1175,7 @@ struct Object *OBJ_MatchPath(const char *match, char **left)
 // 返回：新创建的最低一级的对象；
 // 备注：这里新建时，有对重名做判断；
 // ============================================================================
-struct Object *OBJ_BuildTempPath(struct Object *begin, fnObjOps ops,
+struct Object *OBJ_BuildTempPath(struct Object *begin, fnObjOps ObjOps,
                             ptu32_t Private, char *path)
 {
     char *segst, *name=NULL;
@@ -1218,8 +1218,8 @@ struct Object *OBJ_BuildTempPath(struct Object *begin, fnObjOps ops,
         else
         {
             // 这里的ops和represent是一个继承关系，即继承父节点的
-            // current = OBJ_AddChild(current, current->ops, current->represent, (const char*)name);
-            current = OBJ_NewChild(current, ops, Private, (const char*)name);
+            // current = OBJ_AddChild(current, current->ObjOps, current->represent, (const char*)name);
+            current = OBJ_NewChild(current, ObjOps, Private, (const char*)name);
             if(!current)
             {
                 printf("\r\n: dbug : object :  memory out(%s). ", __FUNCTION__);
@@ -1317,13 +1317,13 @@ struct Object *OBJ_GetRoot(void)
 // ============================================================================
 // 功能：给对象新建一个prev关系对象；
 // 参数：loc -- 对象；为空，则为当前设置对象；
-//      ops -- 对象操作方法；（NULL，继承父方法；-1，使用缺省方法；）
+//      ObjOps -- 对象操作方法；（NULL，继承父方法；-1，使用缺省方法；）
 //      ObjPrivate -- 对象私有数据；
 //      name -- 对象名字；为空，则使用系统默认名；
 // 返回：成功（对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *OBJ_NewPrev(struct Object *loc, fnObjOps ops,
+struct Object *OBJ_NewPrev(struct Object *loc, fnObjOps ObjOps,
                             ptu32_t represent, const char *name)
 {
     struct Object *prev;
@@ -1356,7 +1356,11 @@ struct Object *OBJ_NewPrev(struct Object *loc, fnObjOps ops,
 
     prev = __OBJ_NewObj();
     if(!prev)
+    {
+        if(name)
+            free(cname);
         return (NULL);
+    }
 
     OBJ_Lock();
     prev->parent = loc->parent;
@@ -1366,19 +1370,19 @@ struct Object *OBJ_NewPrev(struct Object *loc, fnObjOps ops,
     prev->BitFlag.inuse = 0;
 
 
-    if(ops)
+    if(ObjOps)
     {
-        if(-1==(s32)ops)
-            prev->ops = (fnObjOps)__OBJ_DefaultOps;
+        if(-1==(s32)ObjOps)
+            prev->ObjOps = (fnObjOps)__OBJ_DefaultOps;
         else
-            prev->ops = ops;
+            prev->ObjOps = ObjOps;
     }
     else
     {
         if(prev->parent)
-            prev->ops = prev->parent->ops;
+            prev->ObjOps = prev->parent->ObjOps;
         else
-            prev->ops = (fnObjOps)__OBJ_DefaultOps;
+            prev->ObjOps = (fnObjOps)__OBJ_DefaultOps;
     }
 
 //  prev->rights = prev->parent->rights;
@@ -1399,13 +1403,13 @@ struct Object *OBJ_NewPrev(struct Object *loc, fnObjOps ops,
 // ============================================================================
 // 功能：为对象新建一个next关系对象；
 // 参数：loc -- 对象；为空，则为当前设置对象；
-//      ops -- 对象操作方法；（NULL，继承父方法；-1，使用缺省方法；）
+//      ObjOps -- 对象操作方法；（NULL，继承父方法；-1，使用缺省方法；）
 //      ObjPrivate -- 对象私有数据；
 //      name -- 对象名字。为空，则使用系统默认名；
 // 返回：成功（对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *OBJ_NewNext(struct Object *loc, fnObjOps ops,
+struct Object *OBJ_NewNext(struct Object *loc, fnObjOps ObjOps,
                         ptu32_t represent, const char *name)
 {
     struct Object *next;
@@ -1438,7 +1442,11 @@ struct Object *OBJ_NewNext(struct Object *loc, fnObjOps ops,
 
     next = __OBJ_NewObj();
     if(!next)
+    {
+        if(name)
+            free(cname);
         return (NULL);
+    }
 
     OBJ_Lock();
 
@@ -1447,19 +1455,19 @@ struct Object *OBJ_NewNext(struct Object *loc, fnObjOps ops,
     next->ObjPrivate = represent;
     next->BitFlag.temporary = 0;
     next->BitFlag.inuse = 0;
-    if(ops)
+    if(ObjOps)
     {
-        if(-1==(s32)ops)
-            next->ops = (fnObjOps)__OBJ_DefaultOps;
+        if(-1==(s32)ObjOps)
+            next->ObjOps = (fnObjOps)__OBJ_DefaultOps;
         else
-            next->ops = ops;
+            next->ObjOps = ObjOps;
     }
     else
     {
         if(next->parent)
-            next->ops = next->parent->ops;
+            next->ObjOps = next->parent->ObjOps;
         else
-            next->ops = (fnObjOps)__OBJ_DefaultOps;
+            next->ObjOps = (fnObjOps)__OBJ_DefaultOps;
     }
 
 //  next->rights = next->parent->rights;
@@ -1481,13 +1489,13 @@ struct Object *OBJ_NewNext(struct Object *loc, fnObjOps ops,
 // ============================================================================
 // 功能：新建子对象；
 // 参数：parent -- 父对象；如果未设置，默认为当前设置对象；
-//      ops -- 对象方法;（NULL，继承父方法；-1，使用缺省方法；）
+//      ObjOps -- 对象方法;（NULL，继承父方法；-1，使用缺省方法；）
 //      ObjPrivate -- 对象私有数据；
 //      name -- 对象名；不可为系统默认名；（系统默认名用于未设置对象名的逻辑）
 // 返回：成功（新建子对象）；失败（NULL）；
 // 备注：新建的子对象，放置在子对象链的末尾；
 // ============================================================================
-struct Object *OBJ_NewChild(struct Object *parent, fnObjOps ops,
+struct Object *OBJ_NewChild(struct Object *parent, fnObjOps ObjOps,
                             ptu32_t ObjPrivate, const char *name)
 {
     struct Object *child;
@@ -1517,7 +1525,11 @@ struct Object *OBJ_NewChild(struct Object *parent, fnObjOps ops,
 
     child = __OBJ_NewObj();
     if(!child)
+    {
+        if(name)
+            free(cname);
         return (NULL);
+    }
 
     OBJ_Lock();
 
@@ -1527,16 +1539,16 @@ struct Object *OBJ_NewChild(struct Object *parent, fnObjOps ops,
     child->BitFlag.temporary = 0;
     child->BitFlag.inuse = 0;
 
-    if(ops)
+    if(ObjOps)
     {
-        if(-1==(s32)ops)
-            child->ops = (fnObjOps)__OBJ_DefaultOps;
+        if(-1==(s32)ObjOps)
+            child->ObjOps = (fnObjOps)__OBJ_DefaultOps;
         else
-            child->ops = ops;
+            child->ObjOps = ObjOps;
     }
     else
     {
-        child->ops = parent->ops;
+        child->ObjOps = parent->ObjOps;
     }
 
 //  child->rights = parent->rights;
@@ -1560,13 +1572,13 @@ struct Object *OBJ_NewChild(struct Object *parent, fnObjOps ops,
 }
 // ============================================================================
 // 功能：新建一个对象，其处于loc对象所处队列的首；
-// 参数： ops -- 对象方法；（NULL，继承父方法；-1，使用缺省方法；）
+// 参数： ObjOps -- 对象方法；（NULL，继承父方法；-1，使用缺省方法；）
 //      ObjPrivate -- 对象私有数据；
 //      name -- 对象名；不可为系统默认名；（系统默认名用于未设置对象名的逻辑）
 // 返回：成功（新建子对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *OBJ_NewHead(struct Object *loc, fnObjOps ops,
+struct Object *OBJ_NewHead(struct Object *loc, fnObjOps ObjOps,
                            ptu32_t ObjPrivate, const char *name)
 {
     struct Object *head;
@@ -1599,7 +1611,11 @@ struct Object *OBJ_NewHead(struct Object *loc, fnObjOps ops,
 
     head = __OBJ_NewObj();
     if(!head)
+    {
+        if(name)
+            free(cname);
         return (NULL);
+    }
 
     OBJ_Lock();
 
@@ -1608,19 +1624,19 @@ struct Object *OBJ_NewHead(struct Object *loc, fnObjOps ops,
     head->ObjPrivate = ObjPrivate;
     head->BitFlag.temporary = 0;
     head->BitFlag.inuse = 0;
-    if(ops)
+    if(ObjOps)
     {
-        if(-1==(s32)ops)
-            head->ops = (fnObjOps)__OBJ_DefaultOps;
+        if(-1==(s32)ObjOps)
+            head->ObjOps = (fnObjOps)__OBJ_DefaultOps;
         else
-            head->ops = ops;
+            head->ObjOps = ObjOps;
     }
     else
     {
         if(head->parent)
-            head->ops = head->parent->ops;
+            head->ObjOps = head->parent->ObjOps;
         else
-            head->ops = (fnObjOps)__OBJ_DefaultOps;
+            head->ObjOps = (fnObjOps)__OBJ_DefaultOps;
     }
 
 //  head->rights = head->parent->rights;
@@ -2468,12 +2484,12 @@ FAIL:
 // 功能：在对象parent之下新建子对象集合
 // 参数：parent -- 对象；
 //      name -- 对象集合点名 ；
-//      ops -- 对象集合点的操作方式（NULL，继承父方法；-1，使用缺省方法；）；
+//      ObjOps -- 对象集合点的操作方式（NULL，继承父方法；-1，使用缺省方法；）；
 //      ObjPrivate -- 对象私有数据；
 // 返回：成功（新建的子对象集合）；失败（NULL）；
 // 备注：
 // ============================================================================
-//struct Object *obj_newchild_set(struct Object *parent, const char *name, fnObjOps ops,
+//struct Object *obj_newchild_set(struct Object *parent, const char *name, fnObjOps ObjOps,
 //                             ptu32_t ObjPrivate)
 //{
 //    struct Object *child_set;
@@ -2510,16 +2526,16 @@ FAIL:
 //    child_set->parent = parent;
 //    child_set->child = NULL;
 //    child_set->ObjPrivate = ObjPrivate;
-//    if(ops)
+//    if(ObjOps)
 //    {
-//        if(-1==(s32)ops)
-//            child_set->ops = (fnObjOps)__OBJ_DefaultOps;
+//        if(-1==(s32)ObjOps)
+//            child_set->ObjOps = (fnObjOps)__OBJ_DefaultOps;
 //        else
-//            child_set->ops = ops;
+//            child_set->ObjOps = ObjOps;
 //    }
 //    else
 //    {
-//        child_set->ops = parent->ops;
+//        child_set->ObjOps = parent->ObjOps;
 //    }
 //
 ////  child_set->rights = child_set->parent->rights;

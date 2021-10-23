@@ -283,7 +283,8 @@ bool_t PIO_Configure(const Pin *Pin, u32 num)
                 Pin->O_TYPER,Pin->O_SPEEDR,Pin->PUPD);
         if(flag == false)
             return false;
-        GPIO_AFSet(Pin->PORT,Pin->Pinx,Pin->AF);
+        if(Pin->MODER == GPIO_MODE_AF)
+            GPIO_AFSet(Pin->PORT,Pin->Pinx,Pin->AF);
         Pin++;
         num--;
     }
@@ -315,7 +316,7 @@ unsigned char PIO_Get( const Pin *Pin )
 }
 
 
-
+//以下代码为microPython提供支持。
 u32 transformation(char *str)
 {
     if(strcmp(str,"GPIO_A")==0)

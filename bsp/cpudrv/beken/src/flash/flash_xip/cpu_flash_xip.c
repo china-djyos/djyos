@@ -114,7 +114,6 @@
 // ============================================================================
 extern struct NorDescr *nordescription;
 u8 is_protect = 1;   //1 -- 有写保护，0 -- 无写保护
-extern void flash_protection_op(UINT8 mode, PROTECT_TYPE type);
 //extern bool_t flash_is_install(void);
 extern u32 gc_ProductSn;
 extern void calc_crc(u32 *buf, u32 packet_num);
@@ -125,6 +124,7 @@ extern void calc_crc(u32 *buf, u32 packet_num);
 //extern s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...);
 extern s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv);
 //extern void djy_flash_read_crc(uint32_t address, void *data, uint32_t size);
+extern void flash_protection_op(UINT8 mode, PROTECT_TYPE type);
 s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos);
 s32 xip_flash_read(struct __icore *core, u8 *data, u32 bytes, u32 pos);
 s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos);

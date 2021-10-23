@@ -50,6 +50,13 @@ void Sys_ModuleInit(void)
     ModuleInstall_dev();    // 安装设备文件系统；
     //end device file system
 
+    //loader
+    #if !defined (CFG_RUNMODE_BAREAPP)
+    extern bool_t ModuleInstall_UpdateIboot(void);
+    ModuleInstall_UpdateIboot( );
+    #endif
+    //end loader
+
     //message queue
     extern bool_t ModuleInstall_MsgQ(void);
     ModuleInstall_MsgQ ( );

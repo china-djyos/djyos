@@ -109,11 +109,11 @@ struct filesystem{
 
 struct FsCore
 {
-    struct Object *pTarget;        // 挂载点
-    void *MediaInfo;          // 文件系统设备信息
-    void *MediaDrv;           // 文件系统设备驱动
+    struct Object *pTarget;     // 挂载点
+    void *MediaInfo;            // 文件系统设备信息
+    void *MediaDrv;             // 文件系统设备驱动
     void *pCore;                // 具体的文件系统控制信息
-    struct Object *MountBak;       // 用于隐藏原目录内容，如果 flags 带 MS_DIRECTMOUNT
+    struct Object *MountBak;    // 用于隐藏原目录内容，如果 flags 带 MS_DIRECTMOUNT
                                 // 参数，则置空
     struct filesystem *pFsType; // 所属文件系统类型
     u32 InstallWay;             // 文件系统的安装方式，如MS_INSTALLCREAT；

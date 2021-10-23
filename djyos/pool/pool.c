@@ -125,8 +125,6 @@ static struct dListNode s_tPoolHead;        // 把所有内存池控制块串起来
 //static struct Object *s_ptPoolObject;
 //static FILE *s_ptPoolFp;
 static struct MemCellPool *s_ptPoolCtrl;    // 管理内存池控制块本身的内存池
-struct MemCellPool s_tObjectPool; // 管理对象控制块的内存池
-struct MemCellPool g_tObjPortPool; // 管理文件控制块的内存池
 
 s32 Mb_PoolObjOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);

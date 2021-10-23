@@ -77,10 +77,10 @@ typedef s32 (*fnObjOps)(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
 //不同命令参数含义：
 //-----------------CN_OBJ_CMD_OPEN---------------------------------
 //功能：打开文件（目录）
-// opsTarget：struct obj *，待打开的path中已经在Object队列中的最后一个Object
+// opsTarget：struct Object *，待打开的path中已经在Object队列中的最后一个Object
 // OpsArgs1：struct objhandle *，返回结果。
-// OpsArgs2：u64*，低32位是open调用的oflag参数，高32位仅当 cmd == O_CREAT 时有用，
-//        表示文件访问权限， S_ISUID 系列常数，stat.h中定义
+// OpsArgs2：u64*，低32位是open调用的 oflag(O_CREAT等) 参数，高32位仅当 cmd == O_CREAT
+//         时有用，表示文件访问权限， S_ISUID 系列常数，stat.h中定义
 // OpsArgs3：path中opsTarget后的部分，可能是NULL。
 // 返回：CN_OBJ_CMD_UNSUPPORT 或 CN_OBJ_CMD_EXECUTED
 //-----------------CN_OBJ_CMD_READ---------------------------------
@@ -107,7 +107,7 @@ typedef s32 (*fnObjOps)(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
 //----------------CN_OBJ_CMD_SHOW----------------------------------
 //功能：显示文件（目录）内容，注意，目录的内容，不是子目录列表，可能是目录的说明，
 //      也可能是其他内容，由CN_OBJ_CMD_SHOW目录的实现者决定
-// opsTarget：struct obj * 类型，被显示的object指针
+// opsTarget：struct Object * 类型，被显示的object指针
 // OpsArgs1：无用。
 // OpsArgs2：显示参数，由具体实现者定义。
 // OpsArgs3：path中opsTarget后的部分，可能是NULL。
@@ -128,14 +128,14 @@ typedef s32 (*fnObjOps)(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
 // 返回：CN_OBJ_CMD_UNSUPPORT 或 CN_OBJ_CMD_EXECUTED
 //----------------CN_OBJ_CMD_DELETE----------------------------------
 //功能：删除文件
-// opsTarget：struct obj* 类型，被操作的对象指针
+// opsTarget：struct Object* 类型，被操作的对象指针
 // OpsArgs1：无用。
 // OpsArgs2：无用。
 // OpsArgs3：path中opsTarget后的部分，可能是NULL。
 // 返回：CN_OBJ_CMD_SUCCESS 或 CN_OBJ_CMD_FALSE 或 CN_OBJ_CMD_UNSUPPORT
 //----------------CN_OBJ_CMD_STAT----------------------------------
 //功能：取文件状态
-// opsTarget：struct obj *，被操作的对象指针
+// opsTarget：struct Object *，被操作的对象指针
 // OpsArgs1：struct stat *，保存操作结果的结构指针
 // OpsArgs2：无用。
 // OpsArgs3：path中opsTarget后的部分，可能是NULL。
@@ -149,7 +149,7 @@ typedef s32 (*fnObjOps)(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
 // 返回：CN_OBJ_CMD_SUCCESS 或 CN_OBJ_CMD_FALSE 或 CN_OBJ_CMD_UNSUPPORT
 //----------------CN_OBJ_CMD_READDIR----------------------------------
 //功能：读取目录
-// opsTarget：struct obj* 类型，被操作的对象指针
+// opsTarget：struct Object* 类型，被操作的对象指针
 // OpsArgs1：DIR *，保存操作结果的结构指针
 // OpsArgs2：无用。
 // OpsArgs3：无用
@@ -163,9 +163,9 @@ typedef s32 (*fnObjOps)(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
 // 返回：CN_OBJ_CMD_SUCCESS 或 CN_OBJ_CMD_FALSE 或 CN_OBJ_CMD_UNSUPPORT
 
 //对象操作命令定义，新增不能超过CN_OBJ_CMD_USER，否则整个系统需要重新编译。
-//16bit，fnObjOps长度参数cmd是32位数，其中16~23位表示命令码所需的参数长度。
+//16bit，fnObjOps参数cmd是32位数，其中16~23位表示命令码所需的参数长度。
 //参数长度用于向内核态 copy 参数时使用，用户定义命令码时无须关心。24~31bit用作标志
-#define CN_TARGET_IS_OBJ      (1<<31)               //fnObjOps 函数的 opsTarget 参数是对象
+#define CN_TARGET_IS_OBJ      (1<<31)               //fnObjOps 函数的 opsTarget 参数是object
 #define CN_TARGET_IS_HDL      (0<<31)               //fnObjOps 函数的 opsTarget 参数是 handle
 
 #define CN_OBJ_CMD_MSK        0xffff                // cmd占用低16bit
@@ -211,7 +211,7 @@ struct Object
     char *name;             // 对象名；当用于文件系统为文件名或目录名，用于设备是
                             //设备名，用于gui则是窗口名；
     ptu32_t ObjPrivate;     // 对象私有数据；可以是一个数，也可以指向描述对象的结构；
-    fnObjOps ops;           // 对象方法；即对象的操作；
+    fnObjOps ObjOps;        // 对象方法；即对象的操作；
     struct __ObjBitFlag BitFlag;    //对象属性位标志
     list_t handles;         // 对象句柄链表；对象被打开，系统会给用户分配一个句柄；
                             // 句柄的数据结构接入此链表；

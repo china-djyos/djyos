@@ -90,8 +90,8 @@ struct __icontext{
 //
 struct __icore{
     void *vol; // 文件系统底层抽象，volume；
-    s16 bufsz; // 当大于零时，表示存在缓冲。如无缓冲，频繁写入少量数据会造成内部自带ECC的设备的ECC错误
-    u32 inhead; // 文件的一个区域内容是头部+部分内容，大小为bufsz；inhead这部分为部分内容的大小；
+    s16 bufsz; // 文件缓冲，须大于APP的文件头。
+    u32 inhead; // 文件buffer size 须大于文件头部，inhead=超出部分尺寸
     s64 MStart;             // 在媒体中的起始unit,unit为单位；
     s64 ASize;               // 所在区域的总大小；Byte为单位；
     struct Object *root; // IAP文件系统接入的文件系统的根；

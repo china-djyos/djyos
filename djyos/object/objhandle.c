@@ -776,9 +776,9 @@ struct objhandle *__open(char *path, u32 flags, u32 mode)
 
 //  __Handle_UnlockSys();
         //todo:权限管理暂未实现。框架：调用stat，再判断当前st_mode是否满足flags权限
-//      StatResult = ob->ops(CN_OBJ_CMD_STAT, (ptu32_t)ob, &statbuf, uncached, full);
+//      StatResult = ob->ObjOps(CN_OBJ_CMD_STAT, (ptu32_t)ob, &statbuf, uncached, full);
 //  if(权限满足要求)
-    run = ob->ops((void *)ob, CN_OBJ_CMD_OPEN,
+    run = ob->ObjOps((void *)ob, CN_OBJ_CMD_OPEN,
                                 (ptu32_t)&hdl,(ptu32_t)&OpenMode,(ptu32_t)uncached);
 
     if( (run == CN_OBJ_CMD_EXECUTED) && (hdl != NULL) )
@@ -803,7 +803,7 @@ s32 __close(struct objhandle *hdl)
     s32 res;
     struct Object *ob = hdl->HostObj;
 
-    res = ob->ops((void *)hdl, CN_OBJ_CMD_CLOSE, 0, 0, 0);
+    res = ob->ObjOps((void *)hdl, CN_OBJ_CMD_CLOSE, 0, 0, 0);
     if(res == CN_OBJ_CMD_TRUE)
     {
         Handle_Delete(hdl);
@@ -882,7 +882,7 @@ s32 remove(const char *path)
 
     OBJ_Lock();
     __Handle_UnlockSys();
-    res = ob->ops((void *)ob, CN_OBJ_CMD_DELETE, 0, 0, (ptu32_t)uncached);
+    res = ob->ObjOps((void *)ob, CN_OBJ_CMD_DELETE, 0, 0, (ptu32_t)uncached);
     OBJ_Unlock();
     if(res == CN_OBJ_CMD_TRUE)
     {
@@ -920,7 +920,7 @@ ssize_t read(s32 fd, void *buf, size_t size)
 
     if(Handle_IsReadable(hdl))
     {
-        res = hdl->HostObj->ops((void *)hdl, CN_OBJ_CMD_READ, (ptu32_t)&result,
+        res = hdl->HostObj->ObjOps((void *)hdl, CN_OBJ_CMD_READ, (ptu32_t)&result,
                                 (ptu32_t)buf, (ptu32_t)size);
         if(res == CN_OBJ_CMD_EXECUTED)
             return (result);
@@ -957,7 +957,7 @@ ssize_t write(s32 fd, const void *buf, size_t count)
 
     if(Handle_IsWritable(hdl))
     {
-        res = hdl->HostObj->ops((void *)hdl, CN_OBJ_CMD_WRITE, (ptu32_t)&result,
+        res = hdl->HostObj->ObjOps((void *)hdl, CN_OBJ_CMD_WRITE, (ptu32_t)&result,
                                 (ptu32_t)buf, (ptu32_t)count);
         if(res == CN_OBJ_CMD_EXECUTED)
             return (result);
@@ -995,7 +995,7 @@ off_t lseek(s32 fd, off_t offset, s32 whence)
     if(Handle_FlagIsDirectory(hdl->flags))
         return (-1); // 目录不可以seek
 
-    res = hdl->HostObj->ops((void *)hdl, CN_OBJ_CMD_SEEK, (ptu32_t)&result,
+    res = hdl->HostObj->ObjOps((void *)hdl, CN_OBJ_CMD_SEEK, (ptu32_t)&result,
                              (ptu32_t)&offset, whence);
     if(res == CN_OBJ_CMD_EXECUTED)
         return (result);
@@ -1021,7 +1021,7 @@ s32 fsync(s32 fd)
         return (-1);
     }
 
-    res = hdl->HostObj->ops((void *)hdl, CN_OBJ_CMD_SYNC, 0, 0, 0);
+    res = hdl->HostObj->ObjOps((void *)hdl, CN_OBJ_CMD_SYNC, 0, 0, 0);
     if(res == CN_OBJ_CMD_TRUE)
         return (0);
     else
@@ -1047,7 +1047,7 @@ off_t tell(s32 fd)
         return (-1);
     }
 
-    res = hdl->HostObj->ops((void *)hdl, CN_OBJ_CMD_TELL, (ptu32_t)&offset,0,0);
+    res = hdl->HostObj->ObjOps((void *)hdl, CN_OBJ_CMD_TELL, (ptu32_t)&offset,0,0);
     if(res == CN_OBJ_CMD_EXECUTED)
         return (offset);
     else
@@ -1073,7 +1073,7 @@ s32 fstat(s32 fd, struct stat *buf)
     if(!hdl)
         return (-1);
 
-    res = hdl->HostObj->ops((void *)(hdl->HostObj), CN_OBJ_CMD_STAT,
+    res = hdl->HostObj->ObjOps((void *)(hdl->HostObj), CN_OBJ_CMD_STAT,
                                     (ptu32_t)buf, 0, 0);
     if(res == CN_OBJ_CMD_TRUE)
         return 0;
@@ -1105,7 +1105,7 @@ s32 stat(const char *path, struct stat *buf)
     if(!uncache)
         uncache = ""; // 全部路径都已经缓存时，设置为空字符串（即'\0'），用于与fstat逻辑区分；
 
-    res = (s32)ob->ops((void *)ob, CN_OBJ_CMD_STAT, (ptu32_t)buf, 0,
+    res = (s32)ob->ObjOps((void *)ob, CN_OBJ_CMD_STAT, (ptu32_t)buf, 0,
                                     (ptu32_t)uncache);
     OBJ_DutyDown(ob);
     if(res == CN_OBJ_CMD_TRUE)
@@ -1133,7 +1133,7 @@ s32 ftruncate(s32 fd, off_t length)
     if(!hdl)
         return (-1);
 
-    res = hdl->HostObj->ops((void *)hdl, CN_OBJ_CMD_TRUNCATE, 0,
+    res = hdl->HostObj->ObjOps((void *)hdl, CN_OBJ_CMD_TRUNCATE, 0,
                                 (ptu32_t)&length, 0);
     if(res == CN_OBJ_CMD_TRUE)
         return (0);
@@ -1207,7 +1207,7 @@ struct dirent *readdir(DIR *dir)
     hdl = (struct objhandle*)(dir->__fd); // 目录的上下文
 
     ob = hdl->HostObj;      // 目录的节点
-    res = ob->ops((void *)ob, CN_OBJ_CMD_READDIR, (ptu32_t)&dir->__ptr, 0, (ptu32_t)hdl);
+    res = ob->ObjOps((void *)ob, CN_OBJ_CMD_READDIR, (ptu32_t)&dir->__ptr, 0, (ptu32_t)hdl);
     if(res == CN_OBJ_CMD_TRUE)
         return (struct dirent*)&(dir->__ptr);
     else
@@ -1361,14 +1361,15 @@ s32 fcntl(s32 fd, s32 cmd, ...)
     {
         if((cmd == F_DUPFD)||(cmd == F_GETFD)||(cmd == F_GETFL)||(cmd == F_GETOWN))
         {
-            res = hdl->HostObj->ops((void *)hdl, CN_OBJ_FCNTL,0,
+            res = hdl->HostObj->ObjOps(
+                                    (void *)hdl, CN_OBJ_FCNTL,0,
                                     (ptu32_t)cmd,(ptu32_t)&result);
             if(res == CN_OBJ_CMD_UNSUPPORT)
                 result = -1;
         }
         else
         {
-            res = hdl->HostObj->ops((void *)hdl, CN_OBJ_FCNTL,0,
+            res = hdl->HostObj->ObjOps((void *)hdl, CN_OBJ_FCNTL,0,
                                     (ptu32_t)cmd,(ptu32_t)&args);
             if((res == CN_OBJ_CMD_UNSUPPORT) || (res == CN_OBJ_CMD_FALSE))
                 result = -1;
@@ -1423,7 +1424,7 @@ s32 ioctl(s32 fd,s32 request, ... )
         return (0);
     va_start(args, request);
 
-    res = hdl->HostObj->ops((void *)hdl, CN_OBJ_IOCTL,0,
+    res = hdl->HostObj->ObjOps((void *)hdl, CN_OBJ_IOCTL,0,
                                     (ptu32_t)request,(ptu32_t)&args );
     va_end (args);
     if((res == CN_OBJ_CMD_TRUE) || (res == CN_OBJ_CMD_EXECUTED))
