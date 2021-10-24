@@ -705,6 +705,7 @@ static struct FileRsc *__Efs_NewFile(struct FileRsc* fp,struct Object *ob,const 
     fill_little_32bit(file_info_buf + offset, FILE_STARTBLOCK_OFF >> 2,start_block);      //文件内容起始块
     fill_little_32bit(file_info_buf + offset, FILE_MAXSIZE_OFF >> 2, dwFileMaxSize);      //文件最大大小
     fill_little_32bit(file_info_buf + offset, FILE_FILESIZE_OFF >> 2, 0xc0000000);        //因为是新建的文件，文件大小先写0
+                                                                                          //最高两位分别是奇数位和偶数位的奇校验
     memcpy(file_info_buf + offset + FILE_VERIFITY_OFF, "easyfile", 8);              //文件索引末尾写easyfile
     efs->drv->efs_write_media(block_no, offset, file_info_buf + offset, EFS_ITEM_LIMIT, EF_WR_NOECC);
     efs->drv->efs_write_media(block_no+cfg_blocks, offset, file_info_buf + offset, EFS_ITEM_LIMIT, EF_WR_NOECC);
