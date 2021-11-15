@@ -90,7 +90,8 @@
 #include "component_config_heap.h"
 extern void *pHeapList;             //在脚本中定义
 struct HeapCB *tg_pHeapList=NULL;   //堆链指针，系统中所有的堆被链接在一起。
-struct HeapCB *tg_pSysHeap=NULL;   //堆链指针，系统中所有的堆被链接在一起。
+struct HeapCB *tg_pSysHeap=NULL;    //堆链指针，系统中所有的堆被链接在一起。
+ptu32_t g_uFreeMin = 0;             //所有heap加起来空闲内存的最小值
 
 void *__Heap_StaticMallocHeap(ptu32_t size,struct HeapCB *Heap,u32 Timeout);
 void *__Heap_StaticMalloc(ptu32_t size,u32 timeout);
@@ -128,17 +129,26 @@ ptu32_t (*M_GetFreeMem)(void);
 ptu32_t (*M_GetFreeMemHeap)(struct HeapCB *Heap);
 ptu32_t (*M_CheckSize)(void * mp);
 
-u32 __Heap_MemStrLen(char *addr)
-{
-    u32 result = 0;
-    while(*addr != '\0')
-    {
-        result ++;
-        addr++;
-    }
-    return result;
-}
+//u32 __Heap_MemStrLen(char *addr)
+//{
+//    u32 result = 0;
+//    while(*addr != '\0')
+//    {
+//        result ++;
+//        addr++;
+//    }
+//    return result;
+//}
 
+//-----------------------------------------------------------------------------
+//功能：扫描所有的堆，建立堆管理结构，但未初始化块相联数据结构，所有分配均按准静态方式
+//      进行，直到调用 Heap_DynamicModuleInit 函数。
+//      扫描时，为每个堆创建一个堆控制结构，该结构由struct HeapCB结构以及 n 个struct
+//      HeapCession 结构组成，n是该堆的cession数。堆控制结构放在该堆第一个size符合要求
+//      的cession的高地址。
+//参数：无
+//返回：无
+//-----------------------------------------------------------------------------
 void __Heap_MemHeapScan(void)
 {
     struct HeapCB *HeapTemp;
@@ -149,35 +159,38 @@ void __Heap_MemHeapScan(void)
 //  u32 HeapNo=0;
     u32 AlignSize;
     u32 Property;
+    ptu32_t HeapSizeSum;
     Offset = (u8*)&pHeapList;
     CessionNum = *(u32*)Offset;
-    while(CessionNum != 0)     //本循环取得所需堆控制块数量
+    while(CessionNum != 0)     //扫描所有堆，建立堆控制块结构
     {
         u32Offset = (u32*)Offset + 1;
         AlignSize = *u32Offset++;
         Property = *u32Offset++;
         //以下计算公式，参看lds文件格式
         Offset += sizeof(u32)*3*CessionNum + 3*sizeof(u32);
-        NameLen = __Heap_MemStrLen((char*)Offset);
+//      NameLen = __Heap_MemStrLen((char*)Offset);
+        NameLen = strlen((char*)Offset);
         //计算heap控制块和session控制块所需要的内存尺寸。
-        Ctrlsize = NameLen + 1 + sizeof( struct HeapCB )
-                    + CessionNum * sizeof(struct HeapCession);
+//      Ctrlsize = NameLen + 1 + sizeof( struct HeapCB )
+//                  + CessionNum * sizeof(struct HeapCession);
+        Ctrlsize = sizeof( struct HeapCB )+ CessionNum * sizeof(struct HeapCession);
         Ctrlsize = align_up_sys(Ctrlsize);
         Cession = NULL;
         //下面for循环功能:
-        //1、扫描所有session，找到第一个满足Ctrlsize需求的session。
+        //1、扫描所有session，找到第一个满足Ctrlsize需求的session。之前的session均丢弃
         //2、在该session顶部分配用于控制结构的内存。
-        //3、丢弃size小于Ctrlsize的session。
-        //4、按准静态分配的要求初始化heap控制块和session控制块。
-        //5、把所有的session连接成链表
+        //3、按准静态分配的要求初始化heap控制块和session控制块。
+        //4、把所有的session连接成链表
         for(n = 0; n < CessionNum; n++)
         {
-            if(Cession != NULL)
+            if(Cession != NULL) //找到符合要求的cession，变量才被赋值
             {
                 Cession->static_bottom = (void*)(*u32Offset);
                 Cession->heap_bottom = (void*)(*u32Offset);
                 Cession->heap_top = (void*)(*(u32Offset+1));
                 Cession->last = (list_t *)(*u32Offset);
+                HeapSizeSum += Cession->heap_top - Cession->heap_bottom;
                 dListInit(Cession->last);
 #if ((CFG_DYNAMIC_MEM == true))
                 Cession->PageSize = *(u32Offset+2);
@@ -225,6 +238,7 @@ void __Heap_MemHeapScan(void)
                 Cession->heap_bottom = (void*)(*u32Offset);
                 Cession->heap_top = (void*)HeapTemp;
                 Cession->last = (list_t *)(*u32Offset);
+                HeapSizeSum = Cession->heap_top - Cession->heap_bottom;
                 dListInit(Cession->last);
 #if ((CFG_DYNAMIC_MEM == true))
                 Cession->PageSize = *(u32Offset+2);
@@ -238,6 +252,8 @@ void __Heap_MemHeapScan(void)
 //          Ctrlsize -= sizeof(struct HeapCession);
             u32Offset += 3;
         }
+        HeapTemp->FreeMin = HeapSizeSum;
+        g_uFreeMin += HeapSizeSum;
         Offset += NameLen + 1;      //+1跨过串结束符
         Offset = (u8*)align_up(sizeof(u32),Offset);
         CessionNum = *(u32*)Offset;

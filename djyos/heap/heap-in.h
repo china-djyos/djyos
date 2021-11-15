@@ -110,6 +110,8 @@ struct HeapCB
     u32  AlignSize;             //该heap所要求的对齐尺寸，有些堆用于dma或特殊用
                                 //途，在该heap上分配的内存，有特殊的对齐尺寸。
     u32  HeapProperty;          //0=通用堆,1=专用堆
+    ptu32_t FreeMin;            //本堆空闲内存的最小值
+    ptu32_t SyncFreeMin;        //总空闲内存最低值下降时，本堆空闲内存数。
     char *HeapName;
 #if ((CFG_DYNAMIC_MEM == true))
     struct MutexLCB HeapMutex;
@@ -123,7 +125,7 @@ struct HeapCB
 //用于把事件申请的局部内存块串起来，调用y_event_done函数时，据此回收内存。
 struct MemRecord
 {
-    struct MemRecord   *next;
+    struct MemRecord *next;
     struct EventECB *owner;
     u8 *address;
 };

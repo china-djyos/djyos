@@ -1593,7 +1593,7 @@ bool_t Iboot_GetWeek(s8 *week)
 //------------------------------------------------------------------------------
 void Iboot_SetSerial(s8 *serial)
 {
-    memcpy(Iboot_App_Info.production_week, serial, 5);
+    memcpy(Iboot_App_Info.production_serial, serial, 5);
 }
 
 //-----------------------------------------------------------------------------

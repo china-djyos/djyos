@@ -40,7 +40,7 @@ struct StDlFileData {
     volatile u32 timeout;
     volatile u32 body_size;
     volatile u32 mark_pos;
-    fnTransAppToIboot fun_net_do;
+    fnSaveApp fun_net_do;
     s8 url[512];
 };
 
@@ -158,7 +158,7 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
 
 //返回：-1：网络错误 -2：下载超时
 s32 WebDownload(s8 *host, s32 port, s8 *path,
-                 fnTransAppToIboot fdo, s32 timeout_ms)
+                 fnSaveApp fSave, s32 timeout_ms)
 {
 //    struct StAliyunOssMgr *pOssMgr = &gOssMgr;
     struct StDlFileData userData;
@@ -183,7 +183,7 @@ s32 WebDownload(s8 *host, s32 port, s8 *path,
 
     memset(&userData, 0, sizeof(struct StDlFileData));
     pUserData = &userData;
-    pUserData->fun_net_do = fdo;        //设置回调函数
+    pUserData->fun_net_do = fSave;        //设置回调函数
 
     ntp_GetTimeStamp(&timestamp, timeout_ms);
     //一下三行替代GTM_TIME函数
@@ -249,46 +249,46 @@ FUN_RET:
 }
 
 
-s32 DoUpgradeJson(s8 *body, s32 len, s8 *outbuf, s32 outlen)
-{
-    s32 ret = 0;
-    cJSON *cjson = 0;
-    s8 *pJsonStr = 0;
-    s8 *pnew = 0;
-    if (body == 0 || len <= 0) return -1;
-    pnew = malloc(len + 1);
-    if (pnew == 0) return -1;
-    memcpy(pnew, body, len);
-    pnew[len] = 0;
-    cJSON*  sub_item = 0;
-
-    cjson = cJSON_Parse(body);
-    if (cjson)
-    {
-        cJSON*  results = cJSON_GetObjectItem(cjson, "version");
-        if (results)
-        {
-            sub_item = cJSON_GetObjectItem(results, "url");
-            if (sub_item)
-            {
-                pJsonStr = cJSON_PrintUnformatted(cjson);
-                ret = strlen(pJsonStr) + 1;
-                if (outbuf == 0 || outlen < ret) {
-                    ret = -2;
-                    goto END_FUN;
-                }
-                strcpy(outbuf, pJsonStr);
-                ret = 1;
-            }
-        }
-    }
-
-END_FUN:
-    if (cjson) cJSON_Delete(cjson);
-    if (pnew) free(pnew);
-    if (pJsonStr) free(pJsonStr);
-    return ret;
-}
+//s32 DoUpgradeJson(s8 *body, s32 len, s8 *outbuf, s32 outlen)
+//{
+//    s32 ret = 0;
+//    cJSON *cjson = 0;
+//    s8 *pJsonStr = 0;
+//    s8 *pnew = 0;
+//    if (body == 0 || len <= 0) return -1;
+//    pnew = malloc(len + 1);
+//    if (pnew == 0) return -1;
+//    memcpy(pnew, body, len);
+//    pnew[len] = 0;
+//    cJSON*  sub_item = 0;
+//
+//    cjson = cJSON_Parse(body);
+//    if (cjson)
+//    {
+//        cJSON*  results = cJSON_GetObjectItem(cjson, "version");
+//        if (results)
+//        {
+//            sub_item = cJSON_GetObjectItem(results, "url");
+//            if (sub_item)
+//            {
+//                pJsonStr = cJSON_PrintUnformatted(cjson);
+//                ret = strlen(pJsonStr) + 1;
+//                if (outbuf == 0 || outlen < ret) {
+//                    ret = -2;
+//                    goto END_FUN;
+//                }
+//                strcpy(outbuf, pJsonStr);
+//                ret = 1;
+//            }
+//        }
+//    }
+//
+//END_FUN:
+//    if (cjson) cJSON_Delete(cjson);
+//    if (pnew) free(pnew);
+//    if (pJsonStr) free(pJsonStr);
+//    return ret;
+//}
 
 
 static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_data) {
@@ -333,12 +333,7 @@ static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_dat
             memcpy(pQuestData->new_data, hm->body.p, hm->body.len);
             pQuestData->new_data[hm->body.len] = 0;
 
-            if (DoUpgradeJson(pQuestData->new_data, pQuestData->new_len,
-                        pQuestData->new_data, pQuestData->new_len) > 0)
-            {
-//              printf("pQuestData->new_data is %s\r\n", pQuestData->new_data);
                 pQuestData->status = 1;
-            }
             break;
         case 302:
             pQuestData->status = -302;
@@ -363,20 +358,11 @@ static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_dat
                 printf("error: cb_ev_handler->realloc MG_EV_HTTP_CHUNK, p==null!\r\n");
                 break;
             }
-//            pQuestData->new_data = p;
-//            memcpy(&pQuestData->new_data[pQuestData->new_len], hm->body.p, hm->body.len);
-//            pQuestData->new_len += hm->body.len;
             pQuestData->new_data = p;
             pQuestData->new_len = hm->body.len+1;
             memcpy(pQuestData->new_data, hm->body.p, hm->body.len);
             pQuestData->new_data[hm->body.len] = 0;
-
-            if (DoUpgradeJson(pQuestData->new_data, pQuestData->new_len,
-                            pQuestData->new_data, pQuestData->new_len) > 0)
-            {
-//                printf("pQuestData->new_data is %s\r\n", pQuestData->new_data);
-                pQuestData->status = 1;
-            }
+            pQuestData->status = 1;
         }
         else if (hm->body.len == 0) {//end flag
             if (pQuestData->status != 0) break;
@@ -388,16 +374,7 @@ static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_dat
             pQuestData->new_data = p;
             pQuestData->new_data[pQuestData->new_len] = 0;
             pQuestData->new_len += 1;
-
-            //process the whole body.
-            pQuestData->status = -1;
-
-            if (DoUpgradeJson(pQuestData->new_data, pQuestData->new_len,
-                            pQuestData->new_data, pQuestData->new_len) > 0)
-            {
-//              printf("%s\r\n", pQuestData->new_data);
-                pQuestData->status = 1;
-            }
+            pQuestData->status = 1;
         }
         break;
     }
@@ -409,7 +386,6 @@ static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_dat
     }
 }
 
-//static bool_t update_timeout=false;       //这个标志是没用的吧
 
 s32 DevUpgradeCommon(s8 *path, s8 *out_json, s32 len)
 {
@@ -499,10 +475,10 @@ s32 DevUpgradeQuest(const s8 *serial_num, u8 *user, s8 *out_json, s32 len)
     memset(finger,0,sizeof(finger));
     Iboot_GetProductInfo(APP_HEAD_FINGER, finger, sizeof(finger));
     if (user == NULL)
-        snprintf(path,sizeof(path),"/api/version?sn=%s&version=%s&finger=%s",
+        snprintf(path,sizeof(path),"/api/version?sn=%s&version=%s&finger=%s&apphead=?",
                 serial_num, VersionNum, finger );
     else
-        snprintf(path,sizeof(path),"/api/version?sn=%s&version=%s&finger=%s&%s",
+        snprintf(path,sizeof(path),"/api/version?sn=%s&version=%s&finger=%s&%s&apphead=?",
                 serial_num, VersionNum, finger, user );
     s32 ret = DevUpgradeCommon(path, out_json, len);
     return ret;
@@ -533,30 +509,80 @@ s32 GetSrvUpgradeInfo(u8 *product_time, s32 prod_time_len, u8 *serial_num, s32 s
     return 0;
 }
 
+static u8 __hex2bin(u8 c)
+{
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'A' && c <= 'F')
+        return 10 + (c - 'A');
+    if (c >= 'a' && c <= 'f')
+        return 10 + (c - 'a');
+    else
+        return 0;
+}
+
+//-----------------------------------------------------------------------------
+//功能：检查apphead，确认两个固件是否一致，主要用于待升级的固件储存在治具上，以加快
+//      生产过程或者批量返工过程，使得新版本只从服务器下载一次。
+//参数：head1,head2，两个待比较的程序头指针
+//返回：true = 有校验码并且校验码一致，false = 没校验码或校验码不一致
+//------------------------------------------------------------------------------
+bool_t CheckNew_AppHead(struct AppHead *head1,struct AppHead *head2)
+{
+    bool_t result = false;
+    u8 *nflag,*oflag;
+    nflag = head1->djy_flag;
+    oflag = head2->djy_flag;
+
+    if ((nflag == NULL) || (oflag==NULL))
+        return false;
+    //检查APP头标志
+    if((oflag[0] == 'd')&&(oflag[1] == 'j')&&(oflag[2] == 'y')
+            &&(nflag[0] == 'd')&&(nflag[1] == 'j')&&(nflag[2] == 'y'))
+    {
+        if(head2->verification == head1->verification)  //校验方法相同才可能 true
+        {
+            if(head2->verification == VERIFICATION_CRC)   //CRC码是4字节的
+                result = (memcmp(head2->verif_buf, head1->verif_buf, 4) == 0);
+            else if(head2->verification == VERIFICATION_MD5)  //MD5码是32字节的
+                result = (memcmp(head2->verif_buf, head1->verif_buf, 32) == 0);
+            else
+                result = false;
+        }
+        else
+            result = false;
+    }
+    else
+        result = false;
+    return result;
+}
+
 __attribute__((weak)) void OtaUserProcess(cJSON *dlparam)
 {
 }
+__attribute__((weak)) bool_t Read_OtaAppHead(u8 *buf)
+{
+    return false;
+}
 // ============================================================================
-// 功能：检查是否有新版本，把设备信息发送给服务器，服务器返回升级json，内含 bin 文件
-//      的 URL。解析URL赋值给相关全局变量。
-// 参数：branch:服务器上的升级分支，
-//      SN:产品的SN号
-// 返回：返回0表示有新版本，为-1则表示没有新版本,
+// 功能：发送ota请求，把设备信息发送给服务器，服务器返回升级json，解析该json，并给相关
+//      全局变量赋值。返回值中，binURl字段、finger字段在本函数中处理了，如有其它字段，
+//      须用户在 OtaUserProcess 中处理。
+// 参数：user:请求包中用户添加的字段格式：“字段1=值1&字段2=值2”
+//      SN:产品的SN号，注意并非指纹
+// 返回：0=有新固件；-1=无新固件
 // 备注：
 // ============================================================================
-s32 web_check_new_versions(u8 *user, u8 *SN)
+extern const struct AppHead Djy_App_Head;
+s32 web_check_new_versions(u8 *user_param, u8 *SN)
 {
-    s32 ret = -1;
-    s8 buf[30] = {0};
+    char buf[6] = {0};
     cJSON *cjson = NULL;
-    cJSON *cjson_version = NULL;
-    cJSON *cjson_device = NULL;
-    s32 weeks = 0;
-//    s8 VersionNum[13];
     cJSON*  results = 0;
+    s32 ret;
     s8 *out_json = malloc(1024);
     if (out_json==0)
-        return ret;
+        return CN_NO_DOWNLOAD;
     printf("\r\n SN_Num   = %s,\r\n", SN);
     memset(gupgrade_url, 0, sizeof(gupgrade_url));
     memset(out_json, 0, 1024);
@@ -564,94 +590,89 @@ s32 web_check_new_versions(u8 *user, u8 *SN)
     Iboot_SetSerial(buf);       //清空struct IbootAppInfo的week字段
     Iboot_SetWeek(buf);         //清空struct IbootAppInfo的serial字段
     //从服务器拉取升级文件的信息，是一个json包
-    if (DevUpgradeQuest((const s8 *)SN, user, out_json, 1024) <= 0)
+    if (DevUpgradeQuest((const s8 *)SN, user_param, out_json, 1024) <= 0)
     {
         free(out_json);
-        return ret;
+        return CN_NO_DOWNLOAD;
     }
     //todo：根据真实数据包改写
     cjson = cJSON_Parse(out_json);  //解析json包
     OtaUserProcess(cjson);          //weak函数，用户可以在应用程序中重新实现
     if (cjson)
     {
-        cjson_version = cJSON_GetObjectItem(cjson, "version");//提取版本号字段
-        if (cjson_version)
+        results = cJSON_GetObjectItem(cjson, "binURL");
+        if (results)
         {
-            results = cJSON_GetObjectItem(cjson_version, "url");
-            if (results)
+            if (strlen(results->valuestring) < 256)
             {
-//              printf("==url==: %s!\r\n", results->valuestring);
                 strcpy((s8*)gupgrade_url, results->valuestring);
-                ret = 1;
-            }
-
-            results = cJSON_GetObjectItem(cjson_version, "version");
-            if (results){
-                printf("==version==: %s!\r\n", results->valuestring);
-                if(sizeof(gupgrade_version) > (strlen(results->valuestring)+1))
-                    strcpy((char*)gupgrade_version, results->valuestring);
-            }
-        }
-        //device字段
-        cjson_device = cJSON_GetObjectItem(cjson, "device");
-        if (cjson_device)
-        {
-            results = cJSON_GetObjectItem(cjson_device, "weekday");//生产周次
-            if (results)
-            {
-                printf("==weekday==: %d!\r\n", results->valueint);
-                weeks = results->valueint;
-            }
-            results = cJSON_GetObjectItem(cjson_device, "productNo");   //生产序列号
-            if (results)
-            {
-                printf("==productNo==: %s!\r\n", results->valuestring);
-                Iboot_SetSerial(results->valuestring);
-//              memcpy(gserial_num, results->valuestring, sizeof(gserial_num));
-            }
-            //生产时间，按年月日时分秒格式
-            results = cJSON_GetObjectItem(cjson_device, "produceTime");
-            if (results)    //根据时间和周次，生成指纹中要求的格式，两字节年+两字节周
-            {
-                printf("==produceTime==: %s!\r\n", results->valuestring);
-                struct tm stm = { 0 };
-                s32 cnt = sscanf(results->valuestring, "%d-%d-%d %d:%d:%d",
-                        &stm.tm_year, &stm.tm_mon, &stm.tm_mday, &stm.tm_hour,
-                        &stm.tm_min, &stm.tm_sec);
-                if (cnt == 6)
+                results = cJSON_GetObjectItem(cjson, "apphead");
+                if (results)
                 {
-                    memset(buf, 0, sizeof(buf));
-                    //sprintf(buf, "%04d%02d", stm.tm_year, weeks);
-                    sprintf(buf, "%02d%02d", stm.tm_year%100, weeks);
-                    printf("===>PRODUCT TIME: %s!\r\n", buf);
-                    Iboot_SetWeek(buf);
-//                  memcpy(gproduct_time, buf, sizeof(gproduct_time));
-                    ret = 1;
+                    u8 *p = results->valuestring;
+                    u8 *newsthead = malloc(sizeof(struct AppHead) * 2);
+                    u32 n;
+                    for (n = 0; n < 256; n++)
+                    {
+                        newsthead[n] = (__hex2bin(p[2*n]) << 4) + __hex2bin(p[2*n+1]);
+                    }
+                    if (CheckNew_AppHead(&Djy_App_Head,newsthead) == true)
+                    {
+                        ret = CN_RUNNING_IS_CHECK;  //与正在运行的固件相同
+                    }
+                    else
+                    {
+                        if(Read_OtaAppHead((newsthead+sizeof(struct AppHead))) == true)
+                        {
+                            if(CheckNew_AppHead((newsthead+sizeof(struct AppHead)),newsthead) == true)
+                            {
+                                ret = CN_READY_IS_CHECK;//与下载好的代码相同
+                            }
+                            else
+                            {
+                                ret = CN_NEAD_DOWNLOAD; //与下载好的和正在跑的固件都不同
+                            }
+                        }
+                        else
+                        {
+                            ret = CN_NEAD_DOWNLOAD; //读取下载好的固件失败，可能不存在
+                        }
+                    }
                 }
+                else
+                    ret = CN_NEAD_DOWNLOAD; //没有apphead字段，须重新下载
             }
+            else
+                ret = CN_NO_DOWNLOAD;   //地址串过长
         }
+        else
+            ret = CN_NO_DOWNLOAD;       //没有新固件
+
+        results = cJSON_GetObjectItem(cjson, "finger");
+        if (results)        //服务器为此次请求分配了指纹
+        {
+            //15个字符，分别是6字节型号码+4字节年和星期+5字节序列号
+            //型号码是初始化时已经设置好，这里无须设置。
+            Iboot_SetWeek(results->valuestring+6);
+            Iboot_SetSerial(results->valuestring+6+4);  //前6是型号码，中4是年和星期
+        }
+
         cJSON_Delete(cjson);
     }
 
-    if (out_json) free(out_json);
-    if (gupgrade_url[0] != 0)
-    {
-        return 0;       //有新版本。
-    }
-    else
-        return -1;
+    if (out_json)
+        free(out_json);
+    return ret;
 }
 
 // ============================================================================
-// 功能：空中升级
-// 参数：fdo：空中升级执行的回调函数，用于处理通过网络获取到的数据，该函数需要用户自己实现，函数格式：
+// 功能：下载固件并调用回调函数存储，
+// 参数：fSave：空中升级执行的回调函数，用于处理通过网络获取到的数据，该函数需要用户自己
+//           实现，函数原型：int (*fnSaveApp)(u8 *buf,s32 len, int fsize, int timeout);
 // 返回：0：成功。-1：下载失败，-2：下载超时
 // 备注：
 // ============================================================================
-
-//lst todo : 升级分三步走，1、检查有没有新版本（download组件）；2、下载数据（download组件）
-//          3、升级（app update组件）
-s32 web_upgrade_firmware(fnTransAppToIboot fdo)
+s32 web_upgrade_firmware(fnSaveApp fSave)
 {
     s32 ret = -1;
     s8 *p1 = 0;
@@ -662,7 +683,7 @@ s32 web_upgrade_firmware(fnTransAppToIboot fdo)
     p2 = 0;
     if (gupgrade_url[0]) {
         p1 = (s8*)gupgrade_url;
-        //找域名
+        //找域名,即从地址中提取类似 www.djyos.com 字符串
         if (strstr((s8*)gupgrade_url, "https://") == (s8*)gupgrade_url)
         {
             p1 = p1 + strlen("https://");
@@ -684,12 +705,12 @@ s32 web_upgrade_firmware(fnTransAppToIboot fdo)
 
         if (domain[0] && p2)
         {
-            if (fdo == NULL)
+            if (fSave == NULL)
             {
                 printf("web_up param error\r\n");
                 return -1;
             }
-            ret = WebDownload(domain, 80, p2, fdo, 600000);
+            ret = WebDownload(domain, 80, p2, fSave, 600000);
 
             printf("=================WebDownload ret=%d=================!\r\n", ret);
         }
