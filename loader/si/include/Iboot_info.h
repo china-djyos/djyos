@@ -142,7 +142,7 @@ union app_stored_info{
         u32 app_size;
     }ram;
     char file_path[CN_UPDATE_PATH_LIMIT];
-    char pads[CN_APP_STORE_INFO_LIMIT];    //使结构的尺寸等于40字节
+    char pads[CN_APP_STORE_INFO_LIMIT];    //使结构的尺寸等于31字节
 };
 
 //#define IBOOT_APP_INFO_VER                 (1)

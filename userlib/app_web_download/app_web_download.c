@@ -35,16 +35,20 @@ struct StUpdData {
 struct StDlFileData {
     volatile s32 is_break;
     volatile s32 status;    //0=下载中，1=已完成，-1=出错
-    volatile s32 is_start;
+    volatile s32 is_firstpkg;
     volatile u32 timemark;
     volatile u32 timeout;
-    volatile u32 body_size;
+    volatile u32 file_size;
     volatile u32 mark_pos;
     fnSaveApp fun_net_do;
-    s8 url[512];
+//  s8 url[512];
 };
 
-
+#define CN_STARTING         0
+#define CN_DOWNLOADING      1
+#define CN_PEER_CLOSE       2
+#define CN_COMPLETED        3
+#define CN_HTTP_ERROR       4
 static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_data)
 {
     (void)ev_data;
@@ -56,7 +60,8 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
     switch (ev) {
     case MG_EV_CONNECT:
         {
-            pUserData->is_start = 1;
+            pUserData->is_firstpkg = 1;
+            pUserData->status = CN_DOWNLOADING;
     #if 0
             s32 opt = 0;
             //        opt = 1460*2;
@@ -74,19 +79,18 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
             if (pUserData->is_break) {
                 nc->flags |= MG_F_CLOSE_IMMEDIATELY;
             }
-            pUserData->body_size = 0;
-            pUserData->mark_pos = 0;
+//          pUserData->file_size = 0;
         }
         break;
     case MG_EV_RECV:
         {
             //printf("=== read: %d ===!\r\n", io->len);
 
-            if (pUserData->is_start == 1)
+            if (pUserData->is_firstpkg == 1)
             {
-                pUserData->body_size = 0;
-                pUserData->mark_pos = 0;
-                pUserData->is_start = 0;
+//              pUserData->file_size = 0;
+//              pUserData->mark_pos = 0;
+                pUserData->is_firstpkg = 0;
                 if (0 == memcmp(io->buf, "HTTP/1.1 200", strlen("HTTP/1.1 200"))||
                     0 == memcmp(io->buf, "HTTP/1.1 206", strlen("HTTP/1.1 206")))
                 {
@@ -98,36 +102,36 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
                         //memset(&shm, 0, sizeof(struct http_message));
                         //mg_http_parse_headers(io->buf, p, p-io->buf, &shm);
                         //printf("shm->body.len=%d!\r\n", shm.body.len);
-                        //pUserData->body_size = shm.body.len;
+                        //pUserData->file_size = shm.body.len;
                         s8 *plen = (s8*)c_strnstr(io->buf, "Content-Length:", io->len);
                         if (!mg_ncasecmp(plen, "Content-Length:", 15))
                         {
-                            pUserData->body_size = atoi(plen+15);
-                            printf("media body size: %d!\r\n", pUserData->body_size);
+                            if (pUserData->file_size == 0)
+                                pUserData->file_size = atoi(plen+15);
+                            printf("media file size: %d!\r\n", pUserData->file_size);
                         }
                         //ret = play_data(p, io->len - (p - io->buf), 1000);
                         if (pUserData->fun_net_do)
                         {
-                            ret = pUserData->fun_net_do((u8 *)p, io->len - (p - io->buf), pUserData->body_size, 1000);
+                            ret = pUserData->fun_net_do((u8 *)p, io->len - (p - io->buf), pUserData->file_size, 1000);
                         }
-                        if (pUserData->body_size > 0 && io->len >= (size_t)(p - io->buf))
+                        if (pUserData->file_size > 0 && io->len >= (size_t)(p - io->buf))
                         {
                             pUserData->mark_pos += io->len - (p - io->buf);
                         }
                         mbuf_remove(io, io->len);
                         pUserData->timemark = DJY_GetSysTime() / 1000;
                     }
-                    pUserData->status = 0;
                 }
                 else
                 {
-                    pUserData->status = -1;
+                    pUserData->status = CN_HTTP_ERROR;
                 }
             }
             else {
                 //ret = play_data(io->buf, io->len, 1000);
                 if (pUserData->fun_net_do) {
-                    ret = pUserData->fun_net_do((u8*)io->buf, io->len, pUserData->body_size, 1000);
+                    ret = pUserData->fun_net_do((u8*)io->buf, io->len, pUserData->file_size, 1000);
                 }
                 if (io->len > 0 && ret > 0) {
                     pUserData->mark_pos += io->len;
@@ -140,16 +144,17 @@ static void cb_http_download_handler(struct mg_connection *nc, s32 ev, void *ev_
                 printf("info: is_break by man, close now!\r\n");
                 nc->flags |= MG_F_CLOSE_IMMEDIATELY;
             }
-            if (pUserData->body_size > 0 && pUserData->mark_pos >= pUserData->body_size) {
-                printf("info: body_size full, close now!\r\n");
+            if (pUserData->file_size > 0 && pUserData->mark_pos >= pUserData->file_size) {
+                printf("info: file_size full, close now!\r\n");
                 nc->flags |= MG_F_CLOSE_IMMEDIATELY;
                 printf("media download done: %d!\r\n", pUserData->mark_pos);
+                pUserData->status = CN_COMPLETED;
             }
         }
         break;
     case MG_EV_CLOSE:
         {
-            pUserData->status = 1;
+            pUserData->status = CN_PEER_CLOSE;
             //printf("===============close socket=================!\r\n");
         }
         break;
@@ -162,7 +167,6 @@ s32 WebDownload(s8 *host, s32 port, s8 *path,
 {
 //    struct StAliyunOssMgr *pOssMgr = &gOssMgr;
     struct StDlFileData userData;
-    struct StDlFileData *pUserData = 0;
     s8 GMT[60] = { 0 };
     u32 timestamp = 0;
     struct mg_connection *nc = 0;
@@ -171,74 +175,103 @@ s32 WebDownload(s8 *host, s32 port, s8 *path,
     s32 ret = 0;
     u32 time_val = 0;
     s32 timezone;
-
-    //  printf ("WebDownload: %s!\r\n", path);
+    s32 resume = 0;
+    bool_t finished=false;
 
 //  if (!is_wifi_connected())
     //lst todo：由网络管理组件提供判断网络是否连通的函数 NG_ConnectIsOK
 
     temp = malloc(1024);
-    if (temp == 0) goto FUN_RET;
-    memset(temp, 0, 1024);
-
-    memset(&userData, 0, sizeof(struct StDlFileData));
-    pUserData = &userData;
-    pUserData->fun_net_do = fSave;        //设置回调函数
-
-    ntp_GetTimeStamp(&timestamp, timeout_ms);
-    //一下三行替代GTM_TIME函数
-    gettimezone(&timezone);
-    timestamp += timezone*3600;
-    strftime(GMT, sizeof(GMT), "%a, %d %b %Y %H:%M:%S GMT", Time_LocalTime(&timestamp));
+    if (temp == 0)
+        return -1;
+//    ntp_GetTimeStamp(&timestamp, timeout_ms);
+//    //一下三行替代GTM_TIME函数
+//    gettimezone(&timezone);
+//    timestamp += timezone*3600;
+//    strftime(GMT, sizeof(GMT), "%a, %d %b %Y %H:%M:%S GMT", Time_LocalTime(&timestamp));
 //  GTM_TIME(timestamp, GMT, sizeof(GMT));
+    memset(&userData, 0, sizeof(struct StDlFileData));
+    userData.fun_net_do = fSave;        //设置回调函数
+    userData.mark_pos = 0;
+    userData.file_size = 0;
 
-    mg_mgr_init(&mgr, NULL);
-
-    memset(temp, 0, 1024);
-    sprintf(temp, "%s:%d", host, port);
-    printf("temp is %s\r\n",temp);
-    nc = mg_connect(&mgr, temp, cb_http_download_handler);
-    pUserData->status = 0;
-    if (nc == 0)  goto MGR_FREE;
-
-    nc->user_data = pUserData;
-
-    mg_set_protocol_http_websocket(nc);
-
-    memset(temp, 0, 1024);
-    sprintf(temp,
-        "GET %s HTTP/1.1\r\n"
-        "Host: %s\r\n"
-        "User-Agent: Mongoose/6.15\r\n"
-        "Accept : */*\r\n"
-        "Connection: keep-alive\r\n"
-        "date: %s\r\n\r\n", path, host, GMT);
-    mg_printf(nc, "%s", temp);
-    pUserData->timemark = DJY_GetSysTime()/1000;
-    pUserData->timeout = 20000;
-    while (pUserData->status == 0)
+    while ((userData.status != CN_COMPLETED) && (userData.status != CN_HTTP_ERROR))
     {
-        mg_mgr_poll(&mgr, 500);
-        time_val = DJY_GetSysTime()/1000 - pUserData->timemark;
-        if (time_val > pUserData->timeout)
+
+        mg_mgr_init(&mgr, NULL);
+
+        memset(temp, 0, 1024);
+        sprintf(temp, "%s:%d", host, port);
+        printf("temp is %s\r\n",temp);
+        nc = mg_connect(&mgr, temp, cb_http_download_handler);
+        userData.status = CN_STARTING;
+        if (nc == 0)
         {
-            printf("==info: WebDownloadAndPlay break!==\r\n");
-            ret = -2;
-            break;
+            mg_mgr_free(&mgr);
+            break ;
         }
-//      if (media_is_stop()) {
-//          pUserData->timemark = DJY_GetSysTime()/1000;
-//      }
-        DJY_EventDelay(20*1000);
+
+        nc->user_data = &userData;
+
+        mg_set_protocol_http_websocket(nc);
+        userData.timeout = 5000;
+
+        memset(temp, 0, 1024);
+        sprintf(temp,"GET %s HTTP/1.1\r\n"
+                    "Host: %s\r\n"
+                    "User-Agent: Mongoose/6.15\r\n"
+                    "Connection: keep-alive\r\n"
+                    "Range: bytes=%d-\r\n\r\n", path, host,resume);
+        mg_printf(nc, "%s", temp);
+        userData.timemark = DJY_GetSysTime()/1000;
+        while (1)
+        {
+            u32 tmark;
+            mg_mgr_poll(&mgr, 500);
+            if ((userData.status == CN_COMPLETED)||(userData.status == CN_HTTP_ERROR))
+            {
+                s32 statusbak = userData.status;
+                mg_mgr_free(&mgr);
+                userData.status = statusbak;
+                break;
+            }
+            else if (userData.status == CN_PEER_CLOSE)
+            {
+                s32 statusbak = userData.status;
+                if (userData.file_size == userData.mark_pos)
+                    userData.status = CN_COMPLETED;
+                else
+                {
+                    printf("server close,but file not completed,restart!\r\n");
+                    resume = userData.mark_pos;
+                }
+                mg_mgr_free(&mgr);
+                userData.status = statusbak;
+                break;
+            }
+            else
+            {
+                s32 statusbak = userData.status;
+                tmark = userData.timemark;    //这两行不能合并，考虑多线程并行
+                time_val = DJY_GetSysTime()/1000 - tmark;
+                if (time_val > userData.timeout)
+                {
+                    printf("down timeout! restart moment\r\n");
+                    resume = userData.mark_pos;
+                    mg_mgr_free(&mgr);
+                    userData.status = statusbak;
+                    break;
+                }
+            }
+            DJY_EventDelay(20*1000);
+        }
     }
-    if((userData.body_size != userData.mark_pos) || (userData.body_size == 0))
+
+    if(userData.file_size != userData.mark_pos)
     {
         printf("download size error\r\n");
         ret = -1;
     }
-MGR_FREE:
-    mg_mgr_free(&mgr);
-    pUserData->url[0] = 0;
 
 FUN_RET:
     if (temp) {
@@ -247,48 +280,6 @@ FUN_RET:
     }
     return ret;
 }
-
-
-//s32 DoUpgradeJson(s8 *body, s32 len, s8 *outbuf, s32 outlen)
-//{
-//    s32 ret = 0;
-//    cJSON *cjson = 0;
-//    s8 *pJsonStr = 0;
-//    s8 *pnew = 0;
-//    if (body == 0 || len <= 0) return -1;
-//    pnew = malloc(len + 1);
-//    if (pnew == 0) return -1;
-//    memcpy(pnew, body, len);
-//    pnew[len] = 0;
-//    cJSON*  sub_item = 0;
-//
-//    cjson = cJSON_Parse(body);
-//    if (cjson)
-//    {
-//        cJSON*  results = cJSON_GetObjectItem(cjson, "version");
-//        if (results)
-//        {
-//            sub_item = cJSON_GetObjectItem(results, "url");
-//            if (sub_item)
-//            {
-//                pJsonStr = cJSON_PrintUnformatted(cjson);
-//                ret = strlen(pJsonStr) + 1;
-//                if (outbuf == 0 || outlen < ret) {
-//                    ret = -2;
-//                    goto END_FUN;
-//                }
-//                strcpy(outbuf, pJsonStr);
-//                ret = 1;
-//            }
-//        }
-//    }
-//
-//END_FUN:
-//    if (cjson) cJSON_Delete(cjson);
-//    if (pnew) free(pnew);
-//    if (pJsonStr) free(pJsonStr);
-//    return ret;
-//}
 
 
 static void cb_upgrade_ev_handler(struct mg_connection *nc, s32 ev, void *ev_data) {
@@ -618,6 +609,7 @@ s32 web_check_new_versions(u8 *user_param, u8 *SN)
                     }
                     if (CheckNew_AppHead(&Djy_App_Head,newsthead) == true)
                     {
+                        printf("firmware is running\r\n");
                         ret = CN_RUNNING_IS_CHECK;  //与正在运行的固件相同
                     }
                     else

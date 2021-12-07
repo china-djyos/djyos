@@ -4,6 +4,7 @@
 #ifndef XYSSL_SM4_H
 #define XYSSL_SM4_H
 
+#include <stdint.h>
 #define SM4_ENCRYPT     1
 #define SM4_DECRYPT     0
 

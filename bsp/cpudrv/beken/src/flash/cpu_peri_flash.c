@@ -164,7 +164,7 @@ static s32 SetFlash_Init(struct NorDescr *Description)
 }
 
 // ============================================================================
-// 功能：读取带crc的flash数据
+// 功能：读取带crc区的flash数据，返回的数据中包含了crc区域，但作为普通数据使用
 // 参数：address -- 地址；
 //      data -- 读数据缓存；
 //      size -- 读取的字节数
@@ -180,7 +180,7 @@ void djy_flash_read_crc(uint32_t address, void *data, uint32_t size)
     Lock_MutexPost(flash_mutex);
 }
 // ============================================================================
-// 功能：读取不带crc的flash数据
+// 功能：读取不带crc的flash数据，即把读出的数据中去掉crc后提交给用户。
 // 参数：address -- 地址；计算了crc之后的物理地址。
 //      data -- 读数据缓存；
 //      size -- 读取的字节数
@@ -221,8 +221,7 @@ void djy_flash_read(uint32_t address, void *data, uint32_t size)
 }
 // ============================================================================
 // 功能：写入flash，写入时是否添加crc，有 GetOperFalshMode() 函数确定。
-// 参数：address，写入地址；如果 data 是不考虑crc，则address是物理地址。
-//                  否则，address是逻辑地址
+// 参数：address，写入地址,是物理地址。
 //      data -- 读数据缓存；
 //      size -- 读取的字节数
 // 返回：无
@@ -284,6 +283,14 @@ void djy_flash_write(uint32_t address, const void *data, uint32_t size)
 //    flash_protection_op(0,FLASH_PROTECT_ALL);
     Lock_MutexPost(flash_mutex);
 }
+// ============================================================================
+// 功能：写入flash，写入时是否添加crc，由GetOperFalshMode() 函数确定。
+// 参数：address，写入地址,如果GetOperFalshMode==true，是物理地址，否则是逻辑地址
+//      data -- 读数据缓存；
+//      size -- 读取的字节数
+// 返回：无
+// 备注：
+// ============================================================================
 void djy_flash_write_ori(uint32_t address, const void *data, uint32_t size)
 {
     u32 i, len,inaddress;
