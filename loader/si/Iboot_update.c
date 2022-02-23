@@ -299,7 +299,7 @@ static u8 readbuffer[DjyosHeadSize];
 // 功能：从文件中升级App，文件路径在iboot和app交互的96字节RAM中
 // 参数：production_time，生产时间缓冲区，年月星期，ASCII码，4字节
 //      production_num，生产序号缓冲区，一周内不重复，34进制，5字节
-// 返回：0（无意义）。
+// 返回：false = 失败；true=成功
 // 备注
 // ============================================================================
 //原名：Iboot_UpdateApp

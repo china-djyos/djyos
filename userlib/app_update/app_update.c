@@ -207,7 +207,7 @@ s32 to_update_app(u32 app_max_size)
     else        //APP用其他存储方式，用weak函数，有APP提供实际函数替换
     {
          //updsrc的值为SOURCE_OTHER1或SOURCE_OTHER2
-        return (UserUpdateApp(updsrc,production_week, production_num) );
+        ret = UserUpdateApp(updsrc,production_week, production_num);
     }
 
     return ret;

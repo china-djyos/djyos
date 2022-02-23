@@ -200,7 +200,7 @@ s32 Mb_PoolObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             struct dListNode *pos;
             struct MemCellPool *pool;
             u32 num,sum;
-            printf("总块数  空闲数  单元尺寸  每次增量  容量限值  内存池名字\r\n");
+            printf("  总块数    空闲数    每块尺寸    每次增量    容量限值    内存池名字\r\n");
             dListForEach(pos, &s_tPoolHead)
             {
                 pool = dListEntry(pos, struct MemCellPool, List);

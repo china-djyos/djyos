@@ -100,6 +100,7 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <objhandle.h>
+#include <shell.h>
 #include "component_config_objfile.h"
 
 // OBJ双向链表初始化
@@ -1039,10 +1040,10 @@ inline s32 OBJ_CheckName(const char *name)
 //----沿路径匹配对象名---------------------------------------------------------
 //功能: 与OBJ_Search类似,不同的是，找到第一个匹配不上的就返回。例如，对象树中有
 //      "obj1\obj2\"，path="obj1\obj2\obj3\obj4"，将返回obj2的指针。
-// 参数：pPath -- 需匹配的路径；
+// 参数：match -- 需匹配的路径；
 //      left -- 完全匹配，为NULL；不完全匹配，则返回不匹配部分（保证不以'/'开头）；
 // 返回：匹配路径所能检索到的最终对象。
-// 备注：
+// 备注：如果对应路径是磁盘文件路径，则只匹配打开的文件或路径。
 //-----------------------------------------------------------------------------
 struct Object *OBJ_MatchPath(const char *match, char **left)
 {
@@ -1089,8 +1090,8 @@ struct Object *OBJ_MatchPath(const char *match, char **left)
                     *left = path;
                     return NULL;
                 }
-                result = Base;
                 Base = OBJ_GetParent(Base);        // ".."字符，表示上一级目录
+                result = Base;
                 current = Base;
                 if(('\\' == path[2])||('/' == path[2]))
                 {
@@ -1104,9 +1105,9 @@ struct Object *OBJ_MatchPath(const char *match, char **left)
                 }
                 else                            //".."后不是合法的分隔符，非法
                 {
-                    result = current;
+//                  result = current;
                     *left = NULL;
-                    break;
+                    return NULL;
                 }
             }
             else if(('\\' == path[1])||('/' == path[1]))
@@ -1122,7 +1123,7 @@ struct Object *OBJ_MatchPath(const char *match, char **left)
             else                            //"."后不是合法的分隔符，非法
             {
                 *left = NULL;
-                break;
+                return NULL;
             }
         }
 
@@ -1153,9 +1154,9 @@ struct Object *OBJ_MatchPath(const char *match, char **left)
                     Base = current;     // 匹配当前节点，继续匹配子节点
                     break;
                 }
-                else
+                else    // 当前对象不匹配，继续遍历兄弟节点
                 {
-                    break; // 当前对象不匹配，继续遍历兄弟节点
+//                  break;
                 }
             }
         }
@@ -2174,7 +2175,111 @@ struct Object *OBJ_SearchScion(struct Object *ancester, const char *name)
 // ============================================================================
 struct Object *OBJ_SearchPath(struct Object *start, const char *path)
 {
+    char *ResultName;
+    struct Object *Base, *current, *result = NULL;
+    u32 i;
+
+    if(path == NULL)
+        return NULL;
+    if('\0' == *path)
+        return NULL;
+    OBJ_Lock();
+
+    Base = start;
+    if(Base == NULL)
+    {
+        Base = OBJ_GetRoot();          // 绝对路径
+    }
+    current = Base;
+    while(Base)
+    {
+        while(('/' == *path) || ('\\' == *path))
+            path++; // 过滤多余的'/'
+        if('\0' == *path)
+        {
+            break; // 遍历路径结束
+        }
+
+        if('.' == path[0])
+        {
+            if('.' == path[1])  //看是否要返回上一级目录
+            {
+                if(Base == OBJ_GetRoot())
+                {
+                    result = NULL;
+                    return NULL;
+                }
+                Base = OBJ_GetParent(Base);        // ".."字符，表示上一级目录
+                result = Base;
+                current = Base;
+                if(('\\' == path[2])||('/' == path[2]))
+                {
+                    path++;
+                    continue;
+                }
+                else if('\0' != path[2])        //完成path路径匹配
+                {
+                    return current;
+                }
+                else                            //".."后不是合法的分隔符，非法
+                {
+                    return NULL;
+                }
+            }
+            else if(('\\' == path[1])||('/' == path[1]))
+            {
+                path++;
+                continue;
+            }
+            else if('\0' != path[1])        //完成path路径匹配
+            {
+                return result;
+            }
+            else                            //"."后不是合法的分隔符，非法
+            {
+                return NULL;
+            }
+        }
+
+        while(current)
+        {
+            current = OBJ_ForeachChild(Base, current);
+            if(current == NULL)         //匹配结束
+            {
+                Base = NULL;
+                break;
+            }
+            ResultName = (char*)OBJ_GetName(current);
+            i = strlen(ResultName);
+            if(memcmp(ResultName, path, i) == 0)
+            {
+                if('\0' == path[i])     //匹配结束，current是匹配项
+                {
+                    result = current;
+                    Base = NULL;
+                    break;
+                }
+                else if(('\\' == path[i]) || ('/' == path[i]))
+                {
+                    result = current;
+                    path += i;
+                    Base = current;     // 匹配当前节点，继续匹配子节点
+                    break;
+                }
+                else    // 当前对象不匹配，继续遍历兄弟节点
+                {
+//                  break;
+                }
+            }
+        }
+    }
+
+    OBJ_Unlock();
+    return (result);
+}
 #if 0
+{
+#if 1
     const char *path_name;
     char *ObjName;
     bool_t end = FALSE;
@@ -2269,7 +2374,7 @@ __SEARCH_NEXT:
             break; // 遍历路径结束
 
         if(('.' == path[0]) && ('.' == path[1])
-           && (('\\' == path[3]) || ('/' == path[3]) || ('\0' == path[3])))
+           && (('\\' == path[2]) || ('/' == path[2]) || ('\0' == path[2])))
         {
             current = OBJ_GetParent(current);
             path += 2; // ".."字符，表示上一级
@@ -2360,6 +2465,7 @@ __SEARCH_DONE:
    return (current);
 #endif
 }
+#endif
 
 //-----------------------------------------------------------------------------
 //功能: 设置环境变量,系统当前工作路径
@@ -2480,80 +2586,21 @@ FAIL:
     OBJ_Unlock(); // 出互斥
     return (Ret);
 }
-// ============================================================================
-// 功能：在对象parent之下新建子对象集合
-// 参数：parent -- 对象；
-//      name -- 对象集合点名 ；
-//      ObjOps -- 对象集合点的操作方式（NULL，继承父方法；-1，使用缺省方法；）；
-//      ObjPrivate -- 对象私有数据；
-// 返回：成功（新建的子对象集合）；失败（NULL）；
-// 备注：
-// ============================================================================
-//struct Object *obj_newchild_set(struct Object *parent, const char *name, fnObjOps ObjOps,
-//                             ptu32_t ObjPrivate)
-//{
-//    struct Object *child_set;
-//    char *cname;
-//
-//    if(!parent)
-//        parent = s_ptCurrentObject; // 如果未指定父节点，则指向当前工作节点；
-//
-//    if(name)
-//    {
-//        if(__OBJ_CheckName(name))
-//            return (NULL);
-//
-//        if(NULL != OBJ_SearchChild(parent, name))
-//            return (NULL); // child已经存在；
-//
-//        cname = malloc(strlen(name)+1);
-//        if(!cname)
-//            return (NULL);
-//
-//        strcpy(cname, name);
-//    }
-//    else
-//    {
-//        cname = (char*)__uname_obj; // 系统默认名；
-//    }
-//
-//    child_set = __OBJ_NewObj();
-//    if(!child_set)
-//        return (NULL);
-//
-//    OBJ_Lock();
-//
-//    child_set->parent = parent;
-//    child_set->child = NULL;
-//    child_set->ObjPrivate = ObjPrivate;
-//    if(ObjOps)
-//    {
-//        if(-1==(s32)ObjOps)
-//            child_set->ObjOps = (fnObjOps)__OBJ_DefaultOps;
-//        else
-//            child_set->ObjOps = ObjOps;
-//    }
-//    else
-//    {
-//        child_set->ObjOps = parent->ObjOps;
-//    }
-//
-////  child_set->rights = child_set->parent->rights;
-//    child_set->name = cname;
-//    child_set->seton = child_set; // 默认对象之上不允许建立对象集合；
-//    child_set->set = child_set; // 集合逻辑必须继承父；
-//    dListInit(&(child_set->handles));
-//    if(!parent->child)
-//    {
-//        parent->child = child_set;
-//        __OBJ_LIST_INIT(child_set);
-//    }
-//    else
-//    {
-//        __OBJ_LIST_INS_BEFORE(parent->child, child_set);
-//    }
-//
-//    OBJ_Unlock();
-//    return (child_set);
-//}
+
+bool_t OBJ_Show(char *param)
+{
+    struct Object *Obj;
+    s32 res;
+    Obj = OBJ_SearchPath(OBJ_GetCurrent(), param);
+    if(Obj)
+    {
+        res = Obj->ObjOps((void *)Obj, CN_OBJ_CMD_SHOW, 0,0,0);
+        if(res != CN_OBJ_CMD_TRUE)
+            printf("%s 无法显示\r\n", param);
+    }
+    else
+        printf("%s 不存在\r\n",param);
+    return true;
+}
+ADD_TO_ROUTINE_SHELL(catobj,OBJ_Show,"显示一个对象内容，不包括磁盘文件，COMMAND:cat + 对象路径 + enter.");
 

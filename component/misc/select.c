@@ -10,6 +10,12 @@
 #include <sys/select.h>
 #include <sys/socket.h>
 
+//-----------------------------------------------------------------------------
+//功能：在 Sets 中添加 fd 条目
+//参数：fd，待操作的 fd
+//      sets，fd所在的 sets
+//返回：1=成功添加，0=sets 中没有空位
+//------------------------------------------------------------------------------
 s32 FD_SET(s32 fd, fd_set *sets)
 {
     s32 i = 0;
@@ -29,6 +35,13 @@ s32 FD_SET(s32 fd, fd_set *sets)
 
     return result;
 }
+
+//-----------------------------------------------------------------------------
+//功能：清除 Sets 中的 fd 条目，设为非法ID即可
+//参数：fd，待操作的 fd
+//      sets，fd所在的 sets
+//返回：1=成功清除，0=sets 中没有找到fd条目
+//------------------------------------------------------------------------------
 s32 FD_CLR(s32 fd, fd_set *sets)
 {
 
@@ -55,7 +68,7 @@ s32 FD_CLR(s32 fd, fd_set *sets)
 s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
            struct timeval *timeout)
 {
-    s32 mode = 0;
+//    s32 mode = 0;
     s32 i = 0;
     s32 fd = -1;
     s32 result = 0;
@@ -65,18 +78,18 @@ s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
 
     if(NULL != reads)
     {
-        reads->mode |= CN_SOCKET_IOREAD;
-        mode |= CN_SOCKET_IOREAD;
+        reads->mode = CN_SOCKET_IOREAD;
+//      mode |= CN_SOCKET_IOREAD;
     }
     if(NULL != writes)
     {
-        writes->mode |= CN_SOCKET_IOWRITE;
-        mode |= CN_SOCKET_IOWRITE;
+        writes->mode = CN_SOCKET_IOWRITE;
+//      mode |= CN_SOCKET_IOWRITE;
     }
     if(NULL != exps)
     {
-        exps->mode |= CN_SOCKET_IOERR;
-        mode |= CN_SOCKET_IOERR;
+        exps->mode = CN_SOCKET_IOERR;
+//      mode |= CN_SOCKET_IOERR;
     }
 
     if(NULL != timeout)
@@ -98,7 +111,7 @@ s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
                 fd = reads->fd[i];
                 if(CN_INVALID_FD != fd)
                 {
-                    if(issocketactive(fd,mode))
+                    if(issocketactive(fd,CN_SOCKET_IOREAD))
                     {
                         result++;
                     }
@@ -112,7 +125,7 @@ s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
                 fd = writes->fd[i];
                 if(-1 != fd)
                 {
-                    if(issocketactive(fd,mode))
+                    if(issocketactive(fd,CN_SOCKET_IOWRITE))
                     {
                         result++;
                     }
@@ -126,7 +139,7 @@ s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
                 fd = exps->fd[i];
                 if(-1 != fd)
                 {
-                    if(issocketactive(fd,mode))
+                    if(issocketactive(fd,CN_SOCKET_IOERR))
                     {
                         result++;
                     }
@@ -159,20 +172,36 @@ s32 select(s32 maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
 }
 #pragma GCC diagnostic pop
 
+//-----------------------------------------------------------------------------
+//功能：判断 Sets 中的 fd 是否已经激活，首先查看 fd 是否在sets中，在的话判断是否激活
+//参数：fd，待判断的 fd
+//      sets，fd所在的 sets
+//返回：1=actived，0=unactive
+//------------------------------------------------------------------------------
 s32 FD_ISSET(s32 fd, fd_set *sets)
 {
-    s32 mode;
+    s32 i;
     s32 result = 0;
 
     if(NULL != sets)
     {
-        mode = sets->mode;
-        result = issocketactive(fd,mode);
+        for(i =0;i<FD_SETSIZE;i++)
+        {
+            if(sets->fd[i] == fd)
+            {
+                result = issocketactive(fd,sets->mode);
+                break;
+            }
+        }
     }
-
     return result;
 }
 
+//-----------------------------------------------------------------------------
+//功能：清空 Sets 中的 fd 表，全部设为非法ID即可
+//参数：sets，待操作的 sets
+//返回：1
+//------------------------------------------------------------------------------
 s32 FD_ZERO(fd_set *sets)
 {
     s32 result = 0;

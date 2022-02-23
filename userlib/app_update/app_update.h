@@ -16,15 +16,15 @@ extern "C" {
 #include <stdint.h>
 #include <Iboot_info.h>
 
-enum UpdateResult
-{
-    NoUpdateFile,                   //无须更新
-    UpdateSuccess,                  //升级成功
-    UpdateDownLoadError,            //下载失败，含超时
-    UpdateParamError,               //参数错误
-    VerifyFail,                     //下载的文件校验错误
-    VerifySuccess,                  //下载的文件校验通过
-};
+//enum UpdateResult
+//{
+//    NoUpdateFile,                   //无须更新
+//    UpdateSuccess,                  //升级成功
+//    UpdateDownLoadError,            //下载失败，含超时
+//    UpdateParamError,               //参数错误
+//    VerifyFail,                     //下载的文件校验错误
+//    VerifySuccess,                  //下载的文件校验通过
+//};
 
 void *psram_malloc (u32 size);
 enum UpdateResult CheckUpdate(void);	//此函数由用户实现

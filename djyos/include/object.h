@@ -70,7 +70,7 @@ extern "C" {
 #define CN_OBJ_CMD_EXECUTED     (0)     //命令被执行（返回非布尔值的命令，结果由OpsArgs1返回）
 #define CN_OBJ_CMD_TRUE         (1)     //命令返回正确（对于返回布尔值的命令）
 #define CN_OBJ_CMD_FALSE        (2)     //命令返回错误（对于返回布尔值的命令）
-//oipsTarget的类型，有两种可能，struct obj*，或struct objhandle*，详见具体命令说明
+//opsTarget的类型，有两种可能，struct obj*，或struct objhandle*，详见具体命令说明
 //习惯用法：OpsArgs1用作返回执行结果的指针
 typedef s32 (*fnObjOps)(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
@@ -173,7 +173,7 @@ typedef s32 (*fnObjOps)(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
 #define CN_OBJ_CMD_READ       (CN_TARGET_IS_HDL|1)  // 读文件。
 #define CN_OBJ_CMD_WRITE      (CN_TARGET_IS_HDL|2)  // 写文件。
 #define CN_OBJ_CMD_CLOSE      (CN_TARGET_IS_HDL|3)  // 关闭文件
-#define CN_OBJ_CMD_SHOW       (CN_TARGET_IS_OBJ|4)  // 显示文件（目录）
+#define CN_OBJ_CMD_SHOW       (CN_TARGET_IS_OBJ|4)  // 显示文件（目录），不包括磁盘文件系统
 #define CN_OBJ_CMD_SEEK       (CN_TARGET_IS_HDL|5)  // 重定位文件
 #define CN_OBJ_CMD_TELL       (CN_TARGET_IS_HDL|6)  // 取文件指针位置
 #define CN_OBJ_CMD_DELETE     (CN_TARGET_IS_OBJ|7)  // 删除文件。

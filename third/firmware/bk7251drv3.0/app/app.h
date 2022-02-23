@@ -46,7 +46,7 @@ typedef struct bus_message
 } BUS_MSG_T;
 
 #define CORE_QITEM_COUNT          (64)
-#if (CFG_SUPPORT_ALIOS)
+#if ((CFG_SUPPORT_ALIOS) || (CFG_SUPPORT_DJYOS))
 #define CORE_STACK_SIZE           (4 * 1024)
 #else
 #define CORE_STACK_SIZE           (2 * 1024)
