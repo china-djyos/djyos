@@ -107,8 +107,10 @@ struct __xip_drv{
     s32 (*xip_erase_media) (struct __icore *core, u32 bytes, u32 pos);
 };
 
+//从文件中加载可执行文件到内存运行，必须先启动iboot，iboot中加载文件系统
 #define CN_RUN_FORM_FILE  0
-#define CN_DIRECT_RUN     1     //原名 EN_DIRECT_RUN
+//原名 EN_DIRECT_RUN，此模式下，可实现绕过iboot，直接启动APP，速度非常快
+#define CN_DIRECT_RUN     1
 
 #define CN_XIP_APP_MOUNT        "xip-app"
 #define CN_XIP_APP_PATH         "/xip-app"

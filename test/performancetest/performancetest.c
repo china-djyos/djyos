@@ -62,7 +62,7 @@
 #include "string.h"
 #include "timer_hard.h"
 
-#define CN_TEST_TIMES   1000    //测试次数
+#define CN_TEST_TIMES   3000    //测试次数
 static u8 Cpu_Tatio[3] = {10,50,99};        //控制Cpu的占用率
 
 u32 u32g_GetTimeCost;            //测量系统时间函数所消耗时间
@@ -77,7 +77,7 @@ u32 TestOffset2;
 bool_t TestEnd;
 ptu32_t TimerHandle;
 u32 u32g_TimerFreq;
-u32 IntLine;
+u32 IntLine;        //不要修改变量名，bsp中要用
 void Test_ShowValue(u32 *data,u8 Ratio,u32 freq,char *info);
 u32 __Test_TimerStart(void);
 bool_t __Test_TimerEnd(u32 *val);
@@ -85,7 +85,8 @@ void Test_IntSyncHook(ucpu_t SchType);
 void Test_HighPrioHook(ucpu_t SchType);
 void Test_LowPrioHook(ucpu_t SchType);
 
-//以下几个函数在BSP中实现，一般在CPU驱动目录中
+//函数在BSP中实现，一般在CPU驱动目录中，参见 djysrc\bsp\cpudrv\stm32\src\testsupport.c
+//重置并设置定时器启动标志。
 __attribute__ ((weak)) u32 __Test_TimerStart(void)
 {
     printf("请在BSP中实现定时相关函数\r\n");
@@ -94,12 +95,17 @@ __attribute__ ((weak)) u32 __Test_TimerStart(void)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+//函数在BSP中实现，一般在CPU驱动目录中，参见 djysrc\bsp\cpudrv\stm32\src\testsupport.c
+//如果定时器处于启动状态，读取从上次调用 __Test_TimerStart 以来的时间间隔，并停止定时器。
 __attribute__ ((weak)) bool_t __Test_TimerEnd(u32 *val)
 {
     printf("请在BSP中实现定时相关函数\r\n");
     return false;
 }
 
+//函数在BSP中实现，一般在CPU驱动目录中，参见 djysrc\bsp\cpudrv\stm32\src\testsupport.c
+//用于异步信号同步测试，定时器中断引起处于异步信号阻塞中的事件切入时，读出从中断发生
+//到进入本函数的时间间隔，并调用Test_PushTimeHook保存
 __attribute__ ((weak)) void Test_IntSyncHook(ucpu_t SchType)
 {
     printf("请在BSP中实现定时相关函数\r\n");
@@ -107,6 +113,7 @@ __attribute__ ((weak)) void Test_IntSyncHook(ucpu_t SchType)
 }
 #pragma GCC diagnostic pop
 
+//在BSP中实现的定时器ISR函数中调用，把中断响应延迟时间存入
 void Test_PushTimeISR(u32 time_counter)
 {
     if(TestOffset < CN_TEST_TIMES+2)
@@ -114,6 +121,7 @@ void Test_PushTimeISR(u32 time_counter)
         TimeRecord[TestOffset++] = time_counter;
     }
 }
+//在BSP中实现的Test_IntSyncHook函数调用，把中断响应延迟时间存入
 void Test_PushTimeHook(u32 time_counter)
 {
     if(TestOffset2 < CN_TEST_TIMES+2)
@@ -713,8 +721,8 @@ void Test_IntISRTest(EN_INT_FLAG MeaType)
     TestEnd = true;
 }
 
-extern void *TimerReg;
-extern bool_t TimerStarted;
+extern void *TimerReg;      //用于BSP中的硬件操作
+extern bool_t TimerStarted; //bsp中定义的
 void SysPerformTest(void)
 {
     u32 RunTime,RunTime1;
@@ -731,14 +739,14 @@ void SysPerformTest(void)
     printf("<<<<<<<<<<<<<<<<<系统性能测试开始：>>>>>>>>>>>>>>>\r\n\n");
     TimerStarted = true;
     __Test_TimerEnd(&RunTime);
-    TimerStarted = true;
+    TimerStarted = true;    //不能使用 __Test_TimerStart 函数
     __Test_TimerEnd(&RunTime1);
-    u32g_GetTimeCost = RunTime1 - RunTime;
+    u32g_GetTimeCost = RunTime1 - RunTime;  //测量 __Test_TimerEnd 函数本身的时间开销
     HardTimer_Ctrl(TimerHandle,EN_TIMER_PAUSECOUNT,0);         //开始计数
     HardTimer_Ctrl(TimerHandle,EN_TIMER_STARTCOUNT,0);
     HardTimer_Ctrl(TimerHandle,EN_TIMER_ENINT,true);           //中断使能
     printf("测试的板件名为:%s\r\n",DJY_BOARD);
-    printf("测试主频为:%d\r\n",CFG_CORE_MCLK);
+    printf("测试主频为:%fMhz\r\n",CFG_CORE_MCLK);
 
 //---------------与中断相关功能先测，然后会把定时器用于计时-----------------
     //实时中断响应时间测试
@@ -748,46 +756,39 @@ void SysPerformTest(void)
     printf(" ***************** 异步信号ISR响应时间测试 ***************** \r\n\n");
     Test_IntISRTest(EN_SYNC_INT);
 
-    printf("输入任意键进行下一项测试\r\n");
-    getchar();
+    DJY_EventDelay(500*mS);
 
     //异步信号同步引发切换测试
     Test_IntSync();
 
-    printf("输入任意键进行下一项测试\r\n");
-    getchar();
+    DJY_EventDelay(500*mS);
 
 //---------------与中断相关功能测量完毕，定时器用于计时-----------------
     HardTimer_Ctrl(TimerHandle,EN_TIMER_SETCYCLE,0xffffffff);
     //信号量引发切换的切换速度测试
     Test_SempTest();
 
-    printf("输入任意键进行下一项测试\r\n");
-    getchar();
+    DJY_EventDelay(500*mS);
 
     //互斥量引发切换的切换速度测试
     Test_MutexTest();
 
-    printf("输入任意键进行下一项测试\r\n");
-    getchar();
+    DJY_EventDelay(500*mS);
 
     //测量核心功能函数的执行时间
     Test_coreFunc();
 
-    printf("输入任意键进行下一项测试\r\n");
-    getchar();
+    DJY_EventDelay(500*mS);
 
     //弹出高优先级事件导致切换时间测试
     Test_PopHighPrioEvent();
 
-    printf("输入任意键进行下一项测试\r\n");
-    getchar();
+    DJY_EventDelay(500*mS);
 
     //eventdelay导致切换的切换时间测试
     Test_EventDelay();
 
-    printf("输入任意键进行下一项测试\r\n");
-    getchar();
+    DJY_EventDelay(500*mS);
 
     /*定点运算DMIPS测试、 */
     extern void DhryStoneTest(void);
