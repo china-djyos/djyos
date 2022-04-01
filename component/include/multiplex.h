@@ -80,7 +80,7 @@ extern "C" {
 #define CN_MULTIPLEX_SENSINGBIT_USERBASE    (1<<16)  // bit16~23由用户定义
 
 //触发模式，利用SensingBit.24~31
-#define CN_MULTIPLEX_SENSINGBIT_ONESHOT     (1<<28) //1=只监听一次事件，0=监听多次
+//#define CN_MULTIPLEX_SENSINGBIT_ONESHOT     (1<<28) //1=只监听一次事件，0=监听多次
 #define CN_MULTIPLEX_SENSINGBIT_OR          (1<<29) //1=SensingBit中有一个置位就触发，0=否则全部置位才触发
 #define CN_MULTIPLEX_SENSINGBIT_ET          (1<<30) //1=边沿触发（Edge），0=电平触发（Level）
 

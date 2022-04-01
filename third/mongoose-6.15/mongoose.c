@@ -3007,8 +3007,6 @@ static int mg_do_recv(struct mg_connection *nc) {
       break;
     }
     if (nc->recv_mbuf.size < nc->recv_mbuf.len + len) {
-        if(Djy_MyEventId() == 12)       //lst dbg
-            res = 100;
       mbuf_resize(&nc->recv_mbuf, nc->recv_mbuf.len + len);
     }
     buf = nc->recv_mbuf.buf + nc->recv_mbuf.len;
@@ -4053,6 +4051,12 @@ void mg_socket_if_destroy_conn(struct mg_connection *nc) {
   nc->sock = INVALID_SOCKET;
 }
 
+//lst 
+//发现bug，注释掉原来的还是，重写本函数。
+//mongoose循环每调用mg_mgr_poll 函数只能 accept一个连接，然后就会清掉服务器socket的
+//可read标志，当tcp连续收到2个或以上连接，将只有一个连接被accept，其他的就会遗留在
+//socket中。特别是，这些遗留的socket是正常连接，还会正常接收数据，这些数据也遗留在
+//协议栈中，造成更多的内存泄漏，
 static int mg_accept_conn(struct mg_connection *lc) {
   struct mg_connection *nc;
   union socket_address sa;
@@ -4076,6 +4080,46 @@ static int mg_accept_conn(struct mg_connection *lc) {
   mg_if_accept_tcp_cb(nc, &sa, sa_len);
   return 1;
 }
+//改成：用一个循环来accept，每次接收全部的连接请求。
+#if 0  //这个好像不是bug，恢复mongoose原来的代码。
+static int mg_accept_conn(struct mg_connection *lc)
+{
+  struct mg_connection *nc;
+  union socket_address sa;
+  socklen_t sa_len = sizeof(sa);
+  int accepted = 0;
+  while (1)
+  {
+    /* NOTE(lsm): on Windows, sock is always > FD_SETSIZE */
+    sock_t sock = accept(lc->sock, &sa.sa, &sa_len);
+    if (sock == INVALID_SOCKET)
+    {
+        break;
+    }
+    accepted++;
+    nc = mg_if_accept_new_conn(lc);
+    if (nc == NULL)
+    {
+      closesocket(sock);
+      break;
+    }
+    DBG(("%p conn from %s:%d", nc, inet_ntoa(sa.sin.sin_addr),
+         ntohs(sa.sin.sin_port)));
+    mg_sock_set(nc, sock);
+    mg_if_accept_tcp_cb(nc, &sa, sa_len);
+  }
+  if (accepted == 0)
+  {
+    if (mg_is_error())
+    {
+        DBG(("%p: failed to accept: %d", lc, mg_get_errno()));
+    }
+    return 0;
+  }
+  else
+    return 1;
+}
+#endif
 
 /* 'sa' must be an initialized address to bind to */
 static sock_t mg_open_listening_socket(union socket_address *sa, int type,

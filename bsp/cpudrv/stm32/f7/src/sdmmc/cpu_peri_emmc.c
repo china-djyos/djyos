@@ -129,7 +129,7 @@ void HAL_MMC_MspInit(MMC_HandleTypeDef *hmmc)
 //  __HAL_RCC_GPIOH_CLK_ENABLE();
     PIO_Configure(MMC, PIO_LISTSIZE(MMC));
 
-    PIO_Set(&MMC[6]); // SDMMC1_RSTn拉高
+    PIO_Set(&MMC[6]); // SDMMC1_RSTn拉高--todo：下标越界
 }
 
 // ============================================================================

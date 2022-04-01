@@ -67,7 +67,7 @@ extern "C" {
 
 #include <stdint.h>
 
-#define EFS_NAME_LIMIT            63 // 分区名最大长度,最后一个字节'\0'
+#define EFS_NAME_LIMIT            64 // 分区名最大长度,最后一个字节'\0'
 
 // 说明：文件名区域为64字节，61字节为'\0'，后三字节为文件名的ECC
 #define FILENAME_LIMIT            60 // 分区名最大长度,最后一个字节'\0'
@@ -78,8 +78,8 @@ extern "C" {
 #define FILE_NAME_OFF             (0 ) // 文件名，size=64
 #define FILE_STARTBLOCK_OFF       (64) // 文件起始块，size=4
 #define FILE_MAXSIZE_OFF          (68) // 文件最大长度
-#define FILE_FILESIZE_OFF         (72) // 文件尺寸，正反码，size=4，共44个
-#define FILE_FILESIZE_END         (244) // 最后一个文件尺寸
+#define FILE_FILESIZE_OFF         (72) // 文件尺寸，size=4，共44
+#define FILE_FILESIZE_END         (244) // 最后一个“文件尺寸”
 #define FILE_VERIFITY_OFF         (248) // 校验符，="easyfile"
 #define FILE_FILESIZE_NUM         (44)  // 文件尺寸个数
 
@@ -96,7 +96,16 @@ struct __efs_media_drv{
     bool_t (*efs_erase_media) (u32 dwBlock);
     bool_t (*efs_check_block_ready) (u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize);
 };
-typedef struct EasyFS
+
+struct EfsFileTableItem
+{
+    char filename[FILENAME_LIMIT+1];
+    u32 StartBlock;         //文件起始块号
+    u32 FileSizeLimit;      //文件最大尺寸
+    u32 FileSize[44];       //文件尺寸
+    char FlagBuffer[8];     //标志，"easyfile",没有'\0'
+};
+struct EasyFS
 {
     u32 block_sum; // 总块数
     u64 block_size; // 块尺寸
@@ -116,43 +125,35 @@ typedef struct EasyFS
     // true = 已准备好，不需要擦除(或空块),false = 需要擦除；
     struct umedia *media;
     struct __efs_media_drv *drv;
-}tagEFS;
+};
 
-typedef struct EfsFileInfo
+struct EfsFileInfo
 {
     u32 start_block; // 存储本文件的首块号。
     u64 max_size; // 本文件最大长度，filesize不能超过这个长度。
     u32 item; // 该文件分配表在分配表中的位置
     u32 temp_item; //在内存中缓存的分配表中的位置
     u64 filesize; // 文件实际大小
-}tagEfsFileInfo;
+};
 
 
 #define EF_WR_NOECC         (0x00)
 #define EF_WR_ECC           (0x01)
 
-// 从原来的file.h中修改而来的
-// =============================================================================
-// =============================================================================
-// =============================================================================
-// =============================================================================
-// =============================================================================
-// =============================================================================
-// =============================================================================
-//这么长的单个文件名对嵌入式系统并无多大意义，为兼容大多数长文件名系统。
-#define     CN_FILE_NAME_LIMIT       255
 #define     CN_FILE_BUF_LEN          (256)
 #define     CN_FILE_BUF_LIMIT        (CN_FILE_BUF_LEN + 3)
-typedef struct FileRsc
+struct FileRsc
 {
-    ptu32_t private; // 与媒体相关的标记，其含义由特定文件系统，driver解释，如flash file driver)中，保存该文件(目录)的FDT项目号。
+    ptu32_t private; // 与媒体相关的标记，其含义由特定文件系统，driver解释，如flash file driver)中，
+                    //保存该文件(目录)的FDT项目号。
     sint64_t file_size; // 文件尺寸,字节数，含仍在缓冲区的数据
     u8 *wr_buf; // 写缓冲区，ecc需要
     u32  buf_off; // 写缓冲区指针
                  // 模块维护
     sint64_t ptr; // 当前读指针，由驱动维护和使用。
-    char     name[CN_FILE_NAME_LIMIT+1]; // 文件名（目录名）,具体所支持的文件名长                                  //度是驱动模块决定的，故由驱动模块维护。
-}tagFileRsc;
+    char     name[EFS_NAME_LIMIT];    // 文件名（目录名）,具体所支持的文件名长
+                                      //度是驱动模块决定的，故由驱动模块维护。
+};
 
 
 #ifdef __cplusplus

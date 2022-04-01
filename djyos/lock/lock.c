@@ -880,46 +880,46 @@ void __Lock_ShowMutex(void)
     struct MutexLCB *Mutex;
     struct EventECB *pl_ecb;
 
-    debug_printf("lock","互斥量 mutex 列表：\r\n");
-    debug_printf("lock","状态  拥有者  原优先级  现优先级  阻塞事件  名字\r\n");
+    printf("互斥量 mutex 列表：\r\n");
+    printf("状态  拥有者  原优先级  现优先级  阻塞事件  名字\r\n");
     dListForEach(current, &s_tMutexHead)
     {
         Mutex = dListEntry(current, struct MutexLCB,List);
         if(Mutex->enable == 0)
         {
-            debug_printf("lock","可用                              ");
+            printf("可用                              ");
         }
         else
         {
-            debug_printf("lock","占用  ");
+            printf("占用  ");
             pl_ecb = Mutex->owner;
             if(pl_ecb->prio_base != pl_ecb->prio)
             {
-                debug_printf("lock","%05d   %03d       ",pl_ecb->event_id,
+                printf("%05d   %03d       ",pl_ecb->event_id,
                         pl_ecb->prio_base);
-                debug_printf("lock","%03d       ",pl_ecb->prio);
+                printf("%03d       ",pl_ecb->prio);
             }
             else
             {
-                debug_printf("lock","%05d   未发生优先级继承    ",pl_ecb->event_id);
+                printf("%05d   未发生优先级继承    ",pl_ecb->event_id);
             }
         }
 
         pl_ecb = Mutex->mutex_sync;
         if(pl_ecb)
-            debug_printf("lock","%05d     ",pl_ecb->event_id);
+            printf("%05d     ",pl_ecb->event_id);
         else
-            debug_printf("lock","无        ");
+            printf("无        ");
 
         if((Mutex->name != NULL) && (Mutex->name[0] != '\0'))
         {
-            debug_printf("lock","%s\r\n", Mutex->name);
+            printf("%s\r\n", Mutex->name);
         }else
         {
-            debug_printf("lock","无名互斥量\r\n");
+            printf("无名互斥量\r\n");
         }
     }
-            debug_printf("lock","信号量和互斥量总数:%d，空闲数: %d \r\n",
+            printf("信号量和互斥量总数:%d，空闲数: %d \r\n",
             CFG_LOCK_LIMIT,Mb_QueryFree(g_ptLockPool));
 }
 
@@ -963,36 +963,36 @@ void __Lock_ShowSemp(void)
     struct SemaphoreLCB *Semp;
     struct EventECB *pl_ecb;
 
-    debug_printf("lock","信号量 semaphore 列表：\r\n");
-    debug_printf("lock","排序类型  信号数上限  可用信号数  阻塞事件  名字\r\n");
+    printf("信号量 semaphore 列表：\r\n");
+    printf("排序类型  信号数上限  可用信号数  阻塞事件  名字\r\n");
     dListForEach(current, &s_tSempHead)
     {
         Semp = dListEntry(current, struct SemaphoreLCB,List);
         if(Semp->sync_order == CN_BLOCK_PRIO)
         {
-            debug_printf("lock","优先级  ");
+            printf("优先级  ");
         }
         else
         {
-            debug_printf("lock","   fifo   ");
+            printf("   fifo   ");
         }
-            debug_printf("lock","%8d    %8d    ",Semp->lamps_limit,Semp->lamp_counter);
+            printf("%8d    %8d    ",Semp->lamps_limit,Semp->lamp_counter);
         pl_ecb = Semp->semp_sync;
         if(pl_ecb)
-            debug_printf("lock","%05d     ",pl_ecb->event_id);
+            printf("%05d     ",pl_ecb->event_id);
         else
-            debug_printf("lock","无        ");
+            printf("无        ");
 
         if((Semp->name != NULL) && (Semp->name[0] != '\0'))
         {
-            debug_printf("lock","%s\r\n", Semp->name);
+            printf("%s\r\n", Semp->name);
         }
         else
         {
-            debug_printf("lock","无名信号量\r\n");
+            printf("无名信号量\r\n");
         }
     }
-    debug_printf("lock","\n\r信号量和互斥量总数:%d，空闲数: %d \r\n",\
+    printf("\n\r信号量和互斥量总数:%d，空闲数: %d \r\n",\
                     CFG_LOCK_LIMIT,Mb_QueryFree(g_ptLockPool));
 }
 

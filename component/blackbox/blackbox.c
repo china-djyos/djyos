@@ -720,4 +720,6 @@ bool_t ModuleInstall_SysStartReason(const tagVmMemItem *tab[],fnGetStartMode get
     return result;
 
 }
+#if CFG_MODULE_ENABLE_BLACK_BOX==true
 ADD_TO_ROUTINE_SHELL(startmsg,startmsg,"usage:bootmsg");
+#endif

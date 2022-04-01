@@ -1188,7 +1188,7 @@ bool_t XIP_CheckAppInFile(const char *path)
                             ret = true;
                     }
                     else
-                        ret = true;
+                        ret = false;
                     break;
                 }
             }
@@ -1593,7 +1593,7 @@ bool_t Iboot_GetWeek(s8 *week)
 //------------------------------------------------------------------------------
 void Iboot_SetSerial(s8 *serial)
 {
-    memcpy(Iboot_App_Info.production_week, serial, 5);
+    memcpy(Iboot_App_Info.production_serial, serial, 5);
 }
 
 //-----------------------------------------------------------------------------
@@ -1964,7 +1964,7 @@ bool_t Run_App(enum runappmode mode)
 }
 
 //=============================================================================
-//功能：文件升级后根据升级标志执行相应的iboot或APP
+//功能：设置重启后执行iboot或APP
 //参数：无
 //返回：true/false
 //=============================================================================
@@ -1982,7 +1982,8 @@ bool_t Iboot_UpdateToRun()
         Iboot_App_Info.runflag.restart_run_app = 1;
     }
     DJY_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
-    CPU_Reboot();
+//  CPU_Reboot();       //类似BK7251的CPU，重启后如果要继续调试，改为reboot
+    CPU_Reset();
     return true;
 }
 //==============================================================================

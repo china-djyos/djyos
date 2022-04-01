@@ -138,7 +138,7 @@ static s32 get_ntp_tiemstamp(u32 *ptimestamp, char *ntp_domain, s32 timeout_ms)
   n = sendto(sockfd, (char*)&packet, sizeof(struct ntp_packet), 0, (struct sockaddr *)&serv_addr, addrlen);
   if ( n < 0 ) {
       ret = -6;
-      printf( "ERROR writing to socket\r\n" );
+      printf( "ntp:can not send request\r\n" );
       goto FUN_RET;
   }
 
@@ -202,6 +202,10 @@ s32 ntp_GetTimeStamp(u32 *ptimestamp, s32 timeout_ms)
                 printf("status:%d, ntp_server:%s!\r\n", status, arr_ntp_server[index]);
                 *ptimestamp = timestamp;
                 break ;
+            }
+            else
+            {
+                printf("repeat until %dS\r\n",timeout_ms/1000);
             }
         }
         if((((u32)DJY_GetSysTime() - starttime) >= timeout_ms*1000) || (status >= 0))

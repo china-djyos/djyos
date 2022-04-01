@@ -688,6 +688,7 @@ static int __udpsend(struct tagSocket *sock, const void *msg, int len, int flags
     }
     return  result;
 }
+
 // =============================================================================
 // 函数功能：  __cpyfromrbuf
 // 输入参数：
@@ -1310,33 +1311,31 @@ static bool_t __rcvdeal(tagIpAddr *addr,struct NetPkg *pkglst, u32 devfunc)
 }
 
 
-#define CN_UDP_DEBUG_PREFIX  "         "
 static void __udpdebug(struct tagSocket *sock,char *filter)
 {
     tagUdpCB    *ucb = NULL;
-    char *prefix = CN_UDP_DEBUG_PREFIX;
-    debug_printf("udp","UDPSOCKET:address:0x%08x\n\r",(u32)sock);
-    debug_printf("udp","%s:iplocal :%s    portlocal :%d\r\n",\
-            prefix,inet_ntoa(*(struct in_addr*)&sock->element.v4.iplocal),ntohs(sock->element.v4.portlocal));
-    debug_printf("udp","%s:ipremote:%s    portremote:%d\r\n",\
-            prefix,inet_ntoa(*(struct in_addr*)&sock->element.v4.ipremote),ntohs(sock->element.v4.portremote));
-    debug_printf("udp","%s:sockstat:0x%08x    UserTag:0x%08x\n\r",\
-            prefix,sock->sockstat,sock->SockUserTag);
-    debug_printf("udp","%s:syncstat:%d\n\r",prefix,sock->SockSync->enable);
-    debug_printf("udp","%s:errno   :%d\n\r",prefix,sock->errorno);
+    printf("UDPSOCKET:address:0x%08x\n\r",(u32)sock);
+    printf("    iplocal :%s    portlocal :%d",\
+            inet_ntoa(*(struct in_addr*)&sock->element.v4.iplocal),
+            ntohs(sock->element.v4.portlocal));
+    printf("    ipremote:%s    portremote:%d\r\n",\
+            inet_ntoa(*(struct in_addr*)&sock->element.v4.ipremote),
+            ntohs(sock->element.v4.portremote));
+    printf("    sockstat:0x%08x    UserTag:0x%08x   errno   :0x%08x\n\r",\
+            sock->sockstat,sock->SockUserTag,sock->errorno);
 
     ucb = (tagUdpCB    *)sock->TplCB;
     if(NULL != ucb)
     {
-        debug_printf("udp","%s:channelstat:0x%04x\n\r",prefix,ucb->channelstat);
-        debug_printf("udp","%s:rbuf:len:0x%08x buflen:0x%08x triglevel:0x%08x timeout:0x%08x SockSync:%d\n\r",\
-                prefix,ucb->rbuf.buflen,ucb->rbuf.buflenlimit,ucb->rbuf.triglevel,\
+        printf("    channelstat:0x%04x\n\r",ucb->channelstat);
+        printf("    rbuf:len:0x%08x buflen:0x%08x triglevel:0x%08x timeout:0x%08x SockSync:%d\n\r",\
+                ucb->rbuf.buflen,ucb->rbuf.buflenlimit,ucb->rbuf.triglevel,\
                 ucb->rbuf.timeout,ucb->rbuf.bufsync->lamp_counter);
-        debug_printf("udp","%s:framrcv:0x%llx  framsnd:0x%llx\n\r",prefix,ucb->framrcv,ucb->framsnd);
+        printf("    framrcv:0x%llx  framsnd:0x%llx\n\r",ucb->framrcv,ucb->framsnd);
     }
     else
     {
-        debug_printf("udp","%s:no control block yet\n\r",prefix);
+        printf("no control block yet\n\r");
     }
 }
 #pragma GCC diagnostic pop
@@ -1377,7 +1376,7 @@ bool_t UdpInit(void)
        (false ==TPL_RegisterProto(AF_INET,SOCK_DGRAM,0, &gUdpProto))||\
        (false == IpInstallProto("udp",IPPROTO_UDP,__rcvdeal)))
     {
-        debug_printf("udp","%s:ERR:UDP PROTO REGISTER FAILED\n\r",__FUNCTION__);
+        printf("%s:ERR:UDP PROTO REGISTER FAILED\n\r",__FUNCTION__);
         result = false;
     }
     else

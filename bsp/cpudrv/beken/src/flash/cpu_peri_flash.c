@@ -132,7 +132,8 @@ void encrypt(u32 *rx, u8 *tx, u32 num);
 
 // ============================================================================
 // 功能：设置操作flash数据时需不需要考虑CRC
-// 参数：flag:true--不需要CRC，false--需要CRC
+// 参数：flag:true--待写入的数据已经有crc，或者不需要CRC，
+//      false--需要crc，但数据不带crc，须写入函数添加CRC
 // 返回：
 // 备注：
 // ============================================================================
@@ -163,7 +164,7 @@ static s32 SetFlash_Init(struct NorDescr *Description)
 }
 
 // ============================================================================
-// 功能：读取带crc的flash数据
+// 功能：读取带crc区的flash数据，返回的数据中包含了crc区域，但作为普通数据使用
 // 参数：address -- 地址；
 //      data -- 读数据缓存；
 //      size -- 读取的字节数
@@ -179,7 +180,7 @@ void djy_flash_read_crc(uint32_t address, void *data, uint32_t size)
     Lock_MutexPost(flash_mutex);
 }
 // ============================================================================
-// 功能：读取不带crc的flash数据
+// 功能：读取不带crc的flash数据，即把读出的数据中去掉crc后提交给用户。
 // 参数：address -- 地址；计算了crc之后的物理地址。
 //      data -- 读数据缓存；
 //      size -- 读取的字节数
@@ -220,8 +221,7 @@ void djy_flash_read(uint32_t address, void *data, uint32_t size)
 }
 // ============================================================================
 // 功能：写入flash，写入时是否添加crc，有 GetOperFalshMode() 函数确定。
-// 参数：address，写入地址；如果 data 是不考虑crc，则address是物理地址。
-//                  否则，address是逻辑地址
+// 参数：address，写入地址,是物理地址。
 //      data -- 读数据缓存；
 //      size -- 读取的字节数
 // 返回：无
@@ -283,6 +283,14 @@ void djy_flash_write(uint32_t address, const void *data, uint32_t size)
 //    flash_protection_op(0,FLASH_PROTECT_ALL);
     Lock_MutexPost(flash_mutex);
 }
+// ============================================================================
+// 功能：写入flash，写入时是否添加crc，由GetOperFalshMode() 函数确定。
+// 参数：address，写入地址,如果GetOperFalshMode==true，是物理地址，否则是逻辑地址
+//      data -- 读数据缓存；
+//      size -- 读取的字节数
+// 返回：无
+// 备注：
+// ============================================================================
 void djy_flash_write_ori(uint32_t address, const void *data, uint32_t size)
 {
     u32 i, len,inaddress;
@@ -457,10 +465,12 @@ s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...)
 
 // ============================================================================
 // 功能：在内flash安装文件系统
-// 参数：fs -- 需要挂载的文件系统，mediadrv -- 媒体驱动，
-//       bstart -- 起始块，bend -- 结束块（不包括该块，只到该块的上一块）
+// 参数：fs -- 需要挂载的文件系统，
+//      mediadrv -- 媒体驱动，
+//      bstart -- 起始块，
+//      bend -- 结束块（不包括该块，只到该块的上一块）
 // 返回：0 -- 成功， -1 -- 失败
-// 备注：
+// 备注：todo:逻辑反了，不是文件系统安装到flash，而是flash挂接到文件系统中，须改之。
 // ============================================================================
 s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 {

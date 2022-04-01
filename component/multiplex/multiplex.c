@@ -515,12 +515,12 @@ bool_t __Multiplex_Set(s32 Fd, u32 Status)
                 Int_RestoreAsynSignal();
             }
         }
-        else if((ActivedFlag == false) && (true == Sets->SetsActived))
-        {
-            Sets->SetsActived = ActivedFlag;
-            Lock_SempPend(&Sets->Lock,0);
-            Int_RestoreAsynSignal();
-        }
+//      else if((ActivedFlag == false) && (true == Sets->SetsActived))
+//      {
+//          Sets->SetsActived = ActivedFlag;
+//          Lock_SempPend(&Sets->Lock,0);
+//          Int_RestoreAsynSignal();
+//      }
         else
         {
             if(true == Sets->SetsActived)
@@ -607,7 +607,10 @@ s32 Multiplex_Wait(struct MultiplexSetsCB *Sets, u32 *Status, u32 Timeout)
             if (Sets->Actived != 0)
                 Sets->Actived--;
             if (Sets->Actived == 0)
+            {
                 Sets->SetsActived = false;
+                Lock_SempPend(&Sets->Lock, 0);  //清除掉已经post的信号
+            }
         }
         else
         {

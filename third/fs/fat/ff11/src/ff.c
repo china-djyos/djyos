@@ -2064,7 +2064,7 @@ FRESULT follow_path (   /* FR_OK(0): successful, !=0: error code */
 /* Get logical drive number from path name                               */
 /*-----------------------------------------------------------------------*/
 
-//static 				/* 开放出来供使用 */
+//static                /* 开放出来供使用 */
 int get_ldnumber (      /* Returns logical drive number (-1:invalid drive) */
     const TCHAR** path  /* Pointer to pointer to the path name */
 )
@@ -4233,20 +4233,20 @@ FRESULT f_mkfs (
             return FR_DISK_ERR;
         mem_set(tbl, 0, SS(fs));            /* Fill following FAT entries with zero */
         for (n = 1; n < n_fat; n++) {       /* This loop may take a time on FAT32 volume due to many single sector writes */
-#if 0
+//#if 0     //todo:这两段代码不知谁添加的，应该是有问题的，原版中也没有，估计是调试用的忘删了，注释掉。
             if (disk_write(pdrv, tbl, wsect++, 1) != RES_OK)
                 return FR_DISK_ERR;
-#else
-            static BYTE temp = 0;
-            if (temp < 100) {
-                if (disk_write(pdrv, tbl, wsect++, 1) != RES_OK)
-                return FR_DISK_ERR;
-                temp++;
-            }
-            else {
-                wsect++;
-            }
-#endif
+//#else
+//            static BYTE temp = 0;
+//            if (temp < 100) {
+//                if (disk_write(pdrv, tbl, wsect++, 1) != RES_OK)
+//                return FR_DISK_ERR;
+//                temp++;
+//            }
+//            else {
+//                wsect++;
+//            }
+//#endif
         }
     }
 

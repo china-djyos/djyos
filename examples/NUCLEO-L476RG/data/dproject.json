@@ -31,12 +31,14 @@
 		"lock",
 		"memory pool",
 		"message queue",
+		"misc",
 		"multiplex",
 		"ring buffer and line buffer",
 		"shell",
 		"stdio",
+		"STM32 commond code",
 		"stm32L4",
-		"uart device file",
-		"STM32 commond code"]
+		"time",
+		"uart device file"]
 	}
 }

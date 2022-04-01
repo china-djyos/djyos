@@ -31,11 +31,11 @@
 #include "sys_config.h"
 
 #define CFG_VERIFICATION
-#define CFG_EMB 
-#define CFG_SPLIT 
-#define CFG_UMAC 
-#define CFG_DBG 
-#define CFG_BCN 
+#define CFG_EMB
+#define CFG_SPLIT
+#define CFG_UMAC
+#define CFG_DBG
+#define CFG_BCN
 
 #if CFG_LESS_MEMERY_IN_RWNX
 #define CFG_AMSDU_2K
@@ -43,28 +43,28 @@
 #define CFG_AMSDU_4K
 #endif
 
-#define CFG_STA_MAX       2
-#define CFG_SPC           16 
+#define CFG_STA_MAX       2    //lst£¨‘≠¿¥≈‰÷√ « 2
+#define CFG_SPC           16
 
-#define CFG_TXDESC0       1 
+#define CFG_TXDESC0       1
 #define CFG_TXDESC1       1
 
 #if !CFG_LESS_MEMERY_IN_RWNX
-#define CFG_TXDESC2       32 
+#define CFG_TXDESC2       32
 #else
-#define CFG_TXDESC2       16 
+#define CFG_TXDESC2       16
 #endif
 
-#define CFG_TXDESC3       4 
+#define CFG_TXDESC3       4
 #define CFG_TXDESC4       1
 
-#define CFG_PS 
-#define CFG_DPSM 
-#define CFG_CMON 
-#define CFG_MROLE 
-#define CFG_HWSCAN 
-#define CFG_AUTOBCN 
-#define CFG_WAPI 
+#define CFG_PS
+#define CFG_DPSM
+#define CFG_CMON
+#define CFG_MROLE
+#define CFG_HWSCAN
+#define CFG_AUTOBCN
+#define CFG_WAPI
 
 #if CFG_IEEE80211N
 #define CFG_BWLEN
@@ -86,7 +86,7 @@
 
 /// Max number of virtual interfaces managed. MAC HW is limited to 6, but the LMAC assumes
 /// that this number is a power of 2, thus only 1, 2 or 4 are allowed
-#define NX_VIRT_DEV_MAX           2  
+#define NX_VIRT_DEV_MAX           2
 
 /// Max number of peer devices managed
 #define NX_REMOTE_STA_MAX         CFG_STA_MAX
@@ -177,10 +177,10 @@
 
 /// Define the Aggregation+Block Ack option for TX
 #if defined CFG_AGG
-	#define NX_AMPDU_TX          1	
+    #define NX_AMPDU_TX          1
     #define NX_MAX_BA_TX         CFG_BATX
 #if (NX_MAX_BA_TX == 0)
-	#error "At least one BA TX agreement shall be allowed"
+    #error "At least one BA TX agreement shall be allowed"
 #endif
 
 #else
@@ -280,7 +280,7 @@
     #define NX_P2P_GO_PS       1
     #else
     #define NX_P2P_GO_PS       0
-    #endif //(defined CFG_P2P_GO_PS)	
+    #endif //(defined CFG_P2P_GO_PS)
     #else
     #define NX_P2P_GO          0
     #define NX_P2P_GO_PS       0
@@ -292,7 +292,7 @@
     #define NX_P2P_DBG         0
     /// P2P GO Support
     #define NX_P2P_GO          0
-    #define NX_P2P_GO_PS       0	
+    #define NX_P2P_GO_PS       0
 #endif //(CFG_P2P)
 
 /// Wireless Mesh Networking support
@@ -303,7 +303,7 @@
     #define RW_MESH_LINK_NB             (CFG_MESH_LINK)
     #define RW_MESH_PATH_NB             (CFG_MESH_PATH)
     #define RW_MESH_PROXY_NB            (CFG_MESH_PROXY)
-    
+
     // If Mesh is supported, enable MFP feature
     #undef CFG_MFP
     #define CFG_MFP                     (1)
@@ -500,10 +500,10 @@
 
 /* system heap size*/
 #define CFG_HEAP_SIZE                            (256 * NX_VIRT_DEV_MAX \
-                                                        + 256 * NX_REMOTE_STA_MAX \
-                                                        + CELL_COUNT * CELL_GRANULARITY \
-                                                        + 20 * 1024)
-                                                        
+                                                  + 256 * NX_REMOTE_STA_MAX \
+                                                  + CELL_COUNT * CELL_GRANULARITY \
+                                                  + 20 * 1024)
+
 #endif // _RWNX_CONFIG_H_
 // eof
 
