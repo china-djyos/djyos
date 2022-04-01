@@ -108,6 +108,9 @@
 //@#$%component end configure
 // =============================================================================
 
+#define REG_READ(addr)          (*((volatile UINT32 *)(addr)))
+#define REG_WRITE(addr, _data)  (*((volatile UINT32 *)(addr)) = (_data))
+
 #if (CN_BEKEN_SDK_V3 == 1)
 extern void uart_hw_set_change(UINT8 uport, bk_uart_config_t *uart_config);
 static bk_uart_config_t djybsp_uart[CN_UART_NUM] = {
@@ -401,6 +404,15 @@ static void djybsp_uart_tx_end_isr(s32 port, void *param)
     Board_UartHalfDuplexRecv(port);
     return ;
 }
+
+void djybsp_uart_rx_over_isr(s32 port, void *param)
+{
+    if(port>CN_UART2)
+        return ;
+    UART_ErrHandle((struct UartGeneralCB *)pUartCB[port],CN_UART_FIFO_OVER_ERR);
+
+    return ;
+}
 #pragma GCC diagnostic pop
 
 // =============================================================================
@@ -415,6 +427,7 @@ static void __UART_IntInit(u32 port)
     uart_rx_callback_set(port, djybsp_uart_rx_isr, (void *)port);
     uart_tx_fifo_needwr_callback_set(port,djybsp_uart_tx_isr,(void *)port);
     uart_tx_end_callback_set(port,djybsp_uart_tx_end_isr,(void *)port);
+    uart_rx_fifo_over_callback_set(port,djybsp_uart_rx_over_isr,(void *)port);
 }
 
 // =============================================================================

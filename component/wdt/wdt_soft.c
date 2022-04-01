@@ -1004,5 +1004,7 @@ bool_t WdtHal_RegisterWdtChip(char *chipname, u32 yipcycle,\
     return true;
 }
 
+#if CFG_MODULE_ENABLE_WATCH_DOG==true
 ADD_TO_ROUTINE_SHELL(wdtshow,wdtshow,"usage:wdtshow");
+#endif
 

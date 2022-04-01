@@ -97,7 +97,7 @@
 #define tagGpioReg GPIO_TypeDef
 
 static tagGpioReg volatile * const tg_GPIO_Reg[] = {GPIOA,GPIOB,GPIOC,GPIOD,
-                                                GPIOE,GPIOF,GPIOG,GPIOH,GPIOI,GPIOJ,GPIOK};
+                                                GPIOE,GPIOF,GPIOG,GPIOH,GPIOI,GPIOK};
 
 // =============================================================================
 // 功能: GPIO引脚配置，包括引脚的模式、输入类型、速度、上下拉类型等
@@ -112,7 +112,7 @@ static tagGpioReg volatile * const tg_GPIO_Reg[] = {GPIOA,GPIOB,GPIOC,GPIOD,
 bool_t GPIO_CfgPinFunc(u32 port,u32 Msk,u32 Mode,
                         u32 OutType,u32 Speed,u32 PUPD)
 {
-    if(port > GPIO_K)
+    if(port > GPIO_I)
         return  false;
     u32 pinpos=0,pos=0,curpin=0;
     for(pinpos=0;pinpos<16;pinpos++)
@@ -146,7 +146,7 @@ bool_t GPIO_CfgPinFunc(u32 port,u32 Msk,u32 Mode,
 // =============================================================================
 bool_t GPIO_AFSet(u32 port,u32 pinnum,u32 af_no)
 {
-    if(port > GPIO_K||af_no>AF15)
+    if(port > GPIO_I||af_no>AF15)
         return false;
     u16 flag,pinnum_1;
     for(pinnum_1=0;pinnum_1<16;pinnum_1++)
@@ -168,7 +168,7 @@ bool_t GPIO_AFSet(u32 port,u32 pinnum,u32 af_no)
 // =============================================================================
 u32 GPIO_GetData(u32 port)
 {
-    if(port >GPIO_K)
+    if(port >GPIO_I)
         return 0;
     return tg_GPIO_Reg[port]->IDR;
 }
@@ -181,7 +181,7 @@ u32 GPIO_GetData(u32 port)
 // =============================================================================
 void GPIO_OutData(u32 port,u32 data)
 {
-    if(port >GPIO_K)
+    if(port >GPIO_I)
         return;
     tg_GPIO_Reg[port]->ODR = data;
 }
@@ -194,9 +194,9 @@ void GPIO_OutData(u32 port,u32 data)
 // =============================================================================
 void GPIO_SettoHigh(u32 port,u32 msk)
 {
-    if(port >GPIO_K)
+    if(port >GPIO_I)
         return;
-    tg_GPIO_Reg[port]->BSRRL = (u16)msk & 0xffff;
+    tg_GPIO_Reg[port]->BSRR = msk & 0xffff;
 }
 
 // =============================================================================
@@ -207,9 +207,9 @@ void GPIO_SettoHigh(u32 port,u32 msk)
 // =============================================================================
 void GPIO_SettoLow(u32 port,u32 msk)
 {
-    if(port > GPIO_K)
+    if(port > GPIO_I)
         return;
-    tg_GPIO_Reg[port]->BSRRH =(u16)msk & 0xffff;
+    tg_GPIO_Reg[port]->BSRR = msk<<16;
 }
 
 // =============================================================================
@@ -220,9 +220,9 @@ void GPIO_SettoLow(u32 port,u32 msk)
 void GPIO_PowerOn(u32 port)
 {
     //stm32没有关闭gpio电源的功能，只能关掉或打开他们的时钟。
-    if(port > GPIO_K)
+    if(port > GPIO_I)
         return ;
-    RCC->AHB4ENR |= (1<<port);
+    RCC->AHB1ENR |= (1<<port);
 }
 
 // =============================================================================
@@ -233,9 +233,9 @@ void GPIO_PowerOn(u32 port)
 void GPIO_PowerOff(u32 port)
 {
     //stm32没有关闭gpio电源的功能，只能关掉或打开他们的时钟。
-    if(port > GPIO_K)
+    if(port > GPIO_I)
         return ;
-    RCC->AHB4ENR &= ~(1<<port);
+    RCC->AHB1ENR &= ~(1<<port);
 }
 // =============================================================================
 // 功能: 锁定GPIO的参数设置。在此锁定序列期间只允许使用字访问（32 位长）。
@@ -244,7 +244,7 @@ void GPIO_PowerOff(u32 port)
 // =============================================================================
 bool_t GPIO_SetLckr(u32 port,u32 Lckk)
 {
-    if(port > GPIO_K)
+    if(port > GPIO_I)
         return false;
     if(Lckk==GPIO_Lock)
     {
@@ -316,11 +316,141 @@ unsigned char PIO_Get( const Pin *Pin )
 }
 
 
+//以下代码为microPython提供支持。
+u32 transformation(char *str)
+{
+    if(strcmp(str,"GPIO_A")==0)
+        return GPIO_A;
+    else if(strcmp(str,"GPIO_B")==0)
+        return GPIO_B;
+    else if(strcmp(str,"GPIO_C")==0)
+        return GPIO_C;
+    else if(strcmp(str,"GPIO_D")==0)
+        return GPIO_D;
+    else if(strcmp(str,"GPIO_E")==0)
+        return GPIO_E;
+    else if(strcmp(str,"GPIO_F")==0)
+        return GPIO_F;
+    else if(strcmp(str,"GPIO_G")==0)
+        return GPIO_G;
+    else if(strcmp(str,"GPIO_H")==0)
+        return GPIO_H;
+    else if(strcmp(str,"GPIO_I")==0)
+        return GPIO_I;
+    else if(strcmp(str,"GPIO_J")==0)
+        return GPIO_J;
+    else if(strcmp(str,"GPIO_I")==0)
+        return GPIO_I;
+    else
+        return -1;
+}
 
+// =============================================================================
+// 功能: GPIO引脚配置，包括引脚的模式、输入类型、速度、上下拉类型等
+// 参数: str，被操作的port编号，比如要操作MGPIOA
+//       date[0]，操作的掩码，如操作的是MPIN0
+//       date[1],模式，分为输入、输出、模拟输入、AF复用功能,如MGPIO_MODE_IN
+//       date[2] 上拉或下拉，如MGPIO_PUPD_NONE
+//       date[3],AF模式值
+//       date[4],推挽输出或开漏输出
+//       date[5],速度，如GPIO_SPEED_50M
+// 返回: 无
+// =============================================================================
+s32 PIN_Init(void *str,char *data,u32 len)
+{
+    s32 ret =-1;
+    struct PIN *p = malloc(sizeof(struct PIN));
 
+    p->PORT=GPIO_A;
+    p->Pinx=PIN0;
+    p->MODER=GPIO_MODE_IN;
+    p->PUPD=GPIO_PUPD_NONE;
+    p->AF=AF_NUll;
+    p->O_TYPER=GPIO_OTYPE_PP;
+    p->O_SPEEDR=GPIO_SPEED_H;
 
+//    for(int i=0;i<len;i++)
+//    {
+//        printf("data[%d] is %d\r\n",i,data[i]);
+//    }
 
+    if(len>=1)
+    {
+        ret = transformation(str);
+        p->PORT = ret;
+        p->Pinx = 1 << data[0];
+    }
+    if (len >= 2)
+        p->MODER = data[1];
+    if (len >= 3)
+        p->PUPD = data[2];
+    if (len >= 4)
+        p->AF = data[3];
+    if (len >= 5)
+        p->O_TYPER = data[4];
+    if (len >= 6)
+        p->O_SPEEDR = data[5];
 
+//    printf("ret is %d\r\n",ret);
+//    printf("p->PORT is %d\r\n",p->PORT);
+//    printf("p->Pinx is %d\r\n",p->Pinx);
+//    printf("p->MODER is %d\r\n",p->MODER);
+//    printf("p->PUPD is %d\r\n",p->PUPD);
+//    printf("p->AF is %d\r\n",p->AF);
+//    printf("p->O_TYPER is %d\r\n",p->O_TYPER);
+//    printf("p->O_SPEEDR is %d\r\n",p->O_SPEEDR);
+
+    PIO_Configure(p, 1);
+
+    free(p);
+
+    return ret;
+}
+
+u32 PIN_Get(void *str,char *data,u32 len)
+{
+    unsigned int reg;
+
+    u32 port = transformation(str);
+
+    reg= GPIO_GetData(port);
+
+    if ( (reg & (1<<data[0])) == 0 )
+    {
+        return 0 ;
+    }
+    else
+    {
+        return 1 ;
+    }
+
+}
+
+void PIN_SettoHigh(void *str,char *data,u32 len)
+{
+    u32 port = transformation(str);
+    u32 pinx = 1 << data[0];
+    GPIO_SettoHigh(port,pinx);
+}
+
+void PIN_SettoLow(void *str,char *data,u32 len)
+{
+    u32 port = transformation(str);
+    u32 pinx = 1 << data[0];
+    GPIO_SettoLow(port,pinx);
+}
+
+void PIN_PowerOn(void *str,char *data,u32 len)
+{
+    u32 port = transformation(str);
+    GPIO_PowerOn(port);
+}
+
+void PIN_PowerOff(void *str,char *data,u32 len)
+{
+    u32 port = transformation(str);
+    GPIO_PowerOff(port);
+}
 
 
 

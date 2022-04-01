@@ -102,9 +102,9 @@
 #define CFG_FT5406_RT_I2C_CLK_FRE   (100*1000)           //"总线速度",单位Hz
 
 //%$#@string,1,16,
-#define CFG_FT5406_BUS_NAME          "I2C0"        //"IIC总线名称",触摸芯片使用的IIC总线名称
-#define CFG_FT5406_TOUCH_NAME        "TOUCH_FT5406"//"触摸屏名称",触摸芯片的名称
-#define CFG_FT5406_DISPLAY_NAME      ""            //"桌面名称",触摸屏所使用的桌面的名称
+#define CFG_FT5406_BUS_NAME          "I2C0"             //"IIC总线名称",触摸芯片使用的IIC总线名称
+#define CFG_FT5406_TOUCH_NAME        "TOUCH_FT5406"     //"触摸屏名称",触摸芯片的名称
+#define CFG_FT5406_DISPLAY_NAME      "desktop"          //"桌面名称",触摸屏所使用的桌面的名称
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -358,7 +358,7 @@ bool_t ModuleInstall_FT5406(void)
     s_FT5406_Dev = IIC_DevAdd(CFG_FT5406_BUS_NAME,"IIC_Dev_FT5406",CFG_FT5406_RT_I2C_ADDRESS,0,8);
     if(NULL != s_FT5406_Dev)
     {
-        desktop = GK_GetDesktop(CFG_FT5X26_DISPLAY_NAME);
+        desktop = GK_GetDesktop(CFG_FT5406_DISPLAY_NAME);
         ps_FT5406_Dev = s_FT5406_Dev;
         result=FT5406_Init();
         if(!result)
@@ -369,7 +369,7 @@ bool_t ModuleInstall_FT5406(void)
             return false;
 
         FT5406.read_touch = FT5406_Scan;//读触摸点的坐标函数
-        FT5406.touch_loc.display = GK_GetDisplay(CFG_FT5X26_DISPLAY_NAME);
+        FT5406.touch_loc.display = GK_GetDisplay(CFG_FT5406_DISPLAY_NAME);
         result=Touch_InstallDevice(CFG_FT5406_TOUCH_NAME,&FT5406);//添加驱动到Touch
         if(!result)
             return false;

@@ -106,6 +106,7 @@
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯
 //@#$%component end configure
 
+extern struct NorDescr *nordescription;
 //extern bool_t flash_is_install(void);
 //extern void djy_flash_read(uint32_t address, void *data, uint32_t size);
 //extern void djy_flash_write(uint32_t address, const void *data, uint32_t size);
@@ -121,7 +122,6 @@ u32 efs_embflash_read(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags
 bool_t efs_embflash_erase(u32 dwBlock);
 bool_t efs_embflash_CheckBlockReady(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize);
 
-extern struct NorDescr *nordescription;
 
 struct __efs_media_drv EFS_EMBFLASH_DRV =
 {

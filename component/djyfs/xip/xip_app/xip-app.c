@@ -1064,7 +1064,7 @@ static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
     core->ASize = super->AreaSize;
     core->MStart = super->MediaStart;
     core->vol = (void*)um;
-    core->bufsz = (s16)512; // xip文件系统文件的缓存大小依据unit的尺寸；
+    core->bufsz = (s16)512; // xip文件系统文件的缓存大小依据unit的尺寸；todo：512哪里来的？
     if(core->bufsz<(s16)Iboot_GetAppHeadSize())
     {
         free(core);
@@ -1073,13 +1073,13 @@ static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
 
     core->inhead = core->bufsz - Iboot_GetAppHeadSize();
     core->root = super->pTarget;
-    xip_app_scanfiles(core); // 扫描已存在文件
     core->lock = Lock_MutexCreate("xip-app fs");
     if(!core->lock)
     {
         free(core);
         return (-1);
     }
+    xip_app_scanfiles(core); // 扫描已存在文件
 
     super->pCore = (void*)core;
     return (0);

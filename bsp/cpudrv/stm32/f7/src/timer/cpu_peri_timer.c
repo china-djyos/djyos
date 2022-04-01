@@ -358,6 +358,7 @@ bool_t  __STM32Timer_SetAutoReload(struct STM32TimerHandle  *timer, bool_t autor
 //       user isr中将无所适从。
 // 参数：定时器句柄。
 // 返回：user ISR的返回值
+// 说明：须定义为 weak 函数，已允许用户自己定义 ISR
 //-----------------------------------------------------------------------------
 __attribute__((weak)) u32 __STM32Timer_isr(ptu32_t TimerHandle)
 {
@@ -647,7 +648,7 @@ bool_t __STM32Timer_CheckTimeout(struct STM32TimerHandle  *timer, bool_t *timeou
 // 函数功能：__STM32Timer_GetID
 //          获取定时器ID
 // 输入参数：timer，待操作定时器，
-// 输出参数：timerId,高16位为TIMERNO,低16为对应的IRQNO
+// 输出参数：timerId,高16位为 irqno,低16为对应的 timerno
 // 返回值  ：true 成功 false失败
 // 说明    : 本层实现
 // =============================================================================
@@ -662,9 +663,9 @@ bool_t __STM32Timer_GetID(struct STM32TimerHandle   *timer,u32 *timerId)
     }
     else
     {
-        irqno = (u16)timer->timerno;
-        timerno = (u16)timer->irqline;
-        *timerId = (timerno<<16)|(irqno);
+        timerno = (u16)timer->timerno;
+        irqno = (u16)timer->irqline;
+        *timerId = (irqno<<16)|(timerno);
         return true;
     }
 }

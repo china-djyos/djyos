@@ -128,7 +128,7 @@ enum _EN_TCPSTATE
 #define CN_TCP_SNDBUF_SIZEDEFAULT  0x800    //默认 tcp 发送 buffer size
 #define CN_TCP_RCVBUF_SIZEDEFAULT  0x800    //默认 tcp 接收 buffer size
 #define CN_TCP_MSSDEFAULT          1460     //默认 tcp mss size
-#define CN_TCP_LISTENDEFAULT    5           //LISTEN BAKLOG DEFAULT
+//#define CN_TCP_LISTENDEFAULT    5           //LISTEN BAKLOG DEFAULT
 #define CN_TCP_RCMBLENDEFAULT   0x10        //most allowing num frame in the recombine list
 #define CN_TCP_ACCEPTMAX        0x10000     //服务器listen后，accept前能排队的客户端数量
 
@@ -256,7 +256,7 @@ typedef struct
 struct ClientCB
 {
     struct ClientCB           *nxt;          //用于动态分配内存块
-    struct tagSocket         *server;       //if this is an accept one
+    struct tagSocket         *server;       //非空表示boundin连接，并指向相应服务器
     u16                       machinestat;  //the machine stat of the tcb
     u16                       channelstat;  //the stat of the channel,which mean we could recv or send
     tagRecvBuf                rbuf;         //rcv buffer
@@ -299,7 +299,7 @@ struct ClientCB
 struct ServerCB
 {
     struct ServerCB           *nxt;                 //用于动态分配内存块
-    s32                        backlog;             //which limit the pending num
+    s32                        pendlimit;           //which limit the pending num
     s32                        pendnum;             //which means how much still in pending
     u32                        accepttime;          //block time for the accept
     struct tagSocket          *clst;                //该服务器accetp的所有客户端，including the pending stat
@@ -782,12 +782,12 @@ static struct ServerCB* __CreateScb(void)
     {
         goto SCB_MEM;
     }
-    result->acceptsemp = Lock_SempCreate(CN_TCP_ACCEPTMAX,0,CN_BLOCK_FIFO,NULL);
+    result->acceptsemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
     if(NULL == result->acceptsemp)
     {
         goto SCB_SYNC;
     }
-    result->backlog     =  CN_TCP_LISTENDEFAULT;
+    result->pendlimit     =  CN_TCP_ACCEPTMAX;
     result->clst        =  NULL;
     result->pendnum     =  0;
     result->accepttime  =  CN_TIMEOUT_FOREVER;
@@ -808,7 +808,7 @@ static bool_t __DeleteScb(struct ServerCB* scb)
 static bool_t __ReseSCB(struct ServerCB* scb)
 {
     Lock_SempPost(scb->acceptsemp);
-    scb->backlog =  CN_TCP_LISTENDEFAULT;
+    scb->pendlimit =  CN_TCP_ACCEPTMAX;
     scb->clst    =  NULL;
     scb->pendnum =  0;
     scb->accepttime  =  CN_TIMEOUT_FOREVER;
@@ -964,9 +964,9 @@ static s32 __tcpbind(struct tagSocket *sock,struct sockaddr *addr, s32 addrlen)
 //------------------------------------------------------------------------------
 //功能：开启一个服务器socket，使一个端口置于监听状态，先检查该socket是否已经连接。
 //参数：sock，待监听的sock，必须是未连接的socket
-//      backlog，该服务器socket能接受的连接数量
+//      pendlimit，该服务器socket能接受的连接数量
 //返回：0=成功，-1=失败
-static s32 __tcplisten(struct tagSocket *sock, s32 backlog)
+static s32 __tcplisten(struct tagSocket *sock, s32 pendlimit)
 {
     s32  result;
     struct ServerCB  *scb;
@@ -985,7 +985,7 @@ static s32 __tcplisten(struct tagSocket *sock, s32 backlog)
                 scb->accepttime = ((struct ClientCB *)(sock->TplCB))->rbuf.timeout;
                 __DeleCCB(sock->TplCB);
                 sock->TplCB = scb;
-                scb->backlog = backlog;
+                scb->pendlimit = pendlimit;
                 sock->sockstat&=(~CN_SOCKET_CLIENT);
                 sock->sockstat |=CN_SOCKET_LISTEN;
 
@@ -1024,24 +1024,27 @@ static struct tagSocket *__acceptclient(struct tagSocket *sock)
             //remove it from the scb client
             if(scb->clst == client)
             {
-                scb->clst = client->Nextsock;
+                scb->clst = client->NextClient;
             }
             else
             {
-                pre->Nextsock = client->Nextsock;
+                pre->NextClient = client->NextClient;
             }
-            client->Nextsock = NULL;
+            client->NextClient = NULL;
             result = client;
             break;
         }
         else
         {
             pre = client;
-            client = client->Nextsock;
+            client = client->NextClient;
         }
     }
-    if(scb->clst == NULL) {
-       Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
+//  if(scb->clst == NULL) {
+    if(result == NULL) {
+        //一般来说，服务器并不需要 read 标志，只需要accept标志即可，但有些开源软件
+        //把read标志当accept标志，真正的accept标志反而不用。
+        Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
        //printf("--info: low level remove the accept event...\r\n");
     }
     return result;
@@ -1073,6 +1076,7 @@ static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *ad
         waittime = scb->accepttime;
         if((NULL == result)&&(0 != waittime))
         {
+            Lock_SempPend(scb->acceptsemp,0);   //先清理信号量
             //if none find and permit the wait
             Lock_MutexPost(sock->SockSync);
             if(Lock_SempPend(scb->acceptsemp,waittime))
@@ -1090,6 +1094,7 @@ static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *ad
         else
         {
             result->sockstat |= CN_SOCKET_OPEN;
+            result->sockstat &= ~CN_SOCKET_WAITACCEPT;
         }
         Lock_MutexPost(sock->SockSync);
     }
@@ -1960,7 +1965,7 @@ static s32 __closesocket(struct tagSocket *sock)
                 while(NULL != scb->clst)
                 {
                     client = scb->clst;
-                    scb->clst = client->Nextsock;
+                    scb->clst = client->NextClient;
 
                     ccb = (struct ClientCB *)client->TplCB;
                     __ResetCCB(ccb,EN_TCP_MC_2FREE);
@@ -2842,6 +2847,8 @@ static bool_t __rcvsyn_ms(struct tagSocket *client, struct TcpHdr *hdr, struct N
                 __hashSocketAdd(client);
                 Lock_MutexPost(TcpHashTab.tabsync);
             }
+            //一般来说，服务器并不需要 read 标志，只需要accept标志即可，但有些开源软件
+            //把read标志当accept标志，真正的accept标志反而不用。
             Handle_SetMultiplexEvent(fd2Handle(server->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
             Lock_SempPost(scb->acceptsemp);
         }
@@ -3276,7 +3283,7 @@ static bool_t __dealrecvpkg(struct tagSocket *client, struct TcpHdr *hdr,struct 
 //------------------------------------------------------------------------------
 //功能：当server收到syn时，创建一个socket，挂在tcp的server控制块的clst下，然后发送
 //      syn+ack，待再次收到对方的ack时，进入已连接状态。
-//参数：server，证件listen的socket
+//参数：server，证在listen的socket
 //      hdr，当前收到的tcp头
 //      ipdst,portdst,ipsrc,portsrc，地址四元组
 //返回：新创建的socket。
@@ -3291,7 +3298,7 @@ static struct tagSocket* __newclient(struct tagSocket *server, struct TcpHdr *hd
     scb = (struct ServerCB *)server->TplCB;
     if((0 ==(CN_SOCKET_CLOSE&server->sockstat))&&\
        (CN_SOCKET_LISTEN&server->sockstat)&&\
-       (scb->pendnum <scb->backlog)&&\
+       (scb->pendnum <scb->pendlimit)&&\
        (CN_TCP_FLAG_SYN&hdr->flags)&&\
        (0 == (CN_TCP_FLAG_ACK&hdr->flags)))  //could accept more in the pending
     {
@@ -3311,7 +3318,7 @@ static struct tagSocket* __newclient(struct tagSocket *server, struct TcpHdr *hd
             else
             {
                 result->TplCB = (void *)ccb;
-                result->sockstat |=CN_SOCKET_CLIENT|CN_SOCKET_PROBLOCK|CN_SOCKET_PRONAGLE;
+                result->sockstat |=CN_SOCKET_CLIENT|CN_SOCKET_PROBLOCK|CN_SOCKET_PRONAGLE|CN_SOCKET_WAITACCEPT;
                 result->element.v4.iplocal = ipdst;
                 result->element.v4.portlocal = portdst;
                 result->element.v4.ipremote = ipsrc;
@@ -3325,7 +3332,7 @@ static struct tagSocket* __newclient(struct tagSocket *server, struct TcpHdr *hd
                 //ok, now send the syn ack and open the syn timer
                 __sendflag(result,CN_TCP_FLAG_ACK|CN_TCP_FLAG_SYN,\
                           (void *)&sgSynOptDefault,sizeof(sgSynOptDefault),ccb->sbuf.sndnxtno);
-                result->Nextsock = scb->clst;
+                result->NextClient = scb->clst;
                 scb->clst = result;
                 scb->pendnum++;
                 ccb->server = server;
@@ -3336,10 +3343,16 @@ static struct tagSocket* __newclient(struct tagSocket *server, struct TcpHdr *hd
             }
         }
     }
+    else
+    {
+        if(scb->pendnum >= scb->pendlimit)
+            printf("pendnum over\r\n");
+    }
 
     return result;
 
 }
+
 static struct tagSocket* __tcpmatchclient(struct tagSocket *server, u32 ip, u16 port)
 {
     struct tagSocket *result = NULL;
@@ -3357,7 +3370,7 @@ static struct tagSocket* __tcpmatchclient(struct tagSocket *server, u32 ip, u16 
         }
         else
         {
-            client = client->Nextsock;
+            client = client->NextClient;
         }
     }
     return result;
@@ -3382,19 +3395,7 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
         }
     }
     hdr = (struct TcpHdr *)PkgGetCurrentBuffer(pkg);
-//  hdr = (struct TcpHdr *)(pkg->buf + pkg->offset);
     PkgMoveOffsetUp(pkg, (hdr->hdroff>>4)*4);
-//    pkg->offset += (hdr->hdroff>>4)*4;
-//    if((PkgGetDataLen(pkg) > (hdr->hdroff>>4)*4)
-////  if(pkg->datalen> (hdr->hdroff>>4)*4)
-//    {
-//        (PkgSetDataLen(pkg) -= (hdr->hdroff>>4)*4;
-////      pkg->datalen -= (hdr->hdroff>>4)*4;
-//    }
-//    else
-//    {
-//        pkg = NULL;
-//    }
     //cpy the hdr to the thread stack avoid the align error
     memcpy((void *)cpyhdr,(void *)hdr,(hdr->hdroff>>4)*4);
     hdr = (struct TcpHdr *)cpyhdr;
@@ -3708,15 +3709,15 @@ static void __tcptick(void)
                         //remove it from the queue
                         if(client == scb->clst)
                         {
-                            scb->clst = client->Nextsock;
-                            clientpre = client->Nextsock;
+                            scb->clst = client->NextClient;
+                            clientpre = client->NextClient;
                         }
                         else
                         {
-                            clientpre->Nextsock = client->Nextsock;
+                            clientpre->NextClient = client->NextClient;
                         }
-                        clientnxt = client->Nextsock;
-                        client->Nextsock = NULL;
+                        clientnxt = client->NextClient;
+                        client->NextClient = NULL;
                         __ResetCCB(ccb,EN_TCP_MC_2FREE);
                         __DeleCCB(ccb);
                         __hashSocketRemove(client);
@@ -3758,87 +3759,104 @@ static void __tcptick(void)
 
 static char *gCCBLinkStat[]=
 {
-    "EN_TCP_MC_CREAT",
-    "EN_TCP_MC_SYNRCV",
-    "EN_TCP_MC_SYNSNT",
-    "EN_TCP_MC_ESTABLISH",
-    "EN_TCP_MC_FINWAIT1",
-    "EN_TCP_MC_FINWAIT2",
-    "EN_TCP_MC_CLOSING",
-    "EN_TCP_MC_TIMEWAIT",
-    "EN_TCP_MC_CLOSEWAIT",
-    "EN_TCP_MC_LASTACK",
-    "EN_TCP_MC_2FREE"
+    "CREAT",
+    "SYNRCV",
+    "SYNSNT",
+    "ESTABLISH",
+    "FINWAIT1",
+    "FINWAIT2",
+    "CLOSING",
+    "TIMEWAIT",
+    "CLOSEWAIT",
+    "LASTACK",
+    "2FREE"
 };
 
-static void __tcpdebugsockinfo(struct tagSocket *sock,char *prefix)
+static void __tcpdebugsockinfo(struct tagSocket *sock)
 {
-    debug_printf("tcp","%s:iplocal :%s    portlocal :%d\r\n",\
-            prefix,inet_ntoa(*(struct in_addr*)&sock->element.v4.iplocal),ntohs(sock->element.v4.portlocal));
-    debug_printf("tcp","%s:ipremote:%s    portremote:%d\r\n",\
-            prefix,inet_ntoa(*(struct in_addr*)&sock->element.v4.ipremote),ntohs(sock->element.v4.portremote));
-    debug_printf("tcp","%s:sockstat:0x%08x    UserTag:0x%08x\n\r",\
-            prefix,sock->sockstat,sock->SockUserTag);
-    debug_printf("tcp","%s:syncstat:%d\n\r",prefix,sock->SockSync->enable);
-    debug_printf("tcp","%s:errno   :%d\n\r",prefix,sock->errorno);
+    printf("    iplocal :%s    portlocal :%d",\
+            inet_ntoa(*(struct in_addr*)&sock->element.v4.iplocal),
+            ntohs(sock->element.v4.portlocal));
+    printf("    ipremote:%s    portremote:%d\r\n",\
+            inet_ntoa(*(struct in_addr*)&sock->element.v4.ipremote),
+            ntohs(sock->element.v4.portremote));
+    printf("    sockstat:0x%08x    UserTag:0x%08x    errno   :0x%08x\n\r",\
+            sock->sockstat,sock->SockUserTag,sock->errorno);
 }
 
-static void __tcpdebugccb(struct ClientCB *ccb,char *prefix)
+static void __tcpdebugccb(struct ClientCB *ccb)
 {
+    tagSendBuf *sbuf;
+    tagRecvBuf *rbuf;
     //machine state
-    debug_printf("tcp","%s:machinestat:%s\n\r",prefix,gCCBLinkStat[ccb->machinestat]);
+    printf("    machinestat:%s\n\r",gCCBLinkStat[ccb->machinestat]);
     //channel stat
-    debug_printf("tcp","%s:channelstat:apprcv:%s\n\r",prefix,\
-            ccb->channelstat&CN_TCP_CHANNEL_STATARCV?"enable":"disable");
-    debug_printf("tcp","%s:channelstat:appsnd:%s\n\r",prefix,\
-            ccb->channelstat&CN_TCP_CHANNEL_STATASND?"enable":"disable");
-    debug_printf("tcp","%s:channelstat:knlrcv:%s\n\r",prefix,\
-            ccb->channelstat&CN_TCP_CHANNEL_STATKRCV?"enable":"disable");
-    debug_printf("tcp","%s:channelstat:knlsnd:%s\n\r",prefix,\
-            ccb->channelstat&CN_TCP_CHANNEL_STATKSND?"enable":"disable");
+    printf("    %s  ",ccb->channelstat&CN_TCP_CHANNEL_STATARCV?"使能APP接收":"禁能APP接收");
+    printf("    %s  ",ccb->channelstat&CN_TCP_CHANNEL_STATASND?"使能APP发送":"禁能APP发送");
+    printf("    %s  ",ccb->channelstat&CN_TCP_CHANNEL_STATKRCV?"使能协议栈接收":"禁能协议栈接收");
+    printf("    %s\r\n",ccb->channelstat&CN_TCP_CHANNEL_STATKSND?"使能协议栈发送":"禁能协议栈发送");
+
     //send buffer
-    debug_printf("tcp","%s:sndbuffer:buflen:%04d bufleft:%04d  unacklen:%04d datalen:%04d\n\r",prefix,\
-            ccb->sbuf.buflenlimit,ccb->sbuf.buflenleft,ccb->sbuf.unacklen,ccb->sbuf.datalen);
-    debug_printf("tcp","%s:sndbuffer:unackoff:%04d sndnxtoff:%04d dataoff:%04d  trigger:%04d\n\r",prefix,\
-            ccb->sbuf.unackoff,ccb->sbuf.sndnxtoff,ccb->sbuf.dataoff,ccb->sbuf.trigerlevel);
-    debug_printf("tcp","%s:sndbuffer:unackno:0x%08x sndnxtno:0x%08x \n\r",prefix,\
-            ccb->sbuf.unackno,ccb->sbuf.sndnxtno);
-    debug_printf("tcp","%s:sndbuffer:timeout:0x%08x rtotick:0x%08x dupacks:%04d SockSync:%s\n\r",prefix,\
-            ccb->sbuf.timeout,ccb->sbuf.rtotick,ccb->sbuf.dupacktims,ccb->sbuf.bufsync->lamp_counter?"enable":"disable");
+    sbuf = &ccb->sbuf;
+    printf("    发送buffer地址 0x%x，长度 %d，空闲长度 %d\r\n",
+                    sbuf->tcpsendbuf,sbuf->buflenlimit, sbuf->buflenleft);
+    printf("    待确认序号 %u，待发送序号 %u，待发送长度 %d\r\n",
+                    sbuf->unackno, sbuf->sndnxtno, sbuf->datalen);
+
     //receive buffer
-    debug_printf("tcp","%s:rcvbuf:buflen:%04d datalen:%04d trigerlevel:%04d\n\r",\
-            prefix,ccb->rbuf.buflenlimit,ccb->rbuf.buflen,ccb->rbuf.trigerlevel);
-    debug_printf("tcp","%s:rcvbuf:rcvnxtno:0x%08x timeout:0x%08x SockSync:%s\n\r",prefix,\
-            ccb->rbuf.rcvnxt,ccb->rbuf.timeout,ccb->rbuf.bufsync->lamp_counter?"enable":"disable");
+    rbuf = &ccb->rbuf;
+    printf("    接收buffer长度 0x%x，buffered：%dbytes，欲接收序号：%u\r\n",
+                rbuf->buflenlimit, rbuf->buflen, rbuf->rcvnxt);
+
     //windows
-    debug_printf("tcp","%s:mss:%04d sndwnd:%d sndwndscale:%d\n\r",prefix,ccb->mss,ccb->sndwnd,ccb->sndwndscale);
-    debug_printf("tcp","%s:cwnd :%d ssh:%d \r\n",prefix,ccb->cwnd,ccb->ssthresh);
-    //resend
-    debug_printf("tcp","%s:resndtimer:%04d resndtimes:%04d acktimes:%04d\r\n",prefix,\
-            ccb->resndtimer,ccb->resndtimes,ccb->acktimes);
+    printf("    mss:%04d cwnd:%d sndwndscale:%d\n\r",ccb->mss,ccb->cwnd);
     //timer
-    debug_printf("tcp","%s:syntimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_SYN?"enable":"disable",ccb->mltimer);
-    debug_printf("tcp","%s:2mltimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_2MSL?"enable":"disable",ccb->mltimer);
-    debug_printf("tcp","%s:kpatimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_KEEPALIVE?"enable":"disable",ccb->keeptimer);
-    debug_printf("tcp","%s:pestimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_PERSIST?"enable":"disable",ccb->persistimer);
-    debug_printf("tcp","%s:cortimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_CORK?"enable":"disable",ccb->corktimer);
-    debug_printf("tcp","%s:ligtimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_LINGER?"enable":"disable",ccb->lingertimer);
-    debug_printf("tcp","%s:sndtimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_RESEND?"enable":"disable",ccb->mltimer);
-    debug_printf("tcp","%s:fintimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_FIN?"enable":"disable",ccb->mltimer);
+    printf("    启动的tcp定时器有：\r\n");
+    if(ccb->timerctrl&CN_TCP_TIMER_SYN)
+        printf("syn = %dticks; ",ccb->mltimer);
+    if(ccb->timerctrl&CN_TCP_TIMER_2MSL)
+        printf("2msl = %dticks; ",ccb->mltimer);
+    if(ccb->timerctrl&CN_TCP_TIMER_KEEPALIVE)
+        printf("keepalive = %dticks; ",ccb->keeptimer);
+    if(ccb->timerctrl&CN_TCP_TIMER_PERSIST)
+        printf("probe = %dticks; ",ccb->persistimer);
+    if(ccb->timerctrl&CN_TCP_TIMER_CORK)
+        printf("cork = %dticks; ",ccb->corktimer);
+    if(ccb->timerctrl&CN_TCP_TIMER_LINGER)
+        printf("linger = %dticks; ",ccb->lingertimer);
+    if(ccb->timerctrl&CN_TCP_TIMER_RESEND)
+        printf("resend = %dticks; ",ccb->mltimer);
+    if(ccb->timerctrl&CN_TCP_TIMER_FIN)
+        printf("fin = %dticks; ",ccb->mltimer);
+    printf("\r\n");
     return;
 }
 
-static void __tcpdebugscb(struct ServerCB *scb,char *prefix)
+static void __tcpdebugscb(struct ServerCB *scb)
 {
-    debug_printf("tcp","%s:backlog  :%d pendnum:%d\n\r",prefix,scb->backlog,scb->pendnum);
-    debug_printf("tcp","%s:accepttm :0x%08x acceptsync:%d\n\r",prefix,scb->accepttime,scb->acceptsemp->lamp_counter);
+    struct ClientCB     *ccb;
+    struct tagSocket    *client;
+    printf("    accept超时设置 :%d,pending 的 clients 数:%d ：\n\r",scb->accepttime,scb->pendnum);
+    client = scb->clst;
+    while(NULL != client)  //find the established and unopend socket
+    {
+        ccb = (struct ClientCB*)client->TplCB;
+        if(EN_TCP_MC_ESTABLISH == ccb->machinestat)
+        {
+            printf("        client=%d,可accept，buffered：%dbytes\r\n",
+                            client->sockfd, ccb->rbuf.buflen);
+        }
+        else
+        {
+            printf("        client=%d,尚未完成3次握手\r\n", client->sockfd);
+        }
+        client = client->NextClient;
+    }
+
+
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-#define CN_TCP_DEBUG_PREFIX  "         "
-static void __tcpdebug(struct tagSocket *sock,char *filter)
+static void __tcpdebug(struct tagSocket *sock)
 {
     struct ClientCB   *ccb;
     struct ServerCB   *scb;
@@ -3846,20 +3864,18 @@ static void __tcpdebug(struct tagSocket *sock,char *filter)
     if(sock->sockstat&CN_SOCKET_CLIENT)
     {
         ccb = (struct ClientCB *)sock->TplCB;
-        debug_printf("tcp","TCPCLIENT:address:0x%08x\n\r",(u32)sock);
-        __tcpdebugsockinfo(sock,CN_TCP_DEBUG_PREFIX);
-        __tcpdebugccb(ccb,CN_TCP_DEBUG_PREFIX);
+        printf("TCPCLIENT:address = 0x%08x,fd = %d\n\r", (u32)sock, sock->sockfd);
+        __tcpdebugsockinfo(sock);
+        __tcpdebugccb(ccb);
     }
     else
     {
         scb = (struct ServerCB *)sock->TplCB;
-        debug_printf("tcp","TCPSERVER:address:0x%08x\n\r",(u32)sock);
-        __tcpdebugsockinfo(sock,CN_TCP_DEBUG_PREFIX);
-        __tcpdebugscb(scb,CN_TCP_DEBUG_PREFIX);
+        printf("TCPSERVER:address = 0x%08x,fd = %d\n\r", (u32)sock, sock->sockfd);
+        __tcpdebugsockinfo(sock);
+        __tcpdebugscb(scb);
     }
 }
-
-#pragma GCC diagnostic pop
 
 //------------------------------------------------------------------------------
 //功能：tcp协议初始化

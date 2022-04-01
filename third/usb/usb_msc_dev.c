@@ -48,8 +48,8 @@
 //-----------------------------------------------------------------------------
 #include <stdlib.h>
 #include <device.h>
-#include <fat/port/drivers/fat_drivers.h>
-#include <fat/ff11/src/diskio.h>
+#include <port/drivers/fat_drivers.h>
+#include <ff11/src/diskio.h>
 #include "./stm32_usb_host_library/class/msc/inc/usbh_msc.h"
 #include "usb.h"
 #include <dbug.h>

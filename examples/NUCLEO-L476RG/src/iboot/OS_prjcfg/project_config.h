@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!  *
+ *  Automatically-generated file. Do not edit!	*
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -11,10 +11,11 @@
 //此处填写手动配置，DIDE生成配置文件时，不会被修改
 //manual config end
 
+
 #define    CN_RUNMODE_IBOOT                0                //IBOOT模式运行
+#define    CN_RUNMODE_BOOTSELF             1                //无须IBOOT，自启动模式APP
 #define    CN_RUNMODE_APP                  2                //由IBOOT加载的APP
-#define    CFG_RUNMODE                     CN_RUNMODE_IBOOT           //由IBOOT加载的APP
-#define    CN_RUNMODE_BOOTSELF             1                       //无须IBOOT，自启动模式APP
+#define    CFG_RUNMODE                     CN_RUNMODE_IBOOT   //由IBOOT加载的APP
 //*******************************  Configure black box  ******************************************//
 #define    CFG_MODULE_ENABLE_BLACK_BOX     true
 //*******************************  Configure board config  ******************************************//
@@ -66,7 +67,6 @@
 #define CFG_IBOOT_VERSION_LARGE       01        //__.xx.xxAPP忽略
 #define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //
 #define CFG_APP_UPDATE_NAME        "/yaf2/app.bin"            //
-#define CFG_FORCED_UPDATE_PATH     "/SD/djyapp.bin"           //
 #define    CFG_MODULE_ENABLE_LOADER        true
 //*******************************  Configure lock  ******************************************//
 #define CFG_LOCK_LIMIT          40      //定义锁的数量包含信号量和互斥量
@@ -76,6 +76,8 @@
 #define    CFG_MODULE_ENABLE_MEMORY_POOL   true
 //*******************************  Configure message queue  ******************************************//
 #define    CFG_MODULE_ENABLE_MESSAGE_QUEUE true
+//*******************************  Configure misc  ******************************************//
+#define    CFG_MODULE_ENABLE_MISC          true
 //*******************************  Configure multiplex  ******************************************//
 #define    CFG_MODULE_ENABLE_MULTIPLEX     true
 //*******************************  Configure ring buffer and line buffer  ******************************************//
@@ -97,10 +99,13 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART1"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART1"    //
 #define    CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure uart device file  ******************************************//
-#define    CFG_MODULE_ENABLE_UART_DEVICE_FILE  true
 //*******************************  Configure STM32 commond code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
+//*******************************  Configure time  ******************************************//
+#define CFG_LOCAL_TIMEZONE      8      //北京时间是东8区
+#define    CFG_MODULE_ENABLE_TIME          true
+//*******************************  Configure uart device file  ******************************************//
+#define    CFG_MODULE_ENABLE_UART_DEVICE_FILE  true
 //*******************************  Core Clock  ******************************************//
 #define  CFG_CORE_MCLK                   (12*Mhz)          //主频，内核要用，必须定义
 //*******************************  DjyosProduct Configuration  ******************************************//

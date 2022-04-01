@@ -670,18 +670,6 @@ void __DJY_SelectEventToRun(void)
             }
         }
     }
-    if(s_u32RRS_Slice==0)
-        return;
-//    if(g_ptEventReady->prio==g_ptEventReady->next->prio
-//          && (g_ptEventReady != g_ptEventReady->next))
-//    {
-////        gSchduleTick.RRSTicks = g_s64OsTicks + s_u32RRS_Slice;
-//        gSchduleTick.RRSTicks = __DJY_GetSysTick() + s_u32RRS_Slice;
-//    }
-//    else
-//    {
-//        gSchduleTick.RRSTicks = CN_LIMIT_UINT64;
-//  }
 }
 
 //----创建进程-----------------------------------------------------------

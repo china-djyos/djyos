@@ -50,9 +50,16 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-typedef int (*fnTransAppToIboot)(u8 *buf,s32 len, int fsize, int timeout) ;
-int web_check_new_versions(u8 *branch, u8 *SN);
-int web_upgrade_firmware(fnTransAppToIboot);
+
+//ota版本检查结果标志
+#define CN_NEAD_DOWNLOAD        0       //需要下载，为使老版本兼容，本项须定为 0
+#define CN_RUNNING_IS_CHECK     1       //需要下载的固件正在运行的版本相同
+#define CN_READY_IS_CHECK       2       //需要下载的固件已存在目标媒体中
+#define CN_NO_DOWNLOAD          3       //没有需要下载的固件
+
+typedef s32 (*fnSaveApp)(u8 *buf,s32 len, s32 fsize, s32 timeout) ;
+s32 web_check_new_versions(u8 *user_param, u8 *SN);
+s32 web_upgrade_firmware(fnSaveApp fSave);
 
 #ifdef __cplusplus
 }

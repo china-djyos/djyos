@@ -229,12 +229,12 @@ s32 bind(s32 sockfd,struct sockaddr *addr, s32 addrlen)
 // 函数功能：  listen
 //           指定套接字为监听状态
 // 输入参数：  sockfd,待指定的套接字
-//           backlog,允许的链接个数，默认的为5
+//           pendlimit,允许的链接个数，默认的为5
 // 输出参数：
 // 返回值  ：0 成功  -1失败
 // 说明    ：失败一般的是因为重复指定
 // =============================================================================
-s32 listen(s32 sockfd, s32 backlog)
+s32 listen(s32 sockfd, s32 pendlimit)
 {
     s32  result;
     struct tagSocket *sock;
@@ -243,7 +243,7 @@ s32 listen(s32 sockfd, s32 backlog)
     sock = __Fd2Sock(sockfd);
     if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__listen))
     {
-        result = sock->ProtocolOps->__listen(sock, backlog);
+        result = sock->ProtocolOps->__listen(sock, pendlimit);
     }
     if(result < 0)
     {
@@ -880,7 +880,7 @@ bool_t SocketInit(void)
         printf("%s:分配socket控制块内存不足\n\r",__FUNCTION__);
         goto EXIT_SOCKMEM;
     }
-    s_ptSocketObject = OBJ_NewChild(OBJ_GetRoot(),Socket_ObjOps, 0, "socket");
+    s_ptSocketObject = OBJ_NewChild(OBJ_GetRoot(),Socket_ObjOps, 0, "socketsets");
     if(s_ptSocketObject == NULL)
     {
         printf("%s:创建socket文件失败\n\r",__FUNCTION__);

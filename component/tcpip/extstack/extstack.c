@@ -549,20 +549,20 @@ static struct tagSocket *__ExtAcceptclient(struct tagSocket *sock)
             //remove it from the scb client
             if(scb->clst == client)
             {
-                scb->clst = client->Nextsock;
+                scb->clst = client->NextClient;
             }
             else
             {
-                pre->Nextsock = client->Nextsock;
+                pre->NextClient = client->NextClient;
             }
-            client->Nextsock = NULL;
+            client->NextClient = NULL;
             result = client;
             break;
         }
         else
         {
             pre = client;
-            client = client->Nextsock;
+            client = client->NextClient;
         }
     }
     if(scb->clst == NULL) {
@@ -979,7 +979,7 @@ static s32 __closesocket(struct tagSocket *sock)
                 while(NULL != scb->clst)
                 {
                     client = scb->clst;
-                    scb->clst = client->Nextsock;
+                    scb->clst = client->NextClient;
 
                     ccb = (struct ClientCB *)client->TplCB;
                     __ResetCCB(ccb,EN_TCP_MC_2FREE);

@@ -312,6 +312,7 @@ enum _EN_SOCKEY_ERRORNO
 #define CN_SOCKET_PROBROAD      (1<<18)
 
 #define CN_SOCKET_PROCONNECT    (1<<19)  //使用非阻塞连接时添加这个标志来记录目前发起了连接请求
+#define CN_SOCKET_WAITACCEPT    (1<<20)  // 1 代表正在clst链表中，可能已完成3次握手，也可能未完成
 
 typedef struct
 {
@@ -384,8 +385,11 @@ struct tagSocket
     //the following used by the proto
 //  void                           *SockObj;      //used for the socket layqueue
     s32                             sockfd;       //socket对应的文件指针
-    struct tagSocket               *Nextsock;     //用于hash表，client在进入hash表前，
-                                                  //用此链表挂在SCB的clst指针上。
+    struct tagSocket               *Nextsock;     //用于hash表，把hash值相同的socket
+                                                  //串起来，单向链表，NULL结束
+    struct tagSocket               *NextClient;   //client在被 accept 前，用此链表
+                                                  //挂在struct ServerCB的clst指针上。
+                                                  //单向链表，NULL结束
     struct MutexLCB                *SockSync;     //used to protect the socket
     struct TPL_ProtocalOps         *ProtocolOps;  //传输层操作函数集
     void                           *TplCB;        //传输层协议控制块指针，类型由具体传输层解析

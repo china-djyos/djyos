@@ -847,7 +847,7 @@ static void  movescursoleft(int times)
 //-----------------------------------------------------------------------------
 static ptu32_t Sh_Service(void)
 {
-    u8 ch;
+     u8 ch;
      int len;
      u8 offset;
      const char *cmdindex;

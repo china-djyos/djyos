@@ -118,13 +118,13 @@ s32 File_RegisterFs(struct filesystem *type)
 
     return (0);
 }
-
 // ============================================================================
-// 功能：mount点的文件操作接口，opsTarget 肯定是 mountpoint，但实际操作的，可能是下级
-//      路径上的文件或目录，只是该文件或目录还在磁盘里面，还没有挂到object树中。此时，应
-//      该转调用具体文件系统的ops。所有 opsTarget 是 struct Object *的命令，OpsArgs3 均
-//      表示被操作路径中 opsTarget 后的部分，因此，只要 opsTarget 是 struct Object *，且
-//      opsTarget != NULL 的，就要调用具体文件系统的 ops 函数。
+// 功能：mount点的文件操作接口，可以在这里完成一些文件系统的公共功能。opsTarget 肯定
+//      对应 mount点，但实际操作的，可能是下级路径上的文件或目录，只是该文件或目录还
+//      在磁盘里面，还没有挂到object树中。此时，应该转调用具体文件系统的ops。所有
+//      opsTarget 是 struct Object *的命令，OpsArgs3 均表示被操作路径中 opsTarget
+//      后的部分，因此，只要 opsTarget 是 struct Object *，且 opsTarget != NULL 的，
+//      就要调用具体文件系统的 ops 函数。
 // 参数：标准逻辑，查看接口说明；
 // 返回：标准逻辑，查看接口说明；
 // 备注:
@@ -265,7 +265,7 @@ bool_t File_ObjIsMount(struct Object *obj)
 //      flags -- 文件系统读写访问标志；
 //      data -- 文件系统特有参数；
 // 返回：成功（0）；失败（-1）；还未挂载到具体的媒体上去（-2）；
-// 备注：
+// 备注：todo：第一个参数存在的必要性？
 // ============================================================================
 s32 File_Mount(const char *source, const char *target, const char *type, u32 opt, void *data)
 {

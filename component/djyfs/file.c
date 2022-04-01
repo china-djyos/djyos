@@ -937,7 +937,7 @@ int fseeko(FILE *stream, off_t offset, int whence)
 // 功能：移动读写位置，如果c库没有buf，将直接调用系统的 lseek。否则，
 // 参数：stream -- 文件流;
 //      offset -- 需移动相对偏置;
-//      whence -- offset的起点;
+//      whence -- offset的起点;SEEK_SET,SEEK_CUR,SEEK_END
 // 返回： 成功（当前位置）; 失败（EOF）;
 // 备注：off_t是POSIX标准
 // ============================================================================
@@ -1026,7 +1026,7 @@ int rename(const char *oldpath, const char *newpath)
     s32 result;
     char *uncached;
     ob = OBJ_MatchPath(oldpath, &uncached);
-    ob->ops((void *)ob, CN_OBJ_RENAME,
+    ob->ObjOps((void *)ob, CN_OBJ_RENAME,
                                 (ptu32_t)&result,(ptu32_t)oldpath,(ptu32_t)newpath);
 
     return result;

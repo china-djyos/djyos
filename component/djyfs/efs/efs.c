@@ -96,9 +96,9 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_EASY_FILE_SYSTEM    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,1073741823,
-#define CFG_EFS_FILE_SIZE_LIMIT           4096                 //"单个文件大小的上限"
-#define CFG_EFS_MAX_CREATE_FILE_NUM       50                   //"允许创建最大文件数"
-#define CFG_EFS_MAX_OPEN_FILE_NUM         10                   //"允许同时打开最大文件数"
+#define CFG_EFS_FILE_SIZE_LIMIT           4096       //"单个文件大小的上限"
+#define CFG_EFS_MAX_CREATE_FILE_NUM       50         //"允许创建最大文件数"
+#define CFG_EFS_MAX_OPEN_FILE_NUM         10         //"允许同时打开最大文件数"
 //%$#@string,1,10,
 #define CFG_EFS_MOUNT_POINT               "efs"      //"EFS文件系统安装目录"
 //%$#select,        ***定义无值的宏，仅用于第三方组件
@@ -112,21 +112,24 @@
 
 //@#$%component end configure
 
-#define CN_EFS_MAX                   1 // 简易文件系统的个数
-#define MUTEX_WAIT_TIME             CN_TIMEOUT_FOREVER//(2*1000*1000) // 互斥访问等待时间
+#define MUTEX_WAIT_TIME     CN_TIMEOUT_FOREVER  //(2*1000*1000) // 互斥访问等待时间
 
 s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                  ptu32_t OpsArgs2, ptu32_t OpsArgs3);
-tagEFS *s_pEfsList[CN_EFS_MAX]; // 简易文件系统列表
+struct EasyFS *s_pEfsList; // 简易文件系统
 static u8 tgOpenedSum = 0; // 打开的文件数
 static char NameBuf[256];
 static void NameECC(char *Name, u8 *Ecc);
 static s32 ChkOrRecNameByECC(char *Name, u8 *Ecc);
 static s32 Efs_Verify_Install(struct FsCore *pSuper);
-static u32 dwFileMaxSize, EfsCgfLimit, IndexesNum, CreateMax, FileInfoList, Ram_file_info_len;
-
+static u32 dwFileMaxSize;   //文件尺寸上限
+static u32 EfsCgfLimit;     //用于缓存打开的文件的信息所需存储尺寸
+static u32 IndexesNum;      //文件分配表项数=比可创建文件数+1
+static u32 CreateMax;       //可创建的文件数
+static u32 FileInfoList;    //文件分配表所需内存空间=（可创建文件数+1）*256
+static u32 Ram_file_info_len;   //内存中保存单个文件信息所需空间，4+256
 // =============================================================================
-// 功能：通过ECC修复文件名
+// 功能：通过ECC修复文件名，如果ECC=ffffff，则表示无须ecc，返回“正确”
 // 参数：
 // 返回：-1 -- ECC校验失败; 0 -- ECC校验成功;
 // =============================================================================
@@ -161,7 +164,7 @@ static void NameECC(char *Name, u8 *Ecc)
 }
 //------------------------------------------------------------------------------
 //功能: 计算奇校验位
-//参数: newsize -- 文件大小
+//参数: odd -- 文件尺寸奇数位或偶数位被清零后的值
 //返回: 如果1的个数为奇数个，则返回0，如果1的个数为偶数个，则返回1。
 //-----------------------------------------------------------------------------
 static u32 __Efs_paritycheck(u32 odd)
@@ -286,10 +289,12 @@ static u32 __Efs_CheckSingleBuf(u8 *buf, u32 index, struct EasyFS *efs)
 //----检查扇区-----------------------------------------------------------
 //功能: 检查一对(主+备份)文件分配表的扇区缓冲区，有错误则改正之,该数据已经在
 //      flash中，改正后写进去。同时把该缓冲区包含的文件数增加到chip->files_sum。
-//参数: buf_main -- 主文件分配表缓冲区； index_main -- 主文件分配表起始块号
-//     buf_bakindex -- 备份文件分配表缓冲区；index_bak -- 备份文件分配表起始块号
+//参数: buf_main -- 主文件分配表缓冲区；
+//      index_main -- 主文件分配表起始块号
+//      buf_bakindex -- 备份文件分配表缓冲区；
+//      index_bak -- 备份文件分配表起始块号
 //      efs，文件系统核心数据
-//返回: 无
+//返回: 0 = 主备相同；1=主备有差别
 //-----------------------------------------------------------------------------
 static bool_t __Efs_CheckBlock(u8 *buf_main,u32 index_main, u8 *buf_bak,
                     u32 index_bak, struct EasyFS *efs)
@@ -298,15 +303,13 @@ static bool_t __Efs_CheckBlock(u8 *buf_main,u32 index_main, u8 *buf_bak,
     u32 reflash = 0, location;
     u32 temp_files_sum = 0;
     u8 * correct_filesize;
-
     item_num = (FileInfoList > efs->block_size)?
             efs->block_size:FileInfoList;
-    item_num = item_num / EFS_ITEM_LIMIT;       //一个块中存了多少文件索引
+    item_num = item_num / EFS_ITEM_LIMIT;       //文件条目缓冲中存了多少文件索引
     if(index_main == efs->start_block)
         item_no = 1;        //如果是efs文件系统的起始块，则从第二条开始检查，第一条存的是文件系统信息
     else
         item_no = 0;
-
     for (;item_no < item_num;item_no++)
     {
         offset = item_no * EFS_ITEM_LIMIT;
@@ -574,7 +577,7 @@ static void __Efs_ChangeFileSize(struct Object *ob, u32 newsize)
         __Efs_CheckAllNameECC(block_buf);
 
         sizeoffset = fileinfo->item * EFS_ITEM_LIMIT + FILE_FILESIZE_OFF;      //该文件，文件大小的位置
-        memset(block_buf + sizeoffset, 0xFF, FILE_VERIFITY_OFF - FILE_FILESIZE_OFF);  //把该文件原来存的26个文件大小清除
+        memset(block_buf + sizeoffset, 0xFF, FILE_VERIFITY_OFF - FILE_FILESIZE_OFF);  //把该文件原来存的44个文件大小清除
         fill_little_32bit(block_buf, sizeoffset >> 2, newsize);     //把新的文件大小填进去
 
         block_no = fileoffset / efs->block_size;
@@ -611,8 +614,8 @@ static void __Efs_ChangeFileSize(struct Object *ob, u32 newsize)
 // 参数：fp -- 文件私有数据；ob -- 文件的对象指针；filename -- 文件名； fileinfo -- 文件信息指针
 // 返回：fp -- 创建成功；NULL -- 创建失败
 // =============================================================================
-static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *filename,
-                        tagEfsFileInfo *fileinfo)
+static struct FileRsc *__Efs_NewFile(struct FileRsc* fp,struct Object *ob,const char *filename,
+                        struct EfsFileInfo *fileinfo)
 {
     struct EasyFS *efs;
     u8 *file_info_buf;
@@ -627,7 +630,7 @@ static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *fi
         return NULL;
     }
 
-    efs = (tagEFS*)File_Core(ob);
+    efs = (struct EasyFS*)File_Core(ob);
     if (efs->files_sum >= CreateMax)
         return NULL; //已达可创建文件的上限
 
@@ -696,12 +699,13 @@ static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *fi
     block_no = efs->start_block;
     //以下初始化文件分配表并写入flash
     memset((char *)file_info_buf + offset, 0xff, EFS_ITEM_LIMIT);
-    memcpy((char *)file_info_buf + offset, filename, FILENAME_LIMIT+1);        //写入文件名
+    strcpy((char *)file_info_buf + offset, filename);        //写入文件名
     file_info_buf[FILENAME_LIMIT + offset] = '\0';
     NameECC((char *)filename, file_info_buf + offset + FILENAME_LIMIT+1);        //文件名ECC
     fill_little_32bit(file_info_buf + offset, FILE_STARTBLOCK_OFF >> 2,start_block);      //文件内容起始块
     fill_little_32bit(file_info_buf + offset, FILE_MAXSIZE_OFF >> 2, dwFileMaxSize);      //文件最大大小
-    fill_little_32bit(file_info_buf + offset, FILE_FILESIZE_OFF >> 2, 0xc0000000);               //因为是新建的文件，文件大小先写0
+    fill_little_32bit(file_info_buf + offset, FILE_FILESIZE_OFF >> 2, 0xc0000000);        //因为是新建的文件，文件大小先写0
+                                                                                          //最高两位分别是奇数位和偶数位的奇校验
     memcpy(file_info_buf + offset + FILE_VERIFITY_OFF, "easyfile", 8);              //文件索引末尾写easyfile
     efs->drv->efs_write_media(block_no, offset, file_info_buf + offset, EFS_ITEM_LIMIT, EF_WR_NOECC);
     efs->drv->efs_write_media(block_no+cfg_blocks, offset, file_info_buf + offset, EFS_ITEM_LIMIT, EF_WR_NOECC);
@@ -753,8 +757,8 @@ static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *fi
 // =============================================================================
 static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
 {
-    tagEFS *efs;
-    tagFileRsc *fp=NULL;
+    struct EasyFS *efs;
+    struct FileRsc *fp=NULL;
     struct EfsFileInfo *fileinfo=NULL;
     u32 loop,item;
     u64 index_offset;
@@ -765,7 +769,7 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
     if(ob == NULL)
         return NULL;
 
-    efs = (tagEFS*)File_Core(ob);
+    efs = (struct EasyFS*)File_Core(ob);
     if (efs == NULL)
         return NULL;
 
@@ -786,7 +790,7 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
 
     if((!uncached)&&(File_ObjIsMount(ob)))
     {
-        if(!Handle_FlagIsDirectory(flags))      //没有未匹配的路径，并且ob是挂载点，则是打开efs的根目录
+        if(!Handle_FlagIsDirectory(flags))  //没有未匹配的路径，并且ob是挂载点，则是打开efs的根目录
             return (NULL);  //如果不是打开目录的操作则直接返回失败
     }
 
@@ -804,18 +808,18 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
         if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
             return (NULL);
 
-        fp = malloc(sizeof(tagFileRsc));
-        fileinfo = malloc(sizeof(tagEfsFileInfo));
+        fp = malloc(sizeof(struct FileRsc));
+        fileinfo = malloc(sizeof(struct EfsFileInfo));
         buf = malloc(CN_FILE_BUF_LIMIT);
         if( (NULL == fileinfo) || (NULL == buf) || (efs == NULL) || (fp == NULL))
             goto exit;
 
-        memset(fp, 0, sizeof(tagFileRsc));
+        memset(fp, 0, sizeof(struct FileRsc));
         memset(fileinfo, 0, sizeof(struct EfsFileInfo));
         memset(buf, 0xFF, CN_FILE_BUF_LIMIT);
         //扫描固定文件数
 //        for (loop = 1; loop < IndexesNum; loop++)
-        for (loop = 0; loop < CFG_EFS_MAX_OPEN_FILE_NUM; loop++)
+        for (loop = 1; loop <= CFG_EFS_MAX_OPEN_FILE_NUM; loop++)
         {
             index_offset = loop * Ram_file_info_len;
             efs->file_list_buf[index_offset + FILENAME_LIMIT] = '\0';
@@ -952,8 +956,6 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
     }
 
     Handle_Init(hdl, NULL, flags, (ptu32_t)0);
-    //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
-//    mode = S_IALLUGO | S_IFDIR | property;     //建立的路径，属性是目录。
     //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
     ob = OBJ_BuildTempPath(ob, e_operations, (ptu32_t)fp,uncached);
     OBJ_LinkHandle(hdl, ob);
@@ -978,14 +980,14 @@ static s32 Efs_DirRead(struct objhandle *hdl,struct dirent *dentry)
 {
     s32 result = -1;
     static u8 *file_info_buf = NULL;
-    tagEFS *efs;
+    struct EasyFS *efs;
     u32 loop = 1;
     u64 index_offset;
     struct Object *ob = hdl->HostObj;
     if(NULL == dentry)
         return -1;
 
-    efs = (tagEFS*)File_Core(ob);
+    efs = (struct EasyFS*)File_Core(ob);
     if(NULL == efs)
         return -1;
 
@@ -1242,7 +1244,7 @@ static u32 Efs_Write (struct objhandle *hdl, u8 *buf, u32 len)
 // =============================================================================
 static s8 Efs_Close (struct objhandle *hdl)
 {
-    tagEfsFileInfo *fileinfo;
+    struct EfsFileInfo *fileinfo;
     struct EasyFS *efs;
     u32 block;
     u64 offset;
@@ -1252,7 +1254,7 @@ static s8 Efs_Close (struct objhandle *hdl)
 
     fp = (struct FileRsc *)OBJ_GetPrivate(ob);
     efs = (struct EasyFS *)File_Core(ob);
-    fileinfo = (tagEfsFileInfo *)fp->private;
+    fileinfo = (struct EfsFileInfo *)fp->private;
     if ((fp == NULL) || (efs == 0) || (fileinfo == NULL))
     {
         printk("close file param error\r\n");
@@ -1307,15 +1309,15 @@ exit:
 // =============================================================================
 static off_t Efs_Seek(struct objhandle *hdl, off_t *file_offset, s32 whence)
 {
-    tagEfsFileInfo *fileinfo;
-    tagEFS *efs;
+    struct EfsFileInfo *fileinfo;
+    struct EasyFS *efs;
     u32 block, offset, newpos = 0, fsizeoff, alignsize;
     struct FileRsc *fp;
     struct Object *ob = hdl->HostObj;
 
     fp = (struct FileRsc *)OBJ_GetPrivate(ob);
     efs = (struct EasyFS *)File_Core(ob);
-    fileinfo = (tagEfsFileInfo *)fp->private;
+    fileinfo = (struct EfsFileInfo *)fp->private;
     if ((fp == NULL) || (efs == 0) || (fileinfo == NULL))
         return -1;
 
@@ -1383,7 +1385,7 @@ static off_t Efs_Seek(struct objhandle *hdl, off_t *file_offset, s32 whence)
 // =============================================================================
 static s32 Efs_Remove(struct Object *ob, char *uncached)
 {
-    tagEFS *efs;
+    struct EasyFS *efs;
     u64 index_offset=0,ram_offset;
     u8 cfg_blocks,loop;
     u8 *file_info_buf;
@@ -1391,7 +1393,7 @@ static s32 Efs_Remove(struct Object *ob, char *uncached)
     if(ob == NULL)
         return -1;
 
-    efs = (tagEFS*)File_Core(ob);
+    efs = (struct EasyFS*)File_Core(ob);
     if(NULL == efs)
     {
         printf("cannot fine efs root");
@@ -1491,8 +1493,8 @@ static s32 Efs_Remove(struct Object *ob, char *uncached)
 // =============================================================================
 static s32 Efs_Stat(struct Object *ob, struct stat *data, char *uncached)
 {
-    tagEFS *efs;
-    tagFileRsc* fp;
+    struct EasyFS *efs;
+    struct FileRsc* fp;
     u32 loop;
     u64 index_offset;
     u8 found = false;
@@ -1511,14 +1513,14 @@ static s32 Efs_Stat(struct Object *ob, struct stat *data, char *uncached)
         }
         else
         {
-            fp = (tagFileRsc *)OBJ_GetPrivate(ob);      //获取以打开文件的状态
+            fp = (struct FileRsc *)OBJ_GetPrivate(ob);      //获取以打开文件的状态
             data->st_size = fp->file_size;
             data->st_mode = S_IFREG|S_IRUGO|S_IWUGO;
         }
         return 0;
     }
 
-    efs = (tagEFS*)File_Core(ob);
+    efs = (struct EasyFS*)File_Core(ob);
 //    if(uncached)
         fname = uncached;
 //    else
@@ -1583,7 +1585,7 @@ static s32 Efs_Stat(struct Object *ob, struct stat *data, char *uncached)
 // =============================================================================
 static s32 Efs_Sync (struct objhandle *hdl)
 {
-    tagEfsFileInfo *fileinfo;
+    struct EfsFileInfo *fileinfo;
     struct EasyFS *efs;
     struct FileRsc *fp;
     u32 block;
@@ -1592,7 +1594,7 @@ static s32 Efs_Sync (struct objhandle *hdl)
 
     fp = (struct FileRsc *)OBJ_GetPrivate(ob);
     efs = (struct EasyFS *)File_Core(ob);
-    fileinfo = (tagEfsFileInfo *)fp->private;
+    fileinfo = (struct EfsFileInfo *)fp->private;
     if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
        return -1;
 
@@ -1631,7 +1633,7 @@ static s32 Efs_Sync (struct objhandle *hdl)
 // 返回：0 -- 成功；  -1 --失败
 // 备注：
 // ============================================================================
-int efs_install_drv(tagEFS *core, struct __efs_media_drv *drv)
+int efs_install_drv(struct EasyFS *core, struct __efs_media_drv *drv)
 {
     if (!core || !drv)
          return (-1);
@@ -1648,27 +1650,30 @@ int efs_install_drv(tagEFS *core, struct __efs_media_drv *drv)
 // 返回：其他 -- 成功； NULL --失败
 // 备注：
 // ============================================================================
-tagEFS *EfsInfo(struct FsCore *pSuper, u32 opts)
+struct EasyFS *EfsInfo(struct FsCore *pSuper, u32 opts)
 {
     struct umedia *media;
-    tagEFS *core;
-    u32 flash_black_size,flash_page_size,black_page_number,filedatablocks,allblocknum,num,filelistblock;
+    struct EasyFS *core;
+    u32 flash_block_size,flash_page_size,blocks_per_page,filedatablocks,allblocknum,num,filelistblock;
 
     if(pSuper == NULL)
         return NULL;
 
     media = (struct umedia*)pSuper->MediaInfo;              //获取flash的信息
-    media->mreq(blockunits,(ptu32_t)&black_page_number);             //获取flash中一块有多少页
-    media->mreq(unitbytes,(ptu32_t)&flash_page_size);                //获取flash的页大小
-    flash_black_size = black_page_number * flash_page_size;  //获取flash的块大小
-    allblocknum = pSuper->AreaSize / flash_black_size;      //总块数
-    filedatablocks = (CFG_EFS_FILE_SIZE_LIMIT + flash_black_size - 1) / flash_black_size; // EFS单个文件实际数据所需要的块数
-    num = allblocknum / filedatablocks;     //预计可以创建的最大文件数
-    filelistblock = (((num + 1) * EFS_ITEM_LIMIT) + flash_black_size - 1) / flash_black_size;
-    while(((num * filedatablocks) + (filelistblock * 2)) > allblocknum)//计算实际能创建的最大文件数
+    media->mreq(blockunits,(ptu32_t)&blocks_per_page);      //获取flash中一块有多少页
+    media->mreq(unitbytes,(ptu32_t)&flash_page_size);       //获取flash的页大小
+    flash_block_size = blocks_per_page * flash_page_size;   //获取flash的块大小
+    allblocknum = pSuper->AreaSize / flash_block_size;      //总块数
+    // EFS单个文件实际数据所需要的块数
+    filedatablocks = (CFG_EFS_FILE_SIZE_LIMIT + flash_block_size - 1) / flash_block_size;
+    num = allblocknum / filedatablocks-1;     //预计可以创建的最大文件数
+    //计算文件列表所需要的块数
+    filelistblock = (((num + 1) * EFS_ITEM_LIMIT) + flash_block_size - 1) / flash_block_size;
+    //计算实际能创建的最大文件数
+    while(((num * filedatablocks) + (filelistblock * 2)) > allblocknum)
     {
         num--;
-        filelistblock = (((num + 1) * EFS_ITEM_LIMIT) + flash_black_size - 1) / flash_black_size;
+        filelistblock = (((num + 1) * EFS_ITEM_LIMIT) + flash_block_size - 1) / flash_block_size;
     }
     if(num > CFG_EFS_MAX_CREATE_FILE_NUM)
         num = CFG_EFS_MAX_CREATE_FILE_NUM;
@@ -1701,11 +1706,11 @@ tagEFS *EfsInfo(struct FsCore *pSuper, u32 opts)
     core->media = media;
     efs_install_drv(core,pSuper->MediaDrv);
     core->file_list_buf = (u8*)core + sizeof(*core);
-    core->block_size = flash_black_size;
+    core->block_size = flash_block_size;
     core->block_sum = allblocknum;
     core->files_sum = 0;
     memcpy(core->name, pSuper->pTarget->name, EFS_NAME_LIMIT+1);
-    core->start_block = pSuper->MediaStart / black_page_number;
+    core->start_block = pSuper->MediaStart / blocks_per_page;
 
     return core;
 }
@@ -1715,7 +1720,7 @@ tagEFS *EfsInfo(struct FsCore *pSuper, u32 opts)
 //      pSuper -- 文件系统核心数据
 // 返回：0 -- 成功； -1 --失败
 // =============================================================================
-static s32 Efs_Mkfs(tagEFS* efs,struct FsCore *pSuper)
+static s32 Efs_Mkfs(struct EasyFS* efs,struct FsCore *pSuper)
 {
     u32 loop, blocks, cfg_end_block;
     u8 *block_buf;
@@ -1766,9 +1771,9 @@ static s32 Efs_Mkfs(tagEFS* efs,struct FsCore *pSuper)
 
     if(pSuper)
     {
-        //每次新建都将fs存放到全局变量tgNorDisk，用于后面操作
-        s_pEfsList[0] = efs;
-        memcpy(s_pEfsList[0]->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);
+        //每次新建都将fs存放到全局变量 s_pEfsList，用于后面操作
+        s_pEfsList = efs;
+        memcpy(s_pEfsList->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);
     }
     efs->file_sys_install = true;
     free(block_buf);
@@ -1892,7 +1897,7 @@ static s32 Efs_Format(void *core)
     if(core == NULL)
         return -1;
 
-    tagEFS *efs = (tagEFS *)core;
+    struct EasyFS *efs = (struct EasyFS *)core;
     return Efs_Mkfs(efs,NULL);
 }
 // ============================================================================
@@ -1912,7 +1917,7 @@ static s32 Efs_Verify_Install(struct FsCore *pSuper)
     if(pSuper == NULL)
         return -1;
 
-    tagEFS *efs = (tagEFS *)pSuper->pCore;
+    struct EasyFS *efs = (struct EasyFS *)pSuper->pCore;
 
     if(efs->install_options & MS_INSTALLFORMAT)
     {
@@ -2068,7 +2073,7 @@ static s32 Efs_Verify_Install(struct FsCore *pSuper)
         }
         break;
     case 0x00:          //主/备区域全对
-        if(true == __Efs_CheckBlock(block_buf,loop, bakbuf, loop+blocks, efs) )
+        if(1 == __Efs_CheckBlock(block_buf,loop, bakbuf, loop+blocks, efs) )    //主备区域不一致
         {
             crc16_check = CRC_16(block_buf,16);
             fill_little_16bit((u8*)&temp,0,crc16_check);    //转化为小端
@@ -2100,8 +2105,8 @@ static s32 Efs_Verify_Install(struct FsCore *pSuper)
             goto fail;
         fill_little_32bit(efs->file_list_buf + index_offset + EFS_ITEM_LIMIT, 0, loop + 0);
     }
-    s_pEfsList[0] = efs;
-    memcpy(s_pEfsList[0]->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);
+    s_pEfsList = efs;
+    memcpy(s_pEfsList->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);
     Lock_MutexPost(efs->block_buf_mutex);
     free(bakbuf);
     free(block_buf);
@@ -2135,17 +2140,17 @@ fail:
 // ============================================================================
 s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
 {
-    tagEFS *core;
+    struct EasyFS *core;
 
     dwFileMaxSize = CFG_EFS_FILE_SIZE_LIMIT; // 文件大小上限
     if(dwFileMaxSize > EFS_SUPPORT_MAXFILESIZE)
     {
         dwFileMaxSize = EFS_SUPPORT_MAXFILESIZE;
         warning_printf("efs","The file size exceeds the maximum file size supported by efs "
-                                            "and now forces the maximum file size to be 0x3fffffff");
+                             "and now forces the maximum file size to be 0x3fffffff");
     }
     Ram_file_info_len = EFS_RAM_ITEM_BYTE + EFS_ITEM_LIMIT;
-    EfsCgfLimit = Ram_file_info_len * CFG_EFS_MAX_OPEN_FILE_NUM;   //efs,在缓存中存文件信息的大小
+    EfsCgfLimit = Ram_file_info_len * CFG_EFS_MAX_OPEN_FILE_NUM;  //efs,在缓存中存文件信息的大小
     core = EfsInfo(pSuper, opts);
     if(core == NULL)
     {
@@ -2160,7 +2165,9 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
 }
 // ============================================================================
 // 功能：安装EASY文件系统
-// 参数：target -- 安装目录；opt -- 安装选项； config -- 特殊逻辑（暂时未使用）；
+// 参数：target -- 安装目录；
+//      opt -- 安装选项；
+//      config -- 特殊逻辑（暂时未使用）；
 // 返回：失败(-1)； 成功(0)。
 // 备注:
 // ============================================================================

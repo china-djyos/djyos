@@ -336,11 +336,11 @@ ptu32_t kernel_spy(void)
     DJY_GetEventPara((ptu32_t*)(&cycle), NULL);
     cycle *=mS;
 #if(CFG_IDLE_MONITOR_CYCLE > 0)
-#if(DEBUG == 1)
+#if(CFG_IDLE_WDT_RESET == false)
     wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, knlYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
 #else
     wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
-#endif  //for (DEBUG != 1)
+#endif  //for (CFG_IDLE_WDT_RESET != 1)
 #endif  //for (CFG_IDLE_MONITOR_CYCLE > 0)
     while(1)
     {

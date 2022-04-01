@@ -1,0 +1,8 @@
+[{
+	"name":"stm32L4",
+	"symbols":["CFG_MODULE_ENABLE_STM32L4*true",
+	"CFG_STM32_HAL_TIMER*6",
+	"CFG_CPU_STM32L4",
+	"USE_HAL_DRIVER",
+	"STM32L476xx"]
+}]

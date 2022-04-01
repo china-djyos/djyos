@@ -8,6 +8,7 @@ InnerRamStart = 0x20000000;
 InnerRamSize = 96k;
 MEMORY
 {
-    InnerFlash(RX)    : org = 0x08000000,               len = 1024k   
+    InnerFlash(RX)    : org = 0x08000000,               len = 1024k
     RAM1(RXW)         : org = 0x20000000,               len = 96k
+    RAM2(RXW)         : org = 0x10000000,               len = 32k
 }
