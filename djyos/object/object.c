@@ -182,8 +182,9 @@ inline static s32 __OBJ_DefaultOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
     {
         case CN_OBJ_CMD_OPEN:
         {
-            struct objhandle *hdl;
-            hdl = __OBJ_Open((struct Object *)opsTarget,
+            struct objhandle *hdl = NULL;
+            if(OpsArgs3 != 0)
+                hdl = __OBJ_Open((struct Object *)opsTarget,
                                 (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
