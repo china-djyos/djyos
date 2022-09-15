@@ -109,7 +109,7 @@ ptu32_t HardTimer_Alloc(fnTimerIsr timerisr)
 {
     if(NULL == s_tHardTimerChip.HardTimerAlloc)
     {
-        return 0;
+        return -1;
     }
     else
     {
