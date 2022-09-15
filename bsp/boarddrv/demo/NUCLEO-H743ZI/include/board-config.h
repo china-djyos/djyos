@@ -71,7 +71,8 @@ extern "C" {
 #define CN_CFG_FCLK CN_CFG_MCLK  //cm7自由运行外设时钟
 #define BOARD_MCK   (CN_CFG_MCLK/2) //的MCK
 
-
+#define CN_CFG_PCLK1  (CN_CFG_MCLK/4)
+#define CN_CFG_PCLK2  (CN_CFG_MCLK/2)
 
 #define CN_CFG_SYS_CLK     CN_CFG_MCLK
 #define CN_CFG_AXI_CLK    (CN_CFG_MCLK/2)
