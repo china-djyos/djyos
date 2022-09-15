@@ -537,6 +537,9 @@ __attribute__((weak)) bool_t Iboot_UserUpdateIboot(char *param)
     return false;
 }
 
+//-----------------------------------------------------------------------------
+//TODO 本函数废除，仿照在iboot中更新APP的模式重新实现。
+//-----------------------------------------------------------------------------
 bool_t ModuleInstall_UpdateIboot(void)
 {
     uint16_t evtt_Update = CN_EVTT_ID_INVALID;

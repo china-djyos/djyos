@@ -300,15 +300,11 @@ typedef enum
     EN_Start_LAST,
 }enStartMode;
 
-#define CN_BOOT_LEGALKEY   0XAA55AA55  //调用reboot、CPU_Reset、reload传输该key，不会记录，否则会作为异常记录
 typedef enStartMode  (*fnGetStartMode)(void); //用于获取我们的CPU启动模式的函数原型
-//安装系统启动记录存储模块：tab是我们的栈可能使用的内存范围，可以是多个，NULL结束,不可更改；GetOsBootModeHard是软件启动标志，需要BSP提供；GetOsBootModeSoft是
-//软件启动标志，需要BSP提供
+//安装系统启动记录存储模块：tab是我们的栈可能使用的内存范围，可以是多个，NULL结束,不可更改；
+//getmodehard 是硬件启动标志，需要BSP提供；getmodesoft是软件启动标志，需要BSP提供
 bool_t ModuleInstall_SysStartReason(const tagVmMemItem *tab[],fnGetStartMode getmodehard,
                             fnGetStartMode getmodesoft);
-//抛出异常重启信息，当调用系统的reboot、CPU_Reset、reload等提供非法的KEY的时候
-//合法的KEY是0xaa55aa55,其他的均会认为是非法的，这部分需要cpu的bsp 的port的支持
-bool_t ThrowOsStartInfo(enStartMode mode);
 
 
 #endif /* __BLACKBOX_H__ */

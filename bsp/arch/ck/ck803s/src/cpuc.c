@@ -137,11 +137,6 @@ extern void Iboot_LoadPreload(void);
 #include <Iboot_info.h>
 //extern tagIapVar pg_IapVar;
 
-#define CN_BOOT_SOFTREBOOT_FLAG         (CN_BOOT_LEGALKEY <<1)
-#define CN_BOOT_SOFTRELOAD_FLAG         (CN_BOOT_LEGALKEY <<2)
-#define CN_BOOT_HARDRST_FLAG         (CN_BOOT_LEGALKEY <<3)
-#define CN_BOOT_SOFTRESET_FLAG          (CN_BOOT_LEGALKEY <<4)
-
 // =============================================================================
 // 功能：运行到选择系统运行方式前，对于M3/M4的CPU，即PC跳转到Init_CPU()
 // 参数：无

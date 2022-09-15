@@ -552,7 +552,7 @@ bool_t ThrowSysStartInfo(enStartMode mode)
     parahead.BlackBoxInfo = (u8 *)&dumpinfo;
     parahead.BlackBoxInfoLen = sizeof(dumpinfo);
     parahead.BlackBoxType = CN_BLACKBOX_TYPE_SYS_START+11;
-    BlackBox_Recorder(&parahead);
+    BlackBox_ThrowExp(&parahead);
     return true;
 }
 
@@ -642,7 +642,7 @@ static bool_t __StartModeDecoder(struct BlackBoxThrowPara *exppara,u32 endian)
     debug_printf("SysStart","DUMPHEAD:Decoder:%s Action:%d BlackBoxLen:%d BlackBoxType:%d Endian:%d\n\r",\
             exppara->DecoderName,exppara->BlackBoxAction,exppara->BlackBoxInfoLen,exppara->BlackBoxType,endian);
     memcpy(&msg,exppara->BlackBoxInfo,sizeof(msg));
-    __ShowBootMode(&msg);
+//  __ShowBootMode(&msg);
     return true;
 }
 
@@ -676,7 +676,7 @@ static bool_t __SysStartModeLog(void)
     parahead.BlackBoxInfo = (u8 *)&gStartMode;
     parahead.BlackBoxInfoLen =sizeof(gStartMode);
     parahead.BlackBoxType = CN_BLACKBOX_TYPE_SYS_START+10;
-    BlackBox_Recorder(&parahead);
+    BlackBox_ThrowExp(&parahead);
     return true;
 }
 //----安装系统启动模块-----------------------------------------------------------

@@ -20,7 +20,7 @@ void gpio_isr(void)
     int i;
     unsigned long ulIntStatus;
 #if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
-	ulIntStatus = *(volatile UINT32 *)REG_GPIO_INTSTA;
+    ulIntStatus = *(volatile UINT32 *)REG_GPIO_INTSTA;
     for (i = 0; i <= GPIO31; i++)
     {
         if (ulIntStatus & (0x01UL << i))
@@ -34,7 +34,7 @@ void gpio_isr(void)
 
     *(volatile UINT32 *)REG_GPIO_INTSTA = ulIntStatus;
 
-	ulIntStatus = *(volatile UINT32 *)REG_GPIO_INTSTA2;
+    ulIntStatus = *(volatile UINT32 *)REG_GPIO_INTSTA2;
     for (i = 0; i < (GPIONUM - GPIO32); i++)
     {
         if (ulIntStatus & (0x01UL << i))
@@ -76,7 +76,7 @@ static UINT32 gpio_ops_filter(UINT32 index)
             || (GPIO22 == index)
             || (GPIO23 == index))
     {
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
         FATAL_PRT("[JTAG]gpio_filter_%d\r\n", index);
 #endif
         ret = GPIO_SUCCESS;
@@ -105,19 +105,19 @@ void gpio_config(UINT32 index, UINT32 mode)
 
     if(index >= GPIONUM)
     {
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
         WARN_PRT("gpio_id_cross_border\r\n");
 #endif
         goto cfg_exit;
     }
-    
+
 #if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
-	if(index < GPIO32) {
-	    gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + index * 4);
-	}
-	else if(index >= GPIO32) {
-		gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_32_CONFIG + (index - 32) * 4);
-	}
+    if(index < GPIO32) {
+        gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + index * 4);
+    }
+    else if(index >= GPIO32) {
+        gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_32_CONFIG + (index - 32) * 4);
+    }
 #else
     gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + index * 4);
 #endif
@@ -143,18 +143,18 @@ void gpio_config(UINT32 index, UINT32 mode)
     case GMODE_INPUT:
         val = 0x0C;
         break;
-	
+
     case GMODE_SECOND_FUNC_PULL_UP:
         val = 0x78;
         break;
-	
-	case GMODE_SET_HIGH_IMPENDANCE:
-		val = 0x08;
-		break;
-	
+
+    case GMODE_SET_HIGH_IMPENDANCE:
+        val = 0x08;
+        break;
+
     default:
         overstep = 1;
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
         WARN_PRT("gpio_mode_exception:%d\r\n", mode);
 #endif
         break;
@@ -174,15 +174,15 @@ void gpio_usb_second_function(void)
 {
     UINT32 val;
 
-	val = REG_READ(REG_GPIO_FUNC_CFG_2);
-	val &= (~(GPIO_PCFG2_MASK(GPIO_USB_DP_PIN)
+    val = REG_READ(REG_GPIO_FUNC_CFG_2);
+    val &= (~(GPIO_PCFG2_MASK(GPIO_USB_DP_PIN)
                 | GPIO_PCFG2_MASK(GPIO_USB_DN_PIN)));
-	val |= ( GPIO_PCFG2_2_FUNC(GPIO_USB_DP_PIN)
+    val |= ( GPIO_PCFG2_2_FUNC(GPIO_USB_DP_PIN)
                 | GPIO_PCFG2_2_FUNC(GPIO_USB_DN_PIN));
-                            
-	REG_WRITE(REG_GPIO_FUNC_CFG_2, val);
+
+    REG_WRITE(REG_GPIO_FUNC_CFG_2, val);
 }
-#endif 
+#endif
 
 static void gpio_enable_second_function(UINT32 func_mode)
 {
@@ -283,10 +283,10 @@ static void gpio_enable_second_function(UINT32 func_mode)
 
     case GFUNC_MODE_UART1:
         start_index = 10;
-#if (CFG_SUPPORT_DJYOS)	//CK
-        end_index = 11;	//原来招招写的日志：修正GPIO12上电后为高电平，造成录音指示灯闪烁，原因是UART1 CTS引脚被复用
+#if (CFG_SUPPORT_DJYOS) //CK
+        end_index = 11; //原来招招写的日志：修正GPIO12上电后为高电平，造成录音指示灯闪烁，原因是UART1 CTS引脚被复用
 #else
-		end_index = 13;
+        end_index = 13;
 #endif
         pmode = PERIAL_MODE_1;
         config_pull_up = 1;
@@ -300,20 +300,20 @@ static void gpio_enable_second_function(UINT32 func_mode)
         pmask = GPIO_SD_MODULE_MASK;
         break;
 
-	/* P34-39 SDIO */
-	case GFUNC_MODE_SD1_DMA:
-		start_index = 34;
-		end_index = 39;
+    /* P34-39 SDIO */
+    case GFUNC_MODE_SD1_DMA:
+        start_index = 34;
+        end_index = 39;
         pmode = PERIAL_MODE_2;
         modul_select = GPIO_SD1_DMA_MODULE;
         pmask = GPIO_SD_MODULE_MASK;
-		break;
+        break;
 
     case GFUNC_MODE_SD_HOST:
         start_index = 14;
         end_index = 19;
         pmode = PERIAL_MODE_1;
-		config_pull_up = 1;
+        config_pull_up = 1;
         modul_select = GPIO_SD_HOST_MODULE;
         pmask = GPIO_SD_MODULE_MASK;
         break;
@@ -339,8 +339,8 @@ static void gpio_enable_second_function(UINT32 func_mode)
         start_index = 18;
         end_index = 18;
 #else
-		start_index = 24;
-		end_index = 24;
+        start_index = 24;
+        end_index = 24;
 #endif
         pmode = PERIAL_MODE_2;
         break;
@@ -350,8 +350,8 @@ static void gpio_enable_second_function(UINT32 func_mode)
         start_index = 19;
         end_index = 19;
 #else
-		start_index = 26;
-		end_index = 26;
+        start_index = 26;
+        end_index = 26;
 #endif
         pmode = PERIAL_MODE_2;
         break;
@@ -391,11 +391,11 @@ static void gpio_enable_second_function(UINT32 func_mode)
         start_index = 3;
         end_index = 3;
         pmode = PERIAL_MODE_2;
-        break; 
+        break;
 
     case GFUNC_MODE_ADC5:
-	    start_index = 2;
-        end_index = 2;	
+        start_index = 2;
+        end_index = 2;
         pmode = PERIAL_MODE_2;
         break;
 
@@ -403,14 +403,14 @@ static void gpio_enable_second_function(UINT32 func_mode)
         start_index = 12;
         end_index = 12;
         pmode = PERIAL_MODE_2;
-        break;   
+        break;
 
    case GFUNC_MODE_ADC7:
         start_index = 13;
         end_index = 13;
         pmode = PERIAL_MODE_2;
         break;
-        
+
     case GFUNC_MODE_SD1_HOST:
         start_index = 34;
         end_index = 39;
@@ -427,7 +427,7 @@ static void gpio_enable_second_function(UINT32 func_mode)
         modul_select = GPIO_SPI1_MODULE;
         pmask = GPIO_SPI_MODULE_MASK;
         break;
-        
+
     case GFUNC_MODE_SPI_DMA1:
         start_index = 30;
         end_index = 33;
@@ -435,9 +435,10 @@ static void gpio_enable_second_function(UINT32 func_mode)
         modul_select = GPIO_SPI1_DMA_MODULE;
         pmask = GPIO_SPI_MODULE_MASK;
         break;
-		
+
     case GFUNC_MODE_QSPI_1LINE:
-#if (CFG_SUPPORT_DJYOS)	//CK
+#if (CFG_SUPPORT_DJYOS) //CK
+#include "board-config.h"       //lst ，for CFG_USE_QSPI_GPIO16_19
 #if (1 == CFG_USE_QSPI_GPIO16_19)
         start_index = 16;
         end_index = 17;
@@ -450,10 +451,10 @@ static void gpio_enable_second_function(UINT32 func_mode)
         end_index = 17;
 #endif
         pmode = PERIAL_MODE_3;
-        break;   
-		
-	case GFUNC_MODE_QSPI_4LINE:
-#if (CFG_SUPPORT_DJYOS)	//CK
+        break;
+
+    case GFUNC_MODE_QSPI_4LINE:
+#if (CFG_SUPPORT_DJYOS) //CK
 #if (1 == CFG_USE_QSPI_GPIO16_19)
         start_index = 16;
         end_index = 19;
@@ -466,21 +467,21 @@ static void gpio_enable_second_function(UINT32 func_mode)
         end_index = 19;
 #endif
         pmode = PERIAL_MODE_3;
-        break;    
-		
-	case GFUNC_MODE_QSPI_CLK:
+        break;
+
+    case GFUNC_MODE_QSPI_CLK:
         start_index = 24;
         end_index = 24;
         pmode = PERIAL_MODE_3;
-        break;	
-		
-	case GFUNC_MODE_QSPI_CSN:
+        break;
+
+    case GFUNC_MODE_QSPI_CSN:
         start_index = 26;
         end_index = 26;
         pmode = PERIAL_MODE_3;
         break;
-		
-        
+
+
 #endif // (CFG_SOC_NAME != SOC_BK7231)
 
     default:
@@ -491,9 +492,9 @@ static void gpio_enable_second_function(UINT32 func_mode)
     {
         #if ((SOC_BK7231U == CFG_SOC_NAME) || (SOC_BK7221U == CFG_SOC_NAME))
         if((func_mode == GFUNC_MODE_DCMI) && (i == GPIO28))
-            continue;        
+            continue;
         #endif // (CFG_SOC_NAME != SOC_BK7231)
-        
+
         if(config_pull_up == 0)
             gpio_config(i, GMODE_SECOND_FUNC);
         else
@@ -547,19 +548,19 @@ UINT32 gpio_input(UINT32 id)
 
     if(GPIO_SUCCESS == gpio_ops_filter(id))
     {
-#if (!CFG_SUPPORT_DJYOS)	//CK	
+#if (!CFG_SUPPORT_DJYOS)    //CK
         WARN_PRT("gpio_input_fail\r\n");
 #endif
         goto input_exit;
     }
-	
+
 #if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
-	if(id <= GPIO31) {
-	    gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
-	}
-	else if(id >= GPIO32) {
-		gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_32_CONFIG + (id - 32) * 4);
-	}
+    if(id <= GPIO31) {
+        gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
+    }
+    else if(id >= GPIO32) {
+        gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_32_CONFIG + (id - 32) * 4);
+    }
 #else
     gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
 #endif
@@ -577,23 +578,23 @@ void gpio_output(UINT32 id, UINT32 val)
 
     if(GPIO_SUCCESS == gpio_ops_filter(id))
     {
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
         WARN_PRT("gpio_output_fail\r\n");
 #endif
         goto output_exit;
     }
-	
+
 #if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
-	if(id <= GPIO31) {
-		gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
-	}
-	else if(id >= GPIO32) {
-		gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_32_CONFIG + (id - 32) * 4);
-	}
+    if(id <= GPIO31) {
+        gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
+    }
+    else if(id >= GPIO32) {
+        gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_32_CONFIG + (id - 32) * 4);
+    }
 #else
     gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
 #endif
-	
+
     reg_val = REG_READ(gpio_cfg_addr);
 
     reg_val &= ~GCFG_OUTPUT_BIT;
@@ -611,24 +612,24 @@ static void gpio_output_reverse(UINT32 id)
 
     if(GPIO_SUCCESS == gpio_ops_filter(id))
     {
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
         WARN_PRT("gpio_output_reverse_fail\r\n");
 #endif
         goto reverse_exit;
     }
-	
+
 #if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
-	if(id <= GPIO31) {
-		gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
-	}
-	else if(id >= GPIO32) {
-		gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_32_CONFIG + (id - 32) * 4);
-	}
+    if(id <= GPIO31) {
+        gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
+    }
+    else if(id >= GPIO32) {
+        gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_32_CONFIG + (id - 32) * 4);
+    }
 #else
     gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
 #endif
 
-	reg_val = REG_READ(gpio_cfg_addr);
+    reg_val = REG_READ(gpio_cfg_addr);
     reg_val ^= GCFG_OUTPUT_BIT;
     REG_WRITE(gpio_cfg_addr, reg_val);
 
@@ -660,14 +661,14 @@ void gpio_test_isr(unsigned char ucChannel)
 void gpio_int_disable(UINT32 index)
 {
 #if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
-	if(index <= GPIO31) {
-	    *(volatile UINT32 *)REG_GPIO_INTEN &= ~(0x01U << index);
-	}
-	else if(index >= GPIO32) {
-		 *(volatile UINT32 *)REG_GPIO_INTEN2 &= ~(0x01U << (index - 32));
-	}
+    if(index <= GPIO31) {
+        *(volatile UINT32 *)REG_GPIO_INTEN &= ~(0x01U << index);
+    }
+    else if(index >= GPIO32) {
+         *(volatile UINT32 *)REG_GPIO_INTEN2 &= ~(0x01U << (index - 32));
+    }
 #else
-	*(volatile UINT32 *)REG_GPIO_INTEN &= ~(0x01U << index);
+    *(volatile UINT32 *)REG_GPIO_INTEN &= ~(0x01U << index);
 #endif
 }
 
@@ -680,12 +681,12 @@ void gpio_int_enable(UINT32 index, UINT32 mode, void (*p_Int_Handler)(unsigned c
 
     if(index >= GPIONUM)
     {
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
         WARN_PRT("gpio_id_cross_border\r\n");
 #endif
         return;
     }
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
     mode &= 0x03;
     if ((mode == 0) || (mode == 3))
     {
@@ -703,19 +704,19 @@ void gpio_int_enable(UINT32 index, UINT32 mode, void (*p_Int_Handler)(unsigned c
         *(volatile UINT32 *)REG_GPIO_INTLV1 = (*(volatile UINT32 *)REG_GPIO_INTLV1 & (~(0x03 << ((index - 16) << 1)))) | (mode << ((index - 16) << 1));
     }
 #if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
-	else  if ((index >= GPIO32) &&(index <= GPIO39)) {
-		*(volatile UINT32 *)REG_GPIO_INTLV3 = (*(volatile UINT32 *)REG_GPIO_INTLV3 & (~(0x03U << ((index - 32) << 1)))) | (mode << ((index - 32) << 1));
-	}
+    else  if ((index >= GPIO32) &&(index <= GPIO39)) {
+        *(volatile UINT32 *)REG_GPIO_INTLV3 = (*(volatile UINT32 *)REG_GPIO_INTLV3 & (~(0x03U << ((index - 32) << 1)))) | (mode << ((index - 32) << 1));
+    }
 #endif
 
     p_gpio_intr_handler[index] = p_Int_Handler;
 #if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
-	if(index <= GPIO31) {
-		*(volatile UINT32 *)REG_GPIO_INTEN |= (0x01U << index);
-	}
-	else if(index >= GPIO32) {
-		*(volatile UINT32 *)REG_GPIO_INTEN2 |= (0x01U << (index - GPIO32));
-	}
+    if(index <= GPIO31) {
+        *(volatile UINT32 *)REG_GPIO_INTEN |= (0x01U << index);
+    }
+    else if(index >= GPIO32) {
+        *(volatile UINT32 *)REG_GPIO_INTEN2 |= (0x01U << (index - GPIO32));
+    }
 #else
     *(volatile UINT32 *)REG_GPIO_INTEN |= (0x01 << index);
 #endif
@@ -727,14 +728,14 @@ void gpio_init(void)
 #if CFG_SYS_START_TIME
     UINT32 param;
 #endif
-#if (!CFG_SUPPORT_DJYOS)	//CK
+#if (!CFG_SUPPORT_DJYOS)    //CK
     gpio_disable_jtag();
 #endif
     sddev_register_dev(GPIO_DEV_NAME, &gpio_op);
 #if CFG_SYS_START_TIME
     param = 3 | (GMODE_OUTPUT << 8);
     gpio_ctrl(CMD_GPIO_CFG, &param);
-    gpio_output(3, 0);					//141ms  delta time = 13ms
+    gpio_output(3, 0);                  //141ms  delta time = 13ms
     param = 4 | (GMODE_OUTPUT << 8);
     gpio_ctrl(CMD_GPIO_CFG, &param);
     gpio_output(4, 0);
@@ -747,7 +748,7 @@ void gpio_init(void)
     sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
 
     gpio_int_enable(2, 2, gpio_test_isr);
-    gpio_output(3, 1);					// delta time = 3.1ms, delta time = 780us
+    gpio_output(3, 1);                  // delta time = 3.1ms, delta time = 780us
 #endif
 }
 
@@ -818,7 +819,7 @@ UINT32 gpio_ctrl(UINT32 cmd, void *param)
         gpio_enable_second_function(second_mode);
         break;
     }
-    
+
 #if (SOC_BK7231 == CFG_SOC_NAME)
     case CMD_GPIO_CLR_DPLL_UNLOOK_INT_BIT:
         REG_WRITE(REG_GPIO_EXTRAL_INT_CFG, DPLL_UNLOCK_INT);
@@ -832,7 +833,7 @@ UINT32 gpio_ctrl(UINT32 cmd, void *param)
         REG_WRITE(REG_GPIO_EXTRAL_INT_CFG, reg);
         break;
     }
-        
+
     case CMD_GPIO_EN_DPLL_UNLOOK_INT:
     {
         UINT32 reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
@@ -866,7 +867,7 @@ UINT32 gpio_ctrl(UINT32 cmd, void *param)
         }
         break;
     }
-    
+
     case CMD_GPIO_EN_USB_PLUG_OUT_INT:
     {
         INT32 reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
@@ -918,8 +919,8 @@ UINT32 usb_is_plug_in(void)
 void usb_plug_inout_isr(void)
 {
     UINT32 reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
-    
-    if(reg & USB_PLUG_IN_INT) 
+
+    if(reg & USB_PLUG_IN_INT)
     {
         reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
         reg &= ~GPIO_EXTRAL_INT_MASK;
@@ -932,7 +933,7 @@ void usb_plug_inout_isr(void)
     }
 
     reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
-    if(reg & USB_PLUG_OUT_INT) 
+    if(reg & USB_PLUG_OUT_INT)
     {
         reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
         reg &= ~GPIO_EXTRAL_INT_MASK;

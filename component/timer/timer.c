@@ -169,7 +169,7 @@ bool_t __Timer_Get64Time(s64 *time)
 // =============================================================================
 // 函数功能：__Timer_ExeAlarmHandler
 //          执行timersoft的钩子函数
-// 输入参数：timersoft,待执行的定时器.
+// 输入参数：timer,待执行的定时器.
 // 输出参数：无
 // 返回值  ：true 成功  false失败
 // 说明    ：内部调用函数，没有HOOK则不执行
@@ -580,7 +580,7 @@ bool_t Timer_IsRunning(tagTimer *Timer)
 // =============================================================================
 // 函数功能：Timer_Delete
 //           删除一个定时器
-// 输入参数：timersoft,待删除的定时器
+// 输入参数：timer,待删除的定时器
 // 输出参数：无
 // 返回值  ：true 成功 false失败
 // =============================================================================
@@ -602,9 +602,9 @@ bool_t Timer_Delete(tagTimer* timer)
 // =============================================================================
 // 函数功能：Timer_Ctrl
 //          设置定时器标识和状态
-// 输入参数：timersoft,待设定的定时器.
+// 输入参数：timer,待设定的定时器.
 //          opcode,定时器的操作码
-//          inoutpara,根据操作码解析的参数，比方设定cycle的时候，inoutpara代表cyle
+//          para,根据操作码解析的参数，比方设定cycle的时候，para代表cyle
 // 输出参数：无
 // 返回值  ：true 成功 false失败
 // 说明：opcode对应的para的属性定义见enum TimerCmdCode说明
@@ -705,10 +705,10 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
 // =============================================================================
 ptu32_t  Timer_VMTask(void)
 {
-    u32              waittime;
-    u32              opcode;
-    u32              para;
-    s64              timenow;
+    u32         waittime;
+    u32         opcode;
+    u32         para;
+    s64         timenow;
     tagTimerMsg  msg;
     tagTimer     *timer;
 
@@ -813,7 +813,7 @@ ptu32_t Timer_GetTag(tagTimer* timer)
 
 //-----------------------------------------------------------------------------
 //功能：取定时器名字
-//参数：timersoft,定时器指针.
+//参数：timer,定时器指针.
 //返回：定时器名字
 //-----------------------------------------------------------------------------
 char *Timer_GetName(tagTimer* timer)
@@ -839,7 +839,7 @@ bool_t ModuleInstall_Timer(void)
     printk("Timer:Init Start....\n\r");
     ptTimerMemPool = Mb_CreatePool(ptTimerMem,CFG_TIMERS_LIMIT,
                                 sizeof(tagTimer),0,0,"Timer");
-    if(NULL ==ptTimerMemPool)
+    if(NULL == ptTimerMemPool)
     {
         goto EXIT_POOLFAILED;
     }

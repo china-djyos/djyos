@@ -108,23 +108,23 @@ struct EventType;
 enum _KNL_ERROR_CODE_
 {
     EN_KNL_NO_ERROR = CN_KNL_NO_ERROR,  //没有错误
-    EN_KNL_ETCB_ERROR,            //事件类型控制块错误
-    EN_KNL_ECB_EXHAUSTED,         //事件控制块耗尽
-    EN_KNL_ETCB_EXHAUSTED,        //事件类型控制块耗尽
-    EN_KNL_PCB_EXHAUSTED,         //参数控制块耗尽
-    EN_KNL_CANT_SCHED,            //企图在禁止调度时执行可能引起事件调度的操作
-    EN_KNL_INVALID_PRIO,          //非法优先级
-    EN_KNL_VPU_OVER,              //事件类型的线程超过限制数
-    EN_KNL_PARA_OVER,             //事件参数数量超过限制数
-    EN_KNL_EVTT_HOMONYMY,         //事件类型重名
-    EN_KNL_EVENT_FREE,            //企图使用空闲事件控制块
-    EN_KNL_EVTT_FREE,             //企图使用空闲事件类型控制块
-    EN_KNL_EVENTID_LIMIT,         //事件id越限
-    EN_KNL_EVTTID_LIMIT,          //事件类型id越限
-    EN_KNL_EVTT_UNREGISTER,       //事件类型未登记
-    EN_KNL_EVENT_SYNC_EXIT,       //事件同步中，被同步的事件异常结束
-    EN_KNL_MEMORY_OVER,           //内存不足
-    EN_KNL_STACK_OVERFLOW         //栈溢出风险警告
+    EN_KNL_ETCB_ERROR,          //事件类型控制块错误
+    EN_KNL_ECB_EXHAUSTED,       //事件控制块耗尽
+    EN_KNL_ETCB_EXHAUSTED,      //事件类型控制块耗尽
+    EN_KNL_PCB_EXHAUSTED,       //参数控制块耗尽
+    EN_KNL_CANT_SCHED,          //企图在禁止调度时执行可能引起事件调度的操作
+    EN_KNL_INVALID_PRIO,        //非法优先级
+    EN_KNL_VPU_OVER,            //事件类型的线程超过限制数
+    EN_KNL_PARA_OVER,           //事件参数数量超过限制数
+    EN_KNL_EVTT_HOMONYMY,       //事件类型重名
+    EN_KNL_EVENT_FREE,          //企图使用空闲事件控制块
+    EN_KNL_EVTT_FREE,           //企图使用空闲事件类型控制块
+    EN_KNL_EVENTID_LIMIT,       //事件id越限
+    EN_KNL_EVTTID_LIMIT,        //事件类型id越限
+    EN_KNL_EVTT_UNREGISTER,     //事件类型未登记
+    EN_KNL_EVENT_SYNC_EXIT,     //事件同步中，被同步的事件异常结束
+    EN_KNL_MEMORY_OVER,         //内存不足
+    EN_KNL_STACK_OVERFLOW       //栈溢出风险警告
 };
 
 //事件优先级名称定义

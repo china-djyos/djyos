@@ -801,10 +801,10 @@ u16 DJY_EvttRegist(enum enEventRelation relation,
     char ExpStr[64] = "事件类型控制块耗尽: ";
     u16 i,evtt_offset;
 
-    if((default_prio >= CN_PRIO_SYS_SERVICE) || (default_prio == 0))
+    if((default_prio >= CN_PRIO_SYS_SERVICE) || (default_prio == 0) || (thread_routine == NULL))
     {
         DJY_SaveLastError(EN_KNL_INVALID_PRIO);
-        info_printf("djyos","事件类型优先级非法\n\r");
+        info_printf("djyos","注册事件类型参数错误\n\r");
         return CN_EVTT_ID_INVALID;
     }
     Int_SaveAsynSignal();      //禁止调度也就是禁止异步事件
@@ -990,30 +990,32 @@ bool_t DJY_EvttUnregist(u16 evtt_id)
     if(pl_evtt->property.registered == 0)
     {//该事件类型是无效事件类型
         result = false;
+        Int_RestoreAsynSignal();
+        return result;
     }
-//  if(pl_evtt->done_sync != NULL)     //若完成同步队列中有事件，取出到就绪队列
-//  {
-//      pl_ecb = pl_evtt->done_sync;     //取同步队列头
-//      while(pl_ecb != NULL)
-//      {
-//          if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT)  //是否在超时队列中
-//          {
-//              __DJY_ResumeDelay(pl_ecb);    //结束超时等待
-//          }
-//          pl_ecb->wakeup_from = CN_STS_EVTTSYNC_DELETED;   //设置唤醒原因
-//          pl_ecb->event_status = CN_STS_EVENT_READY;
-//          pl_ecb_temp = pl_ecb;
-//          if(pl_ecb->multi_next == pl_evtt->done_sync)   //是最后一个事件
-//          {
-//              pl_evtt->done_sync = NULL;
-//              pl_ecb = NULL;
-//          }else
-//          {
-//              pl_ecb = pl_ecb->multi_next;
-//          }
-//          __DJY_EventReady(pl_ecb_temp);           //把事件加入到就绪队列中
-//      }
-//  }
+    if(pl_evtt->done_sync != NULL)     //若完成同步队列中有事件，取出到就绪队列
+    {
+        pl_ecb = pl_evtt->done_sync;     //取同步队列头
+        while(pl_ecb != NULL)
+        {
+            if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT)  //是否在超时队列中
+            {
+                __DJY_ResumeDelay(pl_ecb);    //结束超时等待
+            }
+            pl_ecb->wakeup_from = CN_STS_EVTTSYNC_DELETED;   //设置唤醒原因
+            pl_ecb->event_status = CN_STS_EVENT_READY;
+            pl_ecb_temp = pl_ecb;
+            if(pl_ecb->multi_next == pl_evtt->done_sync)   //是最后一个事件
+            {
+                pl_evtt->done_sync = NULL;  //置空事件类型完成同步队列
+                pl_ecb = NULL;
+            }else
+            {
+                pl_ecb = pl_ecb->multi_next;
+            }
+            __DJY_EventReady(pl_ecb_temp);           //把事件加入到就绪队列中
+        }
+    }
     if(pl_evtt->pop_sync != NULL)     //若弹出同步队列中有事件，取出到就绪队列
     {
         pl_ecb = pl_evtt->pop_sync;     //取同步队列头
@@ -1028,7 +1030,7 @@ bool_t DJY_EvttUnregist(u16 evtt_id)
             pl_ecb_temp = pl_ecb;
             if(pl_ecb->multi_next == pl_evtt->pop_sync)  //是最后一个事件
             {
-                pl_evtt->pop_sync = NULL;  //置空事件同步队列
+                pl_evtt->pop_sync = NULL;  //置空事件类型弹出同步队列
                 pl_ecb = NULL;
             }else
             {
@@ -1041,7 +1043,8 @@ bool_t DJY_EvttUnregist(u16 evtt_id)
     {
         //事件类型正在使用，或完成同步和弹出同步队列非空，只标记删除
         pl_evtt->property.deleting = 1;
-    }else
+    }
+    else
     {
         //回收事件类型控制块，只需把registered属性清零。
         pl_evtt->property.registered = 0;
@@ -2005,7 +2008,7 @@ u32 DJY_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout)
 //----事件类型弹出同步---------------------------------------------------------
 //功能: 把正在运行的事件加入到指定事件类型的弹出同步队列中去,然后重新调度。弹出
 //      同步是指以该事件类型的事件弹出若干次为同步条件。
-//      pop_times输入作为计算同步的起始次数，同时用于输出同步条件达到时，目标事
+//      base_times输入作为计算同步的起始次数，同时用于输出同步条件达到时，目标事
 //      件类型的弹出次数。
 //参数: evtt_id,目标事件类型号
 //      base_times,弹出次数条件，目标事件累计弹出*base_times+1作为同步条件，
@@ -2117,7 +2120,6 @@ u32 DJY_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout)
 //功能：向操作系统报告发生事件,可以带一个参数缓冲区，提供处理事件所需要的附加信
 //      息。操作系统接报后,将分配事件控制块，或者把参数加入到已存在事件的参数队
 //      列中.
-//
 //参数：hybrid_id，id，可能是事件类型id，也可能是事件id。
 //          如果是事件id，系统会查找该事件对应的事件类型id。
 //          如果是关联型事件类型，则事件id和事件类型id是等效的。
@@ -2239,7 +2241,7 @@ u16 DJY_EventPop(   u16  hybrid_id,
                 //指定的超时未到
                 if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT)
                 {
-                    __DJY_ResumeDelay(pl_ecb);     //从闹钟队列中移除事件
+                    __DJY_ResumeDelay(pl_ecb);     //从闹钟同步队列中移除事件
                 }
                 pl_ecb->wakeup_from = CN_STS_WAIT_EVTT_POP;
                 pl_ecb->event_status = CN_STS_EVENT_READY;
@@ -2925,12 +2927,8 @@ void __DJY_EventExit(struct EventECB *event, u32 exit_code,enum EN_BlackBoxActio
 }
 
 //----事件处理完成----------------------------------------------------------
-//功能：通知系统，事件已经处理完成，但事件处理函数仍将继续运行，等待处理下一条事件,将激
-//      活正在等待本事件完成的事件。常见使用方法：
-//      A事件调用Djy_WaitEvttCompleted等待B类型事件完成n次，则B类型事件调用n次本函数后，
-//          将激活A事件
-//      A事件调用Djy_WaitEventCompleted等待B事件完成，则B事件调用本函数，将激活A事件
-//      A事件调用Djy_EventPop弹出B事件,且timeout != 0,则B事件调用本函数，将激活A事件
+//功能：用户调本函数用通知系统，事件已经处理完成，但事件处理函数仍将继续运行，等待处理下一
+//      条事件。调用本函数将激活正在等待本事件完成的事件。
 //参数：result，事件处理结果，这个结果将返回给弹出该事件的事件(如果设定了同步)
 //返回：无
 //-----------------------------------------------------------------------------
@@ -2984,7 +2982,7 @@ void __DJY_EventFinal(ptu32_t result)
     struct EventECB *pl_ecb,*event_temp;
     struct EventType   *pl_evtt;
     struct EventECB *pl_ecb_temp;
-    ucpu_t  vm_final = CN_DELETE;
+    ucpu_t vm_final = CN_DELETE;
 
     pl_evtt =&g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)];
     __Int_ResetAsynSignal();  //直到__vm_engine函数才再次打开.
@@ -3077,9 +3075,9 @@ void __DJY_EventFinal(ptu32_t result)
     g_ptEventRunning->previous
                     = (struct EventECB*)&s_ptEventFree;//表示本控制块空闲
     g_ptEventRunning->next = s_ptEventFree;     //pg_event_free是单向非循环队列
-    g_ptEventRunning->evtt_id = CN_EVTT_ID_INVALID;     //todo
+    g_ptEventRunning->evtt_id = CN_EVTT_ID_INVALID;
     s_ptEventFree = g_ptEventRunning;
-    s_ptEventFree->event_id = s_ptEventFree - g_tECB_Table;   //容错用
+    s_ptEventFree->event_id = (u16)(s_ptEventFree - g_tECB_Table);  //容错用
 
     pl_evtt->events--;
 
@@ -3327,6 +3325,15 @@ ptu32_t __DJY_Service(void)
     return 0;//消除编译警告
 }
 
+//------------------------------------------------------------------------------
+//功能：获取CPU的空闲比。
+//参数：无
+//返回：空闲率，百分数
+//------------------------------------------------------------------------------
+u8 DJY_GetCpuIdleRate(void)
+{
+    return g_tECB_Table[0].consumed_time_second / 10000;
+}
 
 //----api启动函数--------------------------------------------------------------
 //功能: 根据api号调用相应的api函数.

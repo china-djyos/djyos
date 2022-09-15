@@ -135,15 +135,16 @@ ptu32_t ISBUS_SlaveProcess(void)
     u8 chk,len, mydst;
     s16 restlen,Completed,readed,startoffset,tmp,tmp1;
     bool_t needread = true;
-    bool_t newpkg;
+    bool_t newpkg = false;
+    bool_t Gethead = false;
 
     DJY_GetEventPara((ptu32_t*)&Port, NULL);
     DevRe = Port->SerialDevice;
     mydst = sg_u8SlaveAddress;
     while(1)
     {
-
-        bool_t Gethead = false;
+        newpkg = false;
+        Gethead = false;
 
         protobuf = Port->RecvPkgBuf;
         startoffset = Port->analyzeoff;
@@ -231,6 +232,11 @@ ptu32_t ISBUS_SlaveProcess(void)
                                 }
                                 else
                                     newpkg = false;
+                            }
+                            else
+                            {
+                                //其他从机发来的数据
+                                newpkg = true;  //从机没有重发机制，所以发来的包一定是新包
                             }
                             break;      //协议头校验正确，退出循环，继续收和处理数据包
                         }
@@ -360,7 +366,7 @@ ptu32_t ISBUS_SlaveProcess(void)
                         __ISBUS_PushMtcPkg(Port);   //此函数会等待信号量，待用户准备好数据包
                     }
                 }
-                else if((protohead.SrcAddress == Port->BoardcastPre)
+                if((protohead.SrcAddress == Port->BoardcastPre)
                             && (Port->EchoModel == BROADCAST_MODEL))
                 {
 //                  recdbg(13, NULL,0);
@@ -513,7 +519,8 @@ void __ISBUS_SetSlaveList(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 
     }
     else
         sg_ptSlavePortHead->BoardcastPre = 0xff;    //本机不在列表中，不响应广播。
-    ISBUS_SlaveSendPkg(ProtocolSocket, NULL, 0);
+    printf("BoardcastPre = %d. \r\n", sg_ptSlavePortHead->BoardcastPre);
+    ISBUS_SlaveSendPkg(ProtocolSocket, 0, NULL, 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -530,7 +537,7 @@ void ISBUS_CHK_SlaveSend(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 *
     Port->HostSerial = 255;         //收到重新扫描从机命令，重置以下3个参数
     Port->BoardcastPre = 255;
     Port->MTCPre = 255;
-    ISBUS_SlaveSendPkg(ProtocolSocket, NULL, 0);
+    ISBUS_SlaveSendPkg(ProtocolSocket, 0, NULL, 0);
 }
 #pragma GCC diagnostic pop
 
@@ -623,7 +630,7 @@ struct ISBUS_FunctionSocket *ISBUS_SlaveRegistProtocol(struct Slave_ISBUSPort *P
 
     if(Port == NULL)
         return NULL;
-    ProtocolSocket = (struct ISBUS_FunctionSocket *)malloc(sizeof(struct Slave_ISBUSPort ));
+    ProtocolSocket = (struct ISBUS_FunctionSocket *)malloc(sizeof(struct Slave_ISBUSPort )); //TODO:这里是不是写错了Slave_ISBUSPort ->ISBUS_FunctionSocket
     if(ProtocolSocket != NULL)
     {
         //result用于出错判断，不能用指针是否NULL，因为有单工工作的通信口，Len=0
@@ -723,12 +730,13 @@ void __ISBUS_PushMtcPkg(struct Slave_ISBUSPort *Port)
 //      或广播的模式，则并不立即发送出去，而是释放一个信号量，等到排在前面的从机发送完毕后，
 //      由协议接收函数pend这个信号量，得到之后发送。
 // 输入参数：Slave_FunctionSocket，通信协议插口指针，为INS_RegistProtocol函数的返回值
+//        dst, 目标地址
 //        buf，待发送的数据包，不含协议头
 //        len，发送长度
 //        times，发送次数，-1表示无限次数。
 // 返回值：  发送的数据量，只是copy到了发送buf。
 // ============================================================================
-u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 *buf, u8 len)
+u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 dst, u8 *buf, u8 len)
 {
     struct Slave_ISBUSPort *Port;
     u8 *SendBuf;
@@ -747,13 +755,13 @@ u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 *b
 //  Port->SendTimes = times;
     SendBuf = Port->SendPkgBuf;
     SendBuf[CN_OFF_START]   = 0xEB;
-    SendBuf[CN_OFF_DST]     = 0;    //目标地址是主机地址，永远是0
+    SendBuf[CN_OFF_DST]     = dst;
     SendBuf[CN_OFF_PROTO]   = ISBUS_FunctionSocket->Protocol;
     SendBuf[CN_OFF_SRC]     = sg_u8SlaveAddress;
     SendBuf[CN_OFF_LEN]     = len;
     SendBuf[CN_OFF_SERIAL]  = 0;        //从机上送的包序号总是0
     SendBuf[CN_OFF_CHKSUM]  = 0xEB + ISBUS_FunctionSocket->Protocol
-                              + sg_u8SlaveAddress + len;
+                              + sg_u8SlaveAddress + len + dst;
     SendLen = len + sizeof(struct ISBUS_Protocol);
     memcpy(SendBuf + sizeof(struct ISBUS_Protocol), buf, len);
 

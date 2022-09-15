@@ -90,10 +90,6 @@ extern void Iboot_LoadPreload(void);
 #include <blackbox.h>
 #include <Iboot_Info.h>
 
-#define CN_BOOT_SOFTREBOOT_FLAG         (CN_BOOT_LEGALKEY <<1)
-#define CN_BOOT_SOFTRELOAD_FLAG         (CN_BOOT_LEGALKEY <<2)
-#define CN_BOOT_HARDRST_FLAG            (CN_BOOT_LEGALKEY <<3)
-#define CN_BOOT_SOFTRESET_FLAG          (CN_BOOT_LEGALKEY <<4)
 typedef struct
 {
     union
@@ -179,11 +175,6 @@ void CPU_RestartSystem(void)
     return;
 }
 
-enStartMode GetBootMethodSoft(void)
-{
-    enStartMode result;
-    return result;
-}
 enum
 {
     EN_RESET_GENERALRST = 0,

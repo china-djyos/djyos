@@ -944,7 +944,7 @@ bool_t write_finger_to_iboot(s8 *time, s8 *num)
     if(iboot_sn_addr)
     {
 //      djy_flash_read(iboot_sn_addr, iboot_sn_buf, 16);
-        memcpy(iboot_sn_buf, iboot_sn_addr, 16);
+        memcpy(iboot_sn_buf, (u8*)iboot_sn_addr, 16);
         if((iboot_sn_buf[0] == 0xff) && ((u8)time[0] != 0xff))
         {   //iboot里没SN，程序里给出SN号，现在写SN
             printf("write SN in iboot.\r\n");
@@ -981,7 +981,7 @@ bool_t read_finger_from_iboot(s8 *finger, u32 buf_len)
      }
 
     iboot_sn_addr = (u32)(&gc_ProductSn) ;
-    memcpy(finger, iboot_sn_addr, 16);
+    memcpy(finger, (u8*)iboot_sn_addr, 16);
 //  if(iboot_sn_addr)
 //  {
 //      djy_flash_read(iboot_sn_addr, finger, len);
@@ -1678,7 +1678,7 @@ void Iboot_GetOtaUserInfo(s8 *address, ptu32_t size)
 //      size, 信息尺寸
 //返回：无
 //------------------------------------------------------------------------------
-void Iboot_SetOtaFilename(s8 *filename, ptu32_t size)
+void Iboot_SetOtaFilename(char *filename, ptu32_t size)
 {
     if (size <= CN_APP_STORE_INFO_LIMIT)
         memcpy(Iboot_App_Info.stored.pads, filename,size);
@@ -1694,7 +1694,7 @@ void Iboot_SetOtaFilename(s8 *filename, ptu32_t size)
 //      size, 信息尺寸
 //返回：无
 //------------------------------------------------------------------------------
-void Iboot_GetOtaFilename(s8 *filename, ptu32_t size)
+void Iboot_GetOtaFilename(char *filename, ptu32_t size)
 {
     if (size <= CN_APP_STORE_INFO_LIMIT)
         memcpy(filename, Iboot_App_Info.stored.pads, size);

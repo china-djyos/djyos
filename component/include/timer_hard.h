@@ -68,18 +68,18 @@
 //TIMER的操作码
 enum HardTimerCmdCode
 {
-    EN_TIMER_STARTCOUNT,    //使能计数，inoutpara无意义
-    EN_TIMER_PAUSECOUNT,    //停止计数，inoutpara无意义
-    EN_TIMER_SETCYCLE,      //设置周期，inoutpara为u32,待设置的周期（计数值）
-    EN_TIMER_SETRELOAD,     //reload模式or not！，inoutpara为bool_t,true代表reload
-    EN_TIMER_ENINT,         //中断使能，inoutpara无意义
-    EN_TIMER_DISINT,        //中断禁止，inoutpara无意义
-    EN_TIMER_SETINTPRO,     //中断属性设置，inoutpara为bool_t,true代表实时信号
+    EN_TIMER_STARTCOUNT,    //使能计数，para无意义
+    EN_TIMER_PAUSECOUNT,    //停止计数，para无意义
+    EN_TIMER_SETCYCLE,      //设置周期，para为u32,待设置的周期（计数值）
+    EN_TIMER_SETRELOAD,     //reload模式or not！，para为bool_t,true代表reload
+    EN_TIMER_ENINT,         //中断使能，para无意义
+    EN_TIMER_DISINT,        //中断禁止，para无意义
+    EN_TIMER_SETINTPRO,     //中断属性设置，para为bool_t,true代表实时信号
     EN_TIMER_GETTIME,       //获取上一次溢出到现在的计数值，inoutpara为u32 *
-    EN_TIMER_GETCYCLE,      //获取定时周期，inoutpara为u32 *,单位为周期数
-    EN_TIMER_GETID,         //获取定时器ID，inoutpara为u32 *，高16位为intID，低16为timerID
-    EN_TIMER_GETSTATE,      //获取定时器状态，inoutpara为u32 *
-    EN_TIMER_GETREG,        //获取定时器硬件寄存器地址，inoutpara为void *
+    EN_TIMER_GETCYCLE,      //获取定时周期，para为u32 *,单位为周期数
+    EN_TIMER_GETID,         //获取定时器ID，para为u32 *，高16位为intID，低16为timerID
+    EN_TIMER_GETSTATE,      //获取定时器状态，para为u32 *
+    EN_TIMER_GETREG,        //获取定时器硬件寄存器地址，para为void *
     EN_TIMER_LASTOPCODE,
 };
 

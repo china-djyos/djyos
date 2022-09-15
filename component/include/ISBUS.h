@@ -21,14 +21,14 @@ extern "C" {
 #define CN_INS_SLAVE_RECOVER   0x6      //从机恢复
 
 //协议字段偏移量
-#define CN_OFF_START        0
-#define CN_OFF_DST          1
-#define CN_OFF_PROTO        2
-#define CN_OFF_SRC          3
+#define CN_OFF_START        0       //同步头长度偏移
+#define CN_OFF_DST          1       //目标地址长度偏移
+#define CN_OFF_PROTO        2       //功能号长度偏移
+#define CN_OFF_SRC          3       //源地址长度偏移
 #define CN_OFF_SERIAL       4
-#define CN_OFF_LEN          5
-#define CN_OFF_CHKSUM       6
-#define CN_OFF_USER         7
+#define CN_OFF_LEN          5       //应用层数据包长度偏移
+#define CN_OFF_CHKSUM       6       //校验码长度偏移
+#define CN_OFF_USER         7       //应用层数据包长度偏移
 
 //系统协议号定义，由平台确定和管理。
 #define CN_SET_SLAVE_TABLE          0       //传送从机地址列表，数据包格式：数量+列表
@@ -38,6 +38,7 @@ extern "C" {
 #define CN_SET_ECHO_TIME_LIMIT      4       //告知从机，收到轮询命令后必须应答的时限
 #define CN_CHK_SLAVE                5       //检查从机是否存在，从机收到后须在20mS内应答。
 #define CN_SLAVE_ACK                6       //表示收到空插槽或重发的数据
+#define CN_TRANSMIT_DATA            7       //数据转发协议号
 
 //用户协议号定义
 #define CN_PROTOCOL_USER_START     16
@@ -87,7 +88,7 @@ bool_t ISBUS_SlaveInit(u32 StackSize);
 struct Slave_ISBUSPort *ISBUS_SlaveRegistPort(char * dev,ISBUS_FntProtocolError fnError,u32 Timeout);
 struct ISBUS_FunctionSocket *ISBUS_SlaveRegistProtocol(struct Slave_ISBUSPort *Port, u8 Protocol,
                                                            u16 MaxRecvLen,u16 MaxSendLen, ISBUS_FntProtocolProcess fn);
-u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *Slave_FunctionSocket, u8 *buf, u8 len);
+u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *Slave_FunctionSocket, u8 dst, u8 *buf, u8 len);
 void ISBUS_SlaveSetAddress(u8 Addr);
 void ISBUS_SlaveSetMtcAddress(struct Slave_ISBUSPort *Port, u8 Addr);
 

@@ -226,8 +226,9 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
         }
         if(Gethead && (readed - (s16)startoffset >= (s16)sizeof(struct ISBUS_Protocol)))
         {
-            if((protobuf[startoffset + CN_OFF_DST] != 0)     //只收发给主机的包，主机地址总是0
-                ||(protobuf[startoffset + CN_OFF_SRC] != src))  //校验源地址
+//            if((protobuf[startoffset + CN_OFF_DST] != 0)     //只收发给主机的包，主机地址总是0
+//                ||(protobuf[startoffset + CN_OFF_SRC] != src))  //校验源地址
+            if (protobuf[startoffset + CN_OFF_SRC] != src)  //校验源地址
             {
                 Gethead = false;
                 startoffset++;
@@ -235,7 +236,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
             }
             else
             {
-                chk = 0xEB + 0 + protobuf[startoffset + CN_OFF_PROTO]
+                chk = 0xEB + protobuf[startoffset + CN_OFF_DST] + protobuf[startoffset + CN_OFF_PROTO]
                                + src
                                + protobuf[startoffset + CN_OFF_SERIAL]
                                + protobuf[startoffset + CN_OFF_LEN];    //计算chk
@@ -307,8 +308,8 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
     {
         Me = __Host_GetProtocol(Port, protohead.Protocol);
         if(Me != NULL)
-        {
-            if(Me->MyProcess != NULL)
+        {   //数据是发给主机的，再调用回调函数
+            if ((protohead.DstAddress == 0) && (Me->MyProcess != NULL))
                 Me->MyProcess(Me,src,protobuf+startoffset+sizeof(struct ISBUS_Protocol),len);
         }
         startoffset += sizeof(struct ISBUS_Protocol) + len;
@@ -630,7 +631,7 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
 //        SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;
 //        SendBuf[CN_OFF_CHKSUM] += Port->PkgSerial - tmp;
 //        Port->PkgSerial++;
-        SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
+        SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);  //SendBuf[CN_OFF_LEN]是数据包的长度
         Device_Write(Port->SerialDevice, SendBuf, SendLen,0,0);
         *dst = SendBuf[CN_OFF_DST];
 //        printf("\r\nhost resend:");
@@ -642,39 +643,41 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
     }
     else
     {
-        Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);
+        Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);   //锁住通信端口，如某个指定串口
         if(Port->IM_Head != NULL)       //发送即时消息
         {
-                me = Port->IM_Head;
-                if(Port->IM_Head == Port->IM_Tail)
+            me = Port->IM_Head;
+            if(Port->IM_Head == Port->IM_Tail)
+            {
+                Port->IM_Tail = NULL;
+                Port->IM_Head = NULL;
+            }
+            else
+            {
+                Port->IM_Head = Port->IM_Head->next;
+            }
+            SendBuf = me->IM_buf;
+            tmp = SendBuf[CN_OFF_SERIAL];
+            SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;
+            SendBuf[CN_OFF_CHKSUM] += Port->PkgSerial - tmp;
+            Port->PkgSerial++;
+            SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
+            Device_Write(Port->SerialDevice, SendBuf, SendLen,0,0);
+            if((debug_ctrl ==true))
+            {
+                printf("\r\nhost send:");
+                for(tmp = 0;tmp < SendLen;tmp++)
                 {
-                    Port->IM_Tail = NULL;
-                    Port->IM_Head = NULL;
+                    printf("%02x ",SendBuf[tmp]);
                 }
-                else
-                {
-                    Port->IM_Head = Port->IM_Head->next;
-                }
-                SendBuf = me->IM_buf;
-                tmp = SendBuf[CN_OFF_SERIAL];
-                SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;
-                SendBuf[CN_OFF_CHKSUM] += Port->PkgSerial - tmp;
-                Port->PkgSerial++;
-                SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
-                Device_Write(Port->SerialDevice, SendBuf, SendLen,0,0);
-                if((debug_ctrl ==true))
-                {
-                    printf("\r\nhost send:");
-                    for(tmp = 0;tmp < SendLen;tmp++)
-                    {
-                        printf("%02x ",SendBuf[tmp]);
-                    }
-                }
-                *dst = SendBuf[CN_OFF_DST];
-                result = true;
-                memcpy(Port->ResendPkgBuf,SendBuf,SendLen);
-                Lock_SempPost(me->IM_Semp);
-                free(me);   //对应的 malloc 函数在 ISBUS_HostSetIM_Pkg 函数中
+            }
+            *dst = SendBuf[CN_OFF_DST];
+            result = true;
+            memcpy(Port->ResendPkgBuf,SendBuf,SendLen);
+            
+
+            // Lock_SempPost(me->IM_Semp);
+            free(me);   //对应的 malloc 函数在 ISBUS_HostSetIM_Pkg 函数中
         }
         else                            //发送周期性轮询消息
         {
@@ -818,6 +821,7 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
     struct Host_ISBUSPort *Port;
     struct SlaveList *current;
     struct IM_Pkg *mypkg;
+    struct IM_Pkg *TempPkg;
     u8 *SendBuf;
     bool_t found = false;
     if(ISBUS_FunctionSocket == NULL)
@@ -848,17 +852,17 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
     mypkg = malloc(sizeof(struct IM_Pkg)+len+sizeof(struct ISBUS_Protocol));
     if(mypkg != NULL)
     {
-        if(Timeout != 0)
-        {
-            mypkg->IM_Semp = Lock_SempCreate(1, 0, CN_BLOCK_FIFO, NULL);
-            if(mypkg->IM_Semp == NULL)
-                return 0;
-        }
-        else
+        // if(Timeout != 0)
+        // {
+        //     mypkg->IM_Semp = Lock_SempCreate(1, 0, CN_BLOCK_FIFO, NULL);        //TODO: 没看到有地方删除这个信号？
+        //     if(mypkg->IM_Semp == NULL)
+        //         return 0;
+        // }
+        // else
             mypkg->IM_Semp = NULL;
         Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);
         mypkg->IM_buf = (u8*)(mypkg+1);
-        if(Port->IM_Tail == NULL)
+        if(Port->IM_Head == NULL)
         {
             Port->IM_Head = mypkg;
             Port->IM_Tail = mypkg;
@@ -882,10 +886,50 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
                                   + len + SendBuf[CN_OFF_SERIAL];
         memcpy(SendBuf + sizeof(struct ISBUS_Protocol), buf, len);
         Lock_SempPost(Port->PortSemp);
-        if(Timeout != 0)
-        {
-            Lock_SempPend(mypkg->IM_Semp, Timeout);
-        }
+        // if(Timeout != 0)
+        // {
+        //     if (Lock_SempPend(mypkg->IM_Semp, Timeout) == false)
+        //     {
+        //         Lock_SempPend(Port->PortSemp, CN_TIMEOUT_FOREVER);
+        //         if (NULL != Port->IM_Head)
+        //         {
+        //             if (Port->IM_Head == mypkg)
+        //             {
+        //                 Port->IM_Head = Port->IM_Head->next;
+        //             }
+        //             else
+        //             {
+        //                 TempPkg = Port->IM_Head;
+        //                 while ((TempPkg->next != NULL) && (TempPkg->next != mypkg))
+        //                 {
+        //                     TempPkg = TempPkg->next;
+        //                 }
+        //                 if (TempPkg->next == mypkg)
+        //                 {
+        //                     TempPkg->next = TempPkg->next->next;
+        //                 }
+        //             }
+        //         }
+        //         // 当能在链表中找到mypkg，就说明发送函数还没处理这个包，直接把这个包从链表中删除,并且把对应的信号量
+        //         // 和分配的空间释放掉。
+        //         // 在链表中找不到mypkg的话，就说明发送函数已经处理完这个包了。那对应的信号量和所分配的空间也没用了，释放掉
+        //         // 执行到这里IM_Head是空，那说明，在发送的地方也已经把包处理完了，也释放掉
+        //         // 释放信号量和内存的操作必须得受PortSemp保护，以防在Post(PortSemp)后，又调度到发送线程去执行了，在处理这个
+        //         // 数据包时，又调度回来，执行释放了内存和信号量
+        //         Lock_SempDelete(mypkg->IM_Semp);
+        //         mypkg->IM_Semp = NULL;
+        //         free(mypkg);
+
+        //         Lock_SempPost(Port->PortSemp);
+        //     }
+        //     else
+        //     {
+        //         Lock_SempDelete(mypkg->IM_Semp);
+        //         mypkg->IM_Semp = NULL;
+        //         free(mypkg);
+        //     }
+
+        // }
     }
     else
         len = 0;
