@@ -53,7 +53,7 @@
 // 备注：该文件重在留给使用定时器的任务一个统一的接口，实现还是在timer_driver.c文件
 #include "timer_hard.h"
 #include "stddef.h"
-static struct TimerChip   s_tHardTimerChip = {NULL};//注册的芯片驱动
+static struct TimerChip   s_tHardTimerChip;//注册的芯片驱动
 // =============================================================================
 // 函数功能：HardTimer_RegisterChip
 //          注册定时器芯片到系统定时器模块
