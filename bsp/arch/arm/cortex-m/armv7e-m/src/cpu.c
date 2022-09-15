@@ -88,7 +88,7 @@ extern void Init_Cpu(void);
 
 extern void Iboot_LoadPreload(void);
 #include <blackbox.h>
-#include <Iboot_Info.h>
+#include <Iboot_info.h>
 
 #define CN_BOOT_SOFTREBOOT_FLAG         (CN_BOOT_LEGALKEY <<1)
 #define CN_BOOT_SOFTRELOAD_FLAG         (CN_BOOT_LEGALKEY <<2)
