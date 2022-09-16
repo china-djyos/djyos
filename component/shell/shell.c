@@ -1130,7 +1130,7 @@ s32 ModuleInstall_Shell(ptu32_t para)
     if(shell_evtt==CN_EVTT_ID_INVALID)
     {
         Lock_MutexDelete(__shell_mutex);
-        error_printf("module", "shell install failed.");
+        error_printf("module", "shell install failed.\r\n");
         return (-1);
     }
 

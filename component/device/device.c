@@ -141,7 +141,7 @@ static struct objhandle *__Device_open(struct Object *ob, u32 flags, u32 timeout
             if(res)
             {
                 Handle_Delete(devfile);
-                debug_printf("device","cannot open device \"%s\".", OBJ_GetName(ob));
+                debug_printf("device","cannot open device \"%s\".\r\n", OBJ_GetName(ob));
                 return (NULL);
             }
 //            OBJ_LinkHandle(devfile, ob);      //将objhandle与obj关联
@@ -163,7 +163,7 @@ static struct objhandle *__Device_open(struct Object *ob, u32 flags, u32 timeout
         }
         else
         {
-            debug_printf("device","open device \"%s\" unknown(type).", OBJ_GetName(ob));
+            debug_printf("device","open device \"%s\" unknown(type).\r\n", OBJ_GetName(ob));
         }
     }
 
@@ -953,7 +953,7 @@ s32 ModuleInstall_dev(void)
                                    "设备控制块池");
     if(!s_ptDevicePool)
     {
-        debug_printf("device","cannot install device file system(pool).");
+        debug_printf("device","cannot install device file system(pool).\r\n");
         return (-1);
     }
 
@@ -964,7 +964,7 @@ s32 ModuleInstall_dev(void)
     {
         OBJ_Delete(s_ptDeviceRoot);
         Handle_Delete(s_ptDeviceDirHandle);
-        debug_printf("device","cannot install device file system(mount).");
+        debug_printf("device","cannot install device file system(mount).\r\n");
         return (-1);
     }
     else

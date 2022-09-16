@@ -1117,7 +1117,7 @@ s32 ModuleInstall_Gd25q64c(void)
         sz.block = 1;
         if(-1 == __gd25q64c_req(format, 0 , -1, &sz))
         {
-            warning_printf("gd25"," Format failure.");
+            warning_printf("gd25"," Format failure.\r\n");
         }
     }
 
@@ -1173,7 +1173,7 @@ bool_t __GD25_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd, void *mediad
     targetobj = OBJ_MatchPath(fs, &notfind);    //根据mount点名字找mount点的obj
     if(notfind)
     {
-        error_printf("gd25"," not found need to install file system.");
+        error_printf("gd25"," not found need to install file system.\r\n");
         return false;
     }
     super = (struct FsCore *)OBJ_GetPrivate(targetobj); //获取obj的私有数据

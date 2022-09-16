@@ -160,11 +160,11 @@ static int __FTP_ClientRcvResponse(int sock,u8 *buf,int len)
     if(msglen > 0)
     {
         code = __FTP_ClientGetRespCode((const char *)buf);
-        info_printf("ftpc","%s:rcvcode:%d",__FUNCTION__,code);
+        info_printf("ftpc","%s:rcvcode:%d\r\n",__FUNCTION__,code);
     }
     else
     {
-        error_printf("ftpc","rcv err");
+        error_printf("ftpc","rcv err\r\n");
     }
     return code;
 }
@@ -190,11 +190,11 @@ static bool_t __FTP_ClientSndCmd(int sock,const char *cmd,const char *para,u8 *b
     ret = sendexact(sock,buf,len);
     if(ret == false)
     {
-        error_printf("ftpc","Send Cmd:%s Para:%s FAILED",cmd,para);
+        error_printf("ftpc","Send Cmd:%s Para:%s FAILED\r\n",cmd,para);
     }
     else
     {
-        info_printf("ftpc","%s:Send Cmd:%s Para:%s OK",__FUNCTION__,cmd,para);
+        info_printf("ftpc","%s:Send Cmd:%s Para:%s OK\r\n",__FUNCTION__,cmd,para);
     }
     return ret;
 }
@@ -260,12 +260,12 @@ static bool_t  __FTP_ClientPortCmd(tagFtpClient *client)
     lsn_sock = socket( PF_INET, SOCK_STREAM, IPPROTO_TCP );
     if(lsn_sock <= 0)
     {
-        error_printf("ftpc","socket err");
+        error_printf("ftpc","socket err\r\n");
         return ret;
     }
     if(getsockname(lsn_sock, (struct sockaddr *)&sin, (socklen_t *)&len ) == -1 )
     {
-        error_printf("ftpc","getsockname err");
+        error_printf("ftpc","getsockname err\r\n");
         closesocket( lsn_sock );
         return ret;
     }
@@ -273,14 +273,14 @@ static bool_t  __FTP_ClientPortCmd(tagFtpClient *client)
     port = sin.sin_port;
     if(bind(lsn_sock, (struct sockaddr *)&sin, sizeof(sin)) == -1 )
     {
-        error_printf("ftpc","bind err");
+        error_printf("ftpc","bind err\r\n");
         closesocket( lsn_sock );
         return ret;
     }
 
     if( listen(lsn_sock, 1) == -1 )
     {
-        error_printf("ftpc","listen err");
+        error_printf("ftpc","listen err\r\n");
         closesocket( lsn_sock );
         return ret;
     }
@@ -332,7 +332,7 @@ static bool_t __FTP_ClientPasv(tagFtpClient *client)
             snprintf(ipaddrstr,INET_ADDRSTRLEN,"%d.%d.%d.%d",addr[0],addr[1],addr[2],addr[3]);
             inet_aton(ipaddrstr,&ipaddr);
             port = htons((u16)(addr[4]*256+addr[5]));
-            info_printf("ftpc","%s:IP:%s Port:%d",__FUNCTION__,ipaddrstr,ntohs(port));
+            info_printf("ftpc","%s:IP:%s Port:%d\r\n",__FUNCTION__,ipaddrstr,ntohs(port));
             s = FTP_Connect(&ipaddr,port);
             if(s > 0)
             {
@@ -344,12 +344,12 @@ static bool_t __FTP_ClientPasv(tagFtpClient *client)
             }
             else
             {
-                error_printf("ftpc","connect err");
+                error_printf("ftpc","connect err\r\n");
             }
         }
         else
         {
-            info_printf("ftpc","%s:no ip and port get",__FUNCTION__);
+            info_printf("ftpc","%s:no ip and port get\r\n",__FUNCTION__);
         }
     }
     return ret;
@@ -363,7 +363,7 @@ static bool_t __FTP_ClientConnectServer(tagFtpClient *client)
 
     if(client->cchannel.s != -1)
     {
-        info_printf("ftpc","%s:sockfdexist:sockfd:%d",__FUNCTION__,client->cchannel.s);
+        info_printf("ftpc","%s:sockfdexist:sockfd:%d\r\n",__FUNCTION__,client->cchannel.s);
         return ret;
     }
     s = FTP_Connect(&client->cchannel.ipaddr,client->cchannel.port);
@@ -373,18 +373,18 @@ static bool_t __FTP_ClientConnectServer(tagFtpClient *client)
         if(respcode == CN_SERVERREADY)
         {
             client->cchannel.s = s;
-            info_printf("ftpc","%s:connect server ok",__FUNCTION__);
+            info_printf("ftpc","%s:connect server ok\r\n",__FUNCTION__);
             ret = true;
         }
         else
         {
-            info_printf("ftpc","%s:server not ready:code:%d",__FUNCTION__,respcode);
+            info_printf("ftpc","%s:server not ready:code:%d\r\n",__FUNCTION__,respcode);
             closesocket(s);
         }
     }
     else
     {
-        error_printf("ftpc","connect server err");
+        error_printf("ftpc","connect server err\r\n");
     }
     return ret;
 }
@@ -566,7 +566,7 @@ static bool_t __FTP_ClientList(tagFtpClient *client,const char *path)
                 len = recv(dsock,client->buf,client->buflen-1,0);
                 if(len > 0)
                 {
-                    info_printf("ftpc","%s",client->buf);
+                    info_printf("ftpc","%s\r\n",client->buf);
                     timeout = 0;
                 }
                 else if(len == 0)
@@ -977,56 +977,56 @@ bool_t ftpc(char *param)
             }
             else
             {
-                error_printf("ftpc","connect:ERR");
+                error_printf("ftpc","connect:ERR\r\n");
             }
         }
         else if(0 == strcmp(argv[0],"disconnect"))
         {
             __FTP_ClientDisConnectServer(&gFtpClientDebug);
-            info_printf("ftpc","%s:disconnect:OK",__FUNCTION__);
+            info_printf("ftpc","%s:disconnect:OK\r\n",__FUNCTION__);
         }
         else if(0 == strcmp(argv[0],"login"))
         {
             if(__FTP_ClientLogIn(&gFtpClientDebug))
             {
-                info_printf("ftpc","%s:login:OK",__FUNCTION__);
+                info_printf("ftpc","%s:login:OK\r\n",__FUNCTION__);
             }
             else
             {
-                error_printf("ftpc","login:ERR");
+                error_printf("ftpc","login:ERR\r\n");
             }
         }
         else if(0 == strcmp(argv[0],"logout"))
         {
             if(__FTP_ClientLogOut(&gFtpClientDebug))
             {
-                info_printf("ftpc","%s:logout:OK",__FUNCTION__);
+                info_printf("ftpc","%s:logout:OK\r\n",__FUNCTION__);
             }
             else
             {
-                error_printf("ftpc","logout:ERR");
+                error_printf("ftpc","logout:ERR\r\n");
             }
         }
         else if(0 == strcmp(argv[0],"pwd"))
         {
             if(__FTP_ClientPwd(&gFtpClientDebug))
             {
-                info_printf("ftpc","%s:pwd:OK",__FUNCTION__);
+                info_printf("ftpc","%s:pwd:OK\r\n",__FUNCTION__);
             }
             else
             {
-                error_printf("ftpc","pwd:ERR");
+                error_printf("ftpc","pwd:ERR\r\n");
             }
         }
         else if(0 == strcmp(argv[0],"cdup"))
         {
             if(__Cdup(&gFtpClientDebug))
             {
-                info_printf("ftpc","%s:cdup:OK",__FUNCTION__);
+                info_printf("ftpc","%s:cdup:OK\r\n",__FUNCTION__);
             }
             else
             {
-                error_printf("ftpc","cdup:ERR");
+                error_printf("ftpc","cdup:ERR\r\n");
             }
         }
         else if(0 == strcmp(argv[0],"cwd"))
@@ -1035,16 +1035,16 @@ bool_t ftpc(char *param)
             {
                 if(__Cwd(&gFtpClientDebug,argv[1]))
                 {
-                    info_printf("ftpc","%s:cwd:%s OK",__FUNCTION__,argv[1]);
+                    info_printf("ftpc","%s:cwd:%s OK\r\n",__FUNCTION__,argv[1]);
                 }
                 else
                 {
-                    error_printf("ftpc","cwd:%s ERR",argv[1]);
+                    error_printf("ftpc","cwd:%s ERR\r\n",argv[1]);
                 }
             }
             else
             {
-                info_printf("ftpc","%s:parafmt:cwd path",__FUNCTION__);
+                info_printf("ftpc","%s:parafmt:cwd path\r\n",__FUNCTION__);
             }
         }
         else if(0 == strcmp(argv[0],"mkd"))
@@ -1053,16 +1053,16 @@ bool_t ftpc(char *param)
             {
                 if(__Mkd(&gFtpClientDebug,argv[1]))
                 {
-                    info_printf("ftpc","%s:mkd:%s OK",__FUNCTION__,argv[1]);
+                    info_printf("ftpc","%s:mkd:%s OK\r\n",__FUNCTION__,argv[1]);
                 }
                 else
                 {
-                    error_printf("ftpc","mkd:%s ERR",argv[1]);
+                    error_printf("ftpc","mkd:%s ERR\r\n",argv[1]);
                 }
             }
             else
             {
-                info_printf("ftpc","%s:parafmt:mkd path",__FUNCTION__);
+                info_printf("ftpc","%s:parafmt:mkd path\r\n",__FUNCTION__);
             }
         }
         else if(0 == strcmp(argv[0],"list"))
@@ -1071,11 +1071,11 @@ bool_t ftpc(char *param)
             {
                 if(__FTP_ClientList(&gFtpClientDebug,argv[1]))
                 {
-                    info_printf("ftpc","%s:list:%s OK",__FUNCTION__,argv[1]);
+                    info_printf("ftpc","%s:list:%s OK\r\n",__FUNCTION__,argv[1]);
                 }
                 else
                 {
-                    error_printf("ftpc","list:%s ERR",argv[1]);
+                    error_printf("ftpc","list:%s ERR\r\n",argv[1]);
                 }
             }
             else
@@ -1089,11 +1089,11 @@ bool_t ftpc(char *param)
             {
                 if(__FTP_ClientDelFile(&gFtpClientDebug,argv[1]))
                 {
-                    info_printf("ftpc","%s:delfile:%s OK",__FUNCTION__,argv[1]);
+                    info_printf("ftpc","%s:delfile:%s OK\r\n",__FUNCTION__,argv[1]);
                 }
                 else
                 {
-                    error_printf("ftpc","delfile:%s ERR",argv[1]);
+                    error_printf("ftpc","delfile:%s ERR\r\n",argv[1]);
                 }
             }
             else
@@ -1107,11 +1107,11 @@ bool_t ftpc(char *param)
             {
                 if(__FTP_ClientDelDir(&gFtpClientDebug,argv[1]))
                 {
-                    info_printf("ftpc","%s:deldir:%s OK",__FUNCTION__,argv[1]);
+                    info_printf("ftpc","%s:deldir:%s OK\r\n",__FUNCTION__,argv[1]);
                 }
                 else
                 {
-                    error_printf("ftpc","deldir:%s ERR",argv[1]);
+                    error_printf("ftpc","deldir:%s ERR\r\n",argv[1]);
                 }
             }
             else
@@ -1126,11 +1126,11 @@ bool_t ftpc(char *param)
                 len = __FTP_ClientDownLoad(&gFtpClientDebug,argv[1],argv[2]);
                 if(len)
                 {
-                    info_printf("ftpc","%s:download:%s %s OK:len:%d",__FUNCTION__,argv[1],argv[2],len);
+                    info_printf("ftpc","%s:download:%s %s OK:len:%d\r\n",__FUNCTION__,argv[1],argv[2],len);
                 }
                 else
                 {
-                    error_printf("ftpc","download:%s %s ERR:len:%d",argv[1],argv[2],len);
+                    error_printf("ftpc","download:%s %s ERR:len:%d\r\n",argv[1],argv[2],len);
                 }
             }
             else
@@ -1145,16 +1145,16 @@ bool_t ftpc(char *param)
                 len = __FTP_ClientUpLoad(&gFtpClientDebug,argv[1],argv[2]);
                 if(len)
                 {
-                    info_printf("ftpc","%s:upload:%s %s OK:len:%d",__FUNCTION__,argv[1],argv[2],len);
+                    info_printf("ftpc","%s:upload:%s %s OK:len:%d\r\n",__FUNCTION__,argv[1],argv[2],len);
                 }
                 else
                 {
-                    error_printf("ftpc","upload:%s %s ERR:len:%d",argv[1],argv[2],len);
+                    error_printf("ftpc","upload:%s %s ERR:len:%d\r\n",argv[1],argv[2],len);
                 }
             }
             else
             {
-                info_printf("ftpc","%s:parafmt:upload sfile dstfile",__FUNCTION__);
+                info_printf("ftpc","%s:parafmt:upload sfile dstfile\r\n",__FUNCTION__);
             }
         }
         else if(0 == strcmp(argv[0],"rename"))
@@ -1173,7 +1173,7 @@ bool_t ftpc(char *param)
             }
             else
             {
-                info_printf("ftpc","%s:parafmt:rename sfile dstfile",__FUNCTION__);
+                info_printf("ftpc","%s:parafmt:rename sfile dstfile\r\n",__FUNCTION__);
             }
         }
         else if(0 == strcmp(argv[0],"status"))
@@ -1184,7 +1184,7 @@ bool_t ftpc(char *param)
         {
             if(argc == 1)
             {
-                info_printf("ftpc","use default:192.168.0.100 21 djyos zqf sourcefile destfile 0x1000 100");
+                info_printf("ftpc","use default:192.168.0.100 21 djyos zqf sourcefile destfile 0x1000 100\r\n");
                 argv[1] = "d";
                 argv[2] = "192.168.0.100";
                 argv[3] ="21";
@@ -1218,22 +1218,22 @@ int FTP_ClientDownload(const char *host,const char *port,const char *user,const 
     client = net_malloc(sizeof(tagFtpClient));
     if(NULL == client)
     {
-        info_printf("ftpc","%s:no mem",__FUNCTION__);
+        info_printf("ftpc","%s:no mem\r\n",__FUNCTION__);
         goto EXIT_MEM;
     }
     if(false == __FTP_ClientInitClient(client,host,port,user,passwd))
     {
-        error_printf("ftpc","init err(HOST:%s COULD NOT RESOLVE)",host);
+        error_printf("ftpc","init err(HOST:%s COULD NOT RESOLVE)\r\n",host);
         goto EXIT_INIT;
     }
     if(false == __FTP_ClientConnectServer(client))
     {
-        error_printf("ftpc","connect err");
+        error_printf("ftpc","connect err\r\n");
         goto EXIT_CONNECT;
     }
     if(false == __FTP_ClientLogIn(client))
     {
-        error_printf("ftpc","login err");
+        error_printf("ftpc","login err\r\n");
         goto EXIT_LOGIN;
     }
     ret = __FTP_ClientDownLoad(client,sfile,dfile);
@@ -1255,22 +1255,22 @@ int FTP_ClientUpload(const char *host,const char *port,const char *user,const ch
     client = net_malloc(sizeof(tagFtpClient));
     if(NULL == client)
     {
-        error_printf("ftpc","no mem");
+        error_printf("ftpc","no mem\r\n");
         goto EXIT_MEM;
     }
     if(false == __FTP_ClientInitClient(client,host,port,user,passwd))
     {
-        error_printf("ftpc","init err(HOST:%s COULD NOT RESOLVE)",host);
+        error_printf("ftpc","init err(HOST:%s COULD NOT RESOLVE)\r\n",host);
         goto EXIT_INIT;
     }
     if(false == __FTP_ClientConnectServer(client))
     {
-        error_printf("ftpc","connect err");
+        error_printf("ftpc","connect err\r\n");
         goto EXIT_CONNECT;
     }
     if(false == __FTP_ClientLogIn(client))
     {
-        error_printf("ftpc","login err");
+        error_printf("ftpc","login err\r\n");
         goto EXIT_LOGIN;
     }
     ret = __FTP_ClientUpLoad(client,sfile,dfile);

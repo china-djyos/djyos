@@ -157,11 +157,11 @@ bool_t Core_ShowCpuInfo(char *param)
                 debug_printf("CPUINFO","%-12s:%s\n\r",item->msgname,item->msg);
                 break;
             case EN_CPU_MSGTYPE_MULTIBYTES:
-                debug_printf("CPUINFO","%-12s:",item->msgname);
+                debug_printf("CPUINFO","%-12s:\r\n",item->msgname);
                 for(value = 0;value < item->msglen;value++)
                 {
                     v8 = *((u8 *)item->msg+value);
-                    debug_printf("CPUINFO","%02x ",v8);
+                    debug_printf("CPUINFO","%02x \r\n",v8);
                 }
                 printf("\n\r");
                 break;

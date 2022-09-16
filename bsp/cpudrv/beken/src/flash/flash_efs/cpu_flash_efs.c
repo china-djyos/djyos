@@ -264,14 +264,14 @@ bool_t ModuleInstall_EmbFlashInstallEfs(const char *TargetFs, s32 bstart, s32 be
                 flash_protection_op(0,FLASH_PROTECT_NONE);
                 if(-1 == djy_flash_req(format, bstart , bend, &sz))
                 {
-                    warning_printf("efs"," Format failure.");
+                    warning_printf("efs"," Format failure.\r\n");
                 }
                 flash_protection_op(0,FLASH_PROTECT_ALL);
             }
             targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
-                error_printf("efs"," not found need to install file system.");
+                error_printf("efs"," not found need to install file system.\r\n");
                 return false;
             }
             super = (struct FsCore *)OBJ_GetPrivate(targetobj);
@@ -285,7 +285,7 @@ bool_t ModuleInstall_EmbFlashInstallEfs(const char *TargetFs, s32 bstart, s32 be
                 }
                 flash_protection_op(0,FLASH_PROTECT_ALL);
             }
-            error_printf("efs"," need to install file system not EFS.");
+            error_printf("efs"," need to install file system not EFS.\r\n");
         }
     }
 

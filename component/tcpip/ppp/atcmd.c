@@ -372,7 +372,7 @@ static bool_t checkmm(char *devname,s32 times)
     s32  position;
 
     //first we should check if the sim card inserted:at+cpin?
-        debug_printf("atcmd","checkcgmm:");
+    debug_printf("atcmd","checkcgmm:");
     for(i =0;i<times;i++)
     {
         debug_printf("atcmd","%d->",i);
@@ -409,7 +409,7 @@ static bool_t checksn(char *devname,s32 times)
     s32  position;
 
     //first we should check if the sim card inserted:at+cpin?
-        debug_printf("atcmd","checkcgsn:");
+    debug_printf("atcmd","checkcgsn:");
     for(i =0;i<times;i++)
     {
         debug_printf("atcmd","%d->",i);
@@ -484,7 +484,7 @@ static tagImsi* checkcimi(char *devname,s32 times,char *simapn)
     //find the mnc here
     tagImsi* result = NULL;
     //first we should check if the sim card inserted:at+cpin?
-        debug_printf("atcmd","checkcimi:");
+    debug_printf("atcmd","checkcimi:");
     for(i =0;i<times;i++)
     {
         debug_printf("atcmd","%d->",i);
@@ -534,7 +534,7 @@ static bool_t checkcpin(char *devname,s32 times)
     s32   i = 0;
 
     //first we should check if the sim card inserted:at+cpin?
-        debug_printf("atcmd","checkcpin:");
+    debug_printf("atcmd","checkcpin:");
     for(i =0;i<times;i++)
     {
         debug_printf("atcmd","%d->",i);
@@ -570,7 +570,7 @@ static bool_t  checkcgreg(char *devname,s32 times)
     s32   i = 0;
 
     //first we should check if the sim card inserted:at+cpin?
-        debug_printf("atcmd","checkcreg:");
+    debug_printf("atcmd","checkcreg:");
     for(i =0;i<times;i++)
     {
         debug_printf("atcmd","%d->",i);
@@ -605,7 +605,7 @@ static bool_t  setnetapn(char *devname,char *apn,s32 times)
     s32   i = 0;
 
     //first we should check if the sim card inserted:at+cpin?
-        debug_printf("atcmd","setapn:");
+    debug_printf("atcmd","setapn:");
     for(i =0;i<times;i++)
     {
         debug_printf("atcmd","%d->",i);
@@ -644,7 +644,7 @@ static bool_t  atdcall(char *devname,s32 times)
     s32   i = 0;
 
     //first we should check if the sim card inserted:at+cpin?
-        debug_printf("atcmd","atdcall:");
+    debug_printf("atcmd","atdcall:");
     for(i =0;i<times;i++)
     {
         debug_printf("atcmd","%d->",i);

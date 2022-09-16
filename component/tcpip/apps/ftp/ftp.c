@@ -65,13 +65,13 @@ bool_t FTP_ServiceInit(void)
     bool_t ret = true;
     if((CFG_FTPD_ENABLE)&&(false == ServiceFtpdInit()))
     {
-        error_printf("ftp","###err:FTPD ERR");
+        error_printf("ftp","###err:FTPD ERR\r\n");
         ret = false;
     }
 
     if((CFG_FTPC_ENABLE)&&(false == FTP_ClientServiceInit()))
     {
-        error_printf("ftp","###err:FTPC ERR");
+        error_printf("ftp","###err:FTPC ERR\r\n");
         ret = false;
     }
 
@@ -167,12 +167,12 @@ s32 FTP_Connect(struct in_addr *addr,u16 port)
         {
             closesocket(s);
             s = -1;
-            error_printf("ftp","CONNECT ERR");
+            error_printf("ftp","CONNECT ERR\r\n");
         }
     }
     else
     {
-        error_printf("ftp","SOCKET ERR");
+        error_printf("ftp","SOCKET ERR\r\n");
     }
     return s;
 }

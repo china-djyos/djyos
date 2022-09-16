@@ -758,7 +758,7 @@ bool_t downloadym(char *Param)
         if (CntOver++ < 60)
         {
             write_char(CN_YMODEM_C, s_s32gYmodemDevOut); //超时则重新发送C
-            printf("\b\b\b\b\b%2dS ",60-CntOver);
+            printf("\b\b\b\b\b%2dS \r\n",60-CntOver);
             continue;
         }
         else

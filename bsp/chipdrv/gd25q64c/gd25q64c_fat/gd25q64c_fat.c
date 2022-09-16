@@ -235,7 +235,7 @@ bool_t ModuleInstall_Gd25q64cInstallFat(const char *TargetFs,s32 bend, u32 dofor
                 sz.block = 1;
                 if(-1 == __gd25q64c_req(format, 0 , bend, &sz))
                 {
-                    warning_printf("w25q"," Format failure.");
+                    warning_printf("w25q"," Format failure.\r\n");
                     return false;
                 }
             }

@@ -65,7 +65,7 @@ static const char g_smtpbcc[]            = "Bcc";
 //socket io
 static s32 __SMTP_SockSnd(s32 sockfd,char *buf)    //snd
 {
-    debug_printf("smtp","SND:%s",buf);
+    debug_printf("smtp","SND:%s\r\n",buf);
     s32 len;
     s32 ret;
 
@@ -91,7 +91,7 @@ static inline s32 __SMTP_SockRcv(s32 sockfd,unsigned char *buf,s32 len)  //rcv
     {
         return ERROR;
     }
-    debug_printf("smtp","RCV:%s",(char *)buf);
+    debug_printf("smtp","RCV:%s\r\n",(char *)buf);
     return ret;
 }
 static inline s32 __SMTP_SndBufBase64(s32 sockfd,struct SmtpState *smtp,char *buf, s32 len)

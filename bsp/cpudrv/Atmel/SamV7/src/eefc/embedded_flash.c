@@ -475,7 +475,7 @@ s32 ModuleInstall_EmbededFlash(const char *ChipName, u32 Flags, u16 ResPages)
 
     if(-1 == Device_Create(Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip)) // 设备接入"/dev"
     {
-        info_printf("null","device","add embedded flash falied.");
+        info_printf("null","device","add embedded flash falied.\r\n");
         Ret = -3;
         goto FAILURE;
     }

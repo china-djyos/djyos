@@ -61,7 +61,14 @@
 extern "C" {
 #endif
 
-struct LineBuf;
+struct LineBuf
+{
+    ucpu_t    current;      //缓冲区中的字节数/当前指针
+    ucpu_t    limit;        //缓冲区最大长度,元素个数.
+    u8   *buf;              //缓冲区指针,用户自己保证所开辟的缓冲区是否与设定
+                            //参数一致,djyos不做检查.
+};
+
 
 void Line_Init(struct LineBuf *line, u8 *buf, u32 len);
 u32 Line_Capacity(struct LineBuf *line);
@@ -73,6 +80,7 @@ u32    Line_Check(struct LineBuf *line);
 bool_t   Line_IsEmpty(struct LineBuf *line);
 bool_t   Line_IsFull(struct LineBuf *line);
 void    Line_Flush(struct LineBuf *line);
+u32 Line_CheckFree(struct LineBuf *line);
 u32 Line_SearchCh(struct LineBuf *line, char c);
 u32 Line_SearchStr(struct LineBuf *line, char *string,u32 str_len);
 

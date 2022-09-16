@@ -277,7 +277,7 @@ s32 File_Mount(const char *source, const char *target, const char *type, u32 opt
     fstype = File_FindType(type);
     if(!fstype)
     {
-        debug_printf("fs","mount failed(cannot find type \"%s\")", type);
+        debug_printf("fs","mount failed(cannot find type \"%s\")\r\n", type);
         return (-1);
     }
 
@@ -335,7 +335,7 @@ s32 File_UnMount(const char *target, const char *type)
     fstype = File_FindType(type);
     if(!fstype)
     {
-        debug_printf("fs","mount failed(cannot find type \"%s\")", type);
+        debug_printf("fs","mount failed(cannot find type \"%s\")\r\n", type);
         return (-1);
     }
 
@@ -461,11 +461,11 @@ void File_BeMedia(const char *source, const char *target)
     res = super->pFsType->install(super,super->InstallWay,super->Config);  //╧рть
     if(res == 0)
     {
-        debug_printf("fs","file system \"%s\" installed on \"%s\".",targetobj->name,srcobj->name);
+        debug_printf("fs","file system \"%s\" installed on \"%s\".\r\n",targetobj->name,srcobj->name);
     }
     else
     {
-        error_printf("fs","file system \"%s\" installed fail on \"%s\".",targetobj->name,srcobj->name);
+        error_printf("fs","file system \"%s\" installed fail on \"%s\".\r\n",targetobj->name,srcobj->name);
         OBJ_Delete(targetobj);
     }
 

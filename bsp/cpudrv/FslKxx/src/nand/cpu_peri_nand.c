@@ -1306,7 +1306,7 @@ s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
     targetobj = OBJ_MatchPath(fs, &notfind);
     if(notfind)
     {
-        error_printf("nand"," not found need to install file system.");
+        error_printf("nand"," not found need to install file system.\r\n");
         return -1;
     }
     super = (struct FsCore *)OBJ_GetPrivate(targetobj);

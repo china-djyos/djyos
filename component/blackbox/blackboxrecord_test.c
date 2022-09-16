@@ -137,7 +137,7 @@ static void __CounterLeftShow(const char *msg,s32 counter)
     printf("\r\n");
     for(i = counter;i>0;i--)
     {
-        debug_printf("null","%s:%04d(seconds)",msg,i);
+        debug_printf("null","%s:%04d(seconds)\r\n",msg,i);
         DJY_EventDelay(1000*mS);
     }
     printf("\r\n");
@@ -348,7 +348,7 @@ static bool_t __RecordTestMain(u32 timestotal,u32 msglen)
             }
             else
             {
-                debug_printf("null","SAVE:%08d/%08d LEN:%08d OK",times+1,timestotal,len);
+                debug_printf("null","SAVE:%08d/%08d LEN:%08d OK\r\n",times+1,timestotal,len);
             }
         }
 
@@ -414,7 +414,7 @@ static bool_t __RecordTestMain(u32 timestotal,u32 msglen)
         {
             if(ret) //compare with the length tab here
             {
-                debug_printf("null","LEN:%04d/%04d LEN:%04d OK",times+1,checktimes,len);
+                debug_printf("null","LEN:%04d/%04d LEN:%04d OK\r\n",times+1,checktimes,len);
             }
             else
             {
@@ -448,7 +448,7 @@ static bool_t __RecordTestMain(u32 timestotal,u32 msglen)
         ret = __MsgGet(times+msgnumoffset,len);
         if(ret)
         {
-            debug_printf("null","GET:%d/%d LEN:%d OK",times+1,checktimes,len);
+            debug_printf("null","GET:%d/%d LEN:%d OK\r\n",times+1,checktimes,len);
         }
         else
         {

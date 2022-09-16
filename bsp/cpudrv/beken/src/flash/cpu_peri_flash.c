@@ -507,7 +507,7 @@ s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
              super->AreaSize = nordescription->SectorNum * nordescription->BytesPerPage *
                      nordescription->PagesPerSector - ((super->MediaStart * nordescription->BytesPerPage) * 34 / 32);
          }
-         info_printf("embedf","%s fileOS total capacity(size : %lld)， available capacity (size : %lld).", fs, super->AreaSize,super->AreaSize / 34 * 32);
+         info_printf("embedf","%s fileOS total capacity(size : %lld)， available capacity (size : %lld).\r\n", fs, super->AreaSize,super->AreaSize / 34 * 32);
      }
      else
      {
@@ -521,7 +521,7 @@ s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
              super->AreaSize = nordescription->SectorNum * nordescription->BytesPerPage *
                      nordescription->PagesPerSector - (super->MediaStart * nordescription->BytesPerPage);
          }
-         info_printf("embedf","%s fileOS available capacity (size : %lld).", fs, super->AreaSize);
+         info_printf("embedf","%s fileOS available capacity (size : %lld).\r\n", fs, super->AreaSize);
      }
      res = strlen(flash_name) + strlen(s_ptDeviceRoot->name) + 1;
      FullPath = malloc(res);
@@ -529,7 +529,7 @@ s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
      sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,flash_name);   //获取该设备的全路径
      File_BeMedia(FullPath,fs); //往该设备挂载文件系统
      free(FullPath);
-     info_printf("embedf","device : %s added(start:%d, end:%d).", fs, bstart, bend);
+     info_printf("embedf","device : %s added(start:%d, end:%d).\r\n", fs, bstart, bend);
      return (0);
 }
 // ============================================================================
@@ -563,7 +563,7 @@ s32 ModuleInstall_Flash(void)
 
     if(!Device_Create((const char*)flash_name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)flash_um)))
     {
-        error_printf("embedflash","device : %s addition failed.", flash_name);
+        error_printf("embedflash","device : %s addition failed.\r\n", flash_name);
         free(flash_um);
         return (-1);
     }

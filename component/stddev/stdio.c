@@ -253,17 +253,17 @@ static s32 __stdio_close(struct objhandle *hdl)
     if(hdl==__stdio_lookup[0])
     {
         __stdio_lookup[0] = NULL;
-        warning_printf("stdio","\"in\"(0) is closed.");
+        warning_printf("stdio","\"in\"(0) is closed.\r\n");
     }
     else if(hdl==__stdio_lookup[1])
     {
         __stdio_lookup[1] = NULL;
-        warning_printf("stdio","\"out\"(1) is closed.");
+        warning_printf("stdio","\"out\"(1) is closed.\r\n");
     }
     else if(hdl==__stdio_lookup[2])
     {
         __stdio_lookup[2] = NULL;
-        warning_printf("stdio","\"err\"(2) is closed.");
+        warning_printf("stdio","\"err\"(2) is closed.\r\n");
     }
 
 //  return (Handle_Delete(hdl));
@@ -832,7 +832,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     res = __stdio_build(runmode);
     if(res)
     {
-        debug_printf("module","STDIO install failed(cannot build).");
+        debug_printf("module","STDIO install failed(cannot build).\r\n");
         return (-1);
     }
 
@@ -859,7 +859,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     }
     if(res == -1)
     {
-        debug_printf("module","STDIO install failed(\"in\" cannot set).");
+        debug_printf("module","STDIO install failed(\"in\" cannot set).\r\n");
         goto __INSTALL_STDIO_ERR;
     }
 
@@ -886,7 +886,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     }
     if(res == -1)
     {
-        debug_printf("module","STDIO install failed(\"out\" cannot set).");
+        debug_printf("module","STDIO install failed(\"out\" cannot set).\r\n");
         goto __INSTALL_STDIO_ERR;
     }
 
@@ -905,11 +905,11 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     res = __stdio_set(2, fd, (O_RDWR | O_APPEND), runmode);
     if(res)
     {
-        debug_printf("module","STDIO install failed(\"err\" cannot set).");
+        debug_printf("module","STDIO install failed(\"err\" cannot set).\r\n");
         goto __INSTALL_STDIO_ERR;
     }
 
-    info_printf("module","STDIO installed, IN : \"%s\", OUT : \"%s\", ERR : \"%s\".", inname, outname, errname);
+    info_printf("module","STDIO installed, IN : \"%s\", OUT : \"%s\", ERR : \"%s\".\r\n", inname, outname, errname);
     return (0);
 
 __INSTALL_STDIO_ERR:

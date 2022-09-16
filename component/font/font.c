@@ -176,11 +176,11 @@ bool_t ModuleInstall_Font(void)
     pFontRoot = OBJ_NewChild(OBJ_GetRoot(), NULL, 0, "font");
     if(pFontRoot)
     {
-        info_printf("module","font install ");
+        info_printf("module","font install \r\n");
         return true;
     }else
     {
-        error_printf("module","font install failed");
+        error_printf("module","font install failed\r\n");
         return false;
     }
 }

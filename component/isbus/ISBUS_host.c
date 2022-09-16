@@ -90,8 +90,10 @@ struct Host_ISBUSPort
     struct ISBUS_FunctionSocket *SocketHead; //组成单向循环链表
     struct ISBUS_FunctionSocket *SocketCurrent; //指向当前接收的功能号值
     struct SlaveList* SlaveHead;            //从机队列头，单向循环链表
-    struct SlaveList* SlaveTail;            //从机队列尾
+    struct SlaveList* SlaveTail;            //实际从机队列尾
+    struct SlaveList* LogicSlaveTail;       //逻辑从机队列尾
     struct SlaveList* SlaveCurrent;         //从机队列当前轮询
+    struct MutexLCB * SlaveListMutex;       //从机链表互斥量
     struct SemaphoreLCB *PortSemp;          //保护待发送的消息队列，确保数据包完整性
     struct SemaphoreLCB *PollSemp;          //保护轮询队列，用于通知发送完成。
     s32 SerialDevice;                       //对应的设备
@@ -182,165 +184,177 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
     if(src >= CN_INS_MULTICAST)
         return false;
     protobuf = Port->RecvPkgBuf;
-    startoffset = Port->analyzeoff;
-    readed = Port->recvoff;
-    starttime = (u32)DJY_GetSysTime();
+
     while(1)
     {
-        if(startoffset == readed)
+        startoffset = Port->analyzeoff;
+        readed = Port->recvoff;
+        starttime = (u32)DJY_GetSysTime();
+        while(1)
         {
-            startoffset = 0;
-            readed = 0;
-            Port->analyzeoff = 0;
-            Port->recvoff = 0;
-        }
-        if((readed >= 256) && (startoffset > 128))
-        {
-            memcpy(protobuf, &protobuf[startoffset], readed-startoffset);
-            readed -= startoffset;
-            startoffset = 0;
-            Port->analyzeoff = 0;
-            Port->recvoff = readed;
-        }
-        tmp = Device_Read(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed, 0, Port->Timeout);
-        if(tmp != 0)
-        {
-            if(debug_ctrl ==true)
+            if(startoffset == readed)
             {
-                printf("\r\nhost recv:");
-                for(tmp1 = 0; tmp1<tmp;tmp1++)
-                    printf("%02x ",protobuf[tmp1+readed]);
+                startoffset = 0;
+                readed = 0;
+                Port->analyzeoff = 0;
+                Port->recvoff = 0;
             }
-            readed += tmp;
-        }
-        if( ! Gethead)
-        {
-            for(; startoffset < readed;startoffset++)
+            if((readed >= 256) && (startoffset > 128))
             {
-                if(protobuf[startoffset] == 0xEB)       //找到包头，往下走
+                memcpy(protobuf, &protobuf[startoffset], readed-startoffset);
+                readed -= startoffset;
+                startoffset = 0;
+                Port->analyzeoff = 0;
+                Port->recvoff = readed;
+            }
+            tmp = Device_Read(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed, 0, Port->Timeout);
+            if(tmp != 0)
+            {
+                if(debug_ctrl ==true)
                 {
-                    Gethead = true;
-                    break;
+                    printf("\r\nhost recv:");
+                    for(tmp1 = 0; tmp1<tmp;tmp1++)
+                        printf("%02x ",protobuf[tmp1+readed]);
+                }
+                readed += tmp;
+            }
+            if( ! Gethead)
+            {
+                for(; startoffset < readed;startoffset++)
+                {
+                    if(protobuf[startoffset] == 0xEB)       //找到包头，往下走
+                    {
+                        Gethead = true;
+                        break;
+                    }
                 }
             }
-        }
-        if(Gethead && (readed - (s16)startoffset >= (s16)sizeof(struct ISBUS_Protocol)))
-        {
-//            if((protobuf[startoffset + CN_OFF_DST] != 0)     //只收发给主机的包，主机地址总是0
-//                ||(protobuf[startoffset + CN_OFF_SRC] != src))  //校验源地址
-            if (protobuf[startoffset + CN_OFF_SRC] != src)  //校验源地址
+            if(Gethead && (readed - (s16)startoffset >= (s16)sizeof(struct ISBUS_Protocol)))
             {
-                Gethead = false;
-                startoffset++;
-                continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
-            }
-            else
-            {
-                chk = 0xEB + protobuf[startoffset + CN_OFF_DST] + protobuf[startoffset + CN_OFF_PROTO]
-                               + src
-                               + protobuf[startoffset + CN_OFF_SERIAL]
-                               + protobuf[startoffset + CN_OFF_LEN];    //计算chk
-                if(chk == protobuf[startoffset + CN_OFF_CHKSUM])
+            if((protobuf[startoffset + CN_OFF_DST] != 0)     //只收发给主机的包，主机地址总是0
+                ||(protobuf[startoffset + CN_OFF_SRC] != src))  //校验源地址
+                // if (protobuf[startoffset + CN_OFF_SRC] != src)  //校验源地址
                 {
-                    break;       //找到合法的协议头，退出循环，继续收数据包
+                    Gethead = false;
+                    startoffset++;
+                    continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
                 }
                 else
                 {
+                    chk = 0xEB + protobuf[startoffset + CN_OFF_DST] + protobuf[startoffset + CN_OFF_PROTO]
+                                + src
+                                + protobuf[startoffset + CN_OFF_SERIAL]
+                                + protobuf[startoffset + CN_OFF_LEN];    //计算chk
+                    if(chk == protobuf[startoffset + CN_OFF_CHKSUM])
+                    {
+                        break;       //找到合法的协议头，退出循环，继续收数据包
+                    }
+                    else
+                    {
+                        if(Port->fnError != NULL)
+                            Port->fnError((void*)Port, CN_INS_CHKSUM_ERR, src);
+                        Port->ErrorLast = CN_INS_CHKSUM_ERR;
+                        Port->ErrorPkgs++;
+                        startoffset++;
+                        Gethead = false;
+                        printf("\r\nhost chksum error:");
+                        continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
+                    }
+                }
+                break;
+            }
+            else        //一个超时周期过去了，没收到完整的协议头，肯定超时了。
+                        //此处与从机不一样，从机只在收到部分包时判超时，因为从机时被动接收。
+                        //主机是发包后等待从机响应，从机必须立即响应。
+            {
+                if(((u32)DJY_GetSysTime() - starttime) > Port->Timeout)
+                {
                     if(Port->fnError != NULL)
-                        Port->fnError((void*)Port, CN_INS_CHKSUM_ERR, src);
-                    Port->ErrorLast = CN_INS_CHKSUM_ERR;
+                        Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR, src);
+                    Port->ErrorLast = CN_INS_TIMEROUT_ERR;
                     Port->ErrorPkgs++;
-                    startoffset++;
-                    Gethead = false;
-                    printf("\r\nhost chksum error:");
-                    continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
+                    Port->analyzeoff = 0;
+                    Port->recvoff = 0;
+                    printf("\r\nhost protocol timeout,%d  %d",Gethead,tmp);
+                    return false;
                 }
             }
-            break;
-        }
-        else        //一个超时周期过去了，没收到完整的协议头，肯定超时了。
-                    //此处与从机不一样，从机只在收到部分包时判超时，因为从机时被动接收。
-                    //主机是发包后等待从机响应，从机必须立即响应。
+        };
+        memcpy((u8*)&protohead, protobuf+startoffset, sizeof(struct ISBUS_Protocol));
+        len = protobuf[startoffset + CN_OFF_LEN];
+        //计算仍需要接收的字节数，如果已经超量接收，则会是负数
+        restlen = len - (readed-startoffset - sizeof(struct ISBUS_Protocol));
+        Completed = 0;
+        if(restlen > 0)                 //仍有数据需要接收
         {
-            if(((u32)DJY_GetSysTime() - starttime) > Port->Timeout)
+            //以下接收用户协议包
+            if((Port->PortMaxRecvLen-readed) < restlen)    //buf的剩余空间不够容纳数据包
             {
-                if(Port->fnError != NULL)
-                    Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR, src);
-                Port->ErrorLast = CN_INS_TIMEROUT_ERR;
-                Port->ErrorPkgs++;
+                //buf剩余空间不够，先把已接收的数据移动到buf的开头。
+                memcpy(protobuf,protobuf+startoffset,readed-startoffset);
+                readed -= startoffset;
+                startoffset = 0;
+            }
+            while(((u32)DJY_GetSysTime() - starttime) < Port->Timeout)
+            {
+                tmp = Device_Read(DevRe, &protobuf[readed],restlen, 0, Port->Timeout);
+                Completed += tmp;
+                readed += tmp;
+                if(Completed >= restlen)
+                    break;
+            }
+            exdata = Completed - restlen;
+        }
+        else
+            exdata = 0 - restlen;
+
+
+        if(exdata >= 0)
+        {
+            Me = __Host_GetProtocol(Port, protohead.Protocol);
+            if(Me != NULL)
+            {   //数据是发给主机的，再调用回调函数
+                if ((protohead.DstAddress == 0) && (Me->MyProcess != NULL))
+                    Me->MyProcess(Me,src,protobuf+startoffset+sizeof(struct ISBUS_Protocol),len);
+            }
+            startoffset += sizeof(struct ISBUS_Protocol) + len;
+            if(startoffset == readed)
+            {
                 Port->analyzeoff = 0;
                 Port->recvoff = 0;
-                printf("\r\nhost protocol timeout,%d  %d",Gethead,tmp);
-                return false;
             }
-        }
-    };
-    memcpy((u8*)&protohead, protobuf+startoffset, sizeof(struct ISBUS_Protocol));
-    len = protobuf[startoffset + CN_OFF_LEN];
-    //计算仍需要接收的字节数，如果已经超量接收，则会是负数
-    restlen = len - (readed-startoffset - sizeof(struct ISBUS_Protocol));
-    Completed = 0;
-    if(restlen > 0)                 //仍有数据需要接收
-    {
-        //以下接收用户协议包
-        if((Port->PortMaxRecvLen-readed) < restlen)    //buf的剩余空间不够容纳数据包
-        {
-            //buf剩余空间不够，先把已接收的数据移动到buf的开头。
-            memcpy(protobuf,protobuf+startoffset,readed-startoffset);
-            readed -= startoffset;
-            startoffset = 0;
-        }
-        while(((u32)DJY_GetSysTime() - starttime) < Port->Timeout)
-        {
-            tmp = Device_Read(DevRe, &protobuf[readed],restlen, 0, Port->Timeout);
-            Completed += tmp;
-            readed += tmp;
-            if(Completed >= restlen)
-                break;
-        }
-        exdata = Completed - restlen;
-    }
-    else
-        exdata = 0 - restlen;
-
-
-    if(exdata >= 0)
-    {
-        Me = __Host_GetProtocol(Port, protohead.Protocol);
-        if(Me != NULL)
-        {   //数据是发给主机的，再调用回调函数
-            if ((protohead.DstAddress == 0) && (Me->MyProcess != NULL))
-                Me->MyProcess(Me,src,protobuf+startoffset+sizeof(struct ISBUS_Protocol),len);
-        }
-        startoffset += sizeof(struct ISBUS_Protocol) + len;
-        if(startoffset == readed)
-        {
-            Port->analyzeoff = 0;
-            Port->recvoff = 0;
+            else
+            {
+                Port->analyzeoff = startoffset;
+                Port->recvoff = readed;
+            }
+            Gethead = false;    //处理完了一包数据，找下一包
+            if (CN_SLAVE_ACK == protohead.Protocol)
+            {
+                return true;
+            }
         }
         else
         {
-            Port->analyzeoff = startoffset;
-            Port->recvoff = readed;
+            if(Port->fnError != NULL)
+                Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR, src);
+            Port->ErrorLast = CN_INS_TIMEROUT_ERR;
+            Port->ErrorPkgs++;
+            Port->analyzeoff = 0;
+            Port->recvoff = 0;
+            printf("\r\nhost data timeout");
+            return false;
         }
-        return true;
-    }
-    else
-    {
-        if(Port->fnError != NULL)
-            Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR, src);
-        Port->ErrorLast = CN_INS_TIMEROUT_ERR;
-        Port->ErrorPkgs++;
-        Port->analyzeoff = 0;
-        Port->recvoff = 0;
-        printf("\r\nhost data timeout");
-        return false;
     }
 }
 //返回值：true = 需要重发；false = 不需要重发
 bool_t __ISBUS_RecordSlaveError(struct SlaveList *slave, bool_t error)
 {
     struct Host_ISBUSPort *Port = slave->CommPort;
+    struct SlaveList *NewSlaveTail = NULL;
+    u8 *AllSlaveErrorbuf = NULL;
+    u8 SlaveNum = 0;
+    u8 NewSlaveTailNum = 0;
     bool_t resent = false;
 
     if(!error)
@@ -350,6 +364,16 @@ bool_t __ISBUS_RecordSlaveError(struct SlaveList *slave, bool_t error)
             Port->FaultNum--;
             if(Port->fnError != NULL)
                 Port->fnError((void *)Port, CN_INS_SLAVE_RECOVER, slave->Address);
+
+            Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
+            if (Port->LogicSlaveTail != Port->SlaveTail)
+            {
+                if (slave->Address > Port->LogicSlaveTail->Address)
+                {
+                    Port->LogicSlaveTail = slave;   //新恢复的节点为逻辑尾节点
+                }
+            }
+            Lock_MutexPost(Port->SlaveListMutex);
         }
         slave->Errors = 0;
     }
@@ -367,6 +391,41 @@ bool_t __ISBUS_RecordSlaveError(struct SlaveList *slave, bool_t error)
                 Port->FaultNum++;
                 if(Port->fnError != NULL)
                     Port->fnError((void*)Port, CN_INS_SLAVE_FAULT, slave->Address);
+
+                if ((slave == Port->SlaveTail) || (slave == Port->LogicSlaveTail))
+                {
+                    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
+                    AllSlaveErrorbuf = malloc(Port->SlaveNum);
+                    if (AllSlaveErrorbuf)
+                    {
+                        // 尾节点从机通信异常，更新尾从机节点
+                        NewSlaveTail = Port->SlaveHead;
+
+                        do
+                        {
+                            AllSlaveErrorbuf[SlaveNum ++] = NewSlaveTail->Errors;       //记录所有从机的错误次数
+                            NewSlaveTail = NewSlaveTail->Next;
+                        }while(NewSlaveTail != Port->SlaveHead);
+
+                        while((SlaveNum > 0) && (AllSlaveErrorbuf[-- SlaveNum] >= 3));      //找到从尾开始，第一个正常的从机
+
+                        if (AllSlaveErrorbuf[SlaveNum] < 3)     //确认一下，错误次数是否满足要求
+                        {
+                            do
+                            {
+                                if (NewSlaveTailNum == SlaveNum)
+                                {
+                                    Port->LogicSlaveTail = NewSlaveTail;    //设置逻辑从机结束地址
+                                    break;
+                                }
+                                NewSlaveTailNum ++;
+                                NewSlaveTail = NewSlaveTail->Next;
+                            }while(NewSlaveTail != Port->SlaveHead);
+                        }
+                        free(AllSlaveErrorbuf);
+                    }
+                    Lock_MutexPost(Port->SlaveListMutex);
+                }
             }
         }
     }
@@ -380,9 +439,12 @@ bool_t __ISBUS_BroadcastProcess(struct Host_ISBUSPort *Port,u8 src)
 {
     u8 slaveaddr;
     bool_t err,resent = false;
-    struct SlaveList *Current = Port->SlaveHead;
-    if(Current == NULL)
+    struct SlaveList *Current = NULL;
+    if(Port->SlaveHead == NULL)
         return resent;
+    
+    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
+    Current = Port->SlaveHead;
     do
     {
         slaveaddr = Current->Address;
@@ -391,6 +453,8 @@ bool_t __ISBUS_BroadcastProcess(struct Host_ISBUSPort *Port,u8 src)
             resent = true;
         Current = Current->Next;
     }while(Current != Port->SlaveHead);
+
+    Lock_MutexPost(Port->SlaveListMutex);
     return resent;
 }
 
@@ -436,6 +500,10 @@ ptu32_t ISBUS_HostProcess(void)
             {
                 resend = __ISBUS_UniProcess(Port,dst);          //接收并处理数据包
                 resend = __ISBUS_RecordSlaveError(Port->SlaveCurrent, ! resend);
+                if (resend)
+                {
+                    continue;
+                }
                 //注：快速轮询直接继续执行下一个while循环，无须单独处理
                 if(Port->PollModel == CN_POLL_SAME_INTERVAL)   //等间隔轮询
                 {
@@ -444,16 +512,26 @@ ptu32_t ISBUS_HostProcess(void)
                 }
                 else if(Port->PollModel == CN_POLL_SAME_CYCLE)         //等周期轮询
                 {
-                    if(dst == Port->SlaveTail->Address)
+                    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
+                    if(dst >= Port->LogicSlaveTail->Address)
                     {
+                        Lock_MutexPost(Port->SlaveListMutex);
                         Polltime += Port->PollCycle;    //此时PollCycle代表轮询一个周期的时间
                         DJY_EventDelayTo(Polltime);
+                    }
+                    else
+                    {
+                        Lock_MutexPost(Port->SlaveListMutex);
                     }
                 }
             }
             else       //组播/广播地址，组播号内的从机依序上传
             {
                 resend = __ISBUS_BroadcastProcess(Port,dst);
+                if (resend)
+                {
+                    continue;
+                }
                 if(Port->PollModel == CN_POLL_SAME_CYCLE)         //等周期轮询
                 {
                     Polltime += Port->PollCycle;    //此时PollCycle代表轮询一个周期的时间
@@ -488,6 +566,7 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
                                 ISBUS_FntProtocolError fnError,u32 Timeout)
 {
     struct SemaphoreLCB *Semp1,*Semp2;
+    struct MutexLCB *SlaveList = NULL;
     struct Host_ISBUSPort *Port;
     u8 *recvbuf;
     s32 devfd;
@@ -497,8 +576,9 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
     Port = (struct Host_ISBUSPort *)malloc(sizeof(struct Host_ISBUSPort ));
     recvbuf = malloc(3*(256+sizeof(struct ISBUS_Protocol)));
     Semp1 = Lock_SempCreate(1, 1, CN_BLOCK_FIFO, "ISBUS_Host");
-    Semp2 = Lock_SempCreate(1, 0, CN_BLOCK_FIFO, "ISBUS_Poll");
-    if((Port != NULL) && (recvbuf != NULL)&&(Semp1 != NULL)&&(Semp2 != NULL)) //分配成功
+    Semp2 = Lock_SempCreate(1, 1, CN_BLOCK_FIFO, "ISBUS_Poll");
+    SlaveList = Lock_MutexCreate("slave list mutex");
+    if((Port != NULL) && (recvbuf != NULL)&&(Semp1 != NULL)&&(Semp2 != NULL) && (SlaveList != NULL)) //分配成功
     {
         memset(Port, 0, sizeof(struct Host_ISBUSPort ));
         Port->PortSemp = Semp1;
@@ -519,10 +599,13 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
         Port->ErrorLast = CN_INS_OK;
         Port->Timeout = Timeout;
         Port->RecvPkgBuf = recvbuf;
+        Port->LogicSlaveTail = NULL;
         Port->PollSendPkgBuf = Port->RecvPkgBuf + 256 + sizeof(struct ISBUS_Protocol);
         Port->ResendPkgBuf = Port->PollSendPkgBuf + 256 + sizeof(struct ISBUS_Protocol);
         Port->PortMaxRecvLen = sizeof(struct ISBUS_Protocol);
         Port->PortMaxSendLen = sizeof(struct ISBUS_Protocol);
+        Port->SlaveListMutex = SlaveList;
+
 //      Port->PortSendLen = 0;
 //        Port->RecvP = 0;
         //若置0，初始状态会发送一包数据。
@@ -543,6 +626,7 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
         free(recvbuf);
         Lock_SempDelete(Semp1);
         Lock_SempDelete(Semp2);
+        Lock_MutexDelete(SlaveList);
     }
     return Port;
 }
@@ -600,7 +684,7 @@ struct ISBUS_FunctionSocket *ISBUS_HostRegistProtocol(struct Host_ISBUSPort *Por
     }
     else
     {
-        debug_printf("ISBUS","ISBUS_HostRegistProtocol failure");
+        debug_printf("ISBUS","ISBUS_HostRegistProtocol failure\r\n");
 //      free(Port->RecvPkgBuf);
 //      free(ProtocolSocket);
 //      free(Port->PollSendPkgBuf);
@@ -699,11 +783,17 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
                         }
                     }
                     SendBuf[CN_OFF_DST] = Port->SlaveCurrent->Address;
-                    if((Port->SlaveCurrent == Port->SlaveTail) && (Port->SendTimes != -1))
+                    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
+                    if((Port->SlaveCurrent == Port->LogicSlaveTail) && (Port->SendTimes != -1))
                     {
+                        Lock_MutexPost(Port->SlaveListMutex);
                         Port->SendTimes--;
                         if(Port->SendTimes == 0)
                             Lock_SempPost(Port->PollSemp);
+                    }
+                    else
+                    {
+                        Lock_MutexPost(Port->SlaveListMutex);
                     }
                 }
                 else
@@ -754,6 +844,35 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
 }
 
 // ============================================================================
+//功能：不管之前的轮询次数是多少次，都把轮询次数设置为1，执行最后一次轮询，以便之后设置新的轮询包
+//参数：Host_FunctionSocket，通信协议插口指针，为ISBUS_HostRegistProtocol函数的返回值
+// 返回值：  true -- 成功； false -- 失败
+// ============================================================================
+bool_t ISBUS_ClearPollTimes(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket)
+{
+    struct Host_ISBUSPort *Port;
+    if(NULL == ISBUS_FunctionSocket)
+    {
+        return false;
+    }
+
+    Port = ISBUS_FunctionSocket->CommPort;
+    if (NULL == Port)
+    {
+        return false;
+    }
+    
+    if ((0 != Port->SendTimes) || (-1 != Port->SendTimes))
+    {
+        Lock_SempPend(Port->PortSemp, CN_TIMEOUT_FOREVER);
+        Port->SendTimes = 1;    //不管之前的轮询次数是多少次，都把轮询次数设置为1
+        Lock_SempPost(Port->PortSemp);
+    }
+    return true;
+}
+
+
+// ============================================================================
 //功能：设置轮询数据包，但不发送，待轮到自己发送时将发送。发送时，将根据扫描到的从机
 //      地址表依次改变目的地址。仅主机端需要这个API。
 //参数：Host_FunctionSocket，通信协议插口指针，为ISBUS_HostRegistProtocol函数的返回值
@@ -762,8 +881,9 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
 //      buf，待发送的数据包，不含协议头
 //      len，发送长度
 //      times，发送次数（若为点播，则所有从机都发送一遍为一次）
-//      Timeout等待发送完成的时限，，若times = -1，本参数将被忽略。
+//      Timeout: 等待信号的时间限制
 // 返回值：  发送的数据量，只是copy到了发送buf。
+// 备注：times为-1时表示无限轮询，这时不会去等待获取信号
 // ============================================================================
 u32 ISBUS_SetPollPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 dst,
                         u8 *buf, u8 len, s32 times, u32 Timeout)
@@ -775,8 +895,14 @@ u32 ISBUS_SetPollPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 dst,
     if(len > ISBUS_FunctionSocket->ProtocolSendLen)
         return 0;
     Port = ISBUS_FunctionSocket->CommPort;
-    if(Port->SlaveHead == NULL)
+    if ((NULL == Port) || (Port->SlaveHead == NULL))
         return 0;
+
+    if (false == Lock_SempPend(Port->PollSemp, Timeout))    //等待之前的轮询结束
+    {
+        return 0;
+    }
+
     Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);
     Port->SendTimes = times;
     SendBuf = Port->PollSendPkgBuf;
@@ -792,16 +918,16 @@ u32 ISBUS_SetPollPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 dst,
     SendBuf[CN_OFF_CHKSUM]  = 0xEB + SendBuf[CN_OFF_DST] + SendBuf[CN_OFF_PROTO]
                               + len + SendBuf[CN_OFF_SERIAL];
     memcpy(SendBuf + sizeof(struct ISBUS_Protocol), buf, len);
-    Lock_SempPend(Port->PollSemp, 0);   //解释一下：如果上一次调用本函数时，参数
-                                        //Timeout=0，发送完成后 PollSemp 将处于
-                                        //有信号状态，将使后续等待失效。
-                                        //本行须在 PortSemp 之前调用才严谨。
+    // Lock_SempPend(Port->PollSemp, 0);   //解释一下：如果上一次调用本函数时，参数
+    //                                     //Timeout=0，发送完成后 PollSemp 将处于
+    //                                     //有信号状态，将使后续等待失效。
+    //                                     //本行须在 PortSemp 之前调用才严谨。
     Lock_SempPost(Port->PortSemp);
 
-    if((Timeout != 0) && (times != -1))
-    {
-        Lock_SempPend(Port->PollSemp, Timeout);
-    }
+    // if((Timeout != 0) && (times != -1))
+    // {
+    //     Lock_SempPend(Port->PollSemp, Timeout);
+    // }
     return len;
 }
 
@@ -829,6 +955,7 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
     if(len > ISBUS_FunctionSocket->ProtocolSendLen)
         return 0;
     Port = ISBUS_FunctionSocket->CommPort;
+    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
     current = Port->SlaveHead;
     if(current != NULL)
     {
@@ -844,10 +971,15 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
                 else
                     current = current->Next;
             }while(current != Port->SlaveHead);
+
             if( ! found )                  //从机不存在，拒绝发送
+            {
+                Lock_MutexPost(Port->SlaveListMutex);
                 return 0;
+            }
         }
     }
+    Lock_MutexPost(Port->SlaveListMutex);
     //对应的 free 函数在 __HostSendPkg 函数中
     mypkg = malloc(sizeof(struct IM_Pkg)+len+sizeof(struct ISBUS_Protocol));
     if(mypkg != NULL)
@@ -1003,6 +1135,8 @@ void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address)
     struct SlaveList* current, *pre = NULL;
     if(Port == NULL)
         return ;
+
+    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
     current = Port->SlaveHead;
     if(current != NULL)
     {
@@ -1054,6 +1188,8 @@ void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address)
         if(address > Port->SlaveTail->Address)  //新从机地址大于队列尾部
             Port->SlaveTail = p1;
     }
+    Port->LogicSlaveTail = Port->SlaveTail;
+    Lock_MutexPost(Port->SlaveListMutex);
 }
 
 // ============================================================================
@@ -1094,6 +1230,7 @@ u8 ISBUS_GetSlaveTable(struct Host_ISBUSPort *Port,u8 *address)
     u8 result = 0;
     if(Port == NULL)
         return 0;
+    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
     current = Port->SlaveHead;
     if(current != NULL)
     {
@@ -1105,6 +1242,7 @@ u8 ISBUS_GetSlaveTable(struct Host_ISBUSPort *Port,u8 *address)
             result++;
        }while(current != Port->SlaveHead);
     }
+    Lock_MutexPost(Port->SlaveListMutex);
     return result;
 }
 
@@ -1113,14 +1251,16 @@ u8 ISBUS_GetSlaveTable(struct Host_ISBUSPort *Port,u8 *address)
 // 参数：Port，待发送的端口
 //      address，地址表指针
 //      num，从机数量
+//      Timeout：等待轮询资源空闲的超时时间
 // 返回值：无
 // 说明：
 // ============================================================================
-void ISBUS_SendSlaveTable(struct Host_ISBUSPort *Port,u8 *address, u8 num)
+bool_t ISBUS_SendSlaveTable(struct Host_ISBUSPort *Port,u8 *address, u8 num, u32 Timeout)
 {
     struct ISBUS_FunctionSocket *sock;
     sock = ISBUS_HostRegistProtocol(Port, CN_SET_SLAVE_TABLE, 0, 127, NULL);
-    ISBUS_SetPollPkg(sock,0, address,num, 1,1000000); //对于轮询包，除广播地址外，其他目的地址并无意义。
+    ISBUS_SetPollPkg(sock, 0, address, num, 1, Timeout); //对于轮询包，除广播地址外，其他目的地址并无意义。
+    return true;
 }
 
 // ============================================================================
@@ -1135,6 +1275,7 @@ void ISBUS_DeleteSlave (struct Host_ISBUSPort * Port, u8 address)
 
     if(Port == NULL)
         return ;
+    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
     current = Port->SlaveHead;
     pre = Port->SlaveTail;
     while(current != NULL)
@@ -1163,6 +1304,8 @@ void ISBUS_DeleteSlave (struct Host_ISBUSPort * Port, u8 address)
         pre = current;
         current = current->Next;
     }
+    Port->LogicSlaveTail = Port->SlaveTail;
+    Lock_MutexPost(Port->SlaveListMutex);
     return;
 }
 

@@ -866,7 +866,7 @@ struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param)
     if(uart_dev == NULL)
         goto exit_from_add_device;
 
-    info_printf("device","%s initialized in general mode.", Param->Name);
+    info_printf("device","%s initialized in general mode.\r\n", Param->Name);
     return (UGCB);
 
     //如果出现错误，则释放创建的资源，并返回空指针
@@ -892,7 +892,7 @@ exit_from_rx_ring_buf:
     free(UGCB);
 exit_from_ucb:
 
-    error_printf("device","%s initialized in general mode failed.", Param->Name);
+    error_printf("device","%s initialized in general mode failed.\r\n", Param->Name);
     return NULL;
 }
 #endif
@@ -997,7 +997,7 @@ struct UartPollCB *UART_InstallPoll(struct UartParam *Param)
     if(uart_dev == NULL)
         goto exit_from_add_device;
 
-    info_printf("device","%s initialized in poll mode.", Param->Name);
+    info_printf("device","%s initialized in poll mode.\r\n", Param->Name);
     return (UPCB);
 
     //如果出现错误，则释放创建的资源，并返回空指针
@@ -1010,7 +1010,7 @@ exit_from_mutexR:
 exit_from_blocking_semp:
     free(UPCB);
 exit_from_ucb:
-    error_printf("device","%s initialized in poll mode failed.", Param->Name);
+    error_printf("device","%s initialized in poll mode failed.\r\n", Param->Name);
     return (NULL);
 }
 #endif

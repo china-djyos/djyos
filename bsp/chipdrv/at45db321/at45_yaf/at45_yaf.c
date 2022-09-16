@@ -361,13 +361,13 @@ bool_t ModuleInstall_At45InstallYaf (const char *TargetFs, s32 bstart, s32 bend,
                 sz.block = 1;
                 if(-1 == __at45_req(format, bstart , bend, &sz))
                 {
-                    warning_printf("yaf2"," Format failure.");
+                    warning_printf("yaf2"," Format failure.\r\n");
                 }
             }
             targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
-                error_printf("at45"," not found need to install file system.");
+                error_printf("at45"," not found need to install file system.\r\n");
                 return false;
             }
             super = (struct FsCore *)OBJ_GetPrivate(targetobj);
@@ -376,7 +376,7 @@ bool_t ModuleInstall_At45InstallYaf (const char *TargetFs, s32 bstart, s32 bend,
                 if(__AT45_FsInstallInit(TargetFs,bstart,bend,&YAF_AT45_DRV) == 0)
                     return true;
             }
-            error_printf("at45"," need to install file system not YAF2.");
+            error_printf("at45"," need to install file system not YAF2.\r\n");
         }
     }
 

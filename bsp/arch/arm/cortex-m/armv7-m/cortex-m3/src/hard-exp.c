@@ -651,7 +651,7 @@ bool_t  HardExp_Decoder(struct BlackBoxThrowPara *parahead, u32 endian)
             }
             if(CN_SYS_EXP_CPUINFO_VALIDFLAG == mycpuinfo->SysExpCpuFlag)//当前版本，可以解析
             {
-                debug_printf("cortex_EXP","异常类型: ");
+                debug_printf("cortex_EXP","异常类型: \r\n");
                 switch(parahead->BlackBoxType)
                 {
                     case CN_EXP_TYPE_HARD_FAULT: debug_printf("cortex_EXP","hard fault\r\n");break;
@@ -660,7 +660,7 @@ bool_t  HardExp_Decoder(struct BlackBoxThrowPara *parahead, u32 endian)
                     case CN_EXP_TYPE_USAGE_FAULT: debug_printf("cortex_EXP","用法异常\r\n");break;
                     default: break;
                 }
-                debug_printf("cortex_EXP","异常最终动作:");
+                debug_printf("cortex_EXP","异常最终动作:\r\n");
                 switch(parahead->BlackBoxAction)
                 {
                     case EN_BLACKBOX_DEAL_RECORD: debug_printf("cortex_EXP","仅记录\r\n");break;

@@ -329,7 +329,7 @@ FILE *fopen(const char *filename, const char *mode)
     res = __File_Transform(mode, &flags, &cflags);
     if(res)
     {
-        debug_printf("clib","\"fopen\" (%s) failed<bad \"mode\" = %s>", filename, mode);
+        debug_printf("clib","\"fopen\" (%s) failed<bad \"mode\" = %s>\r\n", filename, mode);
     }
 
     fd = open(filename, flags, 0);
@@ -341,20 +341,20 @@ FILE *fopen(const char *filename, const char *mode)
     res = fstat(fd, &info);
     if(res)
     {
-        debug_printf("clib","\"fopen\" (%s) failed<cannot \"stat\" ", filename);
+        debug_printf("clib","\"fopen\" (%s) failed<cannot \"stat\" \r\n", filename);
 
         res = close(fd);
         if(res)
-            debug_printf("clib","and \"close\"");
+            debug_printf("clib","and \"close\"\r\n");
 
-        debug_printf("clib",">.");
+        debug_printf("clib",">.\r\n");
         return (NULL);
     }
 
     stream = malloc(sizeof(FILE));
     if(!stream)
     {
-        debug_printf("clib","\"fopen\" (%s) failed<memory out>.", filename);
+        debug_printf("clib","\"fopen\" (%s) failed<memory out>.\r\n", filename);
         close(fd);
         return (NULL);
     }
@@ -370,12 +370,12 @@ FILE *fopen(const char *filename, const char *mode)
         res = __File_BufNew(stream);
         if(res)
         {
-            debug_printf("clib","\"fopen\" (%s) failed<memory out", filename);
+            debug_printf("clib","\"fopen\" (%s) failed<memory out\r\n", filename);
             res = close(fd);
             if(res)
-                debug_printf("clib"," and \"close\"");
+                debug_printf("clib"," and \"close\"\r\n");
 
-            debug_printf("clib",">.");
+            debug_printf("clib",">.\r\n");
             return (NULL);
         }
     }
@@ -408,13 +408,13 @@ int fclose(FILE *stream)
 
     if(EOF==fflush(stream))
     {
-        debug_printf("clib","\"fclose\" file failed<cannot flush>.");
+        debug_printf("clib","\"fclose\" file failed<cannot flush>.\r\n");
         return (-1);
     }
 
     if(close(stream->fd))
     {
-        debug_printf("clib","\"fclose\" file failed<cannot close>.");
+        debug_printf("clib","\"fclose\" file failed<cannot close>.\r\n");
         return (-1);
     }
 
@@ -564,7 +564,7 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
             res = fflush(stream);       //把文件缓存先全都写到flash中
             if(EOF==res)
             {
-                debug_printf("clib","\"fread\" file failed(buffer flash).");
+                debug_printf("clib","\"fread\" file failed(buffer flash).\r\n");
                 return (0);
             }
             if(buffered > 0)
@@ -1053,14 +1053,14 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
     res = __File_Transform(mode, &flags, &cflags);
     if(res)
     {
-        debug_printf("clib","\"freopen\" (%s) failed<bad \"mode\" = %s>", filename, mode);
+        debug_printf("clib","\"freopen\" (%s) failed<bad \"mode\" = %s>\r\n", filename, mode);
         return (NULL);
     }
 
     fd = open(filename, flags, 0);
     if(fd == -1)
     {
-        debug_printf("clib","\"freopen\" (%s) failed<cannot \"open\">", filename);
+        debug_printf("clib","\"freopen\" (%s) failed<cannot \"open\">\r\n", filename);
         return (NULL);
     }
 
@@ -1070,10 +1070,10 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
         res = close(fd);
         if(res)
         {
-            debug_printf("clib","\"freopen\" (%s) failed<cannot \"stat\" and \"close\">.", filename);
+            debug_printf("clib","\"freopen\" (%s) failed<cannot \"stat\" and \"close\">.\r\n", filename);
         }
 
-        debug_printf("clib"," : g : \"freopen\" (%s) failed<cannot \"stat\">.", filename);
+        debug_printf("clib"," : g : \"freopen\" (%s) failed<cannot \"stat\">.\r\n", filename);
         return (NULL);
     }
 

@@ -200,13 +200,13 @@ void __LP_BSP_EntrySleep(u8 sleep_level, u32 pend_ticks)
             HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
             break;
         case CN_SLEEP_L2:
-            warning_printf("LP", "Entry sleep level_2 undefined");
+            warning_printf("LP", "Entry sleep level_2 undefined\r\n");
             break;
         case CN_SLEEP_L3:
-            warning_printf("LP", "Entry sleep level_3 undefined");
+            warning_printf("LP", "Entry sleep level_3 undefined\r\n");
             break;
         case CN_SLEEP_L4:
-            warning_printf("LP", "Entry sleep level_4 undefined");
+            warning_printf("LP", "Entry sleep level_4 undefined\r\n");
             break;
     }
 }

@@ -156,12 +156,12 @@ bool_t ModuleInstall_IICBus(void)
     s_ptIICBusType = DjyBus_BusTypeAdd("IICBus");
     if(NULL != s_ptIICBusType)
     {
-        info_printf("bus","i2c installed successful.");
+        info_printf("bus","i2c installed successful.\r\n");
         return true;
     }
     else
     {
-        error_printf("bus","i2c installed failed.");
+        error_printf("bus","i2c installed failed.\r\n");
         return false;
     }
 
@@ -218,7 +218,7 @@ struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam)
     //标志初始化，包括 读写标志和轮询中断方式
     NewIIC->Flag =0;
 
-    info_printf("i2cbus","%s added.",NewIICParam->BusName);
+    info_printf("i2cbus","%s added.\r\n",NewIICParam->BusName);
 
     return NewIIC;
 
@@ -231,7 +231,7 @@ exit_from_add_node:
 exit_from_malloc:
 exit_from_readd:
 exit_from_param:
-    error_printf("i2cbus","%s add failed.",NewIICParam->BusName);
+    error_printf("i2cbus","%s add failed.\r\n",NewIICParam->BusName);
     return NULL;
 }
 
@@ -313,7 +313,7 @@ struct IIC_Device *IIC_DevAdd(const char *BusName ,const char *DevName, u8 DevAd
         return NULL;
     }
 
-    info_printf("i2cbus","device \"%s\" added to \"%s\"", DevName, BusName);
+    info_printf("i2cbus","device \"%s\" added to \"%s\"\r\n", DevName, BusName);
     return NewDev;
 }
 

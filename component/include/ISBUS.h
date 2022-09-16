@@ -76,10 +76,9 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
                             u8 *buf, u8 len, u32 Timeout);
 void ISBUS_PollConfig(struct Host_ISBUSPort *Port,u32 timercycle,u8 PoolModel);
 void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address);
-void ISBUS_SendSlaveTable(struct Host_ISBUSPort *Port,u8 *address, u8 num);
 struct SlaveList* ISBUS_ScanSlave(struct Host_ISBUSPort *Port,u8 MinAddress,u8 MaxAddress);
 u8 ISBUS_GetSlaveTable(struct Host_ISBUSPort *Port,u8 *address);
-void ISBUS_SendSlaveTable(struct Host_ISBUSPort *Port,u8 *address, u8 num);
+bool_t ISBUS_SendSlaveTable(struct Host_ISBUSPort *Port,u8 *address, u8 num, u32 Timeout);
 void ISBUS_DeleteSlave (struct Host_ISBUSPort * Port, u8 address);
 void ISBUS_HostInit(u32 HostStackSize);
 

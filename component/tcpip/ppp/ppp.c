@@ -511,7 +511,7 @@ static bool_t __IoDevOut(tagPPP *ppp, u16 proto, tagCH *chdr, u8 *buf, u16 l,
         if (ppp->debug.endebug) {
             time_t logtime;
             logtime = time(NULL);
-            debug_printf("PPP","[%s:S:%04d]7e ", ctime(&logtime), txbuff->lenbuffer);
+            debug_printf("PPP","[%s:S:%04d]7e \r\n", ctime(&logtime), txbuff->lenbuffer);
             for (int i = 0; i < txbuff->lenbuffer; i++) {
                 debug_printf("PPP","%02x ", txbuff->buffer[i]);
             }
@@ -1032,10 +1032,10 @@ static void __FrameDeal(tagPPP *ppp, u16 proto, tagCH *ch, u8 *data, u16 len) {
     if (ppp->debug.endebug) {
         time_t logtime;
         logtime = time(NULL);
-        debug_printf("PPP","[%s:R:%04d]", ctime(&logtime),
+        debug_printf("PPP","[%s:R:%04d]\r\n", ctime(&logtime),
                 ppp->rcvbuf.lenbuffer);
         for (int i = 0; i < ppp->rcvbuf.lenbuffer; i++) {
-            debug_printf("PPP","%02x ", ppp->rcvbuf.buffer[i]);
+            debug_printf("PPP","%02x \r\n", ppp->rcvbuf.buffer[i]);
         }
         printf("\n\r");
     }

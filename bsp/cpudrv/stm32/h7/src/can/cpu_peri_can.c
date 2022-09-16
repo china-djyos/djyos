@@ -1491,7 +1491,7 @@ bool_t CAN_Main(uint8_t baudrate)
         ret=CAN_Hard_Init(i,baudrate,&gs_ptagCanFilterPara[i]);
         if(!ret)
         {
-            error_printf("bus", "can bus controller initialization failed.");
+            error_printf("bus", "can bus controller initialization failed.\r\n");
             return false;
         }
     }
@@ -1507,7 +1507,7 @@ bool_t CAN_Main(uint8_t baudrate)
     else
     {
         DJY_EvttUnregist(evtt_id);
-        error_printf("bus", "can bus's monitor event pop failed.");
+        error_printf("bus", "can bus's monitor event pop failed.\r\n");
     }
     evtt_id = DJY_EvttRegist(EN_CORRELATIVE,100,0,0,__CAN_SndTask,
               CAN_SndStack,sizeof(CAN_SndStack),"CAN Snd Task");
@@ -1518,9 +1518,9 @@ bool_t CAN_Main(uint8_t baudrate)
     else
     {
         DJY_EvttUnregist(evtt_id);
-        error_printf("bus", "can bus's monitor event pop failed.");
+        error_printf("bus", "can bus's monitor event pop failed.\r\n");
     }
-    info_printf("bus", "can bus installed.");
+    info_printf("bus", "can bus installed.\r\n");
     return true;
 }
 ADD_TO_ROUTINE_SHELL(canstat,canstat,"CAN通信统计    COMMAND:canstat+enter");

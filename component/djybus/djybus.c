@@ -115,11 +115,11 @@ bool_t ModuleInstall_DjyBus (void)
     s_ptDjybusDir = OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)-1, 0,"DjyBus");
     if(s_ptDjybusDir)
     {
-        info_printf("module","bus installed.");
+        info_printf("module","bus installed.\r\n");
         return true;
     }
 
-        error_printf("module","bus installation failed.");
+        error_printf("module","bus installation failed.\r\n");
     return false;
 }
 

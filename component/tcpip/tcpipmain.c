@@ -60,10 +60,10 @@
 bool_t tcpipver(char *param)
 {
     param = param;
-    info_printf("tcpip","Copyright (c) 2018, Djyos Open source Development team. All rights reserved.");
-    info_printf("tcpip","VERSION  :%s ",CN_TCPIP_VERSION);
-    info_printf("tcpip","TIME     :%s ",__TIME__);
-    info_printf("tcpip","DATE     :%s ",__DATE__);
+    info_printf("tcpip","Copyright (c) 2018, Djyos Open source Development team. All rights reserved.\r\n");
+    info_printf("tcpip","VERSION  :%s \r\n",CN_TCPIP_VERSION);
+    info_printf("tcpip","TIME     :%s \r\n",__TIME__);
+    info_printf("tcpip","DATE     :%s \r\n",__DATE__);
     return true;
 }
 
@@ -71,7 +71,7 @@ bool_t tcpipver(char *param)
 //we need a function to do the format result
 static void __LoadLog(const char *name,bool_t ret)
 {
-    info_printf("tcpip","LOAD:%-12s------------%s",name,ret?"SUCCESS":"FAILURE");
+    info_printf("tcpip","LOAD:%-12s------------%s\r\n",name,ret?"SUCCESS":"FAILURE");
     return;
 }
 // =============================================================================
@@ -268,13 +268,13 @@ bool_t ModuleInstall_TcpIp(void)
     {
         goto TCPIP_INITERR;
     }
-    info_printf("tcpip","*********DJY TCP/IP INIT SUCCESS**********************");
+    info_printf("tcpip","*********DJY TCP/IP INIT SUCCESS**********************\r\n");
 
     return ret;
 #endif
 
 TCPIP_INITERR:
-    error_printf("tcpip","*********DJY TCP/IP INIT  FAILED**********************");
+    error_printf("tcpip","*********DJY TCP/IP INIT  FAILED**********************\r\n");
     return ret;
 }
 ADD_TO_ROUTINE_SHELL(tcpipver,tcpipver,"usage:tcpipver");

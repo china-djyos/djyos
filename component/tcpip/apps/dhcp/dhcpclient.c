@@ -578,7 +578,7 @@ bool_t  DHCP_ClientInit(void)
     gClientCB.sockfd = __DHCP_SockFdInit();
     if(-1 == gClientCB.sockfd)
     {
-        error_printf("dhcp","SOCKFD INITIALIZE FAILED");
+        error_printf("dhcp","SOCKFD INITIALIZE FAILED\r\n");
         goto EXIT_SOCKFD;
     }
     ret = true;

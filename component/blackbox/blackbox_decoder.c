@@ -116,7 +116,7 @@ bool_t  __BlackBox_ThrowInfodecode(struct BlackBoxThrowPara *parahead,u32 endian
         }
         else                //DecoderName非空，但却找不到解析器
         {
-            debug_printf("blackbox","异常信息解析器未找到,显示16进制信息");
+            debug_printf("blackbox","异常信息解析器未找到,显示16进制信息\r\n");
             for(n = 0; n < parahead->BlackBoxInfoLen; n++)
             {
                 debug_printf("blackbox","%x ",parahead->BlackBoxInfo[n]);

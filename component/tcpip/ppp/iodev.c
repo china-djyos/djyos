@@ -109,16 +109,16 @@ s32 iodevread(s32 dev,u8 *buf,u32 buflen,u32 timeout)
     {
         time_t printtime;
         printtime = time(NULL);
-        debug_printf("iodev","[RCV:%s:%d bytes]",ctime(&printtime),len);
+        debug_printf("iodev","[RCV:%s:%d bytes]\r\n",ctime(&printtime),len);
         for(s32 i = 0;i < len;i++)
         {
             if(gIoDebug.idebug == 1)
             {
-                debug_printf("iodev","%c",buf[i]);
+                debug_printf("iodev","%c\r\n",buf[i]);
             }
             else if(gIoDebug.idebug ==2)
             {
-                debug_printf("iodev","%02x ",buf[i]);
+                debug_printf("iodev","%02x\r\n ",buf[i]);
             }
         }
         printf("\n\r");
@@ -158,16 +158,16 @@ s32 iodevwrite(s32 dev,u8 *buf,u32 len,u32 timeout)
     {
         time_t printtime;
         printtime = time(NULL);
-        debug_printf("iodev","[SND:%s:%d bytes]",ctime(&printtime),len);
+        debug_printf("iodev","[SND:%s:%d bytes]\r\n",ctime(&printtime),len);
         for(i = 0;i < len;i++)
         {
             if(gIoDebug.odebug == 1)
             {
-                debug_printf("iodev","%c",buf[i]);
+                debug_printf("iodev","%c\r\n",buf[i]);
             }
             else if(gIoDebug.odebug ==2)
             {
-                debug_printf("iodev","%02x ",buf[i]);
+                debug_printf("iodev","%02x\r\n ",buf[i]);
             }
         }
         printf("\n\r");

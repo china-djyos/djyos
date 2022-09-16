@@ -447,7 +447,7 @@ s32  S3C2416_PageRead(u32 PageNo, u8 *Data, u32 Flags)
                 }
                 case 2:// 错误位太多, 不可纠错
                 case 3:// ECC计算错误
-                    debug_printf("nand driver", "cannot be fixed");
+                    debug_printf("nand driver", "cannot be fixed\r\n");
                     Lock_MutexPost(NandFlashLock);
                     return (-3);
             }
@@ -1366,7 +1366,7 @@ s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
     targetobj = OBJ_MatchPath(fs, &notfind);
     if(notfind)
     {
-        error_printf("nand"," not found need to install file system.");
+        error_printf("nand"," not found need to install file system.\r\n");
         return -1;
     }
     super = (struct FsCore *)OBJ_GetPrivate(targetobj);

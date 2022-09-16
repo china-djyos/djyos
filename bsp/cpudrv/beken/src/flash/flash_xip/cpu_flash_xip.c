@@ -486,7 +486,7 @@ bool_t ModuleInstall_FlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, 
                 if(EmbFsInstallInit(TargetFs,bstart,bend,&XIP_FLASH_DRV) == 0)
                     return true;
             }
-            error_printf("EmFlash"," need to install file system not XIP.");
+            error_printf("EmFlash"," need to install file system not XIP.\r\n");
         }
     }
     return false;

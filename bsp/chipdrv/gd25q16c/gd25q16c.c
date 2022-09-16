@@ -922,7 +922,7 @@ s32 ModuleInstall_gd25q16c(void)
         sz.block = 1;
         if(-1 == __gd25q16c_req(format, 0 , -1, &sz))
         {
-            warning_printf("at45"," Format failure.");
+            warning_printf("at45"," Format failure.\r\n");
         }
     }
 
@@ -936,7 +936,7 @@ s32 ModuleInstall_gd25q16c(void)
 
     if(!Device_Create((const char*)flash_name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)gd25_umedia)))
     {
-        printf("\r\n: erro : device : %s addition failed.", flash_name);
+        printf(" erro : device : %s addition failed.\r\n", flash_name);
         free(gd25_umedia);
         return false;
     }
@@ -978,7 +978,7 @@ s32 __GD25_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd, void *mediadrv)
     targetobj = OBJ_MatchPath(fs, &notfind);    //根据mount点名字找mount点的obj
     if(notfind)
     {
-        error_printf("at45"," not found need to install file system.");
+        error_printf("at45"," not found need to install file system.\r\n");
         return -1;
     }
     super = (struct FsCore *)OBJ_GetPrivate(targetobj); //获取obj的私有数据

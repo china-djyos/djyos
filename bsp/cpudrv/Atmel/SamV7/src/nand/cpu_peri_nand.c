@@ -428,7 +428,7 @@ s32 SAMv7_PageRead(u32 PageNo, u8 *Data, u32 Flags)
         if (EccRet && (EccRet != HAMMING_ERROR_SINGLE_BIT))
         {
 //            TraceDrv(FLASH_TRACE_DEBUG, "cannot be fixed");
-            debug_printf("null","cannot be fixed");
+            debug_printf("null","cannot be fixed\r\n");
             Lock_MutexPost(NandFlashLock);
             return (-3);
         }
@@ -1298,7 +1298,7 @@ s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
     targetobj = OBJ_MatchPath(fs, &notfind);
     if(notfind)
     {
-        error_printf("nand"," not found need to install file system.");
+        error_printf("nand"," not found need to install file system.\r\n");
         return -1;
     }
     super = (struct FsCore *)OBJ_GetPrivate(targetobj);

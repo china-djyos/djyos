@@ -124,7 +124,7 @@ bool_t ModuleInstall_MsgQ (void)
     s_ptMsgQ_Dir = OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)-1, 0, "message queue");
     if(!s_ptMsgQ_Dir)
     {
-        error_printf("module","message queue");
+        error_printf("module","message queue\r\n");
         return (FALSE);
     }
 
@@ -176,12 +176,12 @@ struct MsgQueue *MsgQ_Create( s32 MaxMsgs,u32  MsgLength,u32 Options)
         {
             free(MQ);
             MQ = NULL;
-            error_printf("msgque","create failed(add to obj).");
+            error_printf("msgque","create failed(add to obj).\r\n");
         }
     }
     else
     {
-            error_printf("msgque","create failed(no space).");
+            error_printf("msgque","create failed(no space).\r\n");
     }
 
     return MQ;

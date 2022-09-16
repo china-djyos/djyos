@@ -1098,7 +1098,7 @@ bool_t ModuleInstall_at45db321(void)
         sz.block = 1;
         if(-1 == __at45_req(format, 0 , -1, &sz))
         {
-            warning_printf("at45"," Format failure.");
+            warning_printf("at45"," Format failure.\r\n");
         }
     }
 
@@ -1359,7 +1359,7 @@ s32 __AT45_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd, void *mediadrv)
     targetobj = OBJ_MatchPath(fs, &notfind);    //根据mount点名字找mount点的obj
     if(notfind)
     {
-        error_printf("at45"," not found need to install file system.");
+        error_printf("at45"," not found need to install file system.\r\n");
         return -1;
     }
     super = (struct FsCore *)OBJ_GetPrivate(targetobj); //获取obj的私有数据

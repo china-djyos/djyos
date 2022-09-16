@@ -169,11 +169,11 @@ bool_t blackboxc(char *param)
 
     if(true == result)
     {
-        debug_printf("shell","ShellSysBlackBox:Clear SysBlackBox info success!");
+        debug_printf("shell","ShellSysBlackBox:Clear SysBlackBox info success!\r\n");
     }
     else
     {
-        debug_printf("shell","ShellSysBlackBox:Clear SysBlackBox info failed!");
+        debug_printf("shell","ShellSysBlackBox:Clear SysBlackBox info failed!\r\n");
     }
 
     return result;

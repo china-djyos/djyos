@@ -190,7 +190,7 @@ static u32 __EfsFileSize_odd_even_check(u32 newsize)
     if(ret > EFS_SUPPORT_MAXFILESIZE)
     {
         ret = EFS_SUPPORT_MAXFILESIZE;
-        warning_printf("efs","The file size exceeds the maximum file size supported by efs ");
+        warning_printf("efs","The file size exceeds the maximum file size supported by efs \r\n");
     }
     odd = ret & 0x15555555;     //获取所有奇数位
     odd = __Efs_paritycheck(odd);   //获取所有偶数数位
@@ -783,7 +783,7 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
         }
         if(Efs_Verify_Install((struct FsCore *)OBJ_GetPrivate(current)))
         {
-            warning_printf("efs", "file system set up fail");
+            warning_printf("efs", "file system set up fail\r\n");
             return (NULL);     //文件系统建立失败
         }
     }
@@ -892,14 +892,14 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
                 {
                     if (efs->files_sum >= CreateMax)
                     {
-                        warning_printf("efs", "file sum exceed upper limit (%d)",CreateMax);
+                        warning_printf("efs", "file sum exceed upper limit (%d)\r\n",CreateMax);
                     }
                     goto exit;
                 }
             }
             else
             {   // 文件不存在，但不要求新建；
-                printf("\r\n : dbug : efs    : open \"%s\" failed(do not exist).", uncached);
+                printf("dbug : efs    : open \"%s\" failed(do not exist).\r\n", uncached);
                 goto exit;
             }
         }
@@ -907,7 +907,7 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
         {
             if(Handle_FlagIsOnlyCreate(flags)) // 已存在，但只要求新建；
             {
-                printf("\r\n : dbug : efs    : open \"%s\" failed(already exist).", uncached);
+                printf("dbug : efs    : open \"%s\" failed(already exist).\r\n", uncached);
                 goto exit;
             }
             //以下设置文件资源描述，参照struct file_rsc定义中要求驱动模块维护的部分。
@@ -2147,7 +2147,7 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
     {
         dwFileMaxSize = EFS_SUPPORT_MAXFILESIZE;
         warning_printf("efs","The file size exceeds the maximum file size supported by efs "
-                             "and now forces the maximum file size to be 0x3fffffff");
+                             "and now forces the maximum file size to be 0x3fffffff\r\n");
     }
     Ram_file_info_len = EFS_RAM_ITEM_BYTE + EFS_ITEM_LIMIT;
     EfsCgfLimit = Ram_file_info_len * CFG_EFS_MAX_OPEN_FILE_NUM;  //efs,在缓存中存文件信息的大小

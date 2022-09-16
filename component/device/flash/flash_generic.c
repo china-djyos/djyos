@@ -321,7 +321,7 @@ s32 nandscanbads( __um_req req, u32 **table)
             bads++;
             if(bads>128)
             {
-                info_printf("device", "too much bad blocks for nand.");
+                info_printf("device", "too much bad blocks for nand.\r\n");
                 return (-1);
             }
         }
@@ -330,7 +330,7 @@ s32 nandscanbads( __um_req req, u32 **table)
     *table = malloc((bads << 2) + 4);
     if(!(*table))
     {
-        error_printf("device", "no memory for bad blocks table.");
+        error_printf("device", "no memory for bad blocks table.\r\n");
         return (-1);
     }
 
@@ -397,7 +397,7 @@ u32 *nandbuildbads(__um_req req)
             strcpy((char*)tmp, BAD_BLOCK_TAG);
             memcpy((tmp+(strlen(BAD_BLOCK_TAG)+4)), table, ((table[0]+1)<<2)); //
             if(req(savebads, (ptu32_t)tmp)) // 保存坏块表
-                debug_printf("device", "bad block table save failed for nand.");
+                debug_printf("device", "bad block table save failed for nand.\r\n");
         }
     }
     else // 正常， 提取出坏块表，防止在内存；

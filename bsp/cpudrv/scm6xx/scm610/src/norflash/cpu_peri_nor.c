@@ -490,7 +490,7 @@ s32 __Flash_FsInstallInit(const char *fs, u32 bstart, u32 bend, void *mediadrv)
     targetobj = OBJ_MatchPath(fs, &notfind);
     if(notfind)
     {
-        error_printf("embed"," not found need to install file system.");
+        error_printf("embed"," not found need to install file system.\r\n");
         return -1;
     }
     super = (struct FsCore *)OBJ_GetPrivate(targetobj);

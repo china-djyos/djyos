@@ -792,7 +792,7 @@ bool_t Iboot_GetProductInfo(enum productinfo type, char *date_buf, u32 buf_len)
             }
             else
             {
-                error_printf("PrInfo","Version number error. version = %d.%d.%d, Version number <= 99",p_productinfo->VersionNumber[0]
+                error_printf("PrInfo","Version number error. version = %d.%d.%d, Version number <= 99\r\n",p_productinfo->VersionNumber[0]
                                              ,p_productinfo->VersionNumber[1],p_productinfo->VersionNumber[2]);
                 return false;
             }
@@ -921,7 +921,7 @@ bool_t Iboot_GetProductInfo(enum productinfo type, char *date_buf, u32 buf_len)
     return true;
 
 len_error:
-    error_printf("PrInfo","date_buf : len = %d; data length to be get = %d ",buf_len,len);
+    error_printf("PrInfo","date_buf : len = %d; data length to be get = %d \r\n",buf_len,len);
     return false;
 }
 

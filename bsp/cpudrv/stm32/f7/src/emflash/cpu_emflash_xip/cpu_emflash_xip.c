@@ -367,13 +367,13 @@ bool_t ModuleInstall_EmFlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend
                 sz.block = 1;
                 if(-1 == __embed_req(format, bstart , bend, &sz))
                 {
-                    warning_printf("xip"," Format failure.");
+                    warning_printf("xip"," Format failure.\r\n");
                 }
             }
             targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
-                error_printf("EmFlash"," not found need to install file system.");
+                error_printf("EmFlash"," not found need to install file system.\r\n");
                 return false;
             }
             super = (struct FsCore *)OBJ_GetPrivate(targetobj);
@@ -382,7 +382,7 @@ bool_t ModuleInstall_EmFlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend
                 if(__embed_FsInstallInit(TargetFs,bstart,bend,&XIP_EMFLASH_DRV) == 0)
                     return true;
             }
-            error_printf("EmFlash"," need to install file system not XIP.");
+            error_printf("EmFlash"," need to install file system not XIP.\r\n");
         }
     }
     return false;

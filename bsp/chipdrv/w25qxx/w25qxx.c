@@ -864,7 +864,7 @@ s32 ModuleInstall_W25qxx(void)
         sz.block = 1;
         if(-1 == __W25qxx_Req(format, 0 , -1, &sz))
         {
-            warning_printf("W25q"," Format failure.");
+            warning_printf("W25q"," Format failure.\r\n");
         }
     }
 

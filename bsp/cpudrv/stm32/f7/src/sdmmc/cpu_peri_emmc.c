@@ -440,7 +440,7 @@ s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed)
         targetobj = OBJ_MatchPath(targetfs, &notfind);
         if(notfind)
         {
-            error_printf("mmc"," not found need to install file system.");
+            error_printf("mmc"," not found need to install file system.\r\n");
             return -1;
         }
         super = (struct FsCore *)OBJ_GetPrivate(targetobj);
@@ -452,7 +452,7 @@ s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed)
         else
         {
             super->MediaDrv = 0;
-            error_printf("mmc","  install file system type not FAT");
+            error_printf("mmc","  install file system type not FAT\r\n");
             return -1;
         }
 
@@ -463,7 +463,7 @@ s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed)
     }
     else
     {
-        warning_printf("mmc", "  No file system is installed");
+        warning_printf("mmc", "  No file system is installed\r\n");
     }
     return (0);
 }

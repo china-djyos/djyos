@@ -118,13 +118,13 @@ void __LP_BSP_EntrySleep(u8 sleep_level, u32 pend_ticks)
             mcu_power_save(pend_ticks);
             break;
         case CN_SLEEP_L1:
-            warning_printf("LP", "Entry sleep level_1 undefined");
+            warning_printf("LP", "Entry sleep level_1 undefined\r\n");
             break;
         case CN_SLEEP_L2:
-            warning_printf("LP", "Entry sleep level_2 undefined");
+            warning_printf("LP", "Entry sleep level_2 undefined\r\n");
             break;
         case CN_SLEEP_L3:
-            warning_printf("LP", "Entry sleep level_3 undefined");
+            warning_printf("LP", "Entry sleep level_3 undefined\r\n");
             break;
         case CN_SLEEP_L4:
             DJY_DelayUs(100000);

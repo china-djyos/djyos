@@ -106,7 +106,7 @@ bool_t TCPIP_ServiceInit(void)
 #if (CFG_MODULE_ENABLE_FTP == true)
     if(false == FTP_ServiceInit())
     {
-        error_printf("tcpip","###err: service ftp failed");
+        error_printf("tcpip","###err: service ftp failed\r\n");
         result = false;
     }
 #endif
@@ -122,7 +122,7 @@ bool_t TCPIP_ServiceInit(void)
 #if  (CFG_MODULE_ENABLE_TFTP == true)
     if(false == TFTP_ServiceInit())
     {
-        error_printf("tcpip","###err: service tftp failed");
+        error_printf("tcpip","###err: service tftp failed\r\n");
         result = false;
     }
 #endif
