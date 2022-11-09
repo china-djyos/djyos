@@ -86,7 +86,7 @@ extern "C" {
 //L4.每次IDLE事件执行,不执行栈检查,进入深度睡眠,内存掉电,时钟停止,硬件唤醒CPU后,重新
 //   启动并加载运行。
 
-#define CN_SLEEP_NORMAL    0       //休眠方式:正常
+#define CN_SLEEP_NORMAL    0       //休眠方式:正常工作，不休眠
 #define CN_SLEEP_ERROR     0xff    //休眠方式:错误
 #define CN_SLEEP_L0        1       //休眠方式:L0
 #define CN_SLEEP_L1        2       //休眠方式:L1

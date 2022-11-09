@@ -52,8 +52,8 @@
 #include <sys_config.h>
 #include <sys_ctrl_pub.h>
 #include <djyos.h>
-#include <fat/port/drivers/fat_drivers.h>
-#include <fat/ff11/src/diskio.h>
+#include <port/drivers/fat_drivers.h>
+#include <ff11/src/diskio.h>
 #include <sdcard/sdcard.h>
 #include <sdcard/sdio_driver.h>
 #include <gpio_pub.h>

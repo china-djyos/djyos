@@ -102,6 +102,8 @@
 #define CFG_KEYBOARD_VTIME              (100*1000)  //"防抖时间",配置防抖时间
 //%$#@enum,true,false,
 //%$#@string,1,10,
+//%$#@string,1,10,
+#define CFG_KEYBOARD_NAME              "KEYBOARD"        //"键盘名",配置键盘名称
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif

@@ -397,6 +397,41 @@ static struct tagSocket *__hashSocketSearch(u32 iplocal, u16 portlocal,u32 iprem
 }
 
 //------------------------------------------------------------------------------
+//功能：根据给定的四元组，查找匹配的socket，IP地址==-1表示任意，端口==0表示任意。
+//      对于非精确匹配，值随机匹配一个。
+//参数：IP地址和端口的四元组
+//返回：socket 文件号
+//------------------------------------------------------------------------------
+s32 TCP_MatchSocket(u32 iplocal, u16 portlocal,u32 ipremote,u16 portremote)
+{
+    struct tagSocket *result = NULL;
+
+    struct tagSocket *tmp;
+    u32 hashKey;
+
+    hashKey = iplocal+portlocal + ipremote +portremote;
+    hashKey = hashKey%CFG_TCP_SOCKET_HASH_LEN;
+    tmp = TcpHashTab.array[hashKey];
+    while((NULL != tmp))
+    {
+        if(    ((iplocal == tmp->element.v4.iplocal)||(iplocal ==(u32)-1))
+           &&  ((portlocal == tmp->element.v4.portlocal)||(portlocal==0))
+           &&  ((ipremote == tmp->element.v4.ipremote)||(ipremote ==(u32)-1))
+           &&  ((portremote == tmp->element.v4.portremote)||(portremote ==0))  )
+        {
+            result = tmp;
+            break;
+        }
+        else
+        {
+            tmp = tmp->Nextsock;
+        }
+    }
+
+    return result->sockfd;
+}
+
+//------------------------------------------------------------------------------
 //功能：在hashtable中查找socket，但只匹配本地端口和IP，用于确保不会bind重复的地址。
 //参数: iplocal，本地IP
 //      portlocal，本地端口
@@ -983,7 +1018,7 @@ static s32 __tcplisten(struct tagSocket *sock, s32 pendlimit)
             if(NULL != scb)
             {
                 scb->accepttime = ((struct ClientCB *)(sock->TplCB))->rbuf.timeout;
-                __DeleCCB(sock->TplCB);
+                __DeleCCB(sock->TplCB);     //在__tcpsocket函数中创建
                 sock->TplCB = scb;
                 scb->pendlimit = pendlimit;
                 sock->sockstat&=(~CN_SOCKET_CLIENT);

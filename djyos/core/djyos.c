@@ -520,7 +520,7 @@ void __DJY_CutReadyEvent(struct EventECB *event)
 }
 
 //----设置轮转调度时间片-------------------------------------------------------
-//功能: djyos总所有参与轮转调度的事件时间片都是相同的，在这里设置。如果设为0，
+//功能: djyos中所有参与轮转调度的事件时间片都是相同的，在这里设置。如果设为0，
 //      表示不允许时间片轮转。
 //参数: slices，新的轮转调度时间片，微秒数，将被向上取整为整数个ticks时间
 //返回: 无
@@ -529,13 +529,13 @@ void DJY_SetRRS_Slice(u32 slices)
 {
 #if (64 > CN_CPU_BITS)
     atom_low_t atom_low;
-    //若处理器字长＜32位,需要多个周期才能更新u32g_RRS_slice,该过程不能被时钟中断打断.
+    //若处理器字长＜32位,需要多个周期才能更新s_u32RRS_Slice,该过程不能被时钟中断打断.
     atom_low = Int_LowAtomStart( );   //本函数对不能嵌套调用
 #endif
     s_u32RRS_Slice =(slices + CN_CFG_TICK_US -1)/CN_CFG_TICK_US;
 
 #if (64 > CN_CPU_BITS)
-    //若处理器字长＜32位,需要多个周期才能更新u32g_RRS_slice,该过程不能被时钟中断打断.
+    //若处理器字长＜32位,需要多个周期才能更新s_u32RRS_Slice,该过程不能被时钟中断打断.
     Int_LowAtomEnd( atom_low );
 #endif
 }
@@ -550,12 +550,12 @@ u32 DJY_GetRRS_Slice(void)
     u32 temp;
 #if (64 > CN_CPU_BITS)
     atom_low_t atom_low;
-    //处理器字长＜32位,需要多个周期才能读取u32g_RRS_slice,该过程不能被时钟中断打断.
+    //处理器字长＜32位,需要多个周期才能读取s_u32RRS_Slice,该过程不能被时钟中断打断.
     atom_low = Int_LowAtomStart( );   //本函数对不能嵌套调用
 #endif
     temp = s_u32RRS_Slice;
 #if (64 > CN_CPU_BITS)
-    //处理器字长＜32位,需要多个周期才能读取u32g_RRS_slice,该过程不能被时钟中断打断.
+    //处理器字长＜32位,需要多个周期才能读取s_u32RRS_Slice,该过程不能被时钟中断打断.
     Int_LowAtomEnd( atom_low );
 #endif
 

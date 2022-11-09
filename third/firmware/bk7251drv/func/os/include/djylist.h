@@ -47,21 +47,21 @@
 
 struct djylist_t
 {
-	struct djylist_t *next;
+    struct djylist_t *next;
 };
 
-#define djylist_init_node(node)			((node).next = NULL)
-#define djylist_insert(node, new)		((node).next = &(new))
-#define djylist_get_container(p, t, m)	container_of(p, t, m)
+#define djylist_init_node(node)         ((node).next = NULL)
+#define djylist_insert(node, new)       ((node).next = &(new))
+#define djylist_get_container(p, t, m)  container_of(p, t, m)
 
 #define djylist_foreach(var, p, t, m) \
-	for (t *var = vsflist_get_container(p, t, m); var != NULL; \
-			var = vsflist_get_container(var->m.next, t, m))
+    for (t *var = vsflist_get_container(p, t, m); var != NULL; \
+            var = vsflist_get_container(var->m.next, t, m))
 
 #define djylist_foreach_next(var, n, p, t, m) \
-	for (t *var = vsflist_get_container(p, t, m), \
-			*n = var ? vsflist_get_container(var->m.next, t, m) : NULL; var != NULL; \
-			var = n, n = var ? vsflist_get_container(var->m.next, t, m) : NULL)
+    for (t *var = vsflist_get_container(p, t, m), \
+            *n = var ? vsflist_get_container(var->m.next, t, m) : NULL; var != NULL; \
+            var = n, n = var ? vsflist_get_container(var->m.next, t, m) : NULL)
 
 int djylist_get_length(struct djylist_t *head);
 struct djylist_t *djylist_get_node(struct djylist_t *head, int idx);

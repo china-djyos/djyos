@@ -69,7 +69,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"gd5f1gq5x"	//SPI和QSPI接口的flash芯片
+//component name:"gd5f1gq5x"    //SPI和QSPI接口的flash芯片
 //parent:"none"//填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -98,8 +98,8 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-								
-								
+
+
 
 #define ECC_ENABLE_SPARE_WRITE_LEN          64          //默认是使能了芯片的硬件ECC的，后64字节用于硬件ECC了，软件不允许操作
 

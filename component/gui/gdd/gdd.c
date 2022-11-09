@@ -127,7 +127,7 @@ void ModuleInstall_GDD(struct GkWinObj *desktop)
 
 //以下代码是用于响应从gkernel回送的消息，暂时空着。
 //  evtt = DJY_EvttRegist(  EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0,
-//                        GDD_GetGK_Message, NULL,2048,"wait gk task");
+//                        GDD_GK_MessageLoop, NULL,2048,"wait gk task");
 //  if (evtt != CN_EVTT_ID_INVALID)
 //  {
 //      DJY_EventPop(evtt, NULL, 0, 0, 0, 0);

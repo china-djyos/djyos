@@ -211,7 +211,7 @@ int Ghttp_main(int argc, char *argv[])
     if(gIeEvttID == CN_EVTT_ID_INVALID)
     {
         return -1;
-    } 
+    }
     return 0;
 }
 

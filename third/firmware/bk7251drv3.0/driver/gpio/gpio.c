@@ -129,7 +129,8 @@ void gpio_config(UINT32 index, UINT32 mode)
         break;
 
     case GMODE_OUTPUT:
-        val = 0x00;
+//      val = 0x00;                         //bug，导致设为output后，总是输出低电平。
+        val = 0x03 & REG_READ(gpio_cfg_addr); //lst, fixed it
         break;
 
     case GMODE_SECOND_FUNC:

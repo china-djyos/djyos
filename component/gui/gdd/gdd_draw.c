@@ -164,7 +164,6 @@ void    GDD_InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type)
     pdc->FillColor  =hwnd->FillColor;
     pdc->TextColor  =hwnd->TextColor;
     pdc->SyncTime   =0;
-    //pdc->RopCode    =(struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
     pdc->RopCode=gk_win->RopCode;
 
 }
@@ -181,8 +180,8 @@ bool_t  GDD_DeleteDC(HDC hdc)
 }
 
 
-//----设置当前光栅码-------------------------------------------------------------
-//描述: 略.
+//----设置光栅码-------------------------------------------------------------
+//描述: 设置DC的光栅操作编码，并返回原来的。
 //参数：hdc: 绘图上下文句柄.
 //     RopCode: 新的光栅码.
 //返回：旧的光栅码.
@@ -1665,11 +1664,15 @@ void    GDD_DrawGroupBox(HDC hdc,const RECT *prc,const char *Text)
 
 }
 //----绘制位图------------------------------------------------------------------
-//描述:
+//描述: 位图格式由 gui kernel 定义，图形句柄 hdc 的 rop 属性会影响输出效果。当你看到
+//      “奇怪”的绘制结果时，请检查 hdc->RopCode 的设置。
 //参数：hdc: 绘图上下文句柄.
+//      x，y，绘图坐标
+//      bitmap，待绘制的位图
+//      HyalineColor，透明色，hdc的rop属性中的透明色使能属性置位才有效
 //返回：无.
 //------------------------------------------------------------------------------
-bool_t    GDD_DrawBitmap(HDC hdc,s32 x,s32 y,struct RectBitmap *bitmap,u32 HyalineColor,struct RopGroup RopCode)
+bool_t    GDD_DrawBitmap(HDC hdc,s32 x,s32 y,struct RectBitmap *bitmap,u32 HyalineColor)
 {
     POINT pt;
     if(__GDD_BeginDraw(hdc))
@@ -1678,16 +1681,9 @@ bool_t    GDD_DrawBitmap(HDC hdc,s32 x,s32 y,struct RectBitmap *bitmap,u32 Hyali
         pt.y =y;
         __GDD_LPtoDP(hdc,&pt,1);
 
-        GK_DrawBitMap(hdc->pGkWin,bitmap,pt.x,pt.y,HyalineColor,RopCode,hdc->SyncTime);
+        GK_DrawBitMap(hdc->pGkWin,bitmap,pt.x,pt.y,HyalineColor,hdc->RopCode,hdc->SyncTime);
         __GDD_EndDraw(hdc);
         return true;
     }
     return false;
 }
-
-/*============================================================================*/
-/*============================================================================*/
-/*============================================================================*/
-/*============================================================================*/
-
-

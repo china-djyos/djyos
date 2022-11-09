@@ -104,7 +104,10 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
     DisplayObject = OBJ_SearchChild(DisplayObject, DisplayName);    //取显示器对象
     desktop = malloc(sizeof(struct GkWinObj));
     if((NULL == DisplayObject) || (NULL == desktop))
+    {
+        free(desktop);
         return result;
+    }
     memset(desktop, 0, sizeof(struct GkWinObj));
     para.display = (struct DisplayObj *)OBJ_GetPrivate(DisplayObject);
     para.desktop = desktop;
@@ -463,6 +466,7 @@ void GK_DrawBitMap(struct GkWinObj *gkwin,
                         &para,sizeof(para),NULL,0);
     return;
 }
+
 //----画单像素宽的圆-----------------------------------------------------------
 //功能: 画单像素宽的圆。
 //参数: gkwin，绘制的目标窗口
@@ -965,7 +969,7 @@ void GK_SetName(struct GkWinObj *gkwin,const char *name)
     gkwin->win_name[size] = '\0';     //串封口(加结束符)
 }
 
-//----设置窗口名-----------------------------------------------------------
+//----取窗口名-----------------------------------------------------------
 //功能: 略
 //参数: gkwin，窗口
 //返回: 显示区域
@@ -997,6 +1001,13 @@ bool_t GK_IsWinVisible(struct GkWinObj *gkwin)
 
 extern struct GkChunnel g_tGkChunnel;
 
+//------------------------------------------------------------------------------
+//功能：读取一条guikernel传递给（ 例如gdd）的消息
+//参数：Request，接收消息的缓冲区
+//      bufsize，缓冲区尺寸
+//      timeout，超时时间，uS数
+//返回：成功获取返回命令码（消息的第一个16位数），没有命令则返回  CN_GKUC_NULL
+//------------------------------------------------------------------------------
 u32 GK_ReadRequest(u8 *Request, u16 bufsize, u32 timeout)
 {
     u16 id,size;

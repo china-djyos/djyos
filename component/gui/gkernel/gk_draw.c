@@ -3952,8 +3952,9 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                         {
                             if(SrcBitmap->reversal == true)
                             {
-                                for(y_src= SrcBitmap->height - SrcRect.top;
-                                    y_src > SrcBitmap->height - SrcRect.bottom;
+                                // -1 是因为图形坐标是从 0 开始算的
+                                for(y_src= SrcBitmap->height - SrcRect.top -1;
+                                    y_src >= SrcBitmap->height - SrcRect.bottom;
                                     y_src--)
                                 {
                                     x_dst = InsRect.left;
@@ -3992,8 +3993,9 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                         {
                             if(SrcBitmap->reversal == true)
                             {
-                                for(y_src= SrcBitmap->height - SrcRect.top;
-                                    y_src > SrcBitmap->height - SrcRect.bottom;
+                                // -1 是因为图形坐标是从 0 开始算的
+                                for(y_src= SrcBitmap->height - SrcRect.top -1;
+                                    y_src >= SrcBitmap->height - SrcRect.bottom;
                                     y_src--)
                                 {
                                     x_dst = InsRect.left;

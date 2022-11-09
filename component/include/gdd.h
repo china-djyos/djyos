@@ -91,6 +91,7 @@ typedef struct RectBitmap    BITMAP;
 
 #pragma pack(1)
 
+//注：biHeight>0表示倒向位图，即原点在左下角，否则为正向位图，即原点在左上角。
 typedef struct
 {
     u16 bfType;      /* 文件类型,   必须为   "BM "   (0x4D42)   */
@@ -101,9 +102,9 @@ typedef struct
 
     u32 biSize;       /* size   of   BITMAPINFOHEADER   */
     u32 biWidth;      /* 位图宽度(像素)   */
-    u32 biHeight;     /* 位图高度(像素)   */
+    s32 biHeight;     /* 位图高度(像素)，若为负数，则是正向位图   */
     u16 biPlanes;     /* 目标设备的位平面数,   必须置为1   */
-    u16 biBitCount;   /* 每个像素的位数,   1,4,8或24   */
+    u16 biBitCount;   /* 每个像素的位数,   1,4,8,16,24,32   */
     u32 biCompress;   /* 位图阵列的压缩方法,0=不压缩   */
     u32 biSizeImage;  /* 图像大小(字节)   */
     u32 biXPelsPerMeter;  /* 目标设备水平每米像素个数   */
@@ -116,14 +117,6 @@ typedef struct
     u32 biAlphaMask;
 
 }tagBMP_HEADER;
-
-typedef struct
-{
-    u16 Format;      /* 颜色格式  */
-    u16 Width;       /* 图像宽度(像素值) */
-    u16 Height;      /* 图像高度(像素值) */
-    u16 LineBytes;   /* 每行图像数据的字节数  */
-}tagBMP_INFO;
 
 #pragma pack()
 
@@ -377,11 +370,9 @@ void    GDD_DrawBezier3(HDC hdc,const POINT *pt,s32 cnt);
 
 void    GDD_DrawPolyLine(HDC hdc,const POINT *pt,s32 count);
 void    GDD_DrawGroupBox(HDC hdc,const RECT *prc,const char *Text);
-bool_t  GDD_DrawBitmap(HDC hdc,s32 x,s32 y,struct RectBitmap *bitmap,u32 key_color,
-                        struct RopGroup RopCode);
+bool_t  GDD_DrawBitmap(HDC hdc,s32 x,s32 y,struct RectBitmap *bitmap,u32 HyalineColor);
 
-bool_t  GDD_GetBitmapInfo(tagBMP_INFO *bm_info,tagBMP_HEADER *pBmpHdr);
-bool_t  GDD_DrawBMP(HDC hdc,s32 x,s32 y,const void *bmp_data);
+bool_t GDD_DrawWinBMPArray(HDC hdc,s32 x,s32 y,const void *bmp_data,u32 *palette,u32 HyalineColor);
 
 //消息相关函数
 u32     GDD_DispatchMessage(struct WindowMsg *pMsg);

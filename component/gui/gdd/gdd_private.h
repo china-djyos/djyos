@@ -131,7 +131,6 @@ struct DC
     u32 FillColor;              //填充颜色
     u32 TextColor;              //字体颜色
     u32 SyncTime;               //同步时间
-    u32 HyalineColor;           //透明显示透明色，RopCode允许透明色时用,RGB888
     struct RopGroup RopCode;    //光栅码
 
 };
@@ -214,7 +213,7 @@ void __GDD_DeleteChildWindowData(HWND hwnd);
 struct WinMsgQueueCB *__GDD_GetWindowMsgQ(HWND hwnd);
 bool_t __GDD_WinMsgProc(struct WindowMsg *pMsg);
 u32         __GDD_GetWindowEvent(HWND hwnd);
-ptu32_t GDD_GetGK_Message(void);
+ptu32_t GDD_GK_MessageLoop(void);
 
 /*============================================================================*/
 

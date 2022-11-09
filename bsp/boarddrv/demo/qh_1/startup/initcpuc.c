@@ -145,8 +145,6 @@ void Init_Cpu(void)
     }
     SRAM_Init();
 
-    __LP_BSP_HardInit( );   //本函数须连接到startup
-
 //  if( __LP_BSP_GetSleepLevel() == CN_SLEEP_L3)    //本函数须连接到startup
 //  {
 //      __LP_BSP_RestoreRamL3();    //此后，内存已经恢复，可以调用全部函数了。
