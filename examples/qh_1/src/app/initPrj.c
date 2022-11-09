@@ -2,17 +2,67 @@
  *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
-#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
-                                //允许是个空文件，所有配置将按默认值配置。
+#include "project_config.h"
 #include "djyos.h"
 #include "stdint.h"
 #include "stddef.h"
 #include "cpu_peri.h"
+#include <Iboot_info.h>
+
+
 extern ptu32_t djy_main(void);
+//如果这个CN_MANUFACTURER_NAME名字要改，那djysrc里的Iboot_info.c中相应的名字也要改
+const char CN_MANUFACTURER_NAME[] = PRODUCT_MANUFACTURER_NAME;
+
+
+const struct ProductInfo Djy_Product_Info __attribute__ ((section(".DjyProductInfo"))) =
+{
+    .VersionNumber[0] = PRODUCT_VERSION_LARGE,
+    .VersionNumber[1] = PRODUCT_VERSION_MEDIUM,
+    .VersionNumber[2] = PRODUCT_VERSION_SMALL,
+#if(CN_PTR_BITS < 64)
+    .ManufacturerNameAddr      = (u32)(&CN_MANUFACTURER_NAME),
+    .ManufacturerNamereserved32    = 0xffffffff,
+#else
+    .ManufacturerNameAddr      = (u64)(&CN_MANUFACTURER_NAME),
+#endif
+    .ProductClassify = PRODUCT_PRODUCT_CLASSIFY,
+    .ProductType = PRODUCT_PRODUCT_MODEL,
+
+    .TypeCode = PRODUCT_PRODUCT_MODEL_CODE,
+
+    .ProductionTime = {'*','*','*','*'},
+    .ProductionNumber = {'*','*','*','*','*'},
+    .reserved8 = 0,
+    .BoardType = PRODUCT_BOARD_TYPE,
+    .CPU_Type = PRODUCT_CPU_TYPE,
+    .Reserved ={
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+            },
+};
+
 
 ptu32_t __djy_main(void)
 {
     djy_main();
+
     return 0;
 }
 
@@ -20,38 +70,57 @@ void Sys_ModuleInit(void)
 {
     uint16_t evtt_main;
 
-    extern void Board_Init(void);
-    Board_Init();
-
+    //shell
     extern void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut);
     Stdio_KnlInOutInit(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME);
     extern s32 ModuleInstall_Shell(ptu32_t para);
     ModuleInstall_Shell(0);
+    //end shell
 
-    //-------------------early-------------------------//
-    extern s32 ModuleInstall_dev(void);
-    ModuleInstall_dev();    // 安装设备文件系统；
-
+    //----------------------------early----------------------------//
+    //black box
     extern void ModuleInstall_BlackBox(void);
     ModuleInstall_BlackBox( );
+    //end black box
 
-    extern bool_t ModuleInstall_DjyBus(void);
-    ModuleInstall_DjyBus ( );
+    //cpu onchip peripheral lowpower control
+    void ModuleInstall_LowPower (void);
+    ModuleInstall_LowPower();
+    //end cpu onchip peripheral lowpower control
 
+    //device file system
+    extern s32 ModuleInstall_dev(void);
+    ModuleInstall_dev();    // 安装设备文件系统；
+    //end device file system
+
+    //loader
+    #if !defined (CFG_RUNMODE_BAREAPP)
+    extern bool_t ModuleInstall_UpdateIboot(void);
+    ModuleInstall_UpdateIboot( );
+    #endif
+    //end loader
+
+    //message queue
     extern bool_t ModuleInstall_MsgQ(void);
     ModuleInstall_MsgQ ( );
+    //end message queue
 
-    extern bool_t ModuleInstall_IICBus(void);
-    ModuleInstall_IICBus ( );
-
+    //multiplex
     extern bool_t ModuleInstall_Multiplex(void);
     ModuleInstall_Multiplex ();
+    //end multiplex
 
-    #if !defined (CFG_RUNMODE_BAREAPP)
-    extern ptu32_t ModuleInstall_IAP(void);
-    ModuleInstall_IAP( );
-    #endif
+    //djybus
+    extern bool_t ModuleInstall_DjyBus(void);
+    ModuleInstall_DjyBus ( );
+    //end djybus
 
+    //iicbus
+    extern bool_t ModuleInstall_IICBus(void);
+    ModuleInstall_IICBus ( );
+    //end iicbus
+
+    //cpu onchip iic
     #if CFG_I2C1_ENABLE==1
     extern bool_t IIC1_Init(void);
     IIC1_Init();
@@ -60,94 +129,94 @@ void Sys_ModuleInit(void)
     extern bool_t IIC2_Init(void);
     IIC2_Init();
     #endif
+    //end cpu onchip iic
 
-    extern ptu32_t ModuleInstall_UART(u32 serial_no);
-    #if CFG_UART1_ENABLE ==1
-    ModuleInstall_UART(CN_UART1);
-    #endif
-    #if CFG_UART2_ENABLE ==1
-    ModuleInstall_UART(CN_UART2);
-    #endif
-    #if CFG_UART3_ENABLE ==1
-    ModuleInstall_UART(CN_UART3);
-    #endif
-    #if CFG_UART4_ENABLE ==1
-    ModuleInstall_UART(CN_UART4);
-    #endif
-    #if CFG_UART5_ENABLE ==1
-    ModuleInstall_UART(CN_UART5);
-    #endif
-
-    //-------------------medium-------------------------//
-    extern ptu32_t ModuleInstall_Charset(ptu32_t para);
-    ModuleInstall_Charset(0);
-    extern void ModuleInstall_CharsetNls(const char * DefaultCharset);
-    ModuleInstall_CharsetNls("C");
-
-    extern bool_t ModuleInstall_CharsetAscii(void);
-    ModuleInstall_CharsetAscii ( );
-
+    //----------------------------medium----------------------------//
+    //font
     extern bool_t ModuleInstall_Font(void);
     ModuleInstall_Font ( );
+    //end font
 
-    extern void ModuleInstall_FontAscii(void);
-    ModuleInstall_FontAscii();
-
+    //graphical kernel
     extern bool_t ModuleInstall_GK(void);
     ModuleInstall_GK();
+    //end graphical kernel
 
-    extern bool_t ModuleInstall_HmiIn(void);
-    ModuleInstall_HmiIn();      //初始化人机界面输入模块
+    //graphical decorate development
+    extern void ModuleInstall_Gdd_AND_Desktop(void);
+    ModuleInstall_Gdd_AND_Desktop();
+    //end graphical decorate development
 
+    //kernel
     #if(CFG_OS_TINY == flase)
     extern s32 kernel_command(void);
     kernel_command();
     #endif
+    //end kernel
 
-    extern void ModuleInstall_LowPower (void);
-    ModuleInstall_LowPower();
+    //Nls Charset
+    extern ptu32_t ModuleInstall_Charset(ptu32_t para);
+    ModuleInstall_Charset(0);
+    extern void ModuleInstall_CharsetNls(const char * DefaultCharset);
+    ModuleInstall_CharsetNls("C");
+    //end Nls Charset
 
-    extern bool_t ModuleInstall_Touch(void);
-    ModuleInstall_Touch();    //初始化人机界面输入模块
+    //ascii charset
+    extern bool_t ModuleInstall_CharsetAscii(void);
+    ModuleInstall_CharsetAscii ( );
+    //end ascii charset
 
+    //ascii dot font
+    extern void ModuleInstall_FontAscii(void);
+    ModuleInstall_FontAscii();
+    //end ascii dot font
+
+    //LCD driver ili9325
     extern ptu32_t ModuleInstall_ili9325(void);
     ModuleInstall_ili9325();
+    //end LCD driver ili9325
 
-    //-------------------later-------------------------//
-    extern void ModuleInstall_Gdd_AND_Desktop(void);
-    ModuleInstall_Gdd_AND_Desktop();
+    //human machine interface
+    extern bool_t ModuleInstall_HmiIn(void);
+    ModuleInstall_HmiIn();      //初始化人机界面输入模块
+    //end human machine interface
 
+    //touch
+    extern bool_t ModuleInstall_Touch(void);
+    ModuleInstall_Touch();    //初始化人机界面输入模块
+    //end touch
+
+    //----------------------------later----------------------------//
+    //stdio
     #if(CFG_STDIO_STDIOFILE == true)
     extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
     ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
     #endif
+    //end stdio
 
+    //stmpe811
     struct GkWinObj;
-    extern ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop);
-    extern struct GkWinObj *GK_GetDesktop(const char *display_name);
-    struct GkWinObj *stmpe811_desktop;
-    stmpe811_desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
-    if(NULL == stmpe811_desktop)
-    {
-    printf("stmpe811_desktop Not Exist !\r\n");
-    }
-    else
-    {
-    ModuleInstall_Touch_Stmpe811(stmpe811_desktop);
-    }
+    extern ptu32_t ModuleInstall_Touch_Stmpe811(void);
+    ModuleInstall_Touch_Stmpe811( );
+    #if(CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == true)
     extern bool_t GDD_AddInputDev(const char *InputDevName);
     GDD_AddInputDev(CFG_STMPE811_TOUCH_DEV_NAME);
+    #endif
+    //end stmpe811
 
-    evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
-    __djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");
+    evtt_main = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
+        __djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");
     //事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数
-    Djy_EventPop(evtt_main,NULL,0,NULL,0,0);
+    DJY_EventPop(evtt_main,NULL,0,0,0,0);
 
+    //heap
     #if ((CFG_DYNAMIC_MEM == true))
     extern bool_t Heap_DynamicModuleInit(void);
     Heap_DynamicModuleInit ( );
     #endif
+    //end heap
+
+
 
     return ;
 }
-
