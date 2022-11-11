@@ -140,6 +140,7 @@ if (debuglevel >= (CN_EMERG)) \
 
 
 bool_t DbugSetPrintfLevel(u32 Level);
+u32 DbugGetPrintfLevel(void);
 
 
 #ifdef __cplusplus
