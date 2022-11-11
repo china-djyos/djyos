@@ -97,4 +97,15 @@ bool_t ShellDbugSetPrintfLevel(char *param)
     return true;
 }
 
+// ============================================================================
+// 功能：获取设备的打印等级
+// 参数：无
+// 返回：当前的打印等级
+// 备注：
+// ============================================================================
+u32 DbugGetPrintfLevel(void)
+{
+    return debuglevel;
+}
+
 ADD_TO_ROUTINE_SHELL(DebugLevel, ShellDbugSetPrintfLevel, "修改设备的打印等级，范围(0 ~ 7)");

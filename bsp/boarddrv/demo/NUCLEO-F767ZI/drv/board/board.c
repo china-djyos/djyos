@@ -190,6 +190,9 @@ static const Pin iic4_pin[] = {
         {GPIO_H,PIN11,GPIO_MODE_AF,GPIO_OTYPE_OD,GPIO_SPEED_VH,GPIO_PUPD_PU,AF4},
  };
 
+static const Pin Key_pin[] = {
+        {GPIO_C,PIN13,GPIO_MODE_IN,GPIO_OTYPE_OD,GPIO_SPEED_VH,GPIO_PUPD_PD},//KEY_0
+};
 // ============================================================================
 // 功能：设置串口编号为SerialNo的串口为半双功发送功能
 // 参数：SerialNo,串口号
@@ -266,6 +269,7 @@ void Board_Init(void)
      PIO_Configure(EthRmiiPins,PIO_LISTSIZE(EthRmiiPins));      //UART1
 
 //   PIO_Configure(spi1_pin, PIO_LISTSIZE(spi1_pin));      //SPI1
+     PIO_Configure(Key_pin,PIO_LISTSIZE(Key_pin));  //KEY
 
 //=====================IIC GPIO初始化===================================//
 //对于没有片选和使能引脚的IIC从器件当CPU复位发生在IIC读的过程中就有可能发生总线被占死如：qh_1的stmpe811
@@ -280,4 +284,9 @@ void Board_Init(void)
 bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level)
 {
     return true;
+}
+
+unsigned char GetUserBtnStatus(void)
+{
+    return PIO_Get(&Key_pin[0]);
 }
