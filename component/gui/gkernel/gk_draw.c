@@ -879,7 +879,7 @@ void __GK_GetRgbBm(u16 PixelFormat,u32 color,u32 *a,u32 *r,
 //      dst的格式如果调色板类型，混合后的返回值是RGB24格式的，因为混合后的颜色可
 //          能不在颜色表中。
 //      dst的格式如果是灰度图，混合后的颜色再计算亮度输出。
-//参数: SrcColor,DstColor，待混合的色彩
+//参数: SrcColor,DstColor，待混合的色彩，符合参数 PixelFormat 格式
 //      PixelFormat, 色彩的格式
 //      ExColor,双功能参数，如果PixelFormat=CN_SYS_PF_GRAY1~8，或者PixelFormat=
 //          CN_SYS_PF_ALPHA1~8，则ExColor表示基色。
@@ -1461,7 +1461,7 @@ void __GK_ShadingPixel(struct GkWinObj *gkwin,s32 x,s32 y)
     msk_y = y/8;       //计算y在msk位图中第几行
     //将像素所在的changed_msk中的bit置为1
     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,msk_y,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                1,CN_R2_COPYPEN);
     return;
 }
 
@@ -1500,7 +1500,7 @@ void __GK_ShadingRect(struct GkWinObj *gkwin,struct Rectangle *rect)
     {
         for(x = msk_x1;x <= msk_x2;x++)
             __GK_SetPixelRop2Bm(&(gkwin->changed_msk),x,y,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                1,CN_R2_COPYPEN);
     }
 }
 
@@ -1541,7 +1541,7 @@ void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
         {
             //将changed_msk相应的bit置1
             __GK_SetPixelRop2Bm(&(gkwin->changed_msk),x,msk_y1,
-                                    CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                    1,CN_R2_COPYPEN);
         }
 
     }
@@ -1565,7 +1565,7 @@ void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
         {
             //将changed_msk相应的bit置1
             __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x1,y,
-                                    CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                    1,CN_R2_COPYPEN);
         }
     }
     else
@@ -1599,12 +1599,12 @@ void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
                     msk_y = y/8;    //计算y在msk位图中第几行
                     //将changed_msk相应的bit置1
                     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                         msk_y,1,CN_R2_COPYPEN);
                     //标志(msk_x，msk_y)下面的一个点
                     msk_y += 1;
                     //将changed_msk相应的bit置1
                     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                         msk_y,1,CN_R2_COPYPEN);
                 }
             }
             else
@@ -1626,12 +1626,12 @@ void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
                     msk_y = y/8;    //计算y在msk位图中第几行
                     //将changed_msk相应的bit置1
                     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                         msk_y,1,CN_R2_COPYPEN);
                     //标志(msk_x，msk_y)上面的一个点
                     msk_y -= 1;
                     //将changed_msk相应的bit置1
                     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                         msk_y,1,CN_R2_COPYPEN);
                 }
             }
         }else
@@ -1654,11 +1654,11 @@ void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
                     msk_y = y/8;    //计算y在msk位图中第几行
                     //将changed_msk相应的bit置1
                     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                         msk_y,1,CN_R2_COPYPEN);
                     msk_x += 1;
                     //将changed_msk相应的bit置1
                     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                         msk_y,1,CN_R2_COPYPEN);
                 }
             }
             else
@@ -1679,11 +1679,11 @@ void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
                     msk_y = y/8;    //计算y在msk位图中第几行
                     //将changed_msk相应的bit置1
                     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                         msk_y,1,CN_R2_COPYPEN);
                     msk_x -= 1;
                     //将changed_msk相应的bit置1
                     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                             msk_y,1,CN_R2_COPYPEN);
                 }
             }
         }
@@ -1846,7 +1846,7 @@ void __GK_VlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
         for(y = msk_y1;y <= msk_y2;y++)
         {   //将changed_msk相应的bit置1
             __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x1,y,
-                                    CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                    1,CN_R2_COPYPEN);
         }
     }
 }
@@ -1905,7 +1905,7 @@ void __GK_HlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
         for(x = msk_x1;x <= msk_x2;x++)
         {   //将changed_msk相应的bit置1
             __GK_SetPixelRop2Bm(&(gkwin->changed_msk),x,msk_y1,
-                                    CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                    1,CN_R2_COPYPEN);
         }
     }
 }
@@ -1959,12 +1959,12 @@ void __GK_OlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
                         msk_y = y/8;    //计算y在msk位图中第几行
                         //将changed_msk相应的bit置1
                         __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                             msk_y,1,CN_R2_COPYPEN);
                         //标志(msk_x，msk_y)下面的一个点
                         msk_y += 1;
                         //将changed_msk相应的bit置1
                         __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                             msk_y,1,CN_R2_COPYPEN);
                     }
                 }
                 else
@@ -1986,12 +1986,12 @@ void __GK_OlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
                         msk_y = y/8;    //计算y在msk位图中第几行
                         //将changed_msk相应的bit置1
                         __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                             msk_y,1,CN_R2_COPYPEN);
                         //标志(msk_x，msk_y)上面的一个点
                         msk_y -= 1;
                         //将changed_msk相应的bit置1
                         __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                             msk_y,1,CN_R2_COPYPEN);
                     }
                 }
             }else
@@ -2014,11 +2014,11 @@ void __GK_OlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
                         msk_y = y/8;    //计算y在msk位图中第几行
                         //将changed_msk相应的bit置1
                         __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                             msk_y,1,CN_R2_COPYPEN);
                         msk_x += 1;
                         //将changed_msk相应的bit置1
                         __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                             msk_y,1,CN_R2_COPYPEN);
                     }
                 }
                 else
@@ -2039,11 +2039,11 @@ void __GK_OlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
                         msk_y = y/8;    //计算y在msk位图中第几行
                         //将changed_msk相应的bit置1
                         __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                             msk_y,1,CN_R2_COPYPEN);
                         msk_x -= 1;
                         //将changed_msk相应的bit置1
                         __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                                 msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                                 msk_y,1,CN_R2_COPYPEN);
                     }
                 }
             }
@@ -2747,21 +2747,21 @@ void __gk_set_all_pixels_circle(struct GkWinObj *gkwin,
     __GK_SetPixelRop2Bm(bitmap,x0-y,y0-x,color,Rop2Code);
     //对8个像素点分别进行changed_msk标志
     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0+x)/8,(y0+y)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                1,CN_R2_COPYPEN);
     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0+x)/8,(y0-y)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                1,CN_R2_COPYPEN);
     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0-x)/8,(y0+y)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                1,CN_R2_COPYPEN);
     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0-x)/8,(y0-y)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                1,CN_R2_COPYPEN);
     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0+y)/8,(y0+x)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                1,CN_R2_COPYPEN);
     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0+y)/8,(y0-x)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                1,CN_R2_COPYPEN);
     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0-y)/8,(y0+x)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                1,CN_R2_COPYPEN);
     __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0-y)/8,(y0-x)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                1,CN_R2_COPYPEN);
 }
 //----绘制目标点并着色---------------------------------------------------------
 //功能: 绘制目标点，同时标志changed_msk。
@@ -2782,7 +2782,7 @@ void __gk_pixel_sect_inter(struct GkWinObj *gkwin,struct Rectangle *limit,
     {//待绘制的目标点在限制区内，画点并标志changed_msk
         __GK_SetPixelRop2Bm(bitmap,x,y,color,Rop2Code);
         __GK_SetPixelRop2Bm(&(gkwin->changed_msk),x/8,y/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+                                1,CN_R2_COPYPEN);
     }
     else    //待绘制的目标点在限制区外，直接返回
         return;

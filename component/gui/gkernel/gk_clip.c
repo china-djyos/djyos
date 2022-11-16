@@ -919,7 +919,8 @@ error_exit:
 
 
 //----剪切域队列中增加一个节点-------------------------------------------------
-//功能: 把clip加入到队列clip_link中，新结点放在clip_link结点前面。
+//功能: 把clip加入到队列clip_link中，新结点放在clip_link结点前面。对于双向链表来说，
+//      往队列头的前面添加，等效于添加到队列尾部。
 //参数: clip_link，目标队列中的插入点
 //      clip，待插入的节点
 //返回: 无
@@ -1248,10 +1249,10 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
                             Mb_Free(g_ptClipRectPool,temp1);
                         }
                     }
-                   else
-                   {
-                        workloop = workloop->next;
-                   }
+//                 else
+//                 {
+//                      workloop = workloop->next;
+//                 }
                 }
                 else           //矩形不相交
                 {

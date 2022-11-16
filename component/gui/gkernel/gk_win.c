@@ -1883,7 +1883,7 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
             //先PEND一次信号量，防止事先已经被释放过
             Lock_SempPend(g_ptGkServerSync,0);
             DJY_RaiseTempPrio(g_u16GkServerEvent);
-            DJY_EventDelay(0);
+            DJY_EventDelay(0);      //跑一跑，腾出一些空间即可，无须使用信号量
 //          Lock_SempPend(g_ptGkServerSync,sync_time);
             DJY_SetEventPrio(g_u16GkServerEvent, 249);
 

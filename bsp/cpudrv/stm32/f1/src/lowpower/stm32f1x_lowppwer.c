@@ -185,12 +185,20 @@ void __LP_BSP_EntrySleep(u8 sleep_level, u32 pend_ticks)
             //    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
             __Int_ClearAllLine();
             HAL_PWR_EnableSEVOnPend();
-            HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
+            /* Clear SLEEPDEEP bit of Cortex System Control Register */
+            CLEAR_BIT(SCB->SCR, ((uint32_t)SCB_SCR_SLEEPDEEP_Msk));
+            __WFE();
+//            HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
             break;
         case CN_SLEEP_L1:
             __Int_ClearAllLine();
             HAL_PWR_EnableSEVOnPend();
-            HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFE);
+            CLEAR_BIT(PWR->CR,  PWR_CR_PDDS);
+            MODIFY_REG(PWR->CR, PWR_CR_LPDS, PWR_LOWPOWERREGULATOR_ON);
+            SET_BIT(SCB->SCR, ((uint32_t)SCB_SCR_SLEEPDEEP_Msk));
+            __WFE();
+            __asm volatile( "nop" );
+//          HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFE);
             break;
         case CN_SLEEP_L2:
             //½ûÖ¹ÖÐ¶Ï

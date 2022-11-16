@@ -193,8 +193,8 @@ struct in_addr  {
 };
 struct sockaddr_in {
      sa_family_t sin_family;             /* AF_INET */
-     in_port_t sin_port;                 // remote Port number.  sa_data[0~1]
-     struct in_addr sin_addr;            // remote IP. sa_data[2~5]
+     in_port_t sin_port;                 // Port number.  sa_data[0~1]
+     struct in_addr sin_addr;            // IP. sa_data[2~5]
 
      /* Pad to size of `struct sockaddr'.  */
      unsigned char sin_zero[8];

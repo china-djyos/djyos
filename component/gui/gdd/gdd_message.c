@@ -507,6 +507,8 @@ void __GDD_PostCloseMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd)
 static void __GDD_PostRefreshMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd)
 {
     __GDD_InitMsg(&pMsgQ->refresh_msg, hwnd, MSG_SYNC_DISPLAY, 0, 0);
+    //发送消息信号量
+    Lock_SempPost(pMsgQ->sem_msg);
     return ;
 }
 
