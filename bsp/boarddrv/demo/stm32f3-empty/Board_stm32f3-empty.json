@@ -16,7 +16,7 @@
 			"cpu_peri_systime",
 			"cpu_peri_timer",
 			"cpu_peri_uart"],
-			"mian_freq":0,
+			"main_freq":0,
 			"memories":{
 				"memory1":{
 					"size":"0x2000",

@@ -18,7 +18,7 @@
 			"cpu_peri_uart",
 			"cpu_peri_wdt",
 			"cpu_peri_hal"],
-			"mian_freq":0,
+			"main_freq":0,
 			"memories":{
 				
 			}
