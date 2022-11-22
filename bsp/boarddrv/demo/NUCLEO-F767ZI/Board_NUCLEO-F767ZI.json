@@ -21,7 +21,7 @@
 			"cpu_peri_uart",
 			"usbh_conf",
 			"cpu_peri_hal"],
-			"mian_freq":0,
+			"main_freq":0,
 			"memories":{
 				"memory1":{
 					"size":null,
