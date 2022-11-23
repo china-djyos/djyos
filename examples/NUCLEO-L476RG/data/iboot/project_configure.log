@@ -100,7 +100,7 @@
 #define    CFG_MODULE_ENABLE_STDIO         true
 //*******************************  Configure uart device file  ******************************************//
 #define    CFG_MODULE_ENABLE_UART_DEVICE_FILE  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Core Clock  ******************************************//
 #define  CFG_CORE_MCLK                   (12*Mhz)          //主频，内核要用，必须定义
@@ -223,7 +223,7 @@
 #define    CFG_MODULE_ENABLE_STDIO         true
 //*******************************  Configure uart device file  ******************************************//
 #define    CFG_MODULE_ENABLE_UART_DEVICE_FILE  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Core Clock  ******************************************//
 #define  CFG_CORE_MCLK                   (12*Mhz)          //主频，内核要用，必须定义
@@ -299,7 +299,7 @@
 #define    CFG_MODULE_ENABLE_RING_BUFFER_AND_LINE_BUFFER  true
 //*******************************  Configure cpu onchip peripheral lowpower control  ******************************************//
 #define    CFG_MODULE_ENABLE_CPU_ONCHIP_PERIPHERAL_LOWPOWER_CONTROL  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096     // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了

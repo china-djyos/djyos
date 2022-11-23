@@ -48,7 +48,7 @@
 #define    CFG_MODULE_ENABLE_CPU_ONCHIP_DMA  true
 //*******************************  Configure cpu onchip gpio  ******************************************//
 #define    CFG_MODULE_ENABLE_CPU_ONCHIP_GPIO  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096     // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了

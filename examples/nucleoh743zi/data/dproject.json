@@ -46,7 +46,7 @@
 		"shell",
 		"sock",
 		"stdio",
-		"STM32 commond code",
+		"STM32 common code",
 		"stm32h7",
 		"tcp",
 		"tcpip",
@@ -78,7 +78,7 @@
 		"ring buffer and line buffer",
 		"shell",
 		"stdio",
-		"STM32 commond code",
+		"STM32 common code",
 		"stm32h7",
 		"time",
 		"uart device file"]
