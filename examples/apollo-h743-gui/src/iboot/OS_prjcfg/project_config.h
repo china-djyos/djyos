@@ -51,7 +51,7 @@
 #define CFG_RNG_NUM_MAX      65535          // "随机数最大值",
 #define CFG_RNG_NUM_MIN      1024           // "随机数最小值",
 #define    CFG_MODULE_ENABLE_CPU_ONCHIP_RANDOM  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure djybus  ******************************************//
 #define    CFG_MODULE_ENABLE_DJYBUS        true

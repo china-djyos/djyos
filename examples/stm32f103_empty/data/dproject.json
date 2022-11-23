@@ -34,7 +34,7 @@
 		"ring buffer and line buffer",
 		"shell",
 		"stdio",
-		"STM32 commond code",
+		"STM32 common code",
 		"stm32f1",
 		"uart device file"],
 		"iboot":["black box",
@@ -57,7 +57,7 @@
 		"ring buffer and line buffer",
 		"shell",
 		"stdio",
-		"STM32 commond code",
+		"STM32 common code",
 		"stm32f1",
 		"uart device file"]
 	}

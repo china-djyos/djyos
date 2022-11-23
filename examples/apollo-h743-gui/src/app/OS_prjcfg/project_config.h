@@ -34,7 +34,7 @@
 #define    CFG_MODULE_ENABLE_MULTIPLEX     true
 //*******************************  Configure cpu onchip gpio  ******************************************//
 #define    CFG_MODULE_ENABLE_CPU_ONCHIP_GPIO  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure djybus  ******************************************//
 #define    CFG_MODULE_ENABLE_DJYBUS        true

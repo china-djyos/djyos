@@ -40,7 +40,7 @@
 		"stm32f4",
 		"time",
 		"uart device file",
-		"STM32 commond code"],
+		"STM32 common code"],
 		"iboot":["black box",
 		"board config",
 		"cpu onchip dma",
@@ -73,6 +73,6 @@
 		"tcpip",
 		"time",
 		"uart device file",
-		"STM32 commond code"]
+		"STM32 common code"]
 	}
 }

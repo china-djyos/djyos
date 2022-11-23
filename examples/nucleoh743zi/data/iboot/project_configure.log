@@ -33,7 +33,7 @@
 #define    CFG_MODULE_ENABLE_MEMORY_POOL   true
 //*******************************  Configure ring buffer and line buffer  ******************************************//
 #define    CFG_MODULE_ENABLE_RING_BUFFER_AND_LINE_BUFFER  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure cpu drive inner flash  ******************************************//
 #define CFG_EFLASH_PART_FORMAT     false      //分区选项,是否需要擦除该芯片。
@@ -195,7 +195,7 @@
 #define    CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP  true
 //*******************************  Configure cpu onchip gpio  ******************************************//
 #define    CFG_MODULE_ENABLE_CPU_ONCHIP_GPIO  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096     // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
@@ -341,7 +341,7 @@
 #define    CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP  true
 //*******************************  Configure cpu onchip gpio  ******************************************//
 #define    CFG_MODULE_ENABLE_CPU_ONCHIP_GPIO  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096      // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
@@ -488,7 +488,7 @@
 #define    CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP  true
 //*******************************  Configure cpu onchip gpio  ******************************************//
 #define    CFG_MODULE_ENABLE_CPU_ONCHIP_GPIO  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096       // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
@@ -635,7 +635,7 @@
 #define    CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP  true
 //*******************************  Configure cpu onchip gpio  ******************************************//
 #define    CFG_MODULE_ENABLE_CPU_ONCHIP_GPIO  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096        // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
@@ -843,7 +843,7 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART2"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART2"    //
 #define    CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8      //北京时间是东8区
@@ -929,7 +929,7 @@
 #define    CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP  true
 //*******************************  Configure cpu onchip gpio  ******************************************//
 #define    CFG_MODULE_ENABLE_CPU_ONCHIP_GPIO  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096     // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
@@ -1137,7 +1137,7 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART2"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART2"    //
 #define    CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8      //北京时间是东8区
@@ -1284,7 +1284,7 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART2"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART2"    //
 #define    CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8      //北京时间是东8区
@@ -1431,7 +1431,7 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART2"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART2"    //
 #define    CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8      //北京时间是东8区
@@ -1518,7 +1518,7 @@
 #define    CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP  true
 //*******************************  Configure cpu onchip gpio  ******************************************//
 #define    CFG_MODULE_ENABLE_CPU_ONCHIP_GPIO  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096     // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
@@ -1727,7 +1727,7 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART2"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART2"    //
 #define    CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8      //北京时间是东8区
@@ -1814,7 +1814,7 @@
 #define    CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP  true
 //*******************************  Configure cpu onchip gpio  ******************************************//
 #define    CFG_MODULE_ENABLE_CPU_ONCHIP_GPIO  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096     // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
