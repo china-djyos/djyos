@@ -49,7 +49,7 @@
 		"shell",
 		"Software Timers",
 		"stdio",
-		"STM32 commond code",
+		"STM32 common code",
 		"stm32f4",
 		"tcp",
 		"tcpip",
@@ -59,7 +59,7 @@
 		"udp",
 		"xip iboot file system",
 		"yaf2 file system",
-		"STM32 commond code"],
+		"STM32 common code"],
 		"iboot":[]
 	}
 }

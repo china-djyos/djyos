@@ -165,7 +165,7 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART1"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART1"    //
 #define    CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8      //北京时间是东8区
@@ -360,7 +360,7 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART1"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART1"    //
 #define    CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8      //北京时间是东8区
@@ -555,7 +555,7 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART1"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART1"    //
 #define    CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8      //北京时间是东8区
@@ -750,7 +750,7 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART1"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART1"    //
 #define    CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8      //北京时间是东8区
@@ -945,7 +945,7 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART1"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART1"    //
 #define    CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8      //北京时间是东8区

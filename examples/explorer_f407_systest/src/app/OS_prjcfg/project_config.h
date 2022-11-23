@@ -176,7 +176,7 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART1"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART1"    //
 #define  CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define  CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure tcp  ******************************************//
 #define     CFG_TCP_REORDER             true    //资源充足才打开
@@ -207,7 +207,7 @@
 #define CFG_YAF_INSTALL_OPTION           MS_INSTALLCREAT            //YAF文件系统安装选项，安装时是否格式化整个文件系统；
 #define CFG_YAF_MOUNT_POINT              "yaf2"               //YAF文件系统安装目录
 #define  CFG_MODULE_ENABLE_YAF2_FILE_SYSTEM  true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define  CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //******************************* Core Clock ******************************************//
 #define  CFG_CORE_MCLK                   (168*Mhz)         //主频，内核要用，必须定义
