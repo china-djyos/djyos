@@ -33,10 +33,10 @@ static ptu32_t HmiCreateMove(struct WindowMsg  *pMsg)
     y2_inc =1;
     bMoveMainWin=FALSE;
     GDD_GetClientRect(hwnd,&rc);
-    hwnd_BTN1 =Widget_CreateButton("关闭1",WS_CHILD|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc)-64,GDD_RectH(&rc)-28,60,24,hwnd,ID_CLOSE,NULL,NULL);
-    hwnd_BTN2 =Widget_CreateButton("关闭2",WS_CHILD|WS_BORDER|WS_VISIBLE,10,34,100,50,hwnd,ID_CLOSE,NULL,NULL);
+    hwnd_BTN1 =Widget_CreateButton("关闭1",WS_WIDGET|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc)-64,GDD_RectH(&rc)-28,60,24,hwnd,ID_CLOSE,NULL,NULL);
+    hwnd_BTN2 =Widget_CreateButton("关闭2",WS_WIDGET|WS_BORDER|WS_VISIBLE,10,34,100,50,hwnd,ID_CLOSE,NULL,NULL);
 
-    Widget_CreateButton("移动主窗口",WS_CHILD|BS_HOLD|WS_VISIBLE|WS_BORDER,4,GDD_RectH(&rc)-28,100,54,hwnd,ID_MOVE_1,NULL,NULL);
+    Widget_CreateButton("移动主窗口",WS_WIDGET|BS_HOLD|WS_VISIBLE|WS_BORDER,4,GDD_RectH(&rc)-28,100,54,hwnd,ID_MOVE_1,NULL,NULL);
     timer = GDD_CreateTimer(hwnd,0,200);
     GDD_StartTimer(timer);
     timer = GDD_CreateTimer(hwnd,1,150);

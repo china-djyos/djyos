@@ -1542,7 +1542,7 @@ void __Heap_WaitMemoryStack(struct EventECB *event,u32 size)
 //   ×÷Õß: ÂÞÊÌÌï
 //-----------------------------------------------------------------------------
 extern void __Heap_WaitMemoryStack(struct EventECB *event,u32 size);
-bool_t __DJY_RaiseTempPrioForStack(u16 event_id);
+bool_t __DJY_RaiseTempPrioForStack(struct EventECB *event);
 void __DJY_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status);
 void *__Heap_MallocStack(struct EventECB *event, u32 size)
 {
@@ -1565,7 +1565,7 @@ void *__Heap_MallocStack(struct EventECB *event, u32 size)
     {
         if(Lock_MutexQuery(&tg_pSysHeap->HeapMutex) == false)
         {
-            __DJY_RaiseTempPrioForStack(tg_pSysHeap->HeapMutex.owner->event_id);
+            __DJY_RaiseTempPrioForStack(tg_pSysHeap->HeapMutex.owner);
             __DJY_AddToBlockForStack(&s_ptStackSync,CN_BLOCK_PRIO,CN_STS_WAIT_MUTEX);
             result = NULL;
         }

@@ -171,24 +171,36 @@ void GDD_HmiInput(void)
                     if((TouchMsg->MoveX ==0) && (TouchMsg->MoveY ==0))
                     {
                         if(NC)
+                        {
                             Touch_Msg = MSG_NCTOUCH_DOWN;
+                        }
                         else
+                        {
                             Touch_Msg = MSG_TOUCH_DOWN;
+                        }
                     }
                     else
                     {
                         if(NC)
+                        {
                             Touch_Msg = MSG_NCTOUCH_MOVE;
+                        }
                         else
+                        {
                             Touch_Msg = MSG_TOUCH_MOVE;
+                        }
                     }
                 }
                 else        //touchÀë¿ª
                 {
                     if(NC)
+                    {
                         Touch_Msg = MSG_NCTOUCH_UP;
+                    }
                     else
+                    {
                         Touch_Msg = MSG_TOUCH_UP;
+                    }
                 }
                 GDD_PostMessage(hwnd, Touch_Msg,
                             ((u16)(TouchMsg->MoveY) << 16) | (u16)(TouchMsg->MoveX),

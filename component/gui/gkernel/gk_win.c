@@ -109,7 +109,7 @@ struct GkWinObj *g_ptZ_Topmost;
 //struct SemaphoreLCB *g_ptUsercallSemp;
 //如果调用方希望gui kernel服务完成再返回，使用这个信号量
 struct SemaphoreLCB *g_ptSyscallSemp;
-struct SemaphoreLCB *g_ptGkServerSync;
+//struct MutexLCB *g_ptGkServerSync;
 
 u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr);
 
@@ -138,8 +138,8 @@ bool_t ModuleInstall_GK(void)
 
     g_tGkChunnel.usercall_msgq = MsgQ_Create(CN_USERCALL_MSGQ_SIZE,CN_USERCALL_MSG_SIZE,0);
 
-//  g_ptGkServerSync = Lock_MutexCreate("gk server sync");
-    g_ptGkServerSync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk server sync");
+//    g_ptGkServerSync = Lock_MutexCreate("gk server sync");
+//  g_ptGkServerSync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk server sync");
 //  g_ptUsercallSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk wait repaint");
     g_ptSyscallSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk wait job");
     g_u16GkServerEvtt = DJY_EvttRegist(EN_CORRELATIVE,249,0,0,__GK_Server,
@@ -161,7 +161,7 @@ bool_t ModuleInstall_GK(void)
         || (g_u16GkUsercallServerEvent == CN_EVENT_ID_INVALID)
         || (g_ptSyscallSemp == NULL)
 //      || (g_ptUsercallSemp == NULL)
-        || (g_ptGkServerSync == NULL)
+//        || (g_ptGkServerSync == NULL)
         || (g_tGkChunnel.usercall_semp == NULL)
 //      || (g_tGkChunnel.syscall_semp == NULL)
         || (g_tGkChunnel.syscall_mutex == NULL)
@@ -178,8 +178,8 @@ exit_error:
     DJY_EvttUnregist(g_u16GkUsercallServerEvtt);
     Lock_SempDelete(g_ptSyscallSemp);
 //  Lock_SempDelete(g_ptUsercallSemp);
-    Lock_SempDelete(g_ptGkServerSync);
-//  Lock_MutexDelete(g_ptGkServerSync);
+//  Lock_SempDelete(g_ptGkServerSync);
+//    Lock_MutexDelete(g_ptGkServerSync);
     Lock_SempDelete(g_tGkChunnel.usercall_semp);
 //  Lock_SempDelete(g_tGkChunnel.syscall_semp);
     Lock_MutexDelete(g_tGkChunnel.syscall_mutex);
@@ -1857,6 +1857,7 @@ void __gk_RefreshDisplay(struct DisplayObj *Display)
 //      size，参数长度
 //返回: 实际写入管道的数据量，0或者size。
 //-----------------------------------------------------------------------------
+extern bool_t WaitGkDraw(u32 timeout);
 u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
                                                 void *param2,u16 size2)
 {
@@ -1865,71 +1866,63 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
     u32 base_time,rel_timeout = sync_time;
     base_time = (u32)DJY_GetSysTime();
     //管道访问互斥，用于多个上层应用并发调用之间的互斥
-    Lock_MutexPend(g_tGkChunnel.syscall_mutex,rel_timeout);
-    while(1)
+    if(Lock_MutexPend(g_tGkChunnel.syscall_mutex,rel_timeout))
     {
-        if((Ring_Capacity(&g_tGkChunnel.ring_syscall)
-                    - Ring_Check(&g_tGkChunnel.ring_syscall)) <(u32)(size1+size2+4))
+        while(1)
         {
-            //管道容量不足，先执行管道内的命令：提升gkserver的优先级，令其立即执行，因
-            //本线程也处于就绪态，gkserver在执行一个时间片后将返回，此时不管是否执行完毕，
-            //都把gkserver线程恢复低优先级。
+            if((Ring_Capacity(&g_tGkChunnel.ring_syscall)
+                        - Ring_Check(&g_tGkChunnel.ring_syscall)) <(u32)(size1+size2+4))
+            {
+                //管道容量不足，先执行管道内的命令：提升gkserver的优先级，令其立即执行，因
+                //本线程也处于就绪态，gkserver在执行一个时间片后将返回，此时不管是否执行完毕，
+                //都把gkserver线程恢复低优先级。
 
-            //上层应用多次下发命令后，gk_server将一次处理，条件判一下，避免gk_server
-            //空转
+                //上层应用多次下发命令后，gk_server将一次处理，条件判一下，避免gk_server
+                //空转
+                if(Lock_SempQueryFree(g_ptSyscallSemp) == 0)
+                    Lock_SempPost(g_ptSyscallSemp);
+                WaitGkDraw(1);
+
+                continue;       //再次检查管道容量
+            }
+            buf[0] = (u8)command;
+            buf[1] = (u8)(command>>8);
+            buf[2] = (u8)((size1+size2)&0xff);
+            buf[3] = (u8)(((size1+size2)>>8)&0xff);
+
+            completed = Ring_Write(&g_tGkChunnel.ring_syscall,buf,4);
+            if(size1 != 0)
+                completed += Ring_Write(&g_tGkChunnel.ring_syscall,param1,size1);
+            if(size2 != 0)
+                completed += Ring_Write(&g_tGkChunnel.ring_syscall,param2,size2);
+            break;
+        }
+        if(DJY_IsMultiEventStarted())
+        {
+            //上层应用多次下发命令后，gk_server将一次处理，条件判一下，避免多次post导致
+            //gk_server被反复激活
             if(Lock_SempQueryFree(g_ptSyscallSemp) == 0)
                 Lock_SempPost(g_ptSyscallSemp);
-
-            //先PEND一次信号量，防止事先已经被释放过
-            Lock_SempPend(g_ptGkServerSync,0);
-            DJY_RaiseTempPrio(g_u16GkServerEvent);
-            DJY_EventDelay(0);      //跑一跑，腾出一些空间即可，无须使用信号量
-//          Lock_SempPend(g_ptGkServerSync,sync_time);
-            DJY_SetEventPrio(g_u16GkServerEvent, 249);
-
-            continue;       //再次检查管道容量
-        }
-        buf[0] = (u8)command;
-        buf[1] = (u8)(command>>8);
-        buf[2] = (u8)((size1+size2)&0xff);
-        buf[3] = (u8)(((size1+size2)>>8)&0xff);
-
-        completed = Ring_Write(&g_tGkChunnel.ring_syscall,buf,4);
-        if(size1 != 0)
-            completed += Ring_Write(&g_tGkChunnel.ring_syscall,param1,size1);
-        if(size2 != 0)
-            completed += Ring_Write(&g_tGkChunnel.ring_syscall,param2,size2);
-        break;
-    }
-    if(DJY_IsMultiEventStarted())
-    {
-        //上层应用多次下发命令后，gk_server将一次处理，条件判一下，避免gk_server
-        //空转
-        if(Lock_SempQueryFree(g_ptSyscallSemp) == 0)
-            Lock_SempPost(g_ptSyscallSemp);
-        if(0 != sync_time)      //设定了等待时间
-        {
-            //先PEND一次信号量，防止事先已经被释放过
-            Lock_SempPend(g_ptGkServerSync,0);
-            DJY_RaiseTempPrio(g_u16GkServerEvent);
-            rel_timeout = (u32)DJY_GetSysTime() - base_time;
-            if(rel_timeout < sync_time)
+            if(0 != sync_time)      //设定了等待时间
             {
-                rel_timeout = sync_time - rel_timeout;
-                Lock_SempPend(g_ptGkServerSync,rel_timeout);
-                DJY_SetEventPrio(g_u16GkServerEvent, 249);
+                rel_timeout = (u32)DJY_GetSysTime() - base_time;
+                if(rel_timeout < sync_time)
+                {
+                    rel_timeout = sync_time - rel_timeout;
+                    WaitGkDraw(rel_timeout);
+                }
             }
         }
+        else
+        {
+            completed =  Ring_Read(&g_tGkChunnel.ring_syscall,(u8*)draw_chunnel_buf,
+                                            CFG_GKERNEL_CMD_DEEP);
+            __ExecOneCommand(command,(u8 *)draw_chunnel_buf+4);
+        }
+        Lock_MutexPost(g_tGkChunnel.syscall_mutex);    //管道访问互斥解除
     }
     else
-    {
-        completed =  Ring_Read(&g_tGkChunnel.ring_syscall,(u8*)draw_chunnel_buf,
-                                        CFG_GKERNEL_CMD_DEEP);
-        if(completed!=2+size2+size2)
-            printf("__GK_SyscallChunnel :test error \n\r");
-        __ExecOneCommand(command,(u8 *)draw_chunnel_buf+4);
-    }
-    Lock_MutexPost(g_tGkChunnel.syscall_mutex);    //管道访问互斥解除
+        completed = 0;
     return completed;
 }
 #pragma GCC diagnostic push
@@ -2183,6 +2176,43 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
 //    }
 //}
 
+struct EventECB  *g_ptServerEvent,*g_ptGuiAppWaiting = NULL;
+void AppContinue(void)
+{
+    Int_SaveAsynSignal();
+    if(g_ptGuiAppWaiting != NULL)     //gui app 等待中
+    {
+        if(g_ptGuiAppWaiting->event_status & CN_STS_SYNC_TIMEOUT)
+            __DJY_ResumeDelay(g_ptGuiAppWaiting);    //如果事件在超时等待队列中，取出
+        g_ptGuiAppWaiting->event_status = CN_STS_EVENT_READY;
+        g_ptGuiAppWaiting->wakeup_from = CN_STS_WAIT_GKDRAW;
+        __DJY_RestorePrio( g_ptEventRunning );
+        __DJY_EventReady(g_ptGuiAppWaiting);
+        g_ptGuiAppWaiting = NULL;
+    }
+    Int_RestoreAsynSignal();
+}
+
+bool_t WaitGkDraw(u32 timeout)
+{
+    Int_SaveAsynSignal();
+    __DJY_AddRunningToBlock(&g_ptGuiAppWaiting,CN_BLOCK_PRIO,timeout,CN_STS_WAIT_GKDRAW);
+
+    //下面看看是否要做优先级继承
+    __DJY_FollowUpPrio(g_ptServerEvent);
+    Int_RestoreAsynSignal();  //恢复中断，将触发上下文切换
+    //检查从哪里返回，是超时还是同步事件完成。
+    if(g_ptEventRunning->wakeup_from & CN_STS_SYNC_TIMEOUT)
+    {//说明同步条件未到，从超时返回
+        __DJY_RestorePrio( g_ptServerEvent );
+        return false;
+    }else
+    {//说明是得到互斥量返回
+        return true;
+    }
+}
+
+
 //----gui kernel服务器---------------------------------------------------------
 //功能: 从缓冲区取出显示请求，并处理之。
 //参数: 无
@@ -2193,6 +2223,7 @@ ptu32_t __GK_Server(void)
     u16 command;
     u16 len;
     u32 num,offset,size;
+    g_ptServerEvent = g_ptEventRunning;
 
 //    Lock_MutexPend(g_ptGkServerSync,CN_TIMEOUT_FOREVER);
 //  DJY_SetEventPrio(249);
@@ -2205,14 +2236,11 @@ ptu32_t __GK_Server(void)
                                         CFG_GKERNEL_CMD_DEEP);
         if(num == 0)
         {
-            //所有命令均执行完后，检查有没有win buffer需要刷到screen上
-//            __gk_redraw_all();
-
-//          DJY_SetEventPrio(1);
+            AppContinue();
 //          Lock_MutexPost(g_ptGkServerSync);
 //          Lock_MutexPend(g_ptGkServerSync,CN_TIMEOUT_FOREVER);
-            Lock_SempPost(g_ptGkServerSync);
-            DJY_RestorePrio( );
+//          Lock_SempPost(g_ptGkServerSync);
+//          __DJY_RestorePrio( );
             Lock_SempPend(g_ptSyscallSemp,CN_TIMEOUT_FOREVER);
             continue;
         }

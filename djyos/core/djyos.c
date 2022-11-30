@@ -1399,22 +1399,16 @@ void __DJY_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status)
 }
 
 //----从ready事件继承优先级-----------------------------------------------------
-//功能: 如果 src_id 的优先级较高，event_id临时以 src_id 的优先级，运行，直到调用
+//功能: 如果 ready 的优先级较高，event_id临时以 ready 的优先级运行，直到调用
 //      DJY_RestorePrio，否则不改变优先级。本函数专用在创建线程时，从堆中分配栈的
-//      过程中，因为阻塞而需要优先级继承的情况。此时不是从 running 中继承优先级，
-//      而是从 ready 中继承。
-//参数: event_id，被操作的事件id
+//      过程中，因为tg_pSysHeap->HeapMutex被占用而阻塞，此时需要提高占用者的优先级
+//      至ready队列头部的优先级。待其内存分配完成，调用Lock_MutexPost时，将恢复优先级。
+//参数: pl_ecb，被操作的事件
 //返回: true = 成功设置，false=失败，一般是优先级不合法
 //注：本函数是分配 stack 的函数专用，在禁止调度条件下使用。
 //-----------------------------------------------------------------------------
-bool_t __DJY_RaiseTempPrioForStack(u16 event_id)
+bool_t __DJY_RaiseTempPrioForStack(struct EventECB *pl_ecb)
 {
-    struct EventECB * pl_ecb;
-
-    if(event_id >= CFG_EVENT_LIMIT)
-        return false;
-
-    pl_ecb = &g_tECB_Table[event_id];
     if(g_ptEventReady->prio < pl_ecb->prio)
     {
         //事件原来的状态，可能：1、处于就绪态，2、处于某种阻塞态。
@@ -1432,7 +1426,9 @@ bool_t __DJY_RaiseTempPrioForStack(u16 event_id)
             pl_ecb->prio = g_ptEventReady->prio;
             __DJY_ChangeBlockQueue(pl_ecb);
         }
-    }
+          else
+            pl_ecb->prio = g_ptEventReady->prio;
+  }
     return true;
 }
 
@@ -1492,12 +1488,12 @@ void __DJY_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32
     }
     if(timeout != CN_TIMEOUT_FOREVER)
     {
-        //事件状态设为等待信号量 +  超时
+        //事件状态设为指定状态+超时属性
         g_ptEventRunning->event_status |= Status + CN_STS_SYNC_TIMEOUT;
         __DJY_AddToDelay(timeout);
     }else
     {
-        g_ptEventRunning->event_status |= Status;  //事件状态设为等待信号量
+        g_ptEventRunning->event_status |= Status;  //事件状态设为指定状态
     }
 }
 
@@ -1630,22 +1626,22 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio)
     return true;
 }
 
-//----继承事件优先级-----------------------------------------------------------
+//----向上跟随running事件的高优先级----------------------------------------------
 //功能: 如果g_ptEventRunning的优先级较高，event_id临时以g_ptEventRunning的优先级
-//      运行，直到调用Djy_RestorePrio，否则不改变优先级。
+//      运行，直到调用Djy_RestorePrio，否则不改变优先级。继承后，因为优先级相同，除非
+//      running事件主动出让CPU，否则并不会立即切换，直到轮转调度切换。
+//      注意：不支持嵌套提升，即不允许“提升——提升——————下降，下降”这样的操作，这种操作
+//      会在第一次下降时降到底。
 //参数: event_id，被操作的事件id
 //返回: true = 成功设置，false=失败，一般是优先级不合法
 //-----------------------------------------------------------------------------
-bool_t DJY_RaiseTempPrio(u16 event_id)
+bool_t __DJY_FollowUpPrio(struct EventECB * pl_ecb)
 {
-    struct EventECB * pl_ecb;
-
-    if(event_id >= CFG_EVENT_LIMIT)
+    if(pl_ecb == NULL)
         return false;
 
     Int_SaveAsynSignal();
-    pl_ecb = &g_tECB_Table[event_id];
-    pl_ecb->prio_raise_cnt++;
+//  pl_ecb->prio_raise_cnt++;
     if(g_ptEventRunning->prio < pl_ecb->prio)
     {
         //事件原来的状态，可能：1、处于就绪态，2、处于某种阻塞态。
@@ -1671,29 +1667,45 @@ bool_t DJY_RaiseTempPrio(u16 event_id)
 }
 
 //----恢复事件优先级-----------------------------------------------------------
-//功能: 调用Djy_SetTempPrio后，可以调用本函数恢复g_ptEventRunning的优先级。
+//功能: 调用 __DJY_FollowUpPrio 后，可以调用本函数恢复g_ptEventRunning的优先级。
 //参数: 无，
 //返回: true = 成功设置，false=失败，一般是优先级不合法
 //-----------------------------------------------------------------------------
-bool_t DJY_RestorePrio(void)
+bool_t __DJY_RestorePrio(struct EventECB * pl_ecb)
 {
+    if(pl_ecb == NULL)
+        return false;
 
     Int_SaveAsynSignal();
-    g_ptEventRunning->prio_raise_cnt--;
-    if(g_ptEventRunning->prio_raise_cnt == 0)
+//  if(g_ptEventRunning->prio_raise_cnt > 0)
+//      g_ptEventRunning->prio_raise_cnt--;
+//  if(g_ptEventRunning->prio_raise_cnt == 0)
+//  {
+    if(pl_ecb->prio != pl_ecb->prio_base)
     {
-        if(g_ptEventRunning->prio != g_ptEventRunning->prio_base)
+        //事件原来的状态，可能：1、处于就绪态，2、处于某种阻塞态。
+        //如果处于某种阻塞态，假如队列是按优先级排序的，则要修改该队列。
+        if(pl_ecb->event_status == CN_STS_EVENT_READY)
         {
             //注：此三句的顺序不能变，因为prio的值对__Djy_CutReadyEvent函数执行
             //    结果有影响
-            __DJY_CutReadyEvent(g_ptEventRunning);
-            g_ptEventRunning->prio = g_ptEventRunning->prio_base;
-            __DJY_EventReady(g_ptEventRunning);
+            __DJY_CutReadyEvent(pl_ecb);
+            pl_ecb->prio = pl_ecb->prio_base;
+            __DJY_EventReady(pl_ecb);
         }
+        else if(pl_ecb->event_status & CN_BLOCK_PRIO_SORT)
+        {
+            pl_ecb->prio = pl_ecb->prio_base;
+            __DJY_ChangeBlockQueue(pl_ecb);
+        }
+        else
+            pl_ecb->prio = pl_ecb->prio_base;
     }
+//  }
     Int_RestoreAsynSignal();
     return true;
 }
+
 
 //----闹钟同步-----------------------------------------------------------------
 //功能：由正在执行的事件调用,使自己暂停u32l_uS微秒后继续运行.

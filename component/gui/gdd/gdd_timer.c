@@ -104,10 +104,12 @@ bool_t    __GDD_TimerLock(struct WinTimer *ptmr)
     if(NULL == ptmr)
         return FALSE;
     if(__GDD_Lock())
+    {
+        __GDD_Unlock();
         return TRUE;
-
-    __GDD_Unlock();
-    return  FALSE;
+    }
+    else
+        return  FALSE;
 }
 
 //----½âËø¶¨Ê±Æ÷----------------------------------------------------------------

@@ -114,7 +114,7 @@ HWND Widget_CreateLabel(  const char *Text,u32 Style,
     HWND pGddWin;
     s_gLabelMsgLink.MsgNum = sizeof(s_gLabelMsgProcTable) / sizeof(struct MsgProcTable);
     s_gLabelMsgLink.myTable =(struct MsgProcTable *)&s_gLabelMsgProcTable;
-    pGddWin = GDD_CreateWindow(Text, WS_CHILD | Style, x, y, w, h, hParent, WinId,
+    pGddWin = GDD_CreateWindow(Text, WS_WIDGET | Style, x, y, w, h, hParent, WinId,
                             CN_WINBUF_PARENT, pdata, &s_gLabelMsgLink);
 
     if(UserMsgTableLink != NULL)

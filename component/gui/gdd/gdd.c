@@ -75,7 +75,7 @@ struct MemCellPool *g_ptHwndPool;
 static struct WINDOW s_tHwndInitPool[CN_HWND_INIT_CAPACITAL];
 /*============================================================================*/
 
-static  struct MutexLCB *gdd_mutex_lock=NULL;
+struct MutexLCB *gdd_mutex_lock=NULL;
 
 bool_t    __GDD_Lock(void)
 {

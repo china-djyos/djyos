@@ -585,8 +585,8 @@ static ptu32_t __Widget_RichTextBoxCreate(struct WindowMsg *pMsg)
         }
     GDD_GetClientRect(hwnd,&rc0);
 //    GDD_CursorInit();
-    Widget_CreateButton("插入换行",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-60,60,24,hwnd,ID_INSERT,0,NULL);
-    Widget_CreateButton("改变颜色",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-30,60,24,hwnd,ID_COLOR,0,NULL);
+    Widget_CreateButton("插入换行",WS_WIDGET|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-60,60,24,hwnd,ID_INSERT,0,NULL);
+    Widget_CreateButton("改变颜色",WS_WIDGET|BS_HOLD|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-30,60,24,hwnd,ID_COLOR,0,NULL);
     return true;
 }
 

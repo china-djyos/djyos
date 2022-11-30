@@ -371,13 +371,17 @@ void GK_SetPixel(struct GkWinObj *gkwin,s32 x,s32 y,
     struct GkscParaSetPixel para;
     if(NULL == gkwin)
         return;
-    para.gkwin = gkwin;
-    para.x = x;
-    para.y = y;
-    para.color = color;
-    para.Rop2Code = Rop2Code;
-    __GK_SyscallChunnel(CN_GKSC_SET_PIXEL,SyncTime,
-                        &para,sizeof(para),NULL,0);
+    if((x >= gkwin->left) && (x < gkwin->right)
+       &&(y >= gkwin->top) && (y < gkwin->bottom))
+    {
+        para.gkwin = gkwin;
+        para.x = x;
+        para.y = y;
+        para.color = color;
+        para.Rop2Code = Rop2Code;
+        __GK_SyscallChunnel(CN_GKSC_SET_PIXEL,SyncTime,
+                            &para,sizeof(para),NULL,0);
+    }
     return;
 }
 //----画单像素宽直线，不包含结束端点-------------------------------------------

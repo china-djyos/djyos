@@ -106,6 +106,7 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+//整数开方，对没有浮点指令的处理器，可大大加速
 u16 Touch_BinSqrt(u32 value)
 {
     u16 root;
@@ -141,6 +142,7 @@ ptu32_t Touch_Scan(void)
     struct Object *ob;
     struct SingleTouchMsg touch_temp = {0,0,0,0,0,0,0};
     struct DisplayObj *display;
+    u32 delaycheck = 20*mS;
 
     ob = OBJ_SearchChild(OBJ_GetRoot(),"hmi input device");
     StdinObj = (struct HMI_InputDeviceObj *)OBJ_GetPrivate(ob);
@@ -161,14 +163,22 @@ ptu32_t Touch_Scan(void)
             display = touch_pr->touch_loc.display;
             if(touch_pr->read_touch(&touch_temp) != 0)
             {
+                if(touch_temp.z == 0)
+                    touch_temp.z == 1;
+                //检测到触摸，100mS内不检测，以免有些反应慢的硬件来不及反应，导致
+                //后续读不到结果。
+                delaycheck = 100*mS;
                 if(touch_pr->TouchStatus == CN_NO_TOUCH)   //刚刚接触，且慢发消息，等下要判一下移动
                 {
                     //记下初始触摸点
                     touch_pr->touch_loc.x = touch_temp.x;
                     touch_pr->touch_loc.y = touch_temp.y;
                     touch_pr->touch_loc.z = touch_temp.z;
-//                  touch_pr->touch_loc.time = DJY_GetSysTime();
+                    touch_pr->touch_loc.MoveX = 0;
+                    touch_pr->touch_loc.MoveY = 0;
+                    touch_pr->touch_loc.time = DJY_GetSysTime();
                     touch_pr->TouchStatus = CN_TOUCHING;
+                    HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_pr->touch_loc);
                 }
                 else   //已经接触，判断是否滑动
                 {
@@ -181,16 +191,14 @@ ptu32_t Touch_Scan(void)
                     touch_temp.time = DJY_GetSysTime();
                     if(Distance < 1000)     //如果小于1mm，则认为没有移动,发按下消息
                     {
-                        if(touch_pr->TouchStatus != CN_GOT_TOUCH)
-                        {
-                            touch_pr->TouchStatus = CN_GOT_TOUCH;
-                            touch_temp.MoveX = 0;
-                            touch_temp.MoveY = 0;
-//                            printf("touch: x = %d ,y = %d \r\n",
-//                                touch_temp.x, touch_temp.y);
-                            //发滑动数据=0的消息，即按下消息
-                            HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp);
-                        }
+//                        if(touch_pr->TouchStatus != CN_GOT_TOUCH)
+//                        {
+//                            touch_pr->TouchStatus = CN_GOT_TOUCH;
+//                            touch_temp.MoveX = 0;
+//                            touch_temp.MoveY = 0;
+//                            //发滑动数据=0的消息，即按下消息
+//                            HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp);
+//                        }
                     }
                     else
                     {
@@ -200,31 +208,28 @@ ptu32_t Touch_Scan(void)
                         touch_pr->touch_loc.z = touch_temp.z;
                         touch_temp.MoveX = DeltaX;
                         touch_temp.MoveY = DeltaY;
-//                        printf("move: x = %d ,y = %d ,movx = %d ,movy = %d\r\n",
-//                            touch_temp.x, touch_temp.y, touch_temp.MoveX, touch_temp.MoveY);
                         //发包含滑动数据的消息，即滑动消息
                         HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp);
                         //检测到滑动，200mS内不检测，以免连续快速发滑动消息
-                        DJY_EventDelay(200*mS);
+                        delaycheck = 100*mS;
                     }
                 }
             }
             else
             {
-               if(touch_pr->TouchStatus != CN_NO_TOUCH)   //刚刚抬起手指
+                if(touch_pr->TouchStatus != CN_NO_TOUCH)   //刚刚抬起手指
                 {
                     touch_pr->touch_loc.time = DJY_GetSysTime();
                     touch_pr->touch_loc.z = 0;
                     touch_pr->touch_loc.MoveX = 0;
                     touch_pr->touch_loc.MoveY = 0;
                     touch_pr->TouchStatus = CN_NO_TOUCH;
-//                    printf("touch left: x = %d ,y = %d \r\n",
-//                        touch_pr->touch_loc.x, touch_pr->touch_loc.y);
                     HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_pr->touch_loc);
                 }
+                delaycheck = 20*mS;
             }
         }
-        DJY_EventDelay(20*mS);
+        DJY_EventDelay(delaycheck);
     }
 }
 

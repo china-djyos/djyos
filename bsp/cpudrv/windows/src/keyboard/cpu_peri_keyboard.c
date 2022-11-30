@@ -123,42 +123,42 @@ LRESULT CALLBACK WndProc_key(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
     {
         case WM_CREATE:
             CreateWindow(_TEXT("button"),_TEXT("F1"),
-                            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+                            WS_WIDGET | WS_VISIBLE | BS_PUSHBUTTON,
                             20,40,40,40,
                             hWnd,(HMENU)VK_F1,
                             GetWindowLong(hWnd,GWL_HINSTANCE),NULL);
             CreateWindow(_TEXT("button"),_TEXT("F2"),
-                            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+                            WS_WIDGET | WS_VISIBLE | BS_PUSHBUTTON,
                             20,160,40,40,
                             hWnd,(HMENU)VK_F2,
                             GetWindowLong(hWnd,GWL_HINSTANCE),NULL);
             CreateWindow(_TEXT("button"),_TEXT("¡Ä"),
-                            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+                            WS_WIDGET | WS_VISIBLE | BS_PUSHBUTTON,
                             140,40,40,40,
                             hWnd,(HMENU)VK_UP,
                             GetWindowLong(hWnd,GWL_HINSTANCE),NULL);
             CreateWindow(_TEXT("button"),_TEXT("¡Å"),
-                            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+                            WS_WIDGET | WS_VISIBLE | BS_PUSHBUTTON,
                             140,160,40,40,
                             hWnd,(HMENU)VK_DOWN,
                             GetWindowLong(hWnd,GWL_HINSTANCE),NULL);
             CreateWindow(_TEXT("button"),_TEXT("£¼"),
-                            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+                            WS_WIDGET | WS_VISIBLE | BS_PUSHBUTTON,
                             80,110,40,40,
                             hWnd,(HMENU)VK_LEFT,
                             GetWindowLong(hWnd,GWL_HINSTANCE),NULL);
             CreateWindow(_TEXT("button"),_TEXT("£¾"),
-                            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+                            WS_WIDGET | WS_VISIBLE | BS_PUSHBUTTON,
                             200,110,40,40,
                             hWnd,(HMENU)VK_RIGHT,
                             GetWindowLong(hWnd,GWL_HINSTANCE),NULL);
             CreateWindow(_TEXT("button"),_TEXT("·µ»Ø"),
-                            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+                            WS_WIDGET | WS_VISIBLE | BS_PUSHBUTTON,
                             260,40,40,40,
                             hWnd,(HMENU)'\x1b',
                             GetWindowLong(hWnd,GWL_HINSTANCE),NULL);
             CreateWindow(_TEXT("button"),_TEXT("È·ÈÏ"),
-                            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+                            WS_WIDGET | WS_VISIBLE | BS_PUSHBUTTON,
                             260,160,40,40,
                             hWnd,(HMENU)'\r',
                            ((LPCREATESTRUCT) lParam)->hInstance,NULL);

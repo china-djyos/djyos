@@ -108,7 +108,7 @@ bool_t GDD_CreateMouseIcon( void )
     desktop = GDD_GetDesktopWindow( );
     s_gMouseWinMsgLink.MsgNum = sizeof(s_gMouseMsgProcTable) / sizeof(struct MsgProcTable);
     s_gMouseWinMsgLink.myTable = (struct MsgProcTable *)&s_gMouseMsgProcTable;
-    sg_pMouseHwnd = GDD_CreateWindow("Mouse_Cursor", WS_CHILD, desktop->CliRect.right/2,
+    sg_pMouseHwnd = GDD_CreateWindow("Mouse_Cursor", WS_WIDGET, desktop->CliRect.right/2,
                                   desktop->CliRect.bottom / 2, 8, 8, NULL, 0,
                                   CN_WINBUF_BUF, 0, &s_gMouseWinMsgLink);
     if(sg_pMouseHwnd != NULL)

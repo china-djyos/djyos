@@ -427,7 +427,7 @@ bool_t __Font_Ascii8x16GetCharBitMap(u32 charcode, u32 size,u32 resv,
 //-----------------------------------------------------------------------------
 s32 __Font_Ascii8x16GetCharWidth(u32 CharCode)
 {
-    return 6;
+    return 8;
 }
 
 //----获取字符高度-------------------------------------------------------------

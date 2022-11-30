@@ -1133,7 +1133,7 @@ HWND Widget_CreateTextBox(const char *Text,u32 Style,
     HWND pGddWin;
     s_gTextBoxMsgLink.MsgNum = sizeof(s_gTextBoxMsgProcTable) / sizeof(struct MsgProcTable);
     s_gTextBoxMsgLink.myTable = (struct MsgProcTable *)&s_gTextBoxMsgProcTable;
-    pGddWin = GDD_CreateWindow(Text, WS_CHILD | WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,
+    pGddWin = GDD_CreateWindow(Text, WS_WIDGET | WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,
                                 x, y, w, h, hParent, WinId, CN_WINBUF_PARENT,
                                 pdata, &s_gTextBoxMsgLink);
     if(UserMsgTableLink != NULL)

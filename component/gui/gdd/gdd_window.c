@@ -757,9 +757,7 @@ static u32 __GDD_GetNumberOfPrev(HWND Hwnd)
 
 //----初始化桌面窗口-----------------------------------------------------------
 //描述: 初始化gdd的桌面窗口
-//参数：proc: 桌面窗口过程回调函数
-//      desktop,须初始化的桌面指针
-//      pdata: 用户自定义附加数据.
+//参数：desktop,须初始化的桌面指针
 //返回：桌面窗口句柄.
 //------------------------------------------------------------------------------
 HWND    GDD_InitGddDesktop(struct GkWinObj *desktop)
@@ -891,7 +889,7 @@ void GDD_AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink)
 //描述: 该函数可以创建主窗口和子窗口(控件)
 //参数：Text: 窗口名字，将copy到gkwin的name成员，长度限CN_GKWIN_NAME_LIMIT，
 //              （字节数），TODO：待改为字符数。
-//      Style: 窗口风格(参考 WS_CHILD 族常量)
+//      Style: 窗口风格(参考 WS_WIDGET 族常量)
 //      x,y,w,h: 窗口位置和大小,相对于父窗口
 //      hParent: 父窗口句柄.如果是NULL,则默认桌面为父窗口.
 //      WinId: 窗口Id.如果是主窗口,该参数被忽略.
@@ -941,11 +939,11 @@ HWND    GDD_CreateWindow(const char *Text,u32 Style,
             }
             else
             {
-                if(Style&WS_CHILD)
+                if(Style&WS_WIDGET)
                 {
                     pGddWin->EventID   = hParent->EventID;
-                    pGddWin->mutex_lock =hParent->mutex_lock;  //子窗口使用父窗口锁
-                    pGddWin->pMsgQ      =hParent->pMsgQ;       //子窗口使用父窗口消息队列
+                    pGddWin->mutex_lock =hParent->mutex_lock;  //组件窗口使用父窗口锁
+                    pGddWin->pMsgQ      =hParent->pMsgQ;       //组件窗口使用父窗口消息队列
                     pGddWin->DrawColor = hParent->DrawColor;
                     pGddWin->FillColor = hParent->FillColor;
                     pGddWin->TextColor = hParent->TextColor;
@@ -1648,7 +1646,7 @@ static ptu32_t __GDD_DefWindowProcCLOSE(struct WindowMsg *pMsg)
 //----在消息处理函数表中查找对应的消息-----------------------------------------
 //功能：略
 //参数：Code：待查找的消息
-//      MsgTable，源表，以0结束。
+//      MsgTable，源表
 //      Num，表中的消息数量
 //返回：若找到，则返回消息在MsgTable中的偏移，否则返回-1
 //-----------------------------------------------------------------------------
@@ -1759,7 +1757,7 @@ ptu32_t __GDD_WinMsgProc(struct WindowMsg *pMsg)
         }
         if(pMsg->Code == MSG_CLOSE)
         {
-            if(hwnd->Style&WS_CHILD)
+            if(hwnd->Style&WS_WIDGET)
                 __GDD_DeleteChildWindowData(hwnd);
             else
                 __GDD_DeleteMainWindowData(hwnd);   //主窗口要删除的东西多一些

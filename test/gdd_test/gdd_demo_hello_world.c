@@ -17,7 +17,7 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     GDD_GetClientRect(hwnd,&rc0);
    //创建一个按钮。
     Widget_CreateButton("关闭",     //按钮名
-                 WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,    //按钮风格
+                 WS_WIDGET|BS_NORMAL|WS_BORDER|WS_VISIBLE,    //按钮风格
                  GDD_RectW(&rc0)/2,GDD_RectH(&rc0)/2-28,60,48,    //按钮位置和大小
                  hwnd,ID_CLOSE,NULL,NULL);   //按钮所属的父窗口，ID,附加数据
     return true;

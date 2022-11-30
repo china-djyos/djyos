@@ -129,7 +129,7 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     zigbee_ShowString("Zigbee Text");
     GDD_GetClientRect(hwnd,&rc0);
     GDD_ClientToScreen(hwnd,(POINT*)&rc0,2);
-    Widget_CreateButton("关闭",WS_BORDER|WS_DLGFRAME|WS_CHILD|BS_SIMPLE|WS_VISIBLE,rc0.left+4,rc0.top+100,56,56,hwnd,ID_CLOSE,NULL,NULL);
+    Widget_CreateButton("关闭",WS_BORDER|WS_DLGFRAME|WS_WIDGET|BS_SIMPLE|WS_VISIBLE,rc0.left+4,rc0.top+100,56,56,hwnd,ID_CLOSE,NULL,NULL);
 
     GDD_SetRect(&rcZigBeeString,4,4,GDD_RectW(&rc0)-4*2,60);
 
@@ -140,15 +140,15 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
 
     x=rcGroupBox_LED.left+12;
     y=rcGroupBox_LED.top+18;
-    Widget_CreateButton("LED1",WS_BORDER|WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+1*24+8,72,20,hwnd,ID_LED1,NULL,NULL);
-    Widget_CreateButton("LED2",WS_BORDER|WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+2*24+8,72,20,hwnd,ID_LED2,NULL,NULL);
+    Widget_CreateButton("LED1",WS_BORDER|WS_WIDGET|BS_HOLD|WS_VISIBLE,x,y+1*24+8,72,20,hwnd,ID_LED1,NULL,NULL);
+    Widget_CreateButton("LED2",WS_BORDER|WS_WIDGET|BS_HOLD|WS_VISIBLE,x,y+2*24+8,72,20,hwnd,ID_LED2,NULL,NULL);
 
     x=rcGroupBox_CTR.left+12;
     y=rcGroupBox_CTR.top+18;
-    Widget_CreateButton("组网",WS_BORDER|WS_CHILD|WS_VISIBLE,x,y+1*24+8,72,20,hwnd,ID_NET_ON,NULL,NULL);
-    Widget_CreateButton("断开",WS_BORDER|WS_CHILD|WS_VISIBLE,x,y+2*24+8,72,20,hwnd,ID_NET_OFF,NULL,NULL);
+    Widget_CreateButton("组网",WS_BORDER|WS_WIDGET|WS_VISIBLE,x,y+1*24+8,72,20,hwnd,ID_NET_ON,NULL,NULL);
+    Widget_CreateButton("断开",WS_BORDER|WS_WIDGET|WS_VISIBLE,x,y+2*24+8,72,20,hwnd,ID_NET_OFF,NULL,NULL);
 
-    Widget_CreateButton("发送",WS_BORDER|WS_CHILD|BS_SIMPLE|WS_VISIBLE,GDD_RectW(&rc0)-60,rcGroupBox_CTR.top-(24+2),56,24,hwnd,ID_SEND,NULL,NULL);
+    Widget_CreateButton("发送",WS_BORDER|WS_WIDGET|BS_SIMPLE|WS_VISIBLE,GDD_RectW(&rc0)-60,rcGroupBox_CTR.top-(24+2),56,24,hwnd,ID_SEND,NULL,NULL);
 
     GDD_StartTimer(GDD_CreateTimer(hwnd,0,500));
 

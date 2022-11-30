@@ -176,12 +176,13 @@ struct ThreadVm          //线程数据结构
 #define CN_STS_WAIT_VPIPE       (u32)(1<<11)    //动态长度pipe
 #define CN_STS_WAIT_MSG_SENT    (u32)(1<<12)    //等待消息发送
 #define CN_STS_WAIT_PARA_USED   (u32)(1<<13)    //等待消息处理完成
-#define CN_STS_EVTTSYNC_DELETED (u32)(1<<14)    //事件类型相关的同步，因目标类型
+#define CN_STS_WAIT_GKDRAW      (u32)(1<<14)    //等待图形内核绘制完成
+#define CN_STS_EVTTSYNC_DELETED (u32)(1<<15)    //事件类型相关的同步，因目标类型
                                                 //被删除而解除同步。
-#define CN_STS_EVENT_RESET      (u32)(1<<15)    //复位后首次切入运行
-#define CN_STS_EVENT_NORUN      (u32)(1<<16)    //事件还未开始处理
+#define CN_STS_EVENT_RESET      (u32)(1<<16)    //复位后首次切入运行
+#define CN_STS_EVENT_NORUN      (u32)(1<<17)    //事件还未开始处理
 
-#define CN_BLOCK_PRIO_SORT      (u32)(1<<17)    //是否在优先级排序的阻塞队列中
+#define CN_BLOCK_PRIO_SORT      (u32)(1<<18)    //是否在优先级排序的阻塞队列中
 
  //说明:
 //1、弹出事件时，如果携带参数，系统将创建参数控制块(tagParaPCB)记录该参数。
@@ -376,8 +377,8 @@ bool_t DJY_QuerySch(void);
 bool_t DJY_IsMultiEventStarted(void);
 bool_t DJY_SetEventPrio(u16 event_id,ufast_t new_prio);
 bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio);//修改成DJY_SetEventPrio函数后和C库有冲突，copy了一份，改了C库之后删掉
-bool_t DJY_RaiseTempPrio(u16 event_id);
-bool_t DJY_RestorePrio(void);
+bool_t __DJY_FollowUpPrio(struct EventECB * pl_ecb);
+bool_t __DJY_RestorePrio(struct EventECB * pl_ecb);
 u32 DJY_EventDelay(u32 u32l_uS);
 s64 DJY_EventDelayTo(s64 s64l_uS);
 u32 DJY_WaitEventCompleted(u16 event_id,u32 timeout);

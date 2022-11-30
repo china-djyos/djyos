@@ -78,11 +78,11 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     cfg_idx =0;
 
     GDD_GetClientRect(hwnd,&rc0);
-    Widget_CreateButton("关闭",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)+4,60,24,hwnd,ID_CLOSE,NULL,NULL);
+    Widget_CreateButton("关闭",WS_WIDGET|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)+4,60,24,hwnd,ID_CLOSE,NULL,NULL);
     i=GDD_RectH(&rc0)-(3*30);
-    Widget_CreateButton("绘制边框",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+0*32,128,24,hwnd,ID_BORDER,NULL,NULL);
-    Widget_CreateButton("绘制背景",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+1*32,128,24,hwnd,ID_BKGND,NULL,NULL);
-    Widget_CreateButton("改变颜色",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+2*32,128,24,hwnd,ID_COLOR,NULL,NULL);
+    Widget_CreateButton("绘制边框",WS_WIDGET|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+0*32,128,24,hwnd,ID_BORDER,NULL,NULL);
+    Widget_CreateButton("绘制背景",WS_WIDGET|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+1*32,128,24,hwnd,ID_BKGND,NULL,NULL);
+    Widget_CreateButton("改变颜色",WS_WIDGET|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+2*32,128,24,hwnd,ID_COLOR,NULL,NULL);
     timer = GDD_CreateTimer(hwnd,1,3000);
     GDD_StartTimer(timer);
     timer = GDD_CreateTimer(hwnd,2,1000);

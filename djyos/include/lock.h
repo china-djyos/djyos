@@ -87,8 +87,8 @@ struct MutexLCB
     struct dListNode List;
     s32  enable;                        //0=可用，>0 = 被线程占用，<0 = 中断占用
     ufast_t  prio_bak;                  //优先级继承中备份原优先级
-    struct EventECB *owner;         //占用互斥量的事件，若被中断占用，则无效
-    struct EventECB *mutex_sync;    //等候互斥量的事件队列，优先级排队
+    struct EventECB *owner;             //占用互斥量的事件，若被中断占用，则无效
+    struct EventECB *mutex_sync;        //等候互斥量的事件队列，优先级排队
     const char *name;
 };
 

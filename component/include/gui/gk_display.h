@@ -95,7 +95,7 @@ extern "C" {
 //----对于所要求的绘制操作,硬件加速器只支持部分的情况,可以在函数中做条件判断,
 //    实现能支持的功能,不支持的功能则返回false,由gkernel实现
 //特殊情况:虚拟显示器,需要远程界面但本地却没有显示器的情况,将会在本地虚拟出一个
-//显示器,虚拟显示器driver中国全部绘制图像到screen的函数,都无须实现,其他同前面所述
+//显示器,虚拟显示器driver中全部绘制图像到screen的函数,都无须实现,其他同前面所述
 
 //如果不是虚拟显示器，则此2函数，SetPixelToScreen,CopyBitmapToScreen，必须实现
 //一个。如果应用不使用直接写屏，且有framebuffer，则建议实现CopyBitmapToScreen即可。
@@ -107,7 +107,7 @@ struct DispDraw
     //参数:
     // bitmap: 绘制的目标位图
     // x,y: 目标坐标,相对于bitmap的.
-    // color: 格式是cn_sys_pf_e8r8g8b8
+    // color: 格式是 CN_SYS_PF_ERGB8888
     // r2_code: 显示效果,详见gkernel.h中的CN_R2_BLACK族常数定义
     bool_t (*SetPixelToBitmap)(struct RectBitmap *bitmap,
                          s32 x,s32 y,u32 color,u32 r2_code);

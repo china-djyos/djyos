@@ -80,10 +80,10 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     pb2.DrawTextFlag =DT_VCENTER|DT_CENTER;
 
     GDD_GetClientRect(hwnd,&rc0);
-    Widget_CreateButton("关闭",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-28,60,24,hwnd,ID_CLOSE,NULL,NULL);
+    Widget_CreateButton("关闭",WS_WIDGET|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-28,60,24,hwnd,ID_CLOSE,NULL,NULL);
 
-    Widget_CreateProgressBar("水平进度条1",WS_CHILD|PBS_HOR|WS_VISIBLE,8,36,128,28,hwnd,ID_PROGBAR1,(ptu32_t)&pb1,NULL);
-    Widget_CreateProgressBar("垂直进度条2",WS_CHILD|PBS_VER|WS_VISIBLE,160,36,28,128,hwnd,ID_PROGBAR2,(ptu32_t)&pb2,NULL);
+    Widget_CreateProgressBar("水平进度条1",WS_WIDGET|PBS_HOR|WS_VISIBLE,8,36,128,28,hwnd,ID_PROGBAR1,(ptu32_t)&pb1,NULL);
+    Widget_CreateProgressBar("垂直进度条2",WS_WIDGET|PBS_VER|WS_VISIBLE,160,36,28,128,hwnd,ID_PROGBAR2,(ptu32_t)&pb2,NULL);
 
     timer = GDD_CreateTimer(hwnd,1,3000);
     GDD_StartTimer(timer);

@@ -74,7 +74,7 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
             if(num == (sizeof(test_tab)/sizeof(struct Test_tab)))
                 return true;
             Widget_CreateButton(test_tab[num].text,
-                    WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,//按钮风格
+                    WS_WIDGET|BS_NORMAL|WS_BORDER|WS_VISIBLE,//按钮风格
                     rc.left,rc.top,GDD_RectW(&rc),GDD_RectH(&rc),    //按钮位置和大小
                     hwnd,num,NULL,NULL);    //按钮所属的父窗口，ID,附加数据
             num++;

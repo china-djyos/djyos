@@ -636,6 +636,10 @@ void Lock_MutexPost(struct MutexLCB *mutex)
 
     if(mutex == NULL)
         return;
+    if(DJY_IsMultiEventStarted() == false)
+    {
+        return true;        //如果调度还未开始则直接返回true
+    }
     if(Int_GetRunLevel() >0)      //异步信号中释放互斥量
     {
         if(mutex->enable == -1)
@@ -653,12 +657,13 @@ void Lock_MutexPost(struct MutexLCB *mutex)
     }
     if((mutex->owner != g_ptEventRunning)   //互斥量只能由拥有者释放
         &&(mutex->owner != __DJY_GetIdle( ))) //考虑多事件调度开始前 pend 的互斥量
+    {
+        error_printf("mutex","mutex必须由拥有者释放\r\n");
         return;
+    }
     Int_SaveAsynSignal();
     if(mutex->enable > 0)
         mutex->enable--;
-    else
-        event = NULL;
     if(mutex->enable == 0)
     {
         if(mutex->mutex_sync == NULL)     //等待队列空，设置互斥量为可用状态
@@ -687,7 +692,7 @@ void Lock_MutexPost(struct MutexLCB *mutex)
             event->wakeup_from = CN_STS_WAIT_MUTEX;
 //          if( (mutex->prio_bak != CN_PRIO_INVALID)  //该互斥量发生了优先级继承
 //             ||(!Djy_IsEventPrioChanged(event->event_id))) //且无主动改变优先级
-            DJY_RestorePrio( );
+            __DJY_RestorePrio( g_ptEventRunning );
             __DJY_EventReady(event);
         }
     }
@@ -776,12 +781,13 @@ bool_t Lock_MutexPend(struct MutexLCB *mutex,u32 timeout)
 
     //下面看看是否要做优先级继承
     pl_ecb = mutex->owner;
-    DJY_RaiseTempPrio(pl_ecb->event_id);
+    __DJY_FollowUpPrio(pl_ecb);
     Int_RestoreAsynSignal();  //恢复中断，将触发上下文切换
     //检查从哪里返回，是超时还是同步事件完成。
     if(g_ptEventRunning->wakeup_from & CN_STS_SYNC_TIMEOUT)
-    {//说明同步条件未到，从超时返回，应从目标事件的同步队列中取出事件。
-     //此时，被同步的事件肯定还没有完成。
+    {//说明同步条件未到，从超时返回
+     //此时应恢复拥有者的优先级，不能再让他继承优先级了。
+        __DJY_RestorePrio( pl_ecb->event_id );
         return false;
     }else
     {//说明是得到互斥量返回
