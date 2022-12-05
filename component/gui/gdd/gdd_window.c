@@ -1868,7 +1868,7 @@ HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
 
     //创建主窗口，每个图形应用对应一个主窗口
     result = __GDD_CreateMainWindow(AppName, WS_CAN_FOCUS|Style, x,y,w,h, NULL, 0x0000,
-                                 WinBuf, 0, PixelFormat, BaseColor, MyMsgLink);
+                                 BufProperty, 0, PixelFormat, BaseColor, MyMsgLink);
     if(result != NULL)
     {
 

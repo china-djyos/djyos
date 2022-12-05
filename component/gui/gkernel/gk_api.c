@@ -369,8 +369,8 @@ void GK_SetPixel(struct GkWinObj *gkwin,s32 x,s32 y,
     struct GkscParaSetPixel para;
     if(NULL == gkwin)
         return;
-    if((x >= gkwin->left) && (x < gkwin->right)
-       &&(y >= gkwin->top) && (y < gkwin->bottom))
+    if((x >= 0) && (x < gkwin->right - gkwin->left)
+       &&(y >= 0) && (y < gkwin->bottom-  gkwin->top))
     {
         para.gkwin = gkwin;
         para.x = x;
