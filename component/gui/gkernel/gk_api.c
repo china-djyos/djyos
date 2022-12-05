@@ -111,7 +111,9 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
     memset(desktop, 0, sizeof(struct GkWinObj));
     para.display = (struct DisplayObj *)OBJ_GetPrivate(DisplayObject);
     para.desktop = desktop;
-    para.name = (char *)DesktopName;
+    // para.name = (char *)DesktopName;
+    strncpy(para.name, DesktopName, CN_GKWIN_NAME_LIMIT);
+    para.name[CN_GKWIN_NAME_LIMIT] = '\0';
     para.width = width;
     para.height = height;
     para.color = color;
@@ -200,7 +202,9 @@ struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
     para.bottom = bottom;
     para.color = color;
     para.buf_mode = buf_mode;
-    para.name = (char*)name;
+    // para.name = (char*)name;
+    strncpy(para.name, name, CN_GKWIN_NAME_LIMIT);
+    para.name[CN_GKWIN_NAME_LIMIT] = '\0';
     para.PixelFormat = PixelFormat;
     para.HyalineColor = HyalineColor;
     para.BaseColor = BaseColor;

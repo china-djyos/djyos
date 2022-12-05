@@ -1193,6 +1193,7 @@ static struct NetPkg  *__buildhdr(struct tagSocket *sock, u8 flags,\
     struct TcpHdr  *hdr;
     struct ClientCB     *ccb;
     u32         datalen;
+    u32 window = 0;
 
     datalen = sizeof(struct TcpHdr)+((optionlen+3)/4)*4;
     result = PkgMalloc(datalen,pkgflag);
@@ -1212,7 +1213,16 @@ static struct NetPkg  *__buildhdr(struct tagSocket *sock, u8 flags,\
         hdr->chksum = 0;
         if(ccb->rbuf.buflenlimit> ccb->rbuf.buflen)
         {
-            hdr->window = htons(ccb->rbuf.buflenlimit- ccb->rbuf.buflen);
+            window = ccb->rbuf.buflenlimit - ccb->rbuf.buflen;
+            if (window > 0xffff)
+            {
+                hdr->window = htons(0xffff);
+            }
+            else
+            {
+
+                hdr->window = htons(window);
+            }
         }
         else
         {

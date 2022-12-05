@@ -163,7 +163,7 @@ void    GDD_InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type)
     pdc->DrawColor  =hwnd->DrawColor;
     pdc->FillColor  =hwnd->FillColor;
     pdc->TextColor  =hwnd->TextColor;
-    pdc->SyncTime   =0;
+    pdc->SyncTime   = CN_TIMEOUT_FOREVER;
     pdc->RopCode=gk_win->RopCode;
 
 }
