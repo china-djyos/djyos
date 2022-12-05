@@ -86,6 +86,10 @@
 //%$#@num,1,2048,
 #define CFG_LCD_XSIZE                   600 //"LCD水平像素宽度",
 #define CFG_LCD_YSIZE                   480 //"LCD竖直像素宽度",
+
+//%$#@num,,,
+#define CFG_LCD_XSIZE_UM   36500            //"LCD宽度-微米数",
+#define CFG_LCD_YSIZE_UM   48600            //"LCD高度-微米数",
 //%$#@enum,true,false,
 //%$#@string,1,32,
 #define CFG_DISPLAY_NAME        "LCD_F7"    //"显示器LCD名称",
@@ -200,16 +204,16 @@ static void LTDC_Layer_Parameter_Config(u8 layerx,u32 bufaddr,u8 pixformat,u8 al
 
     pLayerCfg.WindowX0=0;                       //窗口起始X坐标
     pLayerCfg.WindowY0=0;                       //窗口起始Y坐标
-    pLayerCfg.WindowX1=CN_LCD_XSIZE;          //窗口终止X坐标
-    pLayerCfg.WindowY1=CN_LCD_YSIZE;         //窗口终止Y坐标
+    pLayerCfg.WindowX1=CFG_LCD_XSIZE;          //窗口终止X坐标
+    pLayerCfg.WindowY1=CFG_LCD_YSIZE;         //窗口终止Y坐标
     pLayerCfg.PixelFormat=pixformat;            //像素格式
     pLayerCfg.Alpha=alpha;                      //Alpha值设置，0~255,255为完全不透明
     pLayerCfg.Alpha0=alpha0;                    //默认Alpha值
     pLayerCfg.BlendingFactor1=(u32)bfac1<<8;    //设置层混合系数
     pLayerCfg.BlendingFactor2=(u32)bfac2<<8;    //设置层混合系数
     pLayerCfg.FBStartAdress=bufaddr;            //设置层颜色帧缓存起始地址
-    pLayerCfg.ImageWidth=CN_LCD_XSIZE;        //设置颜色帧缓冲区的宽度
-    pLayerCfg.ImageHeight=CN_LCD_YSIZE;      //设置颜色帧缓冲区的高度
+    pLayerCfg.ImageWidth=CFG_LCD_XSIZE;        //设置颜色帧缓冲区的宽度
+    pLayerCfg.ImageHeight=CFG_LCD_YSIZE;      //设置颜色帧缓冲区的高度
     pLayerCfg.Backcolor.Red=(u8)(bkcolor&0X00FF0000)>>16;   //背景颜色红色部分
     pLayerCfg.Backcolor.Green=(u8)(bkcolor&0X0000FF00)>>8;  //背景颜色绿色部分
     pLayerCfg.Backcolor.Blue=(u8)bkcolor&0X000000FF;        //背景颜色蓝色部分
@@ -264,10 +268,10 @@ static bool_t LTDC_Color_Fill(u16 sx,u16 sy,u16 ex,u16 ey,u32 color)
 
     width=ex-sx+1;
     height=ey-sy+1;
-    addr=((u32)lcd.pFrameBuffe+lcd.pixsize*(CN_LCD_XSIZE*sy+sx));
+    addr=((u32)lcd.pFrameBuffe+lcd.pixsize*(CFG_LCD_XSIZE*sy+sx));
     if(false==Lock_MutexPend(&Dma2dMutex,lcd.Dma2dTimeOut)
-            ||(ex+1>CN_LCD_XSIZE)
-            ||(ey+1>CN_LCD_YSIZE))
+            ||(ex+1>CFG_LCD_XSIZE)
+            ||(ey+1>CFG_LCD_YSIZE))
         return false;
 
     DMA2D->CR&=~(1<<0);
@@ -533,9 +537,9 @@ bool_t __lcd_set_pixel_screen(s32 x,s32 y,u32 color,u32 rop2_code)
 
     u32 dest;
     u32 byteoffset;
-    if(((x+1)>CN_LCD_XSIZE)||((y+1)>CN_LCD_YSIZE))
+    if(((x+1)>CFG_LCD_XSIZE)||((y+1)>CFG_LCD_YSIZE))
         return false;
-    byteoffset = (y*CN_LCD_XSIZE + x)*lcd.pixsize;
+    byteoffset = (y*CFG_LCD_XSIZE + x)*lcd.pixsize;
     color = GK_ConvertRGB24ToPF(lcd.LcdPixelFormat,color);
     dest = (u32)lcd.pFrameBuffe[byteoffset];
     dest = GK_BlendRop2(dest,color,rop2_code);
@@ -573,7 +577,7 @@ bool_t __lcd_set_pixel_group_screen(struct PointCdn *PixelGroup,u32 color,u32 n,
 
     for(i=0;i<n;i++)
     {
-        offset = PixelGroup[i].y*CN_LCD_XSIZE + PixelGroup[i].x;
+        offset = PixelGroup[i].y*CFG_LCD_XSIZE + PixelGroup[i].x;
         dest = *(u16 *)&(lcd.pFrameBuffe[offset]);
         dest = GK_BlendRop2(dest,color,r2_code);
 
@@ -681,7 +685,7 @@ u32 __lcd_get_pixel_screen(s32 x,s32 y)
 {
     u32 e,r,g,b,color;
     u32 byteoffset;
-    byteoffset = (y*CN_LCD_XSIZE + x)*lcd.pixsize;
+    byteoffset = (y*CFG_LCD_XSIZE + x)*lcd.pixsize;
 
     switch (lcd.pixsize)
     {
@@ -733,16 +737,16 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,\
     if(heap==NULL)
         return NULL;
     //多申请64字节如果显存不是64字节对齐描点的时候会有闪屏的现象
-    pLTDCBufferFG1 =M_MallocHeap(CN_LCD_XSIZE*CN_LCD_YSIZE*lcd.pixsize+0x40,heap,0);
-//    pLTDCBufferFG2 =M_MallocHeap(CN_LCD_XSIZE*CN_LCD_YSIZE*lcd.pixsize,heap,0);//先用一层
+    pLTDCBufferFG1 =M_MallocHeap(CFG_LCD_XSIZE*CFG_LCD_YSIZE*lcd.pixsize+0x40,heap,0);
+//    pLTDCBufferFG2 =M_MallocHeap(CFG_LCD_XSIZE*CFG_LCD_YSIZE*lcd.pixsize,heap,0);//先用一层
     if(0x3f&(u32)pLTDCBufferFG1)
         pLTDCBufferFG1+=(0x40-(0x3f&(u32)pLTDCBufferFG1));
 
     FrameBitmap.bm_bits=(u8 *)pLTDCBufferFG1;
-    FrameBitmap.width = CN_LCD_XSIZE;
-    FrameBitmap.height = CN_LCD_YSIZE;
+    FrameBitmap.width = CFG_LCD_XSIZE;
+    FrameBitmap.height = CFG_LCD_YSIZE;
     FrameBitmap.PixelFormat = lcd.LcdPixelFormat;
-    FrameBitmap.linebytes = CN_LCD_XSIZE*lcd.pixsize;
+    FrameBitmap.linebytes = CFG_LCD_XSIZE *lcd.pixsize;
     FrameBitmap.ExColor = 0xffffffff;
     frame_win.wm_bitmap = &FrameBitmap;
 

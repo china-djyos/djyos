@@ -86,7 +86,12 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_LCD    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,32,512,
-
+	//%$#@num,0,65536,
+#define CFG_LCD_XSIZE   240             //"LCD宽度",
+#define CFG_LCD_YSIZE   128             //"LCD高度",
+//%$#@num,,,
+#define CFG_LCD_XSIZE_UM   36500            //"LCD宽度-微米数",
+#define CFG_LCD_YSIZE_UM   48600            //"LCD高度-微米数",
 //%$#@enum,true,false,
 //%$#@string,1,30,
 #define CFG_LCD_DISPLAY_NAME      "LCD_DISPLAY"//"显示器名称",
@@ -163,9 +168,9 @@ void __lcd_controller_init(void)
     // set LCD Screen Start Address
     LCDC->LSSAR = FRAME_START_ADDRESS;
     // set LCD Size. The XMAX bitfield is the screen x-size/16.
-    LCDC->LSR = LCDC_LSR_XMAX( (CN_LCD_XSIZE / 16) ) | LCDC_LSR_YMAX( CN_LCD_YSIZE );
+    LCDC->LSR = LCDC_LSR_XMAX( (CFG_LCD_XSIZE / 16) ) | LCDC_LSR_YMAX( CFG_LCD_YSIZE );
     // set LCD virtual page width
-    LCDC->LVPWR = LCDC_LVPWR_VPW( CN_LCD_XSIZE );
+    LCDC->LVPWR = LCDC_LVPWR_VPW( CFG_LCD_XSIZE );
     // set LCD cursor positon & settings (turn off)
     LCDC->LCPR = 0;
     LCDC->LCWHB = 0;
@@ -452,7 +457,7 @@ bool_t __lcd_set_pixel_screen(s32 x,s32 y,u32 color,u32 rop2_code)
 {
     u32 dest,pen;
     u32 byteoffset;
-    byteoffset = y*CN_LCD_XSIZE + x;
+    byteoffset = y*CFG_LCD_XSIZE + x;
     pen = GK_ConvertRGB24ToPF(CN_SYS_PF_ERGB8888,color);
     dest = (u32)pg_video_buf[byteoffset];
     dest = GK_BlendRop2(dest,pen,rop2_code);
@@ -539,7 +544,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     byteoffset_bitmap = ysrc*double_width_src + xsrc*2;
     //目标矩形左上角坐标的双字节偏移量，因为pg_video_buf为u16的指针
     //因为是传送到screen上，所以每行双字节数取LCD_XSIZE
-    byteoffset_rect = dst_rect->top*CN_LCD_XSIZE + dst_rect->left;
+    byteoffset_rect = dst_rect->top*CFG_LCD_XSIZE + dst_rect->left;
 
     //bitmap到screen位块传送
     for(y = dst_rect->top;y < dst_rect->bottom;y++)
@@ -547,7 +552,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
         memcpy(&(pg_video_buf[byteoffset_rect]),
                     &src_bitmap->bm_bits[byteoffset_bitmap],size);
         byteoffset_bitmap += double_width_src;
-        byteoffset_rect += CN_LCD_XSIZE;
+        byteoffset_rect += CFG_LCD_XSIZE;
     }
     return true;
 }
@@ -561,7 +566,7 @@ u32 __lcd_get_pixel_screen(s32 x,s32 y)
     u32 color,offset;
 
     offset = LCDC->LSSAR;
-    offset += y*CN_LCD_XSIZE*2;
+    offset += y*CFG_LCD_XSIZE*2;
     offset += x*2;
     color = (u32)(*(u32*)offset);
     //R5G6B5
@@ -600,18 +605,18 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,const char* HeapNam
     __lcd_envid_of(1);
 
     FrameBitmap.bm_bits = (u8*)pg_frame_buffer;
-    FrameBitmap.width = CN_LCD_XSIZE;
-    FrameBitmap.height = CN_LCD_YSIZE;
+    FrameBitmap.width = CFG_LCD_XSIZE;
+    FrameBitmap.height = CFG_LCD_YSIZE;
     FrameBitmap.PixelFormat = cfg_LcdPf;
-    FrameBitmap.linebytes = CN_LCD_XSIZE*4;
+    FrameBitmap.linebytes = CFG_LCD_XSIZE *4;
     FrameBitmap.ExColor = 0;
     frame_win.wm_bitmap = &FrameBitmap;
     tg_lcd_display.frame_buffer = &frame_win;
 
     tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
     tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
-    tg_lcd_display.width = CN_LCD_XSIZE;
-    tg_lcd_display.height = CN_LCD_YSIZE;
+    tg_lcd_display.width = CFG_LCD_XSIZE;
+    tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_ERGB8888;
     tg_lcd_display.framebuf_direct = true;
     //无须初始化frame_buffer和desktop，z_topmost三个成员

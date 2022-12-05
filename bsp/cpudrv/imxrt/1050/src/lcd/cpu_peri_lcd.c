@@ -92,7 +92,12 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_LCD    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,32,512,
-
+//%$#@num,0,65536,
+#define CFG_LCD_XSIZE   240             //"LCD宽度",
+#define CFG_LCD_YSIZE   128             //"LCD高度",
+//%$#@num,,,
+#define CFG_LCD_XSIZE_UM   36500            //"LCD宽度-微米数",
+#define CFG_LCD_YSIZE_UM   48600            //"LCD高度-微米数",
 //%$#@enum,true,false,
 //%$#@string,1,30,
 #define CFG_LCD_DISPLAY_NAME      "LCD_DISPLAY"//"显示器名称",
@@ -110,7 +115,7 @@
 static struct LCD_ConFig lcd;                      //管理LCD LTDC的重要参数
 static struct DisplayObj lcd_display;
 
-AT_NONCACHEABLE_SECTION_ALIGN( uint16_t s_frameBuffer[CN_LCD_YSIZE][CN_LCD_XSIZE], FRAME_BUFFER_ALIGN);
+AT_NONCACHEABLE_SECTION_ALIGN( uint16_t s_frameBuffer[CFG_LCD_YSIZE][CFG_LCD_XSIZE], FRAME_BUFFER_ALIGN);
 
 void delay_lcd(void)
 {
@@ -402,7 +407,7 @@ bool_t __lcd_set_pixel_group_screen(struct PointCdn *PixelGroup,u32 color,u32 n,
 
     for(i=0;i<n;i++)
     {
-        offset = PixelGroup[i].y*CN_LCD_XSIZE + PixelGroup[i].x;
+        offset = PixelGroup[i].y*CFG_LCD_XSIZE + PixelGroup[i].x;
         dest = *(u16 *)&(lcd.pFrameBuffe[offset]);
         dest = GK_BlendRop2(dest,color,r2_code);
 
@@ -584,8 +589,8 @@ static bool_t Lcd_Config(struct LCD_ConFig *lcd)
     lcd->DEPolarity   =kELCDIF_DataEnableActiveHigh;
     lcd->PCPolarity   =kELCDIF_DriveDataOnRisingClkEdge;
 
-    lcd->width = CN_LCD_XSIZE;
-    lcd->height = CN_LCD_YSIZE;
+    lcd->width = CFG_LCD_XSIZE;
+    lcd->height = CFG_LCD_YSIZE;
     return true;
 }
 
@@ -607,10 +612,10 @@ struct DisplayRsc* ModuleInstall_LCD(const char *DisplayName,\
         return NULL;
 
     FrameBitmap.bm_bits=(u8 *)s_frameBuffer;
-    FrameBitmap.width = CN_LCD_XSIZE;
-    FrameBitmap.height = CN_LCD_YSIZE;
+    FrameBitmap.width = CFG_LCD_XSIZE;
+    FrameBitmap.height = CFG_LCD_YSIZE;
     FrameBitmap.PixelFormat = lcd.LcdPixelFormat;
-    FrameBitmap.linebytes = CN_LCD_XSIZE*lcd.pixsize;
+    FrameBitmap.linebytes = CFG_LCD_XSIZE *lcd.pixsize;
     FrameBitmap.ExColor = 0xffffffff;
     frame_win.wm_bitmap = &FrameBitmap;
 
@@ -620,8 +625,8 @@ struct DisplayRsc* ModuleInstall_LCD(const char *DisplayName,\
 
     tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
     tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
-    lcd_display.width = CN_LCD_XSIZE;
-    lcd_display.height = CN_LCD_YSIZE;
+    lcd_display.width = CFG_LCD_XSIZE;
+    lcd_display.height = CFG_LCD_YSIZE;
     lcd_display.pixel_format = lcd.LcdPixelFormat;
 
     lcd_display.draw.SetPixelToBitmap = __lcd_set_pixel_bm;

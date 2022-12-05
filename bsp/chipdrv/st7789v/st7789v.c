@@ -1137,7 +1137,7 @@ ptu32_t ModuleInstall_ST7789V(const char *DisplayName,const char* HeapName)
     pLTDCBufferFG1 = M_MallocHeap(cn_frame_buffer_size,heap,0);
 
     printf("M_FindHeapd  pLTDCBufferFG1!\r\n");
-//    pLTDCBufferFG2 =M_MallocHeap(CN_LCD_XSIZE*CN_LCD_YSIZE*lcd.pixsize,heap,0);//先用一层
+//    pLTDCBufferFG2 =M_MallocHeap(CFG_LCD_XSIZE*CFG_LCD_YSIZE*lcd.pixsize,heap,0);//先用一层
 //    if(0x3f&(u32)pLTDCBufferFG1)
 //        pLTDCBufferFG1+=(0x40-(0x3f&(u32)pLTDCBufferFG1));
     FrameBitmap.bm_bits = (u8 *)pLTDCBufferFG1;
