@@ -17,7 +17,7 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     GDD_GetClientRect(hwnd,&rc0);
    //创建一个按钮。
     Widget_CreateButton("关闭",     //按钮名
-                 WS_WIDGET|BS_NORMAL|WS_BORDER|WS_VISIBLE,    //按钮风格
+                 BS_NORMAL|WS_BORDER|WS_VISIBLE,    //按钮风格
                  GDD_RectW(&rc0)/2,GDD_RectH(&rc0)/2-28,60,48,    //按钮位置和大小
                  hwnd,ID_CLOSE,NULL,NULL);   //按钮所属的父窗口，ID,附加数据
     return true;
@@ -75,7 +75,8 @@ void Hello_Word(void)
 {
     s_gHelloDemoMsgLink.MsgNum = sizeof(s_gHelloMsgTable) / sizeof(struct MsgProcTable);
     s_gHelloDemoMsgLink.myTable = (struct MsgProcTable *)&s_gHelloMsgTable;
-    GDD_CreateGuiApp("hello World", &s_gHelloDemoMsgLink, 0x800, CN_WINBUF_PARENT,WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU);
+    GDD_CreateGuiApp("hello World", &s_gHelloDemoMsgLink, 0,0,-1,0,0x800, CN_WINBUF_PARENT,
+                    WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE);
     GDD_WaitGuiAppExit("hello World");
 }
 

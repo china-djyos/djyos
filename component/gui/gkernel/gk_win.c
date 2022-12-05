@@ -610,11 +610,6 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     width = para->right - para->left;
     height = para->bottom - para->top;
     display = para->parent_gkwin->disp;
-//  gkwin = para->gkwin;    //para->gkwin由调用者提供内存，传指针过来
-    gkwin = M_MallocLcHeap(sizeof(struct GkWinObj),  display->DisplayHeap, 0);
-    if(gkwin == NULL)
-        return NULL;
-    memset(gkwin, 0, sizeof(struct GkWinObj));
     parent = para->parent_gkwin;
     if((parent == NULL)||(width < 0) || (height < 0))
     {
@@ -641,6 +636,11 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
 //      return NULL;   //窗口属性不支持rop2和需要Dst Alpha参与的alpha混合
     if((RopCode.AlphaMode & CN_ALPHA_MODE_NEED_AD) != 0)
         return NULL;   //窗口属性不支持需要Dst Alpha参与的alpha混合
+
+    gkwin = M_MallocLcHeap(sizeof(struct GkWinObj),  display->DisplayHeap, 0);
+    if(gkwin == NULL)
+        return NULL;
+    memset(gkwin, 0, sizeof(struct GkWinObj));
 
     *gkwin = *parent;               //新窗口拷贝父窗口的属性
 
@@ -677,6 +677,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                 __gk_vfree(display,gkwin);
                 DJY_SaveLastError(EN_GK_NO_MEMORY);
                 debug_printf("gkwin","显存不足\n\r");
+                M_FreeHeap(gkwin,display->DisplayHeap);
                 return NULL;
             }
             else
@@ -694,6 +695,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
         {
             DJY_SaveLastError(EN_GK_NO_MEMORY);
             debug_printf("gkwin","显存不足\n\r");
+            M_FreeHeap(gkwin,display->DisplayHeap);
             return NULL;
         }
     }
@@ -709,15 +711,21 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
         NewWindow = OBJ_NewChild(parent->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
                                     (const char*)(gkwin->win_name));
         if(NewWindow == NULL)
+        {
+            M_FreeHeap(gkwin,display->DisplayHeap);
             return NULL;
-        gkwin->HostObj = NewWindow;
-        //以下4句在z轴中把win插入父节点的前端
-        gkwin->z_back = parent;
-        gkwin->z_top = parent->z_top;
-        parent->z_top->z_back = gkwin;
-        parent->z_top = gkwin;
-        if(display->z_topmost == parent)
-            display->z_topmost = gkwin;
+        }
+        else
+        {
+            gkwin->HostObj = NewWindow;
+            //以下4句在z轴中把win插入父节点的前端
+            gkwin->z_back = parent;
+            gkwin->z_top = parent->z_top;
+            parent->z_top->z_back = gkwin;
+            parent->z_top = gkwin;
+            if(display->z_topmost == parent)
+                display->z_topmost = gkwin;
+        }
     }
     else
     {//父窗口有子窗口
@@ -743,20 +751,26 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
             NewWindow = OBJ_NewPrev(target_section->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
                                      (const char *)(gkwin->win_name));
             if(NewWindow == NULL)
+            {
+                M_FreeHeap(gkwin,display->DisplayHeap);
                 return NULL;
-            gkwin->HostObj = NewWindow;
-            if(OBJ_IsHead(target_section->HostObj))
-                OBJ_ChildMoveToOrev(parent->HostObj);
-            //获取target_section和其子窗口所在z轴段的结束窗口(最前端)
-            //新窗口插入到它的前端
-            if(move_end == display->z_topmost)
-                display->z_topmost = gkwin;
-            //插到目标窗口前端
+            }
+            else
+            {
+                gkwin->HostObj = NewWindow;
+                if(OBJ_IsHead(target_section->HostObj))
+                    OBJ_ChildMoveToOrev(parent->HostObj);
+                //获取target_section和其子窗口所在z轴段的结束窗口(最前端)
+                //新窗口插入到它的前端
+                if(move_end == display->z_topmost)
+                    display->z_topmost = gkwin;
+                //插到目标窗口前端
 
-            gkwin->z_back = move_end;
-            gkwin->z_top = move_end->z_top;
-            move_end->z_top->z_back = gkwin;
-            move_end->z_top = gkwin;
+                gkwin->z_back = move_end;
+                gkwin->z_top = move_end->z_top;
+                move_end->z_top->z_back = gkwin;
+                move_end->z_top = gkwin;
+            }
         }
         else //兄弟窗口中没有优先级=0的窗口
         {
@@ -768,7 +782,10 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                 NewWindow = OBJ_NewPrev(target_section->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
                                          (const char *)(gkwin->win_name));
                 if(NewWindow == NULL)
+                {
+                    M_FreeHeap(gkwin,display->DisplayHeap);
                     return NULL;
+                }
             }
             else    //同级窗口优先级均高于新窗口(prio = 0)
             {
@@ -778,7 +795,10 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                 NewWindow = OBJ_NewNext(target_section->HostObj, (fnObjOps)-1, (ptu32_t )gkwin,
                                             (const char*)(gkwin->win_name));
                 if(NewWindow == NULL)
+                {
+                    M_FreeHeap(gkwin,display->DisplayHeap);
                     return NULL;
+                }
             }
             gkwin->HostObj = NewWindow;
             //新创建的窗口gkwin优先级为0，无论同级窗口优先级均如何分布，新
@@ -797,13 +817,12 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     gkwin->visible_bak = NULL;
     gkwin->visible_clip = NULL;
     __GK_ScanNewVisibleClip(display);
-    if(!para->unfill)
-    {
-        para_fill.gkwin = gkwin;
-        para_fill.color = para->color;
-        __GK_FillWin(&para_fill);
-//      gkwin->visible_clip = __GK_FreeClipQueue(gkwin->visible_clip);
-    }
+//    if(!para->unfill)
+//    {
+//        para_fill.gkwin = gkwin;
+//        para_fill.color = para->color;
+//        __GK_FillWin(&para_fill);
+//    }
     display->reset_clip = true;
 
     return gkwin;
@@ -1433,6 +1452,7 @@ bool_t __GK_SetRopCode(struct GkscParaSetRopCode *para)
 {
     struct GkWinObj *mygkwin;
     struct DisplayObj *mydisplay;
+    u32 blend;
 
     mygkwin = para->gkwin;
     mydisplay = mygkwin->disp;
@@ -1448,9 +1468,15 @@ bool_t __GK_SetRopCode(struct GkscParaSetRopCode *para)
     }
     else
     {
-        mygkwin->WinProperty.DestBlend = __GK_RopIsNeedDestination(para->RopCode);
+        blend = __GK_RopIsNeedDestination(para->RopCode);
         mygkwin->RopCode = para->RopCode;
-        mygkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
+        if(mygkwin->WinProperty.DestBlend != blend)
+        {
+            mygkwin->WinProperty.DestBlend = blend;
+            mygkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
+            __GK_ScanNewVisibleClip(mydisplay);
+        }
+
 //      mygkwin->RopCode &= ~CN_ROP_ROP2_MSK;   //窗口属性不支持rop2
         return true;
     }
@@ -1482,8 +1508,12 @@ bool_t __GK_SetHyalineColor(struct GkscParaSetHyalineColor *para)
     else
     {
         para->gkwin->RopCode.HyalineEn = 1;
-        para->gkwin->WinProperty.DestBlend = CN_GKWIN_DEST_VISIBLE;
-        para->gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
+        if(para->gkwin->WinProperty.DestBlend != CN_GKWIN_DEST_VISIBLE)
+        {
+            para->gkwin->WinProperty.DestBlend = CN_GKWIN_DEST_VISIBLE;
+            para->gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
+            __GK_ScanNewVisibleClip(para->gkwin->disp);
+        }
     }
     return true;
 }

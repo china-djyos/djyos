@@ -28,21 +28,21 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     hwnd=pMsg->hwnd;
 
     GDD_GetClientRect(hwnd,&rc0);
-    Widget_CreateButton("关闭",WS_WIDGET|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-10,60,24,hwnd,ID_CLOSE,NULL,NULL);
+    Widget_CreateButton("关闭",BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-10,60,24,hwnd,ID_CLOSE,NULL,NULL);
 
     GDD_SetRect(&rc,0,10,107,190);
     GDD_ClientToScreen(hwnd,(POINT*)&rc,2);
     GDD_ScreenToWindow(hwnd,(POINT*)&rc,2);
-    hwndLB1=Widget_CreateListBox("列表框1",WS_WIDGET|WS_BORDER|WS_VISIBLE|WS_CAPTION,
+    hwndLB1=Widget_CreateListBox("列表框1",WS_BORDER|WS_VISIBLE|WS_CAPTION,
                             rc.left,rc.top,GDD_RectW(&rc),GDD_RectH(&rc),
                             hwnd,ID_LISTBOX1,NULL,NULL);
-    Widget_CreateButton("-->",WS_WIDGET|BS_NORMAL|WS_BORDER|WS_VISIBLE,rc.right-50,rc.bottom+4,50,20,hwnd,ID_RIGHT,NULL,NULL);
+    Widget_CreateButton("-->",BS_NORMAL|WS_BORDER|WS_VISIBLE,rc.right-50,rc.bottom+4,50,20,hwnd,ID_RIGHT,NULL,NULL);
 
     GDD_OffsetRect(&rc,GDD_RectW(&rc)+8,0);
-    hwndLB2=Widget_CreateListBox("列表框2",WS_WIDGET|WS_BORDER|WS_VISIBLE|WS_CAPTION,
+    hwndLB2=Widget_CreateListBox("列表框2",WS_BORDER|WS_VISIBLE|WS_CAPTION,
                         rc.left,rc.top,GDD_RectW(&rc),GDD_RectH(&rc),
                         hwnd,ID_LISTBOX2,NULL,NULL);
-    Widget_CreateButton("<--",WS_WIDGET|BS_NORMAL|WS_BORDER|WS_VISIBLE,rc.left,rc.bottom+4,50,20,hwnd,ID_LEFT,NULL,NULL);
+    Widget_CreateButton("<--",BS_NORMAL|WS_BORDER|WS_VISIBLE,rc.left,rc.bottom+4,50,20,hwnd,ID_LEFT,NULL,NULL);
 
 
     GDD_SendMessage(hwndLB1,MSG_ListBox_ADDSTRING,0,(u32)"ListItem-0");
@@ -208,6 +208,7 @@ void    GDD_Demo_Listbox(void)
 {
     s_gListboxDemoMsgLink.MsgNum = sizeof(s_gListboxMsgTable) / sizeof(struct MsgProcTable);
     s_gListboxDemoMsgLink.myTable = (struct MsgProcTable *)&s_gListboxMsgTable;
-    GDD_CreateGuiApp("Listbox", &s_gListboxDemoMsgLink, 0x800, CN_WINBUF_PARENT,WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU);
+    GDD_CreateGuiApp("Listbox", &s_gListboxDemoMsgLink, 0,0,-1,0, 0x800,CN_WINBUF_PARENT,
+                    WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE);
     GDD_WaitGuiAppExit("Listbox");
 }

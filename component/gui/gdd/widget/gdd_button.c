@@ -154,8 +154,6 @@ static  bool_t __Widget_ButtonPaint(struct WindowMsg *pMsg)
 
     GDD_DrawText(hdc,hwnd->Text,-1,&rc,DT_VCENTER|DT_CENTER);
 
-//    GDD_UpdateDisplay(0);
-
     GDD_EndPaint(hwnd,hdc);
 
     return true;
@@ -283,8 +281,9 @@ HWND Widget_CreateButton(  const char *Text,u32 Style,
     HWND pGddWin;
     s_gButtonMsgLink.MsgNum = sizeof(s_gButtonMsgProcTable) / sizeof(struct MsgProcTable);
     s_gButtonMsgLink.myTable = (struct MsgProcTable *)&s_gButtonMsgProcTable;
-    pGddWin=GDD_CreateWindow(Text,WS_WIDGET | WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
-                            CN_WINBUF_PARENT,pdata,&s_gButtonMsgLink);
+    pGddWin=GDD_CreateWindow(Text, WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
+                            CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
+                            &s_gButtonMsgLink);
     if(UserMsgTableLink != NULL)
         GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;

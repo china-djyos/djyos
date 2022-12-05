@@ -135,9 +135,9 @@ struct DC
 
 };
 
-#define WF_NCPAINT      (1<<0)  //非客户区绘制
-#define WF_PAINT        (1<<1)  //客户区绘制
-#define WF_ERASEBKGND   (1<<2)  //擦除背景
+#define WF_MAINWIN      (1<<0)  //这是个主窗口，有自己的消息队列和消息循环
+                                //无此标志的窗口，使用父窗口的消息队列，由父窗口消息循环处理
+#define WF_ERASEBKGND   (1<<1)  //擦除背景
 
 struct WINDOW
 {
@@ -156,7 +156,7 @@ struct WINDOW
 
     u8      BorderSize;     //边框大小
     u8      CaptionSize;    //标题栏大小
-    u16     Flag;           //窗口标记，例如：WF_ERASEBKGND
+    u16     Flag;           //窗口标记，例如： WF_ERASEBKGND
     u32     Style;          //窗口风格,高16位系统使用，例如：WS_CHILD
                             //0~7 bit=控件类型，8~15 bit = 控件风格
     RECT    CliRect;        //窗口客户区(使用屏幕坐标)

@@ -123,14 +123,12 @@ static bool_t __GDD_CursorFlash(struct WindowMsg *pMsg)
         if(GDD_IsWindowVisible(g_ptCursorHwnd))
         {
              GDD_SetWindowHide(g_ptCursorHwnd);
-//           GDD_UpdateDisplay(CN_TIMEOUT_FOREVER);
         }
         else
         {
              GDD_SetWindowShow(g_ptCursorHwnd);
-//           GDD_UpdateDisplay(CN_TIMEOUT_FOREVER);
         }
-        GDD_UpdateDisplay(pMsg->hwnd);
+        GDD_SyncShow(pMsg->hwnd);
     }
     return true;
 }
@@ -210,8 +208,9 @@ bool_t GDD_CursorInit(void)
 
     s_gCursorMsgLink.MsgNum = sizeof(s_gCursorMsgProcTable) / sizeof(struct MsgProcTable);
     s_gCursorMsgLink.myTable = (struct MsgProcTable *)&s_gCursorMsgProcTable;
-    g_ptCursorHwnd = GDD_CreateWindow("Cursor",WS_WIDGET,0,0,
-                        2, 12,NULL, 0, CN_WINBUF_PARENT,0,&s_gCursorMsgLink);
+    g_ptCursorHwnd = GDD_CreateWindow("Cursor",0,0,0,
+                        2, 12,NULL, 0, CN_WINBUF_PARENT,0, CN_SYS_PF_DISPLAY,
+                        CN_COLOR_WHITE,&s_gCursorMsgLink);
     if(g_ptCursorHwnd!=NULL)
     {
          GK_SetPrio(g_ptCursorHwnd->pGkWin,CN_WINDOW_ZPRIO_CURSOR , CN_TIMEOUT_FOREVER);

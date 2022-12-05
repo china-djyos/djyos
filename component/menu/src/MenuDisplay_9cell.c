@@ -97,7 +97,7 @@ void drawstatecontent_9cell_rightside(struct menu_displaypara  *dispara)
    state_area.bottom=(state_area.bottom)/1000;
    GK_FillRect(dispara->CurWin, &state_area, color_light,
                   0,CN_FILLRECT_MODE_N,0);
-   GDD_UpdateDisplay(CN_TIMEOUT_FOREVER);
+   GDD_SyncShow(CN_TIMEOUT_FOREVER);
    return;
 }
 
@@ -148,7 +148,7 @@ void drawstatecontent_9cell_rightside(struct menu_displaypara  *dispara)
 //     state_area.right=(state_area.right)/1000;
 //       GK_FillRect(dispara->CurWin, &state_area, color_light,
 //                      0,CN_FILLRECT_MODE_N,0);
-//      GDD_UpdateDisplay(CN_TIMEOUT_FOREVER);
+//      GDD_SyncShow(CN_TIMEOUT_FOREVER);
 //        return;
 //}
 // =========================================================================

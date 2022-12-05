@@ -185,8 +185,7 @@ struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
                          s32 left,s32 top,s32 right,s32 bottom,
                          u32 color,u32 buf_mode,
                          const char *name,u16 PixelFormat,u32 HyalineColor,
-                         u32 BaseColor,struct RopGroup RopMode,
-                         bool_t unfill)
+                         u32 BaseColor,struct RopGroup RopMode)
 {
     struct GkscParaCreateGkwin para;
     struct GkWinObj *result;
@@ -206,7 +205,6 @@ struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
     para.HyalineColor = HyalineColor;
     para.BaseColor = BaseColor;
     para.RopCode = RopMode;
-    para.unfill = unfill;
     __GK_SyscallChunnel(CN_GKSC_CREAT_GKWIN,CN_TIMEOUT_FOREVER,
                             &para,sizeof(para),NULL,0);
     if(*para.result == NULL)
@@ -255,7 +253,7 @@ void GK_SyncShow(u32 SyncTime)
 
 //----重刷显示器---------------------------------------------------------------
 //功能: 重新刷新显示器,不管是否有更新。GK_SyncShow只是刷新有改变的部分,
-//      GK_ApiRefresh则是不管有没有改变,全部重刷,但只针对具体显示器。
+//      GK_RefreshDisplay 则是不管有没有改变,全部重刷,但只针对具体显示器。
 //      在以下情况应该调用本函数:
 //      1. 由镜像显示器驱动程序调用，镜像显示器插入时，必须调用。
 //      2. 显示器本身从休眠醒来,且显示器内部没有缓冲.

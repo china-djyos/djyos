@@ -300,7 +300,7 @@ static bool_t __Widget_MoveCursor(HWND hwnd,u8 idx)
     GDD_CursorMove(x,y);
 
 //    GDD_MoveWindow(g_CursorHwnd,x,y);
-    GDD_UpdateDisplay(hwnd);
+    GDD_SyncShow(hwnd);
 //  GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
     return true;
 }
@@ -1127,15 +1127,15 @@ static struct MsgTableLink  s_gTextBoxMsgLink;
 // =============================================================================
 HWND Widget_CreateTextBox(const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,ptu32_t pdata,
+                    HWND hParent,u32 WinId,TextBox *pTB,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
     s_gTextBoxMsgLink.MsgNum = sizeof(s_gTextBoxMsgProcTable) / sizeof(struct MsgProcTable);
     s_gTextBoxMsgLink.myTable = (struct MsgProcTable *)&s_gTextBoxMsgProcTable;
-    pGddWin = GDD_CreateWindow(Text, WS_WIDGET | WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,
+    pGddWin = GDD_CreateWindow(Text,  WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,
                                 x, y, w, h, hParent, WinId, CN_WINBUF_PARENT,
-                                pdata, &s_gTextBoxMsgLink);
+                                pTB, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE, &s_gTextBoxMsgLink);
     if(UserMsgTableLink != NULL)
         GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;

@@ -115,7 +115,7 @@ typedef struct
 // =============================================================================
 HWND Widget_CreateTextBox(const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,ptu32_t pdata,
+                    HWND hParent,u32 WinId,TextBox *pTB,
                     struct MsgTableLink *UserMsgTableLink);
 
 // =============================================================================

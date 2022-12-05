@@ -75,10 +75,10 @@ struct DisplayObj;
 struct FontObj;
 //位图像素色彩格式定义，
 //客户格式，显卡driver内部可使用上述定义以外的私有格式。
-//应用程序可以通过gk_api_get_pixel_format查询显卡实际使用的格式。
+//应用程序可以通过 GK_GetPixelFormat 函数查询显卡实际使用的格式。
 //如果显卡使用私有格式，则上层查询显卡格式时，返回0x8000(CN_CUSTOM_PF).
-//应用程序绘制点、线、填充等功能时，必须使用cn_sys_pf_e8r8g8b8格式。
-//应用程序绘制位图时，如果使用显卡实际使用的像素格式，将获得最优化的显示速度。
+//应用程序绘制点、线、填充等功能时，必须使用 CN_SYS_PF_ERGB8888 格式指定颜色。
+//应用程序绘制位图时，如果使用显卡相同的像素格式，将获得最优化的显示速度。
 //ARGBxxxx格式中的A称之为ALPHA通道，AlphaBlend时，使用该ALPHA值，否则使用
 //  RopCode中携带的Alpha值。
 //CN_SYS_PF_GRAY1~8是基于基色的灰度图，基色是struct RectBitmap结构中的
@@ -314,13 +314,6 @@ struct GkWinObj                  //窗口资源定义
     struct ClipRect *copy_clip;    //用于visible_clip的临时备份
     struct DisplayObj *disp;       //本窗口所属显示器
     struct GkWinProperty WinProperty;   //窗口的状态和属性
-//  sfast_t z_prio;             //前端优先级，-127~127，表示在兄弟窗口中的相对位
-                                //置，0表示与父win同级，大于0表示被父win覆盖
-                                //-128保留，不可使用。
-//  bool_t direct_screen;       //直接写屏属性，本属性为true，则所有对本win的绘
-                                //制操作均直接画在screen上，无论是否有frame
-                                //buffer和win buffer。
-//  bool_t dest_blend;          //true窗口显示时需要和背景色混合，false=不需要
     u32 HyalineColor;           //透明显示色，RopCode允许透明色时用,RGB888
     struct RopGroup RopCode;    //光栅操作代码，除windows定义的标准光栅操作码外，
                                 //还包括alpha混合、KeyColor透明
@@ -330,14 +323,6 @@ struct GkWinObj                  //窗口资源定义
     struct RectBitmap changed_msk;//用来标记窗口中的被改写区域，
                                       //每bit代表8*8像素
     struct RectBitmap *wm_bitmap; //窗口实体(暂为矩形，考虑升级为任意形状)
-//    struct RectBitmap *Rop4Msk;//位掩码，每位一个像素，只有支持rop4才需要
-//    u8 *pat_buf;                //pattern位图缓冲区，支持rop才有
-//                                //像素格式与显示器像素格式相同。
-//  ufast_t change_flag;        //可取值:cn_gkwin_change_none等
-//  bool_t bound_limit;         //true=显示范围限制在父窗口边界内，任何显示器的
-                                //直接放在桌面的窗口，必定受限
-                                //false=不受父窗口边界限制,但如果父窗口是受限的，
-                                //则限制于祖父窗口
     s32 absx0,absy0;            //窗口绝对位置，相对于所属screen的桌面原点，
     s32 left,top,right,bottom;  //窗口矩形，相对于父窗口，像素坐标
 
@@ -375,8 +360,7 @@ struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
                          s32 left,s32 top,s32 right,s32 bottom,
                          u32 color,u32 buf_mode,
                          const char *name,u16 PixelFormat,u32 HyalineColor,
-                         u32 BaseColor,struct RopGroup RopMode,
-                         bool_t unfill);
+                         u32 BaseColor,struct RopGroup RopMode);
 void GK_FillWin(struct GkWinObj *gkwin,u32 color,u32 sync_time);
 void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *rect,
                             u32 Color0,u32 Color1,u32 Mode,u32 sync_time);

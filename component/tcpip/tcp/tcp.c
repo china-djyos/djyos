@@ -1107,7 +1107,7 @@ static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *ad
        Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
     {
         scb = (struct ServerCB *)sock->TplCB;
-        result = __acceptclient(sock);  //查看是否已经可接受
+        result = __acceptclient(sock);  //检查并接受连接。
         waittime = scb->accepttime;
         if((NULL == result)&&(0 != waittime))
         {
@@ -1119,9 +1119,12 @@ static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *ad
                 if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
                 {
                     result = __acceptclient(sock);
+                    Lock_MutexPost(sock->SockSync);
                 }
             }
         }
+        else
+            Lock_MutexPost(sock->SockSync);
         if(NULL== result)  //no one to accept
         {
 //          Handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT);
@@ -1131,7 +1134,6 @@ static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *ad
             result->sockstat |= CN_SOCKET_OPEN;
             result->sockstat &= ~CN_SOCKET_WAITACCEPT;
         }
-        Lock_MutexPost(sock->SockSync);
     }
 //应该在ack的时候添加hash表项
 //    if((NULL != result)&&(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER)))

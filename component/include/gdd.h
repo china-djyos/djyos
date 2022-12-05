@@ -302,8 +302,7 @@ typedef enum{
 /*============================================================================*/
 // 窗口公共风格，与控件风格以及控件类型组合成32位字，其中窗口公共风格使用高16位
 // 控件风格使用剩下16位。
-//#define WS_WIDGET      (1<<16) //被改名为 WS_WIDGET
-#define WS_WIDGET       (1<<16) //组件窗口标志,控件窗口必须指定该标志.有此标志的窗口，使用父窗口的消息循环
+//#define WS_WIDGET      (1<<16) //被删除，窗口风格不再需要此标志，使用者直接删掉
 #define WS_VISIBLE      (1<<17) //窗口是否可见
 #define WS_DISABLE      (1<<18) //窗口是否为禁止状态,指定该标志,窗口将不响应输入消息
 #define WS_BORDER       (1<<19) //窗口是否有边框
@@ -399,8 +398,9 @@ bool_t    GDD_EndPaint(HWND hwnd,HDC hdc);
 void GDD_AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink);
 HWND    GDD_CreateWindow(const char *Text,u32 Style,
                      s32 x,s32 y,s32 w,s32 h,
-                     HWND hParent,u32 WinId,
+                     HWND hParent,u16 WinId,
                      u32 BufProperty, ptu32_t pdata,
+                     u16 PixelFormat,u32 BaseColor,
                      struct MsgTableLink *pUserMsgTableLink);
 void    GDD_DestroyWindow(HWND hwnd);
 void    GDD_DestroyAllChild(HWND hwnd);
@@ -453,10 +453,11 @@ bool_t    GDD_WindowToScreen(HWND hwnd,POINT *pt,s32 count);
 void    ModuleInstall_GDD(struct GkWinObj *desktop);
 
 u32     GDD_AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha);
-void    GDD_UpdateDisplay(HWND hwnd);
+void    GDD_SyncShow(HWND hwnd);//函数原名 ： GDD_UpdateDisplay
 void GDD_WaitGuiAppExit(char *AppName);
 HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
-                      u32 MemSize, u32 WinBuf,u32 Style);
+                      s32 x,s32 y,s32 w,s32 h,
+                      u32 MemSize, u32 WinBuf,u32 Style,u16 PixelFormat,u32 BaseColor);
 
 /*===========================================================================*/
 #include <gui\gdd_timer.h>

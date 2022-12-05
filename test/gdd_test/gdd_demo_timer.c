@@ -66,20 +66,20 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
         timer_run[i]    =FALSE;
     }
     GDD_GetClientRect(hwnd,&rc0);
-    Widget_CreateButton("¹Ø±Õ",WS_WIDGET|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-28,60,24,hwnd,ID_CLOSE,NULL,NULL);
+    Widget_CreateButton("¹Ø±Õ",BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-28,60,24,hwnd,ID_CLOSE,NULL,NULL);
     GDD_ClientToScreen(hwnd,(POINT *)&rc0,2);
     y=20+rc0.top;
     x=128+8;
-    Widget_CreateButton("run1",WS_WIDGET|BS_HOLD|WS_VISIBLE,x,y+0*28,45,24,hwnd,ID_START_1,NULL,NULL);
-    Widget_CreateButton("run2",WS_WIDGET|BS_HOLD|WS_VISIBLE,x,y+1*28,45,24,hwnd,ID_START_2,NULL,NULL);
-    Widget_CreateButton("run3",WS_WIDGET|BS_HOLD|WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_START_3,NULL,NULL);
-    Widget_CreateButton("run4",WS_WIDGET|BS_HOLD|WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_START_4,NULL,NULL);
+    Widget_CreateButton("run1",BS_HOLD|WS_VISIBLE,x,y+0*28,45,24,hwnd,ID_START_1,NULL,NULL);
+    Widget_CreateButton("run2",BS_HOLD|WS_VISIBLE,x,y+1*28,45,24,hwnd,ID_START_2,NULL,NULL);
+    Widget_CreateButton("run3",BS_HOLD|WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_START_3,NULL,NULL);
+    Widget_CreateButton("run4",BS_HOLD|WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_START_4,NULL,NULL);
 
     x=128+8+49;
-    Widget_CreateButton("reset1",WS_WIDGET|WS_VISIBLE,x,y+0*28,45,24,hwnd,ID_CLR_1,NULL,NULL);
-    Widget_CreateButton("reset2",WS_WIDGET|WS_VISIBLE,x,y+1*28,45,24,hwnd,ID_CLR_2,NULL,NULL);
-    Widget_CreateButton("reset3",WS_WIDGET|WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_CLR_3,NULL,NULL);
-    Widget_CreateButton("reset4",WS_WIDGET|WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_CLR_4,NULL,NULL);
+    Widget_CreateButton("reset1",WS_VISIBLE,x,y+0*28,45,24,hwnd,ID_CLR_1,NULL,NULL);
+    Widget_CreateButton("reset2",WS_VISIBLE,x,y+1*28,45,24,hwnd,ID_CLR_2,NULL,NULL);
+    Widget_CreateButton("reset3",WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_CLR_3,NULL,NULL);
+    Widget_CreateButton("reset4",WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_CLR_4,NULL,NULL);
 
     GDD_CreateTimer(hwnd,0,timer_interval[0]);
     GDD_CreateTimer(hwnd,1,timer_interval[1]);
@@ -222,6 +222,7 @@ void    GDD_Demo_Timer(void)
 {
     s_gTimerDemoMsgLink.MsgNum = sizeof(s_gTimerMsgTable) / sizeof(struct MsgProcTable);
     s_gTimerDemoMsgLink.myTable = (struct MsgProcTable *)&s_gTimerMsgTable;
-    GDD_CreateGuiApp("Timer", &s_gTimerDemoMsgLink, 0x800, CN_WINBUF_PARENT,WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU);
+    GDD_CreateGuiApp("Timer", &s_gTimerDemoMsgLink, 0,0,-1,0, 0x800, CN_WINBUF_PARENT,
+                WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE);
     GDD_WaitGuiAppExit("Timer");
 }

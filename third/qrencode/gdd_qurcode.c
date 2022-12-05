@@ -273,8 +273,9 @@ HWND CreateQrcode(  const char *Text,u32 Style,
     HWND pGddWin;
     s_gQrcodeMsgLink.MsgNum = sizeof(s_gQrcodeMsgProcTable) / sizeof(struct MsgProcTable);
     s_gQrcodeMsgLink.myTable = (struct MsgProcTable *)&s_gQrcodeMsgProcTable;
-    pGddWin=GDD_CreateWindow(Text,WS_WIDGET |Style,x,y,w,h,hParent,WinId,
-                              CN_WINBUF_PARENT,pdata,&s_gQrcodeMsgLink);
+    pGddWin=GDD_CreateWindow(Text,Style,x,y,w,h,hParent,WinId,
+                              CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
+                              &s_gQrcodeMsgLink);
     if(UserMsgTableLink != NULL)
           GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;

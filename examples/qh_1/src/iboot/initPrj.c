@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!  *
+ *  Automatically-generated file. Do not edit!	*
  ****************************************************/
 
 #include "project_config.h"
@@ -20,12 +20,12 @@ ptu32_t __djy_main(void)
 {
     djy_main();
 
-    return 0;
+	return 0;
 }
 
 void Sys_ModuleInit(void)
 {
-    uint16_t evtt_main;
+	uint16_t evtt_main;
 
     //shell
     extern void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut);
@@ -154,17 +154,17 @@ void Sys_ModuleInit(void)
     //stmpe811
     struct GkWinObj;
     extern ptu32_t ModuleInstall_Touch_Stmpe811(void);
-    ModuleInstall_Touch_Stmpe811(stmpe811_desktop);
+    ModuleInstall_Touch_Stmpe811( );
     #if(CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == true)
     extern bool_t GDD_AddInputDev(const char *InputDevName);
     GDD_AddInputDev(CFG_STMPE811_TOUCH_DEV_NAME);
     #endif
     //end stmpe811
 
-    evtt_main = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
-        __djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");
-    //事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数
-    DJY_EventPop(evtt_main,NULL,0,0,0,0);
+	evtt_main = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
+		__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");
+	//事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数
+	DJY_EventPop(evtt_main,NULL,0,0,0,0);
 
     //heap
     #if ((CFG_DYNAMIC_MEM == true))
@@ -175,5 +175,5 @@ void Sys_ModuleInit(void)
 
 
 
-    return ;
+	return ;
 }

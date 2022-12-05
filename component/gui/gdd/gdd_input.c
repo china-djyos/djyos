@@ -156,7 +156,6 @@ void GDD_HmiInput(void)
             else
                 hwnd = GDD_GetWindowFromPoint(GDD_GetDesktopWindow()->pGkWin, &pt);
             //GDD_MoveWindow(sg_pMouseHwnd, pt.x-4, pt.y-4);
-//          GDD_UpdateDisplay(CN_TIMEOUT_FOREVER);
             if(hwnd != NULL)
             {
                 GDD_GetClientRectToScreen(hwnd,&rc);
