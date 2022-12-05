@@ -104,7 +104,7 @@ struct GkscParaCreateDesktop
 {
     struct DisplayObj *display;     //所属显示器
     struct GkWinObj *desktop;       //桌面窗口,由上层分配结构体
-    char *name;                     //桌面窗口的名字
+    char name[CN_GKWIN_NAME_LIMIT+1];                     //桌面窗口的名字
     s32 width,height;               //桌面尺寸，若小于显示器尺寸则调整为显示器尺寸
     u32 color;                      //创建桌面时填充的颜色
     u32 buf_mode;    //定义缓冲模式，参见 CN_WINBUF_PARENT 族常量定义
@@ -121,7 +121,7 @@ struct GkscParaCreateGkwin
     s32 left,top,right,bottom;          //新窗口的位置，相对于父窗口的坐标
     u32 color;                          //创建窗口时填充的颜色
     u32 buf_mode;    //定义缓冲模式，参见 CN_WINBUF_PARENT 族常量定义
-    char *name;             //窗口名字(标题)
+    char name[CN_GKWIN_NAME_LIMIT+1];             //窗口名字(标题)
     //以下成员只在buf_mode=true时有效，否则忽略之。
     u16 PixelFormat;                //像素格式，不允许用编号大于CN_GKWIN_PF_LIMIT的格式
     u16 rsv;                        //保留用于4字节对齐
