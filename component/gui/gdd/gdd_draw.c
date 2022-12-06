@@ -542,6 +542,7 @@ void    GDD_DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
 
         GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                 hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+		__GDD_EndDraw(hdc);
     }
 }
 
@@ -1189,76 +1190,17 @@ void    GDD_Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2)
 //------------------------------------------------------------------------------
 void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 {
-     s32 x = 0;
-     s32 y = r;
-     s32 delta = 2*(1-r);
-     s32 direction;
-     u32 color;
+	
      ////
-
+	 POINT pt;
      if(hdc!=NULL)
      {
-         color =GDD_GetDrawColor(hdc);
-         while (y >= 0)
-         {
-
-            GDD_SetPixel(hdc,cx+x, cy+y, color);
-            GDD_SetPixel(hdc,cx-x, cy+y, color);
-            GDD_SetPixel(hdc,cx-x, cy-y, color);
-            GDD_SetPixel(hdc,cx+x, cy-y, color);
-            ////
-
-            if (delta < 0)
-            {
-                 if ((2*(delta+y)-1) < 0)
-                 {
-                  direction = 1;
-                 }
-                 else
-                 {
-                  direction = 2;
-                 }
-             }
-             else if(delta > 0)
-             {
-                 if ((2*(delta-x)-1) <= 0)
-                 {
-                  direction = 2;
-                 }
-                 else
-                 {
-                  direction = 3;
-                 }
-             }
-             else
-             {
-                   direction=2;
-             }
-
-             ////
-
-             switch(direction)
-             {
-
-              case 1:
-                     x++;
-                      delta += (2*x+1);
-                      break;
-
-              case 2:
-                      x++;
-                      y--;
-                      delta += 2*(x-y+1);
-                       break;
-
-              case 3:
-                      y--;
-                      delta += (-2*y+1);
-                       break;
-
-             }
-
-         }
+		 pt.x = cx;
+		 pt.y = cy;
+		 __GDD_LPtoDP(hdc, &pt, 1);
+		 GK_DrawCircle(hdc->pGkWin, cx, cy, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
+		 __GDD_EndDraw(hdc);
+	
     }
 }
 
