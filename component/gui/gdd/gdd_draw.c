@@ -542,7 +542,7 @@ void    GDD_DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
 
         GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                 hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
-		__GDD_EndDraw(hdc);
+        __GDD_EndDraw(hdc);
     }
 }
 
@@ -1190,18 +1190,18 @@ void    GDD_Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2)
 //------------------------------------------------------------------------------
 void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 {
-	
+     
      ////
-	 POINT pt;
+     POINT pt;
      if(hdc!=NULL)
      {
-		 pt.x = cx;
-		 pt.y = cy;
-		 __GDD_LPtoDP(hdc, &pt, 1);
-		 GK_DrawCircle(hdc->pGkWin, cx, cy, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
-		 __GDD_EndDraw(hdc);
-	
-    }
+         pt.x = cx;
+         pt.y = cy;
+         __GDD_LPtoDP(hdc, &pt, 1);
+         GK_DrawCircle(hdc->pGkWin, cx, cy, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
+         __GDD_EndDraw(hdc);
+
+     }
 }
 
 //----ÃÓ≥‰‘≤------------------------------------------------------------------
