@@ -93,6 +93,9 @@
 //%$#@num,0,65536,
 #define CFG_LCD_XSIZE   240             //"LCD宽度",
 #define CFG_LCD_YSIZE   128             //"LCD高度",
+//%$#@num,,,
+#define CFG_LCD_XSIZE_UM   36500            //"LCD宽度-微米数",
+#define CFG_LCD_YSIZE_UM   48600            //"LCD高度-微米数",
 //%$#@enum,true,false,
 //%$#@string,1,30,
 #define CFG_LCD_HEAP_NAME              "sys"        //"堆名称",配置LCD分配内存时使用的堆
@@ -786,9 +789,8 @@ ptu32_t LCD_ModuleInit(void)
     LCD_HardInit();
     __lcd_mcbqvga_init( );
     tg_lcd_display.frame_buffer = NULL;
-
-    tg_lcd_display.width_um = 0;
-    tg_lcd_display.height_um = 0;
+    tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
+    tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
     tg_lcd_display.width = CFG_LCD_XSIZE;
     tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_RGB565;

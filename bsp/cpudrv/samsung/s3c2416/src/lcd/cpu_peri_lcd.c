@@ -87,6 +87,12 @@
 //#warning  " cpu_onchip_lcd  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_LCD    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+	//%$#@num,0,65536,
+#define CFG_LCD_XSIZE   240             //"LCD宽度",
+#define CFG_LCD_YSIZE   128             //"LCD高度",
+//%$#@num,,,
+#define CFG_LCD_XSIZE_UM   36500            //"LCD宽度-微米数",
+#define CFG_LCD_YSIZE_UM   48600            //"LCD高度-微米数",
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,30,
@@ -184,7 +190,7 @@ u16 *pFrameBufferFG;    //前台显示缓冲区.
 static struct GkWinObj   frame_win;
 static struct RectBitmap frame_bm;
 
-static u16 lcd_buffer_bk[CN_LCD_XSIZE*CN_LCD_YSIZE];    //后台显示缓冲区.
+static u16 lcd_buffer_bk[CFG_LCD_XSIZE*CFG_LCD_YSIZE];    //后台显示缓冲区.
 
 #endif
 
@@ -212,8 +218,8 @@ static void __lcd_hard_init(u32 lcd_buffer_addr)
     gpio->GPDCON = 0xAAAAAAAA;
     gpio->GPDUDP = 0xAAAAAAAA;
 
-    hsync_cnt = (HFPD+HBPD+HSPW+CN_LCD_XSIZE);
-    vclk_cnt  = (VFPD+VBPD+VSPW+CN_LCD_YSIZE);
+    hsync_cnt = (HFPD+HBPD+HSPW+CFG_LCD_XSIZE);
+    vclk_cnt  = (VFPD+VBPD+VSPW+CFG_LCD_YSIZE);
 
     lcd->WINCON0 &= ~0x01;
     lcd->WINCON1 &= ~0x01;
@@ -227,25 +233,25 @@ static void __lcd_hard_init(u32 lcd_buffer_addr)
     lcd->VIDCON1 = (VCLK_INV<<7)|(HS_INV<<6)|(VS_INV<<5)|(VDEN_INV<<4);
     lcd->VIDTCON0 = ((VBPD-1)<<16)|((VFPD-1)<<8)|(VSPW-1);
     lcd->VIDTCON1 = ((HBPD-1)<<16)|((HFPD-1)<<8)|(HSPW-1);
-    lcd->VIDTCON2 = ((CN_LCD_YSIZE-1)<<11)|(CN_LCD_XSIZE-1);
+    lcd->VIDTCON2 = ((CFG_LCD_YSIZE-1)<<11)|(CFG_LCD_XSIZE-1);
 
     lcd->VIDOSD0A = (0<<11)|(0);
-    lcd->VIDOSD0B = (CN_LCD_XSIZE-1)<<11|(CN_LCD_YSIZE-1);
+    lcd->VIDOSD0B = (CFG_LCD_XSIZE-1)<<11|(CFG_LCD_YSIZE-1);
 
     #if(LCD_BPP==16)
     lcd->WINCON0 = (BITSWP<<18)|(BYTSWP<<17)|(HAWSWP<<16)|(WINCONx_16WORD_BURST<<9)|(WINCONx_16BPP_565<<2); // 16word burst, 16bpp,
 
     lcd->VIDW00ADD0B0 = (u32)lcd_buffer_addr;
-    lcd->VIDW00ADD1B0 = (u32)lcd_buffer_addr + CN_LCD_XSIZE*CN_LCD_YSIZE*2;
-    lcd->VIDW00ADD2B0 = (0<<13)|(CN_LCD_XSIZE*2);
+    lcd->VIDW00ADD1B0 = (u32)lcd_buffer_addr + CFG_LCD_XSIZE*CFG_LCD_YSIZE*2;
+    lcd->VIDW00ADD2B0 = (0<<13)|(CFG_LCD_XSIZE*2);
     #endif
 
     #if(LCD_BPP==24)
     lcd->rWINCON0 = (BITSWP<<18)|(BYTSWP<<17)|(HAWSWP<<16)|(WINCONx_16WORD_BURST<<9)|(WINCONx_24BPP_888<<2); // 16word burst, 24bpp,
 
     lcd->VIDW00ADD0B0 = (u32)lcd_buffer_addr;
-    lcd->VIDW00ADD1B0 = (u32)lcd_buffer_addr + CN_LCD_XSIZE*CN_LCD_YSIZE*4;
-    lcd->VIDW00ADD2B0 = (0<<13)|(CN_LCD_XSIZE*4);
+    lcd->VIDW00ADD1B0 = (u32)lcd_buffer_addr + CFG_LCD_XSIZE*CFG_LCD_YSIZE*4;
+    lcd->VIDW00ADD2B0 = (0<<13)|(CFG_LCD_XSIZE*4);
     #endif
 
 
@@ -450,7 +456,7 @@ bool_t __lcd_set_pixel_screen(s32 x,s32 y,u32 color,u32 rop2_code)
 {
     u32 dest;
     u32 byteoffset;
-    byteoffset = y*CN_LCD_XSIZE + x;
+    byteoffset = y*CFG_LCD_XSIZE + x;
 
     color = GK_ConvertRGB24ToPF(CN_LCD_PIXEL_FORMAT,color);
 
@@ -482,7 +488,7 @@ bool_t __lcd_set_pixel_group_screen(struct PointCdn *PixelGroup,u32 color,u32 n,
 
     for(i=0;i<n;i++)
     {
-        offset = PixelGroup[i].y*CN_LCD_XSIZE + PixelGroup[i].x;
+        offset = PixelGroup[i].y*CFG_LCD_XSIZE + PixelGroup[i].x;
         dest = (u32)pFrameBufferFG[offset];
         dest = GK_BlendRop2(dest,color,r2_code);
 
@@ -557,7 +563,7 @@ bool_t __lcd_fill_rect_screen(struct Rectangle *Target,
     for(y=Focus->top;y<Focus->bottom;y++)
     {
         m=width%8;
-        p =&pFrameBufferFG[y*CN_LCD_XSIZE];
+        p =&pFrameBufferFG[y*CFG_LCD_XSIZE];
         for(x=0;x<n;x++)
         {
           switch(m)
@@ -609,7 +615,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     byteoffset_bitmap = ysrc*double_width_src + xsrc*2;
     //目标矩形左上角坐标的双字节偏移量，因为pg_video_buf为u16的指针
     //因为是传送到screen上，所以每行双字节数取cn_lcd_xsize
-    byteoffset_rect = dst_rect->top*CN_LCD_XSIZE + dst_rect->left;
+    byteoffset_rect = dst_rect->top*CFG_LCD_XSIZE + dst_rect->left;
 
     //bitmap到screen位块传送
     for(y = dst_rect->top;y < dst_rect->bottom;y++)
@@ -617,7 +623,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
         memcpy(&(pFrameBufferFG[byteoffset_rect]),
                     &src_bitmap->bm_bits[byteoffset_bitmap],size);
         byteoffset_bitmap += double_width_src;
-        byteoffset_rect += CN_LCD_XSIZE;
+        byteoffset_rect += CFG_LCD_XSIZE;
     }
     return true;
 }
@@ -631,7 +637,7 @@ u32 __lcd_get_pixel_screen(s32 x,s32 y)
     u32 r,g,b,color,offset;
 
     offset = (u32)pFrameBufferFG;
-    offset += y*CN_LCD_XSIZE*2;
+    offset += y*CFG_LCD_XSIZE*2;
     offset += x*2;
     color = (u32)(*(u16*)offset);
     r = (color>>11) &0x1f;
@@ -672,7 +678,7 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,const char* HeapNam
     }
 
 
-    pFrameBufferFG =M_MallocHeap(CN_LCD_XSIZE*CN_LCD_YSIZE*2,heap,0);
+    pFrameBufferFG =M_MallocHeap(CFG_LCD_XSIZE*CFG_LCD_YSIZE *2,heap,0);
 
     __lcd_hard_init(pFrameBufferFG);
 
@@ -680,9 +686,9 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,const char* HeapNam
 #ifdef  CN_LCD_DRV_FRAME_BUFFER_EN
 
     frame_bm.PixelFormat = CN_LCD_PIXEL_FORMAT;
-    frame_bm.width = CN_LCD_XSIZE;
-    frame_bm.height = CN_LCD_YSIZE;
-    frame_bm.linebytes = CN_LCD_XSIZE*2;
+    frame_bm.width = CFG_LCD_XSIZE;
+    frame_bm.height = CFG_LCD_YSIZE;
+    frame_bm.linebytes = CFG_LCD_XSIZE *2;
     frame_bm.bm_bits = (u8*)lcd_buffer_bk;
     frame_win.wm_bitmap =&frame_bm;
 
@@ -698,8 +704,8 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,const char* HeapNam
 
     tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
     tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
-    lcd_display.width = CN_LCD_XSIZE;
-    lcd_display.height = CN_LCD_YSIZE;
+    lcd_display.width = CFG_LCD_XSIZE;
+    lcd_display.height = CFG_LCD_YSIZE;
     lcd_display.pixel_format = CN_LCD_PIXEL_FORMAT;
 
 
