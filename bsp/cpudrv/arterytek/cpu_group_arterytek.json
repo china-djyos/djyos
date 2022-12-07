@@ -1,0 +1,12 @@
+{
+	"cores":[{
+		"resetAddr":"0x08000000",
+		"name":"cortex-m4",
+		"arch":"armv7e-m",
+		"type":"arm",
+		"family":"cortex-m4",
+		"coreClk":288
+	}],	
+	
+	"main_freq":"288"
+}
