@@ -1802,9 +1802,9 @@ ptu32_t __GDD_WinMsgProc(struct WindowMsg *pMsg)
         if(pMsg->Code == MSG_CLOSE)
         {
             if(hwnd->Flag & WF_MAINWIN)
-                __GDD_DeleteChildWindowData(hwnd);
+			    __GDD_DeleteMainWindowData(hwnd);   //主窗口要删除的东西多一些
             else
-                __GDD_DeleteMainWindowData(hwnd);   //主窗口要删除的东西多一些
+                __GDD_DeleteChildWindowData(hwnd);
         }
         __GDD_Unlock();
     }
