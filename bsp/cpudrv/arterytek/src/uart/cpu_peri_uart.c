@@ -215,8 +215,6 @@ static u32 RxDirectPort;                  //用于直接接收的串口号
 
 struct uart_priv {
 	int port;
-	void* TxRingBuf;
-	void* RxRingBuf;
 
 	struct UartGeneralCB* pUartCB;
 	char* dma_rx_buf;
@@ -668,16 +666,26 @@ ptu32_t art43x_UartCtrl(ptu32_t PrivateTag, u32 cmd, va_list* arg0)
 	struct uart_priv *priv;
 	usart_type *usart_x;
 	uint32_t baud;
-
+	int mode = 0;
 
 	priv = (void *)PrivateTag;
 	usart_x = NULL;
 	if(priv) usart_x = to_usart_type(priv->port);
 	if (!usart_x) return -1;
 
+	if (usart_x == USART1) {
+	/* hack AT32F435CMT7 */
+		mode = 485;
+	}
+
 	switch (cmd) {
 	case CN_DEV_CTRL_START:
 		usart_init(usart_x, 115200 , USART_DATA_8BITS, USART_STOP_1_BIT);
+		if (mode == 485) {
+			usart_rs485_delay_time_config(usart_x, 2, 2);
+			usart_de_polarity_set(usart_x, USART_DE_POLARITY_HIGH);
+			usart_rs485_mode_enable(usart_x, TRUE);
+		}
 		usart_transmitter_enable(usart_x, TRUE);
 		usart_receiver_enable(usart_x, TRUE);
 		usart_enable(usart_x, TRUE);
@@ -872,12 +880,6 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
     priv->port = port;
     param = art43x_UART_Param + priv->port;
 
-    if (param->TxRingBufLen) priv->TxRingBuf = malloc(param->TxRingBufLen);
-    else priv->TxRingBuf = NULL;
-
-    if (param->RxRingBufLen) priv->RxRingBuf = malloc(param->RxRingBufLen);
-    else priv->RxRingBuf = NULL;
-
     priv->dma_rx_buf = NULL;
     priv->dma_tx_buf = NULL;
     priv->dmabuf_len = 0;
@@ -966,27 +968,28 @@ int devname_to_port(char* str)
 	return -1;
 }
 
-//----初始化内核级IO-----------------------------------------------------------
-//功能：初始化内核级输入和输出所需的runtime函数指针。
-//参数：无
-//返回：无
-//-----------------------------------------------------------------------------
+#if defined(AT32F437ZMT7) || defined(AT32F435CGT7)
+#define UART_STDOUT   0
+#define UART_STDIN    UART_STDOUT
+#elif defined(AT32F435CMT7)
+#define UART_STDOUT   1
+#define UART_STDIN    UART_STDOUT
+#endif
+
 void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
 {
 	struct UartParam* param;
 	int port;
 
 	port = devname_to_port(StdioOut);
-	if (port < 0) TxDirectPort = 0; /* default to UART1 */
+	if (port < 0) TxDirectPort = UART_STDOUT;
+	else TxDirectPort = port;
 
-	param = art43x_UART_Param + port;
-
-	if(param && param->UartCtrl)
-		param->UartCtrl(param->UartPortTag, CN_DEV_CTRL_START, NULL);
 	PutStrDirect = art43x_PutStrDirect;
 	TxByteTime = 95;
 
 	port = devname_to_port(StdioIn);
-	if (port < 0) RxDirectPort = 0; /* default to UART1. */
+	if (port < 0) RxDirectPort = UART_STDOUT;
+	else RxDirectPort = port;
 	GetCharDirect = art43x_GetCharDirect;
 }

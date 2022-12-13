@@ -34,8 +34,10 @@
 //%$#@select,1
 #define     USE_STDPERIPH_DRIVER          //RTE是否使用库
 //%$#@select,1
-//#define AT32F435CGT7   //只能选中其中一个
-//#define AT32F437ZMT7
+//#define AT32F435CGT7   // default console USART1
+//#define AT32F435CMT7   // default console USART2
+//#define AT32F437ZMT7   // default console USART1
+
 //%$#@free
 #endif
 //%$#@end configue  ****参数配置结束
