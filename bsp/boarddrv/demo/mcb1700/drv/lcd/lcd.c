@@ -659,7 +659,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     return true;
 }
 
-//从screen中取一像素，并转换成cn_sys_pf_e8r8g8b8
+//从screen中取一像素，并转换成CN_SYS_PF_ERGB8888
 u32 __lcd_get_pixel_screen(s32 x,s32 y)
 {
     return GK_ConvertColorToRGB24(CN_SYS_PF_RGB565,
@@ -757,7 +757,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     return true;
 }
 
-//从screen中取一像素，并转换成cn_sys_pf_e8r8g8b8
+//从screen中取一像素，并转换成CN_SYS_PF_ERGB8888
 u32 __lcd_get_pixel_screen(s32 x,s32 y)
 {
     return GK_ConvertColorToRGB24(CN_SYS_PF_RGB565,

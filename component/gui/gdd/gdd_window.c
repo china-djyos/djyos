@@ -444,7 +444,7 @@ HWND GDD_GetWindowParent(HWND hwnd)
 }
 
 //----取子窗口-----------------------------------------------------------------
-//功能：取窗口的子窗口句柄
+//功能：取窗口的子窗口句柄,实际跟 GDD_GetWindowFirst 等效
 //参数：hwnd，窗口句柄
 //返回：子窗口句柄，无则返回NULL
 //-----------------------------------------------------------------------------
@@ -561,22 +561,23 @@ char *GDD_GetWindowText(HWND hwnd)
 //     Id: 需要查找的子窗口(控件)Id.
 //返回：查找到的子窗口(控件)句柄.
 //------------------------------------------------------------------------------
-HWND    GDD_GetDlgItem(HWND hwnd,u16 Id)
-{
-    HWND Current = hwnd;
-    if(__GDD_Lock())
-    {
-        Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
-        while(Current != NULL)
-        {
-            if(Current->WinId == Id)
-                break;
-            Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
-        }
-        __GDD_Unlock();
-    }
-    return Current;
-}
+//打算废掉 winID，它不符合软件逻辑。
+//HWND    GDD_GetDlgItem(HWND hwnd,u16 Id)
+//{
+//    HWND Current = hwnd;
+//    if(__GDD_Lock())
+//    {
+//        Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
+//        while(Current != NULL)
+//        {
+//            if(Current->WinId == Id)
+//                break;
+//            Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
+//        }
+//        __GDD_Unlock();
+//    }
+//    return Current;
+//}
 
 //----按坐标查找窗口(主窗口或子窗口)-------------------------------------------
 //描述: 略.
@@ -982,7 +983,7 @@ HWND __GDD_CreateWindow(struct GkWinObj *pGkWin,u32 Style,
 //      x,y,w,h: 窗口位置和大小,位置相对于父窗口
 //      hParent: 父窗口句柄.如果是NULL,则默认桌面为父窗口.
 //      WinId: 窗口Id.————即将废除，不要使用
-//      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT等。
+//      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT 等。
 //      pdata: 用户自定义附加数据.//
 //      PixelFormat,像素格式，在gkernel.h中定义， CN_SYS_PF_DISPLAY 表示与显示器相同，推荐。
 //      BaseColor, 灰度图基色，(仅在PixelFormat == CN_SYS_PF_GRAY1 ~8时有用)
@@ -1839,7 +1840,7 @@ void __GDD_ClearMainWindow(HWND hwnd)
 //参数：AppName，Appname，也是窗口名字，将出现在窗口标题栏（如果显示标题栏），将copy
 //      到gkwin的name成员，长度限CN_GKWIN_NAME_LIMIT，（节数），TODO：待改为字符数。
 //      Style: 窗口风格(参考 WS_VISIBLE 族常量)
-//      x,y,w,h: 窗口位置和大小,位置相对于父窗口
+//      x,y,w,h: 窗口位置和大小,位置相对于父窗口，如果 w == -1，表示使用桌面尺寸。
 //      MemSize，该应用所需的内存量，即执行消息循环的线程栈尺寸
 //      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT等。
 //      pdata: 用户自定义附加数据.

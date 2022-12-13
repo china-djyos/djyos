@@ -58,7 +58,7 @@ ptu32_t djy_main(void)
     printf("hello world!  run mode app \r\n");
     while(1)
     {
-        Djy_EventDelay(1000*1000);
+        DJY_EventDelay(1000*1000);
     }
     return 0;
 }

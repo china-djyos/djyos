@@ -275,7 +275,7 @@ bool_t GPIO_SetLckr(u32 port,u32 Lckk)
 bool_t PIO_Configure(const Pin *Pin, u32 num)
 {
     u8 flag;
-    while(num>0)
+    while(num> 0)
     {
         GPIO_PowerOn(Pin->PORT);
 

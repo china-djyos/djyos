@@ -64,14 +64,14 @@ ptu32_t djy_main(void)
     {
         if(test_flag == 0)
         {
-            Djy_EventDelay(1000*1000);
+            DJY_EventDelay(1000*1000);
         }
         else
         {
             printf("hello world!\r\n");
-            Djy_EventDelay(delaytime);
+            DJY_EventDelay(delaytime);
             printf("hello world! i = %d\r\n",i);
-            Djy_EventDelay(delaytime);
+            DJY_EventDelay(delaytime);
             i++;
         }
     }

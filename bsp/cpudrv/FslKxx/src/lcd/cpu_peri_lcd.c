@@ -86,7 +86,7 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_LCD    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,32,512,
-	//%$#@num,0,65536,
+    //%$#@num,0,65536,
 #define CFG_LCD_XSIZE   240             //"LCD宽度",
 #define CFG_LCD_YSIZE   128             //"LCD高度",
 //%$#@num,,,
@@ -293,7 +293,7 @@ bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x、y，坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
@@ -307,7 +307,7 @@ bool_t __lcd_set_pixel_bm(struct RectBitmap *bitmap,
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -321,7 +321,7 @@ bool_t __lcd_line_bm(struct RectBitmap *bitmap,struct Rectangle *limit,
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -334,7 +334,7 @@ bool_t __lcd_line_bm_ie(struct RectBitmap *bitmap,struct Rectangle *limit,
 //功能: 把位图中的矩形用color颜色填充。
 //参数: bitmap，目标位图
 //      dst_rect，待填充的矩形
-//      color，填充颜色，cn_sys_pf_e8r8g8b8格式
+//      color，填充颜色，CN_SYS_PF_ERGB8888格式
 //返回: true=成功绘制，false=失败
 //-----------------------------------------------------------------------------
 bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
@@ -440,7 +440,7 @@ bool_t __lcd_blt_bm_to_bm( struct RectBitmap *dst_bitmap,
 //      如果显卡不打算支持自定义格式，本函数直接返回false。
 //参数: bitmap，目标位图
 //      x、y，坐标
-//返回: 读取的像素值，cn_sys_pf_e8r8g8b8格式
+//返回: 读取的像素值，CN_SYS_PF_ERGB8888格式
 //-----------------------------------------------------------------------------
 u32 __lcd_get_pixel_bm(struct RectBitmap *bitmap,s32 x,s32 y)
 {

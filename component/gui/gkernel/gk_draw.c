@@ -1804,7 +1804,7 @@ void __GK_DrawOline(struct GkWinObj *gkwin,s32 x1,s32 y1,
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
 //      x1、y1，起始点的坐标
 //      y2，结束点的纵坐标
-//      color，颜色，cn_sys_pf_e8r8g8b8格式
+//      color，颜色，CN_SYS_PF_ERGB8888格式
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
@@ -1862,7 +1862,7 @@ void __GK_VlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
 //      x1、y1，起始点的坐标
 //      x2，结束点的横坐标
-//      color，颜色，cn_sys_pf_e8r8g8b8格式
+//      color，颜色，CN_SYS_PF_ERGB8888格式
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
@@ -1919,7 +1919,7 @@ void __GK_HlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
 //      x1、y1，起始点的坐标
 //      x2、y2，结束点的坐标
-//      color，颜色，cn_sys_pf_e8r8g8b8格式
+//      color，颜色，CN_SYS_PF_ERGB8888格式
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
@@ -2070,7 +2070,7 @@ void __GK_LinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
 //功能: 在screen上直接画点。
 //参数: gkwin，绘制的目标窗口
 //      x、y， 坐标
-//      color，绘图所用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图所用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
@@ -2098,7 +2098,7 @@ void __GK_SetPixelScreen(struct DisplayObj *display,s32 x,s32 y,
 //参数: display，绘制的目标显示器
 //      limit，允许绘图的限制区域，一个矩形的区域，超出此区域的直线不画
 //      x1、y1、x2、y2，起点和终点坐标
-//      color，绘图所用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图所用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
@@ -2269,10 +2269,10 @@ void __GK_BltBmToScreen(struct DisplayObj *display,struct Rectangle *rect,
 
 //----填充矩形-----------------------------------------------------------------
 //功能: 在dst_bitmap中dst_rect所占据的位置上，用color颜色填充。color的格式是
-//      cn_sys_pf_e8r8g8b8，要转换成dst_bitmap->pf_type匹配的颜色填充。
+//      CN_SYS_PF_ERGB8888，要转换成dst_bitmap->pf_type匹配的颜色填充。
 //参数: dst_bitmap，被填充的位图
 //      dst_rect，填充的位置
-//      color，填充的颜色，格式是cn_sys_pf_e8r8g8b8
+//      color，填充的颜色，格式是CN_SYS_PF_ERGB8888
 //返回: 无
 //-----------------------------------------------------------------------------
 void __GK_FillRect(struct RectBitmap *dst_bitmap,
@@ -2291,7 +2291,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
     y2 = dst_rect->bottom;
     x2 = dst_rect->right;
     temp_bytes = dst_bitmap->linebytes;
-    //color的格式是cn_sys_pf_e8r8g8b8，转换成dst_bitmap->pf_type匹配的格式
+    //color的格式是CN_SYS_PF_ERGB8888，转换成dst_bitmap->pf_type匹配的格式
     pf_color = GK_ConvertRGB24ToPF(dst_bitmap->PixelFormat,color);
     //被填充的位图的每像素位宽
     color_bits = (dst_bitmap->PixelFormat & CN_PF_BITWIDE_MSK)>>8;
@@ -2604,7 +2604,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
 //----填充位图-----------------------------------------------------------------
 //功能: 本函数是__GK_FillRect的特殊情况，即需要填充的矩形是整个bitmap。
 //参数: dst_bitmap,被填充的位图
-//      color，填充的颜色，格式是cn_sys_pf_e8r8g8b8
+//      color，填充的颜色，格式是CN_SYS_PF_ERGB8888
 //返回: 无
 //-----------------------------------------------------------------------------
 void __GK_FillBm(struct RectBitmap *dst_bitmap,u32 color)
@@ -2612,7 +2612,7 @@ void __GK_FillBm(struct RectBitmap *dst_bitmap,u32 color)
     u32 pf_color,color_bits;
     u32 byte_offset,total_bytes;
 
-    //color的格式是cn_sys_pf_e8r8g8b8，转换成dst_bitmap->pf_type匹配的格式
+    //color的格式是CN_SYS_PF_ERGB8888，转换成dst_bitmap->pf_type匹配的格式
     pf_color = GK_ConvertRGB24ToPF(dst_bitmap->PixelFormat,color);
     //被填充的位图的每像素位宽
     color_bits = (dst_bitmap->PixelFormat & CN_PF_BITWIDE_MSK)>>8;

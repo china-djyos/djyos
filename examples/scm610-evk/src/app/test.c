@@ -31,23 +31,23 @@ ptu32_t ledTestTask(void)
 
     while(1)
     {
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
         GPIO_Write_Out(13,GPIO_HIGH);
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
         GPIO_Write_Out(14,GPIO_HIGH);
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
         GPIO_Write_Out(29,GPIO_HIGH);
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
         GPIO_Write_Out(30,GPIO_HIGH);
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
         GPIO_Write_Out(13,GPIO_LOW);
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
         GPIO_Write_Out(14,GPIO_LOW);
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
         GPIO_Write_Out(29,GPIO_LOW);
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
         GPIO_Write_Out(30,GPIO_LOW);
-        Djy_EventDelay(1000*mS);
+        DJY_EventDelay(1000*mS);
     }
 
     return 0;
@@ -289,7 +289,7 @@ ptu32_t MCU_SendTask(void)
         memset(Msg,0,sizeof(Msg));
         sprintf(Msg,"%s%d","hello world",s_MassegeCnt++);
         send(ComSocket, Msg, strlen(Msg), 0);
-        Djy_EventDelay(1000*1000);
+        DJY_EventDelay(1000*1000);
     }
 
     return (ptu32_t)0;

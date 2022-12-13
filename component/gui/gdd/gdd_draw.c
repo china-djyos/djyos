@@ -542,6 +542,7 @@ void    GDD_DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
 
         GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                 hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+        __GDD_EndDraw(hdc);
     }
 }
 
@@ -1287,8 +1288,8 @@ void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 
           if (x>imax)
           {
-            GDD_DrawLine(hdc,cx-i+1,cy+x, cx+i,cy+x);
-               GDD_DrawLine(hdc,cx-i+1,cy-x, cx+i,cy-x);
+                GDD_DrawLine(hdc,cx-i+1,cy+x, cx+i,cy+x);
+                GDD_DrawLine(hdc,cx-i+1,cy-x, cx+i,cy-x);
           }
           x--;
         }

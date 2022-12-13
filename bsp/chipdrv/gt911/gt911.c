@@ -221,16 +221,15 @@ static bool_t GT911_Init( )
 //    u8 test_buf[512];
     u8 count = 0, Val_1 = 0, Val_2 = 0;
     s8 ret = 0;
-    GPIO_SettoLow(GPIO_D,PIN2);         //RST 0
-    DJY_EventDelay(20000);
-    GPIO_SettoLow(GPIO_D,PIN3);         //INT 0
-    DJY_EventDelay(2000);
-    GPIO_SettoHigh(GPIO_D,PIN2);        //RST 1
+    //以下RST和INT引脚时序配合，设置GT911的IIC地址为0x5d
+    LcdTp_Reset_OnOff(0);         //RST 0
+    DJY_EventDelay(1000);
+    LcdTp_Int_OnOff(0);         //INT 0
+    DJY_EventDelay(1000);
+    LcdTp_Reset_OnOff(1);         //RST 1
     DJY_EventDelay(6000);
-    GPIO_SettoLow(GPIO_D,PIN3);         //INT 0
+    LcdTp_Int_OnOff(1);         //INT 1
     DJY_EventDelay(50000);
-
-    Set_TpINT_ToIn();
 
     ret = GT911_RD_Reg(GT911_PRODUCT_ID, temp, 6);
     if (ret == 6)
@@ -260,7 +259,7 @@ static bool_t GT911_Init( )
 //                    {
 //                        if(GT911_WR_Reg(GT911_CONFIG_VERSION, cfg_info_group5, sizeof(cfg_info_group5)) == sizeof(cfg_info_group5))
 //                        {
-//                            Djy_EventDelay(2000*1000);
+//                            DJY_EventDelay(2000*1000);
 //                            ret = GT911_RD_Reg(GT911_CONFIG_VERSION, test_buf, sizeof(cfg_info_group5));
 //                            if((ret > 0) && (test_buf[0] != cfg_info_group5[0]))    //用以判断配置信息是否真的写进去了。
 //                                printf("config info write fail\r\n");
@@ -478,7 +477,7 @@ void touch_test(void)
         do
         {
             GT911_RD_Reg(0x814E, &Val_1, 1);
-            Djy_EventDelay(10000);
+            DJY_EventDelay(10000);
         }while(!(Val_1 & (1 << 7)));
 //        GT911_RD_Reg(0x814f, &Val, 1);
         if(Val_1 & (1 << 7))
@@ -518,7 +517,7 @@ void touch_test(void)
 //            printf("x=%d.\r\n",xy);
 //            xy = temp[3] | (temp[4] << 8);
 //            printf("y=%d.\r\n",xy);
-////            Djy_EventDelay(1000*1000);
+////            DJY_EventDelay(1000*1000);
 //        }
         touch_num = 0;
         GT911_WR_Reg(0x814E,&touch_num,1);

@@ -1159,7 +1159,7 @@ void goto_menuitem_inslayers(struct menu_displaypara *operatingDispara, s8 step)
 //              mpara.bitmap.height=bitmap_para.bitmap.height;
 //              mpara.bitmap.width=bitmap_para.bitmap.width;
 //              mpara.bitmap.linebytes=32*bitmap_para.bitmap.linebytes;
-//              mpara.bitmap.pf_type=CN_SYS_PF_E8R8G8B8;
+//              mpara.bitmap.pf_type=CN_SYS_PF_ERGB8888;
 //              mpara.bitmap.bm_bits=colorbuf;
 //           //每次题图都要立即完成，不然会出现内存被重写，导致显示紊乱
 //              printf("x=%d  y=%d\n",mpara.x,mpara.y);
@@ -1178,7 +1178,7 @@ void goto_menuitem_inslayers(struct menu_displaypara *operatingDispara, s8 step)
 //              mpara.bitmap.height=bitmap_para.bitmap.height;
 //              mpara.bitmap.width=bitmap_para.bitmap.width;
 //              mpara.bitmap.linebytes=32*bitmap_para.bitmap.linebytes;
-//              mpara.bitmap.pf_type=CN_SYS_PF_E8R8G8B8;
+//              mpara.bitmap.pf_type=CN_SYS_PF_ERGB8888;
 //              mpara.bitmap.bm_bits=colorbuf;
 //           //每次题图都要立即完成，不然会出现内存被重写，导致显示紊乱
 //              printf("x=%d  y=%d\n",mpara.x,mpara.y);

@@ -121,7 +121,7 @@ struct DispDraw
     //       并非bitmap中的相对坐标.limit的坐标包含左和上边界,不包含右和下边界.
     // x1,y1: 绘制起点,包含
     // x2,y2: 绘制终点,不包含
-    // color: 格式是cn_sys_pf_e8r8g8b8
+    // color: 格式是CN_SYS_PF_ERGB8888
     // r2_code: 显示效果,详见gkernel.h中的CN_R2_BLACK族常数定义
     bool_t (*LineToBitmap)(struct RectBitmap *bitmap,struct Rectangle *limit,
                         s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 r2_code);
@@ -135,7 +135,7 @@ struct DispDraw
     //       并非bitmap中的相对坐标.limit的坐标包含左和上边界,不包含右和下边界.
     // x1,y1: 绘制起点,包含
     // x2,y2: 绘制终点,包含
-    // color: 格式是cn_sys_pf_e8r8g8b8
+    // color: 格式是CN_SYS_PF_ERGB8888
     // r2_code: 显示效果,详见gkernel.h中的CN_R2_BLACK族常数定义
     bool_t (*LineToBitmapIe)(struct RectBitmap *bitmap,struct Rectangle *limit,
                         s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 r2_code);

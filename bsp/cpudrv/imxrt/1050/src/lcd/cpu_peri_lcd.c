@@ -272,7 +272,7 @@ static bool_t __lcd_disp_ctrl(struct DisplayRsc *disp)
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x、y，坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
@@ -286,7 +286,7 @@ static bool_t __lcd_set_pixel_bm(struct RectBitmap *bitmap,
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -300,7 +300,7 @@ static bool_t __lcd_line_bm(struct RectBitmap *bitmap,struct Rectangle *limit,
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -465,7 +465,7 @@ bool_t __lcd_line_screen(struct Rectangle *limit,
 //功能: 在screen中画一条直线，只绘制在limit限定的区域内的部分。
 //参数: limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -477,7 +477,7 @@ static bool_t __lcd_line_screen_ie(struct Rectangle *limit,
 }
 
 //----screen中填充矩形-----------------------------------------------------------
-//功能: 把screen中的矩形用color颜色填充，color的格式是cn_sys_pf_e8r8g8b8。
+//功能: 把screen中的矩形用color颜色填充，color的格式是CN_SYS_PF_ERGB8888。
 //参数: dst_rect，待填充的矩形
 //      color，填充颜色
 //返回: true=成功绘制，false=失败
@@ -510,7 +510,7 @@ static bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
 }
 
 //----从screen中取像素---------------------------------------------------------
-//功能: 从screen中取一像素，并转换成cn_sys_pf_e8r8g8b8或cn_sys_pf_a8r8g8b8格式。
+//功能: 从screen中取一像素，并转换成CN_SYS_PF_ERGB8888或cn_sys_pf_a8r8g8b8格式。
 //参数: x、y，坐标
 //返回: 像素颜色值
 //-----------------------------------------------------------------------------

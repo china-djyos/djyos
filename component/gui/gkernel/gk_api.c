@@ -616,7 +616,7 @@ struct GkWinObj* GK_TraveScion(struct GkWinObj *Ancestor,struct GkWinObj *Curren
 //功能: 根据当前位置，返回下一个子窗口，反复调用直到返回NULL。
 //参数: Parent，父窗口
 //      Current，当前遍历位置
-//返回: 下一个父窗口
+//返回: 下一个子窗口
 //-----------------------------------------------------------------------------
 struct GkWinObj* GK_TraveChild(struct GkWinObj *Parent,struct GkWinObj *Current)
 {
@@ -878,7 +878,7 @@ struct GkWinObj *GK_GetParentWin(struct GkWinObj *gkwin)
         return NULL;
 }
 //----取子窗口指针------------------------------------------------------
-//功能: 略
+//功能: 略，实际跟 GK_GetFirstWin 等效
 //参数: gkwin，父窗口
 //返回: 子窗口指针
 //-----------------------------------------------------------------------------

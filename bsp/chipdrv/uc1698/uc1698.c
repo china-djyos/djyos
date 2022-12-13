@@ -417,7 +417,7 @@ bool_t __lcd_line_screen_ie(struct Rectangle *limit,
     return false;
 }
 //----screen中填充矩形-----------------------------------------------------------
-//功能: 把screen中的矩形用color颜色填充，color的格式是cn_sys_pf_e8r8g8b8
+//功能: 把screen中的矩形用color颜色填充，color的格式是CN_SYS_PF_ERGB8888
 //参数: dst_rect,待填充的矩形
 //      color，填充颜色
 //返回:  true=成功绘制，false=失败
@@ -613,7 +613,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
 
 #pragma GCC pop_options
 //----从screen中取像素---------------------------------------------------------
-//功能: 从screen中取一像素，并转换成cn_sys_pf_e8r8g8b8或cn_sys_pf_a8r8g8b8格式
+//功能: 从screen中取一像素，并转换成CN_SYS_PF_ERGB8888或cn_sys_pf_a8r8g8b8格式
 //参数: x,y，坐标
 //返回: 像素颜色值
 //-----------------------------------------------------------------------------
