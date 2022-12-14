@@ -982,6 +982,14 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
 	int port;
 
 	port = devname_to_port(StdioOut);
+	usart_type *usart[] = { USART1, USART2, USART3, UART4, UART5, USART6, UART7, UART8 };
+	usart_type *usart_x = usart[port];
+
+	usart_init(usart_x, 115200, USART_DATA_8BITS, USART_STOP_1_BIT);
+	usart_transmitter_enable(usart_x, TRUE);
+	usart_receiver_enable(usart_x, TRUE);
+	usart_enable(usart_x, TRUE);
+
 	if (port < 0) TxDirectPort = UART_STDOUT;
 	else TxDirectPort = port;
 
