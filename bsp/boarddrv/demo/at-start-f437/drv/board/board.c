@@ -45,16 +45,33 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+#include "at32f435_437.h"
 
-bool_t Board_UartGpioInit(u8 SerialNo)
-{
-    uart_print_init(115200);
-    return true;
-}
-
+/* 
+ * https://www.arterytek.com/download/RM/RM_AT32F435_437_CH_V2.03.pdf
+ */
 
 void Board_Init(void)
 {
-	Board_UartGpioInit(CN_UART1);
-}
+	gpio_init_type hw_gpio = {
+		.gpio_pins = GPIO_PINS_2 | GPIO_PINS_3 | GPIO_PINS_1 | GPIO_PINS_9 | GPIO_PINS_10 | GPIO_PINS_12,
+		.gpio_out_type = GPIO_OUTPUT_PUSH_PULL,
+		.gpio_pull = GPIO_PULL_NONE,
+		.gpio_mode = GPIO_MODE_MUX,
+		.gpio_drive_strength = GPIO_DRIVE_STRENGTH_STRONGER
+	};
 
+	crm_periph_clock_enable(CRM_GPIOA_PERIPH_CLOCK,  TRUE);
+	crm_periph_clock_enable(CRM_USART1_PERIPH_CLOCK, TRUE);
+	crm_periph_clock_enable(CRM_USART2_PERIPH_CLOCK, TRUE);
+
+	gpio_init(GPIOA, &hw_gpio);
+
+	gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE9,  GPIO_MUX_7);	/* USART2_TX     */
+	gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE10, GPIO_MUX_7);	/* USART2_RX     */
+	gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE12, GPIO_MUX_7);	/* USART2_RTS_DE */
+
+	gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE2, GPIO_MUX_7);	/* USART2_TX     */
+	gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE3, GPIO_MUX_7);	/* USART2_RX     */
+	gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE1, GPIO_MUX_7);	/* USART2_RTS_DE */
+}
