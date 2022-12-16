@@ -140,11 +140,11 @@ struct UartPollCB
     struct SemaphoreLCB *BlockingSemp;              //阻塞信号量
 //  struct MultiplexObjectCB * pMultiplexUart;      //多路复用目标对象头指针
     u32 Baud;                                       //串口当前波特率
+    ptu32_t UartPortTag;                            //串口标签
+    UartControl UartCtrl;
     struct MutexLCB *ReadMutex;        //互斥量,控制设备独占式读访问
     struct MutexLCB *WriteMutex;       //互斥量,控制设备独占式写访问
-    ptu32_t UartPortTag;                            //串口标签
     UartSendPkg SendPkg;
-    UartControl UartCtrl;
     u32 RecvLen;                                    //接收到的数据长度
 };
 

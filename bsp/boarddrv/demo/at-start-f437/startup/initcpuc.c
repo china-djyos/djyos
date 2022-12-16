@@ -9,10 +9,6 @@
 
 #include "project_config.h"
 
-#ifndef __CHECK_DEVICE_DEFINES
-#define __CHECK_DEVICE_DEFINES
-#endif
-
 #include "core_cm4.h"
 
 extern   uint32_t   msp_top[ ];
@@ -46,8 +42,8 @@ void Init_Cpu(void)
     __set_CONTROL(0);
 
     #if (_D_FPU_USED == 1)
-    startup_scb_reg->CPACR = (3UL << 20)|(3UL << 22);    //ä½¿èƒ½FPU
-    startup_scb_reg->FPCCR = (1UL << 31);                //å…³é—­lazy stacking
+    startup_scb_reg->CPACR = (3UL << 20)|(3UL << 22);    //Ê¹ÄÜFPU
+    startup_scb_reg->FPCCR = (1UL << 31);                //¹Ø±Õlazy stacking
     #endif
     switch(startup_scb_reg->CPUID)
     {
@@ -75,11 +71,11 @@ void AppStart(void)
 }
 
 //-----------------------------------------------------------------
-//åŠŸèƒ½ï¼šIAPç»„ä»¶æŽ§åˆ¶è¿è¡Œæ¨¡å¼æ‰€éœ€çš„GPIOå¼•è„šåˆå§‹åŒ–ï¼Œç”±äºŽæ­¤æ—¶ç³»ç»Ÿè¿˜æ²¡æœ‰åŠ è½½ï¼Œåªèƒ½ä½¿
-//      ç”¨ç›´æŽ¥åœ°å€æ“ä½œï¼Œä¸èƒ½è°ƒç”¨gpioç›¸å…³çš„åº“å‡½æ•°ã€‚
-//      å¦‚æžœä¸æ˜¯ä½¿ç”¨gpioåšæ ‡å¿—ï¼Œæœ¬å‡½æ•°ä¸æ˜¯å¿…é¡»ï¼Œå¯åˆ æŽ‰ã€‚
-//å‚æ•°ï¼šæ— 
-//è¿”å›žï¼šæ— ã€‚
+//¹¦ÄÜ£ºIAP×é¼þ¿ØÖÆÔËÐÐÄ£Ê½ËùÐèµÄGPIOÒý½Å³õÊ¼»¯£¬ÓÉÓÚ´ËÊ±ÏµÍ³»¹Ã»ÓÐ¼ÓÔØ£¬Ö»ÄÜÊ¹
+//      ÓÃÖ±½ÓµØÖ·²Ù×÷£¬²»ÄÜµ÷ÓÃgpioÏà¹ØµÄ¿âº¯Êý¡£
+//      Èç¹û²»ÊÇÊ¹ÓÃgpio×ö±êÖ¾£¬±¾º¯Êý²»ÊÇ±ØÐë£¬¿ÉÉ¾µô¡£
+//²ÎÊý£ºÎÞ
+//·µ»Ø£ºÎÞ¡£
 //-----------------------------------------------------------------
 void IAP_GpioPinInit(void)
 {
@@ -87,17 +83,17 @@ void IAP_GpioPinInit(void)
 }
 
 //-----------------------------------------------------------------
-//åŠŸèƒ½ï¼šç”±ç¡¬ä»¶å†³å®šæ˜¯å¦å¼ºåˆ¶è¿›å…¥Ibootï¼Œè‹¥æ­¤å‡½æ•°è¿”å›žTRUEï¼Œåˆ™å¼ºåˆ¶è¿è¡ŒIbootã€‚é€šå¸¸ä¼šä½¿
-//      ç”¨ä¸€ä¸ªgpioï¼Œé€šè¿‡è·³çº¿å†³å®šã€‚
-//      æ­£å¸¸æƒ…å†µä¸‹ï¼Œå¦‚æžœæ­£åœ¨è¿è¡ŒAPPï¼Œæ˜¯å¯ä»¥ç”¨runibootå‘½ä»¤åˆ‡æ¢åˆ°IbootçŠ¶æ€çš„ï¼Œè®¾ç½®
-//      æ­¤ç¡¬ä»¶çš„ç›®çš„æœ‰äºŒï¼š
-//     1ã€åœ¨ä¸¥é‡å¼‚å¸¸é”™è¯¯ï¼Œä¸èƒ½ç”¨shellåˆ‡æ¢æ—¶ï¼Œæä¾›ä¸€ä¸ªè¡¥æ•‘æŽªæ–½ã€‚
-//     2ã€å‡ºäºŽå®‰å…¨è€ƒè™‘ï¼ŒAPPä¸­æ²¡æœ‰åŒ…å«åˆ‡æ¢ä»£ç ï¼Œæˆ–è€…ç”±äºŽèµ„æºçš„å…³ç³»ï¼Œè£æŽ‰äº†shellã€‚
-//å‚æ•°ï¼šæ— 
-//è¿”å›žï¼šæ— ã€‚
-//è¯´æ˜Žï¼šæœ¬å‡½æ•°æ‰€æ¶‰åŠåˆ°çš„ç¡¬ä»¶ï¼Œé¡»åœ¨æœ¬æ–‡ä»¶ä¸­åˆå§‹åŒ–ï¼Œç‰¹åˆ«éœ€è¦æ³¨æ„çš„æ˜¯ï¼Œä¸å…è®¸è°ƒç”¨æœª
-//      åŠ è½½çš„å‡½æ•°ï¼Œç‰¹åˆ«æ˜¯åº“å‡½æ•°ã€‚
-//      æœ¬å‡½æ•°å¿…é¡»æä¾›ï¼Œå¦‚æžœæ²¡æœ‰è®¾ç½®ç›¸åº”ç¡¬ä»¶ï¼Œå¯ä»¥ç®€å•è¿”å›žfalseã€‚
+//¹¦ÄÜ£ºÓÉÓ²¼þ¾ö¶¨ÊÇ·ñÇ¿ÖÆ½øÈëIboot£¬Èô´Ëº¯Êý·µ»ØTRUE£¬ÔòÇ¿ÖÆÔËÐÐIboot¡£Í¨³£»áÊ¹
+//      ÓÃÒ»¸ögpio£¬Í¨¹ýÌøÏß¾ö¶¨¡£
+//      Õý³£Çé¿öÏÂ£¬Èç¹ûÕýÔÚÔËÐÐAPP£¬ÊÇ¿ÉÒÔÓÃrunibootÃüÁîÇÐ»»µ½Iboot×´Ì¬µÄ£¬ÉèÖÃ
+//      ´ËÓ²¼þµÄÄ¿µÄÓÐ¶þ£º
+//     1¡¢ÔÚÑÏÖØÒì³£´íÎó£¬²»ÄÜÓÃshellÇÐ»»Ê±£¬Ìá¹©Ò»¸ö²¹¾È´ëÊ©¡£
+//     2¡¢³öÓÚ°²È«¿¼ÂÇ£¬APPÖÐÃ»ÓÐ°üº¬ÇÐ»»´úÂë£¬»òÕßÓÉÓÚ×ÊÔ´µÄ¹ØÏµ£¬²ÃµôÁËshell¡£
+//²ÎÊý£ºÎÞ
+//·µ»Ø£ºÎÞ¡£
+//ËµÃ÷£º±¾º¯ÊýËùÉæ¼°µ½µÄÓ²¼þ£¬ÐëÔÚ±¾ÎÄ¼þÖÐ³õÊ¼»¯£¬ÌØ±ðÐèÒª×¢ÒâµÄÊÇ£¬²»ÔÊÐíµ÷ÓÃÎ´
+//      ¼ÓÔØµÄº¯Êý£¬ÌØ±ðÊÇ¿âº¯Êý¡£
+//      ±¾º¯Êý±ØÐëÌá¹©£¬Èç¹ûÃ»ÓÐÉèÖÃÏàÓ¦Ó²¼þ£¬¿ÉÒÔ¼òµ¥·µ»Øfalse¡£
 //-----------------------------------------------------------------
 bool_t Iboot_IAP_IsForceIboot(void)
 {
@@ -110,6 +106,7 @@ bool_t Iboot_IAP_IsForceIboot(void)
     return false;
 
 }
+
 
 
 

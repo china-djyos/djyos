@@ -157,7 +157,7 @@ struct WINDOW
     u8      BorderSize;     //边框大小
     u8      CaptionSize;    //标题栏大小
     u16     Flag;           //窗口标记，例如： WF_ERASEBKGND
-    u32     Style;          //窗口风格,高16位系统使用，例如：WS_CHILD
+    u32     Style;          //窗口风格,高16位系统使用，例如：WS_CAPTION
                             //0~7 bit=控件类型，8~15 bit = 控件风格
     RECT    CliRect;        //窗口客户区(使用屏幕坐标)
     u32     DrawColor;      //绘制颜色，创建子窗口时，将继承

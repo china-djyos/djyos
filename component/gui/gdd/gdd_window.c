@@ -96,7 +96,7 @@ static struct MsgProcTable s_gDefWindowMsgProcTable[] =
     {MSG_ERASEBKGND,__GDD_DefWindowProcERASEBKGND},
     {MSG_PAINT,__GDD_DefWindowProcPAINT},
     {MSG_SYNC_DISPLAY,__GDD_DefWindowProcSYNC},
-    {MSG_CLOSE&MSG_BODY_MASK,__GDD_DefWindowProcCLOSE},
+    {MSG_CLOSE,__GDD_DefWindowProcCLOSE},
 //  {MSG_DESTROY,DefWindowProc_DESTROY},
 };
 
@@ -1802,7 +1802,7 @@ ptu32_t __GDD_WinMsgProc(struct WindowMsg *pMsg)
         if(pMsg->Code == MSG_CLOSE)
         {
             if(hwnd->Flag & WF_MAINWIN)
-			    __GDD_DeleteMainWindowData(hwnd);   //主窗口要删除的东西多一些
+                __GDD_DeleteMainWindowData(hwnd);   //主窗口要删除的东西多一些
             else
                 __GDD_DeleteChildWindowData(hwnd);
         }

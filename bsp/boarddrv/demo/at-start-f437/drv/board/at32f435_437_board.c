@@ -44,66 +44,6 @@ gpio_type *led_gpio_port[LED_NUM]        = {LED2_GPIO, LED3_GPIO, LED4_GPIO};
 uint16_t led_gpio_pin[LED_NUM]           = {LED2_PIN, LED3_PIN, LED4_PIN};
 crm_periph_clock_type led_gpio_crm_clk[LED_NUM] = {LED2_GPIO_CRM_CLK, LED3_GPIO_CRM_CLK, LED4_GPIO_CRM_CLK};
 
-/* delay variable */
-static __IO uint32_t fac_us;
-static __IO uint32_t fac_ms;
-
-/* support printf function, usemicrolib is unnecessary */
-#if (__ARMCC_VERSION > 6000000)
-  __asm (".global __use_no_semihosting\n\t");
-  void _sys_exit(int x)
-  {
-    x = x;
-  }
-  /* __use_no_semihosting was requested, but _ttywrch was */
-  void _ttywrch(int ch)
-  {
-    ch = ch;
-  }
-  FILE __stdout;
-#else
- #ifdef __CC_ARM
-  #pragma import(__use_no_semihosting)
-  struct __FILE
-  {
-    int handle;
-  };
-  FILE __stdout;
-  void _sys_exit(int x)
-  {
-    x = x;
-  }
-  /* __use_no_semihosting was requested, but _ttywrch was */
-  void _ttywrch(int ch)
-  {
-    ch = ch;
-  }
- #endif
-#endif
-
-#if defined (__GNUC__) && !defined (__clang__)
-  #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
-#else
-  #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#endif
-
-/**
-  * @brief  retargets the c library printf function to the usart.
-  * @param  none
-  * @retval none
-  */
-PUTCHAR_PROTOTYPE
-{
-  while(usart_flag_get(PRINT_UART, USART_TDBE_FLAG) == RESET);
-  usart_data_transmit(PRINT_UART, ch);
-  return ch;
-}
-
-/**
-  * @brief  initialize uart
-  * @param  baudrate: uart baudrate
-  * @retval none
-  */
 void uart_print_init(uint32_t baudrate)
 {
   gpio_init_type gpio_init_struct;

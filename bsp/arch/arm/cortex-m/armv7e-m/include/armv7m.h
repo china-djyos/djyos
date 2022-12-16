@@ -230,7 +230,7 @@ struct ScbReg
     vu32 DFSR;          //调试 fault 状态寄存器(DFSR)    0xE000_ED30
     vu32 MMFAR;         //发生存储管理fault的地址寄存器(MMAR)    0xE000_ED34
     vu32 BFAR;          //发生总线fault的地址寄存器(MMAR)    0xE000_ED38
-    vu32 AFAR;          //由芯片制造商决定,可选,                    0xE000_ED3C
+    vu32 AFSR;          //由芯片制造商决定,可选,                    0xE000_ED3C
     //以下定义,只有M4以上才有
     vu32 PFR[2];        //Processor Feature Register            0xE000_ED40
     vu32 DFR;           //Debug Feature Register                0xE000_ED48
