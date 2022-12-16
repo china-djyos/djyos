@@ -74,4 +74,10 @@ void Board_Init(void)
 	gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE2, GPIO_MUX_7);	/* USART2_TX     */
 	gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE3, GPIO_MUX_7);	/* USART2_RX     */
 	gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE1, GPIO_MUX_7);	/* USART2_RTS_DE */
+
+	hw_gpio.gpio_pins = GPIO_PINS_8;
+	hw_gpio.gpio_mode = GPIO_MODE_OUTPUT;
+
+	gpio_init(GPIOA, &hw_gpio);
+
 }
