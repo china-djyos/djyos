@@ -524,16 +524,15 @@ static u32 art43x_StartSend (ptu32_t PrivateTag)
 	struct uart_priv *priv;
 	struct usart_type *usart_x;
 
-	priv = (void*)PrivateTag;
-	param = art43x_UART_Param + priv->port;
+	
 
+	priv = (void*)PrivateTag;
+	if(priv->port == 0) GPIOA->scr = GPIO_PINS_8;
+	param = art43x_UART_Param + priv->port;
 	usart_x = to_usart_type(priv->port);
-	usart_interrupt_enable(usart_x, USART_IDLE_INT, FALSE);
-	if (priv->dmabuf_len) {
-		/* dma not supported yet. */
-		while (1);
-	}
-	usart_interrupt_enable(usart_x, USART_IDLE_INT, TRUE);
+
+	usart_interrupt_enable(usart_x, USART_TDBE_INT, TRUE);
+
 	return 0;
 }
 
@@ -673,19 +672,9 @@ ptu32_t art43x_UartCtrl(ptu32_t PrivateTag, u32 cmd, va_list* arg0)
 	if(priv) usart_x = to_usart_type(priv->port);
 	if (!usart_x) return -1;
 
-	if (usart_x == USART1) {
-	/* hack AT32F435CMT7 */
-		mode = 485;
-	}
-
 	switch (cmd) {
 	case CN_DEV_CTRL_START:
 		usart_init(usart_x, 115200 , USART_DATA_8BITS, USART_STOP_1_BIT);
-		if (mode == 485) {
-			usart_rs485_delay_time_config(usart_x, 2, 2);
-			usart_de_polarity_set(usart_x, USART_DE_POLARITY_HIGH);
-			usart_rs485_mode_enable(usart_x, TRUE);
-		}
 		usart_transmitter_enable(usart_x, TRUE);
 		usart_receiver_enable(usart_x, TRUE);
 		usart_enable(usart_x, TRUE);
@@ -845,7 +834,10 @@ u32 UART_ISR(ptu32_t port)
 	    data = c[0];
 
 	    if (rc) usart_data_transmit(usart_x, data);
-	    else usart_interrupt_enable(usart_x, USART_IDLE_INT, FALSE);
+	    else {
+		    if(port == 0) GPIOA->clr = GPIO_PINS_8;
+		    usart_interrupt_enable(usart_x, USART_TDBE_INT, FALSE);
+	    }
 
     }
     return 0;
@@ -892,7 +884,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
     /* TODO: mod... */
     __UART_IntInit(port);
     usart_interrupt_enable(to_usart_type(priv->port), USART_RDBF_INT, TRUE);
-    usart_interrupt_enable(to_usart_type(priv->port), USART_IDLE_INT, TRUE);
+    usart_interrupt_enable(to_usart_type(priv->port), USART_TDBE_INT, TRUE);
 
     if (param->UartCtrl) {
 	    param->UartCtrl(param->UartPortTag, 0, NULL);
