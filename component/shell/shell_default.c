@@ -90,7 +90,7 @@ bool_t date(char *param)
     printf("\r\n当前时间：%10.10s %s",command, g_cTmWdays[dtm.tm_wday]);
     printf("\r\n输入新日期：");
 
-    fgets(buf,11,stdin);
+    gets(buf);
     if(strlen(buf) != 0)
     {
         memcpy(command,buf,10);
@@ -138,7 +138,7 @@ bool_t __time(char *param)
     printf("\r\n当前时间：%s",command+11);
     printf("\r\n输入新时间：");
 
-    fgets(command+11,9,stdin);
+    gets(command+11);
     if(strlen(command+11) != 0)
     {
         res = Time_SetDateTimeStr(command);

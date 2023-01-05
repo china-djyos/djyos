@@ -1,0 +1,26 @@
+{
+	"board_name":"gd32e103-start",
+	"cpus":{
+		"gd32e103":{
+			"clocks":{
+
+			},
+			"chips":[],
+			"peripherals":[
+				"cpu_peri_gpio",
+				"cpu_peri_lowpwer",
+				"cpu_peri_uart"],
+				"main_freq":120,
+				"memories":{
+					"memory1":{
+						"size":"0x20000",
+						"type":"RAM",
+						"start_addr":"0x20000000"
+					}
+				}
+		}
+	},
+	"shared_memories":{
+
+	}
+}

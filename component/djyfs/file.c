@@ -496,7 +496,6 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         return (0);
 
     if((!read_size) || ((stream->flags & FP_IOREAD) != FP_IOREAD))
-//    if((!read_size) || (stream->flags & FP_IOREAD))
         return (0);
 
     if(EOF != stream->ungetbuf)
@@ -513,29 +512,29 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         i = 1;
     }
 
-    if(!File_IsValid(stream)) // 文件流是未初始化的STDIO
-    {
-        if(GetCharDirect) // 函数已注册；（TODO:这个逻辑不应该防止这里实现）
-        {
-            for(; i < (s32)(size * count); i++)
-            {
-                ch = GetCharDirect();
-                if(!ch)
-                {
-                    ch = EOF;
-                    break;
-                }
-
-                ((u8*)buf)[i] = ch;
-#if 0
-                if(PutStrDirect) // 函数已注册；
-                    PutStrDirect((const char*)&ch, 1);
-#endif
-            }
-
-            return (i/size);
-        }
-    }
+//    if(!File_IsValid(stream)) // 文件流是未初始化的STDIO
+//    {
+//        if(GetCharDirect) // 函数已注册；（TODO:这个逻辑不应该防止这里实现）
+//        {
+//            for(; i < (s32)(size * count); i++)
+//            {
+//                ch = GetCharDirect();
+//                if(!ch)
+//                {
+//                    ch = EOF;
+//                    break;
+//                }
+//
+//                ((u8*)buf)[i] = ch;
+//#if 0
+//                if(PutStrDirect) // 函数已注册；
+//                    PutStrDirect((const char*)&ch, 1);
+//#endif
+//            }
+//
+//            return (i/size);
+//        }
+//    }
 
     if(__File_IsFileBufed(stream) == 0)          //无buf，注意，不能用 stream->buf == NULL 判定，参考freopen
     {
@@ -647,15 +646,15 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
     if(EOF != stream->ungetbuf)
         stream->ungetbuf = EOF; // 抛弃掉ungetc的内容
 
-    if(!File_IsValid(stream)) // TODO
-    {
-        if(PutStrDirect) // 函数已注册；
-        {
-            PutStrDirect((const char*)buf, WriteSize);
-        }
-
-        return (count);
-    }
+//  if(!File_IsValid(stream)) // TODO
+//  {
+//      if(PutStrDirect) // 函数已注册；
+//      {
+//          PutStrDirect((const char*)buf, WriteSize);
+//      }
+//
+//      return (count);
+//  }
     //注意，不能用 stream->buf == NULL 判定有没有buf，参考freopen
     if(__File_IsFileBufed(stream) == 0)
     {
@@ -751,27 +750,27 @@ s32 getc(FILE *stream)     //getc = fgetc
 // ============================================================================
 // 功能：从文件输入一行字符串，持续输入直到回车，包含空格。
 // 参数：buf -- 输入字符串的缓冲区；
-//      size -- buf的长度；
+//      limit -- buf的长度；
 //      stream -- 输入源文件；
 // 返回：1、成功，则返回第一个参数buf；
 //      2、如果发生读入错误，error指示器被设置，返回NULL，buf的内容可能被改变。
 // 备注：
 // ============================================================================
-char *fgets(char *buf, s32 size, FILE *stream)
+char *fgets(char *buf, s32 limit, FILE *stream)
 {
     s32 i = 0;
     char ch;
 
-    if(!stream || !size || !buf)
+    if(!stream || !limit || !buf)
         return (NULL);
 
-    if(1 == size)
+    if(1 == limit)
     {
         buf[0] = '\0';
         return (buf);
     }
 
-    for(i = 0; i < size; i++)
+    for(i = 0; i < limit; i++)
     {
        if(1 != fread(&ch, 1, 1, stream))
        {
@@ -796,7 +795,7 @@ char *fgets(char *buf, s32 size, FILE *stream)
            buf[i] = ch;
        }
    }
-    buf[size-1] = '\0';
+    buf[limit-1] = '\0';
     return (buf);
 }
 

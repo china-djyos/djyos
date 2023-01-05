@@ -73,6 +73,7 @@
 #if (CN_USE_TICKLESS_MODE)
 #include "tickless.h"
 #endif
+#include "project_config.h"
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
 extern void __DJY_ScheduleAsynSignal(void);
 
@@ -226,19 +227,19 @@ enum EN_BlackBoxAction Exp_MemManageFaultHandler(u32 *core_info)
     pg_scb_reg->MFSR = 0xFF;
     pg_scb_reg->UFSR = 0xFFFF;
 
-
+#if(CFG_MODULE_ENABLE_BLACK_BOX == true)
 #if (DEBUG == 1)
    head.BlackBoxAction = EN_BLACKBOX_DEAL_WAIT;
-#else
+#else       //for #if (DEBUG == 1)
    head.BlackBoxAction = EN_BLACKBOX_DEAL_RESET;
-#endif
+#endif      //for #if (DEBUG == 1)
    head.BlackBoxInfo  = (u8 *)(&ExpRecord);
    head.BlackBoxInfoLen = sizeof(struct SysExceptionInfo);
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.BlackBoxType = CN_EXP_TYPE_MEMMANAGE_FAULT;
    HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
    Action = BlackBox_ThrowExp(&head);
-
+#endif      //for #if(CFG_MODULE_ENABLE_BLACK_BOX == true)
     //recovethe shedule
     g_bScheduleEnable = shedule_bak;
 
@@ -297,17 +298,19 @@ enum EN_BlackBoxAction Exp_HardFaultHandler(u32 *core_info)
     pg_scb_reg->UFSR = 0xFFFF;
 
 
+#if(CFG_MODULE_ENABLE_BLACK_BOX == true)
 #if (DEBUG == 1)
    head.BlackBoxAction = EN_BLACKBOX_DEAL_WAIT;
-#else
+#else       //for #if (DEBUG == 1)
    head.BlackBoxAction = EN_BLACKBOX_DEAL_RESET;
-#endif
+#endif      //for #if (DEBUG == 1)
    head.BlackBoxInfo  = (u8 *)(&ExpRecord);
    head.BlackBoxInfoLen = sizeof(struct SysExceptionInfo);
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.BlackBoxType = CN_EXP_TYPE_HARD_FAULT;
    HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
    Action = BlackBox_ThrowExp(&head);
+#endif      //for #if(CFG_MODULE_ENABLE_BLACK_BOX == true)
 
     //recovethe shedule
     g_bScheduleEnable = shedule_bak;
@@ -322,17 +325,6 @@ enum EN_BlackBoxAction Exp_HardFaultHandler(u32 *core_info)
 // =============================================================================
 enum EN_BlackBoxAction Exp_DebugFaultHandler(u32 *core_info)
 {
-//    struct SysExceptionInfo ExpRecord;
-//
-//    ExpRecord.NvicInfo.bfsr = pg_scb_reg->BFSR;
-//    ExpRecord.NvicInfo.dfsr = pg_scb_reg->DFSR;
-//    ExpRecord.NvicInfo.hfsr = pg_scb_reg->HFSR;
-//    ExpRecord.NvicInfo.mfsr = pg_scb_reg->MFSR;
-//    ExpRecord.NvicInfo.ufsr = pg_scb_reg->UFSR;
-//
-//    ExpRecord.NvicInfo.mmar = pg_scb_reg->MMFAR;
-//    ExpRecord.NvicInfo.bfar = pg_scb_reg->BFAR;
-//    ExpRecord.SysExpCpuFlag = CN_SYS_EXP_CPUINFO_VALIDFLAG;
 
     //handler the exp
     printk("Debug Fault: %s\n\r","This is a debug fault");
@@ -413,7 +405,7 @@ enum EN_BlackBoxAction Exp_BusFaultHandler(u32 *core_info)
     }
     else
     {
-        printk("Bus Fault: %s\n\r","Unknown Fault");
+        printk("Bus Fault: %s\n\r","Unknown Fault,可能是中断向量表地址异常");
     }
     //clear the flag of exp
     pg_scb_reg->HFSR = 0xFFFFFFFF;
@@ -421,17 +413,19 @@ enum EN_BlackBoxAction Exp_BusFaultHandler(u32 *core_info)
     pg_scb_reg->MFSR = 0xFF;
     pg_scb_reg->UFSR = 0xFFFF;
 
+#if(CFG_MODULE_ENABLE_BLACK_BOX == true)
 #if (DEBUG == 1)
    head.BlackBoxAction = EN_BLACKBOX_DEAL_WAIT;
-#else
+#else       //for #if (DEBUG == 1)
    head.BlackBoxAction = EN_BLACKBOX_DEAL_RESET;
-#endif
+#endif      //for #if (DEBUG == 1)
    head.BlackBoxInfo  = (u8 *)(&ExpRecord);
    head.BlackBoxInfoLen = sizeof(struct SysExceptionInfo);
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.BlackBoxType = CN_EXP_TYPE_BUS_FAULT;
    HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
    Action = BlackBox_ThrowExp(&head);
+#endif      //for #if(CFG_MODULE_ENABLE_BLACK_BOX == true)
     //recovethe shedule
     g_bScheduleEnable = shedule_bak;
 
@@ -504,18 +498,19 @@ enum EN_BlackBoxAction Exp_UsageFaultHandler(u32 *core_info)
     pg_scb_reg->MFSR = 0xFF;
     pg_scb_reg->UFSR = 0xFFFF;
 
-
+#if(CFG_MODULE_ENABLE_BLACK_BOX == true)
 #if (DEBUG == 1)
    head.BlackBoxAction = EN_BLACKBOX_DEAL_WAIT;
-#else
+#else       //for #if (DEBUG == 1)
    head.BlackBoxAction = EN_BLACKBOX_DEAL_RESET;
-#endif
+#endif      //for #if (DEBUG == 1)
    head.BlackBoxInfo  = (u8 *)(&ExpRecord);
    head.BlackBoxInfoLen = sizeof(struct SysExceptionInfo);
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.BlackBoxType = CN_EXP_TYPE_USAGE_FAULT;
    HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
    Action = BlackBox_ThrowExp(&head);
+#endif      //for #if(CFG_MODULE_ENABLE_BLACK_BOX == true)
 
     //recovethe shedule
     g_bScheduleEnable = shedule_bak;

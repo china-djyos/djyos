@@ -61,8 +61,6 @@
 #define SYSTIME_CYCLE    (0xFFFFFFFF) //周期为最大，即0xFFFF,最大T= SYSTIME_FRE * 0xFFFF
 #define SYS_TIM          TIMER4_BASE    //sys用到的定时器
 
-
-
 // =============================================================================
 // 功能：获取16位定时器当前值
 // 参数：无

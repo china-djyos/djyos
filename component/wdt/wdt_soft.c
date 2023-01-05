@@ -516,7 +516,9 @@ static void __Wdt_DealWdtYipResult(enum EN_BlackBoxAction result, tagWdt *wdt)
     if(result > EN_BLACKBOX_DEAL_DEFAULT)
     {
         __Wdt_HardWdtYipHook(NULL);
+#if(CFG_MODULE_ENABLE_BLACK_BOX == true)
         __Wdt_TrowWdtExp(result,wdt);
+#endif      //for #if(CFG_MODULE_ENABLE_BLACK_BOX == true)
     }
 }
 // =============================================================================

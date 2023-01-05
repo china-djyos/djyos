@@ -273,8 +273,6 @@ bool_t __DJY_CheckStack(s16 event_id)
         if(&stack[loop] < Vm->stack_used)   //突破警戒线到新高度
         {
             Vm->stack_used = &stack[loop];  //记录新的已用指针
-            parahead.DecoderName = NULL;
-            parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RESTART;
 #if CFG_OS_TINY == false
             name = g_tEvttTable[g_tECB_Table[event_id].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
 #else
@@ -284,11 +282,15 @@ bool_t __DJY_CheckStack(s16 event_id)
                                 (ptu32_t)stack,Vm->stack_size,loop<<2,
                                 event_id, g_tECB_Table[event_id].evtt_id&(~CN_EVTT_ID_MASK),
                                 name);
+            printk("%s\n\r",StackExp);
+#if(CFG_MODULE_ENABLE_BLACK_BOX == true)
+            parahead.DecoderName = NULL;
+            parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RESTART;
             parahead.BlackBoxInfo = (u8*)StackExp;
             parahead.BlackBoxInfoLen = sizeof(StackExp);
             parahead.BlackBoxType = CN_BLACKBOX_TYPE_STACK_OVER;
-            printk("%s\n\r",StackExp);
             BlackBox_ThrowExp(&parahead);
+#endif      //for #if(CFG_MODULE_ENABLE_BLACK_BOX == true)
         }
     }
     else
@@ -804,7 +806,7 @@ u16 DJY_EvttRegist(enum enEventRelation relation,
     if((default_prio >= CN_PRIO_SYS_SERVICE) || (default_prio == 0) || (thread_routine == NULL))
     {
         DJY_SaveLastError(EN_KNL_INVALID_PRIO);
-        info_printf("djyos","注册事件类型参数错误\n\r");
+        info_printf("djyos","事件类型优先级非法\n\r");
         return CN_EVTT_ID_INVALID;
     }
     Int_SaveAsynSignal();      //禁止调度也就是禁止异步事件
@@ -814,6 +816,7 @@ u16 DJY_EvttRegist(enum enEventRelation relation,
             break;
     if(evtt_offset == CFG_EVENT_TYPE_LIMIT)     //没有空闲事件类型控制块
     {
+#if(CFG_MODULE_ENABLE_BLACK_BOX == true)
         parahead.DecoderName = NULL;
         parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
         strcat(ExpStr,evtt_name);
@@ -821,6 +824,7 @@ u16 DJY_EvttRegist(enum enEventRelation relation,
         parahead.BlackBoxInfoLen = sizeof(ExpStr);
         parahead.BlackBoxType = CN_BLACKBOX_TYPE_ETCB_EXHAUSTED;
         BlackBox_ThrowExp(&parahead);
+#endif      //fot #if(CFG_MODULE_ENABLE_BLACK_BOX == true)
         DJY_SaveLastError(EN_KNL_ETCB_EXHAUSTED);
         info_printf("djyos","没有空闲事件控制块: %s\n\r",evtt_name);
         Int_RestoreAsynSignal();
@@ -1063,36 +1067,35 @@ bool_t DJY_EvttUnregist(u16 evtt_id)
     return result;
 }
 const struct EventECB cn_sys_event = {
-                        NULL,NULL,                  //next,previous
-                        NULL,NULL,                  //multi_next,multi_previous
-                        NULL,                       //vm
-                        0,0,                        //param1,param2
-                        0,                          //userdata
-                        NULL,                       //sync
-                        NULL,                       //sync_head
+        .next = NULL, .previous = NULL,
+        .multi_next = NULL, .multi_previous = NULL,
+        .vm = NULL,
+        .param1 = 0, .param2 = 0,
+        .userdata = 0,
+        .sync = NULL,
+        .sync_head = NULL,
 #if CFG_OS_TINY == false
-                        0,                          //EventStartTime
-                        0,                          //consumed_time
-                        0,                          //consumed_time_second
-                        0,                          //consumed_time_record
+        .EventStartTime = 0LL,
+        .consumed_time = 0LL,
+        .consumed_time_second = 0U,
+        .consumed_time_record = 0U,
 #endif
-                        0,                          //delay_start_tick
-                        0,                          //delay_end_tick
-                        EN_KNL_NO_ERROR,            //error_no
-                        0,                          //event_result
-                        0,                          //wait_mem_size
-                        0,                          //HeapSize
-                        0,                          //HeapSizeMax
-                        CN_STS_EVENT_NORUN,          //wakeup_from
-                        CN_STS_EVENT_READY,         //event_status
-                        0,                          //prio_raise_cnt
-                        CN_PRIO_SYS_SERVICE,        //prio_base
-                        CN_PRIO_SYS_SERVICE,        //prio
-                        CN_EVTT_ID_BASE,            //evtt_id
-                        0,                          //sync_counter
-                        0,                          //event_id
-                        0                           //local_memory
-                        };
+        .delay_start_tick = 0LL,
+        .delay_end_tick = 0LL,
+        .error_no = EN_KNL_NO_ERROR,
+        .event_result = 0,
+        .wait_mem_size = 0,
+        .HeapSize = 0,
+        .HeapSizeMax = 0,
+        .wakeup_from = CN_STS_EVENT_NORUN,
+        .event_status = CN_STS_EVENT_READY,
+        .prio_base = CN_PRIO_SYS_SERVICE,
+        .prio = CN_PRIO_SYS_SERVICE,
+        .evtt_id = CN_EVTT_ID_BASE,
+        .sync_counter = 0,
+        .event_id = 0,
+        .local_memory = 0
+};
 
 //----建立事件链表-------------------------------------------------------------
 //功能：1.根据系统设定初始化操作系统线程和事件表指针
@@ -1701,11 +1704,9 @@ bool_t __DJY_RestorePrio(struct EventECB * pl_ecb)
         else
             pl_ecb->prio = pl_ecb->prio_base;
     }
-//  }
     Int_RestoreAsynSignal();
     return true;
 }
-
 
 //----闹钟同步-----------------------------------------------------------------
 //功能：由正在执行的事件调用,使自己暂停u32l_uS微秒后继续运行.
@@ -2312,6 +2313,7 @@ u16 DJY_EventPop(   u16  hybrid_id,
     {
         if(s_ptEventFree==NULL)            //没有空闲的事件控制块
         {
+#if(CFG_MODULE_ENABLE_BLACK_BOX == true)
             parahead.DecoderName = NULL;
             parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
             itoa(hybrid_id,ExpStr,16);
@@ -2320,6 +2322,7 @@ u16 DJY_EventPop(   u16  hybrid_id,
             parahead.BlackBoxInfoLen = sizeof(ExpStr);
             parahead.BlackBoxType = CN_BLACKBOX_TYPE_ECB_EXHAUSTED;
             BlackBox_ThrowExp(&parahead);
+#endif      //for #if(CFG_MODULE_ENABLE_BLACK_BOX == true)
             DJY_SaveLastError(EN_KNL_ECB_EXHAUSTED);
             if(pop_result != NULL)
                 *pop_result = (u32)EN_KNL_ECB_EXHAUSTED;
@@ -2721,7 +2724,7 @@ void __DJY_CutEcbFromSync(struct EventECB  *event)
 //----事件逸出-----------------------------------------------------------------
 //功能: 事件处理函数异常返回,一般在看门狗等监视机制监察到系统错误时，做善后处理，
 //      或删除事件，并结束线程运行，或复位线程重新开始运行并把线程重新初始化。
-//参数: event_ECB，目标事件
+//参数: event，目标事件
 //      exit_code，出错码
 //      action，出错后的动作
 //返回: 本函数不返回
@@ -2738,6 +2741,7 @@ void __DJY_EventExit(struct EventECB *event, u32 exit_code,enum EN_BlackBoxActio
     ucpu_t  vm_final = CN_DELETE;
 
     DJY_SaveLastError(exit_code);
+#if(CFG_MODULE_ENABLE_BLACK_BOX == true)
     parahead.DecoderName = NULL;
     parahead.BlackBoxAction = action;
     itoa(event->event_id,ExpStr,16);
@@ -2746,6 +2750,7 @@ void __DJY_EventExit(struct EventECB *event, u32 exit_code,enum EN_BlackBoxActio
     parahead.BlackBoxInfoLen = sizeof(ExpStr);
     parahead.BlackBoxType = CN_BLACKBOX_TYPE_EVENT_EXIT;
     BlackBox_ThrowExp(&parahead);
+#endif      //for #if(CFG_MODULE_ENABLE_BLACK_BOX == true)
     //此处不用int_save_asyn_signal函数，可以在应用程序有bug，没有成对调用
     //int_save_asyn_signal和int_restore_asyn_signal的情况下，确保错误到此为止。
     __Int_ResetAsynSignal();  //直到__vm_engine函数才再次打开.
@@ -3337,6 +3342,7 @@ ptu32_t __DJY_Service(void)
     return 0;//消除编译警告
 }
 
+#if CFG_OS_TINY == false
 //------------------------------------------------------------------------------
 //功能：获取CPU的空闲比。
 //参数：无
@@ -3346,6 +3352,7 @@ u8 DJY_GetCpuIdleRate(void)
 {
     return g_tECB_Table[0].consumed_time_second / 10000;
 }
+#endif  //CFG_OS_TINY == false
 
 //----api启动函数--------------------------------------------------------------
 //功能: 根据api号调用相应的api函数.

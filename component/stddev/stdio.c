@@ -611,7 +611,8 @@ s32 __stdio_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 //      runmode -- 标准IO文件的运行模式；
 // 返回：成功（0）；失败（-1）；
 // 备注：因为"STDIN"等的结构中的fd（文件号）被人为改变成了0等，
-//      这会导致读写时找不到其原始的上下文；此处的查找表示为了保存这个上下文；
+//      这会导致读写时找不到其原始的上下文；此处的查找表是为了保存这个上下文；
+//      仅能调用本函数三次，且三次调用 type 分别为 0、1、2
 // ============================================================================
 static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 {
@@ -631,12 +632,12 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
     new_fp = (FILE*)&__stdio_filestruct[type];
     new_fp->ungetbuf = EOF;
     new_fp->flags = fp->flags;
-    if((DJY_GetRunMode() < CN_RUNMODE_MP) && (S_ISFLOW(info.st_mode)))
-    {
-        res = __File_BufNew(new_fp);
-        if(res)
-            goto __ERR_STDIO_SET;
-    }
+//    if((DJY_GetRunMode() < CN_RUNMODE_MP) && (!S_ISFLOW(info.st_mode)))
+//    {
+//        res = __File_BufNew(new_fp);
+//        if(res)
+//            goto __ERR_STDIO_SET;
+//    }
 
     fcntl(fp->fd, F_SETTIMEOUT, CN_TIMEOUT_FOREVER); // 将所定向的设备设置为forver（阻塞式）；
     switch(type)
@@ -739,8 +740,8 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 
 __ERR_STDIO_SET:
 
-    __File_BufDel(new_fp);
-    free(new_fp);
+//    __File_BufDel(new_fp);
+//    free(new_fp);
     if(hdl)
         __stdio_close(hdl);
 

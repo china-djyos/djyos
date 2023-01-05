@@ -335,6 +335,7 @@ ptu32_t kernel_spy(void)
     struct Wdt *wdt;
     DJY_GetEventPara((ptu32_t*)(&cycle), NULL);
     cycle *=mS;
+#if(CFG_MODULE_ENABLE_WATCH_DOG == true)
 #if(CFG_IDLE_MONITOR_CYCLE > 0)
 #if(CFG_IDLE_WDT_RESET == false)
     wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, knlYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
@@ -342,6 +343,7 @@ ptu32_t kernel_spy(void)
     wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
 #endif  //for (CFG_IDLE_WDT_RESET != 1)
 #endif  //for (CFG_IDLE_MONITOR_CYCLE > 0)
+#endif  //for #if(CFG_MODULE_ENABLE_WATCH_DOG == true)
     while(1)
     {
 
@@ -353,6 +355,7 @@ ptu32_t kernel_spy(void)
            g_tECB_Table[pl_ecb].consumed_time_record =
                             (u32)g_tECB_Table[pl_ecb].consumed_time;
         }
+#if(CFG_MODULE_ENABLE_WATCH_DOG == true)
 #if(CFG_IDLE_MONITOR_CYCLE > 0)
         //如果idle事件运行时间超过 1/16，则喂狗
         if(g_tECB_Table[0].consumed_time_second > (cycle >> 4))
@@ -360,6 +363,7 @@ ptu32_t kernel_spy(void)
             Wdt_Clean(wdt);
         }
 #endif  //for (CFG_IDLE_MONITOR_CYCLE > 0)
+#endif  //for #if(CFG_MODULE_ENABLE_WATCH_DOG == true)
         DJY_EventDelay(cycle); // 延时1秒；
     }
 #endif

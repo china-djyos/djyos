@@ -65,7 +65,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu onchip systime"//提供高精度的系统时钟
+//component name:"cpu onchip systime"   //使用专用硬timer提供系统时钟
 //parent:"time"      //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -102,7 +102,7 @@
 #define TIM_CLK          (CN_CFG_PCLK1*2)
 #define CLK_DIV          TIM_CLK/1000000
 #define SYSTIME_CYCLE    (65536) //周期为最大，即0xFFFF,最大T= SYSTIME_FRE * 0xFFFF
-#define SYS_TIM  TIM7//sys用到的定时器
+#define SYS_TIM  TIM7            //sys用到的定时器
 
 
 
@@ -143,14 +143,11 @@ static void SysTime_TcConfig(void)
 // =============================================================================
 bool_t MoudleInit_Systime(ptu32_t para)
 {
-    /*当使用TICKLESS模式时不能注册以下函数*/
-#if (!CN_USE_TICKLESS_MODE)
     //初始化TC控制器
     SysTime_TcConfig();
 
     //注册系统时钟函数
     DJY_SysTimeConnect(Systime_GetTime,NULL,1000000,SYSTIME_CYCLE);
-#endif
     return true;
 }
 

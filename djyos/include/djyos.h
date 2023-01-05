@@ -262,7 +262,7 @@ struct EventECB
     //以下两行参见CN_STS_EVENT_READY系列定义
     u32 wakeup_from;            //用于查询事件进入就绪态的原因,todo,直接返回状态
     u32 event_status;           //当前状态,本变量由操作系统内部使用,
-    u32 prio_raise_cnt;         //优先级继承计数
+//    u32 prio_raise_cnt;         //优先级继承计数
     u8  prio_base;         //临时调整优先级时，将不改变prio_base
     u8  prio;              //事件优先级
 //  ufast_t  prio_new;       //优先级备份，用于修改处于阻塞态的事件优先级时，
@@ -402,6 +402,10 @@ u32 DJY_WakeUpFrom(void);
 u16 DJY_GetMyEvttId(void);
 u16 DJY_GetMyEventId(void);
 u16 Djy_MyEventId(void); //修改成DJY_GetMyEventId函数后和C库有冲突，copy了一份，改了C库之后删掉
+#if CFG_OS_TINY == false
+u8 DJY_GetCpuIdleRate(void);
+#endif  //CFG_OS_TINY == false
+
 void DJY_ApiStart(u32 api_no);
 void DJY_DelayUs(u32 time);
 void DJY_DelayNano(u32 time);

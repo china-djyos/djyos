@@ -109,7 +109,6 @@ typedef s32 (*fnDevRead) (struct objhandle *hdl, u8 *data, u32 size, u32 offset,
 typedef s32 (*fnDevCntl) (struct objhandle *hdl, u32 cmd, va_list *args);
 
 
-s32 handle_IsBlockComplete(u32 flags);
 const char *Device_GetName(struct Object *devo);
 //ptu32_t dev_GetDrvTagFromObj(struct obj *devo);
 struct Object *Device_Create(const char *name, fnDevOpen dopen, fnDevClose dclose,

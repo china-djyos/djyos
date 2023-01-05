@@ -1,0 +1,17 @@
+{
+	"cpu_name":"gd32e103",
+	"cores":[{
+		"memories":{
+			"memory1":{
+				"size":"128k",
+				"type":"FLASH",
+				"startAddr":"0x08000000"
+			},
+			"memory2":{
+				"size":"32k",
+				"type":"RAM",
+				"startAddr":"0x20000000"
+			}
+		}
+	}]
+}

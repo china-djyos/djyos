@@ -82,8 +82,6 @@
 #include "int.h"
 #include "djyos.h"
 
-#include "component_config_int.h"
-
 struct IntLine *tg_pIntLineTable[CN_INT_LINE_LAST+1];
 struct IntMasterCtrl  tg_int_global;
 atom_low_t tg_IntAsynStatus;
@@ -157,8 +155,10 @@ void Int_RestoreAsynSignal(void)
     if(tg_int_global.en_asyn_signal_counter==0)
     {
         g_bScheduleEnable = true;
+#if(CFG_MODULE_ENABLE_BLACK_BOX == true)
         //禁止中断期间，如果请求调度，将抛出异常，但依然执行调度，只能如此，因为禁止调度
-        //的话，将使程序根本无法运行，有些第三方库直接控制中断的，没办法。
+        //的话，将使程序根本无法运行，有些第三方库(例如beken的固件库)直接控制中断的，没办法。
+        //beken固件库到处直接调用关中断函数，会导致瞬间记录无数异常信息
 #ifndef CN_BEKEN_SDK_USE
         if( Int_IsLowAtom(tg_IntAsynStatus))
         {
@@ -170,7 +170,8 @@ void Int_RestoreAsynSignal(void)
             parahead.BlackBoxType = CN_BLACKBOX_TYPE_SCH_DISABLE_INT;
             BlackBox_ThrowExp(&parahead);
         }
-#endif
+#endif      //for #ifndef CN_BEKEN_SDK_USE
+#endif      //for #if(CFG_MODULE_ENABLE_BLACK_BOX == true)
         if(g_ptEventRunning !=  g_ptEventReady)
         {
             __DJY_Schedule();

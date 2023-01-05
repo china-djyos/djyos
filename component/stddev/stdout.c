@@ -82,7 +82,7 @@
 
 #define PRINT_TO_STRING         0   //输出到string，用于sprintf等。
 #define PRINT_TO_DIRECT         1   //直接输出到原始硬件，用于printk等。
-#define PRINT_TO_FILE_OR_DEV    2   //输出到文件/设备，例如stdout/stderr，file
+#define PRINT_TO_FILE           2   //输出到文件，例如stdout/stderr，file
 s32 skip_atoi(const char **s);
 
 
@@ -99,12 +99,21 @@ extern s32 File_IsValid(FILE* stream);
 //参数：ch ，待输出的字符
 //返回：正确输出则返回被输出的字符，错误则返回EOF
 //-----------------------------------------------------------------------------
-#ifndef putchar
 s32 putchar (s32 ch)
 {
-    return putc(ch,stdout);
+#if(CFG_STDIO_STDIOFILE == true)
+    if(File_IsValid(stdout))
+    {
+        return putc(ch,stdout);
+    }
+    else
+    {
+        return PutStrDirect(&ch,1);
+    }
+#else       // for #if(CFG_STDIO_STDIOFILE == true)
+    return PutStrDirect(&ch,1);
+#endif      // for #if(CFG_STDIO_STDIOFILE == true)
 }
-#endif
 
 //----输出一个字符串到stdout-----------------------------------------------------
 //功能：输出一个字符串到stdout，stdout可以是设备，也可以是文件
@@ -113,7 +122,18 @@ s32 putchar (s32 ch)
 //-----------------------------------------------------------------------------
 s32 puts (const char *str)
 {
-    return fputs(str,stdout);
+#if(CFG_STDIO_STDIOFILE == true)
+    if(File_IsValid(stdout))
+    {
+        return fputs(str,stdout);
+    }
+    else
+    {
+        return PutStrDirect(str,strlen(str));
+    }
+#else       // for #if(CFG_STDIO_STDIOFILE == true)
+    return PutStrDirect(str,strlen(str));
+#endif      // for #if(CFG_STDIO_STDIOFILE == true)
 }
 
 u32 __div64_32(u64 *n, u32 base)
@@ -635,7 +655,9 @@ u32 __PushCharToString(char *TempBuf,ptu32_t Target,s32 Size,const char ch,s32 P
 
 //----把字缓冲后直接输出------------------------------------------------------
 //功能：把一个字符先缓冲到字符串TempBuf中，缓冲满了后，直接输出到硬件，例如串口。
-//参数：TempBuf，暂存缓冲区，长度是CN_BUF_LENGTH
+//      为 printk 函数准备的。
+//参数：TempBuf，由调用者提供的缓冲区，长度是CN_BUF_LENGTH，目的是减少写串口的次数，
+//          提高执行效率。
 //      Target,无意义。
 //      Size，无意义
 //      ch，压入的字符
@@ -644,54 +666,61 @@ u32 __PushCharToString(char *TempBuf,ptu32_t Target,s32 Size,const char ch,s32 P
 //-----------------------------------------------------------------------------
 u32 __PushCharDirect(char *TempBuf,ptu32_t Target,s32 Size,const char ch,s32 Position)
 {
-    if(Position >= CN_BUF_LENGTH)
-    {
-        if (PutStrDirect != NULL)
-            PutStrDirect((const char *)TempBuf,CN_BUF_LENGTH);
-        Position = 1;
-        *TempBuf = ch;
-    }
-    else
+    if(Position < CN_BUF_LENGTH-1)
     {
         *(TempBuf + Position) = ch;
         Position ++;
+    }
+    if(Position >= CN_BUF_LENGTH-1)
+    {
+//      TempBuf[CN_BUF_LENGTH -1] = '\0';
+        PutStrDirect(TempBuf,CN_BUF_LENGTH-1);
+        Position = 0;
     }
     return Position;
 }
 
-//----把字符压入文件/设备中--------------------------------------------------
-//功能：把一个字符文件/设备对象中，先缓冲到字符串TempBuf中，缓冲满了后，输出
-//      到文件/设备，本函数用于printf/fprintf/vprintf/vfprintf等。
-//      djyos对标准c的stdout/stdin/stderr做了扩展，标准c中，它们只能是FILE *
-//      类型，而djyos中，它们也允许是tagDevHandle，这样，即使在文件系统被裁掉
-//      的场合，也可以正常使用printf等函数。
-//参数：TempBuf，为函数原型一致而填充的参数，无意义
-//      Target,接收字符串的文件/设备指针。
-//      Size，缓冲区尺寸，含末端'\0'
+//----把字符推送到文件中--------------------------------------------------
+//功能：先缓冲到字符串TempBuf中，缓冲满了后，输出到文件，以减少IO次数，本函数用于
+//      printf/fprintf/vprintf/vfprintf等。
+//参数：TempBuf，由调用者提供的缓冲区，长度 CN_BUF_LENGTH，目的是减少写文件的次数，
+//          提高执行效率。
+//      Target,接收字符串的文件指针。
+//      Res，无意义
 //      ch，压入的字符
-//      Position，Buf的偏移量
+//      Position，TempBuf的当前存储位置
 //返回：Position的新位置。
 //-----------------------------------------------------------------------------
-u32 __PushCharToFileDev(char *TempBuf,ptu32_t Target,s32 Res2,const char ch,s32 Position)
+u32 __PushCharToFile(char *TempBuf,ptu32_t Target,s32 Res,const char ch,s32 Position)
 {
-    if(Position >= CN_BUF_LENGTH)
-    {
-        fwrite(TempBuf, CN_BUF_LENGTH, 1, (FILE*)Target);
-        Position = 1;
-        *TempBuf = ch;
-    }
-    else
+    if(Position < CN_BUF_LENGTH-1)
     {
         *(TempBuf + Position) = ch;
         Position ++;
     }
+
+    if(Position >= CN_BUF_LENGTH-1)
+    {
+        TempBuf[CN_BUF_LENGTH -1] = '\0';
+#if(CFG_MODULE_ENABLE_FILE_SYSTEM == true)
+
+#if(CFG_STDIO_STDIOFILE == true)
+        puts(TempBuf);
+#else       // for #if(CFG_STDIO_STDIOFILE == true)
+        fwrite(TempBuf, CN_BUF_LENGTH, 1, (FILE*)Target);
+#endif      // for #if(CFG_STDIO_STDIOFILE == true)
+
+#endif      // for #if(CFG_MODULE_ENABLE_FILE_SYSTEM == true)
+        Position = 0;
+    }
     return Position;
 }
+
 #pragma GCC diagnostic pop
 
 //---------------------------------------------------------------------------
 //功能: 按照格式字符串，生成输出字符串，并按照Method参数指定的方式，输出字符串。
-//参数: TempBuf，字符串转换使用的临时缓冲区，长度是CN_BUF_LENGTH，如果
+//参数: TempBuf，由调用者提供的字符串转换使用的临时缓冲区，长度是CN_BUF_LENGTH，如果
 //          Method==PRINT_TO_STRING则忽略本参数，可传入NULL
 //      Target，这是一个多用途的变量，设定字符串输出目的地的属性，依据Method
 //          不同，其含义不同。
@@ -703,7 +732,6 @@ u32 __PushCharToFileDev(char *TempBuf,ptu32_t Target,s32 Res2,const char ch,s32 
 //      fmt，格式字符串
 //      args，可变参数的参数列表
 //返回: 转换结果字符串长度
-//说明：目前没有加入浮点打印--TODO
 //-----------------------------------------------------------------------------
 static s32 __vsnprintf(char *TempBuf,ptu32_t Target, s32 Size,
                        u32 Method, const char *fmt,va_list args)
@@ -722,11 +750,11 @@ static s32 __vsnprintf(char *TempBuf,ptu32_t Target, s32 Size,
                         // 'z' changed to 'Z' --davidm 1/25/99
                         // 't' added for ptrdiff_t
     position = 0;
-    if(DJY_IsMultiEventStarted() == false)//如果调度并未开始,采用直接发送方式
-    {
-        if (Method == PRINT_TO_FILE_OR_DEV)
-            Method = PRINT_TO_DIRECT;
-    }
+//  if(DJY_IsMultiEventStarted() == false)//如果调度并未开始,采用直接发送方式
+//  {
+//      if (Method == PRINT_TO_FILE)
+//          Method = PRINT_TO_DIRECT;
+//  }
     switch (Method)
     {
         case PRINT_TO_STRING:
@@ -735,11 +763,12 @@ static s32 __vsnprintf(char *TempBuf,ptu32_t Target, s32 Size,
         case PRINT_TO_DIRECT:
             PushChar = __PushCharDirect;
             break;
-        case PRINT_TO_FILE_OR_DEV:
-            PushChar = __PushCharToFileDev;
+        case PRINT_TO_FILE:
+            PushChar = __PushCharToFile;
             break;
         default:
-            PushChar = __PushCharDirect;
+            PushChar = __PushCharToFile;
+//          PushChar = __PushCharDirect;
             break;
     }
 
@@ -747,7 +776,6 @@ static s32 __vsnprintf(char *TempBuf,ptu32_t Target, s32 Size,
     {
         if (*fmt != '%') {
             position = PushChar(TempBuf,Target, Size,*fmt,position);
-//            position = ADDDCH_With_push(Target, *fmt, position,Method);
             continue;
         }
 
@@ -828,13 +856,10 @@ repeat:
             {
                 while (--field_width > 0)
                     position = PushChar(TempBuf,Target, Size, ' ',position);
-//                  position = ADDDCH_With_push(Target, ' ', position, Method);
             }
             position = PushChar(TempBuf,Target, Size, (unsigned char) va_arg(args, s32),position);
-//          position = ADDDCH_With_push(Target, (unsigned char) va_arg(args, s32),position, Method);
             while (--field_width > 0)
                 position = PushChar(TempBuf,Target, Size, ' ',position);
-//              position = ADDDCH_With_push(Target, ' ', position, Method);
             continue;
 
         case 's':
@@ -863,7 +888,6 @@ repeat:
 
         case '%':
             position = PushChar(TempBuf,Target, Size,'%',position);
-//          position = ADDDCH_With_push(Target, '%', position, Method);
             continue;
 
         /* integer number formats - set up the flags and "break" */
@@ -903,10 +927,8 @@ repeat:
 
         default:
             position = PushChar(TempBuf,Target, Size,'%',position);
-//          position = ADDDCH_With_push(Target, '%', position, Method);
             if (*fmt)
                 position = PushChar(TempBuf,Target, Size,*fmt,position);
-//              position = ADDDCH_With_push(Target, *fmt, position, Method);
             else
                 --fmt;
             continue;
@@ -939,7 +961,7 @@ repeat:
                  flags, position, PushChar);
     }
 
-    if (position != 0)
+    if (position != 0)      //说明 tempbuf 中有数据未输出
     {
         switch (Method)
         {
@@ -950,12 +972,14 @@ repeat:
                 if (PutStrDirect != NULL)
                     PutStrDirect((const char *)TempBuf,position);
                 break;
-            case PRINT_TO_FILE_OR_DEV:
-                fwrite((const void *)TempBuf,position,1,(FILE*)Target);
+            case PRINT_TO_FILE:
+                TempBuf[position] = '\0';
+                puts(TempBuf);
+//              fwrite((const void *)TempBuf,position,1,(FILE*)Target);
                 break;
             default:
-                if (PutStrDirect != NULL)
-                    PutStrDirect((const char *)TempBuf,position);
+//              if (PutStrDirect != NULL)
+//                  PutStrDirect((const char *)TempBuf,position);
                 break;
         }
     }
@@ -976,11 +1000,10 @@ s32 vprintf (const char *fmt, va_list args)
     s32 i;
     char TempBuf[CN_BUF_LENGTH];
 
-    // if (stdout == StdNotInit)
-    if(!File_IsValid(stdout))
-        i = __vsnprintf (TempBuf, (ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
-    else
-        i =  __vsnprintf (TempBuf, (ptu32_t)stdout, 0, PRINT_TO_FILE_OR_DEV, fmt, args);
+//  if(!File_IsValid(stdout))
+//      i = __vsnprintf (TempBuf, (ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
+//  else
+    i =  __vsnprintf (TempBuf, (ptu32_t)stdout, 0, PRINT_TO_FILE, fmt, args);
     return i;
 }
 
@@ -1001,11 +1024,10 @@ s32 printf(const char *fmt, ...)
 
     va_start (args, fmt);
 
-    // if (stdout == StdNotInit)
-    if(!File_IsValid(stdout))
-        i = __vsnprintf (TempBuf,(ptu32_t)NULL,0,PRINT_TO_DIRECT, fmt, args);
-    else
-        i =  __vsnprintf (TempBuf,(ptu32_t)stdout, 0,PRINT_TO_FILE_OR_DEV, fmt, args);
+//  if(!File_IsValid(stdout))
+//      i = __vsnprintf (TempBuf,(ptu32_t)NULL,0,PRINT_TO_DIRECT, fmt, args);
+//  else
+    i =  __vsnprintf (TempBuf,(ptu32_t)stdout, 0,PRINT_TO_FILE, fmt, args);
     va_end (args);
 
     return i;
@@ -1056,11 +1078,10 @@ s32 fprintf(FILE *fp, const char *fmt, ...)
         return -1;
     }
     va_start (args, fmt);
-    // if (fp == StdNotInit)
-    if(!File_IsValid(fp))
-        i = __vsnprintf (TempBuf,(ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
-    else
-        i = __vsnprintf (TempBuf,(ptu32_t)fp, 0, PRINT_TO_FILE_OR_DEV, fmt, args);
+//  if(!File_IsValid(fp))
+//      i = __vsnprintf (TempBuf,(ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
+//  else
+    i = __vsnprintf (TempBuf,(ptu32_t)fp, 0, PRINT_TO_FILE, fmt, args);
     va_end (args);
 
     return i;

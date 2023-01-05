@@ -97,7 +97,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"stdio"            //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"none"            //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -117,7 +117,7 @@
 #define CFG_ADD_ROUTINE_SHELL      true        //"是否添加常规shell命令",
 #define CFG_ADD_EXPAND_SHELL       true        //"是否添加拓展shell命令",
 #define CFG_ADD_GLOBAL_FUN         false       //"添加全局函数到shell",
-#define CFG_SHOW_ADD_SHEELL        true        //"显示在编译窗口添加的shell命令",
+#define CFG_SHOW_ADD_SHEELL        true        //"编译时显示shell命令",
 //%$#@string,1,10,
 //%$#@SYMBOL        ***不经配置界面，直接定义符号
 //%$#select,        ***从列出的选项中选择若干个定义成宏
@@ -796,11 +796,11 @@ static void putsbackspace(int times)
     for(i =0;i<times;i++)
     {
         ch ='\b';  //move the cursor left
-        putc(ch,stdout);
+        putchar(ch);
         ch =' ';   //space key
-        putc(ch,stdout);
+        putchar(ch);
         ch ='\b';  //move the cursor left
-        putc(ch,stdout);
+        putchar(ch);
     }
 }
 static void putsnxtspace(int times)
@@ -810,7 +810,7 @@ static void putsnxtspace(int times)
     ch =' ';  //just put the space
     for(i =0;i<times;i++)
     {
-        putc(ch,stdout);
+        putchar(ch);
     }
 }
 //absolutely,just put the right cursor,maybe different terminal has different right virtual key
@@ -821,11 +821,11 @@ static void  movescursorright(int times,u32 vk)
     for(i =0;i<times;i++)
     {
         ch = (char)(vk&0xff);
-        putc(ch,stdout);
+        putchar(ch);
         ch = (char)((vk>>8)&0xff);
-        putc(ch,stdout);
+        putchar(ch);
         ch = (char)((vk>>16)&0xff);
-        putc(ch,stdout);
+        putchar(ch);
     }
 }
 //absolutely,just put the left cursor,maybe different terminal has different right virtual key
@@ -835,7 +835,7 @@ static void  movescursoleft(int times)
     int i =0;
     for(i =0;i<times;i++)
     {
-        putc(ch,stdout);
+        putchar(ch);
     }
 }
 
@@ -864,7 +864,7 @@ static ptu32_t Sh_Service(void)
 
      while(1)
      {
-         res = getc(stdin);
+         res = getchar( );
          if(EOF == res)
          {
              DJY_EventDelay(1000); // 获取数据错误或者end of file，延时1ms再继续（防止出现死循环现象，导致其他线程卡死）。
@@ -1086,7 +1086,7 @@ static ptu32_t Sh_Service(void)
                  {
                      cmdbuf.curcmd[cmdbuf.curoffset] = ch;
                      cmdbuf.curoffset++;
-                     putc(ch,stdout);   //should do the echo
+                     putchar(ch);   //should do the echo
                  }
                  //flush the vk
                  vk = CN_VK_NULL;
