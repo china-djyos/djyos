@@ -95,14 +95,10 @@ typedef struct
 
 }tagBITMAPINFOHEADER;
 
-
-
 #define BI_RGB        0L
 #define BI_RLE8       1L
 #define BI_RLE4       2L
 #define BI_BITFIELDS  3L
-
-
 
 //-----------------------------------------------------------------------------
 //功能：绘制BMP文件格式的二进制图像数据，图像数据是已二进制数组的形式保存在程序中或者
@@ -168,7 +164,7 @@ bool_t GDD_DrawWinBMPArray(HDC hdc,s32 x,s32 y,const void *bmp_data,u32 *palette
             bm.bm_bits      =(u8*)bmp_data+bfOffsetBits;
             GDD_DrawBitmap(hdc, x, y, &bm, HyalineColor);
             //这里需要执行绘制操作，因为 bm 和 color_tbl 是局部变量
-            GDD_SendMessage(hdc->hwnd,MSG_SYNC_DISPLAY,0,0);
+            GDD_PostMessage(hdc->hwnd,MSG_SYNC_DISPLAY,0,0);
             return TRUE;
         }
         ////////
@@ -192,7 +188,7 @@ bool_t GDD_DrawWinBMPArray(HDC hdc,s32 x,s32 y,const void *bmp_data,u32 *palette
             bm.bm_bits      =(u8*)bmp_data + bfOffsetBits;
             GDD_DrawBitmap(hdc, x, y, &bm, HyalineColor);
             //这里需要执行绘制操作，因为 bm 和 color_tbl 是局部变量
-            GDD_SendMessage(hdc->hwnd,MSG_SYNC_DISPLAY,0,0);
+            GDD_PostMessage(hdc->hwnd,MSG_SYNC_DISPLAY,0,0);
 
             return TRUE;
         }
@@ -226,7 +222,7 @@ bool_t GDD_DrawWinBMPArray(HDC hdc,s32 x,s32 y,const void *bmp_data,u32 *palette
             bm.bm_bits      =(u8*)bmp_data + bfOffsetBits;
             GDD_DrawBitmap(hdc, x, y, &bm, HyalineColor);
             //这里需要执行绘制操作，因为 bm 和 color_tbl 是局部变量
-            GDD_SendMessage(hdc->hwnd,MSG_SYNC_DISPLAY,0,0);
+            GDD_PostMessage(hdc->hwnd,MSG_SYNC_DISPLAY,0,0);
             free(color_tbl);
             return TRUE;
         }
@@ -260,7 +256,7 @@ bool_t GDD_DrawWinBMPArray(HDC hdc,s32 x,s32 y,const void *bmp_data,u32 *palette
         bm.bm_bits = (u8*)bmp_data + bfOffsetBits;
         GDD_DrawBitmap(hdc,x,y,&bm,HyalineColor);
         //这里需要执行绘制操作，因为 bm 是局部变量
-        GDD_SendMessage(hdc->hwnd,MSG_SYNC_DISPLAY,0,0);
+        GDD_PostMessage(hdc->hwnd,MSG_SYNC_DISPLAY,0,0);
         return TRUE;
         ////////
 

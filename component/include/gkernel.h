@@ -240,7 +240,7 @@ struct RopGroup
 {
     u32 SrcAlpha:8;     //Src Alpha(As)
     u32 DstAlpha:8;     //Dst Alpha(Ad)
-    u32 AlphaMode:8;    //Alpha 运算公式标志，参看CN_ALPHA_MODE_AsN族常数
+    u32 AlphaMode:8;    //Alpha 运算公式标志，参看 CN_ALPHA_MODE_AsN 族常数
     u32 Rop2Mode:4;     //rop2运算公式,参看CN_R2_BLACK族常数
     u32 AlphaEn:1;      //使能alpha运算运算，Rop2En自动被禁止。
     u32 HyalineEn:1;    //使能透明色
@@ -252,10 +252,10 @@ struct RopGroup
 
 //以下定义alpha运算公式
 //定义规则:bit7=1表示运算时需dst像素参与；bit6=1表示运算时需Ad参与
-#define CN_ALPHA_MODE_AsN           0x00    //dst = S*As+D*(1-As)
-#define CN_ALPHA_MODE_AsAdN         0x40    //dst = S*As+D*(1-As)*Ad
-#define CN_ALPHA_MODE_AsAd          0x41    //dst = S*As+D*Ad
-#define CN_ALPHA_MODE_As            0x80    //dst = S*As
+#define CN_ALPHA_MODE_AsN           0x80    //dst = S*As+D*(1-As)
+#define CN_ALPHA_MODE_AsAdN         0xc0    //dst = S*As+D*(1-As)*Ad
+#define CN_ALPHA_MODE_AsAd          0xc1    //dst = S*As+D*Ad
+#define CN_ALPHA_MODE_As            0x00    //dst = S*As
 #define CN_ALPHA_MODE_NEED_DST      0x80    //bit7=1,需要dst像素参与运算
 #define CN_ALPHA_MODE_NEED_AD       0x40    //bit6=1,需要dst alpha参与运算
 

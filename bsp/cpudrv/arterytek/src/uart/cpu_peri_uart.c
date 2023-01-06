@@ -119,89 +119,86 @@ static u32 art43x_StartSend(ptu32_t PrivateTag);
 static ptu32_t art43x_UartCtrl(ptu32_t PrivateTag, u32 cmd, va_list* arg0);
 
 struct UartParam art43x_UART_Param[] = {
-#ifdef CN_UART1
-	[0] = {
-		.Name = "UART1",
-		.Baud = 115200,
-		.UartPortTag = 0,
-		.TxRingBufLen = CFG_UART1_SENDBUF_LEN,
-		.RxRingBufLen = CFG_UART1_RECVBUF_LEN,
-		.StartSend = art43x_StartSend,
-		.UartCtrl = art43x_UartCtrl,
-	.mode = CN_UART_GENERAL,
-	},
-#endif
-#ifdef CN_UART2
-	[1] = {
-		.Name = "UART2",
-		.Baud = 115200,
-		.UartPortTag = 0,
-		.TxRingBufLen = CFG_UART2_SENDBUF_LEN,
-		.RxRingBufLen = CFG_UART2_RECVBUF_LEN,
-		.StartSend = art43x_StartSend,
-		.UartCtrl = art43x_UartCtrl,
-	.mode = CN_UART_GENERAL,
-	},
+    [0] = {
+        .Name = "UART1",
+        .Baud = 115200,
+        .UartPortTag = 0,
+        .TxRingBufLen = CFG_UART1_SENDBUF_LEN,
+        .RxRingBufLen = CFG_UART1_RECVBUF_LEN,
+        .StartSend = art43x_StartSend,
+        .UartCtrl = art43x_UartCtrl,
+    .mode = CN_UART_GENERAL,
+    },
+    [1] = {
+        .Name = "UART2",
+        .Baud = 115200,
+        .UartPortTag = 0,
+        .TxRingBufLen = CFG_UART2_SENDBUF_LEN,
+        .RxRingBufLen = CFG_UART2_RECVBUF_LEN,
+        .StartSend = art43x_StartSend,
+        .UartCtrl = art43x_UartCtrl,
+    .mode = CN_UART_GENERAL,
+    },
 #endif
 #ifdef CN_UART3
-	[2] = {
-		.Name = "UART3",
-		.Baud = 115200,
-		.UartPortTag = 0,
-		.TxRingBufLen = CFG_UART3_SENDBUF_LEN,
-		.RxRingBufLen = CFG_UART3_RECVBUF_LEN,
-		.StartSend = art43x_StartSend,
-		.UartCtrl = art43x_UartCtrl,
-	.mode = CN_UART_GENERAL,
-	},
+    [2] = {
+        .Name = "UART3",
+        .Baud = 115200,
+        .UartPortTag = 0,
+        .TxRingBufLen = CFG_UART3_SENDBUF_LEN,
+        .RxRingBufLen = CFG_UART3_RECVBUF_LEN,
+        .StartSend = art43x_StartSend,
+        .UartCtrl = art43x_UartCtrl,
+    .mode = CN_UART_GENERAL,
+    },
 #endif
 #ifdef CN_UART4
-	[3] = {
-		.Name = "UART4",
-		.Baud = 115200,
-		.UartPortTag = 0,
-		.TxRingBufLen = CFG_UART4_SENDBUF_LEN,
-		.RxRingBufLen = CFG_UART4_RECVBUF_LEN,
-		.StartSend = art43x_StartSend,
-		.UartCtrl = art43x_UartCtrl,
-	.mode = CN_UART_GENERAL,
-	},
+    [3] = {
+        .Name = "UART4",
+        .Baud = 115200,
+        .UartPortTag = 0,
+        .TxRingBufLen = CFG_UART4_SENDBUF_LEN,
+        .RxRingBufLen = CFG_UART4_RECVBUF_LEN,
+        .StartSend = art43x_StartSend,
+        .UartCtrl = art43x_UartCtrl,
+    .mode = CN_UART_GENERAL,
+    },
 #endif
 #ifdef CN_UART5
-	[4] = {
-		.Name = "UART5",
-		.Baud = 115200,
-		.UartPortTag = 0,
-		.TxRingBufLen = CFG_UART5_SENDBUF_LEN,
-		.RxRingBufLen = CFG_UART5_RECVBUF_LEN,
-		.StartSend = art43x_StartSend,
-		.UartCtrl = art43x_UartCtrl,
-	.mode = CN_UART_GENERAL,
-	},
+    [4] = {
+        .Name = "UART5",
+        .Baud = 115200,
+        .UartPortTag = 0,
+        .TxRingBufLen = CFG_UART5_SENDBUF_LEN,
+        .RxRingBufLen = CFG_UART5_RECVBUF_LEN,
+        .StartSend = art43x_StartSend,
+        .UartCtrl = art43x_UartCtrl,
+    .mode = CN_UART_GENERAL,
+    },
 #endif
 #ifdef CN_UART6
-	[5] = {
-		.Name = "UART6",
-		.Baud = 115200,
-		.UartPortTag = 0,
-		.TxRingBufLen = CFG_UART6_SENDBUF_LEN,
-		.RxRingBufLen = CFG_UART6_RECVBUF_LEN,
-		.StartSend = art43x_StartSend,
-		.UartCtrl = art43x_UartCtrl,
-	.mode = CN_UART_GENERAL,
-	},
+    [5] = {
+        .Name = "UART6",
+        .Baud = 115200,
+        .UartPortTag = 0,
+        .TxRingBufLen = CFG_UART6_SENDBUF_LEN,
+        .RxRingBufLen = CFG_UART6_RECVBUF_LEN,
+        .StartSend = art43x_StartSend,
+        .UartCtrl = art43x_UartCtrl,
+    .mode = CN_UART_GENERAL,
+    },
 #endif
 #ifdef CN_UART7
-	[6] = {
-		.Name = "UART6",
-		.Baud = 115200,
-		.UartPortTag = 0,
-		.TxRingBufLen = CFG_UART7_SENDBUF_LEN,
-		.RxRingBufLen = CFG_UART7_RECVBUF_LEN,
-		.StartSend = art43x_StartSend,
-		.UartCtrl = art43x_UartCtrl,
-	.mode = CN_UART_GENERAL,
-	},
+    [6] = {
+        .Name = "UART6",
+        .Baud = 115200,
+        .UartPortTag = 0,
+        .TxRingBufLen = CFG_UART7_SENDBUF_LEN,
+        .RxRingBufLen = CFG_UART7_RECVBUF_LEN,
+        .StartSend = art43x_StartSend,
+        .UartCtrl = art43x_UartCtrl,
+    .mode = CN_UART_GENERAL,
+    },
 #endif
 };
 
@@ -214,12 +211,12 @@ static u32 RxDirectPort;                  //用于直接接收的串口号
 /* we need a debug uart at the very beginning. */
 
 struct uart_priv {
-	int port;
+    int port;
 
-	struct UartGeneralCB* pUartCB;
-	char* dma_rx_buf;
-	char* dma_tx_buf;
-	int dmabuf_len;
+    struct UartGeneralCB* pUartCB;
+    char* dma_rx_buf;
+    char* dma_tx_buf;
+    int dmabuf_len;
 };
 
 /*TODO: this macro should be public accessable. */
@@ -227,26 +224,26 @@ struct uart_priv {
 
 usart_type* to_usart_type(u32 port)
 {
-	usart_type* usart_x[] = {
-		USART1, USART2, USART3, UART4, UART5, USART6, UART7, UART8,
-	};
+    usart_type* usart_x[] = {
+        USART1, USART2, USART3, UART4, UART5, USART6, UART7, UART8,
+    };
 
-	if (port >= 0 && port < ARRAY_SIZE(usart_x)) return usart_x[port];
-	return NULL;
+    if (port >= 0 && port < ARRAY_SIZE(usart_x)) return usart_x[port];
+    return NULL;
 }
 
 int to_irq(int port)
 {
-	int irq = -1;
-	int uart_irq[] = {
-		CN_INT_LINE_USART1, CN_INT_LINE_USART2, CN_INT_LINE_USART3,
-		CN_INT_LINE_UART4, CN_INT_LINE_UART5,
-		CN_INT_LINE_USART6,
-		CN_INT_LINE_UART7, CN_INT_LINE_UART8,
-	};
+    int irq = -1;
+    int uart_irq[] = {
+        CN_INT_LINE_USART1, CN_INT_LINE_USART2, CN_INT_LINE_USART3,
+        CN_INT_LINE_UART4, CN_INT_LINE_UART5,
+        CN_INT_LINE_USART6,
+        CN_INT_LINE_UART7, CN_INT_LINE_UART8,
+    };
 
-	if (port >= 0 && port < ARRAY_SIZE(uart_irq)) irq = uart_irq[port];
-	return irq;
+    if (port >= 0 && port < ARRAY_SIZE(uart_irq)) irq = uart_irq[port];
+    return irq;
 }
 
 #define CN_DMA_UNUSED   0
@@ -272,20 +269,20 @@ typedef void DMA_Stream_TypeDef;
 #define DMA2_Stream7 (void *)0
 
 static DMA_Stream_TypeDef * const UartDmaRxStream[] = {
-	DMA2_Stream2,
-	DMA1_Stream5,
-	DMA1_Stream1,
-	DMA1_Stream2,
-	DMA1_Stream0,
-	DMA2_Stream2
+    DMA2_Stream2,
+    DMA1_Stream5,
+    DMA1_Stream1,
+    DMA1_Stream2,
+    DMA1_Stream0,
+    DMA2_Stream2
 };
 static DMA_Stream_TypeDef * const UartDmaTxStream[] = {
-	DMA2_Stream7,
-	DMA1_Stream6,
-	DMA1_Stream3,
-	DMA1_Stream4,
-	DMA1_Stream7,
-	DMA2_Stream6
+    DMA2_Stream7,
+    DMA1_Stream6,
+    DMA1_Stream3,
+    DMA1_Stream4,
+    DMA1_Stream7,
+    DMA2_Stream6
 };
 
 static u8 const DMA_Tx_ch[] = {4,4,4,4,4,5};
@@ -346,9 +343,9 @@ static uint32_t UART_DmaTx_ISR(ptu32_t port);
 void __UART_RxIntEnable(u8 flag,u8 port)
 {
     if(flag == CN_DMA_USED)
-	Int_RestoreAsynLine(0); /* disable dma's irq */
+    Int_RestoreAsynLine(0); /* disable dma's irq */
     else
-	/* ##WIP## disable irq. */;
+    /* ##WIP## disable irq. */;
 }
 
 // =============================================================================
@@ -360,7 +357,7 @@ void __UART_RxIntEnable(u8 flag,u8 port)
 void __UART_RxIntDisable(u8 flag, u8 port)
 {
     if(flag == CN_DMA_USED)
-	Int_SaveAsynLine(0);
+    Int_SaveAsynLine(0);
     else
         /* ##WIP## disable irq. */;
 }
@@ -374,7 +371,7 @@ void __UART_RxIntDisable(u8 flag, u8 port)
 static void __UART_TxIntEnable(u8 flag,u8 port)
 {
     if(flag == CN_DMA_USED)
-	Int_RestoreAsynLine(0);
+    Int_RestoreAsynLine(0);
     else
         /* ##WIP## disable this uart's irq. */;
 }
@@ -390,9 +387,9 @@ static void __UART_TxIntEnable(u8 flag,u8 port)
 static void __UART_TxIntDisable(u8 flag, u8 port)
 {
 //    if(flag == CN_DMA_USED)
-//	Int_SaveAsynLine(UartDmaTxInt[port]);
+//  Int_SaveAsynLine(UartDmaTxInt[port]);
 //    else
-//	tg_UART_Reg[port]->CR1 &= ~(1<<7);//禁止发送空中断
+//  tg_UART_Reg[port]->CR1 &= ~(1<<7);//禁止发送空中断
 }
 
 // =============================================================================
@@ -426,12 +423,12 @@ static void __UART_IntInit(u32 SerialNo)
 bool_t __uart_dma_timeout(bool_t sending)
 {
     int timeout = 1000;
-	while (sending && timeout) {
-		timeout--;
-		DJY_DelayUs(1);
-	}
+    while (sending && timeout) {
+        timeout--;
+        DJY_DelayUs(1);
+    }
 
-	return !timeout;
+    return !timeout;
 }
 // =============================================================================
 // 功能: 启动串口DMA发送，使用DMA启动，在发送前需判断上次DMA是否已经发送完成，通过
@@ -465,18 +462,18 @@ u32 __UART_DMA_SendStart(u32 port)
     DmaSendBuf = pUART_DmaSendBuf[port];
 //    if(true == __uart_dma_timeout(s_UART_DmaSending[port]))
     if(true == s_UART_DmaSending[port])
-	return 0;
+    return 0;
 //    num = UART_PortRead(pUartCB[port],DmaSendBuf,DmaSendBufLen);
     addr = (u32)DmaSendBuf;
 
     if(num > 0)
     {
-	DMA_Enable(UartDmaTxStream[port],addr,num); //启动DMA
-	s_UART_DmaSending[port] = true;
+    DMA_Enable(UartDmaTxStream[port],addr,num); //启动DMA
+    s_UART_DmaSending[port] = true;
     }
     else
     {
-//##WIP##	tg_UART_Reg[port]->CR1 |= (1<<6);
+//##WIP##   tg_UART_Reg[port]->CR1 |= (1<<6);
     }
     return 0;
 }
@@ -520,20 +517,20 @@ u32 __UART_DMA_SendStart(u32 port)
 
 static u32 art43x_StartSend (ptu32_t PrivateTag)
 {
-	struct UartParam *param;
-	struct uart_priv *priv;
-	struct usart_type *usart_x;
+    struct UartParam *param;
+    struct uart_priv *priv;
+    struct usart_type *usart_x;
 
-	
 
-	priv = (void*)PrivateTag;
-	if(priv->port == 0) GPIOA->scr = GPIO_PINS_8;
-	param = art43x_UART_Param + priv->port;
-	usart_x = to_usart_type(priv->port);
 
-	usart_interrupt_enable(usart_x, USART_TDBE_INT, TRUE);
+    priv = (void*)PrivateTag;
+    if(priv->port == 0) GPIOA->scr = GPIO_PINS_8;
+    param = art43x_UART_Param + priv->port;
+    usart_x = to_usart_type(priv->port);
 
-	return 0;
+    usart_interrupt_enable(usart_x, USART_TDBE_INT, TRUE);
+
+    return 0;
 }
 
 // =============================================================================
@@ -662,34 +659,34 @@ void __UART_SetDmaUnUsed(u32 port)
 
 ptu32_t art43x_UartCtrl(ptu32_t PrivateTag, u32 cmd, va_list* arg0)
 {
-	struct uart_priv *priv;
-	usart_type *usart_x;
-	uint32_t baud;
-	int mode = 0;
+    struct uart_priv *priv;
+    usart_type *usart_x;
+    uint32_t baud;
+    int mode = 0;
 
-	priv = (void *)PrivateTag;
-	usart_x = NULL;
-	if(priv) usart_x = to_usart_type(priv->port);
-	if (!usart_x) return -1;
+    priv = (void *)PrivateTag;
+    usart_x = NULL;
+    if(priv) usart_x = to_usart_type(priv->port);
+    if (!usart_x) return -1;
 
-	switch (cmd) {
-	case CN_DEV_CTRL_START:
-		usart_init(usart_x, 115200 , USART_DATA_8BITS, USART_STOP_1_BIT);
-		usart_transmitter_enable(usart_x, TRUE);
-		usart_receiver_enable(usart_x, TRUE);
-		usart_enable(usart_x, TRUE);
-		break;
-	case CN_UART_SET_BAUD:
-		baud = va_arg(*arg0, uint32_t);
-		usart_init(usart_x, baud, USART_DATA_8BITS, USART_STOP_1_BIT);
-		break;
-	case CN_UART_COM_SET:
-		break;
-	default:
-		break;
-	}
+    switch (cmd) {
+    case CN_DEV_CTRL_START:
+        usart_init(usart_x, 115200 , USART_DATA_8BITS, USART_STOP_1_BIT);
+        usart_transmitter_enable(usart_x, TRUE);
+        usart_receiver_enable(usart_x, TRUE);
+        usart_enable(usart_x, TRUE);
+        break;
+    case CN_UART_SET_BAUD:
+        baud = va_arg(*arg0, uint32_t);
+        usart_init(usart_x, baud, USART_DATA_8BITS, USART_STOP_1_BIT);
+        break;
+    case CN_UART_COM_SET:
+        break;
+    default:
+        break;
+    }
 
-	return 0;
+    return 0;
 }
 
 // =============================================================================
@@ -706,17 +703,17 @@ uint32_t UART_DmaTx_ISR(ptu32_t port)
 //    switch(port)
 //    {
 //    case CN_UART1:
-//	DmaSendBufLen = CFG_UART1_DMABUF_LEN;        break;
+//  DmaSendBufLen = CFG_UART1_DMABUF_LEN;        break;
 //    case CN_UART2:
-//	DmaSendBufLen = CFG_UART2_DMABUF_LEN;        break;
+//  DmaSendBufLen = CFG_UART2_DMABUF_LEN;        break;
 //    case CN_UART3:
-//	DmaSendBufLen = CFG_UART3_DMABUF_LEN;        break;
+//  DmaSendBufLen = CFG_UART3_DMABUF_LEN;        break;
 //    case CN_UART4:
-//	DmaSendBufLen = CFG_UART4_DMABUF_LEN;        break;
+//  DmaSendBufLen = CFG_UART4_DMABUF_LEN;        break;
 //    case CN_UART5:
-//	DmaSendBufLen = CFG_UART5_DMABUF_LEN;        break;
+//  DmaSendBufLen = CFG_UART5_DMABUF_LEN;        break;
 //    case CN_UART6:
-//	DmaSendBufLen = CFG_UART6_DMABUF_LEN;        break;
+//  DmaSendBufLen = CFG_UART6_DMABUF_LEN;        break;
 //    default:        break;
 //    }
 //
@@ -725,12 +722,12 @@ uint32_t UART_DmaTx_ISR(ptu32_t port)
 //    num = UART_PortRead(pUartCB[port],DmaSendBuf,DmaSendBufLen);
 //    if(num == 0)
 //    {
-//	s_UART_DmaSending[port] = false;
-//	tg_UART_Reg[port]->CR1 |= (1<<6);
+//  s_UART_DmaSending[port] = false;
+//  tg_UART_Reg[port]->CR1 |= (1<<6);
 //    }
 //    else
 //    {
-//	DMA_Enable(UartDmaTxStream[port],(u32)DmaSendBuf,num);
+//  DMA_Enable(UartDmaTxStream[port],(u32)DmaSendBuf,num);
 //    }
     return 0;
 }
@@ -769,14 +766,14 @@ uint32_t UART_DmaRx_ISR(ptu32_t port)
     // recvs = DmaRecvBufLen - UartDmaRxStream[port]->NDTR;
     if(recvs == DmaRecvBufLen)     //dma缓冲区满，可能有数据丢失
     {
-//	UART_ErrHandle(pUartCB[port],CN_UART_FIFO_OVER_ERR);
+//  UART_ErrHandle(pUartCB[port],CN_UART_FIFO_OVER_ERR);
     }else
     {
-//	num = UART_PortWrite(pUartCB[port],DmaRecvBuf,recvs);
-	if(num != recvs)
-	{
-//	    UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
-	}
+//  num = UART_PortWrite(pUartCB[port],DmaRecvBuf,recvs);
+    if(num != recvs)
+    {
+//      UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
+    }
     }
 
     DMA_Enable(UartDmaRxStream[port],(u32)DmaRecvBuf,DmaRecvBufLen);
@@ -811,33 +808,33 @@ u32 UART_ISR(ptu32_t port)
     uint32_t sts;
 
     if (port > ARRAY_SIZE(art43x_UART_Param))
-	    return -1;
+        return -1;
     param = art43x_UART_Param + port;
 
     priv = param->UartPortTag;
     if (!priv) {
-	    /* port error. */
-	    return -1;
+        /* port error. */
+        return -1;
     }
 
     usart_x = to_usart_type(priv->port);
     sts = usart_x->sts;
 
     if (sts & USART_RDBF_FLAG) {
-	    data = usart_data_receive(usart_x);
-	    c[0] = data;
-	    rc = UART_PortWrite(priv->pUartCB, c, 1U);
+        data = usart_data_receive(usart_x);
+        c[0] = data;
+        rc = UART_PortWrite(priv->pUartCB, c, 1U);
     }
 
     if (sts & USART_TDBE_FLAG) {
-	    rc = UART_PortRead(priv->pUartCB, c, 1U);
-	    data = c[0];
+        rc = UART_PortRead(priv->pUartCB, c, 1U);
+        data = c[0];
 
-	    if (rc) usart_data_transmit(usart_x, data);
-	    else {
-		    if(port == 0) GPIOA->clr = GPIO_PINS_8;
-		    usart_interrupt_enable(usart_x, USART_TDBE_INT, FALSE);
-	    }
+        if (rc) usart_data_transmit(usart_x, data);
+        else {
+            if(port == 0) GPIOA->clr = GPIO_PINS_8;
+            usart_interrupt_enable(usart_x, USART_TDBE_INT, FALSE);
+        }
 
     }
     return 0;
@@ -861,12 +858,12 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
     int port = serial_no;
 
     if (port < 0 || port >= ARRAY_SIZE(art43x_UART_Param))
-	    return -1;
+        return -1;
 
     param = art43x_UART_Param + port;
     priv = (void *)param->UartPortTag;
     if (priv)
-	    return -1;	/* 已经初始化了。 */
+        return -1;  /* 已经初始化了。 */
 
     priv = malloc(sizeof(struct uart_priv));
     priv->port = port;
@@ -887,7 +884,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
     usart_interrupt_enable(to_usart_type(priv->port), USART_TDBE_INT, TRUE);
 
     if (param->UartCtrl) {
-	    param->UartCtrl(param->UartPortTag, 0, NULL);
+        param->UartCtrl(param->UartPortTag, 0, NULL);
     }
 
     return priv->pUartCB ? 1 : 0;
@@ -902,19 +899,19 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
 // =============================================================================
 static s32 art43x_PutStrDirect(const char *str, u32 len)
 {
-	int i, port = TxDirectPort;
-	usart_type *usart_x;
+    int i, port = TxDirectPort;
+    usart_type *usart_x;
 
-	if (port < 0 || port >= ARRAY_SIZE(art43x_UART_Param)) port = 0;
-	usart_x = to_usart_type(port);
+    if (port < 0 || port >= ARRAY_SIZE(art43x_UART_Param)) port = 0;
+    usart_x = to_usart_type(port);
 
-	for (i = 0; i < len; i++) {
-		uint16_t ch;
-		ch = str[i];
-		while (usart_flag_get(usart_x, USART_TDBE_FLAG) == RESET);
-		usart_data_transmit(usart_x, ch);
-	}
-	return i;
+    for (i = 0; i < len; i++) {
+        uint16_t ch;
+        ch = str[i];
+        while (usart_flag_get(usart_x, USART_TDBE_FLAG) == RESET);
+        usart_data_transmit(usart_x, ch);
+    }
+    return i;
 }
 
 // =============================================================================
@@ -926,38 +923,38 @@ static s32 art43x_PutStrDirect(const char *str, u32 len)
 
 static char art43x_GetCharDirect(void)
 {
-	usart_type *usart_x;
-	u32 port = RxDirectPort;
-	uint16_t ch;
+    usart_type *usart_x;
+    u32 port = RxDirectPort;
+    uint16_t ch;
 
-	usart_x = to_usart_type(port);
-	while (usart_flag_get(usart_x, USART_RDBF_FLAG) == RESET);
-	ch = usart_data_receive(usart_x);
-	return ch;
+    usart_x = to_usart_type(port);
+    while (usart_flag_get(usart_x, USART_RDBF_FLAG) == RESET);
+    ch = usart_data_receive(usart_x);
+    return ch;
 }
 
 
 int devname_to_port(char* str)
 {
-	int port;
-	const char *devname[] = {
-		"/dev/UART1",
-		"/dev/UART2",
-		"/dev/UART3",
-		"/dev/UART4",
-		"/dev/UART5",
-		"/dev/UART6",
-		"/dev/UART7",
-		"/dev/UART8",
-		"/dev/UART9",
-		"/dev/UART10",
-		"/dev/UART11",
-		"/dev/UART12",
-	};
+    int port;
+    const char *devname[] = {
+        "/dev/UART1",
+        "/dev/UART2",
+        "/dev/UART3",
+        "/dev/UART4",
+        "/dev/UART5",
+        "/dev/UART6",
+        "/dev/UART7",
+        "/dev/UART8",
+        "/dev/UART9",
+        "/dev/UART10",
+        "/dev/UART11",
+        "/dev/UART12",
+    };
 
-	for (port = 0; port < ARRAY_SIZE(devname); port++)
-		if (strcmp(str, devname[port]) == 0) return port;
-	return -1;
+    for (port = 0; port < ARRAY_SIZE(devname); port++)
+        if (strcmp(str, devname[port]) == 0) return port;
+    return -1;
 }
 
 #if defined(AT32F437ZMT7) || defined(AT32F435CGT7)
@@ -970,26 +967,26 @@ int devname_to_port(char* str)
 
 void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
 {
-	struct UartParam* param;
-	int port;
+    struct UartParam* param;
+    int port;
 
-	port = devname_to_port(StdioOut);
-	usart_type *usart[] = { USART1, USART2, USART3, UART4, UART5, USART6, UART7, UART8 };
-	usart_type *usart_x = usart[port];
+    port = devname_to_port(StdioOut);
+    usart_type *usart[] = { USART1, USART2, USART3, UART4, UART5, USART6, UART7, UART8 };
+    usart_type *usart_x = usart[port];
 
-	usart_init(usart_x, 115200, USART_DATA_8BITS, USART_STOP_1_BIT);
-	usart_transmitter_enable(usart_x, TRUE);
-	usart_receiver_enable(usart_x, TRUE);
-	usart_enable(usart_x, TRUE);
+    usart_init(usart_x, 115200, USART_DATA_8BITS, USART_STOP_1_BIT);
+    usart_transmitter_enable(usart_x, TRUE);
+    usart_receiver_enable(usart_x, TRUE);
+    usart_enable(usart_x, TRUE);
 
-	if (port < 0) TxDirectPort = UART_STDOUT;
-	else TxDirectPort = port;
+    if (port < 0) TxDirectPort = UART_STDOUT;
+    else TxDirectPort = port;
 
-	PutStrDirect = art43x_PutStrDirect;
-	TxByteTime = 95;
+    PutStrDirect = art43x_PutStrDirect;
+    TxByteTime = 95;
 
-	port = devname_to_port(StdioIn);
-	if (port < 0) RxDirectPort = UART_STDOUT;
-	else RxDirectPort = port;
-	GetCharDirect = art43x_GetCharDirect;
+    port = devname_to_port(StdioIn);
+    if (port < 0) RxDirectPort = UART_STDOUT;
+    else RxDirectPort = port;
+    GetCharDirect = art43x_GetCharDirect;
 }

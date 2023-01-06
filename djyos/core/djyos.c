@@ -159,15 +159,7 @@ static u32 s_u32StackCheckLevel = 10;      //栈报警水平，百分数
 struct EventECB  *g_ptEventReady;      //就绪队列头
 struct EventECB  *g_ptEventRunning;    //当前正在执行的事件
 struct EventECB  *g_ptEventDelay;      //闹钟同步队列表头
-//typedef struct
-//{
-//    u64 DelayTick;
-//    u64 RRSTicks;
-//}tagSchduleTick;
-//static tagSchduleTick gSchduleTick = {
-//    .DelayTick = CN_LIMIT_UINT64,
-//    .RRSTicks = CN_LIMIT_UINT64,
-//};
+
 s64 g_s64RunningStartTime;              //当前运行中事件的开始执行时间.
 s64  g_s64OsTicks = 0;                  //操作系统运行ticks，由tick中断增量，表示从
                                         //系统启动到最后一次响应tick中断的ticks数
@@ -1292,7 +1284,7 @@ void __DJY_ResumeDelay(struct EventECB *delay_event)
 //----加入延时队列------------------------------------------------------------
 //功能：由正在执行的事件调用,直接把自己加入延时队列，不引起调度也不操作ready
 //      队列，一般由同步函数调用，在timeout!=0时把事件加入闹钟同步队列实现
-//      timeout功能，是特定条件下对y_timer_sync函数的简化。
+//      timeout功能，是特定条件下对 DJY_EventDelay 函数的简化。
 //参数：u32l_uS,延迟时间,单位是微秒，将被向上调整为CN_CFG_TICK_US的整数倍
 //返回：无
 //备注：1、操作系统内部使用的函数，且需在关闭中断（禁止调度）的条件下使用。
@@ -2973,7 +2965,6 @@ void DJY_EventComplete(ptu32_t result)
     }
     g_ptEventRunning->sync = NULL;
     Int_RestoreAsynSignal();
-
 }
 
 //----事件处理终结-------------------------------------------------------------
