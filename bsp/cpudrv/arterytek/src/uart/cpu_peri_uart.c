@@ -119,6 +119,7 @@ static u32 art43x_StartSend(ptu32_t PrivateTag);
 static ptu32_t art43x_UartCtrl(ptu32_t PrivateTag, u32 cmd, va_list* arg0);
 
 struct UartParam art43x_UART_Param[] = {
+#ifdef CN_UART1
     [0] = {
         .Name = "UART1",
         .Baud = 115200,
@@ -129,6 +130,8 @@ struct UartParam art43x_UART_Param[] = {
         .UartCtrl = art43x_UartCtrl,
     .mode = CN_UART_GENERAL,
     },
+#endif
+#ifdef CN_UART2
     [1] = {
         .Name = "UART2",
         .Baud = 115200,
