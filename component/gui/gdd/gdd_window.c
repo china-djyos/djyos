@@ -286,7 +286,7 @@ bool_t    GDD_GetWindowRect(HWND hwnd,RECT *prc)
 }
 
 //----获得窗口客户矩形区-------------------------------------------------------
-//描述: 获得窗口客户矩形区,矩形为客户坐标.
+//描述: 获得窗口客户矩形区,矩形为客户坐标，以客户坐标的左上角为原点
 //参数：hwnd:窗口句柄
 //      prc:用于保存矩形数据的指针.
 //返回：TRUE:成功; FALSE:失败
@@ -1731,11 +1731,10 @@ ptu32_t __GDD_WinMsgProc(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     u32 MsgCtrl;
-    s32 offset;
-    bool_t Adopt = false;
+    s32 offset,LastTable = 0, FirstTable = 0;
+    bool_t MsgGot = false;
     ptu32_t result = 0;
     struct MsgTableLink *MyTableLinkNode;
-//    struct MsgTableLink *MyPrebak;
     struct MsgProcTable *MyTable;
     s32 num = 0;
 
@@ -1747,57 +1746,48 @@ ptu32_t __GDD_WinMsgProc(struct WindowMsg *pMsg)
             __GDD_Unlock();
             return 0;
         }
-        MyTableLinkNode = hwnd->MyMsgTableLink[num];
-    //    MyPrebak = &MyTableLinkNode;
-    //    MyTableLinkNode->pLinkTab = NULL;
-    //  MyTableLinkNode = Head;
-        //这是一级级消息处理继承机制，先从最低一级继承出发
-        //以控件的paint消息处理为例说明一下：
-        //一般来说，MyMsgTableLink直接指向的是用户的消息表，如果从用户表中找到了
-        //      paint消息函数，则调用后返回。否则：
-        //      MyMsgTableLink->LinkNext指向的是控件的消息表，里面一般能找到 paint
-        //      消息处理函数，调用后返回。否则：
-        //      从窗口系统的默认消息处理函数表 s_gDefWindowMsgProcTable中找。
-        //这就是类似C++的继承机制。相当于用户继承控件，控件继承窗口系统。
-
-        while(MyTableLinkNode != NULL)
+        //逐级消息处理继承机制，先从最后添加的消息表开始查找，直到找到一个不需要继承上级
+        //消息的消息处理函数.
+        //这有点像C++的继承机制。相当于用户继承控件，控件继承窗口系统。
+        //MyMsgTableLink相当于指针数组，越早加入的消息表，下标越大。
+        MyTableLinkNode = hwnd->MyMsgTableLink[0];
+        while(1)
         {
-            MyTable = MyTableLinkNode->myTable;
-            if(MyTable != NULL)
+            offset = __GDD_GetWinMsgFunc(pMsg->Code & MSG_BODY_MASK, MyTableLinkNode);
+            if(offset != -1)        //消息表中找到了消息处理函数。
             {
+                LastTable = num;    //LastTable记录最后一个符合条件的消息表
+                if(MsgGot == false)
+                {
+                    FirstTable = num;
+                    MsgGot = true;
+                }
+                MyTable = MyTableLinkNode->myTable;
+                MsgCtrl =  MyTable[offset].MsgCode & MSG_CONTROL_MSK;
+                if((MsgCtrl & MSG_ADOPT_MSK) == MSG_ADOPT_NONE) //不继承
+                {
+                    break;      //找到第一条不需要继承的消息即结束，否则继续往前找
+                }
+            }
+            if(MyTableLinkNode == &s_gDefWindowMsgLink) //已经是最后一个消息表
+                break;
+            else
+                MyTableLinkNode = hwnd->MyMsgTableLink[++num];
+        }
+
+        if(MsgGot == true)
+        {
+            //从LastTable开始逆序执行消息处理函数，即按照继承要求，先加入的消息表先处理
+            for(; LastTable >=FirstTable; LastTable--)
+            {
+                MyTableLinkNode = hwnd->MyMsgTableLink[LastTable];
                 offset = __GDD_GetWinMsgFunc(pMsg->Code & MSG_BODY_MASK, MyTableLinkNode);
                 if(offset != -1)
                 {
-                    MsgCtrl =  MyTable[offset].MsgCode & MSG_CONTROL_MSK;
-                    if((MsgCtrl & MSG_ADOPT_MSK) == MSG_ADOPT_NONE) //不继承
-                    {
-                        if(MyTable[offset].MsgProc !=NULL)
-                            result = MyTable[offset].MsgProc(pMsg);
-                        while((Adopt == true)&&(num!=0) )
-                        {
-                            MyTableLinkNode = hwnd->MyMsgTableLink[--num];
-                            MyTable = MyTableLinkNode->myTable;
-                            offset = __GDD_GetWinMsgFunc(pMsg->Code,MyTableLinkNode);
-                            if((offset != -1)&&(MyTable[offset].MsgProc !=NULL))
-                            {
-                                result = MyTable[offset].MsgProc(pMsg);
-                            }
-                        }
-                        break;
-                    }
-                    else
-                    {
-                        Adopt = true;
-                    }
+                    if(MyTable[offset].MsgProc !=NULL)
+                        result = MyTable[offset].MsgProc(pMsg);
                 }
             }
-            if(MyTableLinkNode == &s_gDefWindowMsgLink)
-            {
-                MyTableLinkNode =NULL;
-                break;
-            }
-            else
-                MyTableLinkNode = hwnd->MyMsgTableLink[++num];
         }
         if(pMsg->Code == MSG_CLOSE)
         {

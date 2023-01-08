@@ -897,9 +897,9 @@ u32 __GK_AlphaBlendBitmapToWin(u32 SrcColor,u32 DstColor, u16 PixelFormat,
     u32 a_dst=0,r_dst,g_dst,b_dst;
     u32 result;
     //求取目标位图颜色的rgb分量
-    __GK_GetRgbBm(PixelFormat,SrcColor,&a_dst,&r_dst,&g_dst,&b_dst,dst_ExColor);
+    __GK_GetRgbBm(PixelFormat,DstColor,&a_dst,&r_dst,&g_dst,&b_dst,dst_ExColor);
     //求取源位图颜色的rgb分量
-    __GK_GetRgbBm(PixelFormat,DstColor,&a_src,&r_src,&g_src,&b_src,dst_ExColor);
+    __GK_GetRgbBm(PixelFormat,SrcColor,&a_src,&r_src,&g_src,&b_src,dst_ExColor);
     //根据目标位图颜色格式求取组合后的颜色
     switch(AlphaMode)
     {

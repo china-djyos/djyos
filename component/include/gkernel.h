@@ -248,8 +248,9 @@ struct RopGroup
 };
 //绘制函数中，支持rop2、alpha、HyalineColor透明
 //窗口属性中，alpha>HyalineColor透明>Rop2，alpha公式不允许需要dst alpha参与运算。
+//          因为窗口扫描时，背景图像是多窗口层叠合成的，如果需要Ad，根本不知道该取
+//          哪个窗口的Ad
 //特别注意，这里所说的alpha，针对常量alpha的，bitmap中的alpha通道不受影响
-
 //以下定义alpha运算公式
 //定义规则:bit7=1表示运算时需dst像素参与；bit6=1表示运算时需Ad参与
 #define CN_ALPHA_MODE_AsN           0x80    //dst = S*As+D*(1-As)

@@ -77,6 +77,14 @@ static  void    __GDD_EndDraw(HDC hdc)
 }
 #pragma GCC diagnostic pop
 
+//----坐标平移------------------------------------------------------------------
+//功能：根据DC类型，平移坐标，平移量是DC到窗口区域的偏移量，例如DC_TYPE_CLIENT，则平移
+//      客户区原点到窗口原点之间的差值。
+//参数：hdc，被操作的DC
+//      pt，待转换的坐标
+//      count，待平移的坐标数量
+//返回：无
+//-----------------------------------------------------------------------------
 static  void    __GDD_LPtoDP(HDC hdc,POINT *pt,s32 count)
 {
     RECT rc;
@@ -1027,7 +1035,6 @@ void    GDD_DrawRect(HDC hdc,const RECT *prc)
             __GDD_EndDraw(hdc);
         }
     }
-
 }
 
 //----填充矩形------------------------------------------------------------------
@@ -1190,7 +1197,7 @@ void    GDD_Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2)
 //------------------------------------------------------------------------------
 void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 {
-     
+
      ////
      POINT pt;
      if(hdc!=NULL)
