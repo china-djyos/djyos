@@ -1,0 +1,40 @@
+{
+	"ide_version":"V1.7_20210707",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"target_nodes":[],
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m4",
+		"cpu":"at32f437",
+		"board":"at-start-f437"
+	},
+	"components_checked":{
+		"app":[],
+		"iboot":["ART32 common code",
+		"at32f43x",
+		"board config",
+		"cpu onchip gpio",
+		"cpu onchip uart",
+		"device file system",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"loader",
+		"lock",
+		"memory pool",
+		"misc",
+		"multiplex",
+		"ring buffer and line buffer",
+		"shell",
+		"stdio",
+		"time",
+		"uart device file"]
+	}
+}
