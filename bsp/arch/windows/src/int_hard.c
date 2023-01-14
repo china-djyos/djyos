@@ -362,7 +362,7 @@ bool_t Int_EnableNest(ufast_t ufl_line)
 //参数: ufl_line?被操作的中断线
 //返回: 无
 //-----------------------------------------------------------------------------
-void Int_DisableNest(ufast_t ufl_line)
+bool_t Int_DisableNest(ufast_t ufl_line)
 {
 
 }
