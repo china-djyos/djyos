@@ -102,33 +102,6 @@ static struct MsgProcTable s_gDefWindowMsgProcTable[] =
 
 static struct MsgTableLink  s_gDefWindowMsgLink;
 
-//----锁定窗口------------------------------------------------------------------
-//描述: 锁定窗口,用于对窗口互斥操作,该函数返回TRUE时,必须调用HWND_Unlock解锁;
-//      而当该函数返回FALSE,则无需调用HWND_Unlock.
-//参数：hwnd:窗口句柄
-//返回：成功:TRUE; 失败:FLASE;
-//------------------------------------------------------------------------------
-bool_t    __HWND_Lock(HWND hwnd)
-{
-    bool_t result = false;
-    if(__GDD_Lock())    //不先锁住GDD，可能会死锁的
-    {
-        result = Lock_MutexPend(hwnd->mutex_lock, CN_TIMEOUT_FOREVER);
-        __GDD_Unlock( );
-    }
-    return result;
-}
-
-//----解锁窗口------------------------------------------------------------------
-//描述: 当窗口锁定成功后,由该函数进行解锁操作.
-//参数：hwnd:窗口句柄
-//返回：无
-//------------------------------------------------------------------------------
-void __HWND_Unlock(HWND hwnd)
-{
-    Lock_MutexPost(hwnd->mutex_lock);
-}
-
 //----取窗口句柄---------------------------------------------------------------
 //功能：根据gkwin指针，去所属的gdd窗口句柄
 //参数：gkwin，gkwin指针
@@ -254,7 +227,7 @@ bool_t    GDD_WindowToScreen(HWND hwnd,POINT *pt,s32 count)
 //参数：无
 //返回：桌面窗口句柄.
 //------------------------------------------------------------------------------
-HWND    GDD_GetDesktopWindow(void)
+HWND    GDD_GetDesktopWindow(char *display)
 {
     HWND hwnd;
 
@@ -1457,6 +1430,33 @@ bool_t    GDD_ReleaseDC(HDC hdc)
        return  GDD_DeleteDC(hdc);
 }
 
+//----锁定窗口------------------------------------------------------------------
+//描述: 锁定窗口,用于对窗口互斥操作,该函数返回TRUE时,必须调用HWND_Unlock解锁;
+//      而当该函数返回FALSE,则无需调用HWND_Unlock.
+//参数：hwnd:窗口句柄
+//返回：成功:TRUE; 失败:FLASE;
+//------------------------------------------------------------------------------
+bool_t    __HWND_Lock(HWND hwnd)
+{
+    bool_t result = false;
+    if(__GDD_Lock())    //不先锁住GDD，可能会死锁的
+    {
+        result = Lock_MutexPend(hwnd->mutex_lock, CN_TIMEOUT_FOREVER);
+        __GDD_Unlock( );
+    }
+    return result;
+}
+
+//----解锁窗口------------------------------------------------------------------
+//描述: 当窗口锁定成功后,由该函数进行解锁操作.
+//参数：hwnd:窗口句柄
+//返回：无
+//------------------------------------------------------------------------------
+void __HWND_Unlock(HWND hwnd)
+{
+    Lock_MutexPost(hwnd->mutex_lock);
+}
+
 //----指定窗口开始绘图-----------------------------------------------------------
 //描述: 创建并初始化一个绘图句柄，并按hwnd的属性决定是否清空窗口，该句柄用于绘制窗口的
 //      可绘制区，该函数只能在MSG_PAINT中调用,必须与EndPaint成对使用.如果调用 GDD_PostMessage
@@ -1470,7 +1470,7 @@ HDC GDD_BeginPaint(HWND hwnd)
     HDC hdc;
     struct WindowMsg msg;
 
-    hdc =malloc(sizeof(DC));
+    hdc = malloc(sizeof(DC));
     if(hdc!=NULL)
     {
         memset(hdc, 0, sizeof(DC));
@@ -1784,6 +1784,7 @@ ptu32_t __GDD_WinMsgProc(struct WindowMsg *pMsg)
                 offset = __GDD_GetWinMsgFunc(pMsg->Code & MSG_BODY_MASK, MyTableLinkNode);
                 if(offset != -1)
                 {
+                    MyTable = MyTableLinkNode->myTable;
                     if(MyTable[offset].MsgProc !=NULL)
                         result = MyTable[offset].MsgProc(pMsg);
                 }

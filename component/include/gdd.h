@@ -158,39 +158,19 @@ struct MsgTableLink
 
 
 /*============================================================================*/
-//// GDD_DrawText flag
+// GDD_DrawText flag
 #define DT_VCENTER      (0<<0)  //正文垂直居中.
 #define DT_TOP          (1<<0)  //正文顶端对齐.
 #define DT_BOTTOM       (2<<0)  //正文底部对齐.
-#define DT_ALIGN_V_MASK (3<<0)
+#define DT_ALIGN_V_MASK (3<<0)  //水平对齐控制位msk
 
 #define DT_CENTER       (0<<2)  //使正文在矩形中水平居中.
 #define DT_LEFT         (1<<2)  //正文左对齐.
 #define DT_RIGHT        (2<<2)  //正文右对齐.
-#define DT_ALIGN_H_MASK (3<<2)
-
-
-
-
+#define DT_ALIGN_H_MASK (3<<2)  //垂直对齐控制位msk
 
 #define DT_BORDER       (1<<4)  //绘制边框(使用DrawColor)
 #define DT_BKGND        (1<<5)  //填充背景(使用FillColor)
-
-//// 渐变填充模式，参见gkernel.h
-
-
-
-
-//// 鼠标按键状态
-#define MK_RBUTTON  (1<<0)
-#define MK_MBUTTON  (1<<1)
-#define MK_LBUTTON  (1<<2)
-
-//// 键盘事件类型
-typedef enum{
-    KEY_EVENT_DOWN =1,  //按键按下.
-    KEY_EVENT_UP   =2,  //按键弹起.
-}EN_GDD_KEY_EVENT;
 
 //消息码定义方法：
 //bit0~23：用于定义消息，其中0不使用，1~65535由系统和控件使用，65536以上由用户
@@ -214,9 +194,9 @@ typedef enum{
 #define MSG_NCPAINT             0x0003  //窗口非客户区绘制; Param1:用户定义; Param2:用户定义
 #define MSG_PAINT               0x0004  //窗口客户区绘制; Param1:用户定义; Param2:用户定义
 #define MSG_TIMER               0x0005  //定时器消息: Param1:定时Id; Param2:定时器对象.
-#define MSG_SETTEXT             0x0006  //设置窗口文字
-#define MSG_GETTEXT             0x0007  //获得窗口文字
-#define MSG_GETTEXTFLENGTH      0x0008  //获得窗口文字长度
+#define MSG_SETTEXT             0x0006  //设置窗口标题
+#define MSG_GETTEXT             0x0007  //获得窗口标题
+#define MSG_GETTEXTLEN          0x0008  //获得窗口标题长度
 #define MSG_SYNC_DISPLAY        0x0009  //同步窗口，把显示数据刷新到显示器上。
 //close消息的hwnd和param2比较特殊：MSG_CLOSE自带继承属性，那么调用用户的消息处理
 //函数时，窗口本身已经被销毁，消息的hwnd成员将被清除
@@ -234,27 +214,29 @@ typedef enum{
 #define MSG_RBUTTON_UP          0x0103  //鼠标右键弹起; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_MBUTTON_DOWN        0x0104  //鼠标中键按下; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_MBUTTON_UP          0x0105  //鼠标中键弹起; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
-#define MSG_MOUSE_MOVE          0x0106  //鼠标移动; Param1:鼠标按键状态; Param2:x坐标(L16),y坐标(H16).
+#define MSG_MOUSE_MOVE          0x0106  //鼠标移动; Param1：X方向1mS滑动的um数(L16)，Y方向1mS滑动的um数(H16),
+                                        //               param2：x坐标(L16),y坐标(H16)
 #define MSG_NCLBUTTON_DOWN      0x0107  //非客户区鼠标左键按下; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_NCLBUTTON_UP        0x0108  //非客户区鼠标左键弹起; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_NCRBUTTON_DOWN      0x0109  //非客户区鼠标右键按下; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_NCRBUTTON_UP        0x010A  //非客户区鼠标右键弹起; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_NCMBUTTON_DOWN      0x010B  //非客户区鼠标中键按下; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_NCMBUTTON_UP        0x010C  //非客户区鼠标中键弹起; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
-#define MSG_NCMOUSE_MOVE        0x010D  //非客户区鼠标移动; Param1:鼠标按键状态; Param2:x坐标(L16),y坐标(H16).
+#define MSG_NCMOUSE_MOVE        0x010D  //非客户区鼠标移动; Param1：X方向1mS滑动的um数(L16)，Y方向1mS滑动的um数(H16),
+                                        //               param2：x坐标(L16),y坐标(H16)
 #define MSG_SETATTR             0x010E  //窗口属性设置；
 
 #define MSG_KEY_DOWN            0x0120  //键盘按下;Param1: 按键值; Param2:事件产生的时间(毫秒单位).
 #define MSG_KEY_UP              0x0121  //键盘弹起;Param1: 按键值; Param2:事件产生的时间(毫秒单位).
 #define MSG_KEY_PRESS           0x0122
 
-#define MSG_TOUCH_DOWN          0x0130   //触摸屏触摸下触摸点，param1：忽略；param2：x坐标(L16),y坐标(H16)
-#define MSG_TOUCH_UP            0x0131   //触摸屏离开触摸点
-#define MSG_TOUCH_MOVE          0x0132   //手指在屏上滑动，Param1：X方向1mS滑动的微米数(L16)，Y方向1mS滑动的mm数(H16)
-                                         //               param2：x坐标(L16),y坐标(H16)
-#define MSG_NCTOUCH_DOWN        0x0133   //触摸屏触摸下触摸点，param1：忽略；param2：x坐标(L16),y坐标(H16)
+#define MSG_TOUCH_DOWN          0x0130  //窗口客户区域接触触摸屏，param1：忽略；param2：x坐标(L16),y坐标(H16)
+#define MSG_TOUCH_UP            0x0131  //窗口客户区域离开触摸屏
+#define MSG_TOUCH_MOVE          0x0132  //手指在屏上窗口客户区域滑动，Param1：X方向1mS滑动的um数(L16)，Y方向1mS滑动的um数(H16),
+                                        //               param2：x坐标(L16),y坐标(H16)
+#define MSG_NCTOUCH_DOWN        0x0133  //触摸屏触摸下触摸点，param1：忽略；param2：x坐标(L16),y坐标(H16)
 #define MSG_NCTOUCH_UP          0x0134
-#define MSG_NCTOUCH_MOVE        0x0135   //同 MSG_TOUCH_MOVE 消息
+#define MSG_NCTOUCH_MOVE        0x0135  //同 MSG_TOUCH_MOVE 消息
 
 #define MSG_TIMER_START         0x0140  //定时器消息: Param1:定时Id; Param2:定时器对象.
 #define MSG_TIMER_STOP          0x0141  //定时器消息: Param1:定时Id; Param2:定时器对象.

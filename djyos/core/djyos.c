@@ -304,7 +304,7 @@ bool_t __DJY_CheckStack(s16 event_id)
 void __DJY_MaintainSysTime(void);
 void  DJY_ScheduleIsr(u32 inc_ticks)
 {
-    struct EventECB *pl_ecb,*pl_ecbp,*pl_ecbn;
+    struct EventECB *pl_ecb,*pl_ecbp,*pl_ecbn,**pl_sync_head;
     g_s64OsTicks += inc_ticks;
 //  now_tick = __DJY_GetSysTick();
     //用于维护系统时钟运转，使读系统时间的间隔，小于硬件定时器循环周期。
@@ -317,7 +317,8 @@ void  DJY_ScheduleIsr(u32 inc_ticks)
             if(pl_ecb->delay_end_tick <= g_s64OsTicks) //默认64位ticks不会溢出
             {
                 //事件在某同步队列中，应该从该队列取出
-                if(pl_ecb->sync_head != NULL)
+                pl_sync_head = pl_ecb->sync_head;
+                if(pl_sync_head != NULL)
                 {
                     if(*(pl_ecb->sync_head) == pl_ecb)//本事件位于队列头部
                     {
@@ -325,8 +326,6 @@ void  DJY_ScheduleIsr(u32 inc_ticks)
                         {
                             *(pl_ecb->sync_head) = NULL;
 
-                            pl_ecb->multi_next = NULL;
-                            pl_ecb->multi_previous = NULL;
                         }else                   //该同步队列中有多个事件
                         {
                             //头指针指向下一个事件
@@ -344,6 +343,8 @@ void  DJY_ScheduleIsr(u32 inc_ticks)
                                             = pl_ecb->multi_previous;
                     }
                     pl_ecb->sync_head = NULL;   //事件头指针置空
+                    pl_ecb->multi_next = NULL;
+                    pl_ecb->multi_previous = NULL;
                 }
 
                 pl_ecb->wakeup_from = pl_ecb->event_status;
@@ -1374,7 +1375,7 @@ void __DJY_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status)
                 else
                     break;
             }while(current != *Head);
-            event->event_status = CN_BLOCK_PRIO_SORT;
+            event->event_status = CN_BLOCK_PRIO_SORT+CN_STS_WAIT_STACK;
             event->multi_next = current;
             event->multi_previous = current->multi_previous;
             current->multi_previous->multi_next = event;
@@ -1383,7 +1384,7 @@ void __DJY_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status)
                 *Head = event;
         }else                               //按先后顺序，新事件直接排在队尾
         {
-            event->event_status &= ~CN_BLOCK_PRIO_SORT;
+            event->event_status = ~CN_BLOCK_PRIO_SORT + CN_STS_WAIT_STACK;
             event->multi_next = current;
             event->multi_previous = current->multi_previous;
             current->multi_previous->multi_next = event;

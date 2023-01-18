@@ -2546,7 +2546,7 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
         }
         rcvlen = PkgGetDataLen(pkg);
         ccb->rbuf.ptail = pkg;         //设置链表的末端节点
-        rcvlen -= pkgdataoff;       //实际接收数量须减去重复部分数据
+//        rcvlen -= pkgdataoff;       //实际接收数量须减去重复部分数据
         ccb->rbuf.buflen += rcvlen;
         ccb->rbuf.rcvnxt = pkgstop;
     }

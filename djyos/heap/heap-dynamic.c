@@ -230,7 +230,7 @@ const ucpu_t cn_low_xbit_msk []=
 };
 
 struct EventECB;
-//通用堆的同步指针，专用堆使用对控制块 struct HeapCB 的 mem_sync 成员
+//通用堆的同步指针，专用堆使用相应堆控制块 struct HeapCB 的 mem_sync 成员
 static struct EventECB *s_ptGenMemSync;
 //分配栈的同步指针，如果线程在分配栈时被互斥量阻塞，将进入本队列。
 static struct EventECB *s_ptStackSync;
@@ -1203,41 +1203,6 @@ bool_t Heap_DynamicModuleInit(void)
     return true;
 }
 
-//lst debug
-//void *event11m[2000];
-//u32 moff = 0,foff = 0;
-//void save11(void *p)
-//{
-//    s32 loop;
-//    if((g_ptEventRunning->event_id == 10) && (p != NULL))
-//    {
-//        for(loop = moff; loop >0; loop--)
-//        {
-//            if(p == event11m[loop-1])
-//                printk("error = %x\r\n", p);
-//        }
-//        if(moff < 2000)
-//        {
-//            event11m[moff] = p;
-//            moff++;
-//        }
-//    }
-//}
-//void free11(void *p)
-//{
-//    s32 loop;
-//    if((p != NULL))
-//    {
-//        for(loop = moff - 1; loop >= 0; loop--)
-//        {
-//            if(event11m[loop] == p)
-//            {
-//                event11m[loop] += 1;
-//            }
-//        }
-//    }
-//}
-
 //----从内存堆中分配内存-------------------------------------------------------
 //功能：1.规格化内存尺寸，计算满足要求的最小内存尺寸，计算该块内存尺寸的阶数
 //      2.读取该级访问路径深度，沿访问路径逐级查找，直到找到空闲内存为止。
@@ -1606,7 +1571,6 @@ void *__Heap_MallocStack(struct EventECB *event, u32 size)
             result = ua_address;
         }
     }
-//    save11(result);     //lst debug
     return result;
 }
 

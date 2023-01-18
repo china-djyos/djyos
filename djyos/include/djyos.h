@@ -183,7 +183,8 @@ struct ThreadVm          //线程数据结构
 #define CN_STS_EVENT_NORUN      (u32)(1<<17)    //事件还未开始处理
 
 #define CN_BLOCK_PRIO_SORT      (u32)(1<<18)    //是否在优先级排序的阻塞队列中
-
+#define CN_STS_WAIT_STACK       (u32)(1<<19)    //创建线程时分配不到stack所需内存。
+#define CN_STS_WAIT_REMOTE      (u32)(1<<20)    //等待远程贡献者响应
  //说明:
 //1、弹出事件时，如果携带参数，系统将创建参数控制块(tagParaPCB)记录该参数。
 //2、如果参数尺寸小于cn_para_limited，将直接copy到参数控制块的static_para成员中。

@@ -131,7 +131,7 @@ static void __Exp_TableSet(void)
 
     pg_scb_reg->VTOR = (u32)g_u32ExpTable;
     pg_scb_reg->systick_pri15 = 0xff;   //最低优先级,systick应该能随异步信号关断
-    pg_scb_reg->svc_pri11 = 0x0;       //svc的优先级和异步信号相同。
+    pg_scb_reg->svc_pri11 = 0x0;       //svc的优先级和实时中断相同。
     pg_scb_reg->SHCSR |=0x70000;     //允许 总线、用法、存储器 fault
 
     pg_scb_reg->CCR |= 0x610;       //强制SP自动对齐，除0

@@ -876,8 +876,8 @@ void __GK_GetRgbBm(u16 PixelFormat,u32 color,u32 *a,u32 *r,
 }
 //----计算alpha混合-------------------------------------------------------
 //功能: 对两个像素求alpha混合值,分离color,RGB分别计算,转换成dst的像素格式返回.
-//      dst的格式如果调色板类型，混合后的返回值是RGB24格式的，因为混合后的颜色可
-//          能不在颜色表中。
+//      dst的格式如果调色板类型，混合后将返回RGB24格式的值，因为混合后的颜色可
+//      能不在颜色表中。
 //      dst的格式如果是灰度图，混合后的颜色再计算亮度输出。
 //参数: SrcColor,DstColor，待混合的色彩，符合参数 PixelFormat 格式
 //      PixelFormat, 色彩的格式
@@ -2469,7 +2469,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
         {
             pf = pf_color;                      //取给定的填充颜色
             byte_offset1 = y1*temp_bytes+x1;    //dst_rect首行左边界所在字节
-            byte_offset2 = y1*temp_bytes+x2;    //dst_rect首行右边界所在字节
+            byte_offset2 = y1*temp_bytes+x2-1;    //dst_rect首行右边界所在字节
             for(y = y1;y < y2;y++)      //填充颜色，每次填充一个像素
             {
                 //填充dst_rect每行中间字节的颜色
@@ -2512,7 +2512,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
             if((u32)dst_bitmap->bm_bits & 1 )      //非对齐地址
             {
                 byte_offset1 = y1*temp_bytes+x1*2;  //dst_rect首行左边界所在字节
-                byte_offset2 = y1*temp_bytes+x2*2;  //dst_rect首行右边界所在字节
+                byte_offset2 = y1*temp_bytes+(x2-1)*2;  //dst_rect首行右边界所在字节
                 for(y = y1;y < y2;y++)              //填充颜色，每次填充两个像素
                 {
                     for(x = byte_offset1;x <= byte_offset2;x = x+2)
@@ -2557,7 +2557,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
         {
             pf = pf_color;                      //取给定的填充颜色
             byte_offset1 = y1*temp_bytes+x1*3;  //dst_rect首行左边界所在字节
-            byte_offset2 = y1*temp_bytes+x2*3;  //dst_rect首行右边界所在字节
+            byte_offset2 = y1*temp_bytes+(x2-1)*3;  //dst_rect首行右边界所在字节
             for(y = y1;y < y2;y++)              //填充颜色，每次填充一个像素
             {
                 for(x = byte_offset1;x <= byte_offset2;x = x+3)
@@ -2575,7 +2575,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
         {
             pf = pf_color;                      //取给定的填充颜色
             byte_offset1 = y1*temp_bytes+x1*4;  //dst_rect首行左边界所在字节
-            byte_offset2 = y1*temp_bytes+x2*4;  //dst_rect首行右边界所在字节
+            byte_offset2 = y1*temp_bytes+(x2-1)*4;  //dst_rect首行右边界所在字节
             for(y = y1;y < y2;y++)              //填充颜色，每次填充一个像素
             {
                 for(x = byte_offset1;x <= byte_offset2;x = x+4)
@@ -3794,6 +3794,7 @@ void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
 //      x、y，绘制的目标位置
 //      rop_code，光栅操作码
 //返回: 无
+//todo 该客户区限制区时，还需要修改坐标调整部分。
 //-----------------------------------------------------------------------------
 void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
 {

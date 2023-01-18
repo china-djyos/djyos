@@ -619,6 +619,7 @@ void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
         else
         {
         }
+        __GDD_EndDraw(hdc);
     }
 }
 //----画线----------------------------------------------------------------------
@@ -642,6 +643,7 @@ void    GDD_DrawLineEx(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,u32 color)
 
         GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                 color,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+        __GDD_EndDraw(hdc);
     }
 }
 
@@ -1167,23 +1169,29 @@ void    GDD_Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2)
     RECT rc;
 
     if(hdc!=NULL)
-    if(prc!=NULL)
     {
-        GDD_CopyRect(&rc,prc);
-        c=GDD_SetDrawColor(hdc,Color1);
-        GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1); //L
-        GDD_DrawLine(hdc,0,0,GDD_RectW(&rc)-1,0); //U
+        if(prc!=NULL)
+        {
+            if(__GDD_BeginDraw(hdc))
+            {
+                GDD_CopyRect(&rc,prc);
+                c=GDD_SetDrawColor(hdc,Color1);
+                GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1); //L
+                GDD_DrawLine(hdc,0,0,GDD_RectW(&rc)-1,0); //U
 
-        GDD_SetDrawColor(hdc,Color2);
-        GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //R
-        GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
-        GDD_SetDrawColor(hdc,c);
+                GDD_SetDrawColor(hdc,Color2);
+                GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //R
+                GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
+                GDD_SetDrawColor(hdc,c);
 
-        c=GDD_SetFillColor(hdc,GDD_AlphaBlendColor(Color1,Color2,128));
+                c=GDD_SetFillColor(hdc,GDD_AlphaBlendColor(Color1,Color2,128));
 
-        GDD_InflateRect(&rc,-1,-1);
-        GDD_FillRect(hdc,&rc);
-        GDD_SetFillColor(hdc,c);
+                GDD_InflateRect(&rc,-1,-1);
+                GDD_FillRect(hdc,&rc);
+                GDD_SetFillColor(hdc,c);
+                __GDD_EndDraw(hdc);
+            }
+        }
     }
 
 }
@@ -1202,11 +1210,14 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
      POINT pt;
      if(hdc!=NULL)
      {
-         pt.x = cx;
-         pt.y = cy;
-         __GDD_LPtoDP(hdc, &pt, 1);
-         GK_DrawCircle(hdc->pGkWin, cx, cy, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
-         __GDD_EndDraw(hdc);
+         if(__GDD_BeginDraw(hdc))
+         {
+             pt.x = cx;
+             pt.y = cy;
+             __GDD_LPtoDP(hdc, &pt, 1);
+             GK_DrawCircle(hdc->pGkWin, cx, cy, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
+             __GDD_EndDraw(hdc);
+         }
 
      }
 }
@@ -1220,33 +1231,37 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 //------------------------------------------------------------------------------
 void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 {
-      s32 i;
-      s32 imax = ((s32)((s32)r*707))/1000+1;
-      s32 sqmax = (s32)r*(s32)r+(s32)r/2;
-      s32 x=r;
-      u32 color_bk;
+    s32 i;
+    s32 imax = ((s32)((s32)r*707))/1000+1;
+    s32 sqmax = (s32)r*(s32)r+(s32)r/2;
+    s32 x=r;
 
-      color_bk =GDD_SetDrawColor(hdc,GDD_GetFillColor(hdc));
-
-      GDD_DrawLine(hdc,cx-r,cy,cx+r+1,cy);
-      for (i=1; i<= imax; i++)
-      {
-        if ((i*i+x*x) >sqmax)
+    if(hdc!=NULL)
+    {
+        if(__GDD_BeginDraw(hdc))
         {
 
-          if (x>imax)
-          {
-                GDD_DrawLine(hdc,cx-i+1,cy+x, cx+i,cy+x);
-                GDD_DrawLine(hdc,cx-i+1,cy-x, cx+i,cy-x);
-          }
-          x--;
+            GDD_DrawLine(hdc,cx-r,cy,cx+r+1,cy);
+            for (i=1; i<= imax; i++)
+            {
+                if ((i*i+x*x) >sqmax)
+                {
+
+                    if (x>imax)
+                    {
+                          GDD_DrawLine(hdc,cx-i+1,cy+x, cx+i,cy+x);
+                          GDD_DrawLine(hdc,cx-i+1,cy-x, cx+i,cy-x);
+                    }
+                    x--;
+                }
+
+                GDD_DrawLine(hdc,cx-x,cy+i, cx+x+1,cy+i);
+                GDD_DrawLine(hdc,cx-x,cy-i, cx+x+1,cy-i);
+            }
+
+            __GDD_EndDraw(hdc);
         }
-
-        GDD_DrawLine(hdc,cx-x,cy+i, cx+x+1,cy+i);
-        GDD_DrawLine(hdc,cx-x,cy-i, cx+x+1,cy-i);
-      }
-
-      GDD_SetDrawColor(hdc,color_bk);
+    }
 }
 
 //----画椭圆------------------------------------------------------------------
@@ -1269,28 +1284,32 @@ void     GDD_DrawEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
                +(_rx*_rx*_ry>>1);
     xOld = x = rx;
 
-     for(y=0; y<=ry; y++)
-     {
-        if(y==ry)
+    if(__GDD_BeginDraw(hdc))
+    {
+        for(y=0; y<=ry; y++)
         {
-          x=0;
-        }
-        else
-        {
-          SumY =((s32)(rx*rx))*((s32)(y*y));
-          while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
-                 (x>0) && (Sum>OutConst)) x--;
-        }
+            if(y==ry)
+            {
+                x=0;
+            }
+            else
+            {
+                SumY =((s32)(rx*rx))*((s32)(y*y));
+                while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
+                       (x>0) && (Sum>OutConst)) x--;
+            }
 
-        if(y)
-        {
-          GDD_DrawLine(hdc,cx-xOld,cy-y+1,cx-x,cy-y);
-          GDD_DrawLine(hdc,cx-xOld,cy+y-1,cx-x,cy+y);
-          GDD_DrawLine(hdc,cx+xOld,cy-y+1,cx+x,cy-y);
-          GDD_DrawLine(hdc,cx+xOld,cy+y-1,cx+x,cy+y);
+            if(y)
+            {
+                GDD_DrawLine(hdc,cx-xOld,cy-y+1,cx-x,cy-y);
+                GDD_DrawLine(hdc,cx-xOld,cy+y-1,cx-x,cy+y);
+                GDD_DrawLine(hdc,cx+xOld,cy-y+1,cx+x,cy-y);
+                GDD_DrawLine(hdc,cx+xOld,cy+y-1,cx+x,cy+y);
+            }
+            xOld = x;
         }
-        xOld = x;
-     }
+        __GDD_EndDraw(hdc);
+    }
 
 }
 
@@ -1310,29 +1329,29 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
     u32 _ry = ry;
     u32 color_bk;
 
-    color_bk =GDD_SetDrawColor(hdc,GDD_GetFillColor(hdc));
-
     OutConst = _rx*_rx*_ry*_ry
                 +(_rx*_rx*_ry>>1);
-     x = rx;
-     for (y=0; y<=ry; y++)
-     {
-          SumY =((s32)(rx*rx))*((s32)(y*y));
+    x = rx;
+    if(__GDD_BeginDraw(hdc))
+    {
+        for (y=0; y<=ry; y++)
+        {
+             SumY =((s32)(rx*rx))*((s32)(y*y));
 
-          while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
-                 (x>0) && (Sum>OutConst))
-          {
-             x--;
-          }
-          GDD_DrawLine(hdc,cx-x, cy+y, cx+x,cy+y);
+             while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
+                    (x>0) && (Sum>OutConst))
+             {
+                x--;
+             }
+             GDD_DrawLine(hdc,cx-x, cy+y, cx+x,cy+y);
 
-          if(y)
-          {
-             GDD_DrawLine(hdc,cx-x, cy-y, cx+x,cy-y);
-          }
+             if(y)
+             {
+                GDD_DrawLine(hdc,cx-x, cy-y, cx+x,cy-y);
+             }
+        }
+        __GDD_EndDraw(hdc);
     }
-
-    GDD_SetDrawColor(hdc,color_bk);
 
 }
 
@@ -1366,44 +1385,56 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
   quarter3=(s32)(radius*3.14159*3/2);
   quarter4=(s32)(radius*3.14159*2);
 
-  color =GDD_GetDrawColor(hdc);
-  while(1)
-  {
-      c=quarter4-step;
-    if(c>=c1 && c<=c2)    GDD_SetPixel(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ),color );
+    if(__GDD_BeginDraw(hdc))
+    {
+        color =GDD_GetDrawColor(hdc);
+        while(1)
+        {
+              c=quarter4-step;
+            if(c>=c1 && c<=c2)
+                GDD_SetPixel(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ),color );
 
-    if(step>=c1 && step<=c2) GDD_SetPixel(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),color );
+            if(step>=c1 && step<=c2)
+                 GDD_SetPixel(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),color );
 
-    c=quarter2+step;
-    if(c>=c1 && c<=c2) GDD_SetPixel(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),color );
+            c=quarter2+step;
+            if(c>=c1 && c<=c2)
+                GDD_SetPixel(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),color );
 
-    c=quarter2-step;
-    if(c>=c1 && c<=c2) GDD_SetPixel(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),color );
+            c=quarter2-step;
+            if(c>=c1 && c<=c2)
+                GDD_SetPixel(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),color );
 
-    if (  x - xCenter  >=  y - yCenter  ) break;
+            if (  x - xCenter  >=  y - yCenter  ) break;
 
-    c=quarter3+step;
-    if(c>=c1 && c<=c2) GDD_SetPixel(hdc, x, y,color );
+            c=quarter3+step;
+            if(c>=c1 && c<=c2)
+                 GDD_SetPixel(hdc, x, y,color );
 
-    c=quarter1-step;
-    if(c>=c1 && c<=c2) GDD_SetPixel(hdc,x, yCenter - (y - yCenter),color );
+            c=quarter1-step;
+            if(c>=c1 && c<=c2)
+                 GDD_SetPixel(hdc,x, yCenter - (y - yCenter),color );
 
-    c=quarter3-step;
-    if(c>=c1 && c<=c2) GDD_SetPixel(hdc, xCenter - (x - xCenter), y,color );
+            c=quarter3-step;
+            if(c>=c1 && c<=c2)
+                 GDD_SetPixel(hdc, xCenter - (x - xCenter), y,color );
 
-    c= quarter1+step;
-    if(c>=c1 && c<=c2) GDD_SetPixel(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter),color );
+            c= quarter1+step;
+            if(c>=c1 && c<=c2)
+                 GDD_SetPixel(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter),color );
 
-    if ( d < 0 )
-    { d = d + ((x - xCenter) << 2) + 6;
+            if ( d < 0 )
+            { d = d + ((x - xCenter) << 2) + 6;
+            }
+            else
+            { d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
+              y--;
+            }
+            x++;
+            step++;
+        }
+        __GDD_EndDraw(hdc);
     }
-    else
-    { d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
-      y--;
-    }
-    x++;
-    step++;
-  }
 
 }
 
@@ -1436,45 +1467,60 @@ void    GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
   quarter2=(s32)(radius*3.14159);
   quarter3=(s32)(radius*3.14159*3/2);
   quarter4=(s32)(radius*3.14159*2);
-  color =GDD_GetFillColor(hdc);
 
-  while(1)
-  {
-      c=quarter4-step;
-    if(c>=c1 && c<=c2)    GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ) ,xCenter,yCenter ,color);
+    if(__GDD_BeginDraw(hdc))
+    {
+        color =GDD_GetFillColor(hdc);
 
-    if(step>=c1 && step<=c2) GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter ,color);
+        while(1)
+        {
+            c=quarter4-step;
+            if(c>=c1 && c<=c2)
+                GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ) ,xCenter,yCenter ,color);
 
-    c=quarter2+step;
-    if(c>=c1 && c<=c2) GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),xCenter,yCenter ,color);
+            if(step>=c1 && step<=c2)
+                GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter ,color);
 
-    c=quarter2-step;
-    if(c>=c1 && c<=c2) GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter,color);
+            c=quarter2+step;
+            if(c>=c1 && c<=c2)
+                GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),xCenter,yCenter ,color);
 
-    if (  x - xCenter  >=  y - yCenter  ) break;
+            c=quarter2-step;
+            if(c>=c1 && c<=c2)
+                 GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter,color);
 
-    c=quarter3+step;
-    if(c>=c1 && c<=c2) GDD_DrawLineEx(hdc, x, y,xCenter,yCenter ,color);
+            if (  x - xCenter  >=  y - yCenter  ) break;
 
-    c=quarter1-step;
-    if(c>=c1 && c<=c2) GDD_DrawLineEx(hdc,x, yCenter - (y - yCenter),xCenter,yCenter ,color);
+            c=quarter3+step;
+            if(c>=c1 && c<=c2)
+                 GDD_DrawLineEx(hdc, x, y,xCenter,yCenter ,color);
 
-    c=quarter3-step;
-    if(c>=c1 && c<=c2) GDD_DrawLineEx(hdc, xCenter - (x - xCenter), y ,xCenter,yCenter,color);
+            c=quarter1-step;
+            if(c>=c1 && c<=c2)
+                 GDD_DrawLineEx(hdc,x, yCenter - (y - yCenter),xCenter,yCenter ,color);
 
-    c= quarter1+step;
-    if(c>=c1 && c<=c2) GDD_DrawLineEx(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter) ,xCenter,yCenter,color);
+            c=quarter3-step;
+            if(c>=c1 && c<=c2)
+                 GDD_DrawLineEx(hdc, xCenter - (x - xCenter), y ,xCenter,yCenter,color);
 
-    if ( d < 0 )
-    { d = d + ((x - xCenter) << 2) + 6;
+            c= quarter1+step;
+            if(c>=c1 && c<=c2)
+                GDD_DrawLineEx(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter) ,xCenter,yCenter,color);
+
+            if ( d < 0 )
+            {
+                d = d + ((x - xCenter) << 2) + 6;
+            }
+            else
+            {
+                d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
+                y--;
+            }
+            x++;
+            step++;
+        }
+        __GDD_EndDraw(hdc);
     }
-    else
-    { d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
-      y--;
-    }
-    x++;
-    step++;
-  }
 }
 
 //----绘制3阶Bezier线----------------------------------------------------------
@@ -1551,7 +1597,7 @@ void    GDD_DrawPolyLine(HDC hdc,const POINT *pt,s32 count)
 //返回：无.
 //------------------------------------------------------------------------------
 
-void    GDD_DrawGroupBox(HDC hdc,const RECT *prc,const char *Text)
+void GDD_DrawGroupBox(HDC hdc,const RECT *prc,const char *Text)
 {
     s32 i,text_w,text_h,text_offset;
     u32 old_color;
