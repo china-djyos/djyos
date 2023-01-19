@@ -150,7 +150,7 @@ u32 GDD_AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha)
 //-----------------------------------------------------------------------------
 void    GDD_SyncShow(HWND hwnd)
 {
-    GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
+    GDD_SendMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
 }
 
 /*============================================================================*/

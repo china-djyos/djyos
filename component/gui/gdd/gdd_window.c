@@ -1510,7 +1510,7 @@ HDC GDD_BeginPaint(HWND hwnd)
 //------------------------------------------------------------------------------
 bool_t    GDD_EndPaint(HWND hwnd,HDC hdc)
 {
-    GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
+    GDD_SendMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
     return  GDD_DeleteDC(hdc);
 }
 

@@ -250,6 +250,7 @@ ptu32_t __GDD_MessageLoop( void )
     u32 result = 0;
     HWND MyHwnd;
     DJY_GetEventPara((ptu32_t *)&MyHwnd,NULL);
+    MyHwnd->EventID = DJY_GetMyEventId();
 
     while(GDD_GetMessage(&msg,MyHwnd,&SyncMsg))
     {
