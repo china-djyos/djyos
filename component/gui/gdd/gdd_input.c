@@ -115,7 +115,7 @@ bool_t GDD_DeleteInputDev(const char *InputDevName)
 //-----------------------------------------------------------------------------
 bool_t GDD_InputDevInit(void)
 {
-    GDD_StartTimer(GDD_CreateTimer(GDD_GetDesktopWindow( ), CN_HMIINPUT_TIMER_ID, 30));
+    GDD_StartTimer(GDD_CreateTimer(GDD_GetDesktopWindow(NULL ), CN_HMIINPUT_TIMER_ID, 30));
 
     sg_ptGddMsgQ = HmiIn_CreatInputMsgQ(20);
 
@@ -154,7 +154,7 @@ void GDD_HmiInput(void)
             if(TouchMsg->display != NULL)
                 hwnd = GDD_GetWindowFromPoint(TouchMsg->display->desktop, &pt);
             else
-                hwnd = GDD_GetWindowFromPoint(GDD_GetDesktopWindow()->pGkWin, &pt);
+                hwnd = GDD_GetWindowFromPoint(GDD_GetDesktopWindow(NULL)->pGkWin, &pt);
             //GDD_MoveWindow(sg_pMouseHwnd, pt.x-4, pt.y-4);
             if(hwnd != NULL)
             {

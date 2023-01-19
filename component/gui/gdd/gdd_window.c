@@ -379,7 +379,7 @@ void GDD_SetWindowPrivateData(HWND hwnd,ptu32_t data)
 HWND GDD_GetWindowHandle(char *WinText)
 {
     HWND wnd,first,result = NULL;
-    wnd = GDD_GetWindowChild(GDD_GetDesktopWindow( ));
+    wnd = GDD_GetWindowChild(GDD_GetDesktopWindow(NULL ));
     if(wnd == NULL)
         return NULL;
     first = wnd;
@@ -1655,7 +1655,7 @@ static ptu32_t __GDD_DefWindowProcCLOSE(struct WindowMsg *pMsg)
                 }
                 else
                 {
-                    GDD_SetFocusWindow(GDD_GetDesktopWindow( ));
+                    GDD_SetFocusWindow(GDD_GetDesktopWindow(NULL ));
                 }
             }
         }
@@ -1851,7 +1851,7 @@ HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
 
     if(w == -1)
     {
-        GDD_GetClientRect(GDD_GetDesktopWindow(),&rc);
+        GDD_GetClientRect(GDD_GetDesktopWindow(NULL),&rc);
         x = rc.left;
         y = rc.top;
         w = GDD_RectW(&rc);

@@ -105,7 +105,7 @@ bool_t GDD_CreateMouseIcon( void )
 {
     HWND desktop;
     struct RopGroup RopCode;
-    desktop = GDD_GetDesktopWindow( );
+    desktop = GDD_GetDesktopWindow(NULL );
     s_gMouseWinMsgLink.MsgNum = sizeof(s_gMouseMsgProcTable) / sizeof(struct MsgProcTable);
     s_gMouseWinMsgLink.myTable = (struct MsgProcTable *)&s_gMouseMsgProcTable;
     sg_pMouseHwnd = GDD_CreateWindow("Mouse_Cursor", 0, desktop->CliRect.right/2,

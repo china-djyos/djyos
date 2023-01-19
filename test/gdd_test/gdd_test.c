@@ -132,7 +132,7 @@ void gdd_test(void)
         else
             break;
     }
-    Desktop = GDD_GetDesktopWindow();
+    Desktop = GDD_GetDesktopWindow(NULL);
     GK_FillWin(Desktop->pGkWin,CN_COLOR_BLUE,0);
     GDD_SyncShow(hwnd);
 //  GDD_PostMessage(Desktop, MSG_SYNC_DISPLAY, 0, 0);

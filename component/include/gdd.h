@@ -363,7 +363,7 @@ bool_t  GDD_PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
 bool_t  GDD_GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg);
 
 
-HWND    GDD_GetDesktopWindow(void);
+HWND    GDD_GetDesktopWindow(char *display);
 u32     GDD_GetWindowStyle(HWND hwnd);
 ptu32_t   GDD_GetWindowPrivateData(HWND hwnd);
 void    GDD_SetWindowPrivateData(HWND hwnd,ptu32_t data);

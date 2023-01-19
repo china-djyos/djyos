@@ -979,7 +979,7 @@ static bool_t __Widget_TextBoxSetFocus(struct WindowMsg *pMsg)
 //    hwnd =pMsg->hwnd;
 //    if(hwnd==NULL)
 //        return false;
-//    Tmrhwnd=GDD_GetDesktopWindow();
+//    Tmrhwnd=GDD_GetDesktopWindow(NULL);
 //    if(Tmrhwnd!=NULL)
 //    {
 //       GDD_PostMessage(Tmrhwnd,MSG_TIMER_START,CN_CURSOR_TIMER_ID,(ptu32_t)hwnd);
@@ -1000,7 +1000,7 @@ static bool_t __Widget_TextBoxKillFocus(struct WindowMsg *pMsg)
 //     hwnd =pMsg->hwnd;
 //     if(hwnd==NULL)
 //          return false;
-//     Tmrhwnd=GDD_GetDesktopWindow();
+//     Tmrhwnd=GDD_GetDesktopWindow(NULL);
 //     if(Tmrhwnd!=NULL)
 //     {
 //         GDD_PostMessage(Tmrhwnd,MSG_TIMER_STOP,CN_CURSOR_TIMER_ID,(ptu32_t)hwnd);

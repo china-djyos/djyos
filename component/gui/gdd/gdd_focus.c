@@ -169,7 +169,7 @@ bool_t GDD_IsFocusAncestor(HWND hwnd)
     if(hwnd == NULL)
        return false;
     current = GDD_GetFocusWindow();
-    desktop = GDD_GetDesktopWindow( );
+    desktop = GDD_GetDesktopWindow( NULL);
     while(1)
     {
         if(hwnd == current)

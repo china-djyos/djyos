@@ -484,7 +484,7 @@ void    __GDD_PostTimerMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,struct WinT
 //-----------------------------------------------------------------------------
 void __GDD_PostCloseMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd)
 {
-    if(hwnd == GDD_GetDesktopWindow( ))
+    if(hwnd == GDD_GetDesktopWindow(NULL ))
         return;                 //桌面不接收close消息。
     //判断窗口node_msg_close是否为空,如果不为空,
     //则表示该窗口节点已经加入到消息队列的 list_msg_close中.
