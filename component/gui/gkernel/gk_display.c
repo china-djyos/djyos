@@ -131,14 +131,14 @@ bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name)
 //        frame_buffer->pat_buf = NULL;
         frame_buffer->absx0 = 0;
         frame_buffer->absy0 = 0;
-        frame_buffer->left = 0;
-        frame_buffer->top = 0;
-        frame_buffer->right = frame_bitmap->width;
-        frame_buffer->bottom = frame_bitmap->height;
-        frame_buffer->limit_left = 0;
-        frame_buffer->limit_top = 0;
-        frame_buffer->limit_right = frame_bitmap->width;
-        frame_buffer->limit_bottom = frame_bitmap->height;
+        frame_buffer->area.left = 0;
+        frame_buffer->area.top = 0;
+        frame_buffer->area.right = frame_bitmap->width;
+        frame_buffer->area.bottom = frame_bitmap->height;
+        frame_buffer->limit.left = 0;
+        frame_buffer->limit.top = 0;
+        frame_buffer->limit.right = frame_bitmap->width;
+        frame_buffer->limit.bottom = frame_bitmap->height;
     }
     Obj = OBJ_SearchChild(OBJ_GetRoot(), "display");     //È¡ÏÔÊ¾Æ÷Ä¿Â¼
     Obj = OBJ_NewChild(Obj, (fnObjOps)-1, (ptu32_t)display, name);

@@ -372,10 +372,10 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
 //    }
 //    else
     {
-        limit_left = desktop->limit_left;
-        limit_top = desktop->limit_top;
-        limit_right = desktop->limit_right;
-        limit_bottom = desktop->limit_bottom;
+        limit_left = 0;
+        limit_top = 0;
+        limit_right = desktop->disp->width;
+        limit_bottom = desktop->disp->height;
     //    GK_CreateWin(desktop,desktop,limit_left,limit_top,limit_right,limit_bottom,
     //                      CN_COLOR_WHITE,CN_WINBUF_BUF,"&tg_touch_adjust",CN_R3_SRCCOPY,0);
     //    GK_SetPrio(desktop,-1,CN_GK_SYNC);

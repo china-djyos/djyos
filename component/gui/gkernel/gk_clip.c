@@ -418,19 +418,19 @@ bool_t __GK_ScanVisibleClip(struct GkWinObj *newwin)
     {
         //要求窗口可视，且被祖先窗口限制后，仍然有可视范围
         if((tempwin->WinProperty.Visible == CN_GKWIN_VISIBLE)
-           &&(tempwin->limit_right != 0) && (tempwin->limit_bottom != 0) )
+           &&(tempwin->limit.right != 0) && (tempwin->limit.bottom != 0) )
         {
             //取窗口可视边框，该边框是窗口受祖先窗口限制后的矩形
-            temp = tempwin->limit_left + tempwin->absx0;
+            temp = tempwin->limit.left + tempwin->absx0;
             sort_array_x[temp] = 1;
 
-            temp = tempwin->limit_right + tempwin->absx0;
+            temp = tempwin->limit.right + tempwin->absx0;
             sort_array_x[temp] = 1;
 
-            temp = tempwin->limit_top + tempwin->absy0;
+            temp = tempwin->limit.top + tempwin->absy0;
             sort_array_y[temp] = 1;
 
-            temp = tempwin->limit_bottom + tempwin->absy0;
+            temp = tempwin->limit.bottom + tempwin->absy0;
              sort_array_y[temp] = 1;
         }
         //执行__GK_GetRedrawClipAll函数注释中的step1
@@ -496,10 +496,10 @@ bool_t __GK_ScanVisibleClip(struct GkWinObj *newwin)
             for(loop = temp; loop >0; loop--)
             {
                 rect = &(clip->rect);
-                if((rect->left>=newwin->limit_left + newwin->absx0)
-                   &&(rect->top>=newwin->limit_top + newwin->absy0)
-                   &&(rect->right<=newwin->limit_right + newwin->absx0)
-                   &&(rect->bottom<=newwin->limit_bottom + newwin->absy0))
+                if((rect->left>=newwin->limit.left + newwin->absx0)
+                   &&(rect->top>=newwin->limit.top + newwin->absy0)
+                   &&(rect->right<=newwin->limit.right + newwin->absx0)
+                   &&(rect->bottom<=newwin->limit.bottom + newwin->absy0))
                 {   //矩形在tempwin的可显示范围内,若不在则无需处理
                     //允许alpha或透明，区域将加入窗口可视域，但不从临时链表中删除。
                     if(newwin->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
@@ -542,7 +542,7 @@ bool_t __GK_ScanVisibleClip(struct GkWinObj *newwin)
 }
 
 //----扫描新可视域---------------------------------------------------------------
-//功能: 1、把visible_clip备份到visible_bak中。
+//功能: 1、把visible_clip备份到 visible_bak 中。
 //      2、所有窗口生成新的visible_clip
 //参数: display，被扫描的显示器
 //返回: false=失败，一般是因为剪切域池容量不够
@@ -568,22 +568,22 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
     {
         //要求窗口可视，且被祖先窗口限制后，仍然有可视范围
         if((tempwin->WinProperty.Visible == CN_GKWIN_VISIBLE)
-           &&(tempwin->limit_right != 0) && (tempwin->limit_bottom != 0) )
+           &&(tempwin->limit.right != 0) && (tempwin->limit.bottom != 0) )
         {
             //取窗口可视边框，该边框是窗口受祖先窗口限制后的矩形
-            temp = tempwin->limit_left + tempwin->absx0;
+            temp = tempwin->limit.left + tempwin->absx0;
             sort_array_x[temp] = 1;
 
-            temp = tempwin->limit_right + tempwin->absx0;
+            temp = tempwin->limit.right + tempwin->absx0;
             sort_array_x[temp] = 1;
 
-            temp = tempwin->limit_top + tempwin->absy0;
+            temp = tempwin->limit.top + tempwin->absy0;
             sort_array_y[temp] = 1;
 
-            temp = tempwin->limit_bottom + tempwin->absy0;
+            temp = tempwin->limit.bottom + tempwin->absy0;
              sort_array_y[temp] = 1;
         }
-        //执行__GK_GetRedrawClipAll函数注释中的step1
+        //执行 __GK_GetRedrawClipAll 函数注释中的step1
         //保存窗口原来的可视域
         tempwin->visible_clip = __GK_FreeClipQueue(tempwin->visible_clip);
         if(tempwin != display->desktop)
@@ -645,10 +645,10 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
             for(loop = temp; loop >0; loop--)
             {
                 rect = &(clip->rect);
-                if((rect->left>=tempwin->limit_left + tempwin->absx0)
-                   &&(rect->top>=tempwin->limit_top + tempwin->absy0)
-                   &&(rect->right<=tempwin->limit_right + tempwin->absx0)
-                   &&(rect->bottom<=tempwin->limit_bottom + tempwin->absy0))
+                if((rect->left>=tempwin->limit.left + tempwin->absx0)
+                   &&(rect->top>=tempwin->limit.top + tempwin->absy0)
+                   &&(rect->right<=tempwin->limit.right + tempwin->absx0)
+                   &&(rect->bottom<=tempwin->limit.bottom + tempwin->absy0))
                 {   //矩形在tempwin的可显示范围内,若不在则无需处理
                     //允许alpha或透明，区域将加入窗口可视域，但不从临时链表中删除。
                     if(tempwin->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
@@ -709,19 +709,19 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
 //    {
 //        //要求窗口可视，且被祖先窗口限制后，仍然有可视范围
 //        if((tempwin->WinProperty.Visible == CN_GKWIN_VISIBLE)
-//           &&(tempwin->limit_right != 0) && (tempwin->limit_bottom != 0) )
+//           &&(tempwin->limit.right != 0) && (tempwin->limit.bottom != 0) )
 //        {
 //            //取窗口可视边框，该边框是窗口受祖先窗口限制后的矩形
-//            temp = tempwin->limit_left + tempwin->absx0;
+//            temp = tempwin->limit.left + tempwin->absx0;
 //            sort_array_x[temp] = 1;
 //
-//            temp = tempwin->limit_right + tempwin->absx0;
+//            temp = tempwin->limit.right + tempwin->absx0;
 //            sort_array_x[temp] = 1;
 //
-//            temp = tempwin->limit_top + tempwin->absy0;
+//            temp = tempwin->limit.top + tempwin->absy0;
 //            sort_array_y[temp] = 1;
 //
-//            temp = tempwin->limit_bottom + tempwin->absy0;
+//            temp = tempwin->limit.bottom + tempwin->absy0;
 //             sort_array_y[temp] = 1;
 //        }
 //        //执行__GK_GetRedrawClipAll函数注释中的step1
@@ -787,10 +787,10 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
 //            for(loop = temp; loop >0; loop--)
 //            {
 //                rect = &(clip->rect);
-//                if((rect->left>=tempwin->limit_left + tempwin->absx0)
-//                   &&(rect->top>=tempwin->limit_top + tempwin->absy0)
-//                   &&(rect->right<=tempwin->limit_right + tempwin->absx0)
-//                   &&(rect->bottom<=tempwin->limit_bottom + tempwin->absy0))
+//                if((rect->left>=tempwin->limit.left + tempwin->absx0)
+//                   &&(rect->top>=tempwin->limit.top + tempwin->absy0)
+//                   &&(rect->right<=tempwin->limit.right + tempwin->absx0)
+//                   &&(rect->bottom<=tempwin->limit.bottom + tempwin->absy0))
 //                {   //矩形在tempwin的可显示范围内,若不在则无需处理
 //                    //允许alpha或透明，区域将加入窗口可视域，但不从临时链表中删除。
 //                    if(tempwin->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
@@ -985,10 +985,10 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
         clip = (struct ClipRect *)Mb_Malloc(g_ptClipRectPool,0);
         if(clip != NULL)
         {
-            clip->rect.left = gkwin->limit_left + gkwin->absx0;
-            clip->rect.top = gkwin->limit_top + gkwin->absy0;
-            clip->rect.right = gkwin->limit_right + gkwin->absx0;
-            clip->rect.bottom = gkwin->limit_bottom + gkwin->absy0;
+            clip->rect.left = gkwin->limit.left + gkwin->absx0;
+            clip->rect.top = gkwin->limit.top + gkwin->absy0;
+            clip->rect.right = gkwin->limit.right + gkwin->absx0;
+            clip->rect.bottom = gkwin->limit.bottom + gkwin->absy0;
             clip->next = clip;
             clip->previous = clip;
             gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;

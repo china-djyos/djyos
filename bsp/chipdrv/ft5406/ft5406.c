@@ -291,10 +291,10 @@ bool_t Touch_Adjust(struct GkWinObj *desktop,struct ST_TouchAdjust* touch_adjust
     }
     else
     {
-        limit_left = desktop->limit_left;
-        limit_top = desktop->limit_top;
-        limit_right = desktop->limit_right;
-        limit_bottom = desktop->limit_bottom;
+        limit_left = 0;
+        limit_top = 0;
+        limit_right = desktop->disp->width;
+        limit_bottom = desktop->disp->height;
 
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
 

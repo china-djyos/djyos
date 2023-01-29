@@ -373,8 +373,8 @@ void GK_SetPixel(struct GkWinObj *gkwin,s32 x,s32 y,
     struct GkscParaSetPixel para;
     if(NULL == gkwin)
         return;
-    if((x >= 0) && (x < gkwin->right - gkwin->left)
-       &&(y >= 0) && (y < gkwin->bottom-  gkwin->top))
+    if((x >= 0) && (x < gkwin->area.right - gkwin->area.left)
+       &&(y >= 0) && (y < gkwin->area.bottom-  gkwin->area.top))
     {
         para.gkwin = gkwin;
         para.x = x;
@@ -953,8 +953,8 @@ void GK_GetArea(struct GkWinObj *gkwin, struct Rectangle *rc)
     {
         rc->left = gkwin->absx0;
         rc->top = gkwin->absy0;
-        rc->right = gkwin->absx0 + gkwin->right - gkwin->left;
-        rc->bottom = gkwin->absy0 + gkwin->bottom - gkwin->top;
+        rc->right = gkwin->absx0 + gkwin->area.right - gkwin->area.left;
+        rc->bottom = gkwin->absy0 + gkwin->area.bottom - gkwin->area.top;
     }
     return ;
 }

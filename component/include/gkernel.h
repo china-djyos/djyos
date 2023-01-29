@@ -325,12 +325,15 @@ struct GkWinObj                  //窗口资源定义
                                       //每bit代表8*8像素
     struct RectBitmap *wm_bitmap; //窗口实体(暂为矩形，考虑升级为任意形状)
     s32 absx0,absy0;            //窗口绝对位置，相对于所属screen的桌面原点，
-    s32 left,top,right,bottom;  //窗口矩形，相对于父窗口，像素坐标
+    struct Rectangle area;      //窗口矩形，相对于父窗口，像素坐标
+//  s32 left,top,right,bottom;
 
-    s32 limit_left,limit_top;   //被祖先窗口限制后的可视边界，相对于本窗口坐标
-    s32 limit_right,limit_bottom; //如果窗口被限制后，没有可视范围，则全0
+    struct Rectangle limit;
+//  s32 limit_left,limit_top;   //被祖先窗口限制后的可视边界，相对于本窗口坐标
+//  s32 limit_right,limit_bottom; //如果窗口被限制后，没有可视范围，则全0
                                 //可视范围没有考虑窗口遮挡，与可视域不是一个概念
-
+//  s32 draw_left,draw_top;
+//  s32 draw_right,draw_bottom;
 };
 
 //用户调用消息队列参数配置

@@ -260,8 +260,8 @@ bool_t __gk_vmalloc(struct DisplayObj *disp,struct GkWinObj *gkwin,
     u32 buf_size,linesize;// pal_size=0;
     s32 xsize,ysize;
     bool_t result;
-    xsize = gkwin->right - gkwin->left;
-    ysize = gkwin->bottom - gkwin->top;
+    xsize = gkwin->area.right - gkwin->area.left;
+    ysize = gkwin->area.bottom - gkwin->area.top;
     if(PixelFormat == CN_SYS_PF_DISPLAY)
         PixelFormat = disp->pixel_format;
     //计算显示缓冲所需要的内存尺寸。
@@ -310,8 +310,8 @@ bool_t __gk_vrmalloc(struct DisplayObj *disp,struct GkWinObj *gkwin)
     s32 xsize,ysize;
     bool_t remalloc = true,result;
     u16 PixelFormat;
-    xsize = gkwin->right - gkwin->left;
-    ysize = gkwin->bottom - gkwin->top;
+    xsize = gkwin->area.right - gkwin->area.left;
+    ysize = gkwin->area.bottom - gkwin->area.top;
     PixelFormat = gkwin->wm_bitmap->PixelFormat;
 
     //重新分配显存，若原显存仍然符合要求，可能不会重新分配。
@@ -496,14 +496,14 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
     desktop->RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  }; //桌面固定
     desktop->absx0 = 0;
     desktop->absy0 = 0;
-    desktop->left = 0;
-    desktop->top = 0;
-    desktop->right = desktop_x;
-    desktop->bottom = desktop_y;
-    desktop->limit_left = 0;
-    desktop->limit_top = 0;
-    desktop->limit_right = display->width;
-    desktop->limit_bottom = display->height;
+    desktop->area.left = 0;
+    desktop->area.top = 0;
+    desktop->area.right = desktop_x;
+    desktop->area.bottom = desktop_y;
+    desktop->limit.left = 0;
+    desktop->limit.top = 0;
+    desktop->limit.right = display->width;
+    desktop->limit.bottom = display->height;
 
     display->z_topmost = desktop;
     display->desktop = desktop;
@@ -648,10 +648,10 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     gkwin->win_name[CN_GKWIN_NAME_LIMIT] = '\0';
 
     //给定的新窗口的坐标是相对其父窗口的
-    gkwin->left = para->left;
-    gkwin->top = para->top;
-    gkwin->right = para->right;
-    gkwin->bottom = para->bottom;
+    gkwin->area.left = para->left;
+    gkwin->area.top = para->top;
+    gkwin->area.right = para->right;
+    gkwin->area.bottom = para->bottom;
     //窗口的绝对位置，相对于所属screen的桌面原点
     gkwin->absx0 = para->left + para->parent_gkwin->absx0;
     gkwin->absy0 = para->top + para->parent_gkwin->absy0;
@@ -861,8 +861,8 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
     if((right < left) || (bottom < top))    //尺寸数据不合法
         return false;
 
-    if(((right-left) == (cwawin->right-cwawin->left))
-            && ((bottom-top) == (cwawin->bottom - cwawin->top)))
+    if(((right-left) == (cwawin->area.right-cwawin->area.left))
+            && ((bottom-top) == (cwawin->area.bottom - cwawin->area.top)))
     {
         movwin_para.gkwin = cwawin;
         movwin_para.left = left;
@@ -890,64 +890,64 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
         if(left > 0)    //桌面左边界必须覆盖显示器
         {
             cwawin->absx0 = 0;
-            delta_left = 0 - cwawin->left;
-            cwawin->left = 0;
-            cwawin->limit_left = 0;
+            delta_left = 0 - cwawin->area.left;
+            cwawin->area.left = 0;
+            cwawin->limit.left = 0;
         }
         else
         {
             cwawin->absx0 = left;
-            delta_left = left - cwawin->left;
-            cwawin->left = left;
-            cwawin->limit_left = -left;//桌面的可显示左边界应该刚好在显示器的左边界
+            delta_left = left - cwawin->area.left;
+            cwawin->area.left = left;
+            cwawin->limit.left = -left;//桌面的可显示左边界应该刚好在显示器的左边界
         }
         if(top > 0)    //桌面上边界必须覆盖显示器
         {
             cwawin->absy0 = 0;
-            delta_top = 0 - cwawin->top;
-            cwawin->top = 0;
-            cwawin->limit_top = 0;
+            delta_top = 0 - cwawin->area.top;
+            cwawin->area.top = 0;
+            cwawin->limit.top = 0;
         }
         else
         {
             cwawin->absy0 = top;
-            delta_top = top - cwawin->top;
-            cwawin->top = top;
-            cwawin->limit_top = -top;//桌面的可显示上边界应该刚好在显示器的上边界
+            delta_top = top - cwawin->area.top;
+            cwawin->area.top = top;
+            cwawin->limit.top = -top;//桌面的可显示上边界应该刚好在显示器的上边界
         }
 
         if(right < disp->width)     //桌面右边界必须覆盖显示器
         {
-            cwawin->right = disp->width;
+            cwawin->area.right = disp->width;
         }
         else
         {
-            cwawin->right = right;
+            cwawin->area.right = right;
         }
         //桌面的可显示右边界应该刚好在显示器的右边界
-        cwawin->limit_right = cwawin->limit_left + disp->width;
+        cwawin->limit.right = cwawin->limit.left + disp->width;
 
         if(bottom < disp->height)     //桌面右边界必须覆盖显示器
         {
-            cwawin->bottom = disp->height;
+            cwawin->area.bottom = disp->height;
         }
         else
         {
-            cwawin->bottom = bottom;
+            cwawin->area.bottom = bottom;
         }
         //桌面的可显示下边界应该刚好在显示器的下边界
-        cwawin->limit_bottom = cwawin->limit_top + disp->height;
+        cwawin->limit.bottom = cwawin->limit.top + disp->height;
     }else
     {
-        delta_left = para->left-cwawin->left;
-        delta_top = para->top-cwawin->top;
+        delta_left = para->left-cwawin->area.left;
+        delta_top = para->top-cwawin->area.top;
         cwawin->absx0 += delta_left;//修改窗口绝对坐标
         cwawin->absy0 += delta_top;
 
-        cwawin->left = left;                      //修改窗口相对坐标
-        cwawin->top = top;
-        cwawin->right = right;
-        cwawin->bottom = bottom;
+        cwawin->area.left = left;                      //修改窗口相对坐标
+        cwawin->area.top = top;
+        cwawin->area.right = right;
+        cwawin->area.bottom = bottom;
         __GK_SetBound(cwawin);                        //设置可显示边界
     }
 
@@ -1068,7 +1068,7 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
     struct Object *moving,*current;
     struct DisplayObj *disp;
     movewin = para->gkwin;
-    if((para->left == movewin->left) && (para->top == movewin->top))
+    if((para->left == movewin->area.left) && (para->top == movewin->area.top))
         return;                                 //位置没有修改，直接返回。
     disp = movewin->disp;
     if(movewin == disp->desktop)
@@ -1076,59 +1076,59 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
         if(para->left > 0)    //桌面左边界必须覆盖显示器
         {
             movewin->absx0 = 0;
-            delta_left = 0 - movewin->left;
-            movewin->left = 0;
-            movewin->limit_left = 0;
+            delta_left = 0 - movewin->area.left;
+            movewin->area.left = 0;
+            movewin->limit.left = 0;
         }
         else
         {
             movewin->absx0 = para->left;
-            delta_left = para->left - movewin->left;
-            movewin->left = para->left;
-            movewin->limit_left = -para->left;//桌面的可显示左边界应该刚好在显示器的左边界
+            delta_left = para->left - movewin->area.left;
+            movewin->area.left = para->left;
+            movewin->limit.left = -para->left;//桌面的可显示左边界应该刚好在显示器的左边界
         }
         if(para->top > 0)    //桌面上边界必须覆盖显示器
         {
             movewin->absy0 = 0;
-            delta_top = 0 - movewin->top;
-            movewin->top = 0;
-            movewin->limit_top = 0;
+            delta_top = 0 - movewin->area.top;
+            movewin->area.top = 0;
+            movewin->limit.top = 0;
         }
         else
         {
             movewin->absy0 = para->top;
-            delta_top = para->top - movewin->top;
-            movewin->top = para->top;
-            movewin->limit_top = -para->top;//桌面的可显示上边界应该刚好在显示器的上边界
+            delta_top = para->top - movewin->area.top;
+            movewin->area.top = para->top;
+            movewin->limit.top = -para->top;//桌面的可显示上边界应该刚好在显示器的上边界
         }
 
-        movewin->right += delta_left;
-        if(movewin->right < disp->width)     //桌面右边界必须覆盖显示器
+        movewin->area.right += delta_left;
+        if(movewin->area.right < disp->width)     //桌面右边界必须覆盖显示器
         {
-            movewin->right = disp->width;
+            movewin->area.right = disp->width;
         }
         //桌面的可显示右边界应该刚好在显示器的右边界
-        movewin->limit_right = movewin->limit_left + disp->width;
+        movewin->limit.right = movewin->limit.left + disp->width;
 
-        movewin->bottom += delta_top;
-        if(movewin->bottom < disp->height)     //桌面右边界必须覆盖显示器
+        movewin->area.bottom += delta_top;
+        if(movewin->area.bottom < disp->height)     //桌面右边界必须覆盖显示器
         {
-            movewin->bottom = disp->height;
+            movewin->area.bottom = disp->height;
         }
         //桌面的可显示下边界应该刚好在显示器的下边界
-        movewin->limit_bottom = movewin->limit_top + disp->height;
+        movewin->limit.bottom = movewin->limit.top + disp->height;
     }
     else
     {
-        delta_left = para->left-movewin->left;
-        delta_top = para->top-movewin->top;
+        delta_left = para->left-movewin->area.left;
+        delta_top = para->top-movewin->area.top;
         movewin->absx0 += delta_left;//修改窗口绝对坐标
         movewin->absy0 += delta_top;
 
-        movewin->left = para->left;                      //修改窗口相对坐标
-        movewin->top = para->top;
-        movewin->right += delta_left;
-        movewin->bottom += delta_top;
+        movewin->area.left = para->left;                      //修改窗口相对坐标
+        movewin->area.top = para->top;
+        movewin->area.right += delta_left;
+        movewin->area.bottom += delta_top;
 //      if((movewin->absx0 <0) || (movewin->absy0 <0))
 //          delta_left = 0;
         __GK_SetBound(movewin);                        //设置可显示边界
@@ -1159,7 +1159,7 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
 
 //----设置可显示边界-----------------------------------------------------------
 //功能: 任何窗口，如果即使不考虑被z轴前端窗口剪切，其窗口可显示范围也是有限的，
-//      受bound_limit=true的、世代最近的祖先窗口的可显示边界限制。窗口位置改变
+//      受 bound_limit=tru e的、世代最近的祖先窗口的可显示边界限制。窗口位置改变
 //      后，需要重置可显示边界。
 //      gkwin，被重置的窗口
 //返回: 无
@@ -1170,59 +1170,59 @@ void __GK_SetBound(struct GkWinObj *gkwin)
     s32 gkwin_absx,gkwin_absy,ancestor_absx,ancestor_absy;
     ancestor = gkwin;
     //获取祖先窗口中第一个边界受父窗口限制的第一个窗口，gkwin的边界受该窗口限定
-    //桌面窗口一定是个边界首先窗口
+    //桌面窗口一定是个边界受限窗口
     while(ancestor->WinProperty.BoundLimit == CN_BOUND_UNLIMIT)
     {
         ancestor = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetParent(ancestor->HostObj));
     }
     ancestor = (struct GkWinObj*)OBJ_GetPrivate(OBJ_GetParent(ancestor->HostObj));
-    if( (ancestor->limit_right  == 0) || (ancestor->limit_bottom == 0)    )
+    if( (ancestor->limit.right  == 0) || (ancestor->limit.bottom == 0)    )
     {
-        gkwin->limit_left   =0;
-        gkwin->limit_top    =0;
-        gkwin->limit_right  =0;
-        gkwin->limit_bottom =0;
+        gkwin->limit.left   =0;
+        gkwin->limit.top    =0;
+        gkwin->limit.right  =0;
+        gkwin->limit.bottom =0;
         return ;
     }
 
     gkwin_absx = gkwin->absx0;  //取本窗口的绝对坐标，也即gkwin->left的绝对坐标
     gkwin_absy = gkwin->absy0;
     //取限制本窗口边界的窗口的可见边界绝对坐标
-    ancestor_absx = ancestor->absx0 +ancestor->limit_left;
-    ancestor_absy = ancestor->absy0 +ancestor->limit_top;
+    ancestor_absx = ancestor->absx0 +ancestor->limit.left;
+    ancestor_absy = ancestor->absy0 +ancestor->limit.top;
 
 
     if(gkwin_absx < ancestor_absx)
-       gkwin->limit_left = ancestor_absx - gkwin_absx;
+       gkwin->limit.left = ancestor_absx - gkwin_absx;
     else
-        gkwin->limit_left = 0;
+        gkwin->limit.left = 0;
 
     if(gkwin_absy < ancestor_absy)
-       gkwin->limit_top = ancestor_absy - gkwin_absy;
+       gkwin->limit.top = ancestor_absy - gkwin_absy;
     else
-        gkwin->limit_top = 0;
+        gkwin->limit.top = 0;
 
-    if((gkwin_absx+gkwin->right-gkwin->left)
-            < (ancestor_absx+ancestor->limit_right))
-        gkwin->limit_right = gkwin->right - gkwin->left;
+    if((gkwin_absx+gkwin->area.right-gkwin->area.left)
+            < (ancestor_absx+ancestor->limit.right))
+        gkwin->limit.right = gkwin->area.right - gkwin->area.left;
     else
-        gkwin->limit_right = ancestor_absx + ancestor->limit_right - gkwin->left;
+        gkwin->limit.right = ancestor_absx + ancestor->limit.right - gkwin->area.left;
 
-    if((gkwin_absy+gkwin->bottom-gkwin->top)
-            < (ancestor_absy+ancestor->limit_bottom))
-        gkwin->limit_bottom = gkwin->bottom - gkwin->top;
+    if((gkwin_absy+gkwin->area.bottom-gkwin->area.top)
+            < (ancestor_absy+ancestor->limit.bottom))
+        gkwin->limit.bottom = gkwin->area.bottom - gkwin->area.top;
     else
-        gkwin->limit_bottom = ancestor_absy + ancestor->limit_bottom - gkwin->top;
+        gkwin->limit.bottom = ancestor_absy + ancestor->limit.bottom - gkwin->area.top;
 
-    if(         (gkwin->limit_left   > gkwin->right)
-            ||  (gkwin->limit_top    > gkwin->bottom)
-            ||  (gkwin->limit_right  < 0)
-            ||  (gkwin->limit_bottom < 0)    )
+    if(         (gkwin->limit.left   > gkwin->area.right)
+            ||  (gkwin->limit.top    > gkwin->area.bottom)
+            ||  (gkwin->limit.right  < 0)
+            ||  (gkwin->limit.bottom < 0)    )
     {
-        gkwin->limit_left   =0;
-        gkwin->limit_top    =0;
-        gkwin->limit_right  =0;
-        gkwin->limit_bottom =0;
+        gkwin->limit.left   =0;
+        gkwin->limit.top    =0;
+        gkwin->limit.right  =0;
+        gkwin->limit.bottom =0;
     }
 }
 //----设置边界模式-------------------------------------------------------------

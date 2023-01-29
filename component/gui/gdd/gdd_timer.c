@@ -93,35 +93,6 @@ static  void    __GDD_TimerFree(struct WinTimer *ptmr)
     free(ptmr);
 }
 
-//----锁定定时器----------------------------------------------------------------
-//描述: 锁定定时器,用于对定时器互斥操作,该函数返回TRUE时,必须调用__gdd_TimerUnlock解锁;
-//      而当该函数返回FALSE,则无需调用__gdd_TimerUnlock.
-//参数：定时器对象指针
-//返回：成功:TRUE; 失败:FLASE;
-//------------------------------------------------------------------------------
-bool_t    __GDD_TimerLock(struct WinTimer *ptmr)
-{
-    if(NULL == ptmr)
-        return FALSE;
-    if(__GDD_Lock())
-    {
-        __GDD_Unlock();
-        return TRUE;
-    }
-    else
-        return  FALSE;
-}
-
-//----解锁定时器----------------------------------------------------------------
-//描述: 当定时器锁定成功后,由该函数进行解锁操作.
-//参数：定时器对象指针
-//返回：无
-//------------------------------------------------------------------------------
-void    __GDD_TimerUnlock(struct WinTimer *ptmr)
-{
-    __GDD_Unlock();
-}
-
 // =============================================================================
 // 函数功能：添加定时器到定时器队列，该队列是依Alarm时刻由近到远排列的。
 // 输入参数：timer,待添加的定时器
@@ -216,7 +187,7 @@ struct WinTimer*  GDD_FindTimer(HWND hwnd,u16 Id)
     struct WinTimer *ptmr=NULL;
     if(hwnd==NULL)
         return ptmr;
-    if(__GDD_Lock())
+    if(__HWND_Lock(hwnd))
     {
         Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
         dListForEach(n, &hwnd->list_timer)
@@ -229,7 +200,7 @@ struct WinTimer*  GDD_FindTimer(HWND hwnd,u16 Id)
             ptmr=NULL;
         }
         Lock_MutexPost(s_ptGddTimerQSync);
-        __GDD_Unlock();
+        __HWND_Unlock(hwnd);
     }
     return ptmr;
 }

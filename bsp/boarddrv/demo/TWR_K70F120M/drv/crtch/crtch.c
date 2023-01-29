@@ -362,8 +362,8 @@ bool_t ModuleInstall_TOUCH_TWR_K70(void)
 
     desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
 
-    ts_xsize =desktop->right-desktop->left;
-    ts_ysize =desktop->bottom-desktop->top;
+    ts_xsize =desktop->disp->width;
+    ts_ysize =desktop->disp->height;
 
     ts_cal_ref_pos[0][0] =TS_CAL_LU_XPOS;
     ts_cal_ref_pos[0][1] =TS_CAL_LU_YPOS;
@@ -496,10 +496,10 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
     }
     else
     {
-        limit_left = desktop->left;
-        limit_top = desktop->top;
-        limit_right = desktop->right;
-        limit_bottom = desktop->bottom;
+        limit_left = 0;
+        limit_top = 0;
+        limit_right = desktop->disp->width;
+        limit_bottom = desktop->disp->height;
     //    GK_CreateWin(desktop,desktop,limit_left,limit_top,limit_right,limit_bottom,
     //                      CN_COLOR_WHITE,CN_WINBUF_BUF,"&tg_touch_adjust",CN_R3_SRCCOPY,0);
     //    GK_SetPrio(desktop,-1,CN_GK_SYNC);

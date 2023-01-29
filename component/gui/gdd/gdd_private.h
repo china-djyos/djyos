@@ -154,7 +154,7 @@ struct WINDOW
     u16     EventID;        //窗口所属事件ID
     u16     WinId;          //窗口ID
 
-    u8      BorderSize;     //边框大小
+    u8      BorderSize;     //边框大小，所有子窗口共享所属主窗口的。
     u8      CaptionSize;    //标题栏大小
     u16     Flag;           //窗口标记，例如： WF_ERASEBKGND
     u32     Style;          //窗口风格,高16位系统使用，例如：WS_CAPTION

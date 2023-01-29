@@ -337,10 +337,10 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
     else
     {
         memset(&tg_touch_adjust, 0, sizeof(struct ST_TouchAdjust));
-        limit_left = desktop->limit_left;
-        limit_top = desktop->limit_top;
-        limit_right = desktop->limit_right;
-        limit_bottom = desktop->limit_bottom;
+        limit_left = 0;
+        limit_top = 0;
+        limit_right = desktop->disp->width;
+        limit_bottom = desktop->disp->height;
 //
 //        GK_FillWin(desktop,CN_COLOR_WHITE,0);
 //        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
@@ -500,7 +500,7 @@ bool_t ModuleInstall_FT6236(void)
     {
         desktop = GK_GetDesktop(CFG_TARGET_DISPLAY_NAME);
 
-        if((desktop->right-desktop->left) < (desktop->bottom-desktop->top))
+        if((desktop->disp->width) < (desktop->disp->height))
             vertical_screen_flag=true;
         else
             vertical_screen_flag=false;
