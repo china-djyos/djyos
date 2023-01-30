@@ -474,8 +474,8 @@ u32 GK_BlendRop2(u32 dest,u32 PenColor,u32 Rop2Code)
 #define CN_AREA_RIGHT   2
 #define CN_AREA_TOP     4
 #define CN_AREA_BOTTOM  8
-//----判断目标点所在的区域-----------------------------------------------------
-//功能: 判断目标点所在的区域，分成矩形域的左、右、上、下四部分。
+//----判断目标点的位置-----------------------------------------------------
+//功能: 判断目标点所在的区域，分成矩形域的内部、左、右、上、下五部分。
 //参数: x、y，目标点,相对窗口的坐标
 //      limit，矩形域,相对窗口的坐标
 //返回: 标志量c，c = 0表示目标点在矩形域内，否则在矩形域外
@@ -489,22 +489,22 @@ u32 __GK_PointSect(s32 x,s32 y,struct Rectangle *limit)  //确认
         c |= CN_AREA_LEFT;
     else
     {
-        if(x >= limit->right)            //判断目标点是否在矩形域右方
-        c |= CN_AREA_RIGHT;
+        if(x > limit->right)            //判断目标点是否在矩形域右方
+            c |= CN_AREA_RIGHT;
     }
     if(y < limit->top)                  //判断目标点是否在矩形域上方
         c |= CN_AREA_TOP;
     else
     {
-        if(y >= limit->bottom)           //判断目标点是否在矩形域下方
-        c |= CN_AREA_BOTTOM;
+        if(y > limit->bottom)           //判断目标点是否在矩形域下方
+            c |= CN_AREA_BOTTOM;
     }
     return c;
 }
 
-//----求取直线段与矩形域的交点-------------------------------------------------
-//功能: 求取斜线段与矩形域的交点。
-//参数: limit，矩形域,相对窗口的坐标
+//----截取直线在矩形内部部分-------------------------------------------------
+//功能: 截取直线在矩形内部部分。
+//参数: limit，矩形域，注意，普通矩形是不包括right和bottom的，但这里是包含的。
 //      x1、y1、x2、y2，起、终点,相对窗口的坐标
 //返回: 标志量flag，flag = 0表示斜线不在limit内，flag = 1表示斜线部分或全部在limit内。
 //      如果 flag != 0,则用 x1、y1、x2、y2 返回交点坐标
@@ -533,7 +533,7 @@ u32 __GK_OlineSectInter(struct Rectangle *limit,s32 *x1,s32 *y1,s32 *x2,s32 *y2)
             {
                 if((c2&CN_AREA_LEFT) != 0)
                 {
-                    *y2 = *y1+(*y1-*y1)*(limit->left-*x1)/(*x2-*x1);
+                    *y2 = *y1+(*y2-*y1)*(limit->left-*x1)/(*x2-*x1);
                     *x2 = limit->left;
                     c2 = __GK_PointSect(*x2,*y2,limit);
                 }
@@ -1938,7 +1938,8 @@ void __GK_Olineto(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
     s32 msk_x,msk_y;
     s32 dx,dy;
 
-    if(__GK_OlineSectInter(limit,&x1,&y1,&x2,&y2))//取得斜线与limit的交点
+    //取得斜线与limit的交点，砍掉limit外面的部分
+    if(__GK_OlineSectInter(limit,&x1,&y1,&x2,&y2))
     {
         __GK_DrawOline(gkwin,x1,y1,x2,y2,color,Rop2Code);//绘制斜线
 
@@ -2153,6 +2154,7 @@ void __GK_LinetoScreen(struct DisplayObj *display,struct Rectangle *limit,
             }
         }else            //绘斜线
         {
+            //取得斜线与limit的交点，砍掉limit外面的部分
             if( __GK_OlineSectInter(limit,&x1,&y1,&x2,&y2))
             {
                 x = x1;

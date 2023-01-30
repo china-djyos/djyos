@@ -548,7 +548,7 @@ void    GDD_DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
         pt[1].y =y1;
         __GDD_LPtoDP(hdc,pt,2);
 
-        GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+        GK_Lineto(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                 hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
         __GDD_EndDraw(hdc);
     }
@@ -585,7 +585,7 @@ void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
                  pt[1].x =x1;
                  pt[1].y =y0+2*temp*(i);
                  __GDD_LPtoDP(hdc,pt,2);
-                GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+                GK_Lineto(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                         hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             }
         }
@@ -641,7 +641,7 @@ void    GDD_DrawLineEx(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,u32 color)
         pt[1].y =y1;
         __GDD_LPtoDP(hdc,pt,2);
 
-        GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+        GK_Lineto(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                 color,hdc->RopCode.Rop2Mode,hdc->SyncTime);
         __GDD_EndDraw(hdc);
     }
@@ -667,7 +667,7 @@ void    GDD_DrawLineTo(HDC hdc,s32 x,s32 y)
 
         __GDD_LPtoDP(hdc,pt,2);
 
-        GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+        GK_Lineto(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                 hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
 
         __GDD_MoveTo(hdc,x,y,NULL);
@@ -1327,7 +1327,6 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
     s32 x,y;
     u32 _rx = rx;
     u32 _ry = ry;
-    u32 color_bk;
 
     OutConst = _rx*_rx*_ry*_ry
                 +(_rx*_rx*_ry>>1);
