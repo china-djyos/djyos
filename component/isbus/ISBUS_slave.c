@@ -57,7 +57,7 @@ struct Slave_ISBUSPort
 
 u8 SlaveAckBuf[CN_OFF_USER] = {0};     //丢出令牌的数据包
 struct LineBuf SlavePkgLineBuf;
-u8 SendLineBuf[8 * (256 + sizeof(struct ISBUS_Protocol))] = {0};     //根据使用情况用户配置大小
+u8 *SendLineBuf = NULL;    //根据使用情况用户配置大小
 
 u8 sg_u8SlaveAddress = 1;                          //从机本地地址
 struct Slave_ISBUSPort *sg_ptSlavePortHead = NULL; //从机端链表初始化
@@ -574,9 +574,20 @@ struct Slave_ISBUSPort *ISBUS_SlaveRegistPort(char *dev,\
     struct Slave_ISBUSPort *Port;
     u8 *recvbuf;
     s32 devfd;
+    u32 SendLineBufLen = 0;
     devfd = open(dev, O_RDWR);
     if(devfd == -1)
         return NULL;
+
+    SendLineBufLen = CFG_SLAVE_BUF_PKG_NUM * (CFG_SLAVE_PKG_MAX_SIZE + sizeof(struct ISBUS_Protocol));
+    SendLineBuf = malloc(SendLineBufLen);
+    if ((NULL == SendLineBuf) && (0 != SendLineBufLen))
+    {
+        error_printf("ISBUS","Send buf malloc fail\r\n");
+        return NULL;
+    }
+    Line_Init(&SlavePkgLineBuf, SendLineBuf, SendLineBufLen);
+
     Port = (struct Slave_ISBUSPort *)malloc(sizeof(struct Slave_ISBUSPort ));
     memset(Port, 0, sizeof(struct Slave_ISBUSPort ));
     recvbuf = malloc(2 * (256+sizeof(struct ISBUS_Protocol)));
@@ -606,8 +617,6 @@ struct Slave_ISBUSPort *ISBUS_SlaveRegistPort(char *dev,\
         Port->PortMaxRecvLen = sizeof(struct ISBUS_Protocol);
         Port->PortMaxSendLen = sizeof(struct ISBUS_Protocol);
 
-        Line_Init(&SlavePkgLineBuf, SendLineBuf, sizeof(SendLineBuf));
-
 //      Port->PortSendLen = 0;
 //        Port->RecvP = 0;
         //若置0，初始状态会发送一包数据。
@@ -628,6 +637,7 @@ struct Slave_ISBUSPort *ISBUS_SlaveRegistPort(char *dev,\
     }
     else
     {
+        free(SendLineBuf);
         free(Port);
         free(recvbuf);
         Lock_SempDelete(Port->MTC_Semp);
