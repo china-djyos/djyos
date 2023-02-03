@@ -2209,15 +2209,18 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
 struct EventECB  *g_ptServerEvent,*g_ptGuiAppWaiting = NULL;
 void AppContinue(void)
 {
+    struct EventECB  *WaitECB = NULL;
     Int_SaveAsynSignal();
     if(g_ptGuiAppWaiting != NULL)     //gui app 等待中
     {
+        WaitECB = g_ptGuiAppWaiting;
         if(g_ptGuiAppWaiting->event_status & CN_STS_SYNC_TIMEOUT)
             __DJY_ResumeDelay(g_ptGuiAppWaiting);    //如果事件在超时等待队列中，取出
         g_ptGuiAppWaiting->event_status = CN_STS_EVENT_READY;
         g_ptGuiAppWaiting->wakeup_from = CN_STS_WAIT_GKDRAW;
         __DJY_RestorePrio( g_ptEventRunning );
-        __DJY_EventReady(g_ptGuiAppWaiting);
+        __DJY_CutEcbFromSync(g_ptGuiAppWaiting);
+        __DJY_EventReady(WaitECB);
         g_ptGuiAppWaiting = NULL;
     }
     Int_RestoreAsynSignal();

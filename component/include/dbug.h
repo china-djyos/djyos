@@ -56,7 +56,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdio.h>
-
+#include <string.h>
 
 //
 // @brief  调试输出等级开关

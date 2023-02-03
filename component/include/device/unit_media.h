@@ -112,7 +112,7 @@ struct ustatistics{     //没见哪里用到
 
 struct umedia{
     enum utype type;
-    u8 *ubuf;
+    u8 *ubuf;   //存储器的读写缓冲，一般为存储器的最小可写大小
     s32 (*mreq)(enum ucmd cmd, ptu32_t args, ...); // 成功（0）；失败（-1）；
 };
 

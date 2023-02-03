@@ -78,6 +78,8 @@
 //%$#@num,0,0x10000,
 #define CFG_HOST_STACK_SIZE     4096     //"主机协议处理函数所需内存",
 #define CFG_SLAVE_STACK_SIZE    4096     //"从机协议处理函数所需内存",
+#define CFG_SLAVE_PKG_MAX_SIZE  256   //"从机单包数据的最大大小",
+#define CFG_SLAVE_BUF_PKG_NUM   2        //"从机缓存的最大包数",
 //%$#@enum,true,false,
 #define CFG_HOST_ENABLE         true     //"使能主机功能",主从机同时使能也是允许的
 #define CFG_SLAVE_ENABLE        true     //"使能从机功能",主从机同时使能也是允许的
