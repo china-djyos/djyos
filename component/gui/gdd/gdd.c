@@ -79,8 +79,10 @@ struct MutexLCB *gdd_mutex_lock=NULL;
 
 bool_t    __GDD_Lock(void)
 {
-    Lock_MutexPend(gdd_mutex_lock, CN_TIMEOUT_FOREVER);
-    return TRUE;
+    if(Lock_MutexPend(gdd_mutex_lock, CN_TIMEOUT_FOREVER))
+        return true;
+    else
+        return false;
 }
 
 void    __GDD_Unlock(void)

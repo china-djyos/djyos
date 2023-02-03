@@ -1458,11 +1458,13 @@ ptu32_t __CAN_SndTask(void)
       uint8_t buf[14];
       while(1)
       {
-         MsgQ_Receive(gs_ptCanSndMsgQ, buf, CN_CAN_MSGQ_LEN, CN_TIMEOUT_FOREVER);
-         byCanNo=buf[0];
-         if(byCanNo<CN_CAN_NUM)
+         if(MsgQ_Receive(gs_ptCanSndMsgQ, buf, CN_CAN_MSGQ_LEN, CN_TIMEOUT_FOREVER))
          {
-              __CAN_HardTxOneFrame(byCanNo,(uint8_t *)&buf[1]);
+             byCanNo=buf[0];
+             if(byCanNo<CN_CAN_NUM)
+             {
+                  __CAN_HardTxOneFrame(byCanNo,(uint8_t *)&buf[1]);
+             }
          }
       }
 }

@@ -411,6 +411,9 @@ bool_t Lock_SempPend(struct SemaphoreLCB *semp,u32 timeout)
         return false;
     }
     sch = DJY_QuerySch();
+    if(!sch && (timeout != 0))
+        //此处不能用printf，否则printf中调用stdout时，stdout中可能又调用信号量，形成死循环
+        printk("Attempt to block semaphore when disable sch,eventid = %d\r\n", DJY_GetMyEventId());
     Int_SaveAsynSignal();
     if(semp->lamps_limit == -1)   //本信号量有无限多信号灯
     {
@@ -754,6 +757,10 @@ bool_t Lock_MutexPend(struct MutexLCB *mutex,u32 timeout)
         return true;
     }
     sch = DJY_QuerySch();
+    if(!sch && (timeout != 0))
+        //此处不能用printf，否则printf中调用stdout时，stdout中可能又调用互斥量，形成死循环
+        printk("Attempt to block mutex when disable sch,eventid = %d\r\n",DJY_GetMyEventId());
+
     Int_SaveAsynSignal();
     if(mutex->enable == 0)   //信号灯可用
     {

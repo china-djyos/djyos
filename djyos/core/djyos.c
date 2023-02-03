@@ -159,6 +159,7 @@ static u32 s_u32StackCheckLevel = 10;      //栈报警水平，百分数
 struct EventECB  *g_ptEventReady;      //就绪队列头
 struct EventECB  *g_ptEventRunning;    //当前正在执行的事件
 struct EventECB  *g_ptEventDelay;      //闹钟同步队列表头
+struct ThreadVm  *g_ptWaitFreeVm;       //等待回收的线程
 
 s64 g_s64RunningStartTime;              //当前运行中事件的开始执行时间.
 s64  g_s64OsTicks = 0;                  //操作系统运行ticks，由tick中断增量，表示从
@@ -716,7 +717,7 @@ bool_t __DJY_Schedule(void)
 
         g_ptEventRunning=g_ptEventReady;
 //        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-        Int_HalfEnableAsynSignal( );
+//        Int_HalfEnableAsynSignal( );
         __asm_switch_context(g_ptEventReady->vm ,event->vm);
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
     }else
@@ -2744,6 +2745,13 @@ void __DJY_EventExit(struct EventECB *event, u32 exit_code,enum EN_BlackBoxActio
     parahead.BlackBoxType = CN_BLACKBOX_TYPE_EVENT_EXIT;
     BlackBox_ThrowExp(&parahead);
 #endif      //for #if(CFG_MODULE_ENABLE_BLACK_BOX == true)
+
+#if (CFG_DYNAMIC_MEM == true)
+    if(g_ptEventRunning->local_memory != 0)
+    {
+        __Heap_CleanUp(g_ptEventRunning->event_id);    //
+    }
+#endif
     //此处不用int_save_asyn_signal函数，可以在应用程序有bug，没有成对调用
     //int_save_asyn_signal和int_restore_asyn_signal的情况下，确保错误到此为止。
     __Int_ResetAsynSignal();  //直到__vm_engine函数才再次打开.
@@ -2757,12 +2765,6 @@ void __DJY_EventExit(struct EventECB *event, u32 exit_code,enum EN_BlackBoxActio
 //  __Djy_ActiveEventParaSyncExp(g_ptEventRunning->para_high_prio);
 //  __Djy_ActiveEventParaSyncExp(g_ptEventRunning->para_low_prio);
 
-#if (CFG_DYNAMIC_MEM == true)
-    if(g_ptEventRunning->local_memory != 0)
-    {
-        __Heap_CleanUp(g_ptEventRunning->event_id);    //
-    }
-#endif
     __DJY_CutReadyEvent(g_ptEventRunning);
     g_ptEventRunning->previous
                     = (struct EventECB*)&s_ptEventFree;//表示本控制块空闲
@@ -2880,8 +2882,8 @@ void __DJY_EventExit(struct EventECB *event, u32 exit_code,enum EN_BlackBoxActio
         }
     }
 
-//看事件类型控制块是否要删除，用户注销一个事件类型，如果该事件类型正在使用，则不
-//会立即注销，只是不能弹出新事件，要等属于该事件类型的所有事件处理完才能注销。
+    //看事件类型控制块是否要删除，用户注销一个事件类型，如果该事件类型正在使用，则不
+    //会立即注销，只是不能弹出新事件，要等属于该事件类型的所有事件处理完才能注销。
     if((pl_evtt->property.inuse == 0) && (pl_evtt->property.deleting == 1))
     {
         next_vm = pl_evtt->my_free_vm;
@@ -2894,19 +2896,35 @@ void __DJY_EventExit(struct EventECB *event, u32 exit_code,enum EN_BlackBoxActio
         {
             temp = next_vm;
             next_vm = next_vm->next;
-            free((void *)temp);
+            temp->next = g_ptWaitFreeVm;
+            g_ptWaitFreeVm = temp;      //在idle中释放线程
         }
-        vm_final = CN_DELETED;          //线程已经被删除
     }
+//    if((pl_evtt->property.inuse == 0) && (pl_evtt->property.deleting == 1))
+//    {
+//        next_vm = pl_evtt->my_free_vm;
+//        //回收事件类型控制块，只需把registered属性清零。
+//        pl_evtt->property.registered = 0;
+//#if CFG_OS_TINY == false
+//        pl_evtt->evtt_name[0] = '\0';   //清空事件类型名
+//#endif  //CFG_OS_TINY == false
+//        while(next_vm != NULL)          //释放该事件类型拥有的空闲线程
+//        {
+//            temp = next_vm;
+//            next_vm = next_vm->next;
+//            free((void *)temp);
+//        }
+//    }
 
     __DJY_SelectEventToRun();
     if(vm_final == CN_DELETE)                   //删除线程
     {
-        free((void*)g_ptEventRunning->vm);    //删除线程
+        g_ptEventRunning->vm->next = g_ptWaitFreeVm;
+        g_ptWaitFreeVm = g_ptEventRunning->vm;      //在idle中释放线程
         pl_evtt->vpus--;
         g_ptEventRunning = g_ptEventReady;
-        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
         g_s64RunningStartTime = DJY_GetSysTime();
+        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
         Int_HalfEnableAsynSignal( );
         __asm_turnto_context(g_ptEventRunning->vm);
     }else if(vm_final == CN_KEEP)    //保留线程
@@ -2918,9 +2936,9 @@ void __DJY_EventExit(struct EventECB *event, u32 exit_code,enum EN_BlackBoxActio
             pl_evtt->SchHook(EN_SWITCH_OUT);
 
             g_ptEventRunning=g_ptEventReady;
-            g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
             g_s64RunningStartTime = DJY_GetSysTime();
             pl_ecb->vm->stack_used = pl_ecb->vm->stack_top;//复原已用指针
+            g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
             Int_HalfEnableAsynSignal( );
             __asm_reset_switch(pl_evtt->thread_routine,
                             g_ptEventRunning->vm,pl_ecb->vm);
@@ -2994,6 +3012,12 @@ void __DJY_EventFinal(ptu32_t result)
     ucpu_t vm_final = CN_DELETE;
 
     pl_evtt =&g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)];
+#if (CFG_DYNAMIC_MEM == true)
+    if(g_ptEventRunning->local_memory != 0)
+    {
+        __Heap_CleanUp(g_ptEventRunning->event_id);//强行清除事件运行中申请的内存
+    }
+#endif
     __Int_ResetAsynSignal();  //直到__vm_engine函数才再次打开.
     //下面处理同步队列，必须联系共享文档的相关章节才容易读懂，注释难于解释
     //那么清楚的。
@@ -3074,13 +3098,8 @@ void __DJY_EventFinal(ptu32_t result)
         }
     }
     //以下看事件的线程如何处理。
-#if (CFG_DYNAMIC_MEM == true)
-    if(g_ptEventRunning->local_memory != 0)
-    {
-        __Heap_CleanUp(g_ptEventRunning->event_id);//强行清除事件运行中申请的内存
-    }
-#endif
     __DJY_CutReadyEvent(g_ptEventRunning);
+
     g_ptEventRunning->previous
                     = (struct EventECB*)&s_ptEventFree;//表示本控制块空闲
     g_ptEventRunning->next = s_ptEventFree;     //pg_event_free是单向非循环队列
@@ -3134,6 +3153,8 @@ void __DJY_EventFinal(ptu32_t result)
         }
     }
 
+    //看事件类型控制块是否要删除，用户注销一个事件类型，如果该事件类型正在使用，则不
+    //会立即注销，只是不能弹出新事件，要等属于该事件类型的所有事件处理完才能注销。
     if((pl_evtt->property.inuse == 0) && (pl_evtt->property.deleting == 1))
     {
         next_vm = pl_evtt->my_free_vm;
@@ -3146,19 +3167,20 @@ void __DJY_EventFinal(ptu32_t result)
         {
             temp = next_vm;
             next_vm = next_vm->next;
-            free((void *)temp);
+            temp->next = g_ptWaitFreeVm;
+            g_ptWaitFreeVm = temp;      //在idle中释放线程
         }
-        vm_final = CN_DELETED;
     }
 
     __DJY_SelectEventToRun();
     if(vm_final == CN_DELETE)      //删除线程
     {
-        free((void*)g_ptEventRunning->vm);    //删除线程
+        g_ptEventRunning->vm->next = g_ptWaitFreeVm;
+        g_ptWaitFreeVm = g_ptEventRunning->vm;      //在idle中释放线程
         pl_evtt->vpus--;
         g_ptEventRunning = g_ptEventReady;
-        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
         g_s64RunningStartTime = DJY_GetSysTime();
+        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
         Int_HalfEnableAsynSignal( );
         __asm_turnto_context(g_ptEventRunning->vm);
     }else if(vm_final == CN_KEEP)    //保留线程,和exit一样
@@ -3169,10 +3191,10 @@ void __DJY_EventFinal(ptu32_t result)
             pl_ecb = g_ptEventRunning;
             pl_evtt->SchHook(EN_SWITCH_OUT);
             g_ptEventRunning = g_ptEventReady;
-            g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
             g_s64RunningStartTime = DJY_GetSysTime();
-            pl_ecb->vm->stack_used = pl_ecb->vm->stack_top;//复原已用指针
+            g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
             Int_HalfEnableAsynSignal( );
+            pl_ecb->vm->stack_used = pl_ecb->vm->stack_top;//复原已用指针
             __asm_reset_switch(pl_evtt->thread_routine,
                             g_ptEventRunning->vm,pl_ecb->vm);
         }
@@ -3180,8 +3202,8 @@ void __DJY_EventFinal(ptu32_t result)
     {
 //        pl_ecb = g_ptEventRunning;
         g_ptEventRunning = g_ptEventReady;
-        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
         g_s64RunningStartTime = DJY_GetSysTime();
+        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
         Int_HalfEnableAsynSignal( );
         __asm_turnto_context(g_ptEventRunning->vm);
     }
@@ -3295,6 +3317,7 @@ u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks);
 ptu32_t __DJY_Service(void)
 {
     u32 loop;
+    struct ThreadVm  *vm;
 //    u8 i = 0;
     u8 level;
     u64 now_tick;
@@ -3303,6 +3326,19 @@ ptu32_t __DJY_Service(void)
     atom_low_t  atom_bak;
     while(1)
     {
+        Int_SaveAsynSignal();
+        while(g_ptWaitFreeVm != NULL)
+        {
+            vm = g_ptWaitFreeVm;
+            g_ptWaitFreeVm = vm->next;
+            if(!M_Free(vm, 0))   //这里timeout必须是0，否则保护heap控制块的互斥量会报错
+            {
+                g_ptWaitFreeVm = vm;
+                break;      //释放不掉，一般是因为heap控制块正在被访问，直接退出，下次运行idle再检查。
+            }
+        }
+
+        Int_RestoreAsynSignal();
         //注：改成tickless模式后，因没有tick中断，不再需要判断，每次运行直接跑栈检查
         level=LP_GetSleepLevel();
         if(level==CN_SLEEP_NORMAL)

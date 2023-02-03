@@ -552,11 +552,13 @@ ptu32_t Dm9000Rcv(void)
 
     while(1)
     {
-        Lock_SempPend(pDm9000RcvSync,CN_TIMEOUT_FOREVER);
-        while((pkg = DM9000_RcvPacket(ptNetDev))!= NULL)
+        if(Lock_SempPend(pDm9000RcvSync,CN_TIMEOUT_FOREVER))
         {
-            NetDev_PostPkg(ptNetDev,pkg);
-            PkgTryFreePart(pkg);
+            while((pkg = DM9000_RcvPacket(ptNetDev))!= NULL)
+            {
+                NetDev_PostPkg(ptNetDev,pkg);
+                PkgTryFreePart(pkg);
+            }
         }
     }
     return 0;

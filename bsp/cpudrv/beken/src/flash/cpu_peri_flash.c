@@ -173,11 +173,13 @@ static s32 SetFlash_Init(struct NorDescr *Description)
 // ============================================================================
 void djy_flash_read_crc(uint32_t address, void *data, uint32_t size)
 {
-    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
-//    flash_protection_op(0,FLASH_PROTECT_NONE);
-    flash_read(data, size, address);
-//    flash_protection_op(0,FLASH_PROTECT_ALL);
-    Lock_MutexPost(flash_mutex);
+    if(Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER))
+    {
+    //    flash_protection_op(0,FLASH_PROTECT_NONE);
+        flash_read(data, size, address);
+    //    flash_protection_op(0,FLASH_PROTECT_ALL);
+        Lock_MutexPost(flash_mutex);
+    }
 }
 // ============================================================================
 // 功能：读取不带crc的flash数据，即把读出的数据中去掉crc后提交给用户。
@@ -195,29 +197,31 @@ void djy_flash_read(uint32_t address, void *data, uint32_t size)
     {
         return;
     }
-    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
-    while(size)
+    if(Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER))
     {
-        memset(buf, 0xFF, 272);
-        flash_read((char *)buf, 272, address);//读取带crc的256个数据，因为带crc，所以要读272
-        i = 0;
-        while(i < 272)  //把crc数据去掉，只留有效数据
+        while(size)
         {
-            if(size > 32)
-                memcpy(data, buf + i, 32);
-            else
+            memset(buf, 0xFF, 272);
+            flash_read((char *)buf, 272, address);//读取带crc的256个数据，因为带crc，所以要读272
+            i = 0;
+            while(i < 272)  //把crc数据去掉，只留有效数据
             {
-                memcpy(data, buf + i, size);
-                size = 0;
-                break;
+                if(size > 32)
+                    memcpy(data, buf + i, 32);
+                else
+                {
+                    memcpy(data, buf + i, size);
+                    size = 0;
+                    break;
+                }
+                data += 32;
+                i += 34;
+                size -= 32;
             }
-            data += 32;
-            i += 34;
-            size -= 32;
+            address += 272;
         }
-        address += 272;
+        Lock_MutexPost(flash_mutex);
     }
-    Lock_MutexPost(flash_mutex);
 }
 // ============================================================================
 // 功能：写入flash，写入时是否添加crc，有 GetOperFalshMode() 函数确定。
@@ -240,48 +244,50 @@ void djy_flash_write(uint32_t address, const void *data, uint32_t size)
         return;
     }
 
-    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
-    if(GetOperFalshMode() == true)
+    if(Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER))
     {
-        //不考虑crc,如果crc不正确，也可以正常写入但不能用地址映射方式访问，否则CPU
-        //会进入不可知状态（仿真器也无法连接）。
-        flash_write((char *)data, size, address);
-    }
-    else
-    {
-        while(size)             //写不带crc的数据，这种方式会自动算好crc再写入flash
+        if(GetOperFalshMode() == true)
         {
-            memset(buf_crc, 0xff, 272);
-            if(size >= 256)
-            {
-                encrypt((u32 *)data, buf_crc, 256 / 32);
-                size -= 256;
-                data += 256;
-                len = 272;
-                calc_crc((u32 *)buf_crc, 256 / 32);     //计算256字节的crc数据
-            }
-            else
-            {
-                memset(buf, 0xff, 256);
-                memcpy(buf, data, size);
-                if(size % 32)
-                    i = (size + 32) - (size % 32);
-                else
-                    i = size;
-                encrypt((u32 *)buf, buf_crc, i / 32);
-                size = 0;
-                len = i * 34 / 32;
-                calc_crc((u32 *)buf_crc, i / 32);
-            }
-
-            flash_write((char *)buf_crc, len, address);
-            address += len;
+            //不考虑crc,如果crc不正确，也可以正常写入但不能用地址映射方式访问，否则CPU
+            //会进入不可知状态（仿真器也无法连接）。
+            flash_write((char *)data, size, address);
         }
-    }
+        else
+        {
+            while(size)             //写不带crc的数据，这种方式会自动算好crc再写入flash
+            {
+                memset(buf_crc, 0xff, 272);
+                if(size >= 256)
+                {
+                    encrypt((u32 *)data, buf_crc, 256 / 32);
+                    size -= 256;
+                    data += 256;
+                    len = 272;
+                    calc_crc((u32 *)buf_crc, 256 / 32);     //计算256字节的crc数据
+                }
+                else
+                {
+                    memset(buf, 0xff, 256);
+                    memcpy(buf, data, size);
+                    if(size % 32)
+                        i = (size + 32) - (size % 32);
+                    else
+                        i = size;
+                    encrypt((u32 *)buf, buf_crc, i / 32);
+                    size = 0;
+                    len = i * 34 / 32;
+                    calc_crc((u32 *)buf_crc, i / 32);
+                }
 
-//    flash_write((char *)data, size, practical_addr);
-//    flash_protection_op(0,FLASH_PROTECT_ALL);
-    Lock_MutexPost(flash_mutex);
+                flash_write((char *)buf_crc, len, address);
+                address += len;
+            }
+        }
+
+    //    flash_write((char *)data, size, practical_addr);
+    //    flash_protection_op(0,FLASH_PROTECT_ALL);
+        Lock_MutexPost(flash_mutex);
+    }
 }
 // ============================================================================
 // 功能：写入flash，写入时是否添加crc，由GetOperFalshMode() 函数确定。
@@ -304,49 +310,51 @@ void djy_flash_write_ori(uint32_t address, const void *data, uint32_t size)
         return;
     }
 
-    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
-    if(GetOperFalshMode() == true)
+    if(Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER))
     {
-        //不考虑crc,如果crc不正确，也可以正常写入但不能用地址映射方式访问，否则CPU
-        //会进入不可知状态（仿真器也无法连接）。
-        flash_write((char *)data, size, address);
-    }
-    else
-    {
-        inaddress = address *34/32; //逻辑地址转换为物理地址。
-        while(size)             //写不带crc的数据，这种方式会自动算好crc再写入flash
+        if(GetOperFalshMode() == true)
         {
-            memset(buf_crc, 0xff, 272);
-            if(size >= 256)
-            {
-                encrypt((u32 *)data, buf_crc, 256 / 32);
-                size -= 256;
-                data += 256;
-                len = 272;
-                calc_crc((u32 *)buf_crc, 256 / 32);     //计算256字节的crc数据
-            }
-            else
-            {
-                memset(buf, 0xff, 256);
-                memcpy(buf, data, size);
-                if(size % 32)
-                    i = (size + 32) - (size % 32);
-                else
-                    i = size;
-                encrypt((u32 *)buf, buf_crc, i / 32);
-                size = 0;
-                len = i * 34 / 32;
-                calc_crc((u32 *)buf_crc, i / 32);
-            }
-
-            flash_write((char *)buf_crc, len, inaddress);
-            inaddress += len;
+            //不考虑crc,如果crc不正确，也可以正常写入但不能用地址映射方式访问，否则CPU
+            //会进入不可知状态（仿真器也无法连接）。
+            flash_write((char *)data, size, address);
         }
-    }
+        else
+        {
+            inaddress = address *34/32; //逻辑地址转换为物理地址。
+            while(size)             //写不带crc的数据，这种方式会自动算好crc再写入flash
+            {
+                memset(buf_crc, 0xff, 272);
+                if(size >= 256)
+                {
+                    encrypt((u32 *)data, buf_crc, 256 / 32);
+                    size -= 256;
+                    data += 256;
+                    len = 272;
+                    calc_crc((u32 *)buf_crc, 256 / 32);     //计算256字节的crc数据
+                }
+                else
+                {
+                    memset(buf, 0xff, 256);
+                    memcpy(buf, data, size);
+                    if(size % 32)
+                        i = (size + 32) - (size % 32);
+                    else
+                        i = size;
+                    encrypt((u32 *)buf, buf_crc, i / 32);
+                    size = 0;
+                    len = i * 34 / 32;
+                    calc_crc((u32 *)buf_crc, i / 32);
+                }
 
-//    flash_write((char *)data, size, practical_addr);
-//    flash_protection_op(0,FLASH_PROTECT_ALL);
-    Lock_MutexPost(flash_mutex);
+                flash_write((char *)buf_crc, len, inaddress);
+                inaddress += len;
+            }
+        }
+
+    //    flash_write((char *)data, size, practical_addr);
+    //    flash_protection_op(0,FLASH_PROTECT_ALL);
+        Lock_MutexPost(flash_mutex);
+    }
 }
 
 
@@ -361,11 +369,13 @@ void djy_flash_erase(uint32_t address)
     address &= (0xFFF000);
     if(address >= 0x400000)
         return;
-    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
-//    flash_protection_op(0,FLASH_PROTECT_NONE);
-    flash_ctrl(CMD_FLASH_ERASE_SECTOR, &address);
-//    flash_protection_op(0,FLASH_PROTECT_ALL);
-    Lock_MutexPost(flash_mutex);
+    if(Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER))
+    {
+    //    flash_protection_op(0,FLASH_PROTECT_NONE);
+        flash_ctrl(CMD_FLASH_ERASE_SECTOR, &address);
+    //    flash_protection_op(0,FLASH_PROTECT_ALL);
+        Lock_MutexPost(flash_mutex);
+    }
 }
 
 

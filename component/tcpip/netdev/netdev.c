@@ -1348,8 +1348,8 @@ bool_t ifconfig(char *param)
                         iface->pkgsnd,iface->pkgsnderr,iface->pkgrcv,iface->pkgrcverr,mac2string(iface->mac));
                 iface = iface->NextDev;
             }while(g_ptDefaultNetDev != iface);
-            Lock_MutexPost(g_ptNetDevLock);
         }
+        Lock_MutexPost(g_ptNetDevLock);
     }
     OsPrintSplit('*',100);
     return true;

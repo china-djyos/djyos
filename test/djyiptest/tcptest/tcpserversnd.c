@@ -162,25 +162,30 @@ bool_t TcpServer_Snd(void)
 //          }
 
             sndbuf = M_Malloc(CN_SNDBUF_LEN,CN_TIMEOUT_FOREVER);
-            for(i = 0; i <CN_SNDBUF_LEN; i++)
+            if(sndbuf)
             {
-                sndbuf[i] = 'a'+i%27;
-            }
-            while(1)
-            {
-                sndlen = send(clientfd,sndbuf,CN_SNDBUF_LEN,0);
-                if(sndlen > 0)
+                for(i = 0; i <CN_SNDBUF_LEN; i++)
                 {
-                    sndtotal += sndlen;
+                    sndbuf[i] = 'a'+i%27;
                 }
-                else
+                while(1)
                 {
-                    printk("TcpServerSnd:snd failed!\n\r");
-                    closesocket(clientfd);
-                    break;
+                    sndlen = send(clientfd,sndbuf,CN_SNDBUF_LEN,0);
+                    if(sndlen > 0)
+                    {
+                        sndtotal += sndlen;
+                    }
+                    else
+                    {
+                        printk("TcpServerSnd:snd failed!\n\r");
+                        closesocket(clientfd);
+                        break;
+                    }
+                    sgSndTimes++;
                 }
-                sgSndTimes++;
             }
+            else
+                error_printf("tcpserver", "发送时内存不足\r\n");
         }
         else
         {

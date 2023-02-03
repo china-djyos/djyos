@@ -120,8 +120,8 @@ struct shell_cmd
 // ============================================================================
 char *shell_inputs(char *input, char **next);
 
-bool_t shell_add(struct shell_list *pLisTtab);
-bool_t shell_del(struct shell_list *pLisTtab);
+//bool_t shell_add(struct shell_list *pLisTtab);
+//b ool_t shell_del(struct shell_list *pLisTtab);
 
 s32 ModuleInstall_Shell(ptu32_t para);
 

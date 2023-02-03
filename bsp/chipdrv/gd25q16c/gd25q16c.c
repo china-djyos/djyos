@@ -365,7 +365,8 @@ s32 gd25q16c_Erase_Sector(u32 SectorNum)
 {
     u32 Dst_Addr;
     u8 sndbuf[4];
-    Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER))
+        return -1;
 
     if(gd25q16c_WaitReady(200000) == false)
     {
@@ -421,7 +422,8 @@ s32 gd25q16c_Erase_Chip(void)
     u8 status = 0;
     u32 time = 0;
     u8 sndbuf[1];
-    Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER))
+        return -1;
     if(gd25q16c_WaitReady(200000) == false)
     {
         printf("\r\n FLASH : debug : device is busy before Chip Erase.");
@@ -477,7 +479,8 @@ s32 gd25q16c_WritePage(u8* pBuffer,u32 PageNum)
 {
     u8 sndbuf[4 + 256];
     u32 WriteAddr;
-    Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER))
+        return -1;
 
     WriteAddr = PageNum * gd25q16c_PageSize;
 
@@ -529,7 +532,8 @@ s32 gd25q16c_WriteMemory(u8* pBuffer,u32 WriteAddr,u32 NumByteToWrite)
     u8 command[4];
     u8 *SendBuf;
 
-    Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER))
+        return -1;
 
     if(gd25q16c_WaitReady(200000) == false)
     {
@@ -582,7 +586,8 @@ s32 gd25q16c_ReadPage(u8* pBuffer,u32 PageNum)
 {
     u32 ReadAddr;
     u8 sndbuf[4];
-    Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER))
+        return -1;
     ReadAddr = PageNum * gd25q16c_PageSize;
 
     sndbuf[0] = gd25q16c_ReadData;
@@ -621,7 +626,8 @@ s32 gd25q16c_ReadPage(u8* pBuffer,u32 PageNum)
 s32 gd25q16c_ReadMemory(u8* pBuffer,u32 ReadAddr,u32 NumByteToRead)
 {
     u8 sndbuf[4];
-    Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pgd25q16c_Lock,CN_TIMEOUT_FOREVER))
+        return -1;
 
     sndbuf[0] = gd25q16c_ReadData;
     sndbuf[3] = ReadAddr & 0xff;

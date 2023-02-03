@@ -101,23 +101,27 @@ u16  Max14001_TxRx(u16 data,u8 addr,u8 rdflag,u32 timeout,struct SPI_Device Max1
     Data.RecvBuf = Rcvbuf;
     Data.RecvOff = 0;
 
-    SPI_CsActive(&Max14001_Dev,CN_TIMEOUT_FOREVER);
-    DJY_DelayUs(10);
-    SPI_Transfer(&Max14001_Dev,&Data,true,Max14001_TIMEOUT);  //数据传送函数，完成数据的发送和接收。
-    DJY_DelayUs(3);
-    SPI_CsInactive(&Max14001_Dev);
-
-    if(rdflag)
+    if(SPI_CsActive(&Max14001_Dev,CN_TIMEOUT_FOREVER))
     {
-        SPI_CsActive(&Max14001_Dev,CN_TIMEOUT_FOREVER);
         DJY_DelayUs(10);
         SPI_Transfer(&Max14001_Dev,&Data,true,Max14001_TIMEOUT);  //数据传送函数，完成数据的发送和接收。
         DJY_DelayUs(3);
         SPI_CsInactive(&Max14001_Dev);
 
-//        printf("addr=0x%x , rcvdata =0x%x \n\r",addr,(u16)(Rcvbuf[0]|((Rcvbuf[1]&(0x3))<<8)));
-//        DJY_EventDelay(100*mS);
-        return (u16)(Rcvbuf[0]|((Rcvbuf[1]&(0x3))<<8));
+        if(rdflag)
+        {
+            SPI_CsActive(&Max14001_Dev,CN_TIMEOUT_FOREVER);
+            DJY_DelayUs(10);
+            SPI_Transfer(&Max14001_Dev,&Data,true,Max14001_TIMEOUT);  //数据传送函数，完成数据的发送和接收。
+            DJY_DelayUs(3);
+            SPI_CsInactive(&Max14001_Dev);
+
+    //        printf("addr=0x%x , rcvdata =0x%x \n\r",addr,(u16)(Rcvbuf[0]|((Rcvbuf[1]&(0x3))<<8)));
+    //        DJY_EventDelay(100*mS);
+            return (u16)(Rcvbuf[0]|((Rcvbuf[1]&(0x3))<<8));
+        }
+        else
+            return 0;
     }
     else
         return 0;

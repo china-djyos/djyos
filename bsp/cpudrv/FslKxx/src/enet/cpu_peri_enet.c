@@ -854,11 +854,13 @@ static ptu32_t __GmacRcvTask(void)
     struct NetPkg *pkg;
     while(1)
     {
-        Lock_SempPend(pEnetRcvSync,CN_TIMEOUT_FOREVER);
-        while((pkg = __Enet_RcvPacket(gEnetHandle))!= NULL)//不断读网卡直到没有完整数据包为止
+        if(Lock_SempPend(pEnetRcvSync,CN_TIMEOUT_FOREVER))
         {
-            LinkPost(gEnetHandle,pkg);
-            PkgTryFreePart(pkg);
+            while((pkg = __Enet_RcvPacket(gEnetHandle))!= NULL)//不断读网卡直到没有完整数据包为止
+            {
+                LinkPost(gEnetHandle,pkg);
+                PkgTryFreePart(pkg);
+            }
         }
     }
     return 0;

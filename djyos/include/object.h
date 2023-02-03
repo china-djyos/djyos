@@ -266,7 +266,7 @@ struct Object *OBJ_NewHead(struct Object *loc,fnObjOps ops,
                            ptu32_t ObjPrivate, const char *name);
 s32 obj_MoveToLast(struct Object *ob);
 s32 OBJ_MoveToHead(struct Object *ob);
-struct Object *OBJ_InsertToChild(struct Object *loc, struct Object *child);
+s32 OBJ_InsertToChild(struct Object *loc, struct Object *child);
 s32 OBJ_InsertToNext(struct Object *loc, struct Object *next);
 s32 OBJ_InsertToPrev(struct Object *loc, struct Object *prev);
 s32 OBJ_ChildMoveToOrev(struct Object *parent);

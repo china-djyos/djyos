@@ -271,7 +271,8 @@ s32 Gd5f1g_EraseBlock(u32 block_no)
     }
 
     block_no = block_no << 6;
-    Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER))
+        return -1;
 
     if(Gd5f1g_WaitBusy(5000) == false)
     {
@@ -326,7 +327,8 @@ u32 Gd5f1g_ReadSpare(u32 PageNo, u8* buf)
         error_printf("gd5f1g", "read spare param fail. buf = %x, PageNo =%d.\r\n", buf, PageNo);
         return res;
     }
-    Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER))
+        return res;
     t2 = DJY_GetSysTime();
     t3 = t2 - t1;
 
@@ -396,7 +398,8 @@ u32 Gd5f1g_WriteSpare(u32 PageNo, u8* buf)
         error_printf("gd5f1g", "write spare param fail. buf = %x, PageNo =%d.\r\n", buf, PageNo);
         return res;
     }
-    Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER))
+        return res;
 
     if(Gd5f1g_WaitBusy(5000))
     {
@@ -444,7 +447,8 @@ u32 Gd5f1g_ReadPage(u32 PageNo, u8* buf, u32 Flags)
         return res;
     }
 
-    Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER))
+        return res;
 
     switch (Flags & MASK_ECC)
     {
@@ -510,7 +514,8 @@ u32 Gd5f1g_WritePage(u32 PageNo, u8* buf, u32 Flags)
         return res;
     }
 
-    Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER))
+        return res;
     if(Gd5f1g_WaitBusy(5000))
     {
         if(QSPI_Send_CMD(Gd5f1g_PageProgramx4,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_1_LINE,QSPI_ADDRESS_16_BITS,QSPI_DATA_4_LINES))

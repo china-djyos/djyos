@@ -224,36 +224,38 @@ int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
     memset(tmp_single_buff, 0, sizeof(tmp_single_buff));
     tmp_single_desc.pData = &tmp_single_buff[0];
 
-    Lock_MutexPend(pg_tadc_mutex, 0xffffffff);
-
-    tmp_single_hdl = ddev_open(SARADC_DEV_NAME, &status, (UINT32)&tmp_single_desc);
-
-    cmd = SARADC_CMD_RUN_OR_STOP_ADC;
-    run_stop = 1;
-    ddev_control(tmp_single_hdl, cmd, &run_stop);
-
-    while (tryTimes--)
+    if(Lock_MutexPend(pg_tadc_mutex, CN_TIMEOUT_FOREVER))
     {
-        DJY_EventDelay(10);
-        if (tmp_single_desc.current_sample_data_cnt == tmp_single_desc.data_buff_size)
-        {
-            ddev_close(tmp_single_hdl);
 
-            ad_date = 0;
-            for (int i=0; i<tmp_single_desc.current_sample_data_cnt; i++)
+        tmp_single_hdl = ddev_open(SARADC_DEV_NAME, &status, (UINT32)&tmp_single_desc);
+
+        cmd = SARADC_CMD_RUN_OR_STOP_ADC;
+        run_stop = 1;
+        ddev_control(tmp_single_hdl, cmd, &run_stop);
+
+        while (tryTimes--)
+        {
+            DJY_EventDelay(10);
+            if (tmp_single_desc.current_sample_data_cnt == tmp_single_desc.data_buff_size)
             {
-                ad_date += tmp_single_desc.pData[i];
+                ddev_close(tmp_single_hdl);
+
+                ad_date = 0;
+                for (int i=0; i<tmp_single_desc.current_sample_data_cnt; i++)
+                {
+                    ad_date += tmp_single_desc.pData[i];
+                }
+                ad_date /= tmp_single_desc.current_sample_data_cnt;
+                voltage = saradc_calculate(ad_date);
+                tmpData = voltage * 1000;
+                break;
             }
-            ad_date /= tmp_single_desc.current_sample_data_cnt;
-            voltage = saradc_calculate(ad_date);
-            tmpData = voltage * 1000;
-            break;
         }
+        if (tryTimes <= 0) {
+            ddev_close(tmp_single_hdl);
+        }
+        Lock_MutexPost(pg_tadc_mutex);
     }
-    if (tryTimes <= 0) {
-        ddev_close(tmp_single_hdl);
-    }
-    Lock_MutexPost(pg_tadc_mutex);
 
     return tmpData;
 }
@@ -302,38 +304,40 @@ s32 djy_adc_fast_read(u8 channel)
 #endif
 
 
-    Lock_MutexPend(pg_tadc_mutex, 0xffffffff);
-
-    value = REG_READ(SARADC_ADC_CONFIG);
-    value &= ~(SARADC_ADC_CHNL_MASK << SARADC_ADC_CHNL_POSI);
-    value |= (channel << SARADC_ADC_CHNL_POSI);
-    value |= SARADC_ADC_CHNL_EN;
-    REG_WRITE(SARADC_ADC_CONFIG, value);
-
-    value = REG_READ(SARADC_ADC_CONFIG);
-    while((value & SARADC_ADC_FIFO_EMPTY) != 0)
+    if(Lock_MutexPend(pg_tadc_mutex, CN_TIMEOUT_FOREVER))
     {
+
         value = REG_READ(SARADC_ADC_CONFIG);
+        value &= ~(SARADC_ADC_CHNL_MASK << SARADC_ADC_CHNL_POSI);
+        value |= (channel << SARADC_ADC_CHNL_POSI);
+        value |= SARADC_ADC_CHNL_EN;
+        REG_WRITE(SARADC_ADC_CONFIG, value);
+
+        value = REG_READ(SARADC_ADC_CONFIG);
+        while((value & SARADC_ADC_FIFO_EMPTY) != 0)
+        {
+            value = REG_READ(SARADC_ADC_CONFIG);
+        }
+
+        #if (CFG_SOC_NAME == SOC_BK7231)
+        ad_date = REG_READ(SARADC_ADC_DATA)&0x03FF;
+        #else
+        ad_date = REG_READ(SARADC_ADC_DAT_AFTER_STA)&0xFFFF;
+        #endif // (CFG_SOC_NAME == SOC_BK7231)
+        voltage = saradc_calculate_fast(ad_date);
+    //    tmpData = voltage * 1000;
+
+        value = REG_READ(SARADC_ADC_CONFIG);
+        value &= ~(SARADC_ADC_MODE_MASK << SARADC_ADC_MODE_POSI);
+        value &= ~(SARADC_ADC_CHNL_EN);
+        REG_WRITE(SARADC_ADC_CONFIG, value);
+
+        reg = REG_READ(ICU_PERI_CLK_PWD);
+        reg |= PWD_SARADC_CLK_BIT;
+        REG_WRITE(ICU_PERI_CLK_PWD, reg);
+
+        Lock_MutexPost(pg_tadc_mutex);
     }
-
-    #if (CFG_SOC_NAME == SOC_BK7231)
-    ad_date = REG_READ(SARADC_ADC_DATA)&0x03FF;
-    #else
-    ad_date = REG_READ(SARADC_ADC_DAT_AFTER_STA)&0xFFFF;
-    #endif // (CFG_SOC_NAME == SOC_BK7231)
-    voltage = saradc_calculate_fast(ad_date);
-//    tmpData = voltage * 1000;
-
-    value = REG_READ(SARADC_ADC_CONFIG);
-    value &= ~(SARADC_ADC_MODE_MASK << SARADC_ADC_MODE_POSI);
-    value &= ~(SARADC_ADC_CHNL_EN);
-    REG_WRITE(SARADC_ADC_CONFIG, value);
-
-    reg = REG_READ(ICU_PERI_CLK_PWD);
-    reg |= PWD_SARADC_CLK_BIT;
-    REG_WRITE(ICU_PERI_CLK_PWD, reg);
-
-    Lock_MutexPost(pg_tadc_mutex);
 
     return voltage;
 }

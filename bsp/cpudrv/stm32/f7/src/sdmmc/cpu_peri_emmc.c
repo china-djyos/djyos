@@ -229,41 +229,42 @@ int _MMC_Read(BYTE *pBuf, DWORD qwSector, UINT dwCount)
     u32 count = (u32)dwCount;
     int ret = 0;
 
-    Lock_MutexPend(pOperationMutex, CN_TIMEOUT_FOREVER);
-
-    res = HAL_MMC_ReadBlocks(&handleMMC, buf, block, count, 0xFFFF);
-    if(HAL_OK != res)
+    if(Lock_MutexPend(pOperationMutex, CN_TIMEOUT_FOREVER))
     {
-        printk("\r\nEMMC : debug : read <%xH> <%xH> <%xH> <%xH>\r\n", block, count, res, handleMMC.ErrorCode);
-        ret = -1;
-    }
-    else
-    {   // 查询设备完成，即是否完成
-        while(1)
+        res = HAL_MMC_ReadBlocks(&handleMMC, buf, block, count, 0xFFFF);
+        if(HAL_OK != res)
         {
-            DJY_EventDelay(1);
-            if(count++ == SDMMC_MAX_TRIAL)
-            {
-                ret = -1;
-                printk("\r\nEMMC : debug : read timeout\r\n");
-                break;
-            }
-
-            res = SDMMC_CmdSendStatus(handleMMC.Instance, (u32)(handleMMC.MmcCard.RelCardAdd << 16));
-            if(HAL_MMC_ERROR_NONE != res)
-            {
-                ret = -1;
-                printk("\r\nEMMC : debug : read status <%xH>\r\n", res);
-                break;
-            }
-
-            response = SDMMC_GetResponse(handleMMC.Instance, SDMMC_RESP1);
-            if((response & 1 << 8) && ((response & (0xF << 9)) != (0x7 << 9)))
-                break;
+            printk("\r\nEMMC : debug : read <%xH> <%xH> <%xH> <%xH>\r\n", block, count, res, handleMMC.ErrorCode);
+            ret = -1;
         }
-    }
+        else
+        {   // 查询设备完成，即是否完成
+            while(1)
+            {
+                DJY_EventDelay(1);
+                if(count++ == SDMMC_MAX_TRIAL)
+                {
+                    ret = -1;
+                    printk("\r\nEMMC : debug : read timeout\r\n");
+                    break;
+                }
 
-    Lock_MutexPost(pOperationMutex);
+                res = SDMMC_CmdSendStatus(handleMMC.Instance, (u32)(handleMMC.MmcCard.RelCardAdd << 16));
+                if(HAL_MMC_ERROR_NONE != res)
+                {
+                    ret = -1;
+                    printk("\r\nEMMC : debug : read status <%xH>\r\n", res);
+                    break;
+                }
+
+                response = SDMMC_GetResponse(handleMMC.Instance, SDMMC_RESP1);
+                if((response & 1 << 8) && ((response & (0xF << 9)) != (0x7 << 9)))
+                    break;
+            }
+        }
+
+        Lock_MutexPost(pOperationMutex);
+    }
     return (ret);
 }
 
@@ -282,42 +283,43 @@ int _MMC_Write(BYTE *pBuf, DWORD qwSector, UINT dwCount)
     u32 count = (u32)dwCount;
     int ret = 0;
 
-    Lock_MutexPend(pOperationMutex, CN_TIMEOUT_FOREVER);
-
-    res = HAL_MMC_WriteBlocks(&handleMMC, buf, block, count, 0xFFFF);
-    if(HAL_OK != res)
+    if(Lock_MutexPend(pOperationMutex, CN_TIMEOUT_FOREVER))
     {
-        printk("\r\nEMMC : debug : write <%xH> <%xH> <%xH> <%xH>\r\n", block, count, res, handleMMC.ErrorCode);
-        ret = -1;
-    }
-    else
-    {
-        // 查询设备是否ready，即是否完成
-        while(1)
+        res = HAL_MMC_WriteBlocks(&handleMMC, buf, block, count, 0xFFFF);
+        if(HAL_OK != res)
         {
-            DJY_EventDelay(1);
-            if(count++ == SDMMC_MAX_TRIAL)
-            {
-                ret = -1;
-                printk("\r\nEMMC : debug : write timeout\r\n");
-                break;
-            }
-
-            res = SDMMC_CmdSendStatus(handleMMC.Instance, (u32)(handleMMC.MmcCard.RelCardAdd << 16));
-            if(HAL_MMC_ERROR_NONE != res)
-            {
-                ret = -1;
-                printk("\r\nEMMC : debug : write status <%xH>\r\n", res);
-                break;
-            }
-
-            response = SDMMC_GetResponse(handleMMC.Instance, SDMMC_RESP1);
-            if((response & 1 << 8) && ((response & (0xF << 9)) != (0x7 << 9)))
-                break;
+            printk("\r\nEMMC : debug : write <%xH> <%xH> <%xH> <%xH>\r\n", block, count, res, handleMMC.ErrorCode);
+            ret = -1;
         }
-    }
+        else
+        {
+            // 查询设备是否ready，即是否完成
+            while(1)
+            {
+                DJY_EventDelay(1);
+                if(count++ == SDMMC_MAX_TRIAL)
+                {
+                    ret = -1;
+                    printk("\r\nEMMC : debug : write timeout\r\n");
+                    break;
+                }
 
-    Lock_MutexPost(pOperationMutex);
+                res = SDMMC_CmdSendStatus(handleMMC.Instance, (u32)(handleMMC.MmcCard.RelCardAdd << 16));
+                if(HAL_MMC_ERROR_NONE != res)
+                {
+                    ret = -1;
+                    printk("\r\nEMMC : debug : write status <%xH>\r\n", res);
+                    break;
+                }
+
+                response = SDMMC_GetResponse(handleMMC.Instance, SDMMC_RESP1);
+                if((response & 1 << 8) && ((response & (0xF << 9)) != (0x7 << 9)))
+                    break;
+            }
+        }
+
+        Lock_MutexPost(pOperationMutex);
+    }
     return (ret);
 }
 
@@ -492,14 +494,16 @@ s32 MMC_Erase(s32 dwArgC, ...)
 
     if(-1 == range) // 擦除整个设备
     {
-        Lock_MutexPend(pOperationMutex, CN_TIMEOUT_FOREVER);
-        res = HAL_MMC_Erase(&handleMMC, 0, handleMMC.MmcCard.LogBlockNbr-1);
-        if(res)
+        if(Lock_MutexPend(pOperationMutex, CN_TIMEOUT_FOREVER))
         {
-            printk("\r\nEMMC : debug : erase failed.\r\n");
+            res = HAL_MMC_Erase(&handleMMC, 0, handleMMC.MmcCard.LogBlockNbr-1);
+            if(res)
+            {
+                printk("\r\nEMMC : debug : erase failed.\r\n");
+            }
+            Lock_MutexPost(pOperationMutex);
+            DJY_EventDelay(3000000); // 等待一段时间
         }
-        Lock_MutexPost(pOperationMutex);
-        DJY_EventDelay(3000000); // 等待一段时间
     }
 
     return (res);

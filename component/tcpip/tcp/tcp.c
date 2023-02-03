@@ -3451,71 +3451,81 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
     portdst = hdr->portdst;
     portsrc = hdr->portsrc;
     //if any client match this pkg
-    Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER);
-    if((sock = __hashSocketSearch(ipdst,portdst,ipsrc,portsrc)) != NULL)
+    if(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER))
     {
-        //get the communicate client
-        client = sock;
-        Lock_MutexPend(client->SockSync,CN_TIMEOUT_FOREVER);
-        __dealrecvpkg(client,hdr,pkg);
-        Lock_MutexPost(client->SockSync);
-    }
-    else if((sock = __hashSocketSearch(INADDR_ANY,portdst,ipsrc,portsrc)) != NULL)
-    {
-        //the inaddr_any client matches
-        client = sock;
-        Lock_MutexPend(client->SockSync,CN_TIMEOUT_FOREVER);
-        __dealrecvpkg(client,hdr,pkg);
-        Lock_MutexPost(client->SockSync);
-    }
-    else if((sock = __hashSocketSearch(ipdst,portdst,0,0))!= NULL)
-    {
-        //the specified server matches
-        server = sock;
-        Lock_MutexPend(server->SockSync,CN_TIMEOUT_FOREVER);
-        client = __tcpmatchclient(server,ipsrc,portsrc);
-        if(NULL == client)
+        if((sock = __hashSocketSearch(ipdst,portdst,ipsrc,portsrc)) != NULL)
         {
-            client = __newclient(server,hdr,ipdst, portdst, ipsrc, portsrc);
-            if(NULL == client) //could not add any more client
+            //get the communicate client
+            client = sock;
+            if(Lock_MutexPend(client->SockSync,CN_TIMEOUT_FOREVER))
+            {
+                __dealrecvpkg(client,hdr,pkg);
+                Lock_MutexPost(client->SockSync);
+            }
+        }
+        else if((sock = __hashSocketSearch(INADDR_ANY,portdst,ipsrc,portsrc)) != NULL)
+        {
+            //the inaddr_any client matches
+            client = sock;
+            if(Lock_MutexPend(client->SockSync,CN_TIMEOUT_FOREVER))
+            {
+                __dealrecvpkg(client,hdr,pkg);
+                Lock_MutexPost(client->SockSync);
+            }
+        }
+        else if((sock = __hashSocketSearch(ipdst,portdst,0,0))!= NULL)
+        {
+            //the specified server matches
+            server = sock;
+            if(Lock_MutexPend(server->SockSync,CN_TIMEOUT_FOREVER))
+            {
+                client = __tcpmatchclient(server,ipsrc,portsrc);
+                if(NULL == client)
+                {
+                    client = __newclient(server,hdr,ipdst, portdst, ipsrc, portsrc);
+                    if(NULL == client) //could not add any more client
+                    {
+                        __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno),ntohl(hdr->ackno));
+                    }
+                }
+                else
+                {
+                    __dealrecvpkg(client,hdr,pkg);
+                }
+                Lock_MutexPost(server->SockSync);
+            }
+        }
+        else if((sock = __hashSocketSearch(INADDR_ANY,portdst,0,0))!= NULL)
+        {
+            //the inaddr_any server matches
+            server = sock;
+            if(Lock_MutexPend(server->SockSync,CN_TIMEOUT_FOREVER))
+            {
+                client = __tcpmatchclient(server,ipsrc,portsrc);
+                if(NULL == client)
+                {
+                    client = __newclient(server,hdr,ipdst, portdst, ipsrc, portsrc);
+                    if(NULL == client) //could not add any more client
+                    {
+                        __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno),ntohl(hdr->ackno));
+                    }
+                }
+                else
+                {
+                    __dealrecvpkg(client,hdr,pkg);
+                }
+                Lock_MutexPost(server->SockSync);
+            }
+        }
+        else   //no port matches, so just reset it
+        {
+            if(0==(hdr->flags & CN_TCP_FLAG_RST))
             {
                 __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno),ntohl(hdr->ackno));
             }
         }
-        else
-        {
-            __dealrecvpkg(client,hdr,pkg);
-        }
-        Lock_MutexPost(server->SockSync);
+        Lock_MutexPost(TcpHashTab.tabsync);
     }
-    else if((sock = __hashSocketSearch(INADDR_ANY,portdst,0,0))!= NULL)
-    {
-        //the inaddr_any server matches
-        server = sock;
-        Lock_MutexPend(server->SockSync,CN_TIMEOUT_FOREVER);
-        client = __tcpmatchclient(server,ipsrc,portsrc);
-        if(NULL == client)
-        {
-            client = __newclient(server,hdr,ipdst, portdst, ipsrc, portsrc);
-            if(NULL == client) //could not add any more client
-            {
-                __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno),ntohl(hdr->ackno));
-            }
-        }
-        else
-        {
-            __dealrecvpkg(client,hdr,pkg);
-        }
-        Lock_MutexPost(server->SockSync);
-    }
-    else   //no port matches, so just reset it
-    {
-        if(0==(hdr->flags & CN_TCP_FLAG_RST))
-        {
-            __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno),ntohl(hdr->ackno));
-        }
-    }
-    Lock_MutexPost(TcpHashTab.tabsync);
 
     return true;
 
@@ -3716,89 +3726,93 @@ static void __tcptick(void)
     for(i = 0; i < CFG_TCP_SOCKET_HASH_LEN; i ++)
     {
         //each hash number we will lock and unlock ,so left some time for others
-        Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER);
-        sock = TcpHashTab.array[i];
-        while(NULL != sock)
+        if(Lock_MutexPend(TcpHashTab.tabsync,CN_TIMEOUT_FOREVER))
         {
-            Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER);
-            if(CN_SOCKET_CLIENT&sock->sockstat)//this is the client
+            sock = TcpHashTab.array[i];
+            while(NULL != sock)
             {
-                client = sock;
-                ccb = (struct ClientCB *)client->TplCB;
-                if((CN_SOCKET_CLOSE&client->sockstat)&&\
-                    (EN_TCP_MC_2FREE == ccb->machinestat))
+                if(Lock_MutexPend(sock->SockSync,CN_TIMEOUT_FOREVER))
                 {
-                    __ResetCCB(ccb,EN_TCP_MC_2FREE);
-                    __DeleCCB(ccb);
-                    sock = client->Nextsock;
-                    __hashSocketRemove(client);
-                    SocketFree(client);
-                }
-                else
-                {
-                    __dealclienttimer(client);
-                    sock = client->Nextsock;
-                    Lock_MutexPost(client->SockSync);
-                }
-            }//end for the client
-            else//this is an server, we should deal the client hang on it
-            {
-                server = sock;
-                scb = (struct ServerCB *)server->TplCB;
-                client = scb->clst;
-                clientpre = client;
-                while(NULL != client)  //deal all the client
-                {
-                    __dealclienttimer(client);
-                    ccb = (struct ClientCB *)client->TplCB;
-                    if(EN_TCP_MC_2FREE == ccb->machinestat)
+                    if(CN_SOCKET_CLIENT&sock->sockstat)//this is the client
                     {
-                        //remove it from the queue
-                        if(client == scb->clst)
+                        client = sock;
+                        ccb = (struct ClientCB *)client->TplCB;
+                        if((CN_SOCKET_CLOSE&client->sockstat)&&\
+                            (EN_TCP_MC_2FREE == ccb->machinestat))
                         {
-                            scb->clst = client->NextClient;
-                            clientpre = client->NextClient;
+                            __ResetCCB(ccb,EN_TCP_MC_2FREE);
+                            __DeleCCB(ccb);
+                            sock = client->Nextsock;
+                            __hashSocketRemove(client);
+                            SocketFree(client);
                         }
                         else
                         {
-                            clientpre->NextClient = client->NextClient;
+                            __dealclienttimer(client);
+                            sock = client->Nextsock;
+    //                      Lock_MutexPost(client->SockSync);
                         }
-                        clientnxt = client->NextClient;
-                        client->NextClient = NULL;
-                        __ResetCCB(ccb,EN_TCP_MC_2FREE);
-                        __DeleCCB(ccb);
-                        __hashSocketRemove(client);
-                        SocketFree(client);  //net_free the client
-                        if (scb->pendnum > 0) {
-                            scb->pendnum--;
-                            Lock_SempPend(scb->acceptsemp, 0);
-                        }
-                    }
-                    else if (EN_TCP_MC_CLOSEWAIT == ccb->machinestat) {
-                        //send the fin to close
-                        ccb->channelstat &= (~(CN_TCP_CHANNEL_STATKSND));
-                        __sendflag(sock, CN_TCP_FLAG_FIN | CN_TCP_FLAG_ACK,
-                                NULL, 0, ccb->sbuf.sndnxtno);
-                        ccb->sbuf.sndnxtno++;
-                        ccb->resndtimer = (u16)ccb->rto;
-                        ccb->timerctrl |= CN_TCP_TIMER_FIN;
-                        ccb->machinestat = EN_TCP_MC_LASTACK;
-                        clientpre = client;
-                        clientnxt = client->Nextsock;
-                    }
-                    else
+                    }//end for the client
+                    else//this is an server, we should deal the client hang on it
                     {
+                        server = sock;
+                        scb = (struct ServerCB *)server->TplCB;
+                        client = scb->clst;
                         clientpre = client;
-                        clientnxt = client->Nextsock;
+                        while(NULL != client)  //deal all the client
+                        {
+                            __dealclienttimer(client);
+                            ccb = (struct ClientCB *)client->TplCB;
+                            if(EN_TCP_MC_2FREE == ccb->machinestat)
+                            {
+                                //remove it from the queue
+                                if(client == scb->clst)
+                                {
+                                    scb->clst = client->NextClient;
+                                    clientpre = client->NextClient;
+                                }
+                                else
+                                {
+                                    clientpre->NextClient = client->NextClient;
+                                }
+                                clientnxt = client->NextClient;
+                                client->NextClient = NULL;
+                                __ResetCCB(ccb,EN_TCP_MC_2FREE);
+                                __DeleCCB(ccb);
+                                __hashSocketRemove(client);
+                                SocketFree(client);  //net_free the client
+                                if (scb->pendnum > 0) {
+                                    scb->pendnum--;
+                                    Lock_SempPend(scb->acceptsemp, 0);
+                                }
+                            }
+                            else if (EN_TCP_MC_CLOSEWAIT == ccb->machinestat) {
+                                //send the fin to close
+                                ccb->channelstat &= (~(CN_TCP_CHANNEL_STATKSND));
+                                __sendflag(sock, CN_TCP_FLAG_FIN | CN_TCP_FLAG_ACK,
+                                        NULL, 0, ccb->sbuf.sndnxtno);
+                                ccb->sbuf.sndnxtno++;
+                                ccb->resndtimer = (u16)ccb->rto;
+                                ccb->timerctrl |= CN_TCP_TIMER_FIN;
+                                ccb->machinestat = EN_TCP_MC_LASTACK;
+                                clientpre = client;
+                                clientnxt = client->Nextsock;
+                            }
+                            else
+                            {
+                                clientpre = client;
+                                clientnxt = client->Nextsock;
+                            }
+                            client = clientnxt;
+                        }
+                        //deal the server it self
+                        sock = server->Nextsock;
                     }
-                    client = clientnxt;
+                    Lock_MutexPost(server->SockSync);
                 }
-                //deal the server it self
-                sock = server->Nextsock;
-                Lock_MutexPost(server->SockSync);
             }
+            Lock_MutexPost(TcpHashTab.tabsync);
         }
-        Lock_MutexPost(TcpHashTab.tabsync);
     }
 
     return;

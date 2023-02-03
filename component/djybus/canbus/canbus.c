@@ -487,44 +487,46 @@ ptu32_t __CANBus_SndTask(void)
       bool_t ret=false;
       while(1)
       {
-         MsgQ_Receive(gs_ptCanSndMsgQ, buf, CN_CAN_BUS_MSGQ_LEN, CN_TIMEOUT_FOREVER);
-         temp=0x0;
-         memset(&Frame,0,sizeof(CanFarmeDef));
-         for(i=0;i<4;i++)
+         if(MsgQ_Receive(gs_ptCanSndMsgQ, buf, CN_CAN_BUS_MSGQ_LEN, CN_TIMEOUT_FOREVER))
          {
-             temp|=(uint32_t)(buf[i]<<(8*i));
-         }
-         CANBus=(struct CANBusCB *)temp;
-         Frame.Type=buf[4];
-         Frame.DLC=buf[5];
-         id=0x0;
-         for(i=0;i<4;i++)
-         {
-             id|=(uint32_t)(buf[6+i]<<(8*i));
-         }
-         Frame.Id=id;
-         for(i=0;i<Frame.DLC;i++)
-         {
-             Frame.Data[i]=buf[10+i];
-         }
-         //需要等待总线空闲
-         if(true == Lock_SempPend(CANBus->CAN_BusSemp,CFG_CAN_BUS_TIMEOUT*mS))
-         {
-            if(CANBus->CanWrite!=NULL)
-                ret=CANBus->CanWrite(CANBus,&Frame);
-            Lock_SempPost(CANBus->CAN_BusSemp);
-            if(ret)
-            {
-                CANBus->CanStat.HardSndCnt++;
-            }
-            else
-            {
-                CANBus->CanStat.SndPkgBadCnt++;
-            }
-         }
-         else
-         {
-             CANBus->CanStat.SendSempTimeoutCnt++;
+             temp=0x0;
+             memset(&Frame,0,sizeof(CanFarmeDef));
+             for(i=0;i<4;i++)
+             {
+                 temp|=(uint32_t)(buf[i]<<(8*i));
+             }
+             CANBus=(struct CANBusCB *)temp;
+             Frame.Type=buf[4];
+             Frame.DLC=buf[5];
+             id=0x0;
+             for(i=0;i<4;i++)
+             {
+                 id|=(uint32_t)(buf[6+i]<<(8*i));
+             }
+             Frame.Id=id;
+             for(i=0;i<Frame.DLC;i++)
+             {
+                 Frame.Data[i]=buf[10+i];
+             }
+             //需要等待总线空闲
+             if(true == Lock_SempPend(CANBus->CAN_BusSemp,CFG_CAN_BUS_TIMEOUT*mS))
+             {
+                if(CANBus->CanWrite!=NULL)
+                    ret=CANBus->CanWrite(CANBus,&Frame);
+                Lock_SempPost(CANBus->CAN_BusSemp);
+                if(ret)
+                {
+                    CANBus->CanStat.HardSndCnt++;
+                }
+                else
+                {
+                    CANBus->CanStat.SndPkgBadCnt++;
+                }
+             }
+             else
+             {
+                 CANBus->CanStat.SendSempTimeoutCnt++;
+             }
          }
       }
 }

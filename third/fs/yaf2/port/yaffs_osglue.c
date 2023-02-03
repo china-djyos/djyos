@@ -77,7 +77,8 @@ int yaffsfs_CheckMemRegion(const void *addr, size_t size, int write_request)
 
 void yaffsfs_Lock(void)
 {
-    Lock_MutexPend(&YaffsLock, CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(&YaffsLock, CN_TIMEOUT_FOREVER))
+        error_printf("yaffsfs", "Attempt to block mutex when disable sch\r\n")
 }
 
 void yaffsfs_Unlock(void)

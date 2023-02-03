@@ -24,8 +24,10 @@ USBH_StatusTypeDef USBH_LL_Init (USBH_HandleTypeDef *pHost)
         return USBH_NOT_SUPPORTED;
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->Init(pHost);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 
 }
@@ -46,8 +48,10 @@ USBH_StatusTypeDef USBH_LL_DeInit (USBH_HandleTypeDef *pHost)
         return USBH_NOT_SUPPORTED;
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->DeInit(pHost);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -67,8 +71,10 @@ USBH_StatusTypeDef USBH_LL_Start(USBH_HandleTypeDef *pHost)
         return USBH_NOT_SUPPORTED;
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->Start(pHost);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -88,8 +94,10 @@ USBH_StatusTypeDef USBH_LL_Stop (USBH_HandleTypeDef *pHost)
         return USBH_NOT_SUPPORTED;
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->Stop(pHost);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -109,8 +117,10 @@ USBH_SpeedTypeDef USBH_LL_GetSpeed (USBH_HandleTypeDef *pHost)
         return (-1);
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->GetSpeed(pHost);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -130,8 +140,10 @@ USBH_StatusTypeDef USBH_LL_ResetPort (USBH_HandleTypeDef *pHost)
         return USBH_NOT_SUPPORTED;
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->ResetPort(pHost);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 
 }
@@ -152,8 +164,10 @@ uint32_t USBH_LL_GetLastXferSize (USBH_HandleTypeDef *pHost, uint8_t pipe)
         return (-1);
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->GetLastXferSize(pHost, pipe);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -171,7 +185,7 @@ uint32_t USBH_LL_GetLastXferSize (USBH_HandleTypeDef *pHost, uint8_t pipe)
 // ============================================================================
 USBH_StatusTypeDef USBH_LL_OpenPipe (USBH_HandleTypeDef *pHost,
                                      uint8_t pipe_num,
-                                     uint8_t epnum,                                      
+                                     uint8_t epnum,
                                      uint8_t dev_address,
                                      uint8_t speed,
                                      uint8_t ep_type,
@@ -185,9 +199,11 @@ USBH_StatusTypeDef USBH_LL_OpenPipe (USBH_HandleTypeDef *pHost,
         return (USBH_NOT_SUPPORTED);
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->OpenPipe(pHost, pipe_num, epnum, dev_address,
                         speed, ep_type, mps);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -207,8 +223,10 @@ USBH_StatusTypeDef USBH_LL_ClosePipe (USBH_HandleTypeDef *pHost, uint8_t pipe)
         return (USBH_NOT_SUPPORTED);
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->ClosePipe(pHost, pipe);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -219,7 +237,7 @@ USBH_StatusTypeDef USBH_LL_ClosePipe (USBH_HandleTypeDef *pHost, uint8_t pipe)
 //               This parameter can be a value from 1 to 15
 //      direction -- Channel number
 //                     This parameter can be one of the these values:
-//                       0 : Output 
+//                       0 : Output
 //                       1 : Input
 //      ep_type -- Endpoint Type
 //                    This parameter can be one of the these values:
@@ -235,19 +253,19 @@ USBH_StatusTypeDef USBH_LL_ClosePipe (USBH_HandleTypeDef *pHost, uint8_t pipe)
 //      length -- Length of URB data
 //      do_ping -- activate do PING protocol (for high speed only)
 //                 This parameter can be one of the these values:
-//                  0 : do PING inactive 
-//                  1 : do PING active 
+//                  0 : do PING inactive
+//                  1 : do PING active
 // ·µ»Ø£º
 // ±¸×¢£º
 // ============================================================================
 USBH_StatusTypeDef USBH_LL_SubmitURB (USBH_HandleTypeDef *pHost,
-                                      uint8_t pipe, 
+                                      uint8_t pipe,
                                       uint8_t direction,
-                                      uint8_t ep_type,  
-                                      uint8_t token, 
-                                      uint8_t* pbuff, 
+                                      uint8_t ep_type,
+                                      uint8_t token,
+                                      uint8_t* pbuff,
                                       uint16_t length,
-                                      uint8_t do_ping) 
+                                      uint8_t do_ping)
 {
     struct USBH_LowLevel *USBH_LL;
     USBH_StatusTypeDef res = USBH_FAIL;
@@ -258,9 +276,11 @@ USBH_StatusTypeDef USBH_LL_SubmitURB (USBH_HandleTypeDef *pHost,
 
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->SubmitURB(pHost, pipe, direction, ep_type,
                             token, pbuff, length, do_ping);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
 
     return (res);
 }
@@ -287,8 +307,10 @@ USBH_URBStateTypeDef  USBH_LL_GetURBState (USBH_HandleTypeDef *pHost, uint8_t pi
         return (USBH_NOT_SUPPORTED); // URB_NOTREADY;
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->GetURBState(pHost, pipe);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -312,8 +334,10 @@ USBH_StatusTypeDef  USBH_LL_DriverVBUS (USBH_HandleTypeDef *pHost, uint8_t state
         return (USBH_NOT_SUPPORTED);
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->DriverVBUS(pHost, state);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -333,8 +357,10 @@ USBH_StatusTypeDef USBH_LL_SetToggle (USBH_HandleTypeDef *pHost, uint8_t pipe, u
         return (USBH_NOT_SUPPORTED);
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->SetToggle(pHost, pipe, toggle);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -354,8 +380,10 @@ uint8_t USBH_LL_GetToggle (USBH_HandleTypeDef *pHost, uint8_t pipe)
         return (USBH_NOT_SUPPORTED);
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->GetToggle(pHost, pipe);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -386,8 +414,10 @@ USBH_StatusTypeDef USBH_LL_EnAsync (USBH_HandleTypeDef *pHost, uint8_t pipe)
         return (USBH_NOT_SUPPORTED);
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->EnAsync(pHost, pipe);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -407,8 +437,10 @@ USBH_StatusTypeDef USBH_LL_DisAsync (USBH_HandleTypeDef *pHost, uint8_t pipe)
         return (USBH_NOT_SUPPORTED);
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->DisAsync(pHost, pipe);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -428,8 +460,10 @@ USBH_StatusTypeDef USBH_LL_Suspend (USBH_HandleTypeDef *pHost)
         return (USBH_NOT_SUPPORTED);
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->Suspend(pHost);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 
@@ -449,8 +483,10 @@ USBH_StatusTypeDef USBH_LL_Resume (USBH_HandleTypeDef *pHost)
         return (USBH_NOT_SUPPORTED);
 
     if(Lock_MutexPend((struct MutexLCB*)USBH_LL->pMutex, CN_TIMEOUT_FOREVER))
+    {
         res = USBH_LL->Resume(pHost);
-    Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+        Lock_MutexPost((struct MutexLCB*)USBH_LL->pMutex);
+    }
     return (res);
 }
 

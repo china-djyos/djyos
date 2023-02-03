@@ -166,8 +166,8 @@ static ptu32_t djytimer_thread(void)
         timer = (struct djytimer_t *)djytimer.timerlist.head;
         if(timer==NULL)
         {
-            Lock_SempPend(djytimer.sem,CN_TIMEOUT_FOREVER);
-            timer = (struct djytimer_t *)djytimer.timerlist.head;
+            if(Lock_SempPend(djytimer.sem,CN_TIMEOUT_FOREVER))
+                timer = (struct djytimer_t *)djytimer.timerlist.head;
         }
         cur_tick = (uint32_t)(DJY_GetSysTime()/1000);
         delay_ms = timer->node.addr > cur_tick ?

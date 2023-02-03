@@ -176,7 +176,7 @@ u32 FRAM_Write_Word( u32 Fram_DstAddr,u16 u16data)
 u16 FRAM_Read_Word_r(u16 wAddress )
 {
     u16    wData = 0;
-    if(-1 == Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))  // 获取写权限
+    if(! Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))  // 获取写权限
     {
         printf("FRAM1_Read_Word_r 获取写权限失败\n");
         return  false;
@@ -195,7 +195,7 @@ u32 FRAM_Read_Data_r( u16 wAddress, u8 *pbyBuf, u32 dwLen )
 {
     register u32      dwStatus = 0;
 
-    if(-1 == Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))   // 获取写权限
+    if(! Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))   // 获取写权限
     {
         printf("FRAM1_Read_Data 获取写权限失败\n");
         return  false;
@@ -214,7 +214,7 @@ u32 FRAM_Read_Data_r( u16 wAddress, u8 *pbyBuf, u32 dwLen )
 s32 FRAM_Write_Word_r(u16 wAddress, u16 wData )
 {
     s32    Status = 0;
-    if(-1 == Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))       // 获取写权限
+    if(! Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))       // 获取写权限
     {
         printf("FRAM1_Write_Word_r 获取写权限失败\n");
         return  false;
@@ -232,7 +232,7 @@ s32 FRAM_Write_Word_r(u16 wAddress, u16 wData )
 u32 FRAM_Write_Data_r(u16 wAddress, u8 *pbyBuf, u32 dwLen)
 {
     register u32      dwStatus = 0;
-    if(-1 == Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))   // 获取写权限
+    if(! Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))   // 获取写权限
     {
         printf("FRAM1_Write_Data_r 获取写权限失败\n");
         return  false;

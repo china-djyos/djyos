@@ -632,10 +632,10 @@ bool_t ResolveMacByArp(u32 ippeer,u32 iphost,struct NetDev *iface,u8 *macbuf)
     }
     if((false == ret)&&(NULL != tmp))
     {
-        Lock_SempPend(tmp->semp,CN_ARP_SYNC_TIME);   //等待ARP响应
-        //check once more
-        if(Lock_MutexPend(gArpCB.lock,CN_TIMEOUT_FOREVER))
+        if(Lock_SempPend(tmp->semp,CN_ARP_SYNC_TIME))   //等待ARP响应
         {
+            //if 那行不报错的话，说明调度是允许的，可以不判 Lock_MutexPend 是否成功
+            Lock_MutexPend(gArpCB.lock,CN_TIMEOUT_FOREVER);
             if(tmp->pro &CN_ARPITEM_PRO_STABLE)
             {
                 memcpy(macbuf,tmp->mac,CN_MACADDR_LEN);

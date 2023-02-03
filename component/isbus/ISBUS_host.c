@@ -365,15 +365,23 @@ bool_t __ISBUS_RecordSlaveError(struct SlaveList *slave, bool_t error)
             if(Port->fnError != NULL)
                 Port->fnError((void *)Port, CN_INS_SLAVE_RECOVER, slave->Address);
 
-            Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
-            if (Port->LogicSlaveTail != Port->SlaveTail)
+            if(Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER))
             {
-                if (slave->Address > Port->LogicSlaveTail->Address)
+                if (Port->LogicSlaveTail != Port->SlaveTail)
                 {
-                    Port->LogicSlaveTail = slave;   //新恢复的节点为逻辑尾节点
+                    if (slave->Address > Port->LogicSlaveTail->Address)
+                    {
+                        Port->LogicSlaveTail = slave;   //新恢复的节点为逻辑尾节点
+                    }
                 }
+                Lock_MutexPost(Port->SlaveListMutex);
             }
-            Lock_MutexPost(Port->SlaveListMutex);
+            else
+            {
+                //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+                //printf会调用stdout，进而可能又调用 Lock_MutexPend
+                printk("ISBUS：Attempt to block mutex when disable sch\r\n");
+            }
         }
         slave->Errors = 0;
     }
@@ -394,37 +402,45 @@ bool_t __ISBUS_RecordSlaveError(struct SlaveList *slave, bool_t error)
 
                 if ((slave == Port->SlaveTail) || (slave == Port->LogicSlaveTail))
                 {
-                    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
-                    AllSlaveErrorbuf = malloc(Port->SlaveNum);
-                    if (AllSlaveErrorbuf)
+                    if(Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER))
                     {
-                        // 尾节点从机通信异常，更新尾从机节点
-                        NewSlaveTail = Port->SlaveHead;
-
-                        do
+                        AllSlaveErrorbuf = malloc(Port->SlaveNum);
+                        if (AllSlaveErrorbuf)
                         {
-                            AllSlaveErrorbuf[SlaveNum ++] = NewSlaveTail->Errors;       //记录所有从机的错误次数
-                            NewSlaveTail = NewSlaveTail->Next;
-                        }while(NewSlaveTail != Port->SlaveHead);
+                            // 尾节点从机通信异常，更新尾从机节点
+                            NewSlaveTail = Port->SlaveHead;
 
-                        while((SlaveNum > 0) && (AllSlaveErrorbuf[-- SlaveNum] >= 3));      //找到从尾开始，第一个正常的从机
-
-                        if (AllSlaveErrorbuf[SlaveNum] < 3)     //确认一下，错误次数是否满足要求
-                        {
                             do
                             {
-                                if (NewSlaveTailNum == SlaveNum)
-                                {
-                                    Port->LogicSlaveTail = NewSlaveTail;    //设置逻辑从机结束地址
-                                    break;
-                                }
-                                NewSlaveTailNum ++;
+                                AllSlaveErrorbuf[SlaveNum ++] = NewSlaveTail->Errors;       //记录所有从机的错误次数
                                 NewSlaveTail = NewSlaveTail->Next;
                             }while(NewSlaveTail != Port->SlaveHead);
+
+                            while((SlaveNum > 0) && (AllSlaveErrorbuf[-- SlaveNum] >= 3));      //找到从尾开始，第一个正常的从机
+
+                            if (AllSlaveErrorbuf[SlaveNum] < 3)     //确认一下，错误次数是否满足要求
+                            {
+                                do
+                                {
+                                    if (NewSlaveTailNum == SlaveNum)
+                                    {
+                                        Port->LogicSlaveTail = NewSlaveTail;    //设置逻辑从机结束地址
+                                        break;
+                                    }
+                                    NewSlaveTailNum ++;
+                                    NewSlaveTail = NewSlaveTail->Next;
+                                }while(NewSlaveTail != Port->SlaveHead);
+                            }
+                            free(AllSlaveErrorbuf);
                         }
-                        free(AllSlaveErrorbuf);
+                        Lock_MutexPost(Port->SlaveListMutex);
                     }
-                    Lock_MutexPost(Port->SlaveListMutex);
+                    else
+                    {
+                        //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+                        //printf会调用stdout，进而可能又调用 Lock_MutexPend
+                        printk("ISBUS:Attempt to block mutex when disable sch\r\n");
+                    }
                 }
             }
         }
@@ -443,18 +459,26 @@ bool_t __ISBUS_BroadcastProcess(struct Host_ISBUSPort *Port,u8 src)
     if(Port->SlaveHead == NULL)
         return resent;
 
-    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
-    Current = Port->SlaveHead;
-    do
+    if(Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER))
     {
-        slaveaddr = Current->Address;
-        err = __ISBUS_UniProcess(Port, slaveaddr);
-        if(__ISBUS_RecordSlaveError(Current, ! err))
-            resent = true;
-        Current = Current->Next;
-    }while(Current != Port->SlaveHead);
+        Current = Port->SlaveHead;
+        do
+        {
+            slaveaddr = Current->Address;
+            err = __ISBUS_UniProcess(Port, slaveaddr);
+            if(__ISBUS_RecordSlaveError(Current, ! err))
+                resent = true;
+            Current = Current->Next;
+        }while(Current != Port->SlaveHead);
 
-    Lock_MutexPost(Port->SlaveListMutex);
+        Lock_MutexPost(Port->SlaveListMutex);
+    }
+    else
+    {
+        //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+        //printf会调用stdout，进而可能又调用 Lock_MutexPend
+        printk("ISBUS:Attempt to block mutex when disable sch\r\n");
+    }
     return resent;
 }
 
@@ -512,16 +536,24 @@ ptu32_t ISBUS_HostProcess(void)
                 }
                 else if(Port->PollModel == CN_POLL_SAME_CYCLE)         //等周期轮询
                 {
-                    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
-                    if(dst >= Port->LogicSlaveTail->Address)
+                    if(Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER))
                     {
-                        Lock_MutexPost(Port->SlaveListMutex);
-                        Polltime += Port->PollCycle;    //此时PollCycle代表轮询一个周期的时间
-                        DJY_EventDelayTo(Polltime);
+                        if(dst >= Port->LogicSlaveTail->Address)
+                        {
+                            Lock_MutexPost(Port->SlaveListMutex);
+                            Polltime += Port->PollCycle;    //此时PollCycle代表轮询一个周期的时间
+                            DJY_EventDelayTo(Polltime);
+                        }
+                        else
+                        {
+                            Lock_MutexPost(Port->SlaveListMutex);
+                        }
                     }
                     else
                     {
-                        Lock_MutexPost(Port->SlaveListMutex);
+                        //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+                        //printf会调用stdout，进而可能又调用 Lock_MutexPend
+                        printk("ISBUS:Attempt to block mutex when disable sch\r\n");
                     }
                 }
             }
@@ -727,103 +759,118 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
     }
     else
     {
-        Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);   //锁住通信端口，如某个指定串口
-        if(Port->IM_Head != NULL)       //发送即时消息
+        if(Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER))   //锁住通信端口，如某个指定串口
         {
-            me = Port->IM_Head;
-            if(Port->IM_Head == Port->IM_Tail)
+            if(Port->IM_Head != NULL)       //发送即时消息
             {
-                Port->IM_Tail = NULL;
-                Port->IM_Head = NULL;
-            }
-            else
-            {
-                Port->IM_Head = Port->IM_Head->next;
-            }
-            SendBuf = me->IM_buf;
-            tmp = SendBuf[CN_OFF_SERIAL];
-            SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;
-            SendBuf[CN_OFF_CHKSUM] += Port->PkgSerial - tmp;
-            Port->PkgSerial++;
-            SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
-            Device_Write(Port->SerialDevice, SendBuf, SendLen,0,0);
-            if((debug_ctrl ==true))
-            {
-                printf("\r\nhost send:");
-                for(tmp = 0;tmp < SendLen;tmp++)
+                me = Port->IM_Head;
+                if(Port->IM_Head == Port->IM_Tail)
                 {
-                    printf("%02x ",SendBuf[tmp]);
-                }
-            }
-            *dst = SendBuf[CN_OFF_DST];
-            result = true;
-            memcpy(Port->ResendPkgBuf,SendBuf,SendLen);
-
-
-            // Lock_SempPost(me->IM_Semp);
-            free(me);   //对应的 malloc 函数在 ISBUS_HostSetIM_Pkg 函数中
-        }
-        else                            //发送周期性轮询消息
-        {
-            if((Port->SendTimes != 0) && (Port->SlaveHead != NULL))
-            {
-                SendBuf = Port->PollSendPkgBuf;
-                if(SendBuf[CN_OFF_DST] < CN_INS_MULTICAST)
-                {
-                    struct SlaveList *end;
-                    Port->SlaveCurrent = Port->SlaveCurrent->Next;
-                    end = Port->SlaveCurrent;
-                    while(Port->SlaveCurrent->Errors >= 3)
-                    {
-                        Port->SlaveCurrent = Port->SlaveCurrent->Next;
-                        if(Port->SlaveCurrent == end)
-                        {
-                            AllError = true;
-                            break;
-                        }
-                    }
-                    SendBuf[CN_OFF_DST] = Port->SlaveCurrent->Address;
-                    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
-                    if((Port->SlaveCurrent == Port->LogicSlaveTail) && (Port->SendTimes != -1))
-                    {
-                        Lock_MutexPost(Port->SlaveListMutex);
-                        Port->SendTimes--;
-                        if(Port->SendTimes == 0)
-                            Lock_SempPost(Port->PollSemp);
-                    }
-                    else
-                    {
-                        Lock_MutexPost(Port->SlaveListMutex);
-                    }
+                    Port->IM_Tail = NULL;
+                    Port->IM_Head = NULL;
                 }
                 else
                 {
-                    if(Port->SendTimes != -1)
+                    Port->IM_Head = Port->IM_Head->next;
+                }
+                SendBuf = me->IM_buf;
+                tmp = SendBuf[CN_OFF_SERIAL];
+                SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;
+                SendBuf[CN_OFF_CHKSUM] += Port->PkgSerial - tmp;
+                Port->PkgSerial++;
+                SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
+                Device_Write(Port->SerialDevice, SendBuf, SendLen,0,0);
+                if((debug_ctrl ==true))
+                {
+                    printf("\r\nhost send:");
+                    for(tmp = 0;tmp < SendLen;tmp++)
                     {
-                        Port->SendTimes--;
-                        if(Port->SendTimes == 0)
-                            Lock_SempPost(Port->PollSemp);
+                        printf("%02x ",SendBuf[tmp]);
                     }
                 }
-                if(AllError == false)
+                *dst = SendBuf[CN_OFF_DST];
+                result = true;
+                memcpy(Port->ResendPkgBuf,SendBuf,SendLen);
+
+
+                // Lock_SempPost(me->IM_Semp);
+                free(me);   //对应的 malloc 函数在 ISBUS_HostSetIM_Pkg 函数中
+            }
+            else                            //发送周期性轮询消息
+            {
+                if((Port->SendTimes != 0) && (Port->SlaveHead != NULL))
                 {
-                    SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;
-                    SendBuf[CN_OFF_CHKSUM]  = 0xEB + SendBuf[CN_OFF_DST]  + SendBuf[CN_OFF_PROTO]
-                                              + SendBuf[CN_OFF_SRC] + SendBuf[CN_OFF_SERIAL] + SendBuf[CN_OFF_LEN];
-                    Port->PkgSerial++;
-                    *dst = SendBuf[CN_OFF_DST];
-                    SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
-                    Device_Write(Port->SerialDevice, SendBuf, SendLen,0,0);
-                    if((debug_ctrl ==true))
+                    SendBuf = Port->PollSendPkgBuf;
+                    if(SendBuf[CN_OFF_DST] < CN_INS_MULTICAST)
                     {
-                        printf("\r\nhost send:");
-                        for(tmp = 0;tmp < SendLen;tmp++)
+                        struct SlaveList *end;
+                        Port->SlaveCurrent = Port->SlaveCurrent->Next;
+                        end = Port->SlaveCurrent;
+                        while(Port->SlaveCurrent->Errors >= 3)
                         {
-                            printf("%02x ",SendBuf[tmp]);
+                            Port->SlaveCurrent = Port->SlaveCurrent->Next;
+                            if(Port->SlaveCurrent == end)
+                            {
+                                AllError = true;
+                                break;
+                            }
+                        }
+                        SendBuf[CN_OFF_DST] = Port->SlaveCurrent->Address;
+                        if(Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER))
+                        {
+                            if((Port->SlaveCurrent == Port->LogicSlaveTail) && (Port->SendTimes != -1))
+                            {
+                                Lock_MutexPost(Port->SlaveListMutex);
+                                Port->SendTimes--;
+                                if(Port->SendTimes == 0)
+                                    Lock_SempPost(Port->PollSemp);
+                            }
+                            else
+                            {
+                                Lock_MutexPost(Port->SlaveListMutex);
+                            }
+                        }
+                        else
+                        {
+                            //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+                            //printf会调用stdout，进而可能又调用 Lock_MutexPend
+                            printk("ISBUS:Attempt to block mutex when disable sch\r\n");
                         }
                     }
-                    result = true;
-                    memcpy(Port->ResendPkgBuf,SendBuf,SendLen);
+                    else
+                    {
+                        if(Port->SendTimes != -1)
+                        {
+                            Port->SendTimes--;
+                            if(Port->SendTimes == 0)
+                                Lock_SempPost(Port->PollSemp);
+                        }
+                    }
+                    if(AllError == false)
+                    {
+                        SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;
+                        SendBuf[CN_OFF_CHKSUM]  = 0xEB + SendBuf[CN_OFF_DST]  + SendBuf[CN_OFF_PROTO]
+                                                  + SendBuf[CN_OFF_SRC] + SendBuf[CN_OFF_SERIAL] + SendBuf[CN_OFF_LEN];
+                        Port->PkgSerial++;
+                        *dst = SendBuf[CN_OFF_DST];
+                        SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
+                        Device_Write(Port->SerialDevice, SendBuf, SendLen,0,0);
+                        if((debug_ctrl ==true))
+                        {
+                            printf("\r\nhost send:");
+                            for(tmp = 0;tmp < SendLen;tmp++)
+                            {
+                                printf("%02x ",SendBuf[tmp]);
+                            }
+                        }
+                        result = true;
+                        memcpy(Port->ResendPkgBuf,SendBuf,SendLen);
+                    }
+                    else
+                    {
+                        *dst = 0;
+                        result = false;
+                    }
                 }
                 else
                 {
@@ -831,13 +878,12 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
                     result = false;
                 }
             }
-            else
-            {
-                *dst = 0;
-                result = false;
-            }
+            Lock_SempPost(Port->PortSemp);
         }
-        Lock_SempPost(Port->PortSemp);
+        else
+        {
+            error_printf("ISBUS", "Attempt to block semaphore when disable sch\r\n");
+        }
     }
 
     return result;
@@ -864,9 +910,17 @@ bool_t ISBUS_ClearPollTimes(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket)
 
     if ((0 != Port->SendTimes) || (-1 != Port->SendTimes))
     {
-        Lock_SempPend(Port->PortSemp, CN_TIMEOUT_FOREVER);
-        Port->SendTimes = 1;    //不管之前的轮询次数是多少次，都把轮询次数设置为1
-        Lock_SempPost(Port->PortSemp);
+        if(Lock_SempPend(Port->PortSemp, CN_TIMEOUT_FOREVER))
+        {
+            Port->SendTimes = 1;    //不管之前的轮询次数是多少次，都把轮询次数设置为1
+            Lock_SempPost(Port->PortSemp);
+        }
+        else
+        {
+            //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+            //printf会调用stdout，进而可能又调用 Lock_MutexPend
+            printk("ISBUS:Attempt to block semaphore when disable sch\r\n");
+        }
     }
     return true;
 }
@@ -903,31 +957,35 @@ u32 ISBUS_SetPollPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 dst,
         return 0;
     }
 
-    Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);
-    Port->SendTimes = times;
-    SendBuf = Port->PollSendPkgBuf;
-    SendBuf[CN_OFF_START]   = 0xEB;
-    if(dst < CN_INS_MULTICAST)
-        SendBuf[CN_OFF_DST]     = Port->SlaveHead->Address;
+    if(Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER))
+    {
+        Port->SendTimes = times;
+        SendBuf = Port->PollSendPkgBuf;
+        SendBuf[CN_OFF_START]   = 0xEB;
+        if(dst < CN_INS_MULTICAST)
+            SendBuf[CN_OFF_DST]     = Port->SlaveHead->Address;
+        else
+            SendBuf[CN_OFF_DST]     = dst;
+        SendBuf[CN_OFF_PROTO]   = ISBUS_FunctionSocket->Protocol;
+        SendBuf[CN_OFF_SRC]     = 0;
+        SendBuf[CN_OFF_LEN]     = len;
+        SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;   //包序号不修改
+        SendBuf[CN_OFF_CHKSUM]  = 0xEB + SendBuf[CN_OFF_DST] + SendBuf[CN_OFF_PROTO]
+                                  + len + SendBuf[CN_OFF_SERIAL];
+        memcpy(SendBuf + sizeof(struct ISBUS_Protocol), buf, len);
+        // Lock_SempPend(Port->PollSemp, 0);   //解释一下：如果上一次调用本函数时，参数
+        //                                     //Timeout=0，发送完成后 PollSemp 将处于
+        //                                     //有信号状态，将使后续等待失效。
+        //                                     //本行须在 PortSemp 之前调用才严谨。
+        Lock_SempPost(Port->PortSemp);
+    }
     else
-        SendBuf[CN_OFF_DST]     = dst;
-    SendBuf[CN_OFF_PROTO]   = ISBUS_FunctionSocket->Protocol;
-    SendBuf[CN_OFF_SRC]     = 0;
-    SendBuf[CN_OFF_LEN]     = len;
-    SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;   //包序号不修改
-    SendBuf[CN_OFF_CHKSUM]  = 0xEB + SendBuf[CN_OFF_DST] + SendBuf[CN_OFF_PROTO]
-                              + len + SendBuf[CN_OFF_SERIAL];
-    memcpy(SendBuf + sizeof(struct ISBUS_Protocol), buf, len);
-    // Lock_SempPend(Port->PollSemp, 0);   //解释一下：如果上一次调用本函数时，参数
-    //                                     //Timeout=0，发送完成后 PollSemp 将处于
-    //                                     //有信号状态，将使后续等待失效。
-    //                                     //本行须在 PortSemp 之前调用才严谨。
-    Lock_SempPost(Port->PortSemp);
+    {
+        //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+        //printf会调用stdout，进而可能又调用 Lock_MutexPend
+        printk("ISBUS:Attempt to block semaphore when disable sch\r\n");
+    }
 
-    // if((Timeout != 0) && (times != -1))
-    // {
-    //     Lock_SempPend(Port->PollSemp, Timeout);
-    // }
     return len;
 }
 
@@ -955,113 +1013,78 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
     if(len > ISBUS_FunctionSocket->ProtocolSendLen)
         return 0;
     Port = ISBUS_FunctionSocket->CommPort;
-    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
-    current = Port->SlaveHead;
-    if(current != NULL)
+    if(Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER))
     {
-        if(dst < CN_INS_MULTICAST)      //组播、广播时可以发送的
+        current = Port->SlaveHead;
+        if(current != NULL)
         {
-            do
+            if(dst < CN_INS_MULTICAST)      //组播、广播时可以发送的
             {
-                if(current->Address == dst)
+                do
                 {
-                    found = true;
-                    break;
-                }
-                else
-                    current = current->Next;
-            }while(current != Port->SlaveHead);
+                    if(current->Address == dst)
+                    {
+                        found = true;
+                        break;
+                    }
+                    else
+                        current = current->Next;
+                }while(current != Port->SlaveHead);
 
-            if( ! found )                  //从机不存在，拒绝发送
-            {
-                Lock_MutexPost(Port->SlaveListMutex);
-                return 0;
+                if( ! found )                  //从机不存在，拒绝发送
+                {
+                    Lock_MutexPost(Port->SlaveListMutex);
+                    return 0;
+                }
             }
         }
+        Lock_MutexPost(Port->SlaveListMutex);
     }
-    Lock_MutexPost(Port->SlaveListMutex);
+    else
+    {
+        //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+        //printf会调用stdout，进而可能又调用 Lock_MutexPend
+        printk("ISBUS:Attempt to block semaphore when disable sch\r\n");
+    }
     //对应的 free 函数在 __HostSendPkg 函数中
     mypkg = malloc(sizeof(struct IM_Pkg)+len+sizeof(struct ISBUS_Protocol));
     if(mypkg != NULL)
     {
-        // if(Timeout != 0)
-        // {
-        //     mypkg->IM_Semp = Lock_SempCreate(1, 0, CN_BLOCK_FIFO, NULL);        //TODO: 没看到有地方删除这个信号？
-        //     if(mypkg->IM_Semp == NULL)
-        //         return 0;
-        // }
-        // else
-            mypkg->IM_Semp = NULL;
-        Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);
-        mypkg->IM_buf = (u8*)(mypkg+1);
-        if(Port->IM_Head == NULL)
+        mypkg->IM_Semp = NULL;
+        if(Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER))
         {
-            Port->IM_Head = mypkg;
-            Port->IM_Tail = mypkg;
+            mypkg->IM_buf = (u8*)(mypkg+1);
+            if(Port->IM_Head == NULL)
+            {
+                Port->IM_Head = mypkg;
+                Port->IM_Tail = mypkg;
+            }
+            else
+            {
+                Port->IM_Tail->next = mypkg;
+                Port->IM_Tail = mypkg;
+            }
+            mypkg->next = NULL;
+
+    //      Port->PortSendLen = len;    //不含协议头
+            SendBuf = mypkg->IM_buf;
+            SendBuf[CN_OFF_START]   = 0xEB;
+            SendBuf[CN_OFF_DST]     = dst;
+            SendBuf[CN_OFF_PROTO]   = ISBUS_FunctionSocket->Protocol;
+            SendBuf[CN_OFF_SRC]     = 0;
+            SendBuf[CN_OFF_LEN]     = len;
+            SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;   //包序号不修改
+            SendBuf[CN_OFF_CHKSUM]  = 0xEB + dst + SendBuf[CN_OFF_PROTO] + 0
+                                      + len + SendBuf[CN_OFF_SERIAL];
+            memcpy(SendBuf + sizeof(struct ISBUS_Protocol), buf, len);
+            Lock_SempPost(Port->PortSemp);
         }
         else
         {
-            Port->IM_Tail->next = mypkg;
-            Port->IM_Tail = mypkg;
+            //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+            //printf会调用stdout，进而可能又调用 Lock_MutexPend
+            printk("ISBUS:Attempt to block semaphore when disable sch\r\n");
         }
-        mypkg->next = NULL;
-
-//      Port->PortSendLen = len;    //不含协议头
-        SendBuf = mypkg->IM_buf;
-        SendBuf[CN_OFF_START]   = 0xEB;
-        SendBuf[CN_OFF_DST]     = dst;
-        SendBuf[CN_OFF_PROTO]   = ISBUS_FunctionSocket->Protocol;
-        SendBuf[CN_OFF_SRC]     = 0;
-        SendBuf[CN_OFF_LEN]     = len;
-        SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;   //包序号不修改
-        SendBuf[CN_OFF_CHKSUM]  = 0xEB + dst + SendBuf[CN_OFF_PROTO] + 0
-                                  + len + SendBuf[CN_OFF_SERIAL];
-        memcpy(SendBuf + sizeof(struct ISBUS_Protocol), buf, len);
-        Lock_SempPost(Port->PortSemp);
-        // if(Timeout != 0)
-        // {
-        //     if (Lock_SempPend(mypkg->IM_Semp, Timeout) == false)
-        //     {
-        //         Lock_SempPend(Port->PortSemp, CN_TIMEOUT_FOREVER);
-        //         if (NULL != Port->IM_Head)
-        //         {
-        //             if (Port->IM_Head == mypkg)
-        //             {
-        //                 Port->IM_Head = Port->IM_Head->next;
-        //             }
-        //             else
-        //             {
-        //                 TempPkg = Port->IM_Head;
-        //                 while ((TempPkg->next != NULL) && (TempPkg->next != mypkg))
-        //                 {
-        //                     TempPkg = TempPkg->next;
-        //                 }
-        //                 if (TempPkg->next == mypkg)
-        //                 {
-        //                     TempPkg->next = TempPkg->next->next;
-        //                 }
-        //             }
-        //         }
-        //         // 当能在链表中找到mypkg，就说明发送函数还没处理这个包，直接把这个包从链表中删除,并且把对应的信号量
-        //         // 和分配的空间释放掉。
-        //         // 在链表中找不到mypkg的话，就说明发送函数已经处理完这个包了。那对应的信号量和所分配的空间也没用了，释放掉
-        //         // 执行到这里IM_Head是空，那说明，在发送的地方也已经把包处理完了，也释放掉
-        //         // 释放信号量和内存的操作必须得受PortSemp保护，以防在Post(PortSemp)后，又调度到发送线程去执行了，在处理这个
-        //         // 数据包时，又调度回来，执行释放了内存和信号量
-        //         Lock_SempDelete(mypkg->IM_Semp);
-        //         mypkg->IM_Semp = NULL;
-        //         free(mypkg);
-
-        //         Lock_SempPost(Port->PortSemp);
-        //     }
-        //     else
-        //     {
-        //         Lock_SempDelete(mypkg->IM_Semp);
-        //         mypkg->IM_Semp = NULL;
-        //         free(mypkg);
-        //     }
-
-        // }
     }
     else
         len = 0;
@@ -1136,60 +1159,70 @@ void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address)
     if(Port == NULL)
         return ;
 
-    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
-    current = Port->SlaveHead;
-    if(current != NULL)
+    if(Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER))
     {
-        do
+        current = Port->SlaveHead;
+        if(current != NULL)
         {
-            if(current->Address == address)
-                return;     //从机已经存在
-            else if(current->Address > address)
-                break;
-            else
+            do
             {
-                pre = current;
-                current = current->Next;
-            }
-        }while(current != Port->SlaveHead);
-    }
-    Port->SlaveNum++;
-    p1=(struct SlaveList*)malloc(sizeof(struct SlaveList));//申请新节点
-    if(p1==NULL)
-    {
-        debug_printf("ISBUS","内存申请失败\r\n");
-    }
-    p1->CommPort = Port;
-    p1->Address = address;
-    p1->Errors = 0;
-//    p1->Timeout = CN_LIMIT_UINT32;
-    if(current == NULL)             //尚未添加从机
-    {
-        p1->Next = p1;
-        Port->SlaveHead = p1;
-        Port->SlaveCurrent = p1;
-        Port->SlaveTail = p1;
-    }
-    else if(pre == NULL)    //current指向队列头，表明新从机地址小于队列头
-    {
-        p1->Next = current;
-        Port->SlaveTail->Next = p1;
-        Port->SlaveHead = p1;
-    }
-    else if(pre == current)     //只有一个从机，且地址小于新从机
-    {
-        p1->Next = current;
-        current->Next = p1;
-        Port->SlaveTail = p1;
-    }else                       //有多个从机
-    {
-        p1->Next = current;
-        pre->Next = p1;
-        if(address > Port->SlaveTail->Address)  //新从机地址大于队列尾部
+                if(current->Address == address)
+                    return;     //从机已经存在
+                else if(current->Address > address)
+                    break;
+                else
+                {
+                    pre = current;
+                    current = current->Next;
+                }
+            }while(current != Port->SlaveHead);
+        }
+        Port->SlaveNum++;
+        p1=(struct SlaveList*)malloc(sizeof(struct SlaveList));//申请新节点
+        if(p1==NULL)
+        {
+            //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+            //printf会调用stdout，进而可能又调用 Lock_MutexPend
+            printk("ISBUS:内存申请失败\r\n");
+        }
+        p1->CommPort = Port;
+        p1->Address = address;
+        p1->Errors = 0;
+    //    p1->Timeout = CN_LIMIT_UINT32;
+        if(current == NULL)             //尚未添加从机
+        {
+            p1->Next = p1;
+            Port->SlaveHead = p1;
+            Port->SlaveCurrent = p1;
             Port->SlaveTail = p1;
+        }
+        else if(pre == NULL)    //current指向队列头，表明新从机地址小于队列头
+        {
+            p1->Next = current;
+            Port->SlaveTail->Next = p1;
+            Port->SlaveHead = p1;
+        }
+        else if(pre == current)     //只有一个从机，且地址小于新从机
+        {
+            p1->Next = current;
+            current->Next = p1;
+            Port->SlaveTail = p1;
+        }else                       //有多个从机
+        {
+            p1->Next = current;
+            pre->Next = p1;
+            if(address > Port->SlaveTail->Address)  //新从机地址大于队列尾部
+                Port->SlaveTail = p1;
+        }
+        Port->LogicSlaveTail = Port->SlaveTail;
+        Lock_MutexPost(Port->SlaveListMutex);
     }
-    Port->LogicSlaveTail = Port->SlaveTail;
-    Lock_MutexPost(Port->SlaveListMutex);
+    else
+    {
+        //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+        //printf会调用stdout，进而可能又调用 Lock_MutexPend
+        printk("ISBUS:Attempt to block mutex when disable sch\r\n");
+    }
 }
 
 // ============================================================================
@@ -1230,19 +1263,27 @@ u8 ISBUS_GetSlaveTable(struct Host_ISBUSPort *Port,u8 *address)
     u8 result = 0;
     if(Port == NULL)
         return 0;
-    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
-    current = Port->SlaveHead;
-    if(current != NULL)
+    if(Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER))
     {
-        do
+        current = Port->SlaveHead;
+        if(current != NULL)
         {
-            if(address != NULL)
-                address[result] = current->Address;
-            current = current->Next;
-            result++;
-       }while(current != Port->SlaveHead);
+            do
+            {
+                if(address != NULL)
+                    address[result] = current->Address;
+                current = current->Next;
+                result++;
+           }while(current != Port->SlaveHead);
+        }
+        Lock_MutexPost(Port->SlaveListMutex);
     }
-    Lock_MutexPost(Port->SlaveListMutex);
+    else
+    {
+        //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+        //printf会调用stdout，进而可能又调用 Lock_MutexPend
+        printk("ISBUS:Attempt to block mutex when disable sch\r\n");
+    }
     return result;
 }
 
@@ -1275,37 +1316,45 @@ void ISBUS_DeleteSlave (struct Host_ISBUSPort * Port, u8 address)
 
     if(Port == NULL)
         return ;
-    Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER);
-    current = Port->SlaveHead;
-    pre = Port->SlaveTail;
-    while(current != NULL)
+    if(Lock_MutexPend(Port->SlaveListMutex, CN_TIMEOUT_FOREVER))
     {
-        if(address == current->Address)
+        current = Port->SlaveHead;
+        pre = Port->SlaveTail;
+        while(current != NULL)
         {
-            if(current != current->Next)
+            if(address == current->Address)
             {
-                pre->Next = current->Next;
-                if(Port->SlaveHead == current)
-                    Port->SlaveHead = current->Next;
-                if(Port->SlaveCurrent == current)
-                    Port->SlaveCurrent = current->Next;
-                if(Port->SlaveTail == current)
-                    Port->SlaveTail = current->Next;
+                if(current != current->Next)
+                {
+                    pre->Next = current->Next;
+                    if(Port->SlaveHead == current)
+                        Port->SlaveHead = current->Next;
+                    if(Port->SlaveCurrent == current)
+                        Port->SlaveCurrent = current->Next;
+                    if(Port->SlaveTail == current)
+                        Port->SlaveTail = current->Next;
+                }
+                else
+                {
+                    Port->SlaveHead = NULL;
+                    Port->SlaveCurrent = NULL;
+                    Port->SlaveTail = NULL;
+                }
+                free(current);
+                break;
             }
-            else
-            {
-                Port->SlaveHead = NULL;
-                Port->SlaveCurrent = NULL;
-                Port->SlaveTail = NULL;
-            }
-            free(current);
-            break;
+            pre = current;
+            current = current->Next;
         }
-        pre = current;
-        current = current->Next;
+        Port->LogicSlaveTail = Port->SlaveTail;
+        Lock_MutexPost(Port->SlaveListMutex);
     }
-    Port->LogicSlaveTail = Port->SlaveTail;
-    Lock_MutexPost(Port->SlaveListMutex);
+    else
+    {
+        //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+        //printf会调用stdout，进而可能又调用 Lock_MutexPend
+        printk("ISBUS:Attempt to block mutex when disable sch\r\n");
+    }
     return;
 }
 

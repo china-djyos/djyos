@@ -305,16 +305,18 @@ bool_t Ymodem_PathSet(const char *Path)
         // -2是因为Path最后一个字符不是'/'，需要补足
         if(len < CN_YMODEM_NAME_LENGTH - 2)
         {
-            Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER);
-    //      pYmodem->Path = Path;
-            strcpy(pYmodem->FileName, Path);
-            //最后一个字符不是'/'或'\\'，需要补上
-            if((pYmodem->FileName[len-1] != '/') && (pYmodem->FileName[len-1] != '\\'))
+            if(Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER))
             {
-                pYmodem->FileName[len] = '/';
-                pYmodem->FileName[len] = '\0';
+        //      pYmodem->Path = Path;
+                strcpy(pYmodem->FileName, Path);
+                //最后一个字符不是'/'或'\\'，需要补上
+                if((pYmodem->FileName[len-1] != '/') && (pYmodem->FileName[len-1] != '\\'))
+                {
+                    pYmodem->FileName[len] = '/';
+                    pYmodem->FileName[len] = '\0';
+                }
+                Lock_MutexPost(pYmodem->pYmodemMutex);
             }
-            Lock_MutexPost(pYmodem->pYmodemMutex);
             Ret = true;
         }
     }
@@ -725,7 +727,8 @@ bool_t downloadym(char *Param)
         debug_printf("MODULE","YMODEM IS NOT INSTALLED !\r\n");
         return false;
     }
-    Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER))
+        return false;
 
     pYmodem->File   = NULL;
 //  pYmodem->FileOps  = YMODEM_FILE_NOOPS;
@@ -970,7 +973,8 @@ bool_t uploadym(char *Param)
         error_printf("MODULE","YMODEM IS NOT INSTALLED !\r\n");
         return false;
     }
-    Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER))
+        return false;
 
     FileName = (char *)shell_inputs(Param, &NextParam);
     if(NULL == FileName)

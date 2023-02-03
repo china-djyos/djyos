@@ -200,6 +200,7 @@ void Int_RestoreAsynSignal(void)
 //-----------------------------------------------------------------------------
 void Int_HalfEnableAsynSignal(void)
 {
+    g_bScheduleEnable = true;
     tg_int_global.en_asyn_signal_counter = 0;
 }
 

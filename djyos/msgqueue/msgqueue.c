@@ -197,28 +197,30 @@ struct MsgQueue *MsgQ_Create( s32 MaxMsgs,u32  MsgLength,u32 Options)
 bool_t MsgQ_Delete(struct MsgQueue *pMsgQ)
 {
     bool_t result;
-    Lock_MutexPend(&s_tMsgQ_Mutex,CN_TIMEOUT_FOREVER);
-    if(pMsgQ != NULL)
+    if(Lock_MutexPend(&s_tMsgQ_Mutex,CN_TIMEOUT_FOREVER))
     {
-        if(Lock_SempCheckBlock(&(pMsgQ->MsgSendSemp))
-                || Lock_SempCheckBlock(&(pMsgQ->MsgRecvSemp)) )
+        if(pMsgQ != NULL)
         {
-            result = false;
+            if(Lock_SempCheckBlock(&(pMsgQ->MsgSendSemp))
+                    || Lock_SempCheckBlock(&(pMsgQ->MsgRecvSemp)) )
+            {
+                result = false;
+            }
+            else
+            {
+                OBJ_Delete(pMsgQ->HostObj);          //删除信号量结点
+                Lock_SempDelete_s(&(pMsgQ->MsgSendSemp));
+                Lock_SempDelete_s(&(pMsgQ->MsgRecvSemp));
+                free(pMsgQ);
+                result = true;
+            }
         }
         else
         {
-            OBJ_Delete(pMsgQ->HostObj);          //删除信号量结点
-            Lock_SempDelete_s(&(pMsgQ->MsgSendSemp));
-            Lock_SempDelete_s(&(pMsgQ->MsgRecvSemp));
-            free(pMsgQ);
-            result = true;
+            result = false;
         }
+        Lock_MutexPost(&s_tMsgQ_Mutex);
     }
-    else
-    {
-        result = false;
-    }
-    Lock_MutexPost(&s_tMsgQ_Mutex);
     return result;
 }
 

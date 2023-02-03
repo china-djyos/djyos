@@ -72,6 +72,7 @@ enum _MEM_ERROR_CODE_
     EN_MEM_PAGE_ERROR,          //页尺寸错误
     EN_MEM_TRIED,               //内存不足
     EN_MEM_LEAK,                //内存泄漏
+    EN_MEM_FREE_SCH             //关调度状态下释放内存
 };
 
 typedef struct HeapCB * pHeap_t;

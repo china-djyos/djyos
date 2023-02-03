@@ -370,7 +370,7 @@ void __gk_vfree(struct DisplayObj *disp,struct GkWinObj *gkwin)
 {
     //分配内存时，显存和bitmap结构是同时分配的，故只须调用
     //m_free一次，两者均释放
-    M_FreeHeap(gkwin->wm_bitmap,disp->DisplayHeap);
+    M_FreeHeap(gkwin->wm_bitmap,disp->DisplayHeap,CN_TIMEOUT_FOREVER);
 }
 
 //----取z轴片段的起始窗口(窗口及其子孙窗口)------------------------------------
@@ -528,7 +528,7 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
             {
                 display->z_topmost = NULL;
                 display->desktop = NULL;
-                M_FreeHeap(desktop->changed_msk.bm_bits,display->DisplayHeap);
+                M_FreeHeap(desktop->changed_msk.bm_bits,display->DisplayHeap,CN_TIMEOUT_FOREVER);
                 Mb_Free(g_ptClipRectPool,clip);
                 OBJ_Delete(NewWindow);
                 __gk_vfree(display,desktop);
@@ -677,7 +677,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                 __gk_vfree(display,gkwin);
                 DJY_SaveLastError(EN_GK_NO_MEMORY);
                 debug_printf("gkwin","显存不足\n\r");
-                M_FreeHeap(gkwin,display->DisplayHeap);
+                M_FreeHeap(gkwin,display->DisplayHeap,CN_TIMEOUT_FOREVER);
                 return NULL;
             }
             else
@@ -695,7 +695,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
         {
             DJY_SaveLastError(EN_GK_NO_MEMORY);
             debug_printf("gkwin","显存不足\n\r");
-            M_FreeHeap(gkwin,display->DisplayHeap);
+            M_FreeHeap(gkwin,display->DisplayHeap,CN_TIMEOUT_FOREVER);
             return NULL;
         }
     }
@@ -712,7 +712,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                                     (const char*)(gkwin->win_name));
         if(NewWindow == NULL)
         {
-            M_FreeHeap(gkwin,display->DisplayHeap);
+            M_FreeHeap(gkwin,display->DisplayHeap,CN_TIMEOUT_FOREVER);
             return NULL;
         }
         else
@@ -752,7 +752,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                                      (const char *)(gkwin->win_name));
             if(NewWindow == NULL)
             {
-                M_FreeHeap(gkwin,display->DisplayHeap);
+                M_FreeHeap(gkwin,display->DisplayHeap,CN_TIMEOUT_FOREVER);
                 return NULL;
             }
             else
@@ -783,7 +783,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                                          (const char *)(gkwin->win_name));
                 if(NewWindow == NULL)
                 {
-                    M_FreeHeap(gkwin,display->DisplayHeap);
+                    M_FreeHeap(gkwin,display->DisplayHeap,CN_TIMEOUT_FOREVER);
                     return NULL;
                 }
             }
@@ -796,7 +796,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                                             (const char*)(gkwin->win_name));
                 if(NewWindow == NULL)
                 {
-                    M_FreeHeap(gkwin,display->DisplayHeap);
+                    M_FreeHeap(gkwin,display->DisplayHeap,CN_TIMEOUT_FOREVER);
                     return NULL;
                 }
             }
@@ -881,7 +881,7 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
         }else
         {
             if(bak.wm_bitmap != cwawin->wm_bitmap)
-                M_FreeHeap(cwawin->wm_bitmap,disp->DisplayHeap);
+                M_FreeHeap(cwawin->wm_bitmap,disp->DisplayHeap,CN_TIMEOUT_FOREVER);
             *cwawin = bak;
         }
     }
@@ -1556,7 +1556,7 @@ void __gk_destroy_win(struct GkWinObj *gkwin)
         if(gkwin->wm_bitmap != NULL)//有帧缓冲在缓冲模式下
         {
             __gk_vfree(gkwin->disp,gkwin);
-            M_FreeHeap(gkwin->changed_msk.bm_bits,gkwin->disp->DisplayHeap);
+            M_FreeHeap(gkwin->changed_msk.bm_bits,gkwin->disp->DisplayHeap,CN_TIMEOUT_FOREVER);
             return;
         }
         else
@@ -1576,10 +1576,10 @@ void __GK_DestroyWin(struct GkWinObj *gkwin)
     while((CurWin = (struct GkWinObj *)OBJ_GetPrivate((struct Object*)OBJ_GetTwig(gkwin->HostObj))) != NULL)
     {
         __gk_destroy_win(CurWin);
-        M_FreeHeap(CurWin,CurWin->disp->DisplayHeap);
+        M_FreeHeap(CurWin,CurWin->disp->DisplayHeap,CN_TIMEOUT_FOREVER);
     }
     __gk_destroy_win(gkwin);
-    M_FreeHeap(gkwin,gkwin->disp->DisplayHeap);
+    M_FreeHeap(gkwin,gkwin->disp->DisplayHeap,CN_TIMEOUT_FOREVER);
     if(gkwin->disp->reset_clip == true)
     {
         __GK_ScanNewVisibleClip(gkwin->disp);

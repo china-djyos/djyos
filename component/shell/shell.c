@@ -222,10 +222,14 @@ static enum param_typr ParameterFlagTab[PARAMETER_MAX];
 // ============================================================================
 bool_t shell_add(struct shell_list *pLisTtab)
 {
-    Lock_MutexPend(__shell_mutex,CN_TIMEOUT_FOREVER);
-    dListInsertBefore(&shells_list.list,&pLisTtab->list);
-    Lock_MutexPost(__shell_mutex);
-    return (TRUE);
+    if(Lock_MutexPend(__shell_mutex,CN_TIMEOUT_FOREVER))
+    {
+        dListInsertBefore(&shells_list.list,&pLisTtab->list);
+        Lock_MutexPost(__shell_mutex);
+        return (TRUE);
+    }
+    else
+        return false;
 }
 
 // ============================================================================
@@ -236,10 +240,14 @@ bool_t shell_add(struct shell_list *pLisTtab)
 // ============================================================================
 bool_t shell_del(struct shell_list *pLisTtab)
 {
-    Lock_MutexPend(__shell_mutex,CN_TIMEOUT_FOREVER);
-    dListRemove(&pLisTtab->list);
-    Lock_MutexPost(__shell_mutex);
-    return TRUE;
+    if(Lock_MutexPend(__shell_mutex,CN_TIMEOUT_FOREVER))
+    {
+        dListRemove(&pLisTtab->list);
+        Lock_MutexPost(__shell_mutex);
+        return TRUE;
+    }
+    else
+        return false;
 }
 
 // ============================================================================

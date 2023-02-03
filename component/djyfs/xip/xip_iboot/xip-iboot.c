@@ -125,28 +125,6 @@ __attribute__((weak)) s32 xip_fs_format(void *core)
     return 0;
 }
 
-//==========================================================================
-// 功能：文件上锁
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-static inline void xip_iboot_lock(struct __icore *core)
-{
-    Lock_MutexPend(core->lock, CN_TIMEOUT_FOREVER);
-}
-
-// ============================================================================
-// 功能：文件解锁
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-static inline void xip_iboot_unlock(struct __icore *core)
-{
-    Lock_MutexPost(core->lock);
-}
-
 // ============================================================================
 // 功能：打开文件
 // 参数：ob -- 文件对象；
@@ -167,10 +145,11 @@ static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *unca
         return (NULL);    //xip-iboot只支持写模式
     }
 
-    xip_iboot_lock(core);
+    if(Lock_MutexPend(core->lock, CN_TIMEOUT_FOREVER))
+    {
 
 //    if(strcmp(OBJ_GetName(ob),EN_XIP_IBOOT_TARGET) == 0)      //判断访问的路径是不是xip-iboot，如果不是则直接返回NULL
-//    {
+        //    {
         xip_fs_format(core);        //擦除iboot所在的flash区域
 
 //        if(!OBJ_NewChild(core->root, xip_iboot_ops, (ptu32_t)0, uncached))
@@ -196,7 +175,8 @@ static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *unca
             OBJ_LinkHandle(hdl, ob);
         }
 //    }
-    xip_iboot_unlock(core);
+        Lock_MutexPost(core->lock);
+    }
     return (hdl);
 }
 
@@ -225,22 +205,26 @@ static s32 xip_iboot_write(struct objhandle *hdl, u8 *data, u32 size)
 {
     s32 res;
     struct __icore *core = (struct __icore*)File_Core(Handle_GetHostObj(hdl));
-    xip_iboot_lock(core);
-    res = core->drv->xip_write_media(core,data,size,FileNowPos);
-    if(-1 == res)
+    if(Lock_MutexPend(core->lock, CN_TIMEOUT_FOREVER))
     {
-        xip_iboot_unlock(core);
-        return (-1);
+        res = core->drv->xip_write_media(core,data,size,FileNowPos);
+        if(-1 == res)
+        {
+            Lock_MutexPost(core->lock);
+            return (-1);
+        }
+        if(-2 == res)
+        {
+            Lock_MutexPost(core->lock);
+            printf("\r\n: dbug : xip_iboot : storage space full.");
+            return (-1);
+        }
+        FileNowPos += size;
+        Lock_MutexPost(core->lock);
+        return size;
     }
-    if(-2 == res)
-    {
-        xip_iboot_unlock(core);
-        printf("\r\n: dbug : xip_iboot : storage space full.");
+    else
         return (-1);
-    }
-    FileNowPos += size;
-    xip_iboot_unlock(core);
-    return (size);
 }
 
 // ============================================================================

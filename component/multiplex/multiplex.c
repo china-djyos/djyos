@@ -63,6 +63,7 @@
 #include "pool.h"
 #include "lock.h"
 #include <djyos.h>
+#include "dbug.h"
 #include "multiplex.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -267,22 +268,31 @@ bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
     if ((NULL == Sets) || (NULL == Kfp) )
         return false;
 
-    Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    temp = __Handle_GetMultiplexHead(Kfp);
-    InitStatus = Handle_MultiEvents(Kfp);
-    //循环检查一个Object是否重复加入同一个MultiplexSets
-    //如果ObjectHead=NULL,检查结果是不重复，后续处理能够正确运行。
-    while (temp != NULL)
+    if(Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER))
     {
-        if (temp->MySets != Sets)
-            temp = temp->NextSets;
-        else
+        temp = __Handle_GetMultiplexHead(Kfp);
+        InitStatus = Handle_MultiEvents(Kfp);
+        //循环检查一个Object是否重复加入同一个MultiplexSets
+        //如果ObjectHead=NULL,检查结果是不重复，后续处理能够正确运行。
+        while (temp != NULL)
         {
-            repeat = true;
-            break;
+            if (temp->MySets != Sets)
+                temp = temp->NextSets;
+            else
+            {
+                repeat = true;
+                break;
+            }
         }
+        Lock_MutexPost(&MultiplexMutex);
     }
-    Lock_MutexPost(&MultiplexMutex);
+    else
+    {
+        //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+        //printf会调用stdout，进而可能又调用 Lock_MutexPend
+        printk("Multiplex：Attempt to block mutex when disable sch，add object failure\r\n");
+        return false;
+    }
 
     if (repeat == false)
     {
@@ -307,44 +317,54 @@ bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
             temp->PendingBit = InitStatus & CN_MULTIPLEX_STATUSMSK;
             temp->Fd = Fd;
 //          temp->ObjectID = ObjectID;
-            Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-            temp->MySets = Sets;            //设定对象所属MultiplexSets
-                                            //同一个MultiplexSets包含多个对象，NextObject把这些对象链接起来。
-            if (*TargetQ == NULL)
+            if(Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER))
             {
-                *TargetQ = temp;
-                temp->NextObject = temp;
-                temp->PreObject = temp;
-            } else
-            {
-                //新加入MultiplexSets的对象插入队列头部
-                temp->PreObject = (*TargetQ)->PreObject;
-                temp->NextObject = *TargetQ;
-                (*TargetQ)->PreObject->NextObject = temp;
-                (*TargetQ)->PreObject = temp;
-
-                (*TargetQ) = temp;
-            }
-            //同一个对象被多个MultiplexSets包含，用NextSets链接。
-            //NextSets是单向链表，新对象插入链表头部
-            temp->NextSets = __Handle_GetMultiplexHead(Kfp);
-            __Handle_SetMultiplexHead(Kfp, temp);
-            Lock_MutexPost(&MultiplexMutex);
-            if (IsActived)
-            {
-                Sets->Actived += 1;
-                temp->PendingBit |= CN_MULTIPLEX_OBJECT_ACTIVED;
-                if ((Sets->Actived >= Sets->ActiveLevel)
-                    || (Sets->Actived >= Sets->ObjectSum))
+                temp->MySets = Sets;            //设定对象所属MultiplexSets
+                                                //同一个MultiplexSets包含多个对象，NextObject把这些对象链接起来。
+                if (*TargetQ == NULL)
                 {
-                    if (false == Sets->SetsActived)
+                    *TargetQ = temp;
+                    temp->NextObject = temp;
+                    temp->PreObject = temp;
+                } else
+                {
+                    //新加入MultiplexSets的对象插入队列头部
+                    temp->PreObject = (*TargetQ)->PreObject;
+                    temp->NextObject = *TargetQ;
+                    (*TargetQ)->PreObject->NextObject = temp;
+                    (*TargetQ)->PreObject = temp;
+
+                    (*TargetQ) = temp;
+                }
+                //同一个对象被多个MultiplexSets包含，用NextSets链接。
+                //NextSets是单向链表，新对象插入链表头部
+                temp->NextSets = __Handle_GetMultiplexHead(Kfp);
+                __Handle_SetMultiplexHead(Kfp, temp);
+                Lock_MutexPost(&MultiplexMutex);
+                if (IsActived)
+                {
+                    Sets->Actived += 1;
+                    temp->PendingBit |= CN_MULTIPLEX_OBJECT_ACTIVED;
+                    if ((Sets->Actived >= Sets->ActiveLevel)
+                        || (Sets->Actived >= Sets->ObjectSum))
                     {
-                        Sets->SetsActived = true;
-                        Lock_SempPost(&Sets->Lock);
+                        if (false == Sets->SetsActived)
+                        {
+                            Sets->SetsActived = true;
+                            Lock_SempPost(&Sets->Lock);
+                        }
                     }
                 }
             }
-        } else
+            else
+            {
+                //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+                //printf会调用stdout，进而可能又调用 Lock_MutexPend
+                printk("Multiplex：Attempt to block mutex when disable sch，add object failure\r\n");
+                return false;
+            }
+        }
+        else
             return false;
     } else
     {
@@ -367,7 +387,8 @@ bool_t Multiplex_DelObject(struct MultiplexSetsCB *Sets,s32 Fd)
     Kfp = fd2Handle(Fd);
     if ((Sets == NULL) || (Kfp == NULL))
         return false;
-    Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER))
+        return false;
     Object = __Handle_GetMultiplexHead(Kfp);
     following = NULL;
     while (Object != NULL)

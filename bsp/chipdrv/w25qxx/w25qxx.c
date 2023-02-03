@@ -346,23 +346,25 @@ u16 W25QXX_ReadID(void)
 //-----------------------------------------------------------------------------
 bool_t W25QXX_EraseChip(void)
 {
-    Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER);
-    if(W25QXX_WriteEnable())
+    if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
     {
-        if(W25QXX_WaitBusy(5000))
+        if(W25QXX_WriteEnable())
         {
-            //QSPI，地址为0，无数据，8位地址，无地址，4线传输指令，无空周期
-            if(QSPI_Send_CMD(W25X_ChipErase,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE))
+            if(W25QXX_WaitBusy(5000))
             {
-                if(W25QXX_WaitBusy(5000))
+                //QSPI，地址为0，无数据，8位地址，无地址，4线传输指令，无空周期
+                if(QSPI_Send_CMD(W25X_ChipErase,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE))
                 {
-                    Lock_MutexPost(W25qxx_Lock);
-                    return true;
+                    if(W25QXX_WaitBusy(5000))
+                    {
+                        Lock_MutexPost(W25qxx_Lock);
+                        return true;
+                    }
                 }
             }
         }
+        Lock_MutexPost(W25qxx_Lock);
     }
-    Lock_MutexPost(W25qxx_Lock);
     return false;
 }
 
@@ -375,23 +377,25 @@ bool_t W25QXX_EraseChip(void)
 bool_t W25QXX_EraseSector(u32 addr)
 {
     addr *= 4096;
-    Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER);
-    if(W25QXX_WriteEnable())
+    if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
     {
-//        if(W25QXX_WaitBusy(5000))
-//        {
-            //QSPI，地址为addr，无数据，32位地址，4线传输地址，4线传输指令，无空周期
-            if(QSPI_Send_CMD(W25X_SectorErase,addr,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_NONE))
-            {
-//                if(W25QXX_WaitBusy(5000))
-//                {
-                    Lock_MutexPost(W25qxx_Lock);
-                    return true;
-//                }
-            }
-//        }
+        if(W25QXX_WriteEnable())
+        {
+    //        if(W25QXX_WaitBusy(5000))
+    //        {
+                //QSPI，地址为addr，无数据，32位地址，4线传输地址，4线传输指令，无空周期
+                if(QSPI_Send_CMD(W25X_SectorErase,addr,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_NONE))
+                {
+    //                if(W25QXX_WaitBusy(5000))
+    //                {
+                        Lock_MutexPost(W25qxx_Lock);
+                        return true;
+    //                }
+                }
+    //        }
+        }
+        Lock_MutexPost(W25qxx_Lock);
     }
-    Lock_MutexPost(W25qxx_Lock);
     return false;
 }
 
@@ -404,23 +408,25 @@ bool_t W25QXX_EraseSector(u32 addr)
 bool_t W25QXX_EraseBlock(u32 addr)
 {
     addr *= 65536;
-    Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER);
-    if(W25QXX_WriteEnable())
+    if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
     {
-//        if(W25QXX_WaitBusy(5000))
-//        {
-            //QSPI，地址为addr，无数据，32位地址，4线传输地址，4线传输指令，无空周期
-            if(QSPI_Send_CMD(W25X_BlockErase,addr,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_NONE))
-            {
-//                if(W25QXX_WaitBusy(5000))
-//                {
-                    Lock_MutexPost(W25qxx_Lock);
-                    return true;
-//                }
-            }
-//        }
+        if(W25QXX_WriteEnable())
+        {
+    //        if(W25QXX_WaitBusy(5000))
+    //        {
+                //QSPI，地址为addr，无数据，32位地址，4线传输地址，4线传输指令，无空周期
+                if(QSPI_Send_CMD(W25X_BlockErase,addr,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_NONE))
+                {
+    //                if(W25QXX_WaitBusy(5000))
+    //                {
+                        Lock_MutexPost(W25qxx_Lock);
+                        return true;
+    //                }
+                }
+    //        }
+        }
+        Lock_MutexPost(W25qxx_Lock);
     }
-    Lock_MutexPost(W25qxx_Lock);
     return false;
 }
 
@@ -432,30 +438,27 @@ bool_t W25QXX_EraseBlock(u32 addr)
 //-----------------------------------------------------------------------------
 bool_t W25QXX_Read(u8* buf,u32 addr,u32 len)
 {
-    Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER);
-
-    if(W25QXX_WaitBusy(5000) == false)
+    bool_t ret = false;
+    if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
     {
+        if(W25QXX_WaitBusy(5000) == false)
+        {
+            ret = false;
+        }
+        //QSPI，快速读数据，地址为addr，4线传输数据，32位地址，4线传输地址，4线传输指令，2个空周期，
+        if(QSPI_Send_CMD(W25X_FastReadData,addr,2,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_4_LINES))
+        {
+            if(QSPI_Receive(buf, len))
+            {
+                ret = true;
+            }
+            else
+            {
+                ret = false;
+            }
+        }
         Lock_MutexPost(W25qxx_Lock);
-        return false;
     }
-
-
-    //QSPI，快速读数据，地址为addr，4线传输数据，32位地址，4线传输地址，4线传输指令，2个空周期，
-    if(QSPI_Send_CMD(W25X_FastReadData,addr,2,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_4_LINES))
-    {
-        if(QSPI_Receive(buf, len))
-        {
-            Lock_MutexPost(W25qxx_Lock);
-            return true;
-        }
-        else
-        {
-            Lock_MutexPost(W25qxx_Lock);
-            return false;
-        }
-    }
-    Lock_MutexPost(W25qxx_Lock);
     return false;
 }
 
@@ -467,28 +470,30 @@ bool_t W25QXX_Read(u8* buf,u32 addr,u32 len)
 //-----------------------------------------------------------------------------
 bool_t W25QXX_WritePage(u8* buf,u32 addr,u32 len)
 {
-    Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER);
-    if(W25QXX_WriteEnable())
+    if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
     {
-        //QSPI，页写，地址为addr，4线传输数据，32位地址，4线传输地址，4线传输指令，0个空周期，
-        if(QSPI_Send_CMD(W25X_PageProgram,addr,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_4_LINES))
+        if(W25QXX_WriteEnable())
         {
-            if(QSPI_Transmit(buf, len))
+            //QSPI，页写，地址为addr，4线传输数据，32位地址，4线传输地址，4线传输指令，0个空周期，
+            if(QSPI_Send_CMD(W25X_PageProgram,addr,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_4_LINES))
             {
-//                if(W25QXX_WaitBusy(5000))
-//                {
-                    Lock_MutexPost(W25qxx_Lock);
-                    return true;
-//                }
-//                else
-//                {
-//                    Lock_MutexPost(W25qxx_Lock);
-//                    return false;
-//                }
+                if(QSPI_Transmit(buf, len))
+                {
+    //                if(W25QXX_WaitBusy(5000))
+    //                {
+                        Lock_MutexPost(W25qxx_Lock);
+                        return true;
+    //                }
+    //                else
+    //                {
+    //                    Lock_MutexPost(W25qxx_Lock);
+    //                    return false;
+    //                }
+                }
             }
         }
+        Lock_MutexPost(W25qxx_Lock);
     }
-    Lock_MutexPost(W25qxx_Lock);
     return false;
 }
 
@@ -503,35 +508,37 @@ bool_t W25QXX_WriteNoErase(u8* buf,u32 addr,u32 len)
     u32 remain = 0;
     bool_t ret = false;
 
-    Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER);
-    remain = 256 - addr % 256;  //单页还剩余的字节数
-    if(len <= remain)
-        remain = len;
-    while(1)
+    if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
     {
-        if(W25QXX_WritePage(buf, addr, remain))
+        remain = 256 - addr % 256;  //单页还剩余的字节数
+        if(len <= remain)
+            remain = len;
+        while(1)
         {
-            if(remain == len)
+            if(W25QXX_WritePage(buf, addr, remain))
             {
-                ret = true;
-                break;
+                if(remain == len)
+                {
+                    ret = true;
+                    break;
+                }
+                else
+                {
+                    buf += remain;
+                    addr += remain;
+                    len -= remain;
+                    if(len > 256)
+                        remain = 256;
+                    else
+                        remain = len;
+                }
             }
             else
-            {
-                buf += remain;
-                addr += remain;
-                len -= remain;
-                if(len > 256)
-                    remain = 256;
-                else
-                    remain = len;
-            }
-        }
-        else
-            break;
+                break;
 
+        }
+        Lock_MutexPost(W25qxx_Lock);
     }
-    Lock_MutexPost(W25qxx_Lock);
     return ret;
 }
 
@@ -550,74 +557,76 @@ bool_t W25QXX_Write(u8* buf,u32 addr,u16 len)
     u16 i;
     bool_t ret = true;
 
-    Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER);
-    sec = addr / 4096; //扇区地址
-    sec_off = addr % 4096;//扇区偏移
-    sec_remain = 4096- sec_off; //扇区剩余大小
-
-    if(len <= sec_remain)
-        sec_remain = len;
-    while(1)
+    if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
     {
-        if(W25QXX_Read(W25QXX_BUFFER, sec*4096, 4096))
+        sec = addr / 4096; //扇区地址
+        sec_off = addr % 4096;//扇区偏移
+        sec_remain = 4096- sec_off; //扇区剩余大小
+
+        if(len <= sec_remain)
+            sec_remain = len;
+        while(1)
         {
-            for(i=0; i < sec_remain; i++)//
+            if(W25QXX_Read(W25QXX_BUFFER, sec*4096, 4096))
             {
-                if(W25QXX_BUFFER[sec_off + i] != 0XFF)
-                    break;
-            }
-            if(i < sec_remain)    //需要擦除
-            {
-                if(W25QXX_EraseSector(sec))
+                for(i=0; i < sec_remain; i++)//
                 {
-                    for(i=0; i<sec_remain; i++)
+                    if(W25QXX_BUFFER[sec_off + i] != 0XFF)
+                        break;
+                }
+                if(i < sec_remain)    //需要擦除
+                {
+                    if(W25QXX_EraseSector(sec))
                     {
-                        W25QXX_BUFFER[i + sec_off] = buf[i];
+                        for(i=0; i<sec_remain; i++)
+                        {
+                            W25QXX_BUFFER[i + sec_off] = buf[i];
+                        }
+                        if(W25QXX_WriteNoErase(W25QXX_BUFFER, sec*4096, 4096) == false)
+                        {
+                            ret = false;
+                            break;
+                        }
                     }
-                    if(W25QXX_WriteNoErase(W25QXX_BUFFER, sec*4096, 4096) == false)
+                    else
+                    {
+                        ret = false;
+                        break;
+                    }
+
+                }
+                else
+                {
+                    if(W25QXX_WriteNoErase(buf, addr, sec_remain) == false)
                     {
                         ret = false;
                         break;
                     }
                 }
+                if(len == sec_remain)
+                    break;  //写完了
                 else
                 {
-                    ret = false;
-                    break;
-                }
+                    sec++;
+                    sec_off=0;
 
+                    buf += sec_remain;
+                    addr += sec_remain;
+                    len -= sec_remain;
+                    if(len > 4096)
+                        sec_remain=4096;
+                    else
+                        sec_remain=len;
+                }
             }
             else
             {
-                if(W25QXX_WriteNoErase(buf, addr, sec_remain) == false)
-                {
-                    ret = false;
-                    break;
-                }
-            }
-            if(len == sec_remain)
-                break;  //写完了
-            else
-            {
-                sec++;
-                sec_off=0;
-
-                buf += sec_remain;
-                addr += sec_remain;
-                len -= sec_remain;
-                if(len > 4096)
-                    sec_remain=4096;
-                else
-                    sec_remain=len;
+                ret = false;
+                break;
             }
         }
-        else
-        {
-            ret = false;
-            break;
-        }
+        Lock_MutexPost(W25qxx_Lock);
     }
-    Lock_MutexPost(W25qxx_Lock);
     return ret;
 }
 

@@ -286,28 +286,31 @@ ptu32_t __GDD_MessageLoop( void )
 static u32 __GDD_PostSyncMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 {
     struct WinMsgQueueCB *pMsgQ;
-    u32 res;
+    u32 res = -1;
 
 
     pMsgQ =__GDD_GetWindowMsgQ(hwnd);
 
-    Lock_MutexPend(pMsgQ->mutex_lock,CN_TIMEOUT_FOREVER);
+    if(Lock_MutexPend(pMsgQ->mutex_lock,CN_TIMEOUT_FOREVER))
+    {
 
-    __GDD_InitMsg(&pMsgQ->sync_msg,hwnd,msg,param1,param2);
-
-
-//    Lock_SempPost(pMsgQ->sem_sync_recv);
-
-    Lock_SempPost(pMsgQ->sem_msg);    //发送消息信号量
-
-    Lock_SempPend(pMsgQ->sem_sync_send,CN_TIMEOUT_FOREVER);
+        __GDD_InitMsg(&pMsgQ->sync_msg,hwnd,msg,param1,param2);
 
 
-    res=pMsgQ->sync_msg.Param1;
+    //    Lock_SempPost(pMsgQ->sem_sync_recv);
 
-    Lock_MutexPost(pMsgQ->mutex_lock);
+        Lock_SempPost(pMsgQ->sem_msg);    //发送消息信号量
 
-    return res;
+        //if 那行不报错的话，说明调度是允许的，可以不判 Lock_SempPend 是否成功
+        Lock_SempPend(pMsgQ->sem_sync_send,CN_TIMEOUT_FOREVER);
+
+
+        res=pMsgQ->sync_msg.Param1;
+
+        Lock_MutexPost(pMsgQ->mutex_lock);
+    }
+
+    return res;     //如果 Lock_MutexPend 报错，这里返回的结果并无意义
 
 }
 
