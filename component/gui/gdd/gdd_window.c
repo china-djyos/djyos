@@ -113,7 +113,7 @@ HWND GDD_GetHwnd(struct GkWinObj *gkwin)
 }
 
 //----屏幕坐标转客户坐标---------------------------------------------------------
-//描述: 把一组屏幕坐标值，转换为窗口客户区的相对坐标
+//描述: 把一组屏幕坐标值，转换为窗口客户区左上角为原点的相对坐标
 //参数：hwnd:窗口句柄
 //      pt:  需要转换的屏幕坐标点指针
 //      count: 需要转换的坐标点数量
@@ -122,14 +122,16 @@ HWND GDD_GetHwnd(struct GkWinObj *gkwin)
 bool_t    GDD_ScreenToClient(HWND hwnd,POINT *pt,s32 count)
 {
     s32 i;
+    struct PointCdn scrlc;
     if(NULL!=pt && hwnd!=NULL)
     {
         if(__HWND_Lock(hwnd))
         {
+            GK_GetScreenLocation(hwnd->pGkWin, &scrlc);
             for(i=0;i<count;i++)
             {
-                pt[i].x -= hwnd->CliRect.left;
-                pt[i].y -= hwnd->CliRect.top;
+                pt[i].x -= scrlc.x;
+                pt[i].y -= scrlc.y;
             }
             __HWND_Unlock(hwnd);
             return TRUE;
@@ -139,7 +141,7 @@ bool_t    GDD_ScreenToClient(HWND hwnd,POINT *pt,s32 count)
 }
 
 //----客户坐标转屏幕坐标---------------------------------------------------------
-//描述: 略
+//描述: 把一组以窗口客户区左上角为原点的相对坐标，转换为屏幕左上角为原点的坐标
 //参数：hwnd:窗口句柄
 //      pt:  需要转换的坐标点指针
 //      count: 需要转换的坐标点数量
@@ -148,14 +150,16 @@ bool_t    GDD_ScreenToClient(HWND hwnd,POINT *pt,s32 count)
 bool_t    GDD_ClientToScreen(HWND hwnd,POINT *pt,s32 count)
 {
     s32 i;
+    struct PointCdn scrlc;
     if(NULL!=pt)
     {
         if(__HWND_Lock(hwnd))
         {
+            GK_GetScreenLocation(hwnd->pGkWin, &scrlc);
             for(i=0;i<count;i++)
             {
-                pt[i].x += hwnd->CliRect.left;
-                pt[i].y += hwnd->CliRect.top;
+                pt[i].x += scrlc.x;
+                pt[i].y += scrlc.y;
             }
             __HWND_Unlock(hwnd);
             return  TRUE;
@@ -180,7 +184,7 @@ bool_t    GDD_ScreenToWindow(HWND hwnd,POINT *pt,s32 count)
     {
         if(__HWND_Lock(hwnd))
         {
-            GK_GetArea(hwnd->pGkWin, &rc);
+            GK_GetScreenArea(hwnd->pGkWin, &rc);
             for(i=0;i<count;i++)
             {
                 pt[i].x -= rc.left;
@@ -208,7 +212,7 @@ bool_t    GDD_WindowToScreen(HWND hwnd,POINT *pt,s32 count)
     {
         if(__HWND_Lock(hwnd))
         {
-            GK_GetArea(hwnd->pGkWin, &rc);
+            GK_GetScreenArea(hwnd->pGkWin, &rc);
             for(i=0;i<count;i++)
             {
                 pt->x += rc.left;
@@ -251,7 +255,7 @@ bool_t    GDD_GetWindowRect(HWND hwnd,RECT *prc)
     if(NULL!=prc)
     if(__HWND_Lock(hwnd))
     {
-        GK_GetArea(hwnd->pGkWin, prc);
+        GK_GetScreenArea(hwnd->pGkWin, prc);
         __HWND_Unlock(hwnd);
         return TRUE;
     }
@@ -259,7 +263,7 @@ bool_t    GDD_GetWindowRect(HWND hwnd,RECT *prc)
 }
 
 //----获得窗口客户矩形区-------------------------------------------------------
-//描述: 获得窗口客户矩形区,矩形为客户坐标，以客户坐标的左上角为原点
+//描述: 获得窗口客户矩形区,矩形为客户区坐标，以客户区坐标的左上角为原点
 //参数：hwnd:窗口句柄
 //      prc:用于保存矩形数据的指针.
 //返回：TRUE:成功; FALSE:失败
@@ -287,11 +291,15 @@ bool_t    GDD_GetClientRect(HWND hwnd,RECT *prc)
 //------------------------------------------------------------------------------
 bool_t    GDD_GetClientRectToScreen(HWND hwnd,RECT *prc)
 {
+    struct PointCdn lc;
     if(NULL!=prc)
     {
         if(__HWND_Lock(hwnd))
         {
-            GDD_CopyRect(prc,&hwnd->CliRect);
+//          GDD_CopyRect(prc,&hwnd->CliRect);
+            *prc = hwnd->CliRect;
+            GK_GetScreenLocation(hwnd->pGkWin, &lc);
+            GDD_OffsetRect(prc, lc.x, lc.y);
             __HWND_Unlock(hwnd);
             return TRUE;
         }
@@ -599,6 +607,7 @@ void GDD_SetWindowName(HWND hwnd, char *NewName)
 static  void __GDD_InitWindow(HWND pwin,u32 Style,u32 WinId)
 {
     RECT rc;
+    struct PointCdn sz;
 
     pwin->Style     =Style;
     pwin->WinId     =WinId&0x0000FFFF;
@@ -607,12 +616,16 @@ static  void __GDD_InitWindow(HWND pwin,u32 Style,u32 WinId)
     dListInit(&pwin->node_msg_close);
     dListInit(&pwin->node_msg_ncpaint);
     dListInit(&pwin->node_msg_paint);
-    GK_GetArea(pwin->pGkWin, &rc);
+    GK_GetSize(pwin->pGkWin, &sz);
+    rc.left = 0;
+    rc.top = 0;
+    rc.right = sz.x;
+    rc.bottom = sz.y;
 
     if(Style&WS_BORDER)
     {
         pwin->BorderSize =DEF_BORDER_SIZE;
-        __GDD_InflateRectEx(&rc, -DEF_BORDER_SIZE,
+        GDD_InflateRectEx(&rc, -DEF_BORDER_SIZE,
                             -DEF_BORDER_SIZE,
                             -DEF_BORDER_SIZE,
                             -DEF_BORDER_SIZE);
@@ -626,7 +639,7 @@ static  void __GDD_InitWindow(HWND pwin,u32 Style,u32 WinId)
     if(Style&WS_DLGFRAME)
     {
 //      pwin->DlgFrameSize =DEF_DLGFRAME_SIZE;
-        __GDD_InflateRectEx(&rc, -DEF_DLGFRAME_SIZE,
+        GDD_InflateRectEx(&rc, -DEF_DLGFRAME_SIZE,
                             -DEF_DLGFRAME_SIZE,
                             -DEF_DLGFRAME_SIZE,
                             -DEF_DLGFRAME_SIZE);
@@ -639,14 +652,14 @@ static  void __GDD_InitWindow(HWND pwin,u32 Style,u32 WinId)
     if(Style&WS_CAPTION)
     {
         pwin->CaptionSize =DEF_CAPTION_SIZE;
-        __GDD_InflateRectEx(&rc,0,-DEF_CAPTION_SIZE,0,0);
+        GDD_InflateRectEx(&rc,0,-DEF_CAPTION_SIZE,0,0);
     }
     else
     {
         pwin->CaptionSize =0;
     }
-    GDD_CopyRect(&pwin->CliRect,&rc);
-
+//  GDD_CopyRect(&pwin->CliRect,&rc);
+    pwin->CliRect = rc;
 }
 
 
@@ -822,7 +835,8 @@ HWND    GDD_InitGddDesktop(struct GkWinObj *desktop)
             Mb_Free(g_ptHwndPool,pGddWin);
             pGddWin = NULL;
         }
-        GDD_SendMessage(pGddWin,MSG_CREATE,0,0);
+        GDD_PostMessage(pGddWin,MSG_CREATE,0,0);
+        GDD_InvalidateWindow(pGddWin,true);
     }
     return pGddWin;
 }
@@ -1106,32 +1120,6 @@ void GDD_DestroyAllChild(HWND hwnd)
 }
 
 //----偏移窗口------------------------------------------------------------------
-//描述: 偏移一个窗口位置,包括子窗口.该函数为内部调用,非线程安全
-//参数：hwnd:窗口句柄.
-//      dx,dy: 水平和垂直方向的偏移量.
-//返回：无.
-//------------------------------------------------------------------------------
-static  void    __GDD_OffsetWindow(HWND hwnd,s32 dx,s32 dy)
-{
-    HWND wnd;
-    RECT rc;
-    struct GkWinObj *Ancestor, *Current;
-
-    Ancestor = hwnd->pGkWin;
-    Current = Ancestor;
-    Current = GK_TraveScion(Ancestor,Current);
-    __GDD_OffsetRect(&hwnd->CliRect,dx,dy);
-    while(Current != NULL)
-    {
-        wnd = (HWND)GK_GetUserTag(Current);
-        GDD_OffsetRect(&wnd->CliRect,dx,dy);
-        Current = GK_TraveScion(Ancestor,Current);
-    }
-    GK_GetArea(hwnd->pGkWin,&rc);
-    GK_MoveWin(  hwnd->pGkWin,rc.left+dx,rc.top+dy,0);
-}
-
-//----偏移窗口------------------------------------------------------------------
 //描述: 偏移一个窗口位置,包括子窗口.
 //参数：hwnd:窗口句柄.
 //      dx,dy: 水平和垂直方向的偏移量.
@@ -1139,53 +1127,20 @@ static  void    __GDD_OffsetWindow(HWND hwnd,s32 dx,s32 dy)
 //------------------------------------------------------------------------------
 bool_t    GDD_OffsetWindow(HWND hwnd,s32 dx,s32 dy)
 {
+    RECT rc;
     if(hwnd == HWND_Desktop)
     {//桌面不允许移动
         return false;
     }
     if(__GDD_Lock())
     {
-        __GDD_OffsetWindow(hwnd,dx,dy);
+        GK_GetLcArea(hwnd->pGkWin,&rc);
+        GK_MoveWin(  hwnd->pGkWin,rc.left+dx,rc.top+dy);
         __GDD_Unlock();
         return true;
     }
     return FALSE;
 
-}
-
-//----移动窗口------------------------------------------------------------------
-//描述: 移动一个窗口位置,包括子窗口.该函数为内部调用.非线程安全.
-//参数：hwnd:窗口句柄.
-//      x,y: 相对于父窗口客户区坐标位置.
-//返回：无.
-//------------------------------------------------------------------------------
-static void __GDD_MoveWindow(HWND hwnd,s32 x,s32 y)
-{
-    HWND wnd;
-    struct GkWinObj *Ancestor, *Current;
-    struct Rectangle rc;
-    s32 dx,dy;
-    POINT point;
-    point.x=x;
-    point.y=y;
-    Ancestor = hwnd->pGkWin;
-    Current = Ancestor;
-    GK_GetArea(Ancestor, &rc);//显示区域,显示器的绝对坐标
-    wnd=GDD_GetWindowParent(hwnd);
-    GDD_ScreenToClient(wnd,(POINT *)&rc,2);//转化为客户区
-    dx = x - rc.left;
-    dy = y - rc.top;
-    Current = GK_TraveScion(Ancestor,Current);
-    __GDD_OffsetRect(&hwnd->CliRect, dx, dy);
-    while(Current != NULL)
-    {
-        wnd = (HWND)GK_GetUserTag(Current);
-        __GDD_OffsetRect(&wnd->CliRect,dx,dy);
-        Current = GK_TraveScion(Ancestor,Current);
-    }
-    GDD_ClientToScreen(wnd,&point,1);
-    GDD_ScreenToWindow(wnd,&point,1);
-    GK_MoveWin(  hwnd->pGkWin,point.x,point.y,0);
 }
 
 //----移动窗口------------------------------------------------------------------
@@ -1202,7 +1157,8 @@ bool_t    GDD_MoveWindow(HWND hwnd,s32 x,s32 y)
     }
     if(__GDD_Lock())
     {
-        __GDD_MoveWindow(hwnd,x,y);
+
+        GK_MoveWin(hwnd->pGkWin, hwnd->CliRect.left + x, hwnd->CliRect.top + y);
         __GDD_Unlock();
         return TRUE;
     }
@@ -1226,20 +1182,6 @@ bool_t    GDD_IsWindowVisible(HWND hwnd)
     return res;
 }
 
-//----设置窗口为无效-----------------------------------------------------------
-//描述: 设置窗口为无效的意思是:窗口需要重绘.发送重绘消息便可,该函数为内部调用.
-//参数：hwnd:窗口句柄.
-//      bErase: 是否擦除背景.
-//返回：无
-//------------------------------------------------------------------------------
-void    __GDD_InvalidateWindow(HWND hwnd,bool_t bErase)
-{
-    if(GDD_IsWindowVisible(hwnd))
-    {
-            GDD_PostMessage(hwnd,MSG_PAINT,bErase,0);
-    }
-}
-
 //----设置窗口为无效-------------------------------------------------------------
 //描述: 略
 //参数：hwnd:窗口句柄.
@@ -1248,13 +1190,11 @@ void    __GDD_InvalidateWindow(HWND hwnd,bool_t bErase)
 //------------------------------------------------------------------------------
 bool_t    GDD_InvalidateWindow(HWND hwnd,bool_t bErase)
 {
-//    if(__HWND_Lock(hwnd))
-//    {
-        __GDD_InvalidateWindow(hwnd,bErase);
-//        __HWND_Unlock(hwnd);
-        return TRUE;
-//    }
-//    return FALSE;
+    if(GDD_IsWindowVisible(hwnd))
+    {
+            GDD_PostMessage(hwnd,MSG_PAINT,bErase,0);
+    }
+    return true;
 }
 
 
@@ -1406,7 +1346,7 @@ HDC GDD_GetWindowDC(HWND hwnd)
 //参数：hwnd:窗口句柄.
 //返回：DC句柄.该DC是新创建并初始化的。
 //------------------------------------------------------------------------------
-HDC GDD_GetDC(HWND hwnd)
+HDC GDD_GetClientDC(HWND hwnd)
 {
     DC *pdc;
 
@@ -1470,12 +1410,9 @@ HDC GDD_BeginPaint(HWND hwnd)
     HDC hdc;
     struct WindowMsg msg;
 
-    hdc = malloc(sizeof(DC));
+    hdc = GDD_GetClientDC(hwnd);
     if(hdc!=NULL)
     {
-        memset(hdc, 0, sizeof(DC));
-        GDD_InitDC(hdc,hwnd->pGkWin,hwnd,DC_TYPE_PAINT);
-
         if(__HWND_Lock(hwnd))
         {
             if(hwnd->Flag&WF_ERASEBKGND)

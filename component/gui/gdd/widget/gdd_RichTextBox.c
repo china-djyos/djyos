@@ -590,22 +590,6 @@ static ptu32_t __Widget_RichTextBoxCreate(struct WindowMsg *pMsg)
     return true;
 }
 
-//窗口背景擦除
-static ptu32_t __Widget_RichTextBoxErasebkgnd(struct WindowMsg *pMsg)
-{
-    HWND hwnd;
-    HDC  hdc;
-    RECT rc0;
-
-    hwnd =pMsg->hwnd;
-    hdc =(HDC)pMsg->Param1;
-    GDD_GetClientRect(hwnd,&rc0);
-    GDD_SetFillColor(hdc,RGB(200,200,200));
-    GDD_FillRect(hdc,&rc0);
-
-    return true;
-}
-
 //绘图消息
 // =============================================================================
 // 函数功能: RichTextBox控件绘制函数。响应MMSG_PAINT消息

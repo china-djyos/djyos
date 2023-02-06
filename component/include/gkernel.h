@@ -324,7 +324,7 @@ struct GkWinObj                  //窗口资源定义
     struct RectBitmap changed_msk;//用来标记窗口中的被改写区域，
                                       //每bit代表8*8像素
     struct RectBitmap *wm_bitmap; //窗口实体(暂为矩形，考虑升级为任意形状)
-    s32 absx0,absy0;            //窗口绝对位置，相对于所属screen的桌面原点，
+    s32 ScreenX,ScreenY;            //窗口绝对位置，相对于所属screen的原点，
     struct Rectangle area;      //窗口矩形，相对于父窗口，像素坐标
 //  s32 left,top,right,bottom;
 
@@ -375,9 +375,9 @@ struct GkWinObj* GK_GetTwig(struct GkWinObj *Ancestor);
 struct GkWinObj* GK_TraveScion(struct GkWinObj *Ancestor,struct GkWinObj *Current);
 struct GkWinObj* GK_TraveChild(struct GkWinObj *Parent,struct GkWinObj *Current);
 void GK_AdoptWin(struct GkWinObj *gkwin, struct GkWinObj *NewParent);
-void GK_MoveWin(struct GkWinObj *gkwin,s32 left,s32 top,u32 sync_time);
+void GK_MoveWin(struct GkWinObj *gkwin,s32 left,s32 top);
 void GK_ChangeWinArea(struct GkWinObj *gkwin, s32 left,s32 top,
-                                       s32 right,s32 bottom, u32 SyncTime);
+                                       s32 right,s32 bottom);
 void GK_SetBoundMode(struct GkWinObj *gkwin,bool_t mode);
 void GK_SetPrio(struct GkWinObj *gkwin,u32 prio,u32 sync_time);
 bool_t GK_SetRopCode(struct GkWinObj *gkwin,
@@ -400,7 +400,12 @@ struct GkWinObj *GK_GetPreviousWin(struct GkWinObj *gkwin);
 struct GkWinObj *GK_GetNextWin(struct GkWinObj *gkwin);
 struct GkWinObj *GK_GetFirstWin(struct GkWinObj *gkwin);
 struct GkWinObj *GK_GetLastWin(struct GkWinObj *gkwin);
-void GK_GetArea(struct GkWinObj *gkwin, struct Rectangle *rc);
+void GK_GetScreenArea(struct GkWinObj *gkwin, struct Rectangle *rc);
+void GK_GetLcArea(struct GkWinObj *gkwin, struct Rectangle *rc);
+void GK_GetSize(struct GkWinObj *gkwin, struct PointCdn *size);
+void GK_GetLocation(struct GkWinObj *gkwin, struct PointCdn *lc);
+void GK_GetScreenLocation(struct GkWinObj *gkwin, struct PointCdn *lc);
+void GK_GetDspSize(struct GkWinObj *gkwin, struct PointCdn *size);
 void GK_SetName(struct GkWinObj *gkwin, const char *Name);
 char *GK_GetName(struct GkWinObj *gkwin);
 bool_t GK_IsWinVisible(struct GkWinObj *gkwin);
@@ -413,22 +418,21 @@ u32 GK_ConvertColorToRGB24(u16 PixelFormat,u32 color,ptu32_t ExColor);
 u32 GK_ConvertRGB24ToPF(u16 PixelFormat,u32 color);
 
 //绘图函数组
-void GK_DrawText(struct GkWinObj *gkwin,
+void GK_DrawText(struct GkWinObj *gkwin,struct Rectangle *range,
                     struct FontObj *pFont,
                     struct Charset *pCharset,
                     s32 x,s32 y,
                     const char *text,u32 count,u32 color,
                     u32 Rop2Code,u32 SyncTime);
-void GK_SetPixel(struct GkWinObj *gkwin,s32 x,s32 y,
-                        u32 color,u32 rop2_code,u32 sync_time);
-void GK_Lineto(struct GkWinObj *gkwin, s32 x1,s32 y1,
+void GK_SetPixel(struct GkWinObj *gkwin,struct Rectangle *range,s32 x,s32 y,
+                        u32 color,u32 Rop2Code,u32 SyncTime);
+void GK_Lineto(struct GkWinObj *gkwin,struct Rectangle *range, s32 x1,s32 y1,
                     s32 x2,s32 y2,u32 color,u32 rop2_code,u32 sync_time);
 void GK_LinetoIe(struct GkWinObj *gkwin, s32 x1,s32 y1,
                     s32 x2,s32 y2,u32 color,u32 rop2_code,u32 sync_time);
-void GK_DrawBitMap(struct GkWinObj *gkwin,
-                                struct RectBitmap *bitmap,
-                                s32 x,s32 y,
-                                u32 HyalineColor,struct RopGroup RopCode,u32 SyncTime);
+void GK_DrawBitMap(struct GkWinObj *gkwin,struct Rectangle *range,
+                    struct RectBitmap *bitmap,s32 x,s32 y,
+                    u32 HyalineColor,struct RopGroup RopCode,u32 SyncTime);
 void GK_DrawCircle(struct GkWinObj *gkwin,s32 x0,s32 y0,
                     u32 r,u32 color,u32 rop2_code,u32 sync_time);
 void GK_DrawBezier(struct GkWinObj *gkwin,float x1,float y1,

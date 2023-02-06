@@ -742,7 +742,8 @@ static bool_t __Widget_ListViewPaint(struct WindowMsg *pMsg)
                 if(cell==pLV->sel_cell)
                 {
                     RECT rc;
-                    GDD_CopyRect(&rc,&rc0);
+//                    GDD_CopyRect(&rc,&rc0);
+                    rc = rc0;
                     GDD_InflateRect(&rc,-1,-1);
                     GDD_SetDrawColor(hdc,RGB(0,0,0));
                     GDD_DrawRect(hdc,&rc);

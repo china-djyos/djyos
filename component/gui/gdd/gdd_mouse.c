@@ -104,12 +104,18 @@ static struct MsgTableLink  s_gMouseWinMsgLink;
 bool_t GDD_CreateMouseIcon( void )
 {
     HWND desktop;
+    struct Rectangle rc ;
+    struct PointCdn sz;
+    s32 x,y;
     struct RopGroup RopCode;
     desktop = GDD_GetDesktopWindow(NULL );
+    GK_GetDspSize(desktop->pGkWin, &sz);
+    GK_GetScreenArea(desktop->pGkWin, &rc);
+    x = sz.x / 2 - rc.left;
+    y = sz.y / 2 -rc.top;
     s_gMouseWinMsgLink.MsgNum = sizeof(s_gMouseMsgProcTable) / sizeof(struct MsgProcTable);
     s_gMouseWinMsgLink.myTable = (struct MsgProcTable *)&s_gMouseMsgProcTable;
-    sg_pMouseHwnd = GDD_CreateWindow("Mouse_Cursor", 0, desktop->CliRect.right/2,
-                                  desktop->CliRect.bottom / 2, 8, 8, NULL, 0,
+    sg_pMouseHwnd = GDD_CreateWindow("Mouse_Cursor", 0, x,y, 8, 8, NULL, 0,
                                   CN_WINBUF_BUF, 0, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
                                   &s_gMouseWinMsgLink);
     if(sg_pMouseHwnd != NULL)

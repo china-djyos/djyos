@@ -965,7 +965,7 @@ void DispMainInterface(unsigned char *pic)
        bitmap.height=CFG_LCD_YSIZE;
        bitmap.width=CFG_LCD_XSIZE;
        bitmap.reversal = true;
-       GK_DrawBitMap(desktop,&bitmap,0,0,0,RopCode,100000);
+       GK_DrawBitMap(desktop,NULL,&bitmap,0,0,0,RopCode,100000);
        GK_SyncShow(100000);
 }
 

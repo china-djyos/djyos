@@ -128,7 +128,7 @@ struct Rectangle   CalDisAreaFromPre_9cell(struct menu_displaypara *pre,struct m
        number=CalDisBettween2Menuitem(pre->FVisualMenuitem, pre->OperatingMenuitem);
       //计算水平位置
       limit_start=pre->MenuitemSpace.width+cn_space_margin;
-      limit_end=cur->AppWin->absx0+cur->AppWin->right-cur->AppWin->left-pre->CurWin->absx0;
+      limit_end=cur->AppWin->ScreenX+cur->AppWin->right-cur->AppWin->left-pre->CurWin->ScreenX;
       cal_start=limit_start;//在九宫格中这两者是相同的
       cal_end=cal_start+cur->MenuitemSpace.width+cn_space_margin;
       if(cal_end>limit_end)//水平位置不够，则一票否决
@@ -142,7 +142,7 @@ struct Rectangle   CalDisAreaFromPre_9cell(struct menu_displaypara *pre,struct m
       }
       //计算垂直位置，记得放在中间
       length=(cur->MenuitemSpace.height)*menuitem_num+cn_space_margin;
-      limit_start=cur->AppWin->absy0-pre->CurWin->absy0;
+      limit_start=cur->AppWin->ScreenY-pre->CurWin->ScreenY;
       limit_end=limit_start+cur->AppWin->bottom-cur->AppWin->top;
       if(length>(limit_end-limit_start))//空间不富裕，不必考虑中间位置了
       {
@@ -207,15 +207,15 @@ void adjustvisualmenuitem_9cell(struct menu_displaypara  *dispara)
     }
     else
     {
-       deep_cal=dispara->CurWin->absy0+dispara->CurWin->bottom-dispara->CurWin->top;
-       deep_limit=dispara->AppWin->absy0+dispara->AppWin->bottom-dispara->AppWin->top;
+       deep_cal=dispara->CurWin->ScreenY+dispara->CurWin->bottom-dispara->CurWin->top;
+       deep_limit=dispara->AppWin->ScreenY+dispara->AppWin->bottom-dispara->AppWin->top;
        if(deep_cal>deep_limit)//有超出的部分
        {
-        dis_height=deep_limit-dispara->CurWin->absy0;
+        dis_height=deep_limit-dispara->CurWin->ScreenY;
        }
        else
        {
-        dis_height=deep_cal-dispara->CurWin->absy0;
+        dis_height=deep_cal-dispara->CurWin->ScreenY;
        }
        if(dis_height==0)
        {

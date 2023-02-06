@@ -126,16 +126,16 @@ struct Rectangle   CalDisAreaFromPre_pull(struct menu_displaypara *pre,struct me
       else//二级子菜单及其以下,先看右边够不够，够用的话就右边，不够的话就左边，
       {
           length_need=cur->MenuitemSpace.width+cn_space_margin;
-          length_left=pre->AppWin->absx0+pre->AppWin->right-pre->AppWin->left-pre->CurWin->right-pre->CurWin->absx0+pre->CurWin->left;
+          length_left=pre->AppWin->ScreenX+pre->AppWin->right-pre->AppWin->left-pre->CurWin->right-pre->CurWin->ScreenX+pre->CurWin->left;
           if(length_need>length_left)//右边不够，
           {
             //看看左边够不够
-            length_left=pre->CurWin->absx0-pre->AppWin->absx0;
+            length_left=pre->CurWin->ScreenX-pre->AppWin->ScreenX;
             length_need=cur->MenuitemSpace.width+cn_space_margin;
             if(length_need>length_left)//左边也不够
             {
               //看看是左边多，还是右边多，哪边多就放哪边
-              length_need=pre->AppWin->absx0+pre->AppWin->right-pre->AppWin->left-pre->CurWin->right-pre->CurWin->absx0+pre->CurWin->left;
+              length_need=pre->AppWin->ScreenX+pre->AppWin->right-pre->AppWin->left-pre->CurWin->right-pre->CurWin->ScreenX+pre->CurWin->left;
               if(length_left>length_need)//左边多
               {
                  result.left=-(length_left);
@@ -168,9 +168,9 @@ struct Rectangle   CalDisAreaFromPre_pull(struct menu_displaypara *pre,struct me
           return result;
       }
 
-      limit_start=pre->AppWin->absy0+pMainMenuDispara->MenuitemSpace.height+cn_space_margin-pre->CurWin->absy0;
+      limit_start=pre->AppWin->ScreenY+pMainMenuDispara->MenuitemSpace.height+cn_space_margin-pre->CurWin->ScreenY;
       length_need=(cur->MenuitemSpace.height)*menuitem_num+cn_space_margin;
-      limit_end=cur->AppWin->absy0+cur->AppWin->bottom-cur->AppWin->top-pre->CurWin->absy0;
+      limit_end=cur->AppWin->ScreenY+cur->AppWin->bottom-cur->AppWin->top-pre->CurWin->ScreenY;
       if(NULL==pre->pre)//直接在主菜单下，水平弹出垂直菜单
       {
           if(length_need>(limit_end-limit_start))//考虑空间大小,空间不足，考虑分配整数个。
@@ -245,13 +245,13 @@ void adjustvisualmenuitem_pull(struct menu_displaypara  *dispara)
     if(NULL==dispara->pre)//主菜单，横向
     {
         length_Visual=dispara->CurWin->right-dispara->CurWin->left;
-    //  deep_limit=dispara->AppWin->absx0+dispara->AppWin->right-dispara->AppWin->left;
+    //  deep_limit=dispara->AppWin->ScreenX+dispara->AppWin->right-dispara->AppWin->left;
         length_E=dispara->MenuitemSpace.width;
     }
     else//子菜单，纵向
     {
         length_Visual=dispara->CurWin->bottom-dispara->CurWin->top;
-    //    deep_limit=dispara->AppWin->absy0+dispara->AppWin->bottom-dispara->AppWin->top;
+    //    deep_limit=dispara->AppWin->ScreenY+dispara->AppWin->bottom-dispara->AppWin->top;
         length_E=dispara->MenuitemSpace.height;
     }
     if(length_E==0)

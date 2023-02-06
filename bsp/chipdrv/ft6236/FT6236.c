@@ -337,15 +337,15 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
     else
     {
         memset(&tg_touch_adjust, 0, sizeof(struct ST_TouchAdjust));
-        limit_left = 0;
-        limit_top = 0;
-        limit_right = desktop->disp->width;
-        limit_bottom = desktop->disp->height;
+        limit_left = desktop->limit.left;
+        limit_top = desktop->limit.top;
+        limit_right = desktop->limit.right;
+        limit_bottom = desktop->limit.bottom;
 //
 //        GK_FillWin(desktop,CN_COLOR_WHITE,0);
-//        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+//        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+50,
 //                       "触摸屏矫正卡片", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
-//        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+//        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+70,
 //                       "请准确点击十字交叉点", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
 //        GK_Lineto(desktop,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
 //        GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
@@ -400,9 +400,9 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
 
 
 //        GK_FillWin(desktop,CN_COLOR_WHITE,0);
-//        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+//        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+50,
 //                       "触摸屏矫正", 21, CN_COLOR_BLACK + 1, CN_R2_COPYPEN, 0);
-//        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+//        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+70,
 //                       "再次准确点击十字交叉点", 21, CN_COLOR_BLACK + 1, CN_R2_COPYPEN, 0);
 //        GK_Lineto(desktop,limit_right-40,limit_bottom-20,
 //                      limit_right,limit_bottom-20,

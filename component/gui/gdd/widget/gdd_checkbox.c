@@ -90,7 +90,8 @@ static  bool_t __Widget_CheckBoxPaint(struct WindowMsg *pMsg)
 
         if(hwnd->Style&CBS_SELECTED)
         {
-            GDD_CopyRect(&rc,&rc0);
+//          GDD_CopyRect(&rc,&rc0);
+            rc = rc0;
             rc.right =rc.left+GDD_RectH(&rc0);
 
             GDD_InflateRect(&rc,-2,-2);
@@ -118,7 +119,8 @@ static  bool_t __Widget_CheckBoxPaint(struct WindowMsg *pMsg)
         }
         else
         {
-            GDD_CopyRect(&rc,&rc0);
+//          GDD_CopyRect(&rc,&rc0);
+            rc = rc0;
             rc.right =rc.left+GDD_RectH(&rc0);
 
             GDD_InflateRect(&rc,-2,-2);
@@ -135,7 +137,8 @@ static  bool_t __Widget_CheckBoxPaint(struct WindowMsg *pMsg)
 
         }
 
-        GDD_CopyRect(&rc,&rc0);
+//      GDD_CopyRect(&rc,&rc0);
+        rc = rc0;
         GDD_InflateRectEx(&rc,-GDD_RectH(&rc),0,0,0);
 
         GDD_DrawText(hdc,hwnd->Text,-1,&rc,DT_LEFT|DT_VCENTER);

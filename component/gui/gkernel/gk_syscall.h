@@ -116,7 +116,6 @@ struct GkscParaCreateDesktop
 struct GkscParaCreateGkwin
 {
     struct GkWinObj *parent_gkwin;   //新窗口的父窗口
-//  struct GkWinObj *gkwin;          //新窗口,由调用者分配结构体
     struct GkWinObj **result;        //用于返回结果
     s32 left,top,right,bottom;          //新窗口的位置，相对于父窗口的坐标
     u32 color;                          //创建窗口时填充的颜色
@@ -151,6 +150,7 @@ struct GkscParaGradientFillWin
 struct GkscParaDrawText
 {
     struct GkWinObj* gkwin;         //目标窗口
+    struct Rectangle range;         //允许绘制区域，相对于gkwin的坐标
     struct FontObj *pFont;          //使用的字体,NULL表示用系统当前字体
     struct Charset *pCharset;       //使用的字符集,NULL表示用系统当前字符集
     s32 x, y;                       //显示位置，相对于gkwin
@@ -158,7 +158,7 @@ struct GkscParaDrawText
     u32 color;                      //画点使用的颜色
     u32 Rop2Code;                   //rop2编码
 };
-struct GkscParaSetPixel
+struct GkscParaSetPixel     //本命令没有限制区域，在api中先行判断
 {
     struct GkWinObj *gkwin;         //绘制的目标窗口
     s32 x,y;                        //点对应的坐标
@@ -168,6 +168,7 @@ struct GkscParaSetPixel
 struct GkscParaDrawBitmapRop
 {
     struct GkWinObj *gkwin;         //绘制的目标窗口
+    struct Rectangle range;         //允许绘制区域，相对于gkwin的坐标
     struct RectBitmap bitmap;       //待绘制的位图
     u32 HyalineColor;               //透明色,与bitmap相同格式
     s32 x,y;                        //绘制位置的左上角坐标
@@ -176,6 +177,7 @@ struct GkscParaDrawBitmapRop
 struct GkscParaLineto
 {
     struct GkWinObj *gkwin;         //绘制的目标窗口
+    struct Rectangle range;         //允许绘制区域，相对于gkwin的坐标
     s32 x1,y1,x2,y2;                //目标直线的起点，终点坐标
     u32 color;                      //绘制直线使用的颜色
     u32 Rop2Code;                   //二元光栅操作码

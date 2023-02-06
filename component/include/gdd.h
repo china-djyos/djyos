@@ -371,7 +371,7 @@ HWND    GDD_InitGddDesktop(struct GkWinObj *desktop);
 
 //DC²Ù×÷º¯Êý
 HDC     GDD_GetWindowDC(HWND hwnd);
-HDC     GDD_GetDC(HWND hwnd);
+HDC     GDD_GetClientDC(HWND hwnd);
 bool_t    GDD_ReleaseDC(HDC hdc);
 HDC     GDD_BeginPaint(HWND hwnd);
 bool_t    GDD_EndPaint(HWND hwnd,HDC hdc);

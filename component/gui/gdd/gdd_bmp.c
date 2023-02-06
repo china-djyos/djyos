@@ -239,7 +239,7 @@ bool_t GDD_DrawWinBMPArray(HDC hdc,s32 x,s32 y,const void *bmp_data,u32 *palette
         bm.linebytes =line_bytes;
         bm.ExColor =(ptu32_t)0;
         bm.bm_bits =(u8*)bmp_data + bfOffsetBits;
-        GDD_DrawBitmap(hdc,x,y,&bm,HyalineColor);
+        GDD_DrawBitmap(hdc, x,y,&bm,HyalineColor);
         //这里需要执行绘制操作，因为 bm 是局部变量
         GDD_SyncShow(hdc->hwnd);
         return TRUE;

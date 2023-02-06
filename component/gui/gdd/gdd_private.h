@@ -124,6 +124,7 @@ struct DC
     struct FontObj *pFontDef;   //默认字体,这个值在创建DC时指定,后续将不可更改
     struct FontObj *pFont;      //当前字体,这个值在DC使用过程中,可以被更改
     struct Charset *pCharset;   //当前字符集
+    struct Rectangle DrawArea;  //本DC的可绘制区，相对于窗口坐标
     HWND hwnd;                  //DC所属窗口
     u32 DCType;                 //DC类型
     s32 CurX,CurY;              //当前位置
@@ -159,7 +160,8 @@ struct WINDOW
     u16     Flag;           //窗口标记，例如： WF_ERASEBKGND
     u32     Style;          //窗口风格,高16位系统使用，例如：WS_CAPTION
                             //0~7 bit=控件类型，8~15 bit = 控件风格
-    RECT    CliRect;        //窗口客户区(使用屏幕坐标)
+//  RECT    CliRect;        //窗口客户区(使用屏幕坐标)
+    RECT    CliRect;        //窗口客户区(改为窗口左上角为原点的坐标)
     u32     DrawColor;      //绘制颜色，创建子窗口时，将继承
     u32     FillColor;      //填充颜色，创建子窗口时，将继承
     u32     TextColor;      //字体颜色，创建子窗口时，将继承
@@ -194,16 +196,11 @@ bool_t  __GDD_Lock(void);
 void    __GDD_Unlock(void);
 bool_t GDD_AdoptWin(HWND Hwnd ,HWND NewParent);
 void    GDD_InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type);
-void    __GDD_OffsetRect(RECT *prc,s32 dx,s32 dy);
-void    __GDD_InflateRect(RECT *prc,s32 dx,s32 dy);
-void    __GDD_InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b);
-bool_t  __PtInRect(const RECT *prc,const POINT *pt);
 
 
 bool_t  __GDD_PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
 void    __GDD_PostTimerMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,struct WinTimer *ptmr);
 
-void    __GDD_InvalidateWindow(HWND hwnd,bool_t bErase);
 struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size);
 void    __GUI_DeleteMsgQ(struct WinMsgQueueCB *pMsgQ);
 void    __GDD_RemoveWindowTimer(HWND hwnd);

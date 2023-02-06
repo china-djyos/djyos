@@ -372,20 +372,20 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
 //    }
 //    else
     {
-        limit_left = 0;
-        limit_top = 0;
-        limit_right = desktop->disp->width;
-        limit_bottom = desktop->disp->height;
+        limit_left = desktop->limit.left;
+        limit_top = desktop->limit.top;
+        limit_right = desktop->limit.right;
+        limit_bottom = desktop->limit.bottom;
     //    GK_CreateWin(desktop,desktop,limit_left,limit_top,limit_right,limit_bottom,
     //                      CN_COLOR_WHITE,CN_WINBUF_BUF,"&tg_touch_adjust",CN_R3_SRCCOPY,0);
     //    GK_SetPrio(desktop,-1,CN_GK_SYNC);
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+50,
                        "touch", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+70,
                        "TOUCH", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
-        GK_Lineto(desktop,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
-        GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
+        GK_Lineto(desktop,NULL,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
+        GK_Lineto(desktop,NULL,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
         GK_SyncShow(CN_TIMEOUT_FOREVER);
         while(!read_touch_stmpe811(&touch_xyz0));           //记录触摸屏第一点校正值
         DJY_DelayUs(300);
@@ -409,14 +409,14 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
 
 
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+50,
                        "touch", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+70,
                        "TOUCH", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
-        GK_Lineto(desktop,limit_right-40,limit_bottom-20,
+        GK_Lineto(desktop,NULL,limit_right-40,limit_bottom-20,
                       limit_right,limit_bottom-20,
                       CN_COLOR_RED,CN_R2_COPYPEN,0);
-        GK_Lineto(desktop,limit_right-20,limit_bottom-40,
+        GK_Lineto(desktop,NULL,limit_right-20,limit_bottom-40,
                       limit_right-20,limit_bottom,
                       CN_COLOR_RED,CN_R2_COPYPEN,0);
         GK_SyncShow(CN_TIMEOUT_FOREVER);

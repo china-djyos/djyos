@@ -67,6 +67,7 @@
 #include "stdint.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include "int.h"
 #include "lock.h"
 #include "systime.h"
 #include "gkernel.h"
@@ -494,8 +495,8 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
     desktop->WinProperty.BoundLimit = CN_BOUND_LIMIT;
     desktop->WinProperty.Visible = CN_GKWIN_VISIBLE;
     desktop->RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  }; //桌面固定
-    desktop->absx0 = 0;
-    desktop->absy0 = 0;
+    desktop->ScreenX = 0;
+    desktop->ScreenY = 0;
     desktop->area.left = 0;
     desktop->area.top = 0;
     desktop->area.right = desktop_x;
@@ -605,7 +606,6 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     //z轴中被移动的窗口段最前端的窗口
     struct GkWinObj *move_end;
     struct GkWinObj *gkwin;
-    struct GkscParaFillWin para_fill;
 
     width = para->right - para->left;
     height = para->bottom - para->top;
@@ -652,9 +652,9 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     gkwin->area.top = para->top;
     gkwin->area.right = para->right;
     gkwin->area.bottom = para->bottom;
-    //窗口的绝对位置，相对于所属screen的桌面原点
-    gkwin->absx0 = para->left + para->parent_gkwin->absx0;
-    gkwin->absy0 = para->top + para->parent_gkwin->absy0;
+    //窗口的绝对位置，相对于所属screen的原点
+    gkwin->ScreenX = para->left + para->parent_gkwin->ScreenX;
+    gkwin->ScreenY = para->top + para->parent_gkwin->ScreenY;
     gkwin->WinProperty.Zprio = CN_ZPRIO_DEFAULT;                //新建窗口默认为0
     gkwin->WinProperty.DestBlend = __GK_RopIsNeedDestination(RopCode);
     gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE; //清屏后才显示
@@ -889,28 +889,28 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
     {   //目标窗口是桌面，有额外限制:桌面必须覆盖显示器区域
         if(left > 0)    //桌面左边界必须覆盖显示器
         {
-            cwawin->absx0 = 0;
+            cwawin->ScreenX = 0;
             delta_left = 0 - cwawin->area.left;
             cwawin->area.left = 0;
             cwawin->limit.left = 0;
         }
         else
         {
-            cwawin->absx0 = left;
+            cwawin->ScreenX = left;
             delta_left = left - cwawin->area.left;
             cwawin->area.left = left;
             cwawin->limit.left = -left;//桌面的可显示左边界应该刚好在显示器的左边界
         }
         if(top > 0)    //桌面上边界必须覆盖显示器
         {
-            cwawin->absy0 = 0;
+            cwawin->ScreenY = 0;
             delta_top = 0 - cwawin->area.top;
             cwawin->area.top = 0;
             cwawin->limit.top = 0;
         }
         else
         {
-            cwawin->absy0 = top;
+            cwawin->ScreenY = top;
             delta_top = top - cwawin->area.top;
             cwawin->area.top = top;
             cwawin->limit.top = -top;//桌面的可显示上边界应该刚好在显示器的上边界
@@ -941,8 +941,8 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
     {
         delta_left = para->left-cwawin->area.left;
         delta_top = para->top-cwawin->area.top;
-        cwawin->absx0 += delta_left;//修改窗口绝对坐标
-        cwawin->absy0 += delta_top;
+        cwawin->ScreenX += delta_left;//修改窗口绝对坐标
+        cwawin->ScreenY += delta_top;
 
         cwawin->area.left = left;                      //修改窗口相对坐标
         cwawin->area.top = top;
@@ -959,8 +959,8 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
     while(current != NULL)
     {
         temp = (struct GkWinObj*)OBJ_GetPrivate(current);
-        temp->absx0 += delta_left;        //修改窗口绝对坐标
-        temp->absy0 += delta_top;
+        temp->ScreenX += delta_left;        //修改窗口绝对坐标
+        temp->ScreenY += delta_top;
         current = OBJ_ForeachScion(changing, current);
     }
     current = OBJ_ForeachScion(changing, changing);
@@ -1075,28 +1075,28 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
     {   //目标窗口是桌面，有额外限制:桌面必须覆盖显示器区域
         if(para->left > 0)    //桌面左边界必须覆盖显示器
         {
-            movewin->absx0 = 0;
+            movewin->ScreenX = 0;
             delta_left = 0 - movewin->area.left;
             movewin->area.left = 0;
             movewin->limit.left = 0;
         }
         else
         {
-            movewin->absx0 = para->left;
+            movewin->ScreenX = para->left;
             delta_left = para->left - movewin->area.left;
             movewin->area.left = para->left;
             movewin->limit.left = -para->left;//桌面的可显示左边界应该刚好在显示器的左边界
         }
         if(para->top > 0)    //桌面上边界必须覆盖显示器
         {
-            movewin->absy0 = 0;
+            movewin->ScreenY = 0;
             delta_top = 0 - movewin->area.top;
             movewin->area.top = 0;
             movewin->limit.top = 0;
         }
         else
         {
-            movewin->absy0 = para->top;
+            movewin->ScreenY = para->top;
             delta_top = para->top - movewin->area.top;
             movewin->area.top = para->top;
             movewin->limit.top = -para->top;//桌面的可显示上边界应该刚好在显示器的上边界
@@ -1122,14 +1122,14 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
     {
         delta_left = para->left-movewin->area.left;
         delta_top = para->top-movewin->area.top;
-        movewin->absx0 += delta_left;//修改窗口绝对坐标
-        movewin->absy0 += delta_top;
+        movewin->ScreenX += delta_left;//修改窗口绝对坐标
+        movewin->ScreenY += delta_top;
 
         movewin->area.left = para->left;                      //修改窗口相对坐标
         movewin->area.top = para->top;
         movewin->area.right += delta_left;
         movewin->area.bottom += delta_top;
-//      if((movewin->absx0 <0) || (movewin->absy0 <0))
+//      if((movewin->ScreenX <0) || (movewin->ScreenY <0))
 //          delta_left = 0;
         __GK_SetBound(movewin);                        //设置可显示边界
     }
@@ -1139,8 +1139,8 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
     while(current != NULL)
     {
         movewin = (struct GkWinObj*)OBJ_GetPrivate(current);
-        movewin->absx0 += delta_left;        //修改窗口绝对坐标
-        movewin->absy0 += delta_top;
+        movewin->ScreenX += delta_left;        //修改窗口绝对坐标
+        movewin->ScreenY += delta_top;
         current = OBJ_ForeachScion(moving, current);
     }
     current = OBJ_ForeachScion(moving, moving);
@@ -1185,11 +1185,11 @@ void __GK_SetBound(struct GkWinObj *gkwin)
         return ;
     }
 
-    gkwin_absx = gkwin->absx0;  //取本窗口的绝对坐标，也即gkwin->left的绝对坐标
-    gkwin_absy = gkwin->absy0;
+    gkwin_absx = gkwin->ScreenX;  //取本窗口的绝对坐标，也即gkwin->left的绝对坐标
+    gkwin_absy = gkwin->ScreenY;
     //取限制本窗口边界的窗口的可见边界绝对坐标
-    ancestor_absx = ancestor->absx0 +ancestor->limit.left;
-    ancestor_absy = ancestor->absy0 +ancestor->limit.top;
+    ancestor_absx = ancestor->ScreenX +ancestor->limit.left;
+    ancestor_absy = ancestor->ScreenY +ancestor->limit.top;
 
 
     if(gkwin_absx < ancestor_absx)
@@ -1653,10 +1653,10 @@ void __GK_OutputRedraw(struct DisplayObj *display)
                 {
                     do
                     {
-                        SrcRect.left = clip->rect.left-gkwin->absx0;
-                        SrcRect.top = clip->rect.top-gkwin->absy0;
-                        SrcRect.right = clip->rect.right -gkwin->absx0;
-                        SrcRect.bottom = clip->rect.bottom -gkwin->absy0;
+                        SrcRect.left = clip->rect.left-gkwin->ScreenX;
+                        SrcRect.top = clip->rect.top-gkwin->ScreenY;
+                        SrcRect.right = clip->rect.right -gkwin->ScreenX;
+                        SrcRect.bottom = clip->rect.bottom -gkwin->ScreenY;
                         if(!display->draw.BltBitmapToBitmap(
                                             frame_buf->wm_bitmap,
                                             &clip->rect,
@@ -1671,13 +1671,13 @@ void __GK_OutputRedraw(struct DisplayObj *display)
                             y_dst = clip->rect.top;
                             if(gkwin->WinProperty.DestBlend == CN_GKWIN_DEST_HIDE)
                             {
-                                for(y_src = clip->rect.top-gkwin->absy0;
-                                    y_src < clip->rect.bottom-gkwin->absy0;
+                                for(y_src = clip->rect.top-gkwin->ScreenY;
+                                    y_src < clip->rect.bottom-gkwin->ScreenY;
                                     y_src++)
                                 {
                                     x_dst = clip->rect.left;
-                                    for(x_src = clip->rect.left-gkwin->absx0;
-                                        x_src < clip->rect.right-gkwin->absx0;
+                                    for(x_src = clip->rect.left-gkwin->ScreenX;
+                                        x_src < clip->rect.right-gkwin->ScreenX;
                                         x_src++)
                                     {
                                         __GK_CopyPixelBm(dst,src,x_dst,y_dst,
@@ -1689,13 +1689,13 @@ void __GK_OutputRedraw(struct DisplayObj *display)
                             }
                             else
                             {
-                                for(y_src = clip->rect.top-gkwin->absy0;
-                                    y_src < clip->rect.bottom-gkwin->absy0;
+                                for(y_src = clip->rect.top-gkwin->ScreenY;
+                                    y_src < clip->rect.bottom-gkwin->ScreenY;
                                     y_src++)
                                 {
                                     x_dst = clip->rect.left;
-                                    for(x_src = clip->rect.left-gkwin->absx0;
-                                        x_src < clip->rect.right-gkwin->absx0;
+                                    for(x_src = clip->rect.left-gkwin->ScreenX;
+                                        x_src < clip->rect.right-gkwin->ScreenX;
                                         x_src++)
                                     {
                                         __GK_CopyPixelRopBm(dst,src,
@@ -2206,6 +2206,10 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
 //    }
 //}
 
+void __DJY_ResumeDelay(struct EventECB *delay_event);
+void __DJY_CutEcbFromSync(struct EventECB  *event);
+void __DJY_EventReady(struct EventECB *event_ready);
+void __DJY_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32 Status);
 struct EventECB  *g_ptServerEvent,*g_ptGuiAppWaiting = NULL;
 void AppContinue(void)
 {

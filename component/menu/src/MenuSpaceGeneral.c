@@ -377,8 +377,8 @@ bool_t create_menudisparawin(struct menu_displaypara  *menudispara,struct Rectan
     else
     {
      parwin=menudispara->AppWin;
-     win_rec.top=menudispara->AppWin->absy0-parwin->absy0;
-     win_rec.left=menudispara->AppWin->absx0-parwin->absx0;
+     win_rec.top=menudispara->AppWin->ScreenY-parwin->ScreenY;
+     win_rec.left=menudispara->AppWin->ScreenX-parwin->ScreenX;
      win_rec.right=win_rec.left+menudispara->AppWin->right-menudispara->AppWin->left;
      win_rec.bottom=win_rec.top+menudispara->AppWin->bottom-menudispara->AppWin->top;
     }
@@ -388,8 +388,8 @@ bool_t create_menudisparawin(struct menu_displaypara  *menudispara,struct Rectan
     parwin=menudispara->pre->CurWin;
     if((0==win_rec.bottom)&&(0==win_rec.right)&&(0==win_rec.top)&&(0==win_rec.bottom))//新建全屏窗口
     {
-      win_rec.top=menudispara->AppWin->absy0-parwin->absy0;
-      win_rec.left=menudispara->AppWin->absx0-parwin->absx0;
+      win_rec.top=menudispara->AppWin->ScreenY-parwin->ScreenY;
+      win_rec.left=menudispara->AppWin->ScreenX-parwin->ScreenX;
       win_rec.right=win_rec.left+menudispara->AppWin->right-menudispara->AppWin->left;
       win_rec.bottom=win_rec.top+menudispara->AppWin->bottom-menudispara->AppWin->top;
     }

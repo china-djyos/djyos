@@ -1135,7 +1135,7 @@ HWND Widget_CreateTextBox(const char *Text,u32 Style,
     s_gTextBoxMsgLink.myTable = (struct MsgProcTable *)&s_gTextBoxMsgProcTable;
     pGddWin = GDD_CreateWindow(Text,  WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,
                                 x, y, w, h, hParent, WinId, CN_WINBUF_PARENT,
-                                pTB, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE, &s_gTextBoxMsgLink);
+                                (ptu32_t)pTB, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE, &s_gTextBoxMsgLink);
     if(UserMsgTableLink != NULL)
         GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;

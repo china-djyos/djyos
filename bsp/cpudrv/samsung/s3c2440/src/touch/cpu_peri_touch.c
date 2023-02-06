@@ -497,19 +497,19 @@ static ufast_t read_touch_data(struct SingleTouchMsg *touch_data)
 
 static  void draw_cursor(struct GkWinObj *desktop,int x,int y)
 {
-    GK_Lineto(desktop,x,y,x,y-20+1,CN_COLOR_RED,CN_R2_COPYPEN,0); //上
-    GK_Lineto(desktop,x,y,x,y+20-1,CN_COLOR_RED,CN_R2_COPYPEN,0); //下
-    GK_Lineto(desktop,x,y,x+20-1,y,CN_COLOR_RED,CN_R2_COPYPEN,0);//右
-    GK_Lineto(desktop,x,y,x-20+1,y,CN_COLOR_RED,CN_R2_COPYPEN,0); //左
+    GK_Lineto(desktop,NULL,x,y,x,y-20+1,CN_COLOR_RED,CN_R2_COPYPEN,0); //上
+    GK_Lineto(desktop,NULL,x,y,x,y+20-1,CN_COLOR_RED,CN_R2_COPYPEN,0); //下
+    GK_Lineto(desktop,NULL,x,y,x+20-1,y,CN_COLOR_RED,CN_R2_COPYPEN,0);//右
+    GK_Lineto(desktop,NULL,x,y,x-20+1,y,CN_COLOR_RED,CN_R2_COPYPEN,0); //左
     GK_SyncShow(1000*mS);
 }
 
 static  void clr_cursor(struct GkWinObj *desktop,int x,int y)
 {
-    GK_Lineto(desktop,x,y,x,y-20+1,CN_COLOR_WHITE,CN_R2_COPYPEN,0); //上
-    GK_Lineto(desktop,x,y,x,y+20-1,CN_COLOR_WHITE,CN_R2_COPYPEN,0); //下
-    GK_Lineto(desktop,x,y,x+20-1,y,CN_COLOR_WHITE,CN_R2_COPYPEN,0);//右
-    GK_Lineto(desktop,x,y,x-20+1,y,CN_COLOR_WHITE,CN_R2_COPYPEN,0); //左
+    GK_Lineto(desktop,NULL,x,y,x,y-20+1,CN_COLOR_WHITE,CN_R2_COPYPEN,0); //上
+    GK_Lineto(desktop,NULL,x,y,x,y+20-1,CN_COLOR_WHITE,CN_R2_COPYPEN,0); //下
+    GK_Lineto(desktop,NULL,x,y,x+20-1,y,CN_COLOR_WHITE,CN_R2_COPYPEN,0);//右
+    GK_Lineto(desktop,NULL,x,y,x-20+1,y,CN_COLOR_WHITE,CN_R2_COPYPEN,0); //左
     GK_SyncShow(1000*mS);
 
 }
@@ -534,17 +534,17 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
     }
     else
     {
-        limit_left = 0;
-        limit_top = 0;
-        limit_right = desktop->disp->width;
-        limit_bottom = desktop->disp->height;
+        limit_left = desktop->limit.left;
+        limit_top = desktop->limit.top;
+        limit_right = desktop->limit.right;
+        limit_bottom = desktop->limit.bottom;
     //    GK_CreateWin(desktop,desktop,limit_left,limit_top,limit_right,limit_bottom,
     //                      CN_COLOR_WHITE,CN_WINBUF_BUF,"&tg_touch_adjust",CN_R3_SRCCOPY,0);
     //    GK_SetPrio(desktop,-1,CN_GK_SYNC);
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+50,
                             "触摸屏矫正",21,CN_COLOR_WHITE,CN_R2_COPYPEN,0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+70,
                             "请准确点击十字交叉点",21,CN_COLOR_WHITE,CN_R2_COPYPEN,0);
 
         step=0;

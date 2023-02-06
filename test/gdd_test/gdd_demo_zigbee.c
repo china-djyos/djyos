@@ -300,7 +300,8 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     GDD_SetDrawColor(hdc,RGB(0,200,0));
     GDD_SetFillColor(hdc,RGB(0,80,0));
 
-    GDD_CopyRect(&rc,&rcZigBeeString);
+//  GDD_CopyRect(&rc,&rcZigBeeString);
+    rc = rcZigBeeString
     GDD_InflateRectEx(&rc,-4,-20,-4,-4);
     GDD_DrawText(hdc,ZigBeeTextBuf,-1,&rc,DT_LEFT|DT_VCENTER|DT_BORDER|DT_BKGND);
 

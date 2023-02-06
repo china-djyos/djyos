@@ -475,7 +475,7 @@ bool_t __lcd_blt_bm_to_bm(struct RectBitmap *dst_bitmap,
 {
 
     u16 *src_offset,*dst_offset;    //源位图点阵缓冲区可能不对齐!!!
-    u32 width,height,y;
+    s32 width,height,y;
     u32 timeout=0;
     bool_t flag=true;
     struct RopGroup Rop = { 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };

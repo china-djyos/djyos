@@ -129,8 +129,8 @@ bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name)
         frame_buffer->RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
         //帧缓冲总是CN_R3_SRCCOPY，不需要pattern。
 //        frame_buffer->pat_buf = NULL;
-        frame_buffer->absx0 = 0;
-        frame_buffer->absy0 = 0;
+        frame_buffer->ScreenX = 0;
+        frame_buffer->ScreenY = 0;
         frame_buffer->area.left = 0;
         frame_buffer->area.top = 0;
         frame_buffer->area.right = frame_bitmap->width;

@@ -223,7 +223,7 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     str=GDD_GetWindowText(hwnd);
 /* 89x89位宽的二维码参数为
  * 版本号:18
- * 容错等级  (ECC)  数字  (容量)     字母                                汉字          二进制代码
+ * 容错等级(ECC) 数字(容量)  字母        汉字   二进制代码
  * L            1,725       1,046       442    586
  * M            1,346       816         345    450
  * Q            948         574         243    322
@@ -246,7 +246,7 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     bitmap.ExColor = CN_COLOR_WHITE;
     bitmap.height=(s32)(qrcode->width)*2;
     bitmap.width=(s32)(qrcode->width)*2;
-    GDD_DrawBitmap(hdc,rc0.left,rc0.top,&bitmap,CN_SYS_PF_GRAY1,RopCode);
+    GDD_DrawBitmap(hdc, rc0.left,rc0.top,&bitmap,CN_SYS_PF_GRAY1,RopCode);
     GDD_EndPaint(hwnd,hdc);
     QRcode_free(qrcode);
     free(Data);

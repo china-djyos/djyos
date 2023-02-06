@@ -115,7 +115,7 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     bitmap.ExColor = CN_COLOR_WHITE;
     bitmap.height=(s32)(qrcode->width);
     bitmap.width=(s32)(qrcode->width);
-    GDD_DrawBitmap(hdc,rc0.left+75,rc0.top+20,&bitmap,CN_SYS_PF_GRAY1,RopCode);
+    GDD_DrawBitmap(hdc, rc0.left+75,rc0.top+20,&bitmap,CN_SYS_PF_GRAY1,RopCode);
 
     GDD_EndPaint(hwnd,hdc);
     QRcode_free(qrcode);

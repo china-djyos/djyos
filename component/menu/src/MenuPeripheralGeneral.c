@@ -98,10 +98,10 @@ struct menu_displaypara *touchlcdactionhorizontal(struct menu_displaypara *opera
     //内部使用，不用做参数检查
 
 
-    temp_rec.left=operatingDispara->CurWin->absx0;
-    temp_rec.right=operatingDispara->CurWin->absx0+operatingDispara->CurWin->right-operatingDispara->CurWin->left;
-    temp_rec.top=operatingDispara->CurWin->absy0;
-    temp_rec.bottom=operatingDispara->CurWin->absy0+operatingDispara->CurWin->bottom-operatingDispara->CurWin->top;
+    temp_rec.left=operatingDispara->CurWin->ScreenX;
+    temp_rec.right=operatingDispara->CurWin->ScreenX+operatingDispara->CurWin->right-operatingDispara->CurWin->left;
+    temp_rec.top=operatingDispara->CurWin->ScreenY;
+    temp_rec.bottom=operatingDispara->CurWin->ScreenY+operatingDispara->CurWin->bottom-operatingDispara->CurWin->top;
     if(JudgeCoordinatePointInRec(temp_rec,myCoordinatePoint))//先看是否在窗口内，不是的话什么也不做
     {
        menuNum=CalDisBettween2Menuitem(operatingDispara->FVisualMenuitem,operatingDispara->LVisualMenuitem)+1;
@@ -157,10 +157,10 @@ struct menu_displaypara *touchlcdactionvertical(struct menu_displaypara *operati
     u8              ONumber=0;
 
    //内部使用，不用做参数检查
-    temp_rec.left=operatingDispara->CurWin->absx0;
-    temp_rec.right=operatingDispara->CurWin->absx0+operatingDispara->CurWin->right-operatingDispara->CurWin->left;
-    temp_rec.top=operatingDispara->CurWin->absy0;
-    temp_rec.bottom=operatingDispara->CurWin->absy0+operatingDispara->CurWin->bottom-operatingDispara->CurWin->top;
+    temp_rec.left=operatingDispara->CurWin->ScreenX;
+    temp_rec.right=operatingDispara->CurWin->ScreenX+operatingDispara->CurWin->right-operatingDispara->CurWin->left;
+    temp_rec.top=operatingDispara->CurWin->ScreenY;
+    temp_rec.bottom=operatingDispara->CurWin->ScreenY+operatingDispara->CurWin->bottom-operatingDispara->CurWin->top;
     if(JudgeCoordinatePointInRec(temp_rec,myCoordinatePoint))//先看是否在窗口内，不是的话什么也不做
     {
        menuNum=CalDisBettween2Menuitem(operatingDispara->FVisualMenuitem,operatingDispara->LVisualMenuitem)+1;
@@ -220,10 +220,10 @@ struct menu_displaypara *touchlcdaction3by3(struct menu_displaypara *operatingDi
     s8              Row=0;
 
    //内部使用，不用做参数检查
-    temp_rec.left=operatingDispara->CurWin->absx0;
-    temp_rec.right=operatingDispara->CurWin->absx0+operatingDispara->CurWin->right-operatingDispara->CurWin->left;
-    temp_rec.top=operatingDispara->CurWin->absy0;
-    temp_rec.bottom=operatingDispara->CurWin->absy0+operatingDispara->CurWin->bottom-operatingDispara->CurWin->top;
+    temp_rec.left=operatingDispara->CurWin->ScreenX;
+    temp_rec.right=operatingDispara->CurWin->ScreenX+operatingDispara->CurWin->right-operatingDispara->CurWin->left;
+    temp_rec.top=operatingDispara->CurWin->ScreenY;
+    temp_rec.bottom=operatingDispara->CurWin->ScreenY+operatingDispara->CurWin->bottom-operatingDispara->CurWin->top;
     if(JudgeCoordinatePointInRec(temp_rec,myCoordinatePoint))//先看是否在窗口内，不是的话什么也不做
     {
        menuNum=CalDisBettween2Menuitem(operatingDispara->FVisualMenuitem,operatingDispara->LVisualMenuitem)+1;
