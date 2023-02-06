@@ -2682,6 +2682,8 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
             }
             else        //数据包部分应该接收
             {
+                pkglen = pkglen - (recbuf->rcvnxt - pkgstart);
+                PkgMoveOffsetUp(pkgcomb,recbuf->rcvnxt - pkgstart);
                 if(NULL == recbuf->phead)
                 {
                     recbuf->phead = pkgcomb;
@@ -2694,8 +2696,6 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
                 ccb->pkgrecomblst = PkgGetNextUnit(pkgcomb);
                 PkgSetNextUnit(pkgcomb,NULL);
                 pkgcomb = ccb->pkgrecomblst;
-                pkglen = pkglen - (recbuf->rcvnxt - pkgstart);
-                PkgMoveOffsetUp(pkgcomb,recbuf->rcvnxt - pkgstart);
                 recbuf->buflen += pkglen;
                 recbuf->rcvnxt += pkglen;
                 rcvlen += pkglen;
@@ -3750,7 +3750,7 @@ static void __tcptick(void)
                         {
                             __dealclienttimer(client);
                             sock = client->Nextsock;
-    //                      Lock_MutexPost(client->SockSync);
+                            Lock_MutexPost(client->SockSync);
                         }
                     }//end for the client
                     else//this is an server, we should deal the client hang on it
@@ -3807,8 +3807,8 @@ static void __tcptick(void)
                         }
                         //deal the server it self
                         sock = server->Nextsock;
+                        Lock_MutexPost(server->SockSync);
                     }
-                    Lock_MutexPost(server->SockSync);
                 }
             }
             Lock_MutexPost(TcpHashTab.tabsync);
