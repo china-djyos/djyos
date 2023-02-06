@@ -1843,8 +1843,8 @@ void __GK_VlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
     //垂直线超出limit的部分不绘制
     if(y1 < limit->top)
         y1 = limit->top;
-    if(y2 > limit->bottom)
-        y2 = limit->bottom;
+    if(y2 >= limit->bottom)
+        y2 = limit->bottom-1;
     if(bitmap->PixelFormat & CN_CUSTOM_PF)
     {
         for(y = y1; y < y2;y++)
@@ -1901,11 +1901,11 @@ void __GK_HlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
     //水平线在limit外部分不绘制
     if(x1 < limit->left)
         x1 = limit->left;
-    if(x2 > limit->right)
-        x2 = limit->right;
+    if(x2 >= limit->right)
+        x2 = limit->right-1;
     if(bitmap->PixelFormat & CN_CUSTOM_PF)
     {
-        for(x = x1; x < x2;x++)
+        for(x = x1; x <= x2;x++)
         {
             gkwin->disp->draw.SetPixelToBitmap(bitmap,x,y1,color,Rop2Code);
         }
