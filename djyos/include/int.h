@@ -170,7 +170,7 @@ bool_t Int_SettoAsynSignal(ufast_t ufl_line);
 bool_t Int_SettoReal(ufast_t ufl_line);
 bool_t Int_SetPrio(ufast_t ufl_line,u32 prio);
 bool_t Int_EnableNest(ufast_t ufl_line);
-void Int_DisableNest(ufast_t ufl_line);
+bool_t Int_DisableNest(ufast_t ufl_line);
 void Int_Init(void);
 
 
