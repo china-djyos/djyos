@@ -759,7 +759,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
             {
                 gkwin->HostObj = NewWindow;
                 if(OBJ_IsHead(target_section->HostObj))
-                    OBJ_ChildMoveToOrev(parent->HostObj);
+                    OBJ_ChildMoveToPrev(parent->HostObj);
                 //获取target_section和其子窗口所在z轴段的结束窗口(最前端)
                 //新窗口插入到它的前端
                 if(move_end == display->z_topmost)
@@ -1031,7 +1031,7 @@ void __GK_AdoptWin(struct GkscParaAdoptWin *para)
         //看gkwin是否会成为父窗口的头结点
         if((gkwin->WinProperty.Zprio <= 0) && (point == OBJ_GetChild(parent)))
         {
-            OBJ_ChildMoveToOrev(parent);
+            OBJ_ChildMoveToPrev(parent);
         }
 
         //以下查找Z序队列的插入点，插入点在point所在窗口段的前端，但要判断是否

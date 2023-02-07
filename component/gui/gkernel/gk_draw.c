@@ -3866,9 +3866,9 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
     DstRect.right = para->x+SrcRect.right;
     DstRect.bottom = para->y+SrcRect.bottom;
     //调整待绘制位图要绘制的位置，限制在窗口内
-    if(        (DstRect.right <= 0)
+    if(        (DstRect.right < limit.left)
             || (DstRect.left >= limit.right)
-            || (DstRect.bottom <= 0)
+            || (DstRect.bottom < limit.top)
             || (DstRect.top >= limit.bottom))
         return;                             //绘图区域在绘制区外面
     if(DstRect.left < limit.left)         //调整左边界在绘制区内部
@@ -3972,7 +3972,7 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                     {
                         SrcBitmap = &para->bitmap;
 
-                        y_dst= InsRect.top;
+                        y_dst= DstRect.top;
                         //给定的光栅操作码为扩展的光栅操作码
                         if(        (para->RopCode.AlphaEn == 0)
                                 && (para->RopCode.HyalineEn == 0)
@@ -3981,13 +3981,13 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                             if(SrcBitmap->reversal == true)
                             {
                                 // -1 是因为图形坐标是从 0 开始算的
-                                for(y_src= SrcBitmap->height - SrcRect.top -1;
-                                    y_src >= SrcBitmap->height - SrcRect.bottom;
+                                for(y_src= SrcBitmap->height - SrcRect.top;
+                                    y_src > SrcBitmap->height - SrcRect.bottom;
                                     y_src--)
                                 {
-                                    x_dst = InsRect.left;
-                                    for(x_src = InsRect.left-DstRect.left;
-                                        x_src < InsRect.right-DstRect.left;
+                                    x_dst = DstRect.left;
+                                    for(x_src = SrcRect.left;
+                                        x_src < SrcRect.right;
                                         x_src++)
                                     {
                                         __GK_CopyPixelBm(DstBitmap,SrcBitmap,
@@ -4000,13 +4000,13 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                             }
                             else
                             {
-                                for(y_src= InsRect.top-DstRect.top;
-                                    y_src < InsRect.bottom-DstRect.top;
+                                for(y_src= SrcRect.top;
+                                    y_src < SrcRect.bottom;
                                     y_src++)
                                 {
-                                    x_dst = InsRect.left;
-                                    for(x_src = InsRect.left-DstRect.left;
-                                        x_src < InsRect.right-DstRect.left;
+                                    x_dst = DstRect.left;
+                                    for(x_src = SrcRect.left;
+                                        x_src < SrcRect.right;
                                         x_src++)
                                     {
                                         __GK_CopyPixelBm(DstBitmap,SrcBitmap,
@@ -4022,13 +4022,13 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                             if(SrcBitmap->reversal == true)
                             {
                                 // -1 是因为图形坐标是从 0 开始算的
-                                for(y_src= SrcBitmap->height - SrcRect.top -1;
-                                    y_src >= SrcBitmap->height - SrcRect.bottom;
+                                for(y_src= SrcBitmap->height - SrcRect.top;
+                                    y_src > SrcBitmap->height - SrcRect.bottom;
                                     y_src--)
                                 {
-                                    x_dst = InsRect.left;
-                                    for(x_src = InsRect.left-DstRect.left;
-                                        x_src < InsRect.right-DstRect.left;
+                                    x_dst = DstRect.left;
+                                    for(x_src = SrcRect.left;
+                                        x_src < SrcRect.right;
                                         x_src++)
                                     {
                                         __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
@@ -4042,13 +4042,13 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                             }
                             else
                             {
-                                for(y_src= InsRect.top-DstRect.top;
-                                    y_src < InsRect.bottom-DstRect.top;
+                                for(y_src= SrcRect.top;
+                                    y_src < SrcRect.bottom;
                                     y_src++)
                                 {
-                                    x_dst = InsRect.left;
-                                    for(x_src = InsRect.left-DstRect.left;
-                                        x_src < InsRect.right-DstRect.left;
+                                    x_dst = DstRect.left;
+                                    for(x_src = SrcRect.left;
+                                        x_src < SrcRect.right;
                                         x_src++)
                                     {
                                         __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
@@ -4063,7 +4063,7 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                         }
                     }
                     //设置绘制部分的changed_msk
-                    __GK_ShadingRect(fb_gkwin,&InsRect);
+                    __GK_ShadingRect(fb_gkwin,&DstRect);
                 }
                 clip = clip->next;
             }while(clip != DstGkwin->visible_clip);

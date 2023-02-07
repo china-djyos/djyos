@@ -967,7 +967,7 @@ struct GkWinObj *GK_GetFirstWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetLastWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetTwig(gkwin->HostObj));
+        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetPrev(OBJ_GetHead(gkwin->HostObj)));
     else
         return NULL;
 }

@@ -1934,7 +1934,7 @@ s32 OBJ_InsertToPrev(struct Object *loc, struct Object *prev)
 // 返回：成功（0），失败（-1）；
 // 备注：
 // ============================================================================
-s32 OBJ_ChildMoveToOrev(struct Object *parent)
+s32 OBJ_ChildMoveToPrev(struct Object *parent)
 {
     if(!parent)
         return (-1);

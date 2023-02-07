@@ -269,7 +269,7 @@ s32 OBJ_MoveToHead(struct Object *ob);
 s32 OBJ_InsertToChild(struct Object *loc, struct Object *child);
 s32 OBJ_InsertToNext(struct Object *loc, struct Object *next);
 s32 OBJ_InsertToPrev(struct Object *loc, struct Object *prev);
-s32 OBJ_ChildMoveToOrev(struct Object *parent);
+s32 OBJ_ChildMoveToPrev(struct Object *parent);
 s32 OBJ_ChildMoveToNext(struct Object *parent);
 struct Object *OBJ_GetTwig(struct Object *ob);
 struct Object *OBJ_ForeachChild(struct Object *parent, struct Object *child);
