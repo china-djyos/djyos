@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -64,7 +64,7 @@
                                             //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early                           //初始化时机，可选值：early，medium，later, pre-main。
                                             //表示初始化时间，分别是早期、中期、后期
-//dependence:"kernel","stm32f7","cpu onchip gpio","cpu onchip iic"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"none"                         //该组件的依赖组件名（可以是none，表示无依赖组件），
                                             //选中该组件时，被依赖组件将强制选中，
                                             //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"                     //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -190,6 +190,9 @@ static const Pin iic4_pin[] = {
         {GPIO_H,PIN11,GPIO_MODE_AF,GPIO_OTYPE_OD,GPIO_SPEED_VH,GPIO_PUPD_PU,AF4},
  };
 
+static const Pin Key_pin[] = {
+        {GPIO_C,PIN13,GPIO_MODE_IN,GPIO_OTYPE_OD,GPIO_SPEED_VH,GPIO_PUPD_PD},//KEY_0
+};
 // ============================================================================
 // 功能：设置串口编号为SerialNo的串口为半双功发送功能
 // 参数：SerialNo,串口号
@@ -266,6 +269,7 @@ void Board_Init(void)
      PIO_Configure(EthRmiiPins,PIO_LISTSIZE(EthRmiiPins));      //UART1
 
 //   PIO_Configure(spi1_pin, PIO_LISTSIZE(spi1_pin));      //SPI1
+     PIO_Configure(Key_pin,PIO_LISTSIZE(Key_pin));  //KEY
 
 //=====================IIC GPIO初始化===================================//
 //对于没有片选和使能引脚的IIC从器件当CPU复位发生在IIC读的过程中就有可能发生总线被占死如：qh_1的stmpe811
@@ -280,4 +284,9 @@ void Board_Init(void)
 bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level)
 {
     return true;
+}
+
+unsigned char GetUserBtnStatus(void)
+{
+    return PIO_Get(&Key_pin[0]);
 }

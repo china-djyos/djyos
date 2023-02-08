@@ -165,7 +165,7 @@
 #define CFG_STDIO_OUT_NAME             "/dev/UART1"    //
 #define CFG_STDIO_ERR_NAME             "/dev/UART1"    //
 #define    CFG_MODULE_ENABLE_STDIO         true
-//*******************************  Configure STM32 commond code  ******************************************//
+//*******************************  Configure STM32 common code  ******************************************//
 #define    CFG_MODULE_ENABLE_STM32_COMMOND_CODE  true
 //*******************************  Configure tcp  ******************************************//
 #define     CFG_TCP_REORDER             true    //资源充足才打开

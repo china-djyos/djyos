@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -329,7 +329,7 @@ FILE *fopen(const char *filename, const char *mode)
     res = __File_Transform(mode, &flags, &cflags);
     if(res)
     {
-        debug_printf("clib","\"fopen\" (%s) failed<bad \"mode\" = %s>", filename, mode);
+        debug_printf("clib","\"fopen\" (%s) failed<bad \"mode\" = %s>\r\n", filename, mode);
     }
 
     fd = open(filename, flags, 0);
@@ -341,20 +341,20 @@ FILE *fopen(const char *filename, const char *mode)
     res = fstat(fd, &info);
     if(res)
     {
-        debug_printf("clib","\"fopen\" (%s) failed<cannot \"stat\" ", filename);
+        debug_printf("clib","\"fopen\" (%s) failed<cannot \"stat\" \r\n", filename);
 
         res = close(fd);
         if(res)
-            debug_printf("clib","and \"close\"");
+            debug_printf("clib","and \"close\"\r\n");
 
-        debug_printf("clib",">.");
+        debug_printf("clib",">.\r\n");
         return (NULL);
     }
 
     stream = malloc(sizeof(FILE));
     if(!stream)
     {
-        debug_printf("clib","\"fopen\" (%s) failed<memory out>.", filename);
+        debug_printf("clib","\"fopen\" (%s) failed<memory out>.\r\n", filename);
         close(fd);
         return (NULL);
     }
@@ -370,12 +370,12 @@ FILE *fopen(const char *filename, const char *mode)
         res = __File_BufNew(stream);
         if(res)
         {
-            debug_printf("clib","\"fopen\" (%s) failed<memory out", filename);
+            debug_printf("clib","\"fopen\" (%s) failed<memory out\r\n", filename);
             res = close(fd);
             if(res)
-                debug_printf("clib"," and \"close\"");
+                debug_printf("clib"," and \"close\"\r\n");
 
-            debug_printf("clib",">.");
+            debug_printf("clib",">.\r\n");
             return (NULL);
         }
     }
@@ -408,13 +408,13 @@ int fclose(FILE *stream)
 
     if(EOF==fflush(stream))
     {
-        debug_printf("clib","\"fclose\" file failed<cannot flush>.");
+        debug_printf("clib","\"fclose\" file failed<cannot flush>.\r\n");
         return (-1);
     }
 
     if(close(stream->fd))
     {
-        debug_printf("clib","\"fclose\" file failed<cannot close>.");
+        debug_printf("clib","\"fclose\" file failed<cannot close>.\r\n");
         return (-1);
     }
 
@@ -496,7 +496,6 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         return (0);
 
     if((!read_size) || ((stream->flags & FP_IOREAD) != FP_IOREAD))
-//    if((!read_size) || (stream->flags & FP_IOREAD))
         return (0);
 
     if(EOF != stream->ungetbuf)
@@ -513,29 +512,29 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         i = 1;
     }
 
-    if(!File_IsValid(stream)) // 文件流是未初始化的STDIO
-    {
-        if(GetCharDirect) // 函数已注册；（TODO:这个逻辑不应该防止这里实现）
-        {
-            for(; i < (s32)(size * count); i++)
-            {
-                ch = GetCharDirect();
-                if(!ch)
-                {
-                    ch = EOF;
-                    break;
-                }
-
-                ((u8*)buf)[i] = ch;
-#if 0
-                if(PutStrDirect) // 函数已注册；
-                    PutStrDirect((const char*)&ch, 1);
-#endif
-            }
-
-            return (i/size);
-        }
-    }
+//    if(!File_IsValid(stream)) // 文件流是未初始化的STDIO
+//    {
+//        if(GetCharDirect) // 函数已注册；（TODO:这个逻辑不应该防止这里实现）
+//        {
+//            for(; i < (s32)(size * count); i++)
+//            {
+//                ch = GetCharDirect();
+//                if(!ch)
+//                {
+//                    ch = EOF;
+//                    break;
+//                }
+//
+//                ((u8*)buf)[i] = ch;
+//#if 0
+//                if(PutStrDirect) // 函数已注册；
+//                    PutStrDirect((const char*)&ch, 1);
+//#endif
+//            }
+//
+//            return (i/size);
+//        }
+//    }
 
     if(__File_IsFileBufed(stream) == 0)          //无buf，注意，不能用 stream->buf == NULL 判定，参考freopen
     {
@@ -564,7 +563,7 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
             res = fflush(stream);       //把文件缓存先全都写到flash中
             if(EOF==res)
             {
-                debug_printf("clib","\"fread\" file failed(buffer flash).");
+                debug_printf("clib","\"fread\" file failed(buffer flash).\r\n");
                 return (0);
             }
             if(buffered > 0)
@@ -647,15 +646,15 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
     if(EOF != stream->ungetbuf)
         stream->ungetbuf = EOF; // 抛弃掉ungetc的内容
 
-    if(!File_IsValid(stream)) // TODO
-    {
-        if(PutStrDirect) // 函数已注册；
-        {
-            PutStrDirect((const char*)buf, WriteSize);
-        }
-
-        return (count);
-    }
+//  if(!File_IsValid(stream)) // TODO
+//  {
+//      if(PutStrDirect) // 函数已注册；
+//      {
+//          PutStrDirect((const char*)buf, WriteSize);
+//      }
+//
+//      return (count);
+//  }
     //注意，不能用 stream->buf == NULL 判定有没有buf，参考freopen
     if(__File_IsFileBufed(stream) == 0)
     {
@@ -751,27 +750,27 @@ s32 getc(FILE *stream)     //getc = fgetc
 // ============================================================================
 // 功能：从文件输入一行字符串，持续输入直到回车，包含空格。
 // 参数：buf -- 输入字符串的缓冲区；
-//      size -- buf的长度；
+//      limit -- buf的长度；
 //      stream -- 输入源文件；
 // 返回：1、成功，则返回第一个参数buf；
 //      2、如果发生读入错误，error指示器被设置，返回NULL，buf的内容可能被改变。
 // 备注：
 // ============================================================================
-char *fgets(char *buf, s32 size, FILE *stream)
+char *fgets(char *buf, s32 limit, FILE *stream)
 {
     s32 i = 0;
     char ch;
 
-    if(!stream || !size || !buf)
+    if(!stream || !limit || !buf)
         return (NULL);
 
-    if(1 == size)
+    if(1 == limit)
     {
         buf[0] = '\0';
         return (buf);
     }
 
-    for(i = 0; i < size; i++)
+    for(i = 0; i < limit; i++)
     {
        if(1 != fread(&ch, 1, 1, stream))
        {
@@ -796,7 +795,7 @@ char *fgets(char *buf, s32 size, FILE *stream)
            buf[i] = ch;
        }
    }
-    buf[size-1] = '\0';
+    buf[limit-1] = '\0';
     return (buf);
 }
 
@@ -1053,14 +1052,14 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
     res = __File_Transform(mode, &flags, &cflags);
     if(res)
     {
-        debug_printf("clib","\"freopen\" (%s) failed<bad \"mode\" = %s>", filename, mode);
+        debug_printf("clib","\"freopen\" (%s) failed<bad \"mode\" = %s>\r\n", filename, mode);
         return (NULL);
     }
 
     fd = open(filename, flags, 0);
     if(fd == -1)
     {
-        debug_printf("clib","\"freopen\" (%s) failed<cannot \"open\">", filename);
+        debug_printf("clib","\"freopen\" (%s) failed<cannot \"open\">\r\n", filename);
         return (NULL);
     }
 
@@ -1070,10 +1069,10 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
         res = close(fd);
         if(res)
         {
-            debug_printf("clib","\"freopen\" (%s) failed<cannot \"stat\" and \"close\">.", filename);
+            debug_printf("clib","\"freopen\" (%s) failed<cannot \"stat\" and \"close\">.\r\n", filename);
         }
 
-        debug_printf("clib"," : g : \"freopen\" (%s) failed<cannot \"stat\">.", filename);
+        debug_printf("clib"," : g : \"freopen\" (%s) failed<cannot \"stat\">.\r\n", filename);
         return (NULL);
     }
 

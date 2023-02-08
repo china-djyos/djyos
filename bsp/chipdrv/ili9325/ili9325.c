@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -84,7 +84,7 @@
 //dependence:"graphical kernel","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"graphical decorate development"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:               //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -99,6 +99,9 @@
 //%$#@num,0,65536,
 #define CFG_LCD_XSIZE   240             //"LCD宽度",
 #define CFG_LCD_YSIZE   128             //"LCD高度",
+//%$#@num,,,
+#define CFG_LCD_XSIZE_UM   36500            //"LCD宽度-微米数",
+#define CFG_LCD_YSIZE_UM   48600            //"LCD高度-微米数",
 //%$#@enum,true,false,
 //%$#@string,1,10,
 #define CFG_ILI9325_DISPLAY_NAME              "lcdili9325"    //"显示器名称",配置液晶显示的名称
@@ -555,7 +558,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     return true;
 }
 
-//从screen中取一像素，并转换成cn_sys_pf_e8r8g8b8
+//从screen中取一像素，并转换成CN_SYS_PF_ERGB8888
 u32 __lcd_get_pixel_screen(s32 x,s32 y)
 {
     return GK_ConvertColorToRGB24(CN_SYS_PF_RGB565,
@@ -685,7 +688,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     return true;
 }
 
-//从screen中取一像素，并转换成cn_sys_pf_e8r8g8b8
+//从screen中取一像素，并转换成CN_SYS_PF_ERGB8888
 u32 __lcd_get_pixel_screen(s32 x,s32 y)
 {
     return GK_ConvertColorToRGB24(CN_SYS_PF_RGB565,
@@ -729,8 +732,8 @@ ptu32_t ModuleInstall_ili9325(void)
     frame_win.wm_bitmap = &FrameBitmap;
     tg_lcd_display.frame_buffer = &frame_win;
 
-    tg_lcd_display.width_um = 0;
-    tg_lcd_display.height_um = 0;
+    tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
+    tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
     tg_lcd_display.width = CFG_LCD_XSIZE;
     tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_RGB565;

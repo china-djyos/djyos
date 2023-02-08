@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -67,6 +67,7 @@
 #include "stdint.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include "int.h"
 #include "lock.h"
 #include "systime.h"
 #include "gkernel.h"
@@ -109,7 +110,7 @@ struct GkWinObj *g_ptZ_Topmost;
 //struct SemaphoreLCB *g_ptUsercallSemp;
 //如果调用方希望gui kernel服务完成再返回，使用这个信号量
 struct SemaphoreLCB *g_ptSyscallSemp;
-struct SemaphoreLCB *g_ptGkServerSync;
+//struct MutexLCB *g_ptGkServerSync;
 
 u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr);
 
@@ -138,8 +139,8 @@ bool_t ModuleInstall_GK(void)
 
     g_tGkChunnel.usercall_msgq = MsgQ_Create(CN_USERCALL_MSGQ_SIZE,CN_USERCALL_MSG_SIZE,0);
 
-//  g_ptGkServerSync = Lock_MutexCreate("gk server sync");
-    g_ptGkServerSync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk server sync");
+//    g_ptGkServerSync = Lock_MutexCreate("gk server sync");
+//  g_ptGkServerSync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk server sync");
 //  g_ptUsercallSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk wait repaint");
     g_ptSyscallSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk wait job");
     g_u16GkServerEvtt = DJY_EvttRegist(EN_CORRELATIVE,249,0,0,__GK_Server,
@@ -161,7 +162,7 @@ bool_t ModuleInstall_GK(void)
         || (g_u16GkUsercallServerEvent == CN_EVENT_ID_INVALID)
         || (g_ptSyscallSemp == NULL)
 //      || (g_ptUsercallSemp == NULL)
-        || (g_ptGkServerSync == NULL)
+//        || (g_ptGkServerSync == NULL)
         || (g_tGkChunnel.usercall_semp == NULL)
 //      || (g_tGkChunnel.syscall_semp == NULL)
         || (g_tGkChunnel.syscall_mutex == NULL)
@@ -178,8 +179,8 @@ exit_error:
     DJY_EvttUnregist(g_u16GkUsercallServerEvtt);
     Lock_SempDelete(g_ptSyscallSemp);
 //  Lock_SempDelete(g_ptUsercallSemp);
-    Lock_SempDelete(g_ptGkServerSync);
-//  Lock_MutexDelete(g_ptGkServerSync);
+//  Lock_SempDelete(g_ptGkServerSync);
+//    Lock_MutexDelete(g_ptGkServerSync);
     Lock_SempDelete(g_tGkChunnel.usercall_semp);
 //  Lock_SempDelete(g_tGkChunnel.syscall_semp);
     Lock_MutexDelete(g_tGkChunnel.syscall_mutex);
@@ -260,8 +261,8 @@ bool_t __gk_vmalloc(struct DisplayObj *disp,struct GkWinObj *gkwin,
     u32 buf_size,linesize;// pal_size=0;
     s32 xsize,ysize;
     bool_t result;
-    xsize = gkwin->right - gkwin->left;
-    ysize = gkwin->bottom - gkwin->top;
+    xsize = gkwin->area.right - gkwin->area.left;
+    ysize = gkwin->area.bottom - gkwin->area.top;
     if(PixelFormat == CN_SYS_PF_DISPLAY)
         PixelFormat = disp->pixel_format;
     //计算显示缓冲所需要的内存尺寸。
@@ -310,8 +311,8 @@ bool_t __gk_vrmalloc(struct DisplayObj *disp,struct GkWinObj *gkwin)
     s32 xsize,ysize;
     bool_t remalloc = true,result;
     u16 PixelFormat;
-    xsize = gkwin->right - gkwin->left;
-    ysize = gkwin->bottom - gkwin->top;
+    xsize = gkwin->area.right - gkwin->area.left;
+    ysize = gkwin->area.bottom - gkwin->area.top;
     PixelFormat = gkwin->wm_bitmap->PixelFormat;
 
     //重新分配显存，若原显存仍然符合要求，可能不会重新分配。
@@ -370,7 +371,7 @@ void __gk_vfree(struct DisplayObj *disp,struct GkWinObj *gkwin)
 {
     //分配内存时，显存和bitmap结构是同时分配的，故只须调用
     //m_free一次，两者均释放
-    M_FreeHeap(gkwin->wm_bitmap,disp->DisplayHeap);
+    M_FreeHeap(gkwin->wm_bitmap,disp->DisplayHeap,CN_TIMEOUT_FOREVER);
 }
 
 //----取z轴片段的起始窗口(窗口及其子孙窗口)------------------------------------
@@ -494,16 +495,16 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
     desktop->WinProperty.BoundLimit = CN_BOUND_LIMIT;
     desktop->WinProperty.Visible = CN_GKWIN_VISIBLE;
     desktop->RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  }; //桌面固定
-    desktop->absx0 = 0;
-    desktop->absy0 = 0;
-    desktop->left = 0;
-    desktop->top = 0;
-    desktop->right = desktop_x;
-    desktop->bottom = desktop_y;
-    desktop->limit_left = 0;
-    desktop->limit_top = 0;
-    desktop->limit_right = display->width;
-    desktop->limit_bottom = display->height;
+    desktop->ScreenX = 0;
+    desktop->ScreenY = 0;
+    desktop->area.left = 0;
+    desktop->area.top = 0;
+    desktop->area.right = desktop_x;
+    desktop->area.bottom = desktop_y;
+    desktop->limit.left = 0;
+    desktop->limit.top = 0;
+    desktop->limit.right = display->width;
+    desktop->limit.bottom = display->height;
 
     display->z_topmost = desktop;
     display->desktop = desktop;
@@ -528,7 +529,7 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
             {
                 display->z_topmost = NULL;
                 display->desktop = NULL;
-                M_FreeHeap(desktop->changed_msk.bm_bits,display->DisplayHeap);
+                M_FreeHeap(desktop->changed_msk.bm_bits,display->DisplayHeap,CN_TIMEOUT_FOREVER);
                 Mb_Free(g_ptClipRectPool,clip);
                 OBJ_Delete(NewWindow);
                 __gk_vfree(display,desktop);
@@ -605,16 +606,10 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     //z轴中被移动的窗口段最前端的窗口
     struct GkWinObj *move_end;
     struct GkWinObj *gkwin;
-    struct GkscParaFillWin para_fill;
 
     width = para->right - para->left;
     height = para->bottom - para->top;
     display = para->parent_gkwin->disp;
-//  gkwin = para->gkwin;    //para->gkwin由调用者提供内存，传指针过来
-    gkwin = M_MallocLcHeap(sizeof(struct GkWinObj),  display->DisplayHeap, 0);
-    if(gkwin == NULL)
-        return NULL;
-    memset(gkwin, 0, sizeof(struct GkWinObj));
     parent = para->parent_gkwin;
     if((parent == NULL)||(width < 0) || (height < 0))
     {
@@ -642,19 +637,24 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     if((RopCode.AlphaMode & CN_ALPHA_MODE_NEED_AD) != 0)
         return NULL;   //窗口属性不支持需要Dst Alpha参与的alpha混合
 
+    gkwin = M_MallocLcHeap(sizeof(struct GkWinObj),  display->DisplayHeap, 0);
+    if(gkwin == NULL)
+        return NULL;
+    memset(gkwin, 0, sizeof(struct GkWinObj));
+
     *gkwin = *parent;               //新窗口拷贝父窗口的属性
 
     strncpy(gkwin->win_name,para->name,CN_GKWIN_NAME_LIMIT);
     gkwin->win_name[CN_GKWIN_NAME_LIMIT] = '\0';
 
     //给定的新窗口的坐标是相对其父窗口的
-    gkwin->left = para->left;
-    gkwin->top = para->top;
-    gkwin->right = para->right;
-    gkwin->bottom = para->bottom;
-    //窗口的绝对位置，相对于所属screen的桌面原点
-    gkwin->absx0 = para->left + para->parent_gkwin->absx0;
-    gkwin->absy0 = para->top + para->parent_gkwin->absy0;
+    gkwin->area.left = para->left;
+    gkwin->area.top = para->top;
+    gkwin->area.right = para->right;
+    gkwin->area.bottom = para->bottom;
+    //窗口的绝对位置，相对于所属screen的原点
+    gkwin->ScreenX = para->left + para->parent_gkwin->ScreenX;
+    gkwin->ScreenY = para->top + para->parent_gkwin->ScreenY;
     gkwin->WinProperty.Zprio = CN_ZPRIO_DEFAULT;                //新建窗口默认为0
     gkwin->WinProperty.DestBlend = __GK_RopIsNeedDestination(RopCode);
     gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE; //清屏后才显示
@@ -677,6 +677,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                 __gk_vfree(display,gkwin);
                 DJY_SaveLastError(EN_GK_NO_MEMORY);
                 debug_printf("gkwin","显存不足\n\r");
+                M_FreeHeap(gkwin,display->DisplayHeap,CN_TIMEOUT_FOREVER);
                 return NULL;
             }
             else
@@ -694,6 +695,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
         {
             DJY_SaveLastError(EN_GK_NO_MEMORY);
             debug_printf("gkwin","显存不足\n\r");
+            M_FreeHeap(gkwin,display->DisplayHeap,CN_TIMEOUT_FOREVER);
             return NULL;
         }
     }
@@ -709,15 +711,21 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
         NewWindow = OBJ_NewChild(parent->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
                                     (const char*)(gkwin->win_name));
         if(NewWindow == NULL)
+        {
+            M_FreeHeap(gkwin,display->DisplayHeap,CN_TIMEOUT_FOREVER);
             return NULL;
-        gkwin->HostObj = NewWindow;
-        //以下4句在z轴中把win插入父节点的前端
-        gkwin->z_back = parent;
-        gkwin->z_top = parent->z_top;
-        parent->z_top->z_back = gkwin;
-        parent->z_top = gkwin;
-        if(display->z_topmost == parent)
-            display->z_topmost = gkwin;
+        }
+        else
+        {
+            gkwin->HostObj = NewWindow;
+            //以下4句在z轴中把win插入父节点的前端
+            gkwin->z_back = parent;
+            gkwin->z_top = parent->z_top;
+            parent->z_top->z_back = gkwin;
+            parent->z_top = gkwin;
+            if(display->z_topmost == parent)
+                display->z_topmost = gkwin;
+        }
     }
     else
     {//父窗口有子窗口
@@ -743,20 +751,26 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
             NewWindow = OBJ_NewPrev(target_section->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
                                      (const char *)(gkwin->win_name));
             if(NewWindow == NULL)
+            {
+                M_FreeHeap(gkwin,display->DisplayHeap,CN_TIMEOUT_FOREVER);
                 return NULL;
-            gkwin->HostObj = NewWindow;
-            if(OBJ_IsHead(target_section->HostObj))
-                OBJ_ChildMoveToOrev(parent->HostObj);
-            //获取target_section和其子窗口所在z轴段的结束窗口(最前端)
-            //新窗口插入到它的前端
-            if(move_end == display->z_topmost)
-                display->z_topmost = gkwin;
-            //插到目标窗口前端
+            }
+            else
+            {
+                gkwin->HostObj = NewWindow;
+                if(OBJ_IsHead(target_section->HostObj))
+                    OBJ_ChildMoveToPrev(parent->HostObj);
+                //获取target_section和其子窗口所在z轴段的结束窗口(最前端)
+                //新窗口插入到它的前端
+                if(move_end == display->z_topmost)
+                    display->z_topmost = gkwin;
+                //插到目标窗口前端
 
-            gkwin->z_back = move_end;
-            gkwin->z_top = move_end->z_top;
-            move_end->z_top->z_back = gkwin;
-            move_end->z_top = gkwin;
+                gkwin->z_back = move_end;
+                gkwin->z_top = move_end->z_top;
+                move_end->z_top->z_back = gkwin;
+                move_end->z_top = gkwin;
+            }
         }
         else //兄弟窗口中没有优先级=0的窗口
         {
@@ -768,7 +782,10 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                 NewWindow = OBJ_NewPrev(target_section->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
                                          (const char *)(gkwin->win_name));
                 if(NewWindow == NULL)
+                {
+                    M_FreeHeap(gkwin,display->DisplayHeap,CN_TIMEOUT_FOREVER);
                     return NULL;
+                }
             }
             else    //同级窗口优先级均高于新窗口(prio = 0)
             {
@@ -778,7 +795,10 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                 NewWindow = OBJ_NewNext(target_section->HostObj, (fnObjOps)-1, (ptu32_t )gkwin,
                                             (const char*)(gkwin->win_name));
                 if(NewWindow == NULL)
+                {
+                    M_FreeHeap(gkwin,display->DisplayHeap,CN_TIMEOUT_FOREVER);
                     return NULL;
+                }
             }
             gkwin->HostObj = NewWindow;
             //新创建的窗口gkwin优先级为0，无论同级窗口优先级均如何分布，新
@@ -797,13 +817,12 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     gkwin->visible_bak = NULL;
     gkwin->visible_clip = NULL;
     __GK_ScanNewVisibleClip(display);
-    if(!para->unfill)
-    {
-        para_fill.gkwin = gkwin;
-        para_fill.color = para->color;
-        __GK_FillWin(&para_fill);
-//      gkwin->visible_clip = __GK_FreeClipQueue(gkwin->visible_clip);
-    }
+//    if(!para->unfill)
+//    {
+//        para_fill.gkwin = gkwin;
+//        para_fill.color = para->color;
+//        __GK_FillWin(&para_fill);
+//    }
     display->reset_clip = true;
 
     return gkwin;
@@ -842,8 +861,8 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
     if((right < left) || (bottom < top))    //尺寸数据不合法
         return false;
 
-    if(((right-left) == (cwawin->right-cwawin->left))
-            && ((bottom-top) == (cwawin->bottom - cwawin->top)))
+    if(((right-left) == (cwawin->area.right-cwawin->area.left))
+            && ((bottom-top) == (cwawin->area.bottom - cwawin->area.top)))
     {
         movwin_para.gkwin = cwawin;
         movwin_para.left = left;
@@ -862,7 +881,7 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
         }else
         {
             if(bak.wm_bitmap != cwawin->wm_bitmap)
-                M_FreeHeap(cwawin->wm_bitmap,disp->DisplayHeap);
+                M_FreeHeap(cwawin->wm_bitmap,disp->DisplayHeap,CN_TIMEOUT_FOREVER);
             *cwawin = bak;
         }
     }
@@ -870,65 +889,65 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
     {   //目标窗口是桌面，有额外限制:桌面必须覆盖显示器区域
         if(left > 0)    //桌面左边界必须覆盖显示器
         {
-            cwawin->absx0 = 0;
-            delta_left = 0 - cwawin->left;
-            cwawin->left = 0;
-            cwawin->limit_left = 0;
+            cwawin->ScreenX = 0;
+            delta_left = 0 - cwawin->area.left;
+            cwawin->area.left = 0;
+            cwawin->limit.left = 0;
         }
         else
         {
-            cwawin->absx0 = left;
-            delta_left = left - cwawin->left;
-            cwawin->left = left;
-            cwawin->limit_left = -left;//桌面的可显示左边界应该刚好在显示器的左边界
+            cwawin->ScreenX = left;
+            delta_left = left - cwawin->area.left;
+            cwawin->area.left = left;
+            cwawin->limit.left = -left;//桌面的可显示左边界应该刚好在显示器的左边界
         }
         if(top > 0)    //桌面上边界必须覆盖显示器
         {
-            cwawin->absy0 = 0;
-            delta_top = 0 - cwawin->top;
-            cwawin->top = 0;
-            cwawin->limit_top = 0;
+            cwawin->ScreenY = 0;
+            delta_top = 0 - cwawin->area.top;
+            cwawin->area.top = 0;
+            cwawin->limit.top = 0;
         }
         else
         {
-            cwawin->absy0 = top;
-            delta_top = top - cwawin->top;
-            cwawin->top = top;
-            cwawin->limit_top = -top;//桌面的可显示上边界应该刚好在显示器的上边界
+            cwawin->ScreenY = top;
+            delta_top = top - cwawin->area.top;
+            cwawin->area.top = top;
+            cwawin->limit.top = -top;//桌面的可显示上边界应该刚好在显示器的上边界
         }
 
         if(right < disp->width)     //桌面右边界必须覆盖显示器
         {
-            cwawin->right = disp->width;
+            cwawin->area.right = disp->width;
         }
         else
         {
-            cwawin->right = right;
+            cwawin->area.right = right;
         }
         //桌面的可显示右边界应该刚好在显示器的右边界
-        cwawin->limit_right = cwawin->limit_left + disp->width;
+        cwawin->limit.right = cwawin->limit.left + disp->width;
 
         if(bottom < disp->height)     //桌面右边界必须覆盖显示器
         {
-            cwawin->bottom = disp->height;
+            cwawin->area.bottom = disp->height;
         }
         else
         {
-            cwawin->bottom = bottom;
+            cwawin->area.bottom = bottom;
         }
         //桌面的可显示下边界应该刚好在显示器的下边界
-        cwawin->limit_bottom = cwawin->limit_top + disp->height;
+        cwawin->limit.bottom = cwawin->limit.top + disp->height;
     }else
     {
-        delta_left = para->left-cwawin->left;
-        delta_top = para->top-cwawin->top;
-        cwawin->absx0 += delta_left;//修改窗口绝对坐标
-        cwawin->absy0 += delta_top;
+        delta_left = para->left-cwawin->area.left;
+        delta_top = para->top-cwawin->area.top;
+        cwawin->ScreenX += delta_left;//修改窗口绝对坐标
+        cwawin->ScreenY += delta_top;
 
-        cwawin->left = left;                      //修改窗口相对坐标
-        cwawin->top = top;
-        cwawin->right = right;
-        cwawin->bottom = bottom;
+        cwawin->area.left = left;                      //修改窗口相对坐标
+        cwawin->area.top = top;
+        cwawin->area.right = right;
+        cwawin->area.bottom = bottom;
         __GK_SetBound(cwawin);                        //设置可显示边界
     }
 
@@ -940,8 +959,8 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
     while(current != NULL)
     {
         temp = (struct GkWinObj*)OBJ_GetPrivate(current);
-        temp->absx0 += delta_left;        //修改窗口绝对坐标
-        temp->absy0 += delta_top;
+        temp->ScreenX += delta_left;        //修改窗口绝对坐标
+        temp->ScreenY += delta_top;
         current = OBJ_ForeachScion(changing, current);
     }
     current = OBJ_ForeachScion(changing, changing);
@@ -1012,7 +1031,7 @@ void __GK_AdoptWin(struct GkscParaAdoptWin *para)
         //看gkwin是否会成为父窗口的头结点
         if((gkwin->WinProperty.Zprio <= 0) && (point == OBJ_GetChild(parent)))
         {
-            OBJ_ChildMoveToOrev(parent);
+            OBJ_ChildMoveToPrev(parent);
         }
 
         //以下查找Z序队列的插入点，插入点在point所在窗口段的前端，但要判断是否
@@ -1049,68 +1068,68 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
     struct Object *moving,*current;
     struct DisplayObj *disp;
     movewin = para->gkwin;
-    if((para->left == movewin->left) && (para->top == movewin->top))
+    if((para->left == movewin->area.left) && (para->top == movewin->area.top))
         return;                                 //位置没有修改，直接返回。
     disp = movewin->disp;
     if(movewin == disp->desktop)
     {   //目标窗口是桌面，有额外限制:桌面必须覆盖显示器区域
         if(para->left > 0)    //桌面左边界必须覆盖显示器
         {
-            movewin->absx0 = 0;
-            delta_left = 0 - movewin->left;
-            movewin->left = 0;
-            movewin->limit_left = 0;
+            movewin->ScreenX = 0;
+            delta_left = 0 - movewin->area.left;
+            movewin->area.left = 0;
+            movewin->limit.left = 0;
         }
         else
         {
-            movewin->absx0 = para->left;
-            delta_left = para->left - movewin->left;
-            movewin->left = para->left;
-            movewin->limit_left = -para->left;//桌面的可显示左边界应该刚好在显示器的左边界
+            movewin->ScreenX = para->left;
+            delta_left = para->left - movewin->area.left;
+            movewin->area.left = para->left;
+            movewin->limit.left = -para->left;//桌面的可显示左边界应该刚好在显示器的左边界
         }
         if(para->top > 0)    //桌面上边界必须覆盖显示器
         {
-            movewin->absy0 = 0;
-            delta_top = 0 - movewin->top;
-            movewin->top = 0;
-            movewin->limit_top = 0;
+            movewin->ScreenY = 0;
+            delta_top = 0 - movewin->area.top;
+            movewin->area.top = 0;
+            movewin->limit.top = 0;
         }
         else
         {
-            movewin->absy0 = para->top;
-            delta_top = para->top - movewin->top;
-            movewin->top = para->top;
-            movewin->limit_top = -para->top;//桌面的可显示上边界应该刚好在显示器的上边界
+            movewin->ScreenY = para->top;
+            delta_top = para->top - movewin->area.top;
+            movewin->area.top = para->top;
+            movewin->limit.top = -para->top;//桌面的可显示上边界应该刚好在显示器的上边界
         }
 
-        movewin->right += delta_left;
-        if(movewin->right < disp->width)     //桌面右边界必须覆盖显示器
+        movewin->area.right += delta_left;
+        if(movewin->area.right < disp->width)     //桌面右边界必须覆盖显示器
         {
-            movewin->right = disp->width;
+            movewin->area.right = disp->width;
         }
         //桌面的可显示右边界应该刚好在显示器的右边界
-        movewin->limit_right = movewin->limit_left + disp->width;
+        movewin->limit.right = movewin->limit.left + disp->width;
 
-        movewin->bottom += delta_top;
-        if(movewin->bottom < disp->height)     //桌面右边界必须覆盖显示器
+        movewin->area.bottom += delta_top;
+        if(movewin->area.bottom < disp->height)     //桌面右边界必须覆盖显示器
         {
-            movewin->bottom = disp->height;
+            movewin->area.bottom = disp->height;
         }
         //桌面的可显示下边界应该刚好在显示器的下边界
-        movewin->limit_bottom = movewin->limit_top + disp->height;
+        movewin->limit.bottom = movewin->limit.top + disp->height;
     }
     else
     {
-        delta_left = para->left-movewin->left;
-        delta_top = para->top-movewin->top;
-        movewin->absx0 += delta_left;//修改窗口绝对坐标
-        movewin->absy0 += delta_top;
+        delta_left = para->left-movewin->area.left;
+        delta_top = para->top-movewin->area.top;
+        movewin->ScreenX += delta_left;//修改窗口绝对坐标
+        movewin->ScreenY += delta_top;
 
-        movewin->left = para->left;                      //修改窗口相对坐标
-        movewin->top = para->top;
-        movewin->right += delta_left;
-        movewin->bottom += delta_top;
-//      if((movewin->absx0 <0) || (movewin->absy0 <0))
+        movewin->area.left = para->left;                      //修改窗口相对坐标
+        movewin->area.top = para->top;
+        movewin->area.right += delta_left;
+        movewin->area.bottom += delta_top;
+//      if((movewin->ScreenX <0) || (movewin->ScreenY <0))
 //          delta_left = 0;
         __GK_SetBound(movewin);                        //设置可显示边界
     }
@@ -1120,8 +1139,8 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
     while(current != NULL)
     {
         movewin = (struct GkWinObj*)OBJ_GetPrivate(current);
-        movewin->absx0 += delta_left;        //修改窗口绝对坐标
-        movewin->absy0 += delta_top;
+        movewin->ScreenX += delta_left;        //修改窗口绝对坐标
+        movewin->ScreenY += delta_top;
         current = OBJ_ForeachScion(moving, current);
     }
     current = OBJ_ForeachScion(moving, moving);
@@ -1140,7 +1159,7 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
 
 //----设置可显示边界-----------------------------------------------------------
 //功能: 任何窗口，如果即使不考虑被z轴前端窗口剪切，其窗口可显示范围也是有限的，
-//      受bound_limit=true的、世代最近的祖先窗口的可显示边界限制。窗口位置改变
+//      受 bound_limit=tru e的、世代最近的祖先窗口的可显示边界限制。窗口位置改变
 //      后，需要重置可显示边界。
 //      gkwin，被重置的窗口
 //返回: 无
@@ -1151,59 +1170,59 @@ void __GK_SetBound(struct GkWinObj *gkwin)
     s32 gkwin_absx,gkwin_absy,ancestor_absx,ancestor_absy;
     ancestor = gkwin;
     //获取祖先窗口中第一个边界受父窗口限制的第一个窗口，gkwin的边界受该窗口限定
-    //桌面窗口一定是个边界首先窗口
+    //桌面窗口一定是个边界受限窗口
     while(ancestor->WinProperty.BoundLimit == CN_BOUND_UNLIMIT)
     {
         ancestor = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetParent(ancestor->HostObj));
     }
     ancestor = (struct GkWinObj*)OBJ_GetPrivate(OBJ_GetParent(ancestor->HostObj));
-    if( (ancestor->limit_right  == 0) || (ancestor->limit_bottom == 0)    )
+    if( (ancestor->limit.right  == 0) || (ancestor->limit.bottom == 0)    )
     {
-        gkwin->limit_left   =0;
-        gkwin->limit_top    =0;
-        gkwin->limit_right  =0;
-        gkwin->limit_bottom =0;
+        gkwin->limit.left   =0;
+        gkwin->limit.top    =0;
+        gkwin->limit.right  =0;
+        gkwin->limit.bottom =0;
         return ;
     }
 
-    gkwin_absx = gkwin->absx0;  //取本窗口的绝对坐标，也即gkwin->left的绝对坐标
-    gkwin_absy = gkwin->absy0;
+    gkwin_absx = gkwin->ScreenX;  //取本窗口的绝对坐标，也即gkwin->left的绝对坐标
+    gkwin_absy = gkwin->ScreenY;
     //取限制本窗口边界的窗口的可见边界绝对坐标
-    ancestor_absx = ancestor->absx0 +ancestor->limit_left;
-    ancestor_absy = ancestor->absy0 +ancestor->limit_top;
+    ancestor_absx = ancestor->ScreenX +ancestor->limit.left;
+    ancestor_absy = ancestor->ScreenY +ancestor->limit.top;
 
 
     if(gkwin_absx < ancestor_absx)
-       gkwin->limit_left = ancestor_absx - gkwin_absx;
+       gkwin->limit.left = ancestor_absx - gkwin_absx;
     else
-        gkwin->limit_left = 0;
+        gkwin->limit.left = 0;
 
     if(gkwin_absy < ancestor_absy)
-       gkwin->limit_top = ancestor_absy - gkwin_absy;
+       gkwin->limit.top = ancestor_absy - gkwin_absy;
     else
-        gkwin->limit_top = 0;
+        gkwin->limit.top = 0;
 
-    if((gkwin_absx+gkwin->right-gkwin->left)
-            < (ancestor_absx+ancestor->limit_right))
-        gkwin->limit_right = gkwin->right - gkwin->left;
+    if((gkwin_absx+gkwin->area.right-gkwin->area.left)
+            < (ancestor_absx+ancestor->limit.right))
+        gkwin->limit.right = gkwin->area.right - gkwin->area.left;
     else
-        gkwin->limit_right = ancestor_absx + ancestor->limit_right - gkwin->left;
+        gkwin->limit.right = ancestor_absx + ancestor->limit.right - gkwin->area.left;
 
-    if((gkwin_absy+gkwin->bottom-gkwin->top)
-            < (ancestor_absy+ancestor->limit_bottom))
-        gkwin->limit_bottom = gkwin->bottom - gkwin->top;
+    if((gkwin_absy+gkwin->area.bottom-gkwin->area.top)
+            < (ancestor_absy+ancestor->limit.bottom))
+        gkwin->limit.bottom = gkwin->area.bottom - gkwin->area.top;
     else
-        gkwin->limit_bottom = ancestor_absy + ancestor->limit_bottom - gkwin->top;
+        gkwin->limit.bottom = ancestor_absy + ancestor->limit.bottom - gkwin->area.top;
 
-    if(         (gkwin->limit_left   > gkwin->right)
-            ||  (gkwin->limit_top    > gkwin->bottom)
-            ||  (gkwin->limit_right  < 0)
-            ||  (gkwin->limit_bottom < 0)    )
+    if(         (gkwin->limit.left   > gkwin->area.right)
+            ||  (gkwin->limit.top    > gkwin->area.bottom)
+            ||  (gkwin->limit.right  < 0)
+            ||  (gkwin->limit.bottom < 0)    )
     {
-        gkwin->limit_left   =0;
-        gkwin->limit_top    =0;
-        gkwin->limit_right  =0;
-        gkwin->limit_bottom =0;
+        gkwin->limit.left   =0;
+        gkwin->limit.top    =0;
+        gkwin->limit.right  =0;
+        gkwin->limit.bottom =0;
     }
 }
 //----设置边界模式-------------------------------------------------------------
@@ -1433,6 +1452,7 @@ bool_t __GK_SetRopCode(struct GkscParaSetRopCode *para)
 {
     struct GkWinObj *mygkwin;
     struct DisplayObj *mydisplay;
+    u32 blend;
 
     mygkwin = para->gkwin;
     mydisplay = mygkwin->disp;
@@ -1448,9 +1468,15 @@ bool_t __GK_SetRopCode(struct GkscParaSetRopCode *para)
     }
     else
     {
-        mygkwin->WinProperty.DestBlend = __GK_RopIsNeedDestination(para->RopCode);
+        blend = __GK_RopIsNeedDestination(para->RopCode);
         mygkwin->RopCode = para->RopCode;
-        mygkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
+        if(mygkwin->WinProperty.DestBlend != blend)
+        {
+            mygkwin->WinProperty.DestBlend = blend;
+            mygkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
+            __GK_ScanNewVisibleClip(mydisplay);
+        }
+
 //      mygkwin->RopCode &= ~CN_ROP_ROP2_MSK;   //窗口属性不支持rop2
         return true;
     }
@@ -1482,8 +1508,12 @@ bool_t __GK_SetHyalineColor(struct GkscParaSetHyalineColor *para)
     else
     {
         para->gkwin->RopCode.HyalineEn = 1;
-        para->gkwin->WinProperty.DestBlend = CN_GKWIN_DEST_VISIBLE;
-        para->gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
+        if(para->gkwin->WinProperty.DestBlend != CN_GKWIN_DEST_VISIBLE)
+        {
+            para->gkwin->WinProperty.DestBlend = CN_GKWIN_DEST_VISIBLE;
+            para->gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
+            __GK_ScanNewVisibleClip(para->gkwin->disp);
+        }
     }
     return true;
 }
@@ -1526,7 +1556,7 @@ void __gk_destroy_win(struct GkWinObj *gkwin)
         if(gkwin->wm_bitmap != NULL)//有帧缓冲在缓冲模式下
         {
             __gk_vfree(gkwin->disp,gkwin);
-            M_FreeHeap(gkwin->changed_msk.bm_bits,gkwin->disp->DisplayHeap);
+            M_FreeHeap(gkwin->changed_msk.bm_bits,gkwin->disp->DisplayHeap,CN_TIMEOUT_FOREVER);
             return;
         }
         else
@@ -1546,10 +1576,10 @@ void __GK_DestroyWin(struct GkWinObj *gkwin)
     while((CurWin = (struct GkWinObj *)OBJ_GetPrivate((struct Object*)OBJ_GetTwig(gkwin->HostObj))) != NULL)
     {
         __gk_destroy_win(CurWin);
-        M_FreeHeap(CurWin,CurWin->disp->DisplayHeap);
+        M_FreeHeap(CurWin,CurWin->disp->DisplayHeap,CN_TIMEOUT_FOREVER);
     }
     __gk_destroy_win(gkwin);
-    M_FreeHeap(gkwin,gkwin->disp->DisplayHeap);
+    M_FreeHeap(gkwin,gkwin->disp->DisplayHeap,CN_TIMEOUT_FOREVER);
     if(gkwin->disp->reset_clip == true)
     {
         __GK_ScanNewVisibleClip(gkwin->disp);
@@ -1623,10 +1653,10 @@ void __GK_OutputRedraw(struct DisplayObj *display)
                 {
                     do
                     {
-                        SrcRect.left = clip->rect.left-gkwin->absx0;
-                        SrcRect.top = clip->rect.top-gkwin->absy0;
-                        SrcRect.right = clip->rect.right -gkwin->absx0;
-                        SrcRect.bottom = clip->rect.bottom -gkwin->absy0;
+                        SrcRect.left = clip->rect.left-gkwin->ScreenX;
+                        SrcRect.top = clip->rect.top-gkwin->ScreenY;
+                        SrcRect.right = clip->rect.right -gkwin->ScreenX;
+                        SrcRect.bottom = clip->rect.bottom -gkwin->ScreenY;
                         if(!display->draw.BltBitmapToBitmap(
                                             frame_buf->wm_bitmap,
                                             &clip->rect,
@@ -1641,13 +1671,13 @@ void __GK_OutputRedraw(struct DisplayObj *display)
                             y_dst = clip->rect.top;
                             if(gkwin->WinProperty.DestBlend == CN_GKWIN_DEST_HIDE)
                             {
-                                for(y_src = clip->rect.top-gkwin->absy0;
-                                    y_src < clip->rect.bottom-gkwin->absy0;
+                                for(y_src = clip->rect.top-gkwin->ScreenY;
+                                    y_src < clip->rect.bottom-gkwin->ScreenY;
                                     y_src++)
                                 {
                                     x_dst = clip->rect.left;
-                                    for(x_src = clip->rect.left-gkwin->absx0;
-                                        x_src < clip->rect.right-gkwin->absx0;
+                                    for(x_src = clip->rect.left-gkwin->ScreenX;
+                                        x_src < clip->rect.right-gkwin->ScreenX;
                                         x_src++)
                                     {
                                         __GK_CopyPixelBm(dst,src,x_dst,y_dst,
@@ -1659,13 +1689,13 @@ void __GK_OutputRedraw(struct DisplayObj *display)
                             }
                             else
                             {
-                                for(y_src = clip->rect.top-gkwin->absy0;
-                                    y_src < clip->rect.bottom-gkwin->absy0;
+                                for(y_src = clip->rect.top-gkwin->ScreenY;
+                                    y_src < clip->rect.bottom-gkwin->ScreenY;
                                     y_src++)
                                 {
                                     x_dst = clip->rect.left;
-                                    for(x_src = clip->rect.left-gkwin->absx0;
-                                        x_src < clip->rect.right-gkwin->absx0;
+                                    for(x_src = clip->rect.left-gkwin->ScreenX;
+                                        x_src < clip->rect.right-gkwin->ScreenX;
                                         x_src++)
                                     {
                                         __GK_CopyPixelRopBm(dst,src,
@@ -1857,6 +1887,7 @@ void __gk_RefreshDisplay(struct DisplayObj *Display)
 //      size，参数长度
 //返回: 实际写入管道的数据量，0或者size。
 //-----------------------------------------------------------------------------
+extern bool_t WaitGkDraw(u32 timeout);
 u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
                                                 void *param2,u16 size2)
 {
@@ -1865,71 +1896,63 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
     u32 base_time,rel_timeout = sync_time;
     base_time = (u32)DJY_GetSysTime();
     //管道访问互斥，用于多个上层应用并发调用之间的互斥
-    Lock_MutexPend(g_tGkChunnel.syscall_mutex,rel_timeout);
-    while(1)
+    if(Lock_MutexPend(g_tGkChunnel.syscall_mutex,rel_timeout))
     {
-        if((Ring_Capacity(&g_tGkChunnel.ring_syscall)
-                    - Ring_Check(&g_tGkChunnel.ring_syscall)) <(u32)(size1+size2+4))
+        while(1)
         {
-            //管道容量不足，先执行管道内的命令：提升gkserver的优先级，令其立即执行，因
-            //本线程也处于就绪态，gkserver在执行一个时间片后将返回，此时不管是否执行完毕，
-            //都把gkserver线程恢复低优先级。
+            if((Ring_Capacity(&g_tGkChunnel.ring_syscall)
+                        - Ring_Check(&g_tGkChunnel.ring_syscall)) <(u32)(size1+size2+4))
+            {
+                //管道容量不足，先执行管道内的命令：提升gkserver的优先级，令其立即执行，因
+                //本线程也处于就绪态，gkserver在执行一个时间片后将返回，此时不管是否执行完毕，
+                //都把gkserver线程恢复低优先级。
 
-            //上层应用多次下发命令后，gk_server将一次处理，条件判一下，避免gk_server
-            //空转
+                //上层应用多次下发命令后，gk_server将一次处理，条件判一下，避免gk_server
+                //空转
+                if(Lock_SempQueryFree(g_ptSyscallSemp) == 0)
+                    Lock_SempPost(g_ptSyscallSemp);
+                WaitGkDraw(1);
+
+                continue;       //再次检查管道容量
+            }
+            buf[0] = (u8)command;
+            buf[1] = (u8)(command>>8);
+            buf[2] = (u8)((size1+size2)&0xff);
+            buf[3] = (u8)(((size1+size2)>>8)&0xff);
+
+            completed = Ring_Write(&g_tGkChunnel.ring_syscall,buf,4);
+            if(size1 != 0)
+                completed += Ring_Write(&g_tGkChunnel.ring_syscall,param1,size1);
+            if(size2 != 0)
+                completed += Ring_Write(&g_tGkChunnel.ring_syscall,param2,size2);
+            break;
+        }
+        if(DJY_IsMultiEventStarted())
+        {
+            //上层应用多次下发命令后，gk_server将一次处理，条件判一下，避免多次post导致
+            //gk_server被反复激活
             if(Lock_SempQueryFree(g_ptSyscallSemp) == 0)
                 Lock_SempPost(g_ptSyscallSemp);
-
-            //先PEND一次信号量，防止事先已经被释放过
-            Lock_SempPend(g_ptGkServerSync,0);
-            DJY_RaiseTempPrio(g_u16GkServerEvent);
-            DJY_EventDelay(0);
-//          Lock_SempPend(g_ptGkServerSync,sync_time);
-            DJY_SetEventPrio(g_u16GkServerEvent, 249);
-
-            continue;       //再次检查管道容量
-        }
-        buf[0] = (u8)command;
-        buf[1] = (u8)(command>>8);
-        buf[2] = (u8)((size1+size2)&0xff);
-        buf[3] = (u8)(((size1+size2)>>8)&0xff);
-
-        completed = Ring_Write(&g_tGkChunnel.ring_syscall,buf,4);
-        if(size1 != 0)
-            completed += Ring_Write(&g_tGkChunnel.ring_syscall,param1,size1);
-        if(size2 != 0)
-            completed += Ring_Write(&g_tGkChunnel.ring_syscall,param2,size2);
-        break;
-    }
-    if(DJY_IsMultiEventStarted())
-    {
-        //上层应用多次下发命令后，gk_server将一次处理，条件判一下，避免gk_server
-        //空转
-        if(Lock_SempQueryFree(g_ptSyscallSemp) == 0)
-            Lock_SempPost(g_ptSyscallSemp);
-        if(0 != sync_time)      //设定了等待时间
-        {
-            //先PEND一次信号量，防止事先已经被释放过
-            Lock_SempPend(g_ptGkServerSync,0);
-            DJY_RaiseTempPrio(g_u16GkServerEvent);
-            rel_timeout = (u32)DJY_GetSysTime() - base_time;
-            if(rel_timeout < sync_time)
+            if(0 != sync_time)      //设定了等待时间
             {
-                rel_timeout = sync_time - rel_timeout;
-                Lock_SempPend(g_ptGkServerSync,rel_timeout);
-                DJY_SetEventPrio(g_u16GkServerEvent, 249);
+                rel_timeout = (u32)DJY_GetSysTime() - base_time;
+                if(rel_timeout < sync_time)
+                {
+                    rel_timeout = sync_time - rel_timeout;
+                    WaitGkDraw(rel_timeout);
+                }
             }
         }
+        else
+        {
+            completed =  Ring_Read(&g_tGkChunnel.ring_syscall,(u8*)draw_chunnel_buf,
+                                            CFG_GKERNEL_CMD_DEEP);
+            __ExecOneCommand(command,(u8 *)draw_chunnel_buf+4);
+        }
+        Lock_MutexPost(g_tGkChunnel.syscall_mutex);    //管道访问互斥解除
     }
     else
-    {
-        completed =  Ring_Read(&g_tGkChunnel.ring_syscall,(u8*)draw_chunnel_buf,
-                                        CFG_GKERNEL_CMD_DEEP);
-        if(completed!=2+size2+size2)
-            printf("__GK_SyscallChunnel :test error \n\r");
-        __ExecOneCommand(command,(u8 *)draw_chunnel_buf+4);
-    }
-    Lock_MutexPost(g_tGkChunnel.syscall_mutex);    //管道访问互斥解除
+        completed = 0;
     return completed;
 }
 #pragma GCC diagnostic push
@@ -2183,6 +2206,50 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
 //    }
 //}
 
+void __DJY_ResumeDelay(struct EventECB *delay_event);
+void __DJY_CutEcbFromSync(struct EventECB  *event);
+void __DJY_EventReady(struct EventECB *event_ready);
+void __DJY_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32 Status);
+struct EventECB  *g_ptServerEvent,*g_ptGuiAppWaiting = NULL;
+void AppContinue(void)
+{
+    struct EventECB  *WaitECB = NULL;
+    Int_SaveAsynSignal();
+    if(g_ptGuiAppWaiting != NULL)     //gui app 等待中
+    {
+        WaitECB = g_ptGuiAppWaiting;
+        if(g_ptGuiAppWaiting->event_status & CN_STS_SYNC_TIMEOUT)
+            __DJY_ResumeDelay(g_ptGuiAppWaiting);    //如果事件在超时等待队列中，取出
+        g_ptGuiAppWaiting->event_status = CN_STS_EVENT_READY;
+        g_ptGuiAppWaiting->wakeup_from = CN_STS_WAIT_GKDRAW;
+        __DJY_RestorePrio( g_ptEventRunning );
+        __DJY_CutEcbFromSync(g_ptGuiAppWaiting);
+        __DJY_EventReady(WaitECB);
+        g_ptGuiAppWaiting = NULL;
+    }
+    Int_RestoreAsynSignal();
+}
+
+bool_t WaitGkDraw(u32 timeout)
+{
+    Int_SaveAsynSignal();
+    __DJY_AddRunningToBlock(&g_ptGuiAppWaiting,CN_BLOCK_PRIO,timeout,CN_STS_WAIT_GKDRAW);
+
+    //下面看看是否要做优先级继承
+    __DJY_FollowUpPrio(g_ptServerEvent);
+    Int_RestoreAsynSignal();  //恢复中断，将触发上下文切换
+    //检查从哪里返回，是超时还是同步事件完成。
+    if(g_ptEventRunning->wakeup_from & CN_STS_SYNC_TIMEOUT)
+    {//说明同步条件未到，从超时返回
+        __DJY_RestorePrio( g_ptServerEvent );
+        return false;
+    }else
+    {//说明是得到互斥量返回
+        return true;
+    }
+}
+
+
 //----gui kernel服务器---------------------------------------------------------
 //功能: 从缓冲区取出显示请求，并处理之。
 //参数: 无
@@ -2193,6 +2260,7 @@ ptu32_t __GK_Server(void)
     u16 command;
     u16 len;
     u32 num,offset,size;
+    g_ptServerEvent = g_ptEventRunning;
 
 //    Lock_MutexPend(g_ptGkServerSync,CN_TIMEOUT_FOREVER);
 //  DJY_SetEventPrio(249);
@@ -2205,14 +2273,11 @@ ptu32_t __GK_Server(void)
                                         CFG_GKERNEL_CMD_DEEP);
         if(num == 0)
         {
-            //所有命令均执行完后，检查有没有win buffer需要刷到screen上
-//            __gk_redraw_all();
-
-//          DJY_SetEventPrio(1);
+            AppContinue();
 //          Lock_MutexPost(g_ptGkServerSync);
 //          Lock_MutexPend(g_ptGkServerSync,CN_TIMEOUT_FOREVER);
-            Lock_SempPost(g_ptGkServerSync);
-            DJY_RestorePrio( );
+//          Lock_SempPost(g_ptGkServerSync);
+//          __DJY_RestorePrio( );
             Lock_SempPend(g_ptSyscallSemp,CN_TIMEOUT_FOREVER);
             continue;
         }

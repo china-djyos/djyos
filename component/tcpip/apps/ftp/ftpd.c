@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -113,13 +113,13 @@ bool_t ftpd(char *para)
             }
             else
             {
-                debug_printf("ftpd","parafmt:debug on/off");
+                debug_printf("ftpd","parafmt:debug on/off\r\n");
             }
 
         }
         else
         {
-            debug_printf("ftpd","%s:cmd:%s not incomplete yet",__FUNCTION__,argv[0]);
+            debug_printf("ftpd","%s:cmd:%s not incomplete yet\r\n",__FUNCTION__,argv[0]);
         }
     }
 
@@ -181,7 +181,7 @@ static bool_t  __FTP_DomainSndResponse(tagFtpClient *client,int responsecode,con
         {
             time_t indextime;
             indextime = time(NULL);
-            debug_printf("ftpd","%s[%s]S:%s",CN_FTPD_INDEX,ctime(&indextime),(char *)client->buf);
+            debug_printf("ftpd","%s[%s]S:%s\r\n",CN_FTPD_INDEX,ctime(&indextime),(char *)client->buf);
         }
         ret = sendexact(client->cchannel.s,client->buf,client->datalen);
     }
@@ -314,25 +314,25 @@ static int __FTP_DomainCmdPasvDeal(tagFtpClient *client,char *para)
     lsn_sock = socket( PF_INET, SOCK_STREAM, IPPROTO_TCP );
     if(lsn_sock <= 0)
     {
-        error_printf("ftpd","socket err");
+        error_printf("ftpd","socket err\r\n");
         return ret;
     }
     if(getsockname(lsn_sock, (struct sockaddr *)&sin, (socklen_t *)&len ) == -1 )
     {
-        error_printf("ftpd","getsockname err");
+        error_printf("ftpd","getsockname err\r\n");
         closesocket( lsn_sock );
         return ret;
     }
     if(bind(lsn_sock, (struct sockaddr *)&sin, sizeof(sin)) == -1 )
     {
-        error_printf("ftpd","bind err");
+        error_printf("ftpd","bind err\r\n");
         closesocket( lsn_sock );
         return ret;
     }
 
     if( listen(lsn_sock, 1) == -1 )
     {
-        error_printf("ftpd","listen err");
+        error_printf("ftpd","listen err\r\n");
         closesocket( lsn_sock );
         return ret;
     }
@@ -345,7 +345,7 @@ static int __FTP_DomainCmdPasvDeal(tagFtpClient *client,char *para)
     len = sizeof( struct sockaddr );
     if (getsockname(client->cchannel.s, (struct sockaddr *)&sin, (socklen_t *)&len ) == -1 )
     {
-        error_printf("ftpd","get host ip err");
+        error_printf("ftpd","get host ip err\r\n");
         closesocket( lsn_sock );
         return ret;
     }
@@ -521,7 +521,7 @@ static int __FTP_DomainCmdRetrDeal(tagFtpClient *client,char *para)
         }
         time_all = time_net + time_fs;
         __FTP_DomainSndResponse(client,CN_CLOSEDATACONNECTION,"close data connection");
-        info_printf("ftpd","DOWNLOAD:%s:size:%d nettime:%d(ms) fstime:%d(ms) totaltime:%d(ms)",\
+        info_printf("ftpd","DOWNLOAD:%s:size:%d nettime:%d(ms) fstime:%d(ms) totaltime:%d(ms)\r\n",\
                 file_name,file_len,time_net/1000,time_fs/1000,time_all/1000);
     }
     close(fd);
@@ -611,7 +611,7 @@ static int __FTP_DomainCmdStorDeal(tagFtpClient *client,char *para)
         }
         time_all = time_net + time_fs;
         __FTP_DomainSndResponse(client,CN_CLOSEDATACONNECTION,"close data connection");
-        info_printf("ftpd","UPLOAD:%s:size:%d nettime:%d(ms) fstime:%d(ms) totaltime:%d(ms)",\
+        info_printf("ftpd","UPLOAD:%s:size:%d nettime:%d(ms) fstime:%d(ms) totaltime:%d(ms)\r\n",\
                 file_name,file_len,time_net/1000,time_fs/1000,time_all/1000);
     }
     close(fd);
@@ -870,7 +870,7 @@ static bool_t __FTP_DomainClientEngine(tagFtpClient *client)
             if(gFtpdDebugSwitch)
             {
                 indextime = time(NULL);
-                info_printf("ftpd","%s[%s]R:%s",CN_FTPD_INDEX,ctime(&indextime),(char *)client->buf);
+                info_printf("ftpd","%s[%s]R:%s\r\n",CN_FTPD_INDEX,ctime(&indextime),(char *)client->buf);
             }
             if(__FTP_DomainMsgDeal(client,(char *)client->buf)==-1)
             {
@@ -908,21 +908,21 @@ static ptu32_t __FTP_DomainServerMain()
     sockserver=socket(AF_INET, SOCK_STREAM, 0);
     if(sockserver < 0)
     {
-        error_printf("ftpd","socket err");
+        error_printf("ftpd","socket err\r\n");
         return 0;
     }
     if(0 != bind(sockserver, (struct sockaddr *)&local, addr_len))
     {
-        error_printf("ftpd","bind err");
+        error_printf("ftpd","bind err\r\n");
         goto SERVER_EXIT;
     }
     if(0 != listen(sockserver, CN_FTP_LISTENMAX))
     {
-        error_printf("ftpd","listen err");
+        error_printf("ftpd","listen err\r\n");
         goto SERVER_EXIT;
     }
     timeindex = time(NULL);
-        info_printf("ftpd","FTPD:DEAMON AT:%s %d Time:%s",inet_ntoa(local.sin_addr),ntohs(local.sin_port),ctime(&timeindex));
+        info_printf("ftpd","FTPD:DEAMON AT:%s %d Time:%s\r\n",inet_ntoa(local.sin_addr),ntohs(local.sin_port),ctime(&timeindex));
     client = net_malloc(sizeof(tagFtpClient));
     if(NULL == client)
     {
@@ -947,14 +947,14 @@ static ptu32_t __FTP_DomainServerMain()
             client->dchannel.slisten = -1;
             //build a client a do the message deal
             timeindex = time(NULL);
-            info_printf("ftpd","NewClient:IP:%s PORT:%d Time:%s",
+            info_printf("ftpd","NewClient:IP:%s PORT:%d Time:%s\r\n",
                         inet_ntoa(client->cchannel.ipaddr),
                         ntohs(client->cchannel.port),ctime(&timeindex));
             __FTP_DomainClientEngine(client);
         }
     }
     timeindex = time(NULL);
-            debug_printf("ftpd","%s:FTP SERVER QUIT:TIME:%s",__FUNCTION__,ctime(&timeindex));
+            debug_printf("ftpd","%s:FTP SERVER QUIT:TIME:%s\r\n",__FUNCTION__,ctime(&timeindex));
     net_free(client);
 
 SERVER_EXIT:
@@ -968,7 +968,7 @@ bool_t ServiceFtpdInit(void)
     bool_t ret;
     ret = taskcreate("FTPD",0x1000,CN_PRIO_RRS,__FTP_DomainServerMain,NULL);
     if (ret == false) {
-        error_printf("ftpd","FTPD:TASK CREATE ERR");
+        error_printf("ftpd","FTPD:TASK CREATE ERR\r\n");
     }
 
     return ret;

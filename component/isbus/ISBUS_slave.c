@@ -20,6 +20,7 @@
 #include "timer_hard.h"
 #include "dbug.h"
 #include <shell.h>
+#include <line.h>
 #include "component_config_isbus.h"
 
 //通信端口的描述
@@ -53,6 +54,10 @@ struct Slave_ISBUSPort
     u8 MTC_Address;                         //本端口接受的组播地址，若不接受组播
                                             //可设为CN_MTC_RESV（默认）
 };
+
+u8 SlaveAckBuf[CN_OFF_USER] = {0};     //丢出令牌的数据包
+struct LineBuf SlavePkgLineBuf;
+u8 *SendLineBuf = NULL;    //根据使用情况用户配置大小
 
 u8 sg_u8SlaveAddress = 1;                          //从机本地地址
 struct Slave_ISBUSPort *sg_ptSlavePortHead = NULL; //从机端链表初始化
@@ -135,15 +140,16 @@ ptu32_t ISBUS_SlaveProcess(void)
     u8 chk,len, mydst;
     s16 restlen,Completed,readed,startoffset,tmp,tmp1;
     bool_t needread = true;
-    bool_t newpkg;
+    bool_t newpkg = false;
+    bool_t Gethead = false;
 
     DJY_GetEventPara((ptu32_t*)&Port, NULL);
     DevRe = Port->SerialDevice;
     mydst = sg_u8SlaveAddress;
     while(1)
     {
-
-        bool_t Gethead = false;
+        newpkg = false;
+        Gethead = false;
 
         protobuf = Port->RecvPkgBuf;
         startoffset = Port->analyzeoff;
@@ -232,6 +238,11 @@ ptu32_t ISBUS_SlaveProcess(void)
                                 else
                                     newpkg = false;
                             }
+                            else
+                            {
+                                //其他从机发来的数据
+                                newpkg = true;  //从机没有重发机制，所以发来的包一定是新包
+                            }
                             break;      //协议头校验正确，退出循环，继续收和处理数据包
                         }
                         else            //包头校验出错，记录错误信息
@@ -317,7 +328,7 @@ ptu32_t ISBUS_SlaveProcess(void)
         {
 //          recdbg(9, &protohead, 7);
             Me = __ISBUS_SlaveGetProtocol(Port, protohead.Protocol);
-            if(Me != NULL)
+            if ((Me != NULL) || (CN_SLAVE_ACK == protohead.Protocol))   //其它从机发出的结束发送指令，本从机也得处理，因为要判断本机是不是可以发送了
             {
 //              recdbg(10, NULL, 0);
                 if(protohead.SrcAddress == 0)   //主机发来的数据包
@@ -330,37 +341,47 @@ ptu32_t ISBUS_SlaveProcess(void)
                 if(protohead.DstAddress == mydst)  //收到点播包
                 {
 //                  recdbg(11, NULL,0);
-                    if((newpkg) && (Me->MyProcess != NULL))
+                    if (newpkg)
                     {
-//                      recdbg(8, NULL, 0);
-                        Me->MyProcess(Me, protohead.SrcAddress,
+                        if (Me->MyProcess != NULL)
+                        {
+                            Me->MyProcess(Me, protohead.SrcAddress,
                                   protobuf + startoffset + sizeof(struct ISBUS_Protocol), len);
+                        }
                     }
                     else
                     {
-                        __ISBUS_Ack(Port);        //Ack仅代表收到了完整包
                         printf("\r\nignore repead pkg");
+                    }
+                    if (protohead.SrcAddress == 0)
+                    {
+                        __ISBUS_Ack(Port);      //主机发过来的包才要应答
                     }
                 }
                 else if(protohead.DstAddress >= CN_INS_MULTICAST)   //收到广播或组播包
                 {
 //                  recdbg(12, NULL,0);
                     memcpy(Port->MTCcast, protobuf + startoffset + sizeof(struct ISBUS_Protocol),len);
-                    if((newpkg) && (Me->MyProcess != NULL))
+
+                    if (newpkg)
                     {
-                        Me->MyProcess(Me, protohead.SrcAddress,Port->MTCcast, len);
+                        if (Me->MyProcess != NULL)
+                        {
+                            Me->MyProcess(Me, protohead.SrcAddress,Port->MTCcast, len);
+                        }
                     }
                     else
                     {
-                        __ISBUS_Ack(Port);        //Ack仅代表收到了完整包
                         printf("\r\nignore repead pkg");
                     }
+                    __ISBUS_Ack(Port);
+
                     if(Port->BoardcastPre == 0)     //本机地址是第一个从机。
                     {
                         __ISBUS_PushMtcPkg(Port);   //此函数会等待信号量，待用户准备好数据包
                     }
                 }
-                else if((protohead.SrcAddress == Port->BoardcastPre)
+                if((protohead.SrcAddress == Port->BoardcastPre) && (CN_SLAVE_ACK == protohead.Protocol)
                             && (Port->EchoModel == BROADCAST_MODEL))
                 {
 //                  recdbg(13, NULL,0);
@@ -371,7 +392,10 @@ ptu32_t ISBUS_SlaveProcess(void)
             else
             {
 //              recdbg(14, NULL,0);
-                __ISBUS_Ack(Port);        //Ack仅代表收到了完整包
+                if (protohead.SrcAddress == 0)
+                {
+                    __ISBUS_Ack(Port);      //主机发过来的包才要应答
+                }
             }
         }
 //      recdbg(15, NULL,0);
@@ -513,7 +537,8 @@ void __ISBUS_SetSlaveList(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 
     }
     else
         sg_ptSlavePortHead->BoardcastPre = 0xff;    //本机不在列表中，不响应广播。
-    ISBUS_SlaveSendPkg(ProtocolSocket, NULL, 0);
+    printf("BoardcastPre = %d. \r\n", sg_ptSlavePortHead->BoardcastPre);
+    ISBUS_SlaveSendPkg(ProtocolSocket, 0, NULL, 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -530,7 +555,7 @@ void ISBUS_CHK_SlaveSend(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 *
     Port->HostSerial = 255;         //收到重新扫描从机命令，重置以下3个参数
     Port->BoardcastPre = 255;
     Port->MTCPre = 255;
-    ISBUS_SlaveSendPkg(ProtocolSocket, NULL, 0);
+    ISBUS_SlaveSendPkg(ProtocolSocket, 0, NULL, 0);
 }
 #pragma GCC diagnostic pop
 
@@ -549,12 +574,23 @@ struct Slave_ISBUSPort *ISBUS_SlaveRegistPort(char *dev,\
     struct Slave_ISBUSPort *Port;
     u8 *recvbuf;
     s32 devfd;
+    u32 SendLineBufLen = 0;
     devfd = open(dev, O_RDWR);
     if(devfd == -1)
         return NULL;
+
+    SendLineBufLen = CFG_SLAVE_BUF_PKG_NUM * (CFG_SLAVE_PKG_MAX_SIZE + sizeof(struct ISBUS_Protocol));
+    SendLineBuf = malloc(SendLineBufLen);
+    if ((NULL == SendLineBuf) && (0 != SendLineBufLen))
+    {
+        error_printf("ISBUS","Send buf malloc fail\r\n");
+        return NULL;
+    }
+    Line_Init(&SlavePkgLineBuf, SendLineBuf, SendLineBufLen);
+
     Port = (struct Slave_ISBUSPort *)malloc(sizeof(struct Slave_ISBUSPort ));
     memset(Port, 0, sizeof(struct Slave_ISBUSPort ));
-    recvbuf = malloc(512+2*sizeof(struct ISBUS_Protocol));
+    recvbuf = malloc(2 * (256+sizeof(struct ISBUS_Protocol)));
     Port->MTC_Semp = Lock_SempCreate(1, 0, CN_BLOCK_FIFO, "Slave Mtc");
     if((Port != NULL) && (recvbuf != NULL) && (Port->MTC_Semp != NULL)) //分配成功
     {
@@ -576,10 +612,11 @@ struct Slave_ISBUSPort *ISBUS_SlaveRegistPort(char *dev,\
         Port->HostSerial = 255;
         Port->BoardcastPre = 255;
         Port->MTCPre = 255;
-        Port->SendPkgBuf = recvbuf + 256 + sizeof(struct ISBUS_Protocol);
+        Port->SendPkgBuf = recvbuf + (256 + sizeof(struct ISBUS_Protocol));
         Port->RecvPkgBuf = recvbuf;
         Port->PortMaxRecvLen = sizeof(struct ISBUS_Protocol);
         Port->PortMaxSendLen = sizeof(struct ISBUS_Protocol);
+
 //      Port->PortSendLen = 0;
 //        Port->RecvP = 0;
         //若置0，初始状态会发送一包数据。
@@ -600,6 +637,7 @@ struct Slave_ISBUSPort *ISBUS_SlaveRegistPort(char *dev,\
     }
     else
     {
+        free(SendLineBuf);
         free(Port);
         free(recvbuf);
         Lock_SempDelete(Port->MTC_Semp);
@@ -623,7 +661,7 @@ struct ISBUS_FunctionSocket *ISBUS_SlaveRegistProtocol(struct Slave_ISBUSPort *P
 
     if(Port == NULL)
         return NULL;
-    ProtocolSocket = (struct ISBUS_FunctionSocket *)malloc(sizeof(struct Slave_ISBUSPort ));
+    ProtocolSocket = (struct ISBUS_FunctionSocket *)malloc(sizeof(struct Slave_ISBUSPort )); //TODO:这里是不是写错了Slave_ISBUSPort ->ISBUS_FunctionSocket
     if(ProtocolSocket != NULL)
     {
         //result用于出错判断，不能用指针是否NULL，因为有单工工作的通信口，Len=0
@@ -661,7 +699,7 @@ struct ISBUS_FunctionSocket *ISBUS_SlaveRegistProtocol(struct Slave_ISBUSPort *P
     }
     else
     {
-        debug_printf("ISBUS","ISBUS_SlaveRegistProtocol failure");
+        debug_printf("ISBUS","ISBUS_SlaveRegistProtocol failure\r\n");
 //      free(Port->RecvPkgBuf);
 //      free(ProtocolSocket);
 //      free(Port->PollSendPkgBuf);
@@ -679,19 +717,35 @@ u32 baktime;
 //------------------------------------------------------------------------------
 void __ISBUS_Ack(struct Slave_ISBUSPort *Port)
 {
-    u8 *SendBuf;
-    SendBuf = Port->SendPkgBuf;
-    SendBuf[CN_OFF_START]   = 0xEB;
-    SendBuf[CN_OFF_DST]     = 0;
-    SendBuf[CN_OFF_PROTO]   = CN_SLAVE_ACK;
-    SendBuf[CN_OFF_SRC]     = sg_u8SlaveAddress;
-    SendBuf[CN_OFF_LEN]     = 0;
-    SendBuf[CN_OFF_SERIAL]  = 0;        //从机上送的包序号总是0
-    SendBuf[CN_OFF_CHKSUM]  = 0xEB + CN_SLAVE_ACK + sg_u8SlaveAddress;
-
+    u16 DataLen = 0;
+    u16 tmp = 0;
     if(Port->EchoModel == ONE_BY_ONE)
-        Device_Write(Port->SerialDevice, SendBuf, sizeof(struct ISBUS_Protocol),
-                                    0, CN_TIMEOUT_FOREVER);
+    {
+        if (Line_Check(&SlavePkgLineBuf) > 0)
+        {
+            Device_Write(Port->SerialDevice, Line_GetBuf(&SlavePkgLineBuf), Line_Check(&SlavePkgLineBuf), 0, Port->Timeout);
+            if((debug_ctrl ==true))
+            {
+                DataLen = Line_Check(&SlavePkgLineBuf);
+                printf("\r\nslave send:");
+                for(tmp = 0;tmp < DataLen;tmp++)
+                {
+                    printf("%02x ",SendLineBuf[tmp]);
+                }
+            }
+            Line_Flush(&SlavePkgLineBuf);
+        }
+        Device_Write(Port->SerialDevice, SlaveAckBuf, sizeof(SlaveAckBuf), 0, CN_TIMEOUT_FOREVER);
+        
+        if((debug_ctrl ==true))
+        {
+            printf("\r\nslave send:");
+            for(tmp = 0; tmp < sizeof(SlaveAckBuf); tmp++)
+            {
+                printf("%02x ",SlaveAckBuf[tmp]);
+            }
+        }
+    }
     else
     {
         baktime = (u32)DJY_GetSysTime();
@@ -707,14 +761,37 @@ void __ISBUS_Ack(struct Slave_ISBUSPort *Port)
 //------------------------------------------------------------------------------
 void __ISBUS_PushMtcPkg(struct Slave_ISBUSPort *Port)
 {
+    u16 DataLen = 0;
+    u16 tmp = 0;
     if(Lock_SempPend(Port->MTC_Semp, Port->Timeout))
     {
         if(DJY_GetSysTime() - baktime > 2000000)
             baktime = 0;
 //      recdbg(4, Port->SendPkgBuf,Port->SendPkgBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol));
-        Device_Write(Port->SerialDevice, Port->SendPkgBuf,
-                Port->SendPkgBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol),
-                0, Port->Timeout);
+
+        if (Line_Check(&SlavePkgLineBuf) > 0)
+        {
+            Device_Write(Port->SerialDevice, Line_GetBuf(&SlavePkgLineBuf), Line_Check(&SlavePkgLineBuf), 0, Port->Timeout);
+            if((debug_ctrl ==true))
+            {
+                DataLen = Line_Check(&SlavePkgLineBuf);
+                printf("\r\nslave send:");
+                for(tmp = 0;tmp < DataLen;tmp++)
+                {
+                    printf("%02x ",SendLineBuf[tmp]);
+                }
+            }
+            Line_Flush(&SlavePkgLineBuf);
+        }
+        Device_Write(Port->SerialDevice, SlaveAckBuf, sizeof(SlaveAckBuf), 0, Port->Timeout);
+        if((debug_ctrl ==true))
+        {
+            printf("\r\nslave send:");
+            for(tmp = 0; tmp < sizeof(SlaveAckBuf); tmp++)
+            {
+                printf("%02x ",SlaveAckBuf[tmp]);
+            }
+        }
         return ;
     }
 }
@@ -723,16 +800,18 @@ void __ISBUS_PushMtcPkg(struct Slave_ISBUSPort *Port)
 //      或广播的模式，则并不立即发送出去，而是释放一个信号量，等到排在前面的从机发送完毕后，
 //      由协议接收函数pend这个信号量，得到之后发送。
 // 输入参数：Slave_FunctionSocket，通信协议插口指针，为INS_RegistProtocol函数的返回值
+//        dst, 目标地址
 //        buf，待发送的数据包，不含协议头
 //        len，发送长度
 //        times，发送次数，-1表示无限次数。
 // 返回值：  发送的数据量，只是copy到了发送buf。
 // ============================================================================
-u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 *buf, u8 len)
+u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 dst, u8 *buf, u8 len)
 {
     struct Slave_ISBUSPort *Port;
     u8 *SendBuf;
     u16 SendLen,tmp;
+    u16 RingSendLen = 0;
     extern u32 dbg_stopack;
     if(dbg_stopack != 0)        //用于调试模拟通信错误
     {
@@ -747,34 +826,45 @@ u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 *b
 //  Port->SendTimes = times;
     SendBuf = Port->SendPkgBuf;
     SendBuf[CN_OFF_START]   = 0xEB;
-    SendBuf[CN_OFF_DST]     = 0;    //目标地址是主机地址，永远是0
+    SendBuf[CN_OFF_DST]     = dst;
     SendBuf[CN_OFF_PROTO]   = ISBUS_FunctionSocket->Protocol;
     SendBuf[CN_OFF_SRC]     = sg_u8SlaveAddress;
     SendBuf[CN_OFF_LEN]     = len;
     SendBuf[CN_OFF_SERIAL]  = 0;        //从机上送的包序号总是0
     SendBuf[CN_OFF_CHKSUM]  = 0xEB + ISBUS_FunctionSocket->Protocol
-                              + sg_u8SlaveAddress + len;
+                              + sg_u8SlaveAddress + len + dst;
     SendLen = len + sizeof(struct ISBUS_Protocol);
     memcpy(SendBuf + sizeof(struct ISBUS_Protocol), buf, len);
 
-    if(Port->EchoModel == ONE_BY_ONE)
+//     if(Port->EchoModel == ONE_BY_ONE)
+//     {
+// //      recdbg(5, SendBuf,SendLen);
+//         Device_Write(Port->SerialDevice, SendBuf, SendLen, 0, Port->Timeout);
+//         if((debug_ctrl ==true))
+//         {
+//             printf("\r\nslave send:");
+//             for(tmp = 0;tmp < SendLen;tmp++)
+//             {
+//                 printf("%02x ",SendBuf[tmp]);
+//             }
+//         }
+//     }
+//     else
+//     {
+    if (Line_CheckFree(&SlavePkgLineBuf) >= SendLen)
     {
-//      recdbg(5, SendBuf,SendLen);
-        Device_Write(Port->SerialDevice, SendBuf, SendLen, 0, Port->Timeout);
-        if((debug_ctrl ==true))
+        RingSendLen = Line_Write(&SlavePkgLineBuf, SendBuf, SendLen);
+        if (RingSendLen != SendLen)
         {
-            printf("\r\nslave send:");
-            for(tmp = 0;tmp < SendLen;tmp++)
-            {
-                printf("%02x ",SendBuf[tmp]);
-            }
+            Line_SkipTail(&SlavePkgLineBuf, RingSendLen);   //退回写进去的部分数据
+            len  = 0;
         }
     }
     else
     {
-        Lock_SempPost(Port->MTC_Semp);
-        baktime = (u32)DJY_GetSysTime();
+        len = 0;
     }
+    // }
 //  if(Completed != -1)
 //      Port->SendP = Completed;
 
@@ -792,6 +882,15 @@ void ISBUS_SlaveSetAddress(u8 Addr)
     if(Addr < CN_INS_MULTICAST)  //不能超过组播起始地址
     {
         sg_u8SlaveAddress = Addr;
+
+        // 设置从机应答包
+        SlaveAckBuf[CN_OFF_START]   = 0xEB;
+        SlaveAckBuf[CN_OFF_DST]     = 0;
+        SlaveAckBuf[CN_OFF_PROTO]   = CN_SLAVE_ACK;
+        SlaveAckBuf[CN_OFF_SRC]     = sg_u8SlaveAddress;
+        SlaveAckBuf[CN_OFF_LEN]     = 0;
+        SlaveAckBuf[CN_OFF_SERIAL]  = 0;        //从机上送的包序号总是0
+        SlaveAckBuf[CN_OFF_CHKSUM]  = 0xEB + CN_SLAVE_ACK + sg_u8SlaveAddress;
     }
 }
 

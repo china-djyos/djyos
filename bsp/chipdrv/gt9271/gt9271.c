@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -377,9 +377,9 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
         limit_bottom = desktop->limit_bottom;
 
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+50,
                        "触摸屏矫正卡片", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+70,
                        "请准确点击十字交叉点", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
         GK_Lineto(desktop,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
         GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
@@ -392,9 +392,9 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
 
 
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+50,
                        "触摸屏矫正", 21, CN_COLOR_BLACK + 1, CN_R2_COPYPEN, 0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+70,
                        "再次准确点击十字交叉点", 21, CN_COLOR_BLACK + 1, CN_R2_COPYPEN, 0);
         GK_Lineto(desktop,limit_right-40,limit_bottom-20,
                       limit_right,limit_bottom-20,

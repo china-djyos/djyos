@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -75,7 +75,7 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"can bus"//canbus
-//parent:"djybus"    //填写该组件的父组件名字，none表示没有父组件
+//parent:"djybus"               //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
@@ -487,44 +487,46 @@ ptu32_t __CANBus_SndTask(void)
       bool_t ret=false;
       while(1)
       {
-         MsgQ_Receive(gs_ptCanSndMsgQ, buf, CN_CAN_BUS_MSGQ_LEN, CN_TIMEOUT_FOREVER);
-         temp=0x0;
-         memset(&Frame,0,sizeof(CanFarmeDef));
-         for(i=0;i<4;i++)
+         if(MsgQ_Receive(gs_ptCanSndMsgQ, buf, CN_CAN_BUS_MSGQ_LEN, CN_TIMEOUT_FOREVER))
          {
-             temp|=(uint32_t)(buf[i]<<(8*i));
-         }
-         CANBus=(struct CANBusCB *)temp;
-         Frame.Type=buf[4];
-         Frame.DLC=buf[5];
-         id=0x0;
-         for(i=0;i<4;i++)
-         {
-             id|=(uint32_t)(buf[6+i]<<(8*i));
-         }
-         Frame.Id=id;
-         for(i=0;i<Frame.DLC;i++)
-         {
-             Frame.Data[i]=buf[10+i];
-         }
-         //需要等待总线空闲
-         if(true == Lock_SempPend(CANBus->CAN_BusSemp,CFG_CAN_BUS_TIMEOUT*mS))
-         {
-            if(CANBus->CanWrite!=NULL)
-                ret=CANBus->CanWrite(CANBus,&Frame);
-            Lock_SempPost(CANBus->CAN_BusSemp);
-            if(ret)
-            {
-                CANBus->CanStat.HardSndCnt++;
-            }
-            else
-            {
-                CANBus->CanStat.SndPkgBadCnt++;
-            }
-         }
-         else
-         {
-             CANBus->CanStat.SendSempTimeoutCnt++;
+             temp=0x0;
+             memset(&Frame,0,sizeof(CanFarmeDef));
+             for(i=0;i<4;i++)
+             {
+                 temp|=(uint32_t)(buf[i]<<(8*i));
+             }
+             CANBus=(struct CANBusCB *)temp;
+             Frame.Type=buf[4];
+             Frame.DLC=buf[5];
+             id=0x0;
+             for(i=0;i<4;i++)
+             {
+                 id|=(uint32_t)(buf[6+i]<<(8*i));
+             }
+             Frame.Id=id;
+             for(i=0;i<Frame.DLC;i++)
+             {
+                 Frame.Data[i]=buf[10+i];
+             }
+             //需要等待总线空闲
+             if(true == Lock_SempPend(CANBus->CAN_BusSemp,CFG_CAN_BUS_TIMEOUT*mS))
+             {
+                if(CANBus->CanWrite!=NULL)
+                    ret=CANBus->CanWrite(CANBus,&Frame);
+                Lock_SempPost(CANBus->CAN_BusSemp);
+                if(ret)
+                {
+                    CANBus->CanStat.HardSndCnt++;
+                }
+                else
+                {
+                    CANBus->CanStat.SndPkgBadCnt++;
+                }
+             }
+             else
+             {
+                 CANBus->CanStat.SendSempTimeoutCnt++;
+             }
          }
       }
 }

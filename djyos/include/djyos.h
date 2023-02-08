@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -108,23 +108,23 @@ struct EventType;
 enum _KNL_ERROR_CODE_
 {
     EN_KNL_NO_ERROR = CN_KNL_NO_ERROR,  //没有错误
-    EN_KNL_ETCB_ERROR,            //事件类型控制块错误
-    EN_KNL_ECB_EXHAUSTED,         //事件控制块耗尽
-    EN_KNL_ETCB_EXHAUSTED,        //事件类型控制块耗尽
-    EN_KNL_PCB_EXHAUSTED,         //参数控制块耗尽
-    EN_KNL_CANT_SCHED,            //企图在禁止调度时执行可能引起事件调度的操作
-    EN_KNL_INVALID_PRIO,          //非法优先级
-    EN_KNL_VPU_OVER,              //事件类型的线程超过限制数
-    EN_KNL_PARA_OVER,             //事件参数数量超过限制数
-    EN_KNL_EVTT_HOMONYMY,         //事件类型重名
-    EN_KNL_EVENT_FREE,            //企图使用空闲事件控制块
-    EN_KNL_EVTT_FREE,             //企图使用空闲事件类型控制块
-    EN_KNL_EVENTID_LIMIT,         //事件id越限
-    EN_KNL_EVTTID_LIMIT,          //事件类型id越限
-    EN_KNL_EVTT_UNREGISTER,       //事件类型未登记
-    EN_KNL_EVENT_SYNC_EXIT,       //事件同步中，被同步的事件异常结束
-    EN_KNL_MEMORY_OVER,           //内存不足
-    EN_KNL_STACK_OVERFLOW         //栈溢出风险警告
+    EN_KNL_ETCB_ERROR,          //事件类型控制块错误
+    EN_KNL_ECB_EXHAUSTED,       //事件控制块耗尽
+    EN_KNL_ETCB_EXHAUSTED,      //事件类型控制块耗尽
+    EN_KNL_PCB_EXHAUSTED,       //参数控制块耗尽
+    EN_KNL_CANT_SCHED,          //企图在禁止调度时执行可能引起事件调度的操作
+    EN_KNL_INVALID_PRIO,        //非法优先级
+    EN_KNL_VPU_OVER,            //事件类型的线程超过限制数
+    EN_KNL_PARA_OVER,           //事件参数数量超过限制数
+    EN_KNL_EVTT_HOMONYMY,       //事件类型重名
+    EN_KNL_EVENT_FREE,          //企图使用空闲事件控制块
+    EN_KNL_EVTT_FREE,           //企图使用空闲事件类型控制块
+    EN_KNL_EVENTID_LIMIT,       //事件id越限
+    EN_KNL_EVTTID_LIMIT,        //事件类型id越限
+    EN_KNL_EVTT_UNREGISTER,     //事件类型未登记
+    EN_KNL_EVENT_SYNC_EXIT,     //事件同步中，被同步的事件异常结束
+    EN_KNL_MEMORY_OVER,         //内存不足
+    EN_KNL_STACK_OVERFLOW       //栈溢出风险警告
 };
 
 //事件优先级名称定义
@@ -176,13 +176,15 @@ struct ThreadVm          //线程数据结构
 #define CN_STS_WAIT_VPIPE       (u32)(1<<11)    //动态长度pipe
 #define CN_STS_WAIT_MSG_SENT    (u32)(1<<12)    //等待消息发送
 #define CN_STS_WAIT_PARA_USED   (u32)(1<<13)    //等待消息处理完成
-#define CN_STS_EVTTSYNC_DELETED (u32)(1<<14)    //事件类型相关的同步，因目标类型
+#define CN_STS_WAIT_GKDRAW      (u32)(1<<14)    //等待图形内核绘制完成
+#define CN_STS_EVTTSYNC_DELETED (u32)(1<<15)    //事件类型相关的同步，因目标类型
                                                 //被删除而解除同步。
-#define CN_STS_EVENT_RESET      (u32)(1<<15)    //复位后首次切入运行
-#define CN_STS_EVENT_NORUN      (u32)(1<<16)    //事件还未开始处理
+#define CN_STS_EVENT_RESET      (u32)(1<<16)    //复位后首次切入运行
+#define CN_STS_EVENT_NORUN      (u32)(1<<17)    //事件还未开始处理
 
-#define CN_BLOCK_PRIO_SORT      (u32)(1<<17)    //是否在优先级排序的阻塞队列中
-
+#define CN_BLOCK_PRIO_SORT      (u32)(1<<18)    //是否在优先级排序的阻塞队列中
+#define CN_STS_WAIT_STACK       (u32)(1<<19)    //创建线程时分配不到stack所需内存。
+#define CN_STS_WAIT_REMOTE      (u32)(1<<20)    //等待远程贡献者响应
  //说明:
 //1、弹出事件时，如果携带参数，系统将创建参数控制块(tagParaPCB)记录该参数。
 //2、如果参数尺寸小于cn_para_limited，将直接copy到参数控制块的static_para成员中。
@@ -261,7 +263,7 @@ struct EventECB
     //以下两行参见CN_STS_EVENT_READY系列定义
     u32 wakeup_from;            //用于查询事件进入就绪态的原因,todo,直接返回状态
     u32 event_status;           //当前状态,本变量由操作系统内部使用,
-    u32 prio_raise_cnt;         //优先级继承计数
+//    u32 prio_raise_cnt;         //优先级继承计数
     u8  prio_base;         //临时调整优先级时，将不改变prio_base
     u8  prio;              //事件优先级
 //  ufast_t  prio_new;       //优先级备份，用于修改处于阻塞态的事件优先级时，
@@ -376,8 +378,8 @@ bool_t DJY_QuerySch(void);
 bool_t DJY_IsMultiEventStarted(void);
 bool_t DJY_SetEventPrio(u16 event_id,ufast_t new_prio);
 bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio);//修改成DJY_SetEventPrio函数后和C库有冲突，copy了一份，改了C库之后删掉
-bool_t DJY_RaiseTempPrio(u16 event_id);
-bool_t DJY_RestorePrio(void);
+bool_t __DJY_FollowUpPrio(struct EventECB * pl_ecb);
+bool_t __DJY_RestorePrio(struct EventECB * pl_ecb);
 u32 DJY_EventDelay(u32 u32l_uS);
 s64 DJY_EventDelayTo(s64 s64l_uS);
 u32 DJY_WaitEventCompleted(u16 event_id,u32 timeout);
@@ -401,6 +403,10 @@ u32 DJY_WakeUpFrom(void);
 u16 DJY_GetMyEvttId(void);
 u16 DJY_GetMyEventId(void);
 u16 Djy_MyEventId(void); //修改成DJY_GetMyEventId函数后和C库有冲突，copy了一份，改了C库之后删掉
+#if CFG_OS_TINY == false
+u8 DJY_GetCpuIdleRate(void);
+#endif  //CFG_OS_TINY == false
+
 void DJY_ApiStart(u32 api_no);
 void DJY_DelayUs(u32 time);
 void DJY_DelayNano(u32 time);

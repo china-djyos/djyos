@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -69,29 +69,6 @@
 static struct MutexLCB s_tHandleMutex; // 文件系统互斥锁
 static struct MemCellPool s_tHandlePool; // 文件预分配池
 static struct objhandle s_tHandleInitPool[CFG_HANDLE_LIMIT];
-
-// ============================================================================
-// 功能：对象句柄系统上锁；
-// 参数：无；
-// 返回：无；
-// 备注：
-// ============================================================================
-static inline void __Handle_LockSys(void)
-{
-    Lock_MutexPend(&s_tHandleMutex, CN_TIMEOUT_FOREVER);
-}
-
-// ============================================================================
-// 功能：对象句柄系统解锁；
-// 参数：无；
-// 返回：无；
-// 备注：
-// ============================================================================
-static inline void __Handle_UnlockSys(void)
-{
-    Lock_MutexPost(&s_tHandleMutex);
-}
-
 
 // ============================================================================
 // 功能：对象句柄系统初始化；
@@ -624,16 +601,18 @@ void Handle_SetMultiplexEvent(struct objhandle *hdl, u32 events)
 //    u32 MultiplexEvents;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
 //    Int_SaveAsynSignal();
-    __Handle_LockSys();
-    if(hdl)
+    if(Lock_MutexPend(&s_tHandleMutex, CN_TIMEOUT_FOREVER))
     {
-//        MultiplexEvents = hdl->MultiplexEvents;
-        hdl->MultiplexEvents |= events;
-//        if(MultiplexEvents!=hdl->MultiplexEvents)
-            __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
+        if(hdl)
+        {
+    //        MultiplexEvents = hdl->MultiplexEvents;
+            hdl->MultiplexEvents |= events;
+    //        if(MultiplexEvents!=hdl->MultiplexEvents)
+                __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
+        }
+    //    Int_RestoreAsynSignal();
+        Lock_MutexPost(&s_tHandleMutex);
     }
-//    Int_RestoreAsynSignal();
-    __Handle_UnlockSys();
 }
 
 // ============================================================================
@@ -648,16 +627,18 @@ void Handle_ClrMultiplexEvent(struct objhandle *hdl, u32 events)
 //    u32 MultiplexEvents;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
 //    Int_SaveAsynSignal();
-    __Handle_LockSys();
-    if(hdl)
+    if(Lock_MutexPend(&s_tHandleMutex, CN_TIMEOUT_FOREVER))
     {
-//        MultiplexEvents = hdl->MultiplexEvents;
-        hdl->MultiplexEvents &= ~events;
-//        if(MultiplexEvents != hdl->MultiplexEvents)
-            __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
+        if(hdl)
+        {
+    //        MultiplexEvents = hdl->MultiplexEvents;
+            hdl->MultiplexEvents &= ~events;
+    //        if(MultiplexEvents != hdl->MultiplexEvents)
+                __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
+        }
+    //  Int_RestoreAsynSignal();
+        Lock_MutexPost(&s_tHandleMutex);
     }
-//  Int_RestoreAsynSignal();
-    __Handle_UnlockSys();
 }
 
 // ============================================================================
@@ -683,12 +664,14 @@ s32 OBJ_SetMultiplexEvent(struct Object *ob, u32 events)
         hdl = dListEntry(cur, struct objhandle, list);
 //        MultiplexEvents = hdl->MultiplexEvents;
 //        Int_SaveAsynSignal();
-        __Handle_LockSys();
-        hdl->MultiplexEvents |= events;
-//        if(MultiplexEvents!=hdl->MultiplexEvents)
-        __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
-//      Int_RestoreAsynSignal();
-        __Handle_UnlockSys();
+        if(Lock_MutexPend(&s_tHandleMutex, CN_TIMEOUT_FOREVER))
+        {
+            hdl->MultiplexEvents |= events;
+    //        if(MultiplexEvents!=hdl->MultiplexEvents)
+            __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
+    //      Int_RestoreAsynSignal();
+            Lock_MutexPost(&s_tHandleMutex);
+        }
     }
     return (0);
 }
@@ -716,12 +699,14 @@ s32 OBJ_ClrMultiplexEvent(struct Object *ob, u32 events)
         hdl = dListEntry(cur, struct objhandle, list);
 //        MultiplexEvents = hdl->MultiplexEvents;
 //      Int_SaveAsynSignal();
-        __Handle_LockSys();
-        hdl->MultiplexEvents &= ~events;
-//        if(MultiplexEvents != hdl->MultiplexEvents)
-        __Multiplex_Set(Handle2fd(hdl),hdl->MultiplexEvents);
-//      Int_RestoreAsynSignal();
-        __Handle_UnlockSys();
+        if(Lock_MutexPend(&s_tHandleMutex, CN_TIMEOUT_FOREVER))
+        {
+            hdl->MultiplexEvents &= ~events;
+    //        if(MultiplexEvents != hdl->MultiplexEvents)
+            __Multiplex_Set(Handle2fd(hdl),hdl->MultiplexEvents);
+    //      Int_RestoreAsynSignal();
+            Lock_MutexPost(&s_tHandleMutex);
+        }
     }
 
     return (0);
@@ -765,30 +750,32 @@ struct objhandle *__open(char *path, u32 flags, u32 mode)
 //  struct stat statbuf;
 //  ptu32_t StatResult;
     OpenMode = ( (u64)mode << 32) | flags;
-    __Handle_LockSys();
-    ob = OBJ_MatchPath(path, &uncached);
-    if(ob == NULL)
+    if(Lock_MutexPend(&s_tHandleMutex, CN_TIMEOUT_FOREVER))
     {
-        __Handle_UnlockSys();
-        return NULL;
+        ob = OBJ_MatchPath(path, &uncached);
+        if(ob == NULL)
+        {
+            Lock_MutexPost(&s_tHandleMutex);
+            return NULL;
+        }
+        OBJ_DutyUp(ob);        // 防止文件操作过程中，被删除了；
+
+    //  Lock_MutexPost(&s_tHandleMutex);
+            //todo:权限管理暂未实现。框架：调用stat，再判断当前st_mode是否满足flags权限
+    //      StatResult = ob->ObjOps(CN_OBJ_CMD_STAT, (ptu32_t)ob, &statbuf, uncached, full);
+    //  if(权限满足要求)
+        run = ob->ObjOps((void *)ob, CN_OBJ_CMD_OPEN,
+                                    (ptu32_t)&hdl,(ptu32_t)&OpenMode,(ptu32_t)uncached);
+
+        if( (run == CN_OBJ_CMD_EXECUTED) && (hdl != NULL) )
+        {
+          OBJ_DutyUp(hdl->HostObj);
+        }
+    //  else
+        OBJ_DutyDown(ob);
+
+        Lock_MutexPost(&s_tHandleMutex);
     }
-    OBJ_DutyUp(ob);        // 防止文件操作过程中，被删除了；
-
-//  __Handle_UnlockSys();
-        //todo:权限管理暂未实现。框架：调用stat，再判断当前st_mode是否满足flags权限
-//      StatResult = ob->ObjOps(CN_OBJ_CMD_STAT, (ptu32_t)ob, &statbuf, uncached, full);
-//  if(权限满足要求)
-    run = ob->ObjOps((void *)ob, CN_OBJ_CMD_OPEN,
-                                (ptu32_t)&hdl,(ptu32_t)&OpenMode,(ptu32_t)uncached);
-
-    if( (run == CN_OBJ_CMD_EXECUTED) && (hdl != NULL) )
-    {
-      OBJ_DutyUp(hdl->HostObj);
-    }
-//  else
-    OBJ_DutyDown(ob);
-
-    __Handle_UnlockSys();
     return (hdl);
 }
 
@@ -867,30 +854,32 @@ s32 remove(const char *path)
 {
     struct Object *ob;
     char *uncached;
-    s32 res;
+    s32 res = -1;
 
-    __Handle_LockSys();
-    ob = OBJ_MatchPath(path, &uncached);
-    if(!uncached) // 文件已经在系统中
+    if(Lock_MutexPend(&s_tHandleMutex, CN_TIMEOUT_FOREVER))
     {
-        if(OBJ_IsOnDuty(ob))  // 文件正在被使用中
+        ob = OBJ_MatchPath(path, &uncached);
+        if(!uncached) // 文件已经在系统中
         {
-            __Handle_UnlockSys();
-            return (-1);
+            if(OBJ_IsOnDuty(ob))  // 文件正在被使用中
+            {
+                Lock_MutexPost(&s_tHandleMutex);
+                return (-1);
+            }
         }
-    }
 
-    OBJ_Lock();
-    __Handle_UnlockSys();
-    res = ob->ObjOps((void *)ob, CN_OBJ_CMD_DELETE, 0, 0, (ptu32_t)uncached);
-    OBJ_Unlock();
+        OBJ_Lock();
+        Lock_MutexPost(&s_tHandleMutex);
+        res = ob->ObjOps((void *)ob, CN_OBJ_CMD_DELETE, 0, 0, (ptu32_t)uncached);
+        OBJ_Unlock();
+    }
     if(res == CN_OBJ_CMD_TRUE)
     {
         OBJ_ReleaseTempPath(ob); // 释放对象临时路径
         return (0);
     }
     else
-        return (-1);
+        return res;
 
 }
 
@@ -1092,26 +1081,29 @@ s32 stat(const char *path, struct stat *buf)
 {
     struct Object *ob;
     char *uncache;
-    s32 res;
+    s32 res=-1;
 
     if((!buf) || (!path))
         return(-1);
 
-    __Handle_LockSys();// 防止操作过程文件被删除了
-    ob = OBJ_MatchPath((char*)path, &uncache);
-    OBJ_DutyUp(ob);
-    __Handle_UnlockSys();
+    // 防止操作过程文件被删除了
+    if(Lock_MutexPend(&s_tHandleMutex, CN_TIMEOUT_FOREVER))
+    {
+        ob = OBJ_MatchPath((char*)path, &uncache);
+        OBJ_DutyUp(ob);
+        Lock_MutexPost(&s_tHandleMutex);
 
-    if(!uncache)
-        uncache = ""; // 全部路径都已经缓存时，设置为空字符串（即'\0'），用于与fstat逻辑区分；
+        if(!uncache)
+            uncache = ""; // 全部路径都已经缓存时，设置为空字符串（即'\0'），用于与fstat逻辑区分；
 
-    res = (s32)ob->ObjOps((void *)ob, CN_OBJ_CMD_STAT, (ptu32_t)buf, 0,
-                                    (ptu32_t)uncache);
-    OBJ_DutyDown(ob);
+        res = (s32)ob->ObjOps((void *)ob, CN_OBJ_CMD_STAT, (ptu32_t)buf, 0,
+                                        (ptu32_t)uncache);
+        OBJ_DutyDown(ob);
+    }
     if(res == CN_OBJ_CMD_TRUE)
         return 0;
     else
-        return (-1);
+        return res;
 }
 
 // ============================================================================

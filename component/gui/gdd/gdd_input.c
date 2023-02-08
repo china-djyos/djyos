@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -115,7 +115,7 @@ bool_t GDD_DeleteInputDev(const char *InputDevName)
 //-----------------------------------------------------------------------------
 bool_t GDD_InputDevInit(void)
 {
-    GDD_StartTimer(GDD_CreateTimer(GDD_GetDesktopWindow( ), CN_HMIINPUT_TIMER_ID, 30));
+    GDD_StartTimer(GDD_CreateTimer(GDD_GetDesktopWindow(NULL ), CN_HMIINPUT_TIMER_ID, 30));
 
     sg_ptGddMsgQ = HmiIn_CreatInputMsgQ(20);
 
@@ -154,9 +154,8 @@ void GDD_HmiInput(void)
             if(TouchMsg->display != NULL)
                 hwnd = GDD_GetWindowFromPoint(TouchMsg->display->desktop, &pt);
             else
-                hwnd = GDD_GetWindowFromPoint(GDD_GetDesktopWindow()->pGkWin, &pt);
+                hwnd = GDD_GetWindowFromPoint(GDD_GetDesktopWindow(NULL)->pGkWin, &pt);
             //GDD_MoveWindow(sg_pMouseHwnd, pt.x-4, pt.y-4);
-//          GDD_UpdateDisplay(CN_TIMEOUT_FOREVER);
             if(hwnd != NULL)
             {
                 GDD_GetClientRectToScreen(hwnd,&rc);
@@ -171,24 +170,36 @@ void GDD_HmiInput(void)
                     if((TouchMsg->MoveX ==0) && (TouchMsg->MoveY ==0))
                     {
                         if(NC)
+                        {
                             Touch_Msg = MSG_NCTOUCH_DOWN;
+                        }
                         else
+                        {
                             Touch_Msg = MSG_TOUCH_DOWN;
+                        }
                     }
                     else
                     {
                         if(NC)
+                        {
                             Touch_Msg = MSG_NCTOUCH_MOVE;
+                        }
                         else
+                        {
                             Touch_Msg = MSG_TOUCH_MOVE;
+                        }
                     }
                 }
                 else        //touch离开
                 {
                     if(NC)
+                    {
                         Touch_Msg = MSG_NCTOUCH_UP;
+                    }
                     else
+                    {
                         Touch_Msg = MSG_TOUCH_UP;
+                    }
                 }
                 GDD_PostMessage(hwnd, Touch_Msg,
                             ((u16)(TouchMsg->MoveY) << 16) | (u16)(TouchMsg->MoveX),

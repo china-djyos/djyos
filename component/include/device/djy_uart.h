@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -55,8 +55,8 @@
 //-----------------------------------------------------------------------------
 #ifndef __UART_H__
 #define __UART_H__
-#include "device.h"
-#include "ring.h"
+#include <device.h>
+#include <ring.h>
 #include <uartctrl.h>
 #ifdef __cplusplus
 extern "C" {
@@ -65,9 +65,8 @@ extern "C" {
 struct UartGeneralCB;
 struct UartPollCB;
 
-typedef u32 (* UartStartSend)(ptu32_t PrivateTag);
+typedef u32 (*UartStartSend)(ptu32_t PrivateTag);
 typedef u32 (*UartSendPkg)(ptu32_t PrivateTag, u8 *buf, u32 len);
-//typedef u32 (* UartDirectSend)(ptu32_t PrivateTag,u8 *send_buf,u32 len,u32 timeout);
 typedef ptu32_t (*UartControl)(ptu32_t PrivateTag,u32 cmd, va_list *arg0);
 
 // 串口模块初始化结构体
@@ -80,9 +79,7 @@ struct UartParam
     u8  mode;                           //串口工作模式，参见 CN_UART_GENERAL 说明
     ptu32_t UartPortTag;                //UART私有标签，如寄存器基址
     UartStartSend StartSend;            //启动发送回调函数指针
-//    UartDirectSend DirectlySend;        //直接轮询发送回调函数指针
     UartControl UartCtrl;               //控制函数回调函数指针
-//    u8 mode;                          //0正常收发模式 1应答模式
 };
 
 u32 UART_PortWrite(struct UartGeneralCB *pUGCB, u8 *pBuf, u32 dwLen);
@@ -93,11 +90,8 @@ u32 UART_PollPortWrite(struct UartPollCB *pUPCB, u32 dwLen);
 u32 UART_PollPortRead(struct UartPollCB *pUPCB);
 u32 UART_PollErrHandle(struct UartPollCB *pUPCB, u32 dwErrNo);
 
-
 #ifdef __cplusplus
 }
 #endif
 
 #endif //__CPU_PERI_UART_H__
-
-

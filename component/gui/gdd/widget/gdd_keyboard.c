@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -210,58 +210,58 @@ static  bool_t __Widget_VirKeyBoardPaint(struct WindowMsg *pMsg)
     LeftStart=gs_KeySpace;
     HighStart=gs_KeySpace;
     //
-    key_hwnd[0]=Widget_CreateButton("1",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
+    key_hwnd[0]=Widget_CreateButton("1",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
         LeftStart,HighStart,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_0,(ptu32_t)"1",NULL);
 
-    key_hwnd[1]=Widget_CreateButton("2",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
+    key_hwnd[1]=Widget_CreateButton("2",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
         LeftStart+gs_KeyWidth,HighStart,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_1,(ptu32_t)"2",NULL);
 
-    key_hwnd[2]=Widget_CreateButton("3",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
+    key_hwnd[2]=Widget_CreateButton("3",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
         LeftStart+2*gs_KeyWidth,HighStart,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_2,(ptu32_t)"3",NULL);
 
-    key_hwnd[3]=Widget_CreateButton("x",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
+    key_hwnd[3]=Widget_CreateButton("x",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,\
         LeftStart+3*gs_KeyWidth,HighStart,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_3,(ptu32_t)"x",NULL);
 
 
 
-    key_hwnd[4]=Widget_CreateButton("4",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart,
+    key_hwnd[4]=Widget_CreateButton("4",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart,
         HighStart+gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_4,(ptu32_t)"4",NULL);
 
-    key_hwnd[5]=Widget_CreateButton("5",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+gs_KeyWidth,
+    key_hwnd[5]=Widget_CreateButton("5",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+gs_KeyWidth,
         HighStart+gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_5,(ptu32_t)"5",NULL);
 
-    key_hwnd[6]=Widget_CreateButton("6",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL, LeftStart+2*gs_KeyWidth,
+    key_hwnd[6]=Widget_CreateButton("6",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL, LeftStart+2*gs_KeyWidth,
         HighStart+gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_6,(ptu32_t)"6",NULL);
 
-    key_hwnd[7]=Widget_CreateButton("√",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+3*gs_KeyWidth,
+    key_hwnd[7]=Widget_CreateButton("√",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+3*gs_KeyWidth,
         HighStart+gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_7,(ptu32_t)"√",NULL);
 
 
 
-    key_hwnd[8]=Widget_CreateButton("7",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart,
+    key_hwnd[8]=Widget_CreateButton("7",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart,
                  HighStart+2*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_8,(ptu32_t)"7",NULL);
 
-    key_hwnd[9]=Widget_CreateButton("8",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+gs_KeyWidth,
+    key_hwnd[9]=Widget_CreateButton("8",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+gs_KeyWidth,
                  HighStart+2*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_9,(ptu32_t)"8",NULL);
 
-    key_hwnd[10]=Widget_CreateButton("9",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+2*gs_KeyWidth,
+    key_hwnd[10]=Widget_CreateButton("9",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+2*gs_KeyWidth,
                  HighStart+2*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_10,(ptu32_t)"9",NULL);
 
-    key_hwnd[11]=Widget_CreateButton("↑",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+3*gs_KeyWidth,
+    key_hwnd[11]=Widget_CreateButton("↑",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+3*gs_KeyWidth,
                  HighStart+2*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_11,(ptu32_t)"↑",NULL);
 
 
 
-    key_hwnd[12]=Widget_CreateButton("0",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart,
+    key_hwnd[12]=Widget_CreateButton("0",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart,
                      HighStart+3*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_12,(ptu32_t)"0",NULL);
 
-    key_hwnd[13]=Widget_CreateButton(".",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+gs_KeyWidth,
+    key_hwnd[13]=Widget_CreateButton(".",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+gs_KeyWidth,
                  HighStart+3*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_13,(ptu32_t)".",NULL);
 
-    key_hwnd[14]=Widget_CreateButton("R",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+2*gs_KeyWidth,
+    key_hwnd[14]=Widget_CreateButton("R",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+2*gs_KeyWidth,
                  HighStart+3*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_14,(ptu32_t)"R",NULL);
 
-    key_hwnd[15]=Widget_CreateButton("↓",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+3*gs_KeyWidth,
+    key_hwnd[15]=Widget_CreateButton("↓",BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE | WS_UNFILL,LeftStart+3*gs_KeyWidth,
                  HighStart+3*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_15,(ptu32_t)"↓",NULL);
 
     if(key_hwnd[15]==NULL)
@@ -538,8 +538,9 @@ HWND Widget_CreateVirKeyBoard(const char *Text,u32 Style,
     HWND pGddWin;
     s_gVirKeyBoardMsgLink.MsgNum = sizeof(s_gVirKeyBoardMsgProcTable) / sizeof(struct MsgProcTable);
     s_gVirKeyBoardMsgLink.myTable = (struct MsgProcTable *)&s_gVirKeyBoardMsgProcTable;
-    pGddWin=GDD_CreateWindow(Text,WS_CHILD | WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
-                            CN_WINBUF_PARENT,pdata,&s_gVirKeyBoardMsgLink);
+    pGddWin=GDD_CreateWindow(Text, WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
+                            CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
+                            &s_gVirKeyBoardMsgLink);
     if(UserMsgTableLink != NULL)
         GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;

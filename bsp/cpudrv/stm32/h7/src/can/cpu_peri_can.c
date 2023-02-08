@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -1458,11 +1458,13 @@ ptu32_t __CAN_SndTask(void)
       uint8_t buf[14];
       while(1)
       {
-         MsgQ_Receive(gs_ptCanSndMsgQ, buf, CN_CAN_MSGQ_LEN, CN_TIMEOUT_FOREVER);
-         byCanNo=buf[0];
-         if(byCanNo<CN_CAN_NUM)
+         if(MsgQ_Receive(gs_ptCanSndMsgQ, buf, CN_CAN_MSGQ_LEN, CN_TIMEOUT_FOREVER))
          {
-              __CAN_HardTxOneFrame(byCanNo,(uint8_t *)&buf[1]);
+             byCanNo=buf[0];
+             if(byCanNo<CN_CAN_NUM)
+             {
+                  __CAN_HardTxOneFrame(byCanNo,(uint8_t *)&buf[1]);
+             }
          }
       }
 }
@@ -1491,7 +1493,7 @@ bool_t CAN_Main(uint8_t baudrate)
         ret=CAN_Hard_Init(i,baudrate,&gs_ptagCanFilterPara[i]);
         if(!ret)
         {
-            error_printf("bus", "can bus controller initialization failed.");
+            error_printf("bus", "can bus controller initialization failed.\r\n");
             return false;
         }
     }
@@ -1507,7 +1509,7 @@ bool_t CAN_Main(uint8_t baudrate)
     else
     {
         DJY_EvttUnregist(evtt_id);
-        error_printf("bus", "can bus's monitor event pop failed.");
+        error_printf("bus", "can bus's monitor event pop failed.\r\n");
     }
     evtt_id = DJY_EvttRegist(EN_CORRELATIVE,100,0,0,__CAN_SndTask,
               CAN_SndStack,sizeof(CAN_SndStack),"CAN Snd Task");
@@ -1518,9 +1520,9 @@ bool_t CAN_Main(uint8_t baudrate)
     else
     {
         DJY_EvttUnregist(evtt_id);
-        error_printf("bus", "can bus's monitor event pop failed.");
+        error_printf("bus", "can bus's monitor event pop failed.\r\n");
     }
-    info_printf("bus", "can bus installed.");
+    info_printf("bus", "can bus installed.\r\n");
     return true;
 }
 ADD_TO_ROUTINE_SHELL(canstat,canstat,"CAN通信统计    COMMAND:canstat+enter");

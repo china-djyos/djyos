@@ -114,7 +114,8 @@ static bool_t Ips6404l_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen,u32 RecvOff)
 bool_t Ips6404l_Write(u32 WriteAddr, u8* pBuffer, u32 len)
 {
     u8 *sndbuf = NULL;
-    Lock_MutexPend(ips6404l_lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(ips6404l_lock,CN_TIMEOUT_FOREVER))
+        return false;
 
     sndbuf = malloc(4 + len);
     if(sndbuf)
@@ -161,7 +162,8 @@ bool_t Ips6404l_Write(u32 WriteAddr, u8* pBuffer, u32 len)
 bool_t Ips6404l_Read(u32 ReadAddr, u8* pBuffer, u32 len)
 {
     u8 sndbuf[4];
-    Lock_MutexPend(ips6404l_lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(ips6404l_lock,CN_TIMEOUT_FOREVER))
+        return false;
 
     sndbuf[0] = Ips6404l_ReadData;
     sndbuf[3] = ReadAddr & 0xff;

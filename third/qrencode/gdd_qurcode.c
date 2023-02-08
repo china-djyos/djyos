@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -223,7 +223,7 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     str=GDD_GetWindowText(hwnd);
 /* 89x89位宽的二维码参数为
  * 版本号:18
- * 容错等级  (ECC)  数字  (容量)     字母                                汉字          二进制代码
+ * 容错等级(ECC) 数字(容量)  字母        汉字   二进制代码
  * L            1,725       1,046       442    586
  * M            1,346       816         345    450
  * Q            948         574         243    322
@@ -246,7 +246,7 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     bitmap.ExColor = CN_COLOR_WHITE;
     bitmap.height=(s32)(qrcode->width)*2;
     bitmap.width=(s32)(qrcode->width)*2;
-    GDD_DrawBitmap(hdc,rc0.left,rc0.top,&bitmap,CN_SYS_PF_GRAY1,RopCode);
+    GDD_DrawBitmap(hdc, rc0.left,rc0.top,&bitmap,CN_SYS_PF_GRAY1,RopCode);
     GDD_EndPaint(hwnd,hdc);
     QRcode_free(qrcode);
     free(Data);
@@ -273,8 +273,9 @@ HWND CreateQrcode(  const char *Text,u32 Style,
     HWND pGddWin;
     s_gQrcodeMsgLink.MsgNum = sizeof(s_gQrcodeMsgProcTable) / sizeof(struct MsgProcTable);
     s_gQrcodeMsgLink.myTable = (struct MsgProcTable *)&s_gQrcodeMsgProcTable;
-    pGddWin=GDD_CreateWindow(Text,WS_CHILD |Style,x,y,w,h,hParent,WinId,
-                              CN_WINBUF_PARENT,pdata,&s_gQrcodeMsgLink);
+    pGddWin=GDD_CreateWindow(Text,Style,x,y,w,h,hParent,WinId,
+                              CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
+                              &s_gQrcodeMsgLink);
     if(UserMsgTableLink != NULL)
           GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;

@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -91,6 +91,7 @@ typedef struct RectBitmap    BITMAP;
 
 #pragma pack(1)
 
+//注：biHeight>0表示倒向位图，即原点在左下角，否则为正向位图，即原点在左上角。
 typedef struct
 {
     u16 bfType;      /* 文件类型,   必须为   "BM "   (0x4D42)   */
@@ -101,9 +102,9 @@ typedef struct
 
     u32 biSize;       /* size   of   BITMAPINFOHEADER   */
     u32 biWidth;      /* 位图宽度(像素)   */
-    u32 biHeight;     /* 位图高度(像素)   */
+    s32 biHeight;     /* 位图高度(像素)，若为负数，则是正向位图   */
     u16 biPlanes;     /* 目标设备的位平面数,   必须置为1   */
-    u16 biBitCount;   /* 每个像素的位数,   1,4,8或24   */
+    u16 biBitCount;   /* 每个像素的位数,   1,4,8,16,24,32   */
     u32 biCompress;   /* 位图阵列的压缩方法,0=不压缩   */
     u32 biSizeImage;  /* 图像大小(字节)   */
     u32 biXPelsPerMeter;  /* 目标设备水平每米像素个数   */
@@ -116,14 +117,6 @@ typedef struct
     u32 biAlphaMask;
 
 }tagBMP_HEADER;
-
-typedef struct
-{
-    u16 Format;      /* 颜色格式  */
-    u16 Width;       /* 图像宽度(像素值) */
-    u16 Height;      /* 图像高度(像素值) */
-    u16 LineBytes;   /* 每行图像数据的字节数  */
-}tagBMP_INFO;
 
 #pragma pack()
 
@@ -165,39 +158,19 @@ struct MsgTableLink
 
 
 /*============================================================================*/
-//// GDD_DrawText flag
+// GDD_DrawText flag
 #define DT_VCENTER      (0<<0)  //正文垂直居中.
 #define DT_TOP          (1<<0)  //正文顶端对齐.
 #define DT_BOTTOM       (2<<0)  //正文底部对齐.
-#define DT_ALIGN_V_MASK (3<<0)
+#define DT_ALIGN_V_MASK (3<<0)  //水平对齐控制位msk
 
 #define DT_CENTER       (0<<2)  //使正文在矩形中水平居中.
 #define DT_LEFT         (1<<2)  //正文左对齐.
 #define DT_RIGHT        (2<<2)  //正文右对齐.
-#define DT_ALIGN_H_MASK (3<<2)
-
-
-
-
+#define DT_ALIGN_H_MASK (3<<2)  //垂直对齐控制位msk
 
 #define DT_BORDER       (1<<4)  //绘制边框(使用DrawColor)
 #define DT_BKGND        (1<<5)  //填充背景(使用FillColor)
-
-//// 渐变填充模式，参见gkernel.h
-
-
-
-
-//// 鼠标按键状态
-#define MK_RBUTTON  (1<<0)
-#define MK_MBUTTON  (1<<1)
-#define MK_LBUTTON  (1<<2)
-
-//// 键盘事件类型
-typedef enum{
-    KEY_EVENT_DOWN =1,  //按键按下.
-    KEY_EVENT_UP   =2,  //按键弹起.
-}EN_GDD_KEY_EVENT;
 
 //消息码定义方法：
 //bit0~23：用于定义消息，其中0不使用，1~65535由系统和控件使用，65536以上由用户
@@ -221,9 +194,9 @@ typedef enum{
 #define MSG_NCPAINT             0x0003  //窗口非客户区绘制; Param1:用户定义; Param2:用户定义
 #define MSG_PAINT               0x0004  //窗口客户区绘制; Param1:用户定义; Param2:用户定义
 #define MSG_TIMER               0x0005  //定时器消息: Param1:定时Id; Param2:定时器对象.
-#define MSG_SETTEXT             0x0006  //设置窗口文字
-#define MSG_GETTEXT             0x0007  //获得窗口文字
-#define MSG_GETTEXTFLENGTH      0x0008  //获得窗口文字长度
+#define MSG_SETTEXT             0x0006  //设置窗口标题
+#define MSG_GETTEXT             0x0007  //获得窗口标题
+#define MSG_GETTEXTLEN          0x0008  //获得窗口标题长度
 #define MSG_SYNC_DISPLAY        0x0009  //同步窗口，把显示数据刷新到显示器上。
 //close消息的hwnd和param2比较特殊：MSG_CLOSE自带继承属性，那么调用用户的消息处理
 //函数时，窗口本身已经被销毁，消息的hwnd成员将被清除
@@ -241,27 +214,29 @@ typedef enum{
 #define MSG_RBUTTON_UP          0x0103  //鼠标右键弹起; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_MBUTTON_DOWN        0x0104  //鼠标中键按下; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_MBUTTON_UP          0x0105  //鼠标中键弹起; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
-#define MSG_MOUSE_MOVE          0x0106  //鼠标移动; Param1:鼠标按键状态; Param2:x坐标(L16),y坐标(H16).
+#define MSG_MOUSE_MOVE          0x0106  //鼠标移动; Param1：X方向1mS滑动的um数(L16)，Y方向1mS滑动的um数(H16),
+                                        //               param2：x坐标(L16),y坐标(H16)
 #define MSG_NCLBUTTON_DOWN      0x0107  //非客户区鼠标左键按下; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_NCLBUTTON_UP        0x0108  //非客户区鼠标左键弹起; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_NCRBUTTON_DOWN      0x0109  //非客户区鼠标右键按下; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_NCRBUTTON_UP        0x010A  //非客户区鼠标右键弹起; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_NCMBUTTON_DOWN      0x010B  //非客户区鼠标中键按下; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_NCMBUTTON_UP        0x010C  //非客户区鼠标中键弹起; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
-#define MSG_NCMOUSE_MOVE        0x010D  //非客户区鼠标移动; Param1:鼠标按键状态; Param2:x坐标(L16),y坐标(H16).
+#define MSG_NCMOUSE_MOVE        0x010D  //非客户区鼠标移动; Param1：X方向1mS滑动的um数(L16)，Y方向1mS滑动的um数(H16),
+                                        //               param2：x坐标(L16),y坐标(H16)
 #define MSG_SETATTR             0x010E  //窗口属性设置；
 
 #define MSG_KEY_DOWN            0x0120  //键盘按下;Param1: 按键值; Param2:事件产生的时间(毫秒单位).
 #define MSG_KEY_UP              0x0121  //键盘弹起;Param1: 按键值; Param2:事件产生的时间(毫秒单位).
 #define MSG_KEY_PRESS           0x0122
 
-#define MSG_TOUCH_DOWN          0x0130   //触摸屏触摸下触摸点，param1：忽略；param2：x坐标(L16),y坐标(H16)
-#define MSG_TOUCH_UP            0x0131   //触摸屏离开触摸点
-#define MSG_TOUCH_MOVE          0x0132   //手指在屏上滑动，Param1：X方向1mS滑动的微米数(L16)，Y方向1mS滑动的mm数(H16)
-                                         //               param2：x坐标(L16),y坐标(H16)
-#define MSG_NCTOUCH_DOWN        0x0133   //触摸屏触摸下触摸点，param1：忽略；param2：x坐标(L16),y坐标(H16)
+#define MSG_TOUCH_DOWN          0x0130  //窗口客户区域接触触摸屏，param1：忽略；param2：x坐标(L16),y坐标(H16)
+#define MSG_TOUCH_UP            0x0131  //窗口客户区域离开触摸屏
+#define MSG_TOUCH_MOVE          0x0132  //手指在屏上窗口客户区域滑动，Param1：X方向1mS滑动的um数(L16)，Y方向1mS滑动的um数(H16),
+                                        //               param2：x坐标(L16),y坐标(H16)
+#define MSG_NCTOUCH_DOWN        0x0133  //触摸屏触摸下触摸点，param1：忽略；param2：x坐标(L16),y坐标(H16)
 #define MSG_NCTOUCH_UP          0x0134
-#define MSG_NCTOUCH_MOVE        0x0135   //同 MSG_TOUCH_MOVE 消息
+#define MSG_NCTOUCH_MOVE        0x0135  //同 MSG_TOUCH_MOVE 消息
 
 #define MSG_TIMER_START         0x0140  //定时器消息: Param1:定时Id; Param2:定时器对象.
 #define MSG_TIMER_STOP          0x0141  //定时器消息: Param1:定时Id; Param2:定时器对象.
@@ -309,7 +284,7 @@ typedef enum{
 /*============================================================================*/
 // 窗口公共风格，与控件风格以及控件类型组合成32位字，其中窗口公共风格使用高16位
 // 控件风格使用剩下16位。
-#define WS_CHILD        (1<<16) //子窗口标志,控件窗口必须指定该标志.
+//#define WS_WIDGET      (1<<16) //被删除，窗口风格不再需要此标志，使用者直接删掉
 #define WS_VISIBLE      (1<<17) //窗口是否可见
 #define WS_DISABLE      (1<<18) //窗口是否为禁止状态,指定该标志,窗口将不响应输入消息
 #define WS_BORDER       (1<<19) //窗口是否有边框
@@ -377,11 +352,9 @@ void    GDD_DrawBezier3(HDC hdc,const POINT *pt,s32 cnt);
 
 void    GDD_DrawPolyLine(HDC hdc,const POINT *pt,s32 count);
 void    GDD_DrawGroupBox(HDC hdc,const RECT *prc,const char *Text);
-bool_t  GDD_DrawBitmap(HDC hdc,s32 x,s32 y,struct RectBitmap *bitmap,u32 key_color,
-                        struct RopGroup RopCode);
+bool_t  GDD_DrawBitmap(HDC hdc,s32 x,s32 y,struct RectBitmap *bitmap,u32 HyalineColor);
 
-bool_t  GDD_GetBitmapInfo(tagBMP_INFO *bm_info,tagBMP_HEADER *pBmpHdr);
-bool_t  GDD_DrawBMP(HDC hdc,s32 x,s32 y,const void *bmp_data);
+bool_t GDD_DrawWinBMPArray(HDC hdc,s32 x,s32 y,const void *bmp_data,u32 *palette,u32 HyalineColor);
 
 //消息相关函数
 u32     GDD_DispatchMessage(struct WindowMsg *pMsg);
@@ -390,7 +363,7 @@ bool_t  GDD_PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
 bool_t  GDD_GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg);
 
 
-HWND    GDD_GetDesktopWindow(void);
+HWND    GDD_GetDesktopWindow(char *display);
 u32     GDD_GetWindowStyle(HWND hwnd);
 ptu32_t   GDD_GetWindowPrivateData(HWND hwnd);
 void    GDD_SetWindowPrivateData(HWND hwnd,ptu32_t data);
@@ -398,7 +371,7 @@ HWND    GDD_InitGddDesktop(struct GkWinObj *desktop);
 
 //DC操作函数
 HDC     GDD_GetWindowDC(HWND hwnd);
-HDC     GDD_GetDC(HWND hwnd);
+HDC     GDD_GetClientDC(HWND hwnd);
 bool_t    GDD_ReleaseDC(HDC hdc);
 HDC     GDD_BeginPaint(HWND hwnd);
 bool_t    GDD_EndPaint(HWND hwnd,HDC hdc);
@@ -407,8 +380,9 @@ bool_t    GDD_EndPaint(HWND hwnd,HDC hdc);
 void GDD_AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink);
 HWND    GDD_CreateWindow(const char *Text,u32 Style,
                      s32 x,s32 y,s32 w,s32 h,
-                     HWND hParent,u32 WinId,
+                     HWND hParent,u16 WinId,
                      u32 BufProperty, ptu32_t pdata,
+                     u16 PixelFormat,u32 BaseColor,
                      struct MsgTableLink *pUserMsgTableLink);
 void    GDD_DestroyWindow(HWND hwnd);
 void    GDD_DestroyAllChild(HWND hwnd);
@@ -461,10 +435,11 @@ bool_t    GDD_WindowToScreen(HWND hwnd,POINT *pt,s32 count);
 void    ModuleInstall_GDD(struct GkWinObj *desktop);
 
 u32     GDD_AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha);
-void    GDD_UpdateDisplay(HWND hwnd);
+void    GDD_SyncShow(HWND hwnd);//函数原名 ： GDD_UpdateDisplay
 void GDD_WaitGuiAppExit(char *AppName);
 HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
-                      u32 MemSize, u32 WinBuf,u32 Style);
+                      s32 x,s32 y,s32 w,s32 h,
+                      u32 MemSize, u32 WinBuf,u32 Style,u16 PixelFormat,u32 BaseColor);
 
 /*===========================================================================*/
 #include <gui\gdd_timer.h>

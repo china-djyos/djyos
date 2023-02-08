@@ -8,7 +8,7 @@
 			"chips":[],
 			"peripherals":["cpu_peri_dma",
 			"cpu_peri_uart"],
-			"mian_freq":0,
+			"main_freq":0,
 			"memories":{
 				
 			}

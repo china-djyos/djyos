@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -109,16 +109,16 @@ s32 iodevread(s32 dev,u8 *buf,u32 buflen,u32 timeout)
     {
         time_t printtime;
         printtime = time(NULL);
-        debug_printf("iodev","[RCV:%s:%d bytes]",ctime(&printtime),len);
+        debug_printf("iodev","[RCV:%s:%d bytes]\r\n",ctime(&printtime),len);
         for(s32 i = 0;i < len;i++)
         {
             if(gIoDebug.idebug == 1)
             {
-                debug_printf("iodev","%c",buf[i]);
+                debug_printf("iodev","%c\r\n",buf[i]);
             }
             else if(gIoDebug.idebug ==2)
             {
-                debug_printf("iodev","%02x ",buf[i]);
+                debug_printf("iodev","%02x\r\n ",buf[i]);
             }
         }
         printf("\n\r");
@@ -158,16 +158,16 @@ s32 iodevwrite(s32 dev,u8 *buf,u32 len,u32 timeout)
     {
         time_t printtime;
         printtime = time(NULL);
-        debug_printf("iodev","[SND:%s:%d bytes]",ctime(&printtime),len);
+        debug_printf("iodev","[SND:%s:%d bytes]\r\n",ctime(&printtime),len);
         for(i = 0;i < len;i++)
         {
             if(gIoDebug.odebug == 1)
             {
-                debug_printf("iodev","%c",buf[i]);
+                debug_printf("iodev","%c\r\n",buf[i]);
             }
             else if(gIoDebug.odebug ==2)
             {
-                debug_printf("iodev","%02x ",buf[i]);
+                debug_printf("iodev","%02x\r\n ",buf[i]);
             }
         }
         printf("\n\r");

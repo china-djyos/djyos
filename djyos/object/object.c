@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -182,8 +182,9 @@ inline static s32 __OBJ_DefaultOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
     {
         case CN_OBJ_CMD_OPEN:
         {
-            struct objhandle *hdl;
-            hdl = __OBJ_Open((struct Object *)opsTarget,
+            struct objhandle *hdl = NULL;
+            if(OpsArgs3 != 0)
+                hdl = __OBJ_Open((struct Object *)opsTarget,
                                 (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
@@ -292,7 +293,7 @@ static s32 __OBJ_Close(struct objhandle *hdl)
 // ============================================================================
 // 功能：锁定对象系统；
 // 参数：
-// 返回：成功（0）；失败（-1）；
+// 返回：成功true；失败false；
 // 备注：
 // ============================================================================
 bool_t OBJ_Lock(void)
@@ -560,27 +561,28 @@ s32 OBJ_GetLevel(struct Object *ob)
     if(pl_node==NULL)
         return (-1);
 
-    OBJ_Lock();
-
-    while(pl_node->parent!=s_ptRootObject)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        if(NULL!=pl_node->parent)
+        while(pl_node->parent!=s_ptRootObject)
         {
-            pl_node = pl_node->parent;
-        }
-        else
-        {
-            break; // 如果没有父节点，也认为是到头了；
+            if(NULL!=pl_node->parent)
+            {
+                pl_node = pl_node->parent;
+            }
+            else
+            {
+                break; // 如果没有父节点，也认为是到头了；
+            }
+
+            if(level++>256) // 防止数据被破坏，死锁；
+            {
+                Lock_MutexPost(&s_tObjectMutex);
+                return (-1);
+            }
         }
 
-        if(level++>256) // 防止数据被破坏，死锁；
-        {
-            OBJ_Unlock();
-            return (-1);
-        }
+        Lock_MutexPost(&s_tObjectMutex);
     }
-
-    OBJ_Unlock();
     return (level);
 }
 
@@ -592,7 +594,7 @@ s32 OBJ_GetLevel(struct Object *ob)
 // ============================================================================
 u32 OBJ_GetOrder(struct Object *ob)
 {
-    u32 order;
+    u32 order = -1;
     struct Object *tmp;
 
     if(!ob)
@@ -601,17 +603,18 @@ u32 OBJ_GetOrder(struct Object *ob)
     if(ob==s_ptRootObject)
         return (0);
 
-    OBJ_Lock();
-
-    order = 0;
-    tmp = ob->parent->child;
-    while(tmp!=ob)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        order +=1;
-        tmp = tmp->next;
-    }
+        order = 0;
+        tmp = ob->parent->child;
+        while(tmp!=ob)
+        {
+            order +=1;
+            tmp = tmp->next;
+        }
 
-    OBJ_Unlock();
+        Lock_MutexPost(&s_tObjectMutex);
+    }
     return (order);
 }
 
@@ -753,12 +756,12 @@ s32 OBJ_IsOnDuty(struct Object *ob)
 //
 //    if(ob->rights.lock) // 已经上锁
 //    {
-//        OBJ_Unlock();
+//        Lock_MutexPost(&s_tObjectMutex);
 //        return (-1);
 //    }
 //
 //    ob->rights.lock = 1;
-//    OBJ_Unlock();
+//    Lock_MutexPost(&s_tObjectMutex);
 //    return (0);
 //}
 //
@@ -774,7 +777,7 @@ s32 OBJ_IsOnDuty(struct Object *ob)
 //        return (-1);
 //
 //    ob->rights.lock = 0;
-//    OBJ_Unlock();
+//    Lock_MutexPost(&s_tObjectMutex);
 //    return (0);
 //}
 
@@ -839,7 +842,7 @@ s32 OBJ_IsOnDuty(struct Object *ob)
 //            Obj->inuse++;
 //        result = Obj->inuse;
 //    }
-//    OBJ_Unlock();
+//    Lock_MutexPost(&s_tObjectMutex);
 //    return result;
 //}
 
@@ -864,7 +867,7 @@ s32 OBJ_IsOnDuty(struct Object *ob)
 //            temp = temp->parent;
 //        }
 //    }
-//    OBJ_Unlock();
+//    Lock_MutexPost(&s_tObjectMutex);
 //    return;
 //}
 
@@ -907,7 +910,7 @@ void OBJ_DutyUp(struct Object *Obj)
 //            temp = temp->parent;
 //        }
 //    }
-//    OBJ_Unlock();
+//    Lock_MutexPost(&s_tObjectMutex);
 //    return ;
 //}
 
@@ -930,7 +933,7 @@ void OBJ_DutyUp(struct Object *Obj)
 //        result = Obj->inuse;
 //    }
 //
-//    OBJ_Unlock();
+//    Lock_MutexPost(&s_tObjectMutex);
 //    return result;
 //}
 //
@@ -963,30 +966,33 @@ s32 OBJ_Delete(struct Object *Obj)
     if(!Obj)
         return (-1);
 
-    OBJ_Lock();
-
-    if(OBJ_IsOnDuty(Obj))
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        OBJ_Unlock();
-        return (-1); // 正在使用
-    }
+        if(OBJ_IsOnDuty(Obj))
+        {
+            Lock_MutexPost(&s_tObjectMutex);
+            return (-1); // 正在使用
+        }
 
-    if(Obj->next==Obj) // 说明该节点没有兄弟节点.
-    {
-        Obj->parent->child = NULL;
+        if(Obj->next==Obj) // 说明该节点没有兄弟节点.
+        {
+            Obj->parent->child = NULL;
+        }
+        else
+        {
+            if(Obj->parent->child==Obj)
+                Obj->parent->child = Obj->next; // 说明该节点是队列头节点,需要改变队列头节点
+
+            __OBJ_LIST_REMOVE(Obj);
+        }
+        if(Obj->name != __uname_obj)
+           free(Obj->name);
+        __OBJ_FreeObj(Obj);
+        Lock_MutexPost(&s_tObjectMutex);
+        return (0);
     }
     else
-    {
-        if(Obj->parent->child==Obj)
-            Obj->parent->child = Obj->next; // 说明该节点是队列头节点,需要改变队列头节点
-
-        __OBJ_LIST_REMOVE(Obj);
-    }
-    if(Obj->name != __uname_obj)
-       free(Obj->name);
-    __OBJ_FreeObj(Obj);
-    OBJ_Unlock();
-    return (0);
+        return (-1);
 }
 
 // ============================================================================
@@ -997,29 +1003,30 @@ s32 OBJ_Delete(struct Object *Obj)
 // ============================================================================
 struct Object *OBJ_Detach(struct Object *branch)
 {
-    struct Object *ob;
+    struct Object *ob=NULL;
 
     if(!branch)
         return (NULL);
 
-    OBJ_Lock();
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
+    {
+        if(branch->next==branch)   //说明该节点没有兄弟节点.
+        {
+            branch->parent->child = NULL;
+        }
+        else
+        {
+            if(branch->parent->child == branch)
+            {   //说明该节点是队列头节点,需要改变队列头节点
+                branch->parent->child = branch->next;
+            }
 
-    if(branch->next==branch)   //说明该节点没有兄弟节点.
-    {
-        branch->parent->child = NULL;
-    }
-    else
-    {
-        if(branch->parent->child == branch)
-        {   //说明该节点是队列头节点,需要改变队列头节点
-            branch->parent->child = branch->next;
+            __OBJ_LIST_REMOVE(branch);
         }
 
-        __OBJ_LIST_REMOVE(branch);
+        ob = branch;
+        Lock_MutexPost(&s_tObjectMutex);
     }
-
-    ob = branch;
-    OBJ_Unlock();
     return (ob);
 }
 
@@ -1039,7 +1046,7 @@ inline s32 OBJ_CheckName(const char *name)
 
 //----沿路径匹配对象名---------------------------------------------------------
 //功能: 与OBJ_Search类似,不同的是，找到第一个匹配不上的就返回。例如，对象树中有
-//      "obj1\obj2\"，path="obj1\obj2\obj3\obj4"，将返回obj2的指针。
+//      "obj1\obj2\"，match="obj1\obj2\obj3\obj4"，将返回obj2的指针。
 // 参数：match -- 需匹配的路径；
 //      left -- 完全匹配，为NULL；不完全匹配，则返回不匹配部分（保证不以'/'开头）；
 // 返回：匹配路径所能检索到的最终对象。
@@ -1057,113 +1064,114 @@ struct Object *OBJ_MatchPath(const char *match, char **left)
         return NULL;
     if('\0' == *path)
         return NULL;
-    OBJ_Lock();
-
-    if(('/' == *path) || ('\\' == *path))
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        Base = OBJ_GetRoot();          // 绝对路径
-        result = Base;              //根目录是第一个匹配项
-    }
-    else
-    {
-        Base = OBJ_GetCurrent();   // 其他都是相对路径
-        result = Base;              //根目录是第一个匹配项
-    }
-    current = Base;
-    *left = (char*)match;
-    while(Base)
-    {
-        while(('/' == *path) || ('\\' == *path))
-            path++; // 过滤多余的'/'
-        if('\0' == *path)
+        if(('/' == *path) || ('\\' == *path))
         {
-            break; // 遍历路径结束
+            Base = OBJ_GetRoot();          // 绝对路径
+            result = Base;              //根目录是第一个匹配项
         }
-
-        if('.' == path[0])
+        else
         {
-            if('.' == path[1])  //看是否要返回上一级目录
+            Base = OBJ_GetCurrent();   // 其他都是相对路径
+            result = Base;              //根目录是第一个匹配项
+        }
+        current = Base;
+        *left = (char*)match;
+        while(Base)
+        {
+            while(('/' == *path) || ('\\' == *path))
+                path++; // 过滤多余的'/'
+            if('\0' == *path)
             {
-                if(Base == OBJ_GetRoot())
+                break; // 遍历路径结束
+            }
+
+            if('.' == path[0])
+            {
+                if('.' == path[1])  //看是否要返回上一级目录
                 {
-                    result = NULL;
-                    *left = path;
-                    return NULL;
+                    if(Base == OBJ_GetRoot())
+                    {
+                        result = NULL;
+                        *left = path;
+                        return NULL;
+                    }
+                    Base = OBJ_GetParent(Base);        // ".."字符，表示上一级目录
+                    result = Base;
+                    current = Base;
+                    if(('\\' == path[2])||('/' == path[2]))
+                    {
+                        path++;
+                        continue;
+                    }
+                    else if('\0' != path[2])        //完成path路径匹配
+                    {
+                        *left = NULL;
+                        return current;
+                    }
+                    else                            //".."后不是合法的分隔符，非法
+                    {
+    //                  result = current;
+                        *left = NULL;
+                        return NULL;
+                    }
                 }
-                Base = OBJ_GetParent(Base);        // ".."字符，表示上一级目录
-                result = Base;
-                current = Base;
-                if(('\\' == path[2])||('/' == path[2]))
+                else if(('\\' == path[1])||('/' == path[1]))
                 {
                     path++;
                     continue;
                 }
-                else if('\0' != path[2])        //完成path路径匹配
+                else if('\0' != path[1])        //完成path路径匹配
                 {
                     *left = NULL;
-                    return current;
+                    return result;
                 }
-                else                            //".."后不是合法的分隔符，非法
+                else                            //"."后不是合法的分隔符，非法
                 {
-//                  result = current;
                     *left = NULL;
                     return NULL;
                 }
             }
-            else if(('\\' == path[1])||('/' == path[1]))
-            {
-                path++;
-                continue;
-            }
-            else if('\0' != path[1])        //完成path路径匹配
-            {
-                *left = NULL;
-                return result;
-            }
-            else                            //"."后不是合法的分隔符，非法
-            {
-                *left = NULL;
-                return NULL;
-            }
-        }
 
-        while(current)
-        {
-            current = OBJ_ForeachChild(Base, current);
-            if(current == NULL)         //匹配结束
+            while(current)
             {
-                Base = NULL;
-                break;
-            }
-            ResultName = (char*)OBJ_GetName(current);
-            i = strlen(ResultName);
-            if(memcmp(ResultName, path, i) == 0)
-            {
-                if('\0' == path[i])     //匹配结束，current是匹配项
+                current = OBJ_ForeachChild(Base, current);
+                if(current == NULL)         //匹配结束
                 {
-                    result = current;
                     Base = NULL;
-                    *left = NULL;
                     break;
                 }
-                else if(('\\' == path[i]) || ('/' == path[i]))
+                ResultName = (char*)OBJ_GetName(current);
+                i = strlen(ResultName);
+                if(memcmp(ResultName, path, i) == 0)
                 {
-                    result = current;
-                    path += i;
-                    *left = path+1;
-                    Base = current;     // 匹配当前节点，继续匹配子节点
-                    break;
-                }
-                else    // 当前对象不匹配，继续遍历兄弟节点
-                {
-//                  break;
+                    if('\0' == path[i])     //匹配结束，current是匹配项
+                    {
+                        result = current;
+                        Base = NULL;
+                        *left = NULL;
+                        break;
+                    }
+                    else if(('\\' == path[i]) || ('/' == path[i]))
+                    {
+                        result = current;
+                        path += i;
+                        *left = path+1;
+                        Base = current;     // 匹配当前节点，继续匹配子节点
+                        break;
+                    }
+                    else    // 当前对象不匹配，继续遍历兄弟节点
+                    {
+    //                  break;
+                    }
                 }
             }
+
         }
 
+        Lock_MutexPost(&s_tObjectMutex);
     }
-
-    OBJ_Unlock();
     return (result);
 }
 
@@ -1180,58 +1188,59 @@ struct Object *OBJ_BuildTempPath(struct Object *begin, fnObjOps ObjOps,
                             ptu32_t Private, char *path)
 {
     char *segst, *name=NULL;
-    struct Object *current, *find;
+    struct Object *current=NULL, *find;
     u16 i, seglen;
 
     if(!path)
         return (begin);
 
-    OBJ_Lock();
-
-    current = begin;
-    while('\0' != *path)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        while('/' == *path)
-            path++; // 过滤多余的'/'
-
-        segst = path;
-        while(('/' != *path) && ('\\' != *path) && ('\0' != *path))
-            path++; // 查找直至'/'或'\0'
-
-        seglen = path - segst;
-        name = malloc(seglen + 1);
-        if(!name)
+        current = begin;
+        while('\0' != *path)
         {
-            printf("\r\n: dbug : object : memory out(%s). ", __FUNCTION__);
-            OBJ_Unlock();
-            return (NULL);
-        }
+            while('/' == *path)
+                path++; // 过滤多余的'/'
 
-        for(i = 0 ; i < seglen; i++)
-            name[i] = segst[i];
+            segst = path;
+            while(('/' != *path) && ('\\' != *path) && ('\0' != *path))
+                path++; // 查找直至'/'或'\0'
 
-        name[seglen] = '\0';
-        find = OBJ_SearchChild(current, name);
-        if(find)
-        {
-            current = find; // child已经存在；
-        }
-        else
-        {
-            // 这里的ops和represent是一个继承关系，即继承父节点的
-            // current = OBJ_AddChild(current, current->ObjOps, current->represent, (const char*)name);
-            current = OBJ_NewChild(current, ObjOps, Private, (const char*)name);
-            if(!current)
+            seglen = path - segst;
+            name = malloc(seglen + 1);
+            if(!name)
             {
-                printf("\r\n: dbug : object :  memory out(%s). ", __FUNCTION__);
-                OBJ_Unlock();
+                printf("\r\n: dbug : object : memory out(%s). ", __FUNCTION__);
+                Lock_MutexPost(&s_tObjectMutex);
                 return (NULL);
             }
-            OBJ_SetToTemp(current);
+
+            for(i = 0 ; i < seglen; i++)
+                name[i] = segst[i];
+
+            name[seglen] = '\0';
+            find = OBJ_SearchChild(current, name);
+            if(find)
+            {
+                current = find; // child已经存在；
+            }
+            else
+            {
+                // 这里的ops和represent是一个继承关系，即继承父节点的
+                // current = OBJ_AddChild(current, current->ObjOps, current->represent, (const char*)name);
+                current = OBJ_NewChild(current, ObjOps, Private, (const char*)name);
+                if(!current)
+                {
+                    printf("\r\n: dbug : object :  memory out(%s). ", __FUNCTION__);
+                    Lock_MutexPost(&s_tObjectMutex);
+                    return (NULL);
+                }
+                OBJ_SetToTemp(current);
+            }
         }
+        free(name);
+        Lock_MutexPost(&s_tObjectMutex);
     }
-    free(name);
-    OBJ_Unlock();
     return (current);
 }
 
@@ -1246,26 +1255,27 @@ s32 OBJ_ReleaseTempPath(struct Object *start)
     s32 dels = 0;
     struct Object *parent, *current = start;
 
-    OBJ_Lock();
-
-    while(1)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        if((current->BitFlag.temporary == 1)
-                && (current->BitFlag.inuse == 0)) // 无人使用,且是临时对象
+        while(1)
         {
-            parent = OBJ_GetParent(current);
-            OBJ_Delete(current);
-//          __OBJ_FreeObj(current);
-            current = parent;
-            dels++;
+            if((current->BitFlag.temporary == 1)
+                    && (current->BitFlag.inuse == 0)) // 无人使用,且是临时对象
+            {
+                parent = OBJ_GetParent(current);
+                OBJ_Delete(current);
+    //          __OBJ_FreeObj(current);
+                current = parent;
+                dels++;
+            }
+            else
+            {
+                break;
+            }
         }
-        else
-        {
-            break;
-        }
-    }
 
-    OBJ_Unlock();
+        Lock_MutexPost(&s_tObjectMutex);
+    }
     return (dels);
 }
 
@@ -1363,42 +1373,51 @@ struct Object *OBJ_NewPrev(struct Object *loc, fnObjOps ObjOps,
         return (NULL);
     }
 
-    OBJ_Lock();
-    prev->parent = loc->parent;
-    prev->child = NULL;
-    prev->ObjPrivate = represent;
-    prev->BitFlag.temporary = 0;
-    prev->BitFlag.inuse = 0;
-
-
-    if(ObjOps)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        if(-1==(s32)ObjOps)
-            prev->ObjOps = (fnObjOps)__OBJ_DefaultOps;
+        prev->parent = loc->parent;
+        prev->child = NULL;
+        prev->ObjPrivate = represent;
+        prev->BitFlag.temporary = 0;
+        prev->BitFlag.inuse = 0;
+
+
+        if(ObjOps)
+        {
+            if(-1==(s32)ObjOps)
+                prev->ObjOps = (fnObjOps)__OBJ_DefaultOps;
+            else
+                prev->ObjOps = ObjOps;
+        }
         else
-            prev->ObjOps = ObjOps;
+        {
+            if(prev->parent)
+                prev->ObjOps = prev->parent->ObjOps;
+            else
+                prev->ObjOps = (fnObjOps)__OBJ_DefaultOps;
+        }
+
+    //  prev->rights = prev->parent->rights;
+
+        prev->name = cname;
+    //  prev->seton = (struct Object*)-1; // 默认对象之上不允许建立对象集合；
+    //  if(loc->parent)
+    //      prev->set = loc->parent->set;
+    //  else
+    //      prev->set = NULL;
+
+        dListInit(&prev->handles);
+        __OBJ_LIST_INS_BEFORE(loc, prev);
+        Lock_MutexPost(&s_tObjectMutex);
+        return (prev);
     }
     else
     {
-        if(prev->parent)
-            prev->ObjOps = prev->parent->ObjOps;
-        else
-            prev->ObjOps = (fnObjOps)__OBJ_DefaultOps;
+        __OBJ_FreeObj(prev);
+        if(name)
+            free(cname);
+        return (NULL);
     }
-
-//  prev->rights = prev->parent->rights;
-
-    prev->name = cname;
-//  prev->seton = (struct Object*)-1; // 默认对象之上不允许建立对象集合；
-//  if(loc->parent)
-//      prev->set = loc->parent->set;
-//  else
-//      prev->set = NULL;
-
-    dListInit(&prev->handles);
-    __OBJ_LIST_INS_BEFORE(loc, prev);
-    OBJ_Unlock();
-    return (prev);
 }
 
 // ============================================================================
@@ -1449,41 +1468,49 @@ struct Object *OBJ_NewNext(struct Object *loc, fnObjOps ObjOps,
         return (NULL);
     }
 
-    OBJ_Lock();
-
-    next->parent = loc->parent;
-    next->child = NULL;
-    next->ObjPrivate = represent;
-    next->BitFlag.temporary = 0;
-    next->BitFlag.inuse = 0;
-    if(ObjOps)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        if(-1==(s32)ObjOps)
-            next->ObjOps = (fnObjOps)__OBJ_DefaultOps;
+        next->parent = loc->parent;
+        next->child = NULL;
+        next->ObjPrivate = represent;
+        next->BitFlag.temporary = 0;
+        next->BitFlag.inuse = 0;
+        if(ObjOps)
+        {
+            if(-1==(s32)ObjOps)
+                next->ObjOps = (fnObjOps)__OBJ_DefaultOps;
+            else
+                next->ObjOps = ObjOps;
+        }
         else
-            next->ObjOps = ObjOps;
+        {
+            if(next->parent)
+                next->ObjOps = next->parent->ObjOps;
+            else
+                next->ObjOps = (fnObjOps)__OBJ_DefaultOps;
+        }
+
+    //  next->rights = next->parent->rights;
+
+        next->name = (char *)name;
+    //  next->seton = (struct Object*)-1; // 默认对象之上不允许建立对象集合；
+        dListInit(&next->handles);
+    //  if(loc->parent)
+    //      next->set = loc->parent->set;
+    //  else
+    //      next->set = NULL;
+
+        __OBJ_LIST_INS_AFTER(loc, next);
+        Lock_MutexPost(&s_tObjectMutex);
+        return (next);
     }
     else
     {
-        if(next->parent)
-            next->ObjOps = next->parent->ObjOps;
-        else
-            next->ObjOps = (fnObjOps)__OBJ_DefaultOps;
+        __OBJ_FreeObj(next);
+        if(name)
+            free(cname);
+        return (NULL);
     }
-
-//  next->rights = next->parent->rights;
-
-    next->name = (char *)name;
-//  next->seton = (struct Object*)-1; // 默认对象之上不允许建立对象集合；
-    dListInit(&next->handles);
-//  if(loc->parent)
-//      next->set = loc->parent->set;
-//  else
-//      next->set = NULL;
-
-    __OBJ_LIST_INS_AFTER(loc, next);
-    OBJ_Unlock();
-    return (next);
 
 }
 
@@ -1532,44 +1559,52 @@ struct Object *OBJ_NewChild(struct Object *parent, fnObjOps ObjOps,
         return (NULL);
     }
 
-    OBJ_Lock();
-
-    child->parent = parent;
-    child->child = NULL;
-    child->ObjPrivate = ObjPrivate;
-    child->BitFlag.temporary = 0;
-    child->BitFlag.inuse = 0;
-
-    if(ObjOps)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        if(-1==(s32)ObjOps)
-            child->ObjOps = (fnObjOps)__OBJ_DefaultOps;
+        child->parent = parent;
+        child->child = NULL;
+        child->ObjPrivate = ObjPrivate;
+        child->BitFlag.temporary = 0;
+        child->BitFlag.inuse = 0;
+
+        if(ObjOps)
+        {
+            if(-1==(s32)ObjOps)
+                child->ObjOps = (fnObjOps)__OBJ_DefaultOps;
+            else
+                child->ObjOps = ObjOps;
+        }
         else
-            child->ObjOps = ObjOps;
+        {
+            child->ObjOps = parent->ObjOps;
+        }
+
+    //  child->rights = parent->rights;
+
+        child->name = cname;
+    //  child->seton = (struct Object*)-1; // 默认对象之上不允许建立对象集合；
+    //  child->set = parent->set; // 集合逻辑必须继承父；
+        dListInit(&child->handles);
+        if(!parent->child)
+        {
+            parent->child = child;
+            __OBJ_LIST_INIT(child);
+        }
+        else
+        {
+            __OBJ_LIST_INS_BEFORE(parent->child, child);
+        }
+
+        Lock_MutexPost(&s_tObjectMutex);
+        return (child);
     }
     else
     {
-        child->ObjOps = parent->ObjOps;
+        __OBJ_FreeObj(child);
+        if(name)
+            free(cname);
+        return (NULL);
     }
-
-//  child->rights = parent->rights;
-
-    child->name = cname;
-//  child->seton = (struct Object*)-1; // 默认对象之上不允许建立对象集合；
-//  child->set = parent->set; // 集合逻辑必须继承父；
-    dListInit(&child->handles);
-    if(!parent->child)
-    {
-        parent->child = child;
-        __OBJ_LIST_INIT(child);
-    }
-    else
-    {
-        __OBJ_LIST_INS_BEFORE(parent->child, child);
-    }
-
-    OBJ_Unlock();
-    return (child);
 }
 // ============================================================================
 // 功能：新建一个对象，其处于loc对象所处队列的首；
@@ -1618,56 +1653,64 @@ struct Object *OBJ_NewHead(struct Object *loc, fnObjOps ObjOps,
         return (NULL);
     }
 
-    OBJ_Lock();
-
-    head->parent = loc->parent;
-    head->child = NULL;
-    head->ObjPrivate = ObjPrivate;
-    head->BitFlag.temporary = 0;
-    head->BitFlag.inuse = 0;
-    if(ObjOps)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        if(-1==(s32)ObjOps)
-            head->ObjOps = (fnObjOps)__OBJ_DefaultOps;
-        else
-            head->ObjOps = ObjOps;
-    }
-    else
-    {
-        if(head->parent)
-            head->ObjOps = head->parent->ObjOps;
-        else
-            head->ObjOps = (fnObjOps)__OBJ_DefaultOps;
-    }
-
-//  head->rights = head->parent->rights;
-
-    head->name = (char *)name;
-//  head->seton = (struct Object*)-1;
-//  if(loc->parent)
-//      head->set = loc->parent->set;
-//  else
-//      head->set = NULL;
-
-    if(loc->parent)
-    {
-        if(loc->parent->child)
+        head->parent = loc->parent;
+        head->child = NULL;
+        head->ObjPrivate = ObjPrivate;
+        head->BitFlag.temporary = 0;
+        head->BitFlag.inuse = 0;
+        if(ObjOps)
         {
-            __OBJ_LIST_INS_BEFORE(loc->parent->child, head);
+            if(-1==(s32)ObjOps)
+                head->ObjOps = (fnObjOps)__OBJ_DefaultOps;
+            else
+                head->ObjOps = ObjOps;
         }
         else
         {
-            loc->parent->child = head;
-            __OBJ_LIST_INIT(head);
+            if(head->parent)
+                head->ObjOps = head->parent->ObjOps;
+            else
+                head->ObjOps = (fnObjOps)__OBJ_DefaultOps;
         }
+
+    //  head->rights = head->parent->rights;
+
+        head->name = (char *)name;
+    //  head->seton = (struct Object*)-1;
+    //  if(loc->parent)
+    //      head->set = loc->parent->set;
+    //  else
+    //      head->set = NULL;
+
+        if(loc->parent)
+        {
+            if(loc->parent->child)
+            {
+                __OBJ_LIST_INS_BEFORE(loc->parent->child, head);
+            }
+            else
+            {
+                loc->parent->child = head;
+                __OBJ_LIST_INIT(head);
+            }
+        }
+        else
+        {
+            __OBJ_LIST_INS_BEFORE(loc, head); // 不存在父对象，则就将新对象放到当前对象前
+        }
+
+        Lock_MutexPost(&s_tObjectMutex);
+        return (head);
     }
     else
     {
-        __OBJ_LIST_INS_BEFORE(loc, head); // 不存在父对象，则就将新对象放到当前对象前
+        __OBJ_FreeObj(head);
+        if(name)
+            free(cname);
+        return (NULL);
     }
-
-    OBJ_Unlock();
-    return (head);
 }
 
 #if 0
@@ -1714,21 +1757,24 @@ s32 obj_MoveToLast(struct Object *ob)
     if((!ob)||(!ob->parent))
         return (-1);
 
-    OBJ_Lock();
-
-    head = ob->parent->child;
-    if(head==ob) // 本对象时队列头
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        ob->parent->child = ob->next;
-    }
-    else if(head->prev!=ob) // 本对象也不是队列尾
-    {
-        __OBJ_LIST_REMOVE(ob);
-        __OBJ_LIST_INS_BEFORE(head, ob);
-    }
+        head = ob->parent->child;
+        if(head==ob) // 本对象时队列头
+        {
+            ob->parent->child = ob->next;
+        }
+        else if(head->prev!=ob) // 本对象也不是队列尾
+        {
+            __OBJ_LIST_REMOVE(ob);
+            __OBJ_LIST_INS_BEFORE(head, ob);
+        }
 
-    OBJ_Unlock();
-    return (0);
+        Lock_MutexPost(&s_tObjectMutex);
+        return (0);
+    }
+    else
+        return -1;
 }
 
 // ============================================================================
@@ -1744,22 +1790,25 @@ s32 OBJ_MoveToHead(struct Object *ob)
     if((!ob)||(!ob->parent))
         return (-1);
 
-    OBJ_Lock();
-
-    head = ob->parent->child;
-    if(head->prev==ob)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        ob->parent->child = ob->prev;
-    }
-    else if(head!=ob)    //不是头节点
-    {
-        __OBJ_LIST_REMOVE(ob);
-        __OBJ_LIST_INS_BEFORE(head, ob);
-        ob->parent->child = ob;
-    }
+        head = ob->parent->child;
+        if(head->prev==ob)
+        {
+            ob->parent->child = ob->prev;
+        }
+        else if(head!=ob)    //不是头节点
+        {
+            __OBJ_LIST_REMOVE(ob);
+            __OBJ_LIST_INS_BEFORE(head, ob);
+            ob->parent->child = ob;
+        }
 
-    OBJ_Unlock();
-    return (0);
+        Lock_MutexPost(&s_tObjectMutex);
+        return (0);
+    }
+    else
+        return -1;
 }
 
 // ============================================================================
@@ -1769,28 +1818,31 @@ s32 OBJ_MoveToHead(struct Object *ob)
 // 返回：成功（被插入的对象）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct Object *OBJ_InsertToChild(struct Object *loc, struct Object *child)
+s32 OBJ_InsertToChild(struct Object *loc, struct Object *child)
 {
     if((loc==NULL)||(child==NULL))
-        return (NULL);
+        return (-1);
 
-    OBJ_Lock();
-
-    OBJ_Detach(child); // 就对象从原对象树中分离；
-    child->parent = loc;
-    if(loc->child==NULL)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        loc->child = child;
-        __OBJ_LIST_INIT(child);
+        OBJ_Detach(child); // 就对象从原对象树中分离；
+        child->parent = loc;
+        if(loc->child==NULL)
+        {
+            loc->child = child;
+            __OBJ_LIST_INIT(child);
+        }
+        else
+        {
+            __OBJ_LIST_INS_BEFORE(loc->child, child);
+            loc->child = child;
+        }
+
+        Lock_MutexPost(&s_tObjectMutex);
+        return (0);
     }
     else
-    {
-        __OBJ_LIST_INS_BEFORE(loc->child, child);
-        loc->child = child;
-    }
-
-    OBJ_Unlock();
-    return (child);
+        return -1;
 }
 
 // ============================================================================
@@ -1806,30 +1858,33 @@ s32 OBJ_InsertToNext(struct Object *loc, struct Object *next)
     if((loc==NULL)||(next==NULL)||(loc==next))
         return (-1);
 
-    OBJ_Lock();
-
-    if(loc->next!=next) // 看是否已经符合要求
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        // 先把目标节点从队列中取出
-        if(next->next == next) // 说明该节点没有兄弟节点.
+        if(loc->next!=next) // 看是否已经符合要求
         {
-            next->parent->child = NULL;
-        }
-        else
-        {
-            if(next->parent->child == next)
-            {   //说明该节点是队列头节点,需要改变队列头节点
-                next->parent->child = next->next;
+            // 先把目标节点从队列中取出
+            if(next->next == next) // 说明该节点没有兄弟节点.
+            {
+                next->parent->child = NULL;
             }
-            __OBJ_LIST_REMOVE(next);
+            else
+            {
+                if(next->parent->child == next)
+                {   //说明该节点是队列头节点,需要改变队列头节点
+                    next->parent->child = next->next;
+                }
+                __OBJ_LIST_REMOVE(next);
+            }
+
+            __OBJ_LIST_INS_AFTER(loc, next);
+            next->parent = loc->parent;
         }
 
-        __OBJ_LIST_INS_AFTER(loc, next);
-        next->parent = loc->parent;
+        Lock_MutexPost(&s_tObjectMutex);
+        return (0);
     }
-
-    OBJ_Unlock();
-    return (0);
+    else
+        return -1;
 }
 
 // ============================================================================
@@ -1844,30 +1899,33 @@ s32 OBJ_InsertToPrev(struct Object *loc, struct Object *prev)
     if((loc==NULL)||(prev==NULL)||(loc==prev))
         return (-1);
 
-    OBJ_Lock();
-
-    if(loc->prev!=prev) // 看是否已经符合要求
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        //先把目标节点从队列中取出
-        if(prev->next == prev)   //说明该节点没有兄弟节点.
+        if(loc->prev!=prev) // 看是否已经符合要求
         {
-            prev->parent->child = NULL;
-        }
-        else
-        {
-            if(prev->parent->child == prev)
-            {   //说明该节点是队列头节点,需要改变队列头节点
-                prev->parent->child = prev->next;
+            //先把目标节点从队列中取出
+            if(prev->next == prev)   //说明该节点没有兄弟节点.
+            {
+                prev->parent->child = NULL;
             }
-            __OBJ_LIST_REMOVE(prev);
+            else
+            {
+                if(prev->parent->child == prev)
+                {   //说明该节点是队列头节点,需要改变队列头节点
+                    prev->parent->child = prev->next;
+                }
+                __OBJ_LIST_REMOVE(prev);
+            }
+
+            __OBJ_LIST_INS_BEFORE(loc, prev);
+            prev->parent = loc->parent;
         }
 
-        __OBJ_LIST_INS_BEFORE(loc, prev);
-        prev->parent = loc->parent;
+        Lock_MutexPost(&s_tObjectMutex);
+        return (0);
     }
-
-    OBJ_Unlock();
-    return (0);
+    else
+        return -1;
 }
 
 // ============================================================================
@@ -1876,18 +1934,21 @@ s32 OBJ_InsertToPrev(struct Object *loc, struct Object *prev)
 // 返回：成功（0），失败（-1）；
 // 备注：
 // ============================================================================
-s32 OBJ_ChildMoveToOrev(struct Object *parent)
+s32 OBJ_ChildMoveToPrev(struct Object *parent)
 {
     if(!parent)
         return (-1);
 
-    OBJ_Lock();
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
+    {
+        if(parent->child)
+            parent->child = parent->child->prev;
 
-    if(parent->child)
-        parent->child = parent->child->prev;
-
-    OBJ_Unlock();
-    return (0);
+        Lock_MutexPost(&s_tObjectMutex);
+        return (0);
+    }
+    else
+        return -1;
 }
 
 // ============================================================================
@@ -1901,13 +1962,16 @@ s32 OBJ_ChildMoveToNext(struct Object *parent)
     if(!parent)
         return (-1);
 
-    OBJ_Lock();
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
+    {
+        if(parent->child)
+            parent->child = parent->child->next;
 
-    if(parent->child)
-        parent->child = parent->child->next;
-
-    OBJ_Unlock();
-    return (0);
+        Lock_MutexPost(&s_tObjectMutex);
+        return (0);
+    }
+    else
+        return -1;
 }
 
 // ============================================================================
@@ -1926,20 +1990,21 @@ struct Object *OBJ_GetTwig(struct Object *ob)
     if(!ob)
         return (NULL);
 
-    OBJ_Lock();
-
-    current = ob;
-    while(current->child != NULL)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        current = current->child;
+        current = ob;
+        while(current->child != NULL)
+        {
+            current = current->child;
+        }
+
+        if(current == ob)
+            result = NULL;
+        else
+            result = current;
+
+        Lock_MutexPost(&s_tObjectMutex);
     }
-
-    if(current == ob)
-        result = NULL;
-    else
-        result = current;
-
-    OBJ_Unlock();
     return (result);
 }
 
@@ -2001,21 +2066,24 @@ struct Object *OBJ_ForeachChild(struct Object *parent, struct Object *current)
     if((parent==NULL)||(current==NULL))
         return (NULL);
 
-    OBJ_Lock();
-
-    if((current==parent)||(current->parent!=parent))
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        current = parent->child; // data不是某个子对象，则从首子对象开始；
+        if((current==parent)||(current->parent!=parent))
+        {
+            current = parent->child; // data不是某个子对象，则从首子对象开始；
+        }
+        else
+        {
+            current = current->next;
+            if(current == parent->child)
+                current = NULL;
+        }
+
+        Lock_MutexPost(&s_tObjectMutex);
+        return (current);
     }
     else
-    {
-        current = current->next;
-        if(current == parent->child)
-            current = NULL;
-    }
-
-    OBJ_Unlock();
-    return (current);
+        return NULL;
 }
 
 // ============================================================================
@@ -2037,32 +2105,33 @@ struct Object *OBJ_ForeachScion(struct Object *ancester, struct Object *current)
     if((ancester==NULL)||(current==NULL))
         return (NULL);
 
-    OBJ_Lock();
-
-    if((current != ancester)||ancester->child)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        current_copy = current;
-        do
+        if((current != ancester)||ancester->child)
         {
-            if((up == FALSE) && (current_copy->child != NULL))
-            {   //子节点非空,返回子节点
-                result = current_copy->child;
-                break;
-            }
-            else if(current_copy->next != current_copy->parent->child)
-            {   //子节点空,但本节点不是队列尾节点,返回next节点
-                result = current_copy->next;
-                break;
-            }
-            else
-            {   //无子节点,且本节点已经是队列尾节点,需要判断当前父节点的next节点
-                current_copy = current_copy->parent;
-                up = true;
-            }
-        }while(current_copy != ancester);
-    }
+            current_copy = current;
+            do
+            {
+                if((up == FALSE) && (current_copy->child != NULL))
+                {   //子节点非空,返回子节点
+                    result = current_copy->child;
+                    break;
+                }
+                else if(current_copy->next != current_copy->parent->child)
+                {   //子节点空,但本节点不是队列尾节点,返回next节点
+                    result = current_copy->next;
+                    break;
+                }
+                else
+                {   //无子节点,且本节点已经是队列尾节点,需要判断当前父节点的next节点
+                    current_copy = current_copy->parent;
+                    up = true;
+                }
+            }while(current_copy != ancester);
+        }
 
-    OBJ_Unlock();
+        Lock_MutexPost(&s_tObjectMutex);
+    }
     return (result);
 }
 
@@ -2080,20 +2149,21 @@ struct Object *OBJ_SearchSibling(struct Object *ob, const char *name)
     if((ob==NULL)||(name==NULL))
         return (NULL);
 
-    OBJ_Lock();
-
-    tmp = ob;
-    do
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        if(strcmp(tmp->name, name) == 0)
+        tmp = ob;
+        do
         {
-            result = tmp;
-            break;
-        }
-        tmp = tmp->next;
-    }while (tmp != ob);
+            if(strcmp(tmp->name, name) == 0)
+            {
+                result = tmp;
+                break;
+            }
+            tmp = tmp->next;
+        }while (tmp != ob);
 
-    OBJ_Unlock();
+        Lock_MutexPost(&s_tObjectMutex);
+    }
     return (result);
 }
 
@@ -2111,27 +2181,28 @@ struct Object *OBJ_SearchChild(struct Object *parent, const char *name)
     if((name == NULL) || (parent == NULL))
         return (NULL);
 
-    OBJ_Lock();
-
-    tmp = parent->child;
-    if(tmp == NULL)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        result = NULL;
-    }
-    else
-    {
-        do
+        tmp = parent->child;
+        if(tmp == NULL)
         {
-            if(strcmp(tmp->name, name)==0)
+            result = NULL;
+        }
+        else
+        {
+            do
             {
-                result = tmp;
-                break;
-            }
-            tmp = tmp->next;
-        }while (tmp != parent->child);
-    }
+                if(strcmp(tmp->name, name)==0)
+                {
+                    result = tmp;
+                    break;
+                }
+                tmp = tmp->next;
+            }while (tmp != parent->child);
+        }
 
-    OBJ_Unlock();
+        Lock_MutexPost(&s_tObjectMutex);
+    }
     return (result);
 }
 
@@ -2149,20 +2220,21 @@ struct Object *OBJ_SearchScion(struct Object *ancester, const char *name)
     if((ancester == NULL)||(name == NULL))
         return (NULL);
 
-    OBJ_Lock();
-
-    current = ancester;
-    while((tmp = OBJ_ForeachScion(ancester, current)) != NULL)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        if(strcmp(tmp->name, name) == 0)
+        current = ancester;
+        while((tmp = OBJ_ForeachScion(ancester, current)) != NULL)
         {
-            result = tmp;
-            break;
+            if(strcmp(tmp->name, name) == 0)
+            {
+                result = tmp;
+                break;
+            }
+            current = tmp;
         }
-        current = tmp;
-    }
 
-    OBJ_Unlock();
+        Lock_MutexPost(&s_tObjectMutex);
+    }
     return (result);
 }
 
@@ -2183,98 +2255,99 @@ struct Object *OBJ_SearchPath(struct Object *start, const char *path)
         return NULL;
     if('\0' == *path)
         return NULL;
-    OBJ_Lock();
-
-    Base = start;
-    if(Base == NULL)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        Base = OBJ_GetRoot();          // 绝对路径
-    }
-    current = Base;
-    while(Base)
-    {
-        while(('/' == *path) || ('\\' == *path))
-            path++; // 过滤多余的'/'
-        if('\0' == *path)
+        Base = start;
+        if(Base == NULL)
         {
-            break; // 遍历路径结束
+            Base = OBJ_GetRoot();          // 绝对路径
         }
-
-        if('.' == path[0])
+        current = Base;
+        while(Base)
         {
-            if('.' == path[1])  //看是否要返回上一级目录
+            while(('/' == *path) || ('\\' == *path))
+                path++; // 过滤多余的'/'
+            if('\0' == *path)
             {
-                if(Base == OBJ_GetRoot())
+                break; // 遍历路径结束
+            }
+
+            if('.' == path[0])
+            {
+                if('.' == path[1])  //看是否要返回上一级目录
                 {
-                    result = NULL;
-                    return NULL;
+                    if(Base == OBJ_GetRoot())
+                    {
+                        result = NULL;
+                        return NULL;
+                    }
+                    Base = OBJ_GetParent(Base);        // ".."字符，表示上一级目录
+                    result = Base;
+                    current = Base;
+                    if(('\\' == path[2])||('/' == path[2]))
+                    {
+                        path++;
+                        continue;
+                    }
+                    else if('\0' != path[2])        //完成path路径匹配
+                    {
+                        return current;
+                    }
+                    else                            //".."后不是合法的分隔符，非法
+                    {
+                        return NULL;
+                    }
                 }
-                Base = OBJ_GetParent(Base);        // ".."字符，表示上一级目录
-                result = Base;
-                current = Base;
-                if(('\\' == path[2])||('/' == path[2]))
+                else if(('\\' == path[1])||('/' == path[1]))
                 {
                     path++;
                     continue;
                 }
-                else if('\0' != path[2])        //完成path路径匹配
+                else if('\0' != path[1])        //完成path路径匹配
                 {
-                    return current;
+                    return result;
                 }
-                else                            //".."后不是合法的分隔符，非法
+                else                            //"."后不是合法的分隔符，非法
                 {
                     return NULL;
                 }
             }
-            else if(('\\' == path[1])||('/' == path[1]))
-            {
-                path++;
-                continue;
-            }
-            else if('\0' != path[1])        //完成path路径匹配
-            {
-                return result;
-            }
-            else                            //"."后不是合法的分隔符，非法
-            {
-                return NULL;
-            }
-        }
 
-        while(current)
-        {
-            current = OBJ_ForeachChild(Base, current);
-            if(current == NULL)         //匹配结束
+            while(current)
             {
-                Base = NULL;
-                break;
-            }
-            ResultName = (char*)OBJ_GetName(current);
-            i = strlen(ResultName);
-            if(memcmp(ResultName, path, i) == 0)
-            {
-                if('\0' == path[i])     //匹配结束，current是匹配项
+                current = OBJ_ForeachChild(Base, current);
+                if(current == NULL)         //匹配结束
                 {
-                    result = current;
                     Base = NULL;
                     break;
                 }
-                else if(('\\' == path[i]) || ('/' == path[i]))
+                ResultName = (char*)OBJ_GetName(current);
+                i = strlen(ResultName);
+                if(memcmp(ResultName, path, i) == 0)
                 {
-                    result = current;
-                    path += i;
-                    Base = current;     // 匹配当前节点，继续匹配子节点
-                    break;
-                }
-                else    // 当前对象不匹配，继续遍历兄弟节点
-                {
-//                  break;
+                    if('\0' == path[i])     //匹配结束，current是匹配项
+                    {
+                        result = current;
+                        Base = NULL;
+                        break;
+                    }
+                    else if(('\\' == path[i]) || ('/' == path[i]))
+                    {
+                        result = current;
+                        path += i;
+                        Base = current;     // 匹配当前节点，继续匹配子节点
+                        break;
+                    }
+                    else    // 当前对象不匹配，继续遍历兄弟节点
+                    {
+    //                  break;
+                    }
                 }
             }
         }
-    }
 
-    OBJ_Unlock();
+        Lock_MutexPost(&s_tObjectMutex);
+    }
     return (result);
 }
 #if 0
@@ -2296,7 +2369,7 @@ struct Object *OBJ_SearchPath(struct Object *start, const char *path)
     current = start->child;
     if(current == NULL)
     {
-        OBJ_Unlock();
+        Lock_MutexPost(&s_tObjectMutex);
         return (NULL);
     }
 
@@ -2352,7 +2425,7 @@ struct Object *OBJ_SearchPath(struct Object *start, const char *path)
             break;
     }
 
-    OBJ_Unlock();
+    Lock_MutexPost(&s_tObjectMutex);
     return result;
 #else
     char *segment;
@@ -2461,7 +2534,7 @@ __SEARCH_NEXT:
     }
 
 __SEARCH_DONE:
-   OBJ_Unlock();
+   Lock_MutexPost(&s_tObjectMutex);
    return (current);
 #endif
 }
@@ -2533,57 +2606,59 @@ s32 OBJ_CurWorkPath(char *Buf, u32 BufSize)
     char *PathTemp=NULL, *ObjName;
     s32 Ret = 0;
 
-    OBJ_Lock();// 进互斥(防止操作过程当前工作路径被更改)
-
-    Offset = OBJ_CurWorkPathLen();
-    if((NULL == Buf) || (BufSize < Offset))
+    // 进互斥(防止操作过程当前工作路径被更改)
+    if(Lock_MutexPend(&s_tObjectMutex, CN_TIMEOUT_FOREVER))
     {
-        Ret = -2; // 参数错误
-        goto FAIL;
-    }
-
-    PathTemp = (char*)malloc(Offset + 1);
-    if(NULL == PathTemp)
-    {
-        Ret = -3; // 内存不足
-        goto FAIL;
-    }
-    memset(PathTemp, 0, Offset + 1);
-    Offset -= 1;
-    PathTemp[Offset] = '\0'; // 路径的结束符
-    Obj = s_ptCurrentObject; // 路径最后一个节点
-
-    for(;;)
-    {
-        ObjName = (char *)OBJ_GetName(Obj);
-        ObjNameLen = strlen(ObjName);
-        Offset = Offset - ObjNameLen;
-        memcpy((PathTemp + Offset), ObjName, ObjNameLen);
-        if(Offset) // 去除根的情况
+        Offset = OBJ_CurWorkPathLen();
+        if((NULL == Buf) || (BufSize < Offset))
         {
-            Offset--;
-            PathTemp[Offset] = '/'; // 路径之间的分隔或者是根
+            Ret = -2; // 参数错误
+            goto FAIL;
         }
 
-        if(0 == Offset)
+        PathTemp = (char*)malloc(Offset + 1);
+        if(NULL == PathTemp)
         {
-            if(PathTemp[Offset] == '\0')
-                PathTemp[Offset] = '/';
-            strcpy(Buf, PathTemp);
-            break; // 结束
+            Ret = -3; // 内存不足
+            goto FAIL;
         }
-        Obj = OBJ_GetParent(Obj);
-        if(NULL == Obj)
-        {
-            Ret = -4;
-            break;
-        }
-    }
+        memset(PathTemp, 0, Offset + 1);
+        Offset -= 1;
+        PathTemp[Offset] = '\0'; // 路径的结束符
+        Obj = s_ptCurrentObject; // 路径最后一个节点
 
-FAIL:
-    if(PathTemp)
-        free(PathTemp);
-    OBJ_Unlock(); // 出互斥
+        for(;;)
+        {
+            ObjName = (char *)OBJ_GetName(Obj);
+            ObjNameLen = strlen(ObjName);
+            Offset = Offset - ObjNameLen;
+            memcpy((PathTemp + Offset), ObjName, ObjNameLen);
+            if(Offset) // 去除根的情况
+            {
+                Offset--;
+                PathTemp[Offset] = '/'; // 路径之间的分隔或者是根
+            }
+
+            if(0 == Offset)
+            {
+                if(PathTemp[Offset] == '\0')
+                    PathTemp[Offset] = '/';
+                strcpy(Buf, PathTemp);
+                break; // 结束
+            }
+            Obj = OBJ_GetParent(Obj);
+            if(NULL == Obj)
+            {
+                Ret = -4;
+                break;
+            }
+        }
+
+    FAIL:
+        if(PathTemp)
+            free(PathTemp);
+        Lock_MutexPost(&s_tObjectMutex); // 出互斥
+    }
     return (Ret);
 }
 

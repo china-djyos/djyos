@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -84,7 +84,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"device file system","lock","heap","ring buffer and line buffer"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"device file system"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -140,11 +140,11 @@ struct UartPollCB
     struct SemaphoreLCB *BlockingSemp;              //阻塞信号量
 //  struct MultiplexObjectCB * pMultiplexUart;      //多路复用目标对象头指针
     u32 Baud;                                       //串口当前波特率
+    ptu32_t UartPortTag;                            //串口标签
+    UartControl UartCtrl;
     struct MutexLCB *ReadMutex;        //互斥量,控制设备独占式读访问
     struct MutexLCB *WriteMutex;       //互斥量,控制设备独占式写访问
-    ptu32_t UartPortTag;                            //串口标签
     UartSendPkg SendPkg;
-    UartControl UartCtrl;
     u32 RecvLen;                                    //接收到的数据长度
 };
 
@@ -692,105 +692,6 @@ s32 UART_PollCtrl(struct objhandle* hdl,u32 cmd, va_list *arg0)
 //      Param,包含初始化UART所需参数，具体参数请查看tagUartParam结构体
 //返回：串口控制块指针，NULL失败
 //-----------------------------------------------------------------------------
-#if 0
-struct Object * __UART_InstallGeneral(struct UartParam *Param)
-{
-    struct Object * uart_dev;
-    struct UartGeneralCB *UGCB;
-    struct MutexLCB *uart_mutexR,*uart_mutexT;
-    u8 *pRxRingBuf,*pTxRingBuf;
-
-
-    UGCB = (struct UartGeneralCB *)M_Malloc(sizeof(struct UartGeneralCB),0);
-    if(UGCB == NULL)
-        goto exit_from_ucb;
-    memset(UGCB,0x00,sizeof(struct UartGeneralCB));
-    pRxRingBuf = (u8*)M_Malloc(Param->RxRingBufLen,0);
-    if(pRxRingBuf == NULL)
-        goto exit_from_rx_ring_buf;
-    pTxRingBuf = (u8*)M_Malloc(Param->TxRingBufLen,0);
-    if(pTxRingBuf == NULL)
-        goto exit_from_tx_ring_buf;
-
-    // 建立串口阻塞使用的信号量
-    UGCB->BlockingSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"uart blocking");
-    if(UGCB->BlockingSemp == NULL)
-        goto exit_from_blocking_semp;
-    // 保护缓冲区的信号量，使缓冲区中数据量为0时阻塞写入线程，读取线程使缓冲区中
-    // 数据降至trigger_level以下时释放信号量，使写入线程解除阻塞
-    UGCB->SendRingBufSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"uart tx buf");
-    if(UGCB->SendRingBufSemp == NULL)
-        goto exit_from_send_buf_semp;
-    UGCB->RecvRingBufSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"uart rx buf");
-    if(UGCB->RecvRingBufSemp == NULL)
-        goto exit_from_recv_buf_semp;
-    // 为设备创建互斥量，提供设备的互斥访问
-    uart_mutexR = Lock_MutexCreate("uart receive mutex");
-    if(uart_mutexR == NULL)
-        goto exit_from_mutexR;
-    uart_mutexT = Lock_MutexCreate("uart send mutex");
-    if(uart_mutexT == NULL)
-        goto exit_from_mutexT;
-
-//  UCB->WriteMutex = Lock_MutexCreate("UART_WriteMutex");
-//  if( NULL == UCB->WriteMutex)
-//      goto exit_from_mutexWite;
-//  UCB->ReadMutex  = Lock_MutexCreate("UART_ReadMutex");
-//  if(NULL == UCB->ReadMutex)
-//      goto exit_from_mutexRead;
-
-    UGCB->SendRingTrigLevel  = (Param->TxRingBufLen)>>2;  //默认缓冲触发水平为1/16
-//    UCB->RecvRingTrigLevel  = (Param->RxRingBufLen)>>4;
-//    UCB->MplReadTrigLevel   = Param->RxRingBufLen + 1;
-//  UGCB->MplWriteTrigLevel  = Param->TxRingBufLen + 1;
-    UGCB->Baud               = Param->Baud;
-    UGCB->UartPortTag        = Param->UartPortTag;
-    UGCB->StartSend                  = Param->StartSend;
-    UGCB->UartCtrl           = Param->UartCtrl;
-//  UGCB->pMultiplexUart     = NULL;                     //初始化时为NULL
-//  UGCB->MplUartStatus      = CN_MULTIPLEX_SENSINGBIT_WRITE;//初始时可写不可读
-    Ring_Init(&UGCB->SendRingBuf,pTxRingBuf,Param->TxRingBufLen);
-    Ring_Init(&UGCB->RecvRingBuf,pRxRingBuf,Param->RxRingBufLen);
-
-    uart_dev = Dev_Create((char*)Param->Name,uart_mutexR,uart_mutexT,
-                                    UART_Open,
-                                    NULL,
-                                    UART_AppWrite,
-                                    UART_AppRead,
-                                    UART_Ctrl,
-                                    (ptu32_t)UGCB
-                                   );
-    UGCB->Host = uart_dev;
-    if(uart_dev == NULL)
-        goto exit_from_add_device;
-
-    printk("%s Install General Mode Succeeded!\r\n",Param->Name);
-    return uart_dev;
-    //如果出现错误，则释放创建的资源，并返回空指针
-exit_from_add_device:
-//    Lock_MutexDelete(UCB->ReadMutex);
-//exit_from_mutexRead:
-//    Lock_MutexDelete(UCB->WriteMutex);
-//exit_from_mutexWite:
-    Lock_MutexDelete(uart_mutexT);
-exit_from_mutexT:
-    Lock_MutexDelete(uart_mutexR);
-exit_from_mutexR:
-    Lock_SempDelete(UGCB->RecvRingBufSemp);
-exit_from_recv_buf_semp:
-    Lock_SempDelete(UGCB->SendRingBufSemp);
-exit_from_send_buf_semp:
-    Lock_SempDelete(UGCB->BlockingSemp);
-exit_from_blocking_semp:
-    free(pTxRingBuf);
-exit_from_tx_ring_buf:
-    free(pRxRingBuf);
-exit_from_rx_ring_buf:
-    free(UGCB);
-exit_from_ucb:
-    return NULL;
-}
-#else
 struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param)
 {
     struct Object * uart_dev;
@@ -866,7 +767,7 @@ struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param)
     if(uart_dev == NULL)
         goto exit_from_add_device;
 
-    info_printf("device","%s initialized in general mode.", Param->Name);
+    info_printf("device","%s initialized in general mode.\r\n", Param->Name);
     return (UGCB);
 
     //如果出现错误，则释放创建的资源，并返回空指针
@@ -892,68 +793,10 @@ exit_from_rx_ring_buf:
     free(UGCB);
 exit_from_ucb:
 
-    error_printf("device","%s initialized in general mode failed.", Param->Name);
+    error_printf("device","%s initialized in general mode failed.\r\n", Param->Name);
     return NULL;
 }
-#endif
 
-#if 0
-struct Object * __UART_InstallPoll(struct UartParam *Param)
-{
-    struct Object * uart_dev;
-    struct UartPollCB *UPCB;
-    struct MutexLCB *uart_mutexR,*uart_mutexT;
-
-    UPCB = (struct UartPollCB *)M_Malloc(sizeof(struct UartPollCB),0);
-    if(UPCB == NULL)
-        goto exit_from_ucb;
-    memset(UPCB,0x00,sizeof(struct UartPollCB));
-
-    //建立串口阻塞使用的信号量
-    UPCB->BlockingSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"uart blocking");
-    if(UPCB->BlockingSemp == NULL)
-        goto exit_from_blocking_semp;
-    //为设备创建互斥量，提供设备的互斥访问
-    uart_mutexR = Lock_MutexCreate("uart receive mutex");
-    if(uart_mutexR == NULL)
-        goto exit_from_mutexR;
-    uart_mutexT = Lock_MutexCreate("uart send mutex");
-    if(uart_mutexT == NULL)
-        goto exit_from_mutexT;
-    UPCB->Baud               = Param->Baud;
-    UPCB->UartPortTag        = Param->UartPortTag;
-    UPCB->UartCtrl           = Param->UartCtrl;
-//  UPCB->pMultiplexUart     = NULL;                     //初始化时为NULL
-//  UPCB->MplUartStatus      = CN_MULTIPLEX_SENSINGBIT_WRITE;//初始时可写不可读
-
-    uart_dev = Dev_Create((char*)Param->Name,uart_mutexR,uart_mutexT,
-                                    UART_Poll_Open,
-                                    NULL,
-                                    UART_PollAppWrite,
-                                    UART_PollAppRead,
-                                    UART_PollCtrl,
-                                    (ptu32_t)UPCB
-                                   );
-    UPCB->Host = uart_dev;
-    if(uart_dev == NULL)
-        goto exit_from_add_device;
-
-    printk("%s Install Poll Mode Succeeded!\r\n",Param->Name);
-
-    return uart_dev;
-    //如果出现错误，则释放创建的资源，并返回空指针
-exit_from_add_device:
-    Lock_MutexDelete(uart_mutexT);
-exit_from_mutexT:
-    Lock_MutexDelete(uart_mutexR);
-exit_from_mutexR:
-    Lock_SempDelete(UPCB->BlockingSemp);
-exit_from_blocking_semp:
-    free(UPCB);
-exit_from_ucb:
-    return NULL;
-}
-#else
 struct UartPollCB *UART_InstallPoll(struct UartParam *Param)
 {
     struct Object * uart_dev;
@@ -997,7 +840,7 @@ struct UartPollCB *UART_InstallPoll(struct UartParam *Param)
     if(uart_dev == NULL)
         goto exit_from_add_device;
 
-    info_printf("device","%s initialized in poll mode.", Param->Name);
+    info_printf("device","%s initialized in poll mode.\r\n", Param->Name);
     return (UPCB);
 
     //如果出现错误，则释放创建的资源，并返回空指针
@@ -1010,32 +853,7 @@ exit_from_mutexR:
 exit_from_blocking_semp:
     free(UPCB);
 exit_from_ucb:
-    error_printf("device","%s initialized in poll mode failed.", Param->Name);
+    error_printf("device","%s initialized in poll mode failed.\r\n", Param->Name);
     return (NULL);
 }
-#endif
-#if 0
-//----添加UART设备-------------------------------------------------------------
-//功能：添加串口设备到系统设备队列
-//      a、初始化环形缓冲区
-//      b、创建环形缓冲区信号量和设备互斥量
-//      c、将串口添加到设备管理模块，并初始化设备函数指针
-//参数：UCB，串口控制块
-//      Param,包含初始化UART所需参数，具体参数请查看tagUartParam结构体
-//返回：串口控制块指针，NULL失败
-//-----------------------------------------------------------------------------
-struct Object * UART_InstallPort(struct UartParam *Param)
-{
-    if(Param == NULL)
-        return NULL;
 
-    if(Param->mode == CN_UART_POLL)
-    {
-        return __UART_InstallPoll(Param);
-    }
-    else
-    {
-        return __UART_InstallGeneral(Param);
-    }
-}
-#endif

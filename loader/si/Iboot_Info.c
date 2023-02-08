@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -792,7 +792,7 @@ bool_t Iboot_GetProductInfo(enum productinfo type, char *date_buf, u32 buf_len)
             }
             else
             {
-                error_printf("PrInfo","Version number error. version = %d.%d.%d, Version number <= 99",p_productinfo->VersionNumber[0]
+                error_printf("PrInfo","Version number error. version = %d.%d.%d, Version number <= 99\r\n",p_productinfo->VersionNumber[0]
                                              ,p_productinfo->VersionNumber[1],p_productinfo->VersionNumber[2]);
                 return false;
             }
@@ -921,7 +921,7 @@ bool_t Iboot_GetProductInfo(enum productinfo type, char *date_buf, u32 buf_len)
     return true;
 
 len_error:
-    error_printf("PrInfo","date_buf : len = %d; data length to be get = %d ",buf_len,len);
+    error_printf("PrInfo","date_buf : len = %d; data length to be get = %d \r\n",buf_len,len);
     return false;
 }
 
@@ -944,7 +944,7 @@ bool_t write_finger_to_iboot(s8 *time, s8 *num)
     if(iboot_sn_addr)
     {
 //      djy_flash_read(iboot_sn_addr, iboot_sn_buf, 16);
-        memcpy(iboot_sn_buf, iboot_sn_addr, 16);
+        memcpy(iboot_sn_buf, (u8*)iboot_sn_addr, 16);
         if((iboot_sn_buf[0] == 0xff) && ((u8)time[0] != 0xff))
         {   //iboot里没SN，程序里给出SN号，现在写SN
             printf("write SN in iboot.\r\n");
@@ -981,7 +981,7 @@ bool_t read_finger_from_iboot(s8 *finger, u32 buf_len)
      }
 
     iboot_sn_addr = (u32)(&gc_ProductSn) ;
-    memcpy(finger, iboot_sn_addr, 16);
+    memcpy(finger, (u8*)iboot_sn_addr, 16);
 //  if(iboot_sn_addr)
 //  {
 //      djy_flash_read(iboot_sn_addr, finger, len);
@@ -1678,7 +1678,7 @@ void Iboot_GetOtaUserInfo(s8 *address, ptu32_t size)
 //      size, 信息尺寸
 //返回：无
 //------------------------------------------------------------------------------
-void Iboot_SetOtaFilename(s8 *filename, ptu32_t size)
+void Iboot_SetOtaFilename(char *filename, ptu32_t size)
 {
     if (size <= CN_APP_STORE_INFO_LIMIT)
         memcpy(Iboot_App_Info.stored.pads, filename,size);
@@ -1694,7 +1694,7 @@ void Iboot_SetOtaFilename(s8 *filename, ptu32_t size)
 //      size, 信息尺寸
 //返回：无
 //------------------------------------------------------------------------------
-void Iboot_GetOtaFilename(s8 *filename, ptu32_t size)
+void Iboot_GetOtaFilename(char *filename, ptu32_t size)
 {
     if (size <= CN_APP_STORE_INFO_LIMIT)
         memcpy(filename, Iboot_App_Info.stored.pads, size);

@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -78,7 +78,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"message queue"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -169,7 +169,7 @@ bool_t __Timer_Get64Time(s64 *time)
 // =============================================================================
 // 函数功能：__Timer_ExeAlarmHandler
 //          执行timersoft的钩子函数
-// 输入参数：timersoft,待执行的定时器.
+// 输入参数：timer,待执行的定时器.
 // 输出参数：无
 // 返回值  ：true 成功  false失败
 // 说明    ：内部调用函数，没有HOOK则不执行
@@ -580,7 +580,7 @@ bool_t Timer_IsRunning(tagTimer *Timer)
 // =============================================================================
 // 函数功能：Timer_Delete
 //           删除一个定时器
-// 输入参数：timersoft,待删除的定时器
+// 输入参数：timer,待删除的定时器
 // 输出参数：无
 // 返回值  ：true 成功 false失败
 // =============================================================================
@@ -602,9 +602,9 @@ bool_t Timer_Delete(tagTimer* timer)
 // =============================================================================
 // 函数功能：Timer_Ctrl
 //          设置定时器标识和状态
-// 输入参数：timersoft,待设定的定时器.
+// 输入参数：timer,待设定的定时器.
 //          opcode,定时器的操作码
-//          inoutpara,根据操作码解析的参数，比方设定cycle的时候，inoutpara代表cyle
+//          para,根据操作码解析的参数，比方设定cycle的时候，para代表cyle
 // 输出参数：无
 // 返回值  ：true 成功 false失败
 // 说明：opcode对应的para的属性定义见enum TimerCmdCode说明
@@ -620,66 +620,68 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
 #if CFG_TIMER_SOUCE_HARD == true        //由硬件计时器提供时钟源
 //      if(sbUsingHardTimer)
         {
-            Lock_MutexPend(ptTimerQSync,CN_TIMEOUT_FOREVER);
-            //暂停闹钟，进行中断互斥
-            HardTimer_Ctrl(sgHardTimerDefault, EN_TIMER_PAUSECOUNT,(ptu32_t)NULL);
-            result = true;
-            switch(opcode)
+            if(Lock_MutexPend(ptTimerQSync,CN_TIMEOUT_FOREVER))
             {
-                case EN_TIMER_SOFT_START:
-                    if(0 ==(CN_TIMER_ENCOUNT & timer->stat))    //本来未使能
-                    {
-                        timer->stat |= CN_TIMER_ENCOUNT;
-                        timenow = DJY_GetSysTime(); //使用系统64位不停表的定时器，可消除
-                                                //定时器中断启停之间产生的积累误差
-                        timer->deadline = timenow + timer->cycle;
-                        __Timer_Remove(timer);
-                        __Timer_Add(timer);
-                    }
-                    break;
-                case EN_TIMER_SOFT_STOP:
-                    if(CN_TIMER_ENCOUNT & timer->stat)          //本来在运行态
-                    {
-                        timer->stat &= (~CN_TIMER_ENCOUNT);
-                        timer->deadline = CN_TIMER_ALARMNEVER;
-                        __Timer_Remove(timer);
-                        __Timer_AddLast(timer);
-                    }
-                    break;
-                case EN_TIMER_SOFT_SETCYCLE:
-                    timer->cycle = para;
-                    if(CN_TIMER_ENCOUNT&timer->stat)
-                    {
-                        timenow = DJY_GetSysTime(); //使用系统64位不停表的定时器，可消除
-                                                //定时器中断启停之间产生的积累误差
-                        timer->deadline = timenow + timer->cycle;
-                        __Timer_Remove(timer);
-                        __Timer_Add(timer);
-                    }
-                    break;
-                case EN_TIMER_SOFT_SETRELOAD:
-                    if(para)
-                    {
-                        timer->stat |= CN_TIMER_RELOAD;
-                    }
-                    else
-                    {
-                        timer->stat &= (~CN_TIMER_RELOAD);
-                    }
-                    break;
-                default:
-                    result = false;
-                    break;
+                //暂停闹钟，进行中断互斥
+                HardTimer_Ctrl(sgHardTimerDefault, EN_TIMER_PAUSECOUNT,(ptu32_t)NULL);
+                result = true;
+                switch(opcode)
+                {
+                    case EN_TIMER_SOFT_START:
+                        if(0 ==(CN_TIMER_ENCOUNT & timer->stat))    //本来未使能
+                        {
+                            timer->stat |= CN_TIMER_ENCOUNT;
+                            timenow = DJY_GetSysTime(); //使用系统64位不停表的定时器，可消除
+                                                    //定时器中断启停之间产生的积累误差
+                            timer->deadline = timenow + timer->cycle;
+                            __Timer_Remove(timer);
+                            __Timer_Add(timer);
+                        }
+                        break;
+                    case EN_TIMER_SOFT_STOP:
+                        if(CN_TIMER_ENCOUNT & timer->stat)          //本来在运行态
+                        {
+                            timer->stat &= (~CN_TIMER_ENCOUNT);
+                            timer->deadline = CN_TIMER_ALARMNEVER;
+                            __Timer_Remove(timer);
+                            __Timer_AddLast(timer);
+                        }
+                        break;
+                    case EN_TIMER_SOFT_SETCYCLE:
+                        timer->cycle = para;
+                        if(CN_TIMER_ENCOUNT&timer->stat)
+                        {
+                            timenow = DJY_GetSysTime(); //使用系统64位不停表的定时器，可消除
+                                                    //定时器中断启停之间产生的积累误差
+                            timer->deadline = timenow + timer->cycle;
+                            __Timer_Remove(timer);
+                            __Timer_Add(timer);
+                        }
+                        break;
+                    case EN_TIMER_SOFT_SETRELOAD:
+                        if(para)
+                        {
+                            timer->stat |= CN_TIMER_RELOAD;
+                        }
+                        else
+                        {
+                            timer->stat &= (~CN_TIMER_RELOAD);
+                        }
+                        break;
+                    default:
+                        result = false;
+                        break;
+                }
+                //上述操作可能会有定时器超时,要做定时器队列的超时处理
+                waittime = __Timer_DealTimeout();
+                if(waittime != CN_TIMEOUT_FOREVER)
+                {
+                    __GetTclkCycle(waittime);
+                    HardTimer_Ctrl(sgHardTimerDefault, EN_TIMER_SETCYCLE,(ptu32_t)waittime);
+                    HardTimer_Ctrl(sgHardTimerDefault, EN_TIMER_STARTCOUNT,(ptu32_t)NULL);
+                }
+                Lock_MutexPost(ptTimerQSync);
             }
-            //上述操作可能会有定时器超时,要做定时器队列的超时处理
-            waittime = __Timer_DealTimeout();
-            if(waittime != CN_TIMEOUT_FOREVER)
-            {
-                __GetTclkCycle(waittime);
-                HardTimer_Ctrl(sgHardTimerDefault, EN_TIMER_SETCYCLE,(ptu32_t)waittime);
-                HardTimer_Ctrl(sgHardTimerDefault, EN_TIMER_STARTCOUNT,(ptu32_t)NULL);
-            }
-            Lock_MutexPost(ptTimerQSync);
         }
 #else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
@@ -705,10 +707,10 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
 // =============================================================================
 ptu32_t  Timer_VMTask(void)
 {
-    u32              waittime;
-    u32              opcode;
-    u32              para;
-    s64              timenow;
+    u32         waittime;
+    u32         opcode;
+    u32         para;
+    s64         timenow;
     tagTimerMsg  msg;
     tagTimer     *timer;
 
@@ -813,7 +815,7 @@ ptu32_t Timer_GetTag(tagTimer* timer)
 
 //-----------------------------------------------------------------------------
 //功能：取定时器名字
-//参数：timersoft,定时器指针.
+//参数：timer,定时器指针.
 //返回：定时器名字
 //-----------------------------------------------------------------------------
 char *Timer_GetName(tagTimer* timer)
@@ -839,7 +841,7 @@ bool_t ModuleInstall_Timer(void)
     printk("Timer:Init Start....\n\r");
     ptTimerMemPool = Mb_CreatePool(ptTimerMem,CFG_TIMERS_LIMIT,
                                 sizeof(tagTimer),0,0,"Timer");
-    if(NULL ==ptTimerMemPool)
+    if(NULL == ptTimerMemPool)
     {
         goto EXIT_POOLFAILED;
     }

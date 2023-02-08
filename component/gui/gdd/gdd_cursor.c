@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -123,14 +123,12 @@ static bool_t __GDD_CursorFlash(struct WindowMsg *pMsg)
         if(GDD_IsWindowVisible(g_ptCursorHwnd))
         {
              GDD_SetWindowHide(g_ptCursorHwnd);
-//           GDD_UpdateDisplay(CN_TIMEOUT_FOREVER);
         }
         else
         {
              GDD_SetWindowShow(g_ptCursorHwnd);
-//           GDD_UpdateDisplay(CN_TIMEOUT_FOREVER);
         }
-        GDD_UpdateDisplay(pMsg->hwnd);
+        GDD_SyncShow(pMsg->hwnd);
     }
     return true;
 }
@@ -210,8 +208,9 @@ bool_t GDD_CursorInit(void)
 
     s_gCursorMsgLink.MsgNum = sizeof(s_gCursorMsgProcTable) / sizeof(struct MsgProcTable);
     s_gCursorMsgLink.myTable = (struct MsgProcTable *)&s_gCursorMsgProcTable;
-    g_ptCursorHwnd = GDD_CreateWindow("Cursor",WS_CHILD,0,0,
-                        2, 12,NULL, 0, CN_WINBUF_PARENT,0,&s_gCursorMsgLink);
+    g_ptCursorHwnd = GDD_CreateWindow("Cursor",0,0,0,
+                        2, 12,NULL, 0, CN_WINBUF_PARENT,0, CN_SYS_PF_DISPLAY,
+                        CN_COLOR_WHITE,&s_gCursorMsgLink);
     if(g_ptCursorHwnd!=NULL)
     {
          GK_SetPrio(g_ptCursorHwnd->pGkWin,CN_WINDOW_ZPRIO_CURSOR , CN_TIMEOUT_FOREVER);

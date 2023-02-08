@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -75,10 +75,10 @@ struct DisplayObj;
 struct FontObj;
 //位图像素色彩格式定义，
 //客户格式，显卡driver内部可使用上述定义以外的私有格式。
-//应用程序可以通过gk_api_get_pixel_format查询显卡实际使用的格式。
+//应用程序可以通过 GK_GetPixelFormat 函数查询显卡实际使用的格式。
 //如果显卡使用私有格式，则上层查询显卡格式时，返回0x8000(CN_CUSTOM_PF).
-//应用程序绘制点、线、填充等功能时，必须使用cn_sys_pf_e8r8g8b8格式。
-//应用程序绘制位图时，如果使用显卡实际使用的像素格式，将获得最优化的显示速度。
+//应用程序绘制点、线、填充等功能时，必须使用 CN_SYS_PF_ERGB8888 格式指定颜色。
+//应用程序绘制位图时，如果使用显卡相同的像素格式，将获得最优化的显示速度。
 //ARGBxxxx格式中的A称之为ALPHA通道，AlphaBlend时，使用该ALPHA值，否则使用
 //  RopCode中携带的Alpha值。
 //CN_SYS_PF_GRAY1~8是基于基色的灰度图，基色是struct RectBitmap结构中的
@@ -240,7 +240,7 @@ struct RopGroup
 {
     u32 SrcAlpha:8;     //Src Alpha(As)
     u32 DstAlpha:8;     //Dst Alpha(Ad)
-    u32 AlphaMode:8;    //Alpha 运算公式标志，参看CN_ALPHA_MODE_AsN族常数
+    u32 AlphaMode:8;    //Alpha 运算公式标志，参看 CN_ALPHA_MODE_AsN 族常数
     u32 Rop2Mode:4;     //rop2运算公式,参看CN_R2_BLACK族常数
     u32 AlphaEn:1;      //使能alpha运算运算，Rop2En自动被禁止。
     u32 HyalineEn:1;    //使能透明色
@@ -248,14 +248,15 @@ struct RopGroup
 };
 //绘制函数中，支持rop2、alpha、HyalineColor透明
 //窗口属性中，alpha>HyalineColor透明>Rop2，alpha公式不允许需要dst alpha参与运算。
+//          因为窗口扫描时，背景图像是多窗口层叠合成的，如果需要Ad，根本不知道该取
+//          哪个窗口的Ad
 //特别注意，这里所说的alpha，针对常量alpha的，bitmap中的alpha通道不受影响
-
 //以下定义alpha运算公式
 //定义规则:bit7=1表示运算时需dst像素参与；bit6=1表示运算时需Ad参与
-#define CN_ALPHA_MODE_AsN           0x00    //dst = S*As+D*(1-As)
-#define CN_ALPHA_MODE_AsAdN         0x40    //dst = S*As+D*(1-As)*Ad
-#define CN_ALPHA_MODE_AsAd          0x41    //dst = S*As+D*Ad
-#define CN_ALPHA_MODE_As            0x80    //dst = S*As
+#define CN_ALPHA_MODE_AsN           0x80    //dst = S*As+D*(1-As)
+#define CN_ALPHA_MODE_AsAdN         0xc0    //dst = S*As+D*(1-As)*Ad
+#define CN_ALPHA_MODE_AsAd          0xc1    //dst = S*As+D*Ad
+#define CN_ALPHA_MODE_As            0x00    //dst = S*As
 #define CN_ALPHA_MODE_NEED_DST      0x80    //bit7=1,需要dst像素参与运算
 #define CN_ALPHA_MODE_NEED_AD       0x40    //bit6=1,需要dst alpha参与运算
 
@@ -314,13 +315,6 @@ struct GkWinObj                  //窗口资源定义
     struct ClipRect *copy_clip;    //用于visible_clip的临时备份
     struct DisplayObj *disp;       //本窗口所属显示器
     struct GkWinProperty WinProperty;   //窗口的状态和属性
-//  sfast_t z_prio;             //前端优先级，-127~127，表示在兄弟窗口中的相对位
-                                //置，0表示与父win同级，大于0表示被父win覆盖
-                                //-128保留，不可使用。
-//  bool_t direct_screen;       //直接写屏属性，本属性为true，则所有对本win的绘
-                                //制操作均直接画在screen上，无论是否有frame
-                                //buffer和win buffer。
-//  bool_t dest_blend;          //true窗口显示时需要和背景色混合，false=不需要
     u32 HyalineColor;           //透明显示色，RopCode允许透明色时用,RGB888
     struct RopGroup RopCode;    //光栅操作代码，除windows定义的标准光栅操作码外，
                                 //还包括alpha混合、KeyColor透明
@@ -330,21 +324,16 @@ struct GkWinObj                  //窗口资源定义
     struct RectBitmap changed_msk;//用来标记窗口中的被改写区域，
                                       //每bit代表8*8像素
     struct RectBitmap *wm_bitmap; //窗口实体(暂为矩形，考虑升级为任意形状)
-//    struct RectBitmap *Rop4Msk;//位掩码，每位一个像素，只有支持rop4才需要
-//    u8 *pat_buf;                //pattern位图缓冲区，支持rop才有
-//                                //像素格式与显示器像素格式相同。
-//  ufast_t change_flag;        //可取值:cn_gkwin_change_none等
-//  bool_t bound_limit;         //true=显示范围限制在父窗口边界内，任何显示器的
-                                //直接放在桌面的窗口，必定受限
-                                //false=不受父窗口边界限制,但如果父窗口是受限的，
-                                //则限制于祖父窗口
-    s32 absx0,absy0;            //窗口绝对位置，相对于所属screen的桌面原点，
-    s32 left,top,right,bottom;  //窗口矩形，相对于父窗口，像素坐标
+    s32 ScreenX,ScreenY;            //窗口绝对位置，相对于所属screen的原点，
+    struct Rectangle area;      //窗口矩形，相对于父窗口，像素坐标
+//  s32 left,top,right,bottom;
 
-    s32 limit_left,limit_top;   //被祖先窗口限制后的可视边界，相对于本窗口坐标
-    s32 limit_right,limit_bottom; //如果窗口被限制后，没有可视范围，则全0
+    struct Rectangle limit;
+//  s32 limit_left,limit_top;   //被祖先窗口限制后的可视边界，相对于本窗口坐标
+//  s32 limit_right,limit_bottom; //如果窗口被限制后，没有可视范围，则全0
                                 //可视范围没有考虑窗口遮挡，与可视域不是一个概念
-
+//  s32 draw_left,draw_top;
+//  s32 draw_right,draw_bottom;
 };
 
 //用户调用消息队列参数配置
@@ -375,8 +364,7 @@ struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
                          s32 left,s32 top,s32 right,s32 bottom,
                          u32 color,u32 buf_mode,
                          const char *name,u16 PixelFormat,u32 HyalineColor,
-                         u32 BaseColor,struct RopGroup RopMode,
-                         bool_t unfill);
+                         u32 BaseColor,struct RopGroup RopMode);
 void GK_FillWin(struct GkWinObj *gkwin,u32 color,u32 sync_time);
 void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *rect,
                             u32 Color0,u32 Color1,u32 Mode,u32 sync_time);
@@ -387,9 +375,9 @@ struct GkWinObj* GK_GetTwig(struct GkWinObj *Ancestor);
 struct GkWinObj* GK_TraveScion(struct GkWinObj *Ancestor,struct GkWinObj *Current);
 struct GkWinObj* GK_TraveChild(struct GkWinObj *Parent,struct GkWinObj *Current);
 void GK_AdoptWin(struct GkWinObj *gkwin, struct GkWinObj *NewParent);
-void GK_MoveWin(struct GkWinObj *gkwin,s32 left,s32 top,u32 sync_time);
+void GK_MoveWin(struct GkWinObj *gkwin,s32 left,s32 top);
 void GK_ChangeWinArea(struct GkWinObj *gkwin, s32 left,s32 top,
-                                       s32 right,s32 bottom, u32 SyncTime);
+                                       s32 right,s32 bottom);
 void GK_SetBoundMode(struct GkWinObj *gkwin,bool_t mode);
 void GK_SetPrio(struct GkWinObj *gkwin,u32 prio,u32 sync_time);
 bool_t GK_SetRopCode(struct GkWinObj *gkwin,
@@ -412,7 +400,12 @@ struct GkWinObj *GK_GetPreviousWin(struct GkWinObj *gkwin);
 struct GkWinObj *GK_GetNextWin(struct GkWinObj *gkwin);
 struct GkWinObj *GK_GetFirstWin(struct GkWinObj *gkwin);
 struct GkWinObj *GK_GetLastWin(struct GkWinObj *gkwin);
-void GK_GetArea(struct GkWinObj *gkwin, struct Rectangle *rc);
+void GK_GetScreenArea(struct GkWinObj *gkwin, struct Rectangle *rc);
+void GK_GetLcArea(struct GkWinObj *gkwin, struct Rectangle *rc);
+void GK_GetSize(struct GkWinObj *gkwin, struct PointCdn *size);
+void GK_GetLocation(struct GkWinObj *gkwin, struct PointCdn *lc);
+void GK_GetScreenLocation(struct GkWinObj *gkwin, struct PointCdn *lc);
+void GK_GetDspSize(struct GkWinObj *gkwin, struct PointCdn *size);
 void GK_SetName(struct GkWinObj *gkwin, const char *Name);
 char *GK_GetName(struct GkWinObj *gkwin);
 bool_t GK_IsWinVisible(struct GkWinObj *gkwin);
@@ -425,22 +418,21 @@ u32 GK_ConvertColorToRGB24(u16 PixelFormat,u32 color,ptu32_t ExColor);
 u32 GK_ConvertRGB24ToPF(u16 PixelFormat,u32 color);
 
 //绘图函数组
-void GK_DrawText(struct GkWinObj *gkwin,
+void GK_DrawText(struct GkWinObj *gkwin,struct Rectangle *range,
                     struct FontObj *pFont,
                     struct Charset *pCharset,
                     s32 x,s32 y,
                     const char *text,u32 count,u32 color,
                     u32 Rop2Code,u32 SyncTime);
-void GK_SetPixel(struct GkWinObj *gkwin,s32 x,s32 y,
-                        u32 color,u32 rop2_code,u32 sync_time);
-void GK_Lineto(struct GkWinObj *gkwin, s32 x1,s32 y1,
+void GK_SetPixel(struct GkWinObj *gkwin,struct Rectangle *range,s32 x,s32 y,
+                        u32 color,u32 Rop2Code,u32 SyncTime);
+void GK_Lineto(struct GkWinObj *gkwin,struct Rectangle *range, s32 x1,s32 y1,
                     s32 x2,s32 y2,u32 color,u32 rop2_code,u32 sync_time);
 void GK_LinetoIe(struct GkWinObj *gkwin, s32 x1,s32 y1,
                     s32 x2,s32 y2,u32 color,u32 rop2_code,u32 sync_time);
-void GK_DrawBitMap(struct GkWinObj *gkwin,
-                                struct RectBitmap *bitmap,
-                                s32 x,s32 y,
-                                u32 HyalineColor,struct RopGroup RopCode,u32 SyncTime);
+void GK_DrawBitMap(struct GkWinObj *gkwin,struct Rectangle *range,
+                    struct RectBitmap *bitmap,s32 x,s32 y,
+                    u32 HyalineColor,struct RopGroup RopCode,u32 SyncTime);
 void GK_DrawCircle(struct GkWinObj *gkwin,s32 x0,s32 y0,
                     u32 r,u32 color,u32 rop2_code,u32 sync_time);
 void GK_DrawBezier(struct GkWinObj *gkwin,float x1,float y1,

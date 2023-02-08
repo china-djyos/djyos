@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -300,15 +300,11 @@ typedef enum
     EN_Start_LAST,
 }enStartMode;
 
-#define CN_BOOT_LEGALKEY   0XAA55AA55  //调用reboot、CPU_Reset、reload传输该key，不会记录，否则会作为异常记录
 typedef enStartMode  (*fnGetStartMode)(void); //用于获取我们的CPU启动模式的函数原型
-//安装系统启动记录存储模块：tab是我们的栈可能使用的内存范围，可以是多个，NULL结束,不可更改；GetOsBootModeHard是软件启动标志，需要BSP提供；GetOsBootModeSoft是
-//软件启动标志，需要BSP提供
+//安装系统启动记录存储模块：tab是我们的栈可能使用的内存范围，可以是多个，NULL结束,不可更改；
+//getmodehard 是硬件启动标志，需要BSP提供；getmodesoft是软件启动标志，需要BSP提供
 bool_t ModuleInstall_SysStartReason(const tagVmMemItem *tab[],fnGetStartMode getmodehard,
                             fnGetStartMode getmodesoft);
-//抛出异常重启信息，当调用系统的reboot、CPU_Reset、reload等提供非法的KEY的时候
-//合法的KEY是0xaa55aa55,其他的均会认为是非法的，这部分需要cpu的bsp 的port的支持
-bool_t ThrowOsStartInfo(enStartMode mode);
 
 
 #endif /* __BLACKBOX_H__ */

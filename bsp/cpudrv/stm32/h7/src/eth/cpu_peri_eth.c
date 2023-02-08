@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -66,7 +66,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu onchip MAC"//CPU的mac驱动
+//component name:"cpu onchip ETH"//CPU的mac驱动
 //parent:"tcpip"       //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -91,9 +91,7 @@
 //%$#@string,1,32,
 #define CFG_ETH_NETCARD_NAME    "STM32H7_ETH"   //"网卡名称",
 //%$#@num,1000,10000,
-#define CFG_ETH_LOOP_CYCLE      1000         //"网卡轮询周期(uS)",中断模式无须填写
 //%$#@enum,true,false,
-#define CFG_ETH_LOOP_ENABLE     true            //"网卡接收是否轮询",
 #define CFG_ETH_HARD_MAC_ADDR   true            //"硬件生成Mac地址",
 //%$#@num,0,255,
 #define CFG_ETH_MAC_ADDR0      00           //"MAC ADDR0",若选中"硬件生成Mac地址",则无须填写
@@ -112,6 +110,9 @@
 
 //@#$%component end configure
 // =============================================================================
+
+#define CFG_ETH_LOOP_CYCLE      1000         //"网卡轮询周期(uS)",中断模式无须填写
+#define CFG_ETH_LOOP_ENABLE     false            //"网卡接收是否轮询",
 
 bool_t MacReset(char *param);
 #define CN_DEVNAME_LEN 32
@@ -200,6 +201,16 @@ void NETMPU_Config(void)
     HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 }
 
+// HAL库中调用了该函数
+void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
+{
+    /* Enable ETHERNET clock  */
+    __HAL_RCC_ETH1MAC_CLK_ENABLE();
+    __HAL_RCC_ETH1TX_CLK_ENABLE();
+    __HAL_RCC_ETH1RX_CLK_ENABLE();
+}
+
+
 static void __macbitsset(vu32 *reg,u32 bits)
 {
     vu32 value;
@@ -237,6 +248,8 @@ static void ETH_HardDrvInit(tagMacDriver *pDrive)
     TxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CSUM | ETH_TX_PACKETS_FEATURES_CRCPAD;
     TxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
     TxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
+
+    HAL_ETH_Start_IT(heth);
 }
 
 static void __MacReset(tagMacDriver *pDrive)

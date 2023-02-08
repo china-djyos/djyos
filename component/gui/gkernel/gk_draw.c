@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -468,49 +468,61 @@ u32 GK_BlendRop2(u32 dest,u32 PenColor,u32 Rop2Code)
     }
     return 0;
 }
-//----判断目标点所在的区域-----------------------------------------------------
-//功能: 判断目标点所在的区域，分成矩形域的左、右、上、下四部分。
+
+#define CN_AREA_IN      0
+#define CN_AREA_LEFT    1
+#define CN_AREA_RIGHT   2
+#define CN_AREA_TOP     4
+#define CN_AREA_BOTTOM  8
+//----判断目标点的位置-----------------------------------------------------
+//功能: 判断目标点所在的区域，分成矩形域的内部、左、右、上、下五部分。
 //参数: x、y，目标点,相对窗口的坐标
-//      limit，矩形域,相对窗口的坐标
+//      limit，矩形域
 //返回: 标志量c，c = 0表示目标点在矩形域内，否则在矩形域外
 //-----------------------------------------------------------------------------
 u32 __GK_PointSect(s32 x,s32 y,struct Rectangle *limit)  //确认
 {
     s32 c;
-    c = 0;
+    c = CN_AREA_IN;
 
+//  limit->bottom--;
+//  limit->right--;
     if(x < limit->left)                 //判断目标点是否在矩形域左方
-        c |= 0x01;
+        c |= CN_AREA_LEFT;
     else
     {
         if(x > limit->right)            //判断目标点是否在矩形域右方
-        c |= 0x02;
+            c |= CN_AREA_RIGHT;
     }
     if(y < limit->top)                  //判断目标点是否在矩形域上方
-        c |= 0x04;
+        c |= CN_AREA_TOP;
     else
     {
         if(y > limit->bottom)           //判断目标点是否在矩形域下方
-        c |= 0x08;
+            c |= CN_AREA_BOTTOM;
     }
     return c;
 }
-//----求取直线段与矩形域的交点-------------------------------------------------
-//功能: 求取直线段与矩形域的交点。
-//参数: limit，矩形域,相对窗口的坐标
+
+//----截取斜线在矩形内部部分-------------------------------------------------
+//功能: 截取直线在矩形内部部分。
+//参数: limit，矩形域
 //      x1、y1、x2、y2，起、终点,相对窗口的坐标
-//返回: 标志量flag，flag = 0表示斜线不在limit内，flag = 1表示斜线有点在limit内
+//返回: 标志量flag，flag = 0表示斜线不在limit内，flag = 1表示斜线部分或全部在limit内。
+//      如果 flag != 0,则用 x1、y1、x2、y2 返回交点坐标
 //说明: 此处的直线段是针对斜线段的
 //-----------------------------------------------------------------------------
-u32 __GK_OlineSectInter(struct Rectangle *limit,s32 *x1,s32 *y1,s32 *x2,s32 *y2)//确认
+u32 __GK_OlineSectInter(struct Rectangle *limit,s32 *x1,s32 *y1,s32 *x2,s32 *y2)
 {
     s32 c1,c2,i=0;
-    s32 flag = 1;
+    u32 flag = 1;
+    struct Rectangle lmt = *limit;
+    lmt.bottom--;
+    lmt.right--;
+    c1 = __GK_PointSect(*x1,*y1,&lmt);
+    c2 = __GK_PointSect(*x2,*y2,&lmt);
 
-    c1 = __GK_PointSect(*x1,*y1,limit);
-    c2 = __GK_PointSect(*x2,*y2,limit);
-
-    if((c1 == 0)&&(c2 == 0))        //斜线在limit内
+    if((c1 == CN_AREA_IN)&&(c2 == CN_AREA_IN))      //整个斜线在limit内
         return flag;
     else if((c1&c2) != 0)           //斜线在limit外，整条线段在limit的一条边界外
     {
@@ -523,64 +535,64 @@ u32 __GK_OlineSectInter(struct Rectangle *limit,s32 *x1,s32 *y1,s32 *x2,s32 *y2)
         {
             do
             {
-                if((c2&0x01) != 0)
+                if((c2&CN_AREA_LEFT) != 0)
                 {
-                    *y2 = *y1+(*y1-*y1)*(limit->left-*x1)/(*x2-*x1);
-                    *x2 = limit->left;
-                    c2 = __GK_PointSect(*x2,*y2,limit);
+                    *y2 = *y1+(*y2-*y1)*(lmt.left-*x1)/(*x2-*x1);
+                    *x2 = lmt.left;
+                    c2 = __GK_PointSect(*x2,*y2,&lmt);
                 }
-                else if((c2&0x02) != 0)
+                else if((c2&CN_AREA_RIGHT) != 0)
                 {
-                    *y2 = *y1+(*y2-*y1)*(limit->right-*x1)/(*x2-*x1);
-                    *x2 = limit->right;
-                    c2 = __GK_PointSect(*x2,*y2,limit);
+                    *y2 = *y1+(*y2-*y1)*(lmt.right-*x1)/(*x2-*x1);
+                    *x2 = lmt.right;
+                    c2 = __GK_PointSect(*x2,*y2,&lmt);
                 }
-                else if((c2&0x04) != 0)
+                else if((c2&CN_AREA_TOP) != 0)
                 {
-                    *x2 = *x1+(*x2-*x1)*(limit->top-*y1)/(*y2-*y1);
-                    *y2 = limit->top;
-                    c2 = __GK_PointSect(*x2,*y2,limit);
+                    *x2 = *x1+(*x2-*x1)*(lmt.top-*y1)/(*y2-*y1);
+                    *y2 = lmt.top;
+                    c2 = __GK_PointSect(*x2,*y2,&lmt);
                 }
                 else
                 {
-                    *x2 = *x1+(*x2-*x1)*(limit->bottom-*y1)/(*y2-*y1);
-                    *y2 = limit->bottom;
-                    c2 = __GK_PointSect(*x2,*y2,limit);
+                    *x2 = *x1+(*x2-*x1)*(lmt.bottom-*y1)/(*y2-*y1);
+                    *y2 = lmt.bottom;
+                    c2 = __GK_PointSect(*x2,*y2,&lmt);
                 }
-            }while(c2 != 0);
+            }while(c2 != CN_AREA_IN);
             return flag;
         }
         else                    //点(x1,y1)不在limit内，点(x2,y2)可能在limit内
         {                       //也可能在limit外
             do{
-                if((c1&0x01) != 0)
+                if((c1&CN_AREA_LEFT) != 0)
                 {
-                    *y1 = *y1+(*y2-*y1)*(limit->left-*x1)/(*x2-*x1);
-                    *x1 = limit->left;
-                    c1 = __GK_PointSect(*x1,*y1,limit);
+                    *y1 = *y1+(*y2-*y1)*(lmt.left-*x1)/(*x2-*x1);
+                    *x1 = lmt.left;
+                    c1 = __GK_PointSect(*x1,*y1,&lmt);
                     i++;
                 }
-                else if((c1&0x02) != 0)
+                else if((c1&CN_AREA_RIGHT) != 0)
                 {
-                    *y1 = *y1+(*y2-*y1)*(limit->right-*x1)/(*x2-*x1);
-                    *x1 = limit->right;
-                    c1 = __GK_PointSect(*x1,*y1,limit);
+                    *y1 = *y1+(*y2-*y1)*(lmt.right-*x1)/(*x2-*x1);
+                    *x1 = lmt.right;
+                    c1 = __GK_PointSect(*x1,*y1,&lmt);
                     i++;
                 }
-                else if((c1&0x04) != 0)
+                else if((c1&CN_AREA_TOP) != 0)
                 {
-                    *x1 = *x1+(*x2-*x1)*(limit->top-*y1)/(*y2-*y1);
-                    *y1 = limit->top;
-                    c1 = __GK_PointSect(*x1,*y1,limit);
+                    *x1 = *x1+(*x2-*x1)*(lmt.top-*y1)/(*y2-*y1);
+                    *y1 = lmt.top;
+                    c1 = __GK_PointSect(*x1,*y1,&lmt);
                     i++;
                 }
                 else
                 {
-                    if((c1&0x08) != 0)
+                    if((c1&CN_AREA_BOTTOM) != 0)
                     {
-                        *x1 = *x1+(*x2-*x1)*(limit->bottom-*y1)/(*y2-*y1);
-                        *y1 = limit->bottom;
-                        c1 = __GK_PointSect(*x1,*y1,limit);
+                        *x1 = *x1+(*x2-*x1)*(lmt.bottom-*y1)/(*y2-*y1);
+                        *y1 = lmt.bottom;
+                        c1 = __GK_PointSect(*x1,*y1,&lmt);
                         i++;
                     }
                 }
@@ -590,38 +602,38 @@ u32 __GK_OlineSectInter(struct Rectangle *limit,s32 *x1,s32 *y1,s32 *x2,s32 *y2)
                     flag = 0;
                     return flag;
                 }
-            }while(c1 != 0);
-            if(c2 == 0)
+            }while(c1 != CN_AREA_IN);
+            if(c2 == CN_AREA_IN)
                 return flag;
             else
             {
                 do
                 {
-                    if((c2&0x01) != 0)
+                    if((c2&CN_AREA_LEFT) != 0)
                     {
-                        *y2 = *y1+(*y2-*y1)*(limit->left-*x1)/(*x2-*x1);
-                        *x2 = limit->left;
-                        c2 = __GK_PointSect(*x2,*y2,limit);
+                        *y2 = *y1+(*y2-*y1)*(lmt.left-*x1)/(*x2-*x1);
+                        *x2 = lmt.left;
+                        c2 = __GK_PointSect(*x2,*y2,&lmt);
                     }
-                    else if((c2&0x02) != 0)
+                    else if((c2&CN_AREA_RIGHT) != 0)
                     {
-                        *y2 = *y1+(*y2-*y1)*(limit->right-*x1)/(*x2-*x1);
-                        *x2 = limit->right;
-                        c2 = __GK_PointSect(*x2,*y2,limit);
+                        *y2 = *y1+(*y2-*y1)*(lmt.right-*x1)/(*x2-*x1);
+                        *x2 = lmt.right;
+                        c2 = __GK_PointSect(*x2,*y2,&lmt);
                     }
-                    else if((c2&0x04) != 0)
+                    else if((c2&CN_AREA_TOP) != 0)
                     {
-                        *x2 = *x1+(*x2-*x1)*(limit->top-*y1)/(*y2-*y1);
-                        *y2 = limit->top;
-                        c2 = __GK_PointSect(*x2,*y2,limit);
+                        *x2 = *x1+(*x2-*x1)*(lmt.top-*y1)/(*y2-*y1);
+                        *y2 = lmt.top;
+                        c2 = __GK_PointSect(*x2,*y2,&lmt);
                     }
                     else
                     {
-                        *x2 = *x1+(*x2-*x1)*(limit->bottom-*y1)/(*y2-*y1);
-                        *y2 = limit->bottom;
-                        c2 = __GK_PointSect(*x2,*y2,limit);
+                        *x2 = *x1+(*x2-*x1)*(lmt.bottom-*y1)/(*y2-*y1);
+                        *y2 = lmt.bottom;
+                        c2 = __GK_PointSect(*x2,*y2,&lmt);
                     }
-                }while(c2 != 0);
+                }while(c2 != CN_AREA_IN);
                 return flag;
             }
         }
@@ -876,10 +888,10 @@ void __GK_GetRgbBm(u16 PixelFormat,u32 color,u32 *a,u32 *r,
 }
 //----计算alpha混合-------------------------------------------------------
 //功能: 对两个像素求alpha混合值,分离color,RGB分别计算,转换成dst的像素格式返回.
-//      dst的格式如果调色板类型，混合后的返回值是RGB24格式的，因为混合后的颜色可
-//          能不在颜色表中。
+//      dst的格式如果调色板类型，混合后将返回RGB24格式的值，因为混合后的颜色可
+//      能不在颜色表中。
 //      dst的格式如果是灰度图，混合后的颜色再计算亮度输出。
-//参数: SrcColor,DstColor，待混合的色彩
+//参数: SrcColor,DstColor，待混合的色彩，符合参数 PixelFormat 格式
 //      PixelFormat, 色彩的格式
 //      ExColor,双功能参数，如果PixelFormat=CN_SYS_PF_GRAY1~8，或者PixelFormat=
 //          CN_SYS_PF_ALPHA1~8，则ExColor表示基色。
@@ -897,9 +909,9 @@ u32 __GK_AlphaBlendBitmapToWin(u32 SrcColor,u32 DstColor, u16 PixelFormat,
     u32 a_dst=0,r_dst,g_dst,b_dst;
     u32 result;
     //求取目标位图颜色的rgb分量
-    __GK_GetRgbBm(PixelFormat,SrcColor,&a_dst,&r_dst,&g_dst,&b_dst,dst_ExColor);
+    __GK_GetRgbBm(PixelFormat,DstColor,&a_dst,&r_dst,&g_dst,&b_dst,dst_ExColor);
     //求取源位图颜色的rgb分量
-    __GK_GetRgbBm(PixelFormat,DstColor,&a_src,&r_src,&g_src,&b_src,dst_ExColor);
+    __GK_GetRgbBm(PixelFormat,SrcColor,&a_src,&r_src,&g_src,&b_src,dst_ExColor);
     //根据目标位图颜色格式求取组合后的颜色
     switch(AlphaMode)
     {
@@ -1026,6 +1038,24 @@ u32 __GK_AlphaBlendBitmapToWin(u32 SrcColor,u32 DstColor, u16 PixelFormat,
     }
 
     return result;
+}
+
+
+//----在单色位图上直接画点---------------------------------------------
+//功能: 在一单色的个bitmap上画亮点，要求color和bitmap的格式相同，主要用于修改域掩码。
+//参数: bitmap，目标位图
+//      x、y，画图坐标
+//返回: 无
+//-----------------------------------------------------------------------------
+void __GK_SetChangeMsk(struct RectBitmap *bitmap,s32 x,s32 y)
+{
+    u8 bit_offset;
+    u32 byte_offset;
+    byte_offset = y*bitmap->linebytes + x/8;//点对应坐标的字节偏移量
+    //点对应坐标在字节中的位偏移量高位在左边，低位在右
+    bit_offset = 7-x%8;
+    //目标位图上对应坐标的颜色
+    bitmap->bm_bits[byte_offset] |= (u8)1<<bit_offset;
 }
 
 //----在内存画点(执行二元光栅操作)---------------------------------------------
@@ -1392,8 +1422,8 @@ void __GK_SetPixel(struct GkscParaSetPixel *para)
         if(clip == NULL)        //可视域为空，直接返回
             return ;
         fb_gkwin = pixelwin->disp->frame_buffer;
-        offsetx = pixelwin->absx0 +para->x;
-        offsety = pixelwin->absy0 +para->y;
+        offsetx = pixelwin->ScreenX +para->x;
+        offsety = pixelwin->ScreenY +para->y;
         //有frame buffer，且直接写屏属性为false
         if((fb_gkwin != NULL) && (pixelwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
         {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
@@ -1460,8 +1490,7 @@ void __GK_ShadingPixel(struct GkWinObj *gkwin,s32 x,s32 y)
     msk_x = x/8;       //计算x在msk位图中第几列
     msk_y = y/8;       //计算y在msk位图中第几行
     //将像素所在的changed_msk中的bit置为1
-    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,msk_y,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+    __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
     return;
 }
 
@@ -1499,8 +1528,7 @@ void __GK_ShadingRect(struct GkWinObj *gkwin,struct Rectangle *rect)
     for(y = msk_y1;y <= msk_y2;y++)
     {
         for(x = msk_x1;x <= msk_x2;x++)
-            __GK_SetPixelRop2Bm(&(gkwin->changed_msk),x,y,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+            __GK_SetChangeMsk(&(gkwin->changed_msk),x,y);
     }
 }
 
@@ -1519,29 +1547,33 @@ void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
     {
         return;
     }
+    //取线段在limit内的部分，两端都是要绘制的点。
+    if(!__GK_OlineSectInter(limit,&x1,&y1,&x2,&y2))
+        return;
     gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_PART;
 
     if(y1 == y2)        //水平直线着色
     {
         s32 x;
         s32 msk_x1,msk_x2,msk_y1;
-        if(x1>x2)
-            __gk_swap(x1,x2);
-        if((y1 <= limit->top) || (y1 >= limit->bottom)
-            ||(x2 <= limit->left) || (x1 >= limit->right))
-            return;         //所绘直线在limit之外
-        if(x1 < limit->top)
-            x1 = limit->top;
-        if(x2 > limit->bottom)
-            x2 = limit->bottom;
+//      if(x1>x2)
+//          __gk_swap(x1,x2);
+//        if((y1 < limit->top) || (y1 >= limit->bottom)
+//            ||(x2 < limit->left) || (x1 >= limit->right))
+//            return;         //所绘直线在limit之外
+//      if(x1 < limit->top)
+//          x1 = limit->top;
+//      if(x2 > limit->bottom)
+//          x2 = limit->bottom;
         msk_x1 = x1/8;     //计算x1在msk位图中第几列
-        msk_x2 = (x2-1)/8; //计算(x2-1)在msk位图中第几列，-1是因为终点不包含在内
+        msk_x2 = (x2)/8; //计算(x2)在msk位图中第几列
         msk_y1 = y1/8;     //计算y1在msk位图中第几行
+        if(msk_x1>msk_x2)
+            __gk_swap(msk_x1,msk_x2);
         for(x = msk_x1;x <= msk_x2;x++)
         {
             //将changed_msk相应的bit置1
-            __GK_SetPixelRop2Bm(&(gkwin->changed_msk),x,msk_y1,
-                                    CN_COLOR_WHITE,CN_R2_COPYPEN);
+            __GK_SetChangeMsk(&(gkwin->changed_msk),x,msk_y1);
         }
 
     }
@@ -1549,23 +1581,24 @@ void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
     {
         s32 y;
         s32 msk_x1,msk_y1,msk_y2;
-        if(y1>y2)
-            __gk_swap(y1,y2);
-        if((x1<limit->left) || (x1 >= limit->right)
-            ||(y2 <= limit->top) || (y1 >= limit->bottom))
-            return;         //所绘直线在limit之外
-        if(y1 < limit->top)
-            y1 = limit->top;
-        if(y2 > limit->bottom)
-            y2 = limit->bottom;
+//      if(y1>y2)
+//          __gk_swap(y1,y2);
+//      if((x1<limit->left) || (x1 >= limit->right)
+//          ||(y2 < limit->top) || (y1 >= limit->bottom))
+//          return;         //所绘直线在limit之外
+//      if(y1 < limit->top)
+//          y1 = limit->top;
+//      if(y2 > limit->bottom)
+//          y2 = limit->bottom;
         msk_x1 = x1/8;     //计算x1在msk位图中第几列
         msk_y1 = y1/8;     //计算y1在msk位图中第几行
-        msk_y2 = (y2-1)/8; //计算(y2-1)在msk位图中第几行，-1是因为终点不包含在内
+        msk_y2 = (y2)/8; //计算(y2)在msk位图中第几行
+        if(msk_y1>msk_y2)
+            __gk_swap(msk_y1,msk_y2);
         for(y = msk_y1;y <= msk_y2;y++)
         {
             //将changed_msk相应的bit置1
-            __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x1,y,
-                                    CN_COLOR_WHITE,CN_R2_COPYPEN);
+            __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x1,y);
         }
     }
     else
@@ -1598,13 +1631,11 @@ void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
                     msk_x = x/8;    //计算x在msk位图中第几列
                     msk_y = y/8;    //计算y在msk位图中第几行
                     //将changed_msk相应的bit置1
-                    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                    __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                     //标志(msk_x，msk_y)下面的一个点
                     msk_y += 1;
                     //将changed_msk相应的bit置1
-                    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                    __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                 }
             }
             else
@@ -1625,13 +1656,11 @@ void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
                     msk_x = x/8;    //计算x在msk位图中第几列
                     msk_y = y/8;    //计算y在msk位图中第几行
                     //将changed_msk相应的bit置1
-                    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                    __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                     //标志(msk_x，msk_y)上面的一个点
                     msk_y -= 1;
                     //将changed_msk相应的bit置1
-                    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                    __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                 }
             }
         }else
@@ -1653,12 +1682,10 @@ void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
                     msk_x = x/8;    //计算x在msk位图中第几列
                     msk_y = y/8;    //计算y在msk位图中第几行
                     //将changed_msk相应的bit置1
-                    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                    __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                     msk_x += 1;
                     //将changed_msk相应的bit置1
-                    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                    __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                 }
             }
             else
@@ -1678,12 +1705,10 @@ void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
                     msk_x = x/8;    //计算x在msk位图中第几列
                     msk_y = y/8;    //计算y在msk位图中第几行
                     //将changed_msk相应的bit置1
-                    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                         msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                    __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                     msk_x -= 1;
                     //将changed_msk相应的bit置1
-                    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                    __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                 }
             }
         }
@@ -1749,7 +1774,7 @@ void __GK_DrawOline(struct GkWinObj *gkwin,s32 x1,s32 y1,
     //颜色格式为显卡自定义格式
     if(bitmap->PixelFormat & CN_CUSTOM_PF)
     {
-        for(i=1;i<=dx;i++)//hjj
+        for(i=1;i<=dx;i++)
         {
             gkwin->disp->draw.SetPixelToBitmap(bitmap,x,y,color,Rop2Code);
             //取离数学点较近的像素
@@ -1793,16 +1818,16 @@ void __GK_DrawOline(struct GkWinObj *gkwin,s32 x1,s32 y1,
 }
 
 //----画垂直线(不含端点)-------------------------------------------------------
-//功能: 在窗口内从当前光标处开始画一条垂直线。
+//功能: 在窗口内画一条垂直线，只画limit限定的部分
 //参数: gkwin，目标窗口指针
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
 //      x1、y1，起始点的坐标
 //      y2，结束点的纵坐标
-//      color，颜色，cn_sys_pf_e8r8g8b8格式
+//      color，颜色，CN_SYS_PF_ERGB8888格式
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_VlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
+void __GK_VlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
                      s32 x1,s32 y1,s32 y2,u32 color,u32 Rop2Code)
 {
     s32 y;
@@ -1818,8 +1843,8 @@ void __GK_VlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
     //垂直线超出limit的部分不绘制
     if(y1 < limit->top)
         y1 = limit->top;
-    if(y2 > limit->bottom)
-        y2 = limit->bottom;
+    if(y2 >= limit->bottom)
+        y2 = limit->bottom-1;
     if(bitmap->PixelFormat & CN_CUSTOM_PF)
     {
         for(y = y1; y < y2;y++)
@@ -1845,23 +1870,22 @@ void __GK_VlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
         msk_y2 = (y2-1)/8; //计算(y2-1)在msk位图中第几行，-1是因为终点不包含在内
         for(y = msk_y1;y <= msk_y2;y++)
         {   //将changed_msk相应的bit置1
-            __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x1,y,
-                                    CN_COLOR_WHITE,CN_R2_COPYPEN);
+            __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x1,y);
         }
     }
 }
 
 //----画水平直线(不含端点)-------------------------------------------------------
-//功能: 在窗口内从当前光标处开始画一条水平直线。
+//功能: 在窗口内画一条水平直线，只画limit限定的部分
 //参数: gkwin，目标窗口指针
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
 //      x1、y1，起始点的坐标
 //      x2，结束点的横坐标
-//      color，颜色，cn_sys_pf_e8r8g8b8格式
+//      color，颜色，CN_SYS_PF_ERGB8888格式
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_HlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
+void __GK_HlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
                      s32 x1,s32 y1,s32 x2,u32 color,u32 Rop2Code)
 {
     s32 x;
@@ -1877,11 +1901,11 @@ void __GK_HlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
     //水平线在limit外部分不绘制
     if(x1 < limit->left)
         x1 = limit->left;
-    if(x2 > limit->right)
-        x2 = limit->right;
+    if(x2 >= limit->right)
+        x2 = limit->right-1;
     if(bitmap->PixelFormat & CN_CUSTOM_PF)
     {
-        for(x = x1; x < x2;x++)
+        for(x = x1; x <= x2;x++)
         {
             gkwin->disp->draw.SetPixelToBitmap(bitmap,x,y1,color,Rop2Code);
         }
@@ -1904,29 +1928,29 @@ void __GK_HlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
         msk_y1 = y1/8;     //计算y1在msk位图中第几行
         for(x = msk_x1;x <= msk_x2;x++)
         {   //将changed_msk相应的bit置1
-            __GK_SetPixelRop2Bm(&(gkwin->changed_msk),x,msk_y1,
-                                    CN_COLOR_WHITE,CN_R2_COPYPEN);
+            __GK_SetChangeMsk(&(gkwin->changed_msk),x,msk_y1);
         }
     }
 }
 //----画斜线(不含端点)---------------------------------------------------------
-//功能: 在窗口内从当前光标处开始画一条斜线。
+//功能: 在窗口内画一条斜线，只画limit限定的部分
 //参数: gkwin，目标窗口指针
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
 //      x1、y1，起始点的坐标
 //      x2、y2，结束点的坐标
-//      color，颜色，cn_sys_pf_e8r8g8b8格式
+//      color，颜色，CN_SYS_PF_ERGB8888格式
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_OlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
+void __GK_OlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
                        s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 Rop2Code)
 {
     s32 x,y;
     s32 msk_x,msk_y;
     s32 dx,dy;
 
-    if(__GK_OlineSectInter(limit,&x1,&y1,&x2,&y2))//取得斜线与limit的交点
+    //取得斜线与limit的交点，砍掉limit外面的部分
+    if(__GK_OlineSectInter(limit,&x1,&y1,&x2,&y2))
     {
         __GK_DrawOline(gkwin,x1,y1,x2,y2,color,Rop2Code);//绘制斜线
 
@@ -1958,13 +1982,11 @@ void __GK_OlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
                         msk_x = x/8;    //计算x在msk位图中第几列
                         msk_y = y/8;    //计算y在msk位图中第几行
                         //将changed_msk相应的bit置1
-                        __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                         //标志(msk_x，msk_y)下面的一个点
                         msk_y += 1;
                         //将changed_msk相应的bit置1
-                        __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                     }
                 }
                 else
@@ -1985,13 +2007,11 @@ void __GK_OlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
                         msk_x = x/8;    //计算x在msk位图中第几列
                         msk_y = y/8;    //计算y在msk位图中第几行
                         //将changed_msk相应的bit置1
-                        __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                         //标志(msk_x，msk_y)上面的一个点
                         msk_y -= 1;
                         //将changed_msk相应的bit置1
-                        __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                     }
                 }
             }else
@@ -2013,12 +2033,10 @@ void __GK_OlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
                         msk_x = x/8;    //计算x在msk位图中第几列
                         msk_y = y/8;    //计算y在msk位图中第几行
                         //将changed_msk相应的bit置1
-                        __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                         msk_x += 1;
                         //将changed_msk相应的bit置1
-                        __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                     }
                 }
                 else
@@ -2038,12 +2056,10 @@ void __GK_OlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
                         msk_x = x/8;    //计算x在msk位图中第几列
                         msk_y = y/8;    //计算y在msk位图中第几行
                         //将changed_msk相应的bit置1
-                        __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                             msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                         msk_x -= 1;
                         //将changed_msk相应的bit置1
-                        __GK_SetPixelRop2Bm(&(gkwin->changed_msk),msk_x,
-                                                 msk_y,CN_COLOR_WHITE,CN_R2_COPYPEN);
+                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
                     }
                 }
             }
@@ -2059,22 +2075,22 @@ void __GK_OlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_LinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
+void __GK_LinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
                     s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 Rop2Code)
 {
     if(y1 == y2)        //绘水平线
-        __GK_HlinetoBm(gkwin,limit,x1,y1,x2,color,Rop2Code);
+        __GK_HlinetoWin(gkwin,limit,x1,y1,x2,color,Rop2Code);
     else if(x1 == x2)   //绘垂直线
-        __GK_VlinetoBm(gkwin,limit,x1,y1,y2,color,Rop2Code);
+        __GK_VlinetoWin(gkwin,limit,x1,y1,y2,color,Rop2Code);
     else                //绘斜线
-        __GK_OlinetoBm(gkwin,limit,x1,y1,x2,y2,color,Rop2Code);
+        __GK_OlinetoWin(gkwin,limit,x1,y1,x2,y2,color,Rop2Code);
 }
 
 //----在screen上画像素---------------------------------------------------------
 //功能: 在screen上直接画点。
 //参数: gkwin，绘制的目标窗口
 //      x、y， 坐标
-//      color，绘图所用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图所用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
@@ -2102,7 +2118,7 @@ void __GK_SetPixelScreen(struct DisplayObj *display,s32 x,s32 y,
 //参数: display，绘制的目标显示器
 //      limit，允许绘图的限制区域，一个矩形的区域，超出此区域的直线不画
 //      x1、y1、x2、y2，起点和终点坐标
-//      color，绘图所用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图所用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
@@ -2149,6 +2165,7 @@ void __GK_LinetoScreen(struct DisplayObj *display,struct Rectangle *limit,
             }
         }else            //绘斜线
         {
+            //取得斜线与limit的交点，砍掉limit外面的部分
             if( __GK_OlineSectInter(limit,&x1,&y1,&x2,&y2))
             {
                 x = x1;
@@ -2209,7 +2226,7 @@ void __GK_LinetoScreen(struct DisplayObj *display,struct Rectangle *limit,
 //      x、y，bitmap要传送部分左上角坐标
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_BltBmToScreen(struct DisplayObj *display,struct Rectangle *rect,
+void __GK_BltBmToScreen(struct DisplayObj *display,struct Rectangle *limit,
                         struct RectBitmap *bitmap,s32 x,s32 y)
 {
     //todo :增加alpha1,2,4,8格式.
@@ -2221,17 +2238,17 @@ void __GK_BltBmToScreen(struct DisplayObj *display,struct Rectangle *rect,
     struct DisplayObj *MirrorDisplay;
     struct Object *mirror,*current;
 
-    if(display->draw.CopyBitmapToScreen(rect,bitmap,x,y))
+    if(display->draw.CopyBitmapToScreen(limit,bitmap,x,y))
     {
     }
     else//bitmap颜色格式与显示屏不一样或者硬件加速不支持由软件实现
     {
         //传送bitmap到screen
         y_bmap = y;
-        for(y_rect = rect->top;y_rect < rect->bottom;y_rect++)
+        for(y_rect = limit->top;y_rect < limit->bottom;y_rect++)
         {
             x_bmap = x;
-            for(x_rect = rect->left;x_rect < rect->right;x_rect++)
+            for(x_rect = limit->left;x_rect < limit->right;x_rect++)
             {
 
                 color = GK_GetPixelBm(bitmap,x_bmap,y_bmap);
@@ -2266,17 +2283,17 @@ void __GK_BltBmToScreen(struct DisplayObj *display,struct Rectangle *rect,
     while(current != NULL)
     {
         MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
-        MirrorDisplay->draw.CopyBitmapToScreen(rect,bitmap,x,y);
+        MirrorDisplay->draw.CopyBitmapToScreen(limit,bitmap,x,y);
         current = OBJ_ForeachChild(mirror,current);
     }
 }
 
 //----填充矩形-----------------------------------------------------------------
 //功能: 在dst_bitmap中dst_rect所占据的位置上，用color颜色填充。color的格式是
-//      cn_sys_pf_e8r8g8b8，要转换成dst_bitmap->pf_type匹配的颜色填充。
+//      CN_SYS_PF_ERGB8888，要转换成dst_bitmap->pf_type匹配的颜色填充。
 //参数: dst_bitmap，被填充的位图
 //      dst_rect，填充的位置
-//      color，填充的颜色，格式是cn_sys_pf_e8r8g8b8
+//      color，填充的颜色，格式是CN_SYS_PF_ERGB8888
 //返回: 无
 //-----------------------------------------------------------------------------
 void __GK_FillRect(struct RectBitmap *dst_bitmap,
@@ -2295,7 +2312,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
     y2 = dst_rect->bottom;
     x2 = dst_rect->right;
     temp_bytes = dst_bitmap->linebytes;
-    //color的格式是cn_sys_pf_e8r8g8b8，转换成dst_bitmap->pf_type匹配的格式
+    //color的格式是CN_SYS_PF_ERGB8888，转换成dst_bitmap->pf_type匹配的格式
     pf_color = GK_ConvertRGB24ToPF(dst_bitmap->PixelFormat,color);
     //被填充的位图的每像素位宽
     color_bits = (dst_bitmap->PixelFormat & CN_PF_BITWIDE_MSK)>>8;
@@ -2473,7 +2490,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
         {
             pf = pf_color;                      //取给定的填充颜色
             byte_offset1 = y1*temp_bytes+x1;    //dst_rect首行左边界所在字节
-            byte_offset2 = y1*temp_bytes+x2;    //dst_rect首行右边界所在字节
+            byte_offset2 = y1*temp_bytes+x2-1;    //dst_rect首行右边界所在字节
             for(y = y1;y < y2;y++)      //填充颜色，每次填充一个像素
             {
                 //填充dst_rect每行中间字节的颜色
@@ -2516,7 +2533,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
             if((u32)dst_bitmap->bm_bits & 1 )      //非对齐地址
             {
                 byte_offset1 = y1*temp_bytes+x1*2;  //dst_rect首行左边界所在字节
-                byte_offset2 = y1*temp_bytes+x2*2;  //dst_rect首行右边界所在字节
+                byte_offset2 = y1*temp_bytes+(x2-1)*2;  //dst_rect首行右边界所在字节
                 for(y = y1;y < y2;y++)              //填充颜色，每次填充两个像素
                 {
                     for(x = byte_offset1;x <= byte_offset2;x = x+2)
@@ -2561,7 +2578,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
         {
             pf = pf_color;                      //取给定的填充颜色
             byte_offset1 = y1*temp_bytes+x1*3;  //dst_rect首行左边界所在字节
-            byte_offset2 = y1*temp_bytes+x2*3;  //dst_rect首行右边界所在字节
+            byte_offset2 = y1*temp_bytes+(x2-1)*3;  //dst_rect首行右边界所在字节
             for(y = y1;y < y2;y++)              //填充颜色，每次填充一个像素
             {
                 for(x = byte_offset1;x <= byte_offset2;x = x+3)
@@ -2579,7 +2596,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
         {
             pf = pf_color;                      //取给定的填充颜色
             byte_offset1 = y1*temp_bytes+x1*4;  //dst_rect首行左边界所在字节
-            byte_offset2 = y1*temp_bytes+x2*4;  //dst_rect首行右边界所在字节
+            byte_offset2 = y1*temp_bytes+(x2-1)*4;  //dst_rect首行右边界所在字节
             for(y = y1;y < y2;y++)              //填充颜色，每次填充一个像素
             {
                 for(x = byte_offset1;x <= byte_offset2;x = x+4)
@@ -2608,7 +2625,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
 //----填充位图-----------------------------------------------------------------
 //功能: 本函数是__GK_FillRect的特殊情况，即需要填充的矩形是整个bitmap。
 //参数: dst_bitmap,被填充的位图
-//      color，填充的颜色，格式是cn_sys_pf_e8r8g8b8
+//      color，填充的颜色，格式是CN_SYS_PF_ERGB8888
 //返回: 无
 //-----------------------------------------------------------------------------
 void __GK_FillBm(struct RectBitmap *dst_bitmap,u32 color)
@@ -2616,7 +2633,7 @@ void __GK_FillBm(struct RectBitmap *dst_bitmap,u32 color)
     u32 pf_color,color_bits;
     u32 byte_offset,total_bytes;
 
-    //color的格式是cn_sys_pf_e8r8g8b8，转换成dst_bitmap->pf_type匹配的格式
+    //color的格式是CN_SYS_PF_ERGB8888，转换成dst_bitmap->pf_type匹配的格式
     pf_color = GK_ConvertRGB24ToPF(dst_bitmap->PixelFormat,color);
     //被填充的位图的每像素位宽
     color_bits = (dst_bitmap->PixelFormat & CN_PF_BITWIDE_MSK)>>8;
@@ -2746,22 +2763,14 @@ void __gk_set_all_pixels_circle(struct GkWinObj *gkwin,
     __GK_SetPixelRop2Bm(bitmap,x0-y,y0+x,color,Rop2Code);
     __GK_SetPixelRop2Bm(bitmap,x0-y,y0-x,color,Rop2Code);
     //对8个像素点分别进行changed_msk标志
-    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0+x)/8,(y0+y)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
-    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0+x)/8,(y0-y)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
-    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0-x)/8,(y0+y)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
-    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0-x)/8,(y0-y)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
-    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0+y)/8,(y0+x)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
-    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0+y)/8,(y0-x)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
-    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0-y)/8,(y0+x)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
-    __GK_SetPixelRop2Bm(&(gkwin->changed_msk),(x0-y)/8,(y0-x)/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+    __GK_SetChangeMsk(&(gkwin->changed_msk),(x0+x)/8,(y0+y)/8);
+    __GK_SetChangeMsk(&(gkwin->changed_msk),(x0+x)/8,(y0-y)/8);
+    __GK_SetChangeMsk(&(gkwin->changed_msk),(x0-x)/8,(y0+y)/8);
+    __GK_SetChangeMsk(&(gkwin->changed_msk),(x0-x)/8,(y0-y)/8);
+    __GK_SetChangeMsk(&(gkwin->changed_msk),(x0+y)/8,(y0+x)/8);
+    __GK_SetChangeMsk(&(gkwin->changed_msk),(x0+y)/8,(y0-x)/8);
+    __GK_SetChangeMsk(&(gkwin->changed_msk),(x0-y)/8,(y0+x)/8);
+    __GK_SetChangeMsk(&(gkwin->changed_msk),(x0-y)/8,(y0-x)/8);
 }
 //----绘制目标点并着色---------------------------------------------------------
 //功能: 绘制目标点，同时标志changed_msk。
@@ -2781,8 +2790,7 @@ void __gk_pixel_sect_inter(struct GkWinObj *gkwin,struct Rectangle *limit,
         &&(y >= limit->top)&&(y < limit->bottom))
     {//待绘制的目标点在限制区内，画点并标志changed_msk
         __GK_SetPixelRop2Bm(bitmap,x,y,color,Rop2Code);
-        __GK_SetPixelRop2Bm(&(gkwin->changed_msk),x/8,y/8,
-                                CN_COLOR_WHITE,CN_R2_COPYPEN);
+        __GK_SetChangeMsk(&(gkwin->changed_msk),x/8,y/8);
     }
     else    //待绘制的目标点在限制区外，直接返回
         return;
@@ -3127,8 +3135,8 @@ void __GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
         if(clip == NULL)
             return ;
         fb_gkwin = cirwin->disp->frame_buffer;
-        offsetx = cirwin->absx0;
-        offsety = cirwin->absy0;
+        offsetx = cirwin->ScreenX;
+        offsety = cirwin->ScreenY;
         //有frame buffer，且直接写屏属性为false
         if((fb_gkwin != NULL) && (cirwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
         {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
@@ -3181,7 +3189,7 @@ void __GK_BezierBm(struct GkWinObj *gkwin,struct Rectangle *limit,
     //则以直线代替曲线
     if(((a*x2+b*y2+c)*(a*x2+b*y2+c) < ab) &&((a*x3+b*y3+c)*(a*x3+b*y3+c) < ab))
     {
-        __GK_LinetoBm(gkwin,limit,(s32)x1,(s32)y1,(s32)x4,(s32)y4,
+        __GK_LinetoWin(gkwin,limit,(s32)x1,(s32)y1,(s32)x4,(s32)y4,
                                 color,Rop2Code);
         return;
     }
@@ -3300,8 +3308,8 @@ void __GK_Bezier(struct GkscParaBezier *para)
         if(clip == NULL)
             return ;
         fb_gkwin = bzrwin->disp->frame_buffer;
-        offsetx = bzrwin->absx0;
-        offsety = bzrwin->absy0;
+        offsetx = bzrwin->ScreenX;
+        offsety = bzrwin->ScreenY;
         //有frame buffer，且直接写屏属性为false
         if((fb_gkwin != NULL) && (bzrwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
         {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
@@ -3341,86 +3349,97 @@ void __GK_Lineto(struct GkscParaLineto *para)
 {
     struct Rectangle limit;
     struct ClipRect *clip;
-    struct GkWinObj *fb_gkwin,*lintowin;
+    struct GkWinObj *fb_gkwin,*linetowin;
     struct DispDraw *my_draw_fun;
     s32 offsetx,offsety;
     if((para->Rop2Code == CN_R2_NOP) || (para->Rop2Code > CN_R2_LAST))
         return;                                         //不执行操作
     if((para->x1==para->x2) && (para->y1==para->y2))    //无须绘制
         return;
-    lintowin = para->gkwin;
-    my_draw_fun = &lintowin->disp->draw;
+    linetowin = para->gkwin;
+    my_draw_fun = &linetowin->disp->draw;
     //说明有win buffer，且直接写屏属性为false
-    if((lintowin->wm_bitmap != NULL)
-        && (lintowin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+    if((linetowin->wm_bitmap != NULL)
+        && (linetowin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
     {   //处理方法:在win buffer中绘图，标志changed_msk
-        limit.left = 0;
-        limit.top = 0;
-        limit.right = lintowin->wm_bitmap->width;
-        limit.bottom = lintowin->wm_bitmap->height;
-        if(!my_draw_fun->LineToBitmap(lintowin->wm_bitmap,&limit,para->x1,
+        if(para->range.left == para->range.right)
+        {
+            limit = linetowin->limit;
+        }
+        else
+        {
+            __GK_GetRectInts(&para->range, &linetowin->limit, &limit);
+        }
+//      limit.left = 0;
+//      limit.top = 0;
+//      limit.right = linetowin->wm_bitmap->width;
+//      limit.bottom = linetowin->wm_bitmap->height;
+        if(!my_draw_fun->LineToBitmap(linetowin->wm_bitmap,&limit,para->x1,
                     para->y1,para->x2,para->y2,para->color,para->Rop2Code))
         {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
             //同时处理了changed_msk
-            __GK_LinetoBm(lintowin,&limit,para->x1,para->y1,para->x2,
+            __GK_LinetoWin(linetowin,&limit,para->x1,para->y1,para->x2,
                                     para->y2,para->color,para->Rop2Code);
         }
         else    //硬件加速绘图时，未处理changed_msk，处理之
         {
-            __GK_ShadingLine(lintowin,&limit,
+            __GK_ShadingLine(linetowin,&limit,
                                 para->x1,para->y1,para->x2,para->y2);
         }
     }
     else       //无win buffer，或直接写屏属性为true
     {
-        clip = lintowin->visible_clip;
+        clip = linetowin->visible_clip;
         if(clip == NULL)
             return ;
-        fb_gkwin = lintowin->disp->frame_buffer;
-        offsetx = lintowin->absx0;
-        offsety = lintowin->absy0;
+        fb_gkwin = linetowin->disp->frame_buffer;
+        offsetx = linetowin->ScreenX;
+        offsety = linetowin->ScreenY;
         //有frame buffer,且直接写屏属性为false
-        if((fb_gkwin != NULL) && (lintowin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+        if((fb_gkwin != NULL) && (linetowin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
         {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
             do{
+                __GK_GetRectInts(&para->range, &clip->rect, &limit);
                 if(!my_draw_fun->LineToBitmap(
-                            fb_gkwin->wm_bitmap,&clip->rect,
+                            fb_gkwin->wm_bitmap,&limit,
                             para->x1+offsetx,para->y1+offsety,para->x2+offsetx,
                             para->y2+offsety,para->color,para->Rop2Code))
                 {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
                     //同时处理了changed_msk
-                    __GK_LinetoBm(fb_gkwin,&clip->rect,
+                    __GK_LinetoWin(fb_gkwin,&limit,
                                     para->x1+offsetx,para->y1+offsety,
                                     para->x2+offsetx,para->y2+offsety,
                                     para->color,para->Rop2Code);
                 }
                 else    //硬件加速绘图时，未处理changed_msk，处理之
                 {
-                    __GK_ShadingLine(fb_gkwin,&clip->rect,para->x1+offsetx,
+                    __GK_ShadingLine(fb_gkwin,&limit,para->x1+offsetx,
                                       para->y1+offsety,para->x2+offsetx,
                                       para->y2+offsety);
                 }
                 clip = clip->next;
-            }while(clip != lintowin->visible_clip);
+            }while(clip != linetowin->visible_clip);
         }
         else
         //无win buffer，也无frame buffer，直接画在screen上
         //直接写屏属性为true，不管有无缓冲区，都直接画在screen上
         {
             do{//在screen上直接画直线，不画终点
-//              if(!my_draw_fun->LineToScreen(&clip->rect,para->x1+offsetx,
-//                           para->y1+offsety,para->x2+offsetx,para->y2+offsety,
-//                           para->color,para->Rop2Code))
+                __GK_GetRectInts(&para->range, &clip->rect, &limit);
+                if(!my_draw_fun->LineToScreen(&limit,para->x1+offsetx,
+                             para->y1+offsety,para->x2+offsetx,para->y2+offsety,
+                             para->color,para->Rop2Code))
                 {
-                    __GK_LinetoScreen(lintowin->disp,&clip->rect,
+                    __GK_LinetoScreen(linetowin->disp,&limit,
                             para->x1+offsetx,para->y1+offsety,para->x2+offsetx,
                             para->y2+offsety,para->color,para->Rop2Code);
                 }
                 clip = clip->next;
-            }while(clip != lintowin->visible_clip);
+            }while(clip != linetowin->visible_clip);
         }
     }
 }
+
 //----画直线-------------------------------------------------------------------
 //功能: 在窗口内画一条直线,结束点需要绘制。
 //参数: gkwin，目标窗口指针
@@ -3461,7 +3480,7 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
                         para->y1,para->x2,para->y2,para->color,para->Rop2Code))
             {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
                 //同时处理了changed_msk
-                __GK_HlinetoBm(lintoiewin,&limit,para->x1,para->y1,
+                __GK_HlinetoWin(lintoiewin,&limit,para->x1,para->y1,
                                 para->x2+1,para->color,para->Rop2Code);
             }
             else
@@ -3477,8 +3496,8 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
             if(clip == NULL)
                 return ;
             fb_gkwin = display->frame_buffer;
-            offsetx = lintoiewin->absx0;
-            offsety = lintoiewin->absy0;
+            offsetx = lintoiewin->ScreenX;
+            offsety = lintoiewin->ScreenY;
             //有frame buffer，且直接写屏属性为false
             if((fb_gkwin != NULL) && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
             {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
@@ -3491,7 +3510,7 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
                                 para->color,para->Rop2Code))
                     {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
                         //同时处理了changed_msk
-                        __GK_HlinetoBm(fb_gkwin,&clip->rect,
+                        __GK_HlinetoWin(fb_gkwin,&clip->rect,
                                     para->x1+offsetx,para->y1+offsety,
                                     para->x2+offsetx+1,
                                     para->color,para->Rop2Code);
@@ -3539,7 +3558,7 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
                         para->y1,para->x2,para->y2,para->color,para->Rop2Code))
             {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
                 //同时处理了changed_msk
-                __GK_VlinetoBm(lintoiewin,&limit,para->x1,
+                __GK_VlinetoWin(lintoiewin,&limit,para->x1,
                             para->y1,para->y2+1,para->color,para->Rop2Code);
             }
             else
@@ -3554,8 +3573,8 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
             if(clip == NULL)
                 return ;
             fb_gkwin = display->frame_buffer;
-            offsetx = lintoiewin->absx0;
-            offsety = lintoiewin->absy0;
+            offsetx = lintoiewin->ScreenX;
+            offsety = lintoiewin->ScreenY;
             //有frame buffer，且直接写屏属性为false
             if((fb_gkwin != NULL) && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
             {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
@@ -3568,7 +3587,7 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
                                 para->color,para->Rop2Code))
                     {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
                         //同时处理了changed_msk
-                        __GK_VlinetoBm(fb_gkwin,&clip->rect,
+                        __GK_VlinetoWin(fb_gkwin,&clip->rect,
                                     para->x1+offsetx,para->y1+offsety,
                                     para->y2+offsety+1,
                                     para->color,para->Rop2Code);
@@ -3620,13 +3639,13 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
                 //同时处理了changed_msk
                 if(dy > dx)
                 {
-                    __GK_OlinetoBm(lintoiewin,&limit,para->x1,para->y1,
+                    __GK_OlinetoWin(lintoiewin,&limit,para->x1,para->y1,
                                     para->x2,para->y2+1,
                                     para->color,para->Rop2Code);
                 }
                 else
                 {
-                    __GK_OlinetoBm(lintoiewin,&limit,para->x1,para->y1,
+                    __GK_OlinetoWin(lintoiewin,&limit,para->x1,para->y1,
                                     para->x2+1,para->y2,
                                     para->color,para->Rop2Code);
                 }
@@ -3644,8 +3663,8 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
             if(clip == NULL)
                 return ;
             fb_gkwin = display->frame_buffer;
-            offsetx = lintoiewin->absx0;
-            offsety = lintoiewin->absy0;
+            offsetx = lintoiewin->ScreenX;
+            offsety = lintoiewin->ScreenY;
             //有frame buffer，且直接写屏属性为false
             if((fb_gkwin != NULL) && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
             {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
@@ -3658,7 +3677,7 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
                                 para->color,para->Rop2Code))
                     {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
                         //同时处理了changed_msk
-                            __GK_OlinetoBm(fb_gkwin,&clip->rect,
+                            __GK_OlinetoWin(fb_gkwin,&clip->rect,
                                             para->x1+offsetx,para->y1+offsety,
                                             para->x2+offsetx,para->y2+offsety,
                                             para->color,para->Rop2Code);
@@ -3729,6 +3748,7 @@ void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
 
 //    bitmap_para.command =CN_GKSC_DRAW_BITMAP;
     bitmap_para.gkwin = para->gkwin;
+    bitmap_para.range = para->range;
     bitmap_para.HyalineColor = 0;
     bitmap_para.x = para->x;
     bitmap_para.y = para->y;
@@ -3807,6 +3827,7 @@ void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
 //      x、y，绘制的目标位置
 //      rop_code，光栅操作码
 //返回: 无
+//todo 该客户区限制区时，还需要修改坐标调整部分。
 //-----------------------------------------------------------------------------
 void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
 {
@@ -3819,8 +3840,17 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
     struct RectBitmap *DstBitmap;
     struct RectBitmap *SrcBitmap;
     struct DisplayObj *display;
+    struct Rectangle limit;
     DstGkwin = para->gkwin;
     display = DstGkwin->disp;
+    if(para->range.left == para->range.right)
+    {
+        limit = DstGkwin->limit;
+    }
+    else
+    {
+        __GK_GetRectInts(&para->range, &DstGkwin->limit, &limit);
+    }
 
 //    HyalineColor = para->HyalineColor;
     DstBitmap = DstGkwin->wm_bitmap;
@@ -3836,30 +3866,30 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
     DstRect.right = para->x+SrcRect.right;
     DstRect.bottom = para->y+SrcRect.bottom;
     //调整待绘制位图要绘制的位置，限制在窗口内
-    if(        (DstRect.right <= 0)
-            || (DstRect.left >= DstGkwin->limit_right)
-            || (DstRect.bottom <= 0)
-            || (DstRect.top >= DstGkwin->limit_bottom))
-        return;                             //绘图区域在窗口外面
-    if(DstRect.left < DstGkwin->limit_left)         //调整左边界在窗口内部
+    if(        (DstRect.right < limit.left)
+            || (DstRect.left >= limit.right)
+            || (DstRect.bottom < limit.top)
+            || (DstRect.top >= limit.bottom))
+        return;                             //绘图区域在绘制区外面
+    if(DstRect.left < limit.left)         //调整左边界在绘制区内部
     {
-        SrcRect.left = DstGkwin->limit_left - DstRect.left;
-        DstRect.left = DstGkwin->limit_left;
+        SrcRect.left = limit.left - DstRect.left;
+        DstRect.left = limit.left;
     }
-    if(DstRect.top < DstGkwin->limit_top)           //调整上边界在窗口内部
+    if(DstRect.top < limit.top)           //调整上边界在绘制区内部
     {
-        SrcRect.top = DstGkwin->limit_top - DstRect.top;
-        DstRect.top = DstGkwin->limit_top;
+        SrcRect.top = limit.top - DstRect.top;
+        DstRect.top = limit.top;
     }
-    if(DstRect.right > DstGkwin->limit_right)       //调整右边界在窗口内部
+    if(DstRect.right > limit.right)       //调整右边界在绘制区内部
     {
-        SrcRect.right -= DstRect.right - DstGkwin->limit_right;
-        DstRect.right = DstGkwin->limit_right;
+        SrcRect.right -= DstRect.right - limit.right;
+        DstRect.right = limit.right;
     }
-    if(DstRect.bottom > DstGkwin->limit_bottom )      //调整下边界在窗口内部
+    if(DstRect.bottom > limit.bottom )      //调整下边界在绘制区内部
     {
-        SrcRect.bottom -= DstRect.bottom - DstGkwin->limit_bottom;
-        DstRect.bottom = DstGkwin->limit_bottom;
+        SrcRect.bottom -= DstRect.bottom - limit.bottom;
+        DstRect.bottom = limit.bottom;
     }
 
     //说明有win buffer，且直接写屏属性为false
@@ -3877,11 +3907,10 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                             y_src > SrcBitmap->height - SrcRect.bottom;y_src--)
                 {
                     x_dst = DstRect.left;
-                    for(x_src = 0;x_src < DstRect.right-DstRect.left;x_src++)
+                    for(x_src = SrcRect.left;x_src < SrcRect.right;x_src++)
                     {
                         __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
-                                                x_dst,y_dst,SrcRect.left+x_src,
-                                                y_src,
+                                                x_dst,y_dst,x_src,y_src,
                                                 para->RopCode,para->HyalineColor);
                         x_dst++;
                     }
@@ -3890,14 +3919,13 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
             }
             else
             {
-                for(y_src= 0;y_src < DstRect.bottom-DstRect.top;y_src++)
+                for(y_src= SrcRect.top;y_src < SrcRect.bottom; y_src++)
                 {
                     x_dst = DstRect.left;
-                    for(x_src = 0;x_src < DstRect.right-DstRect.left;x_src++)
+                    for(x_src = SrcRect.left;x_src < SrcRect.right;x_src++)
                     {
                         __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
-                                                x_dst,y_dst,SrcRect.left+x_src,
-                                                SrcRect.top+y_src,
+                                                x_dst,y_dst,x_src,y_src,
                                                 para->RopCode,para->HyalineColor);
                         x_dst++;
                     }
@@ -3922,14 +3950,14 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
             //为与可视域坐标保持一致，将待位图要绘制的位置的
             //坐标调整成以screen原点为原点的坐标，注意调整后的坐标，可能超出
             //framebuffer的尺寸界限，但没有关系的，取剪切域交集的时候会处理掉。
-            DstRect.left += DstGkwin->absx0;
-            DstRect.right += DstGkwin->absx0;
-            DstRect.top += DstGkwin->absy0;
-            DstRect.bottom += DstGkwin->absy0;
+            DstRect.left += DstGkwin->ScreenX;
+            DstRect.right += DstGkwin->ScreenX;
+            DstRect.top += DstGkwin->ScreenY;
+            DstRect.bottom += DstGkwin->ScreenY;
             //SrcRect用于保存待绘制的bitmap相对framebuffer的偏移，用于计算clip
             //在framebuffer中对应的位置
-            InsOffset.x = DstGkwin->absx0 + para->x;
-            InsOffset.y = DstGkwin->absy0 + para->y;
+            InsOffset.x = DstGkwin->ScreenX + para->x;
+            InsOffset.y = DstGkwin->ScreenY + para->y;
             do{
                 if(__GK_GetRectInts(&clip->rect,&DstRect,&InsRect))
                 {
@@ -3944,7 +3972,7 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                     {
                         SrcBitmap = &para->bitmap;
 
-                        y_dst= InsRect.top;
+                        y_dst= DstRect.top;
                         //给定的光栅操作码为扩展的光栅操作码
                         if(        (para->RopCode.AlphaEn == 0)
                                 && (para->RopCode.HyalineEn == 0)
@@ -3952,13 +3980,14 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                         {
                             if(SrcBitmap->reversal == true)
                             {
+                                // -1 是因为图形坐标是从 0 开始算的
                                 for(y_src= SrcBitmap->height - SrcRect.top;
                                     y_src > SrcBitmap->height - SrcRect.bottom;
                                     y_src--)
                                 {
-                                    x_dst = InsRect.left;
-                                    for(x_src = InsRect.left-DstRect.left;
-                                        x_src < InsRect.right-DstRect.left;
+                                    x_dst = DstRect.left;
+                                    for(x_src = SrcRect.left;
+                                        x_src < SrcRect.right;
                                         x_src++)
                                     {
                                         __GK_CopyPixelBm(DstBitmap,SrcBitmap,
@@ -3971,13 +4000,13 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                             }
                             else
                             {
-                                for(y_src= InsRect.top-DstRect.top;
-                                    y_src < InsRect.bottom-DstRect.top;
+                                for(y_src= SrcRect.top;
+                                    y_src < SrcRect.bottom;
                                     y_src++)
                                 {
-                                    x_dst = InsRect.left;
-                                    for(x_src = InsRect.left-DstRect.left;
-                                        x_src < InsRect.right-DstRect.left;
+                                    x_dst = DstRect.left;
+                                    for(x_src = SrcRect.left;
+                                        x_src < SrcRect.right;
                                         x_src++)
                                     {
                                         __GK_CopyPixelBm(DstBitmap,SrcBitmap,
@@ -3992,13 +4021,14 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                         {
                             if(SrcBitmap->reversal == true)
                             {
+                                // -1 是因为图形坐标是从 0 开始算的
                                 for(y_src= SrcBitmap->height - SrcRect.top;
                                     y_src > SrcBitmap->height - SrcRect.bottom;
                                     y_src--)
                                 {
-                                    x_dst = InsRect.left;
-                                    for(x_src = InsRect.left-DstRect.left;
-                                        x_src < InsRect.right-DstRect.left;
+                                    x_dst = DstRect.left;
+                                    for(x_src = SrcRect.left;
+                                        x_src < SrcRect.right;
                                         x_src++)
                                     {
                                         __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
@@ -4012,13 +4042,13 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                             }
                             else
                             {
-                                for(y_src= InsRect.top-DstRect.top;
-                                    y_src < InsRect.bottom-DstRect.top;
+                                for(y_src= SrcRect.top;
+                                    y_src < SrcRect.bottom;
                                     y_src++)
                                 {
-                                    x_dst = InsRect.left;
-                                    for(x_src = InsRect.left-DstRect.left;
-                                        x_src < InsRect.right-DstRect.left;
+                                    x_dst = DstRect.left;
+                                    for(x_src = SrcRect.left;
+                                        x_src < SrcRect.right;
                                         x_src++)
                                     {
                                         __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
@@ -4033,7 +4063,7 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                         }
                     }
                     //设置绘制部分的changed_msk
-                    __GK_ShadingRect(fb_gkwin,&InsRect);
+                    __GK_ShadingRect(fb_gkwin,&DstRect);
                 }
                 clip = clip->next;
             }while(clip != DstGkwin->visible_clip);
@@ -4044,10 +4074,10 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
         {
             //为与可视域坐标保持一致，将位图要绘制的位置的
             //坐标调整成以screen原点为原点的坐标
-            DstRect.left += DstGkwin->absx0;
-            DstRect.right += DstGkwin->absx0;
-            DstRect.top += DstGkwin->absy0;
-            DstRect.bottom += DstGkwin->absy0;
+            DstRect.left += DstGkwin->ScreenX;
+            DstRect.right += DstGkwin->ScreenX;
+            DstRect.top += DstGkwin->ScreenY;
+            DstRect.bottom += DstGkwin->ScreenY;
             do{
                 //要绘制的位图目标位置在窗口可视域内才执行绘制程序
                 if(__GK_GetRectInts(&clip->rect,&DstRect,&InsRect))
@@ -4362,10 +4392,10 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
             return ;
         fb_gkwin = Gkwin->disp->frame_buffer;
         //接下来的绘制，是在帧缓冲或者screen上绘制，使用绝对坐标，变换之
-        Rect->left += Gkwin->absx0;
-        Rect->right += Gkwin->absx0;
-        Rect->top += Gkwin->absy0;
-        Rect->bottom += Gkwin->absy0;
+        Rect->left += Gkwin->ScreenX;
+        Rect->right += Gkwin->ScreenX;
+        Rect->top += Gkwin->ScreenY;
+        Rect->bottom += Gkwin->ScreenY;
         //有frame buffer,且直接写屏属性为false
         if((fb_gkwin != NULL) && (Gkwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
         {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
@@ -4455,10 +4485,10 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
     }
     else
     {
-        rc.left =0;
-        rc.top  =0;
-        rc.right =fpwwin->right;
-        rc.bottom =fpwwin->bottom;
+        rc.left =fpwwin->area.left;
+        rc.top  =fpwwin->area.top;
+        rc.right =fpwwin->area.right;
+        rc.bottom =fpwwin->area.bottom;
     }
 
     if(!__GK_GetRectInts(&para->rect,&rc,&target))
@@ -4494,10 +4524,10 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
             return ;
         fb_gkwin = fpwwin->disp->frame_buffer;
         //接下来的绘制，是在帧缓冲或者screen上绘制，使用绝对坐标，变换之
-        target.left += fpwwin->absx0;
-        target.right += fpwwin->absx0;
-        target.top += fpwwin->absy0;
-        target.bottom += fpwwin->absy0;
+        target.left += fpwwin->ScreenX;
+        target.right += fpwwin->ScreenX;
+        target.top += fpwwin->ScreenY;
+        target.bottom += fpwwin->ScreenY;
         //有frame buffer,且直接写屏属性为false
         if((fb_gkwin != NULL) && (fpwwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
         {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域

@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -75,7 +75,7 @@
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early                       //初始化时机，可选值：early，medium，later, pre-main。
                                         //表示初始化时间，分别是早期、中期、后期
-//dependence:"device file system","lock","cpu drive inner flash"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"device file system","cpu drive inner flash"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
 //weakdependence:"xip app file system","xip iboot file system"  //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -367,13 +367,13 @@ bool_t ModuleInstall_EmFlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend
                 sz.block = 1;
                 if(-1 == __embed_req(format, bstart , bend, &sz))
                 {
-                    warning_printf("xip"," Format failure.");
+                    warning_printf("xip"," Format failure.\r\n");
                 }
             }
             targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
-                error_printf("EmFlash"," not found need to install file system.");
+                error_printf("EmFlash"," not found need to install file system.\r\n");
                 return false;
             }
             super = (struct FsCore *)OBJ_GetPrivate(targetobj);
@@ -382,7 +382,7 @@ bool_t ModuleInstall_EmFlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend
                 if(__embed_FsInstallInit(TargetFs,bstart,bend,&XIP_EMFLASH_DRV) == 0)
                     return true;
             }
-            error_printf("EmFlash"," need to install file system not XIP.");
+            error_printf("EmFlash"," need to install file system not XIP.\r\n");
         }
     }
     return false;

@@ -117,12 +117,12 @@ bool_t ModuleInstall_SPIBus(void)
     s_ptSPIBusType = DjyBus_BusTypeAdd("SPIBus");
     if(NULL != s_ptSPIBusType)
     {
-        info_printf("bus","spi bus install successful.");
+        info_printf("bus","spi bus install successful.\r\n");
         return true;
     }
     else
     {
-        error_printf("bus","spi bus install failed.");
+        error_printf("bus","spi bus install failed.\r\n");
         return false;
     }
 }
@@ -176,7 +176,7 @@ struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam)
     NewSPI->SPI_Buf.MaxLen   = NewSPIParam->SPIBufLen;
     NewSPI->SPI_Buf.Offset   = 0;
 
-    info_printf("spibus","%s added.", NewSPIParam->BusName);
+    info_printf("spibus","%s added.\r\n", NewSPIParam->BusName);
     return NewSPI;
 
 exit_from_spi_buf_semp:
@@ -188,7 +188,7 @@ exit_from_add_node:
 exit_from_malloc:
 exit_from_readd:
 exit_from_param:
-    error_printf("spibus","%s add failed.", NewSPIParam->BusName);
+    error_printf("spibus","%s add failed.\r\n", NewSPIParam->BusName);
     return NULL;
 }
 
@@ -293,7 +293,7 @@ struct SPI_Device *SPI_DevAdd(const char *BusName ,const char *DevName,u8 cs,u8 
         SPI_BusCtrl(NewDev,CN_SPI_CS_CONFIG,(ptu32_t)&spicfg,(ptu32_t)cs);
     }
 
-    info_printf("spibus","device \"%s\" added to \"%s\".", DevName, BusName);
+    info_printf("spibus","device \"%s\" added to \"%s\".\r\n", DevName, BusName);
     return NewDev;
 }
 

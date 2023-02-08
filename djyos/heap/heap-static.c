@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -95,8 +95,9 @@ ptu32_t g_uFreeMin = 0;             //所有heap加起来空闲内存的最小值
 
 void *__Heap_StaticMallocHeap(ptu32_t size,struct HeapCB *Heap,u32 Timeout);
 void *__Heap_StaticMalloc(ptu32_t size,u32 timeout);
-void __Heap_StaticFreeHeap(void *pl_mem,struct HeapCB *Heap);
+bool_t __Heap_StaticFreeHeap(void * pl_mem,struct HeapCB *Heap, u32 timeout);
 void __Heap_StaticFree(void *pl_mem);
+bool_t __Heap_DjyStaticFree(void *pl_mem,u32 timeout);
 void *__Heap_StaticRealloc(void *, ptu32_t NewSize);
 void *__Heap_StaticMallocStack(struct EventECB *event, u32 size);
 
@@ -115,11 +116,11 @@ ptu32_t __Heap_StaticCheckSize(void * mp);
 
 void *  (*M_Malloc)(ptu32_t size,u32 timeout);
 void *  (*M_Realloc) (void *, ptu32_t NewSize);
-void    (*M_Free)(void * pl_mem);
+bool_t  (*M_Free)(void * pl_mem,u32 timeout);
 void *  (*M_MallocHeap)(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 void *  (*M_MallocLc)(ptu32_t size,u32 timeout);
 void *  (*M_MallocLcHeap)(ptu32_t size,struct HeapCB *Heap, u32 timeout);
-void    (*M_FreeHeap)(void * pl_mem,struct HeapCB *Heap);
+bool_t  (*M_FreeHeap)(void * pl_mem,struct HeapCB *Heap, u32 timeout);
 void *  (*__MallocStack)(struct EventECB *pl_ecb,u32 size);
 ptu32_t (*M_FormatSizeHeap)(ptu32_t size,struct HeapCB *Heap);
 ptu32_t (*M_FormatSize)(ptu32_t size);
@@ -274,7 +275,7 @@ void Heap_StaticModuleInit(void)
 
     M_Malloc = __Heap_StaticMalloc;
     M_Realloc = __Heap_StaticRealloc;
-    M_Free = __Heap_StaticFree;
+    M_Free = __Heap_DjyStaticFree;
     M_MallocHeap = __Heap_StaticMallocHeap;
     M_MallocLc = __Heap_StaticMalloc;
     M_MallocLcHeap = __Heap_StaticMallocHeap;
@@ -486,7 +487,7 @@ void *__Heap_StaticRealloc(void *p, ptu32_t NewSize)
 //      均采用准静态分配
 //      2.本函数在初始化完成之前调用,中断尚未开启,无需考虑关闭中断的问题.
 //-----------------------------------------------------------------------------
-void __Heap_StaticFreeHeap(void * pl_mem,struct HeapCB *Heap)
+bool_t __Heap_StaticFreeHeap(void * pl_mem,struct HeapCB *Heap, u32 timeout)
 {
     atom_low_t atom_m;
     struct HeapCession *Cession;
@@ -527,9 +528,17 @@ void __Heap_StaticFreeHeap(void * pl_mem,struct HeapCB *Heap)
 
     return ;
 }
+
+//-----------------------------------------------------------------------------
 void __Heap_StaticFree(void * pl_mem)
 {
-    __Heap_StaticFreeHeap(pl_mem,tg_pSysHeap);
+    __Heap_StaticFreeHeap(pl_mem,tg_pSysHeap,0);
+}
+
+bool_t __Heap_DjyStaticFree(void * pl_mem,u32 timeout)
+{
+    __Heap_StaticFreeHeap(pl_mem,tg_pSysHeap,0);
+    return true;
 }
 
 //----查询堆空间大小---------------------------------------------------------

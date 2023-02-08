@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -92,7 +92,12 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_LCD    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,32,512,
-
+//%$#@num,0,65536,
+#define CFG_LCD_XSIZE   240             //"LCD宽度",
+#define CFG_LCD_YSIZE   128             //"LCD高度",
+//%$#@num,,,
+#define CFG_LCD_XSIZE_UM   36500            //"LCD宽度-微米数",
+#define CFG_LCD_YSIZE_UM   48600            //"LCD高度-微米数",
 //%$#@enum,true,false,
 //%$#@string,1,30,
 #define CFG_LCD_DISPLAY_NAME      "LCD_DISPLAY"//"显示器名称",
@@ -110,7 +115,7 @@
 static struct LCD_ConFig lcd;                      //管理LCD LTDC的重要参数
 static struct DisplayObj lcd_display;
 
-AT_NONCACHEABLE_SECTION_ALIGN( uint16_t s_frameBuffer[CN_LCD_YSIZE][CN_LCD_XSIZE], FRAME_BUFFER_ALIGN);
+AT_NONCACHEABLE_SECTION_ALIGN( uint16_t s_frameBuffer[CFG_LCD_YSIZE][CFG_LCD_XSIZE], FRAME_BUFFER_ALIGN);
 
 void delay_lcd(void)
 {
@@ -267,7 +272,7 @@ static bool_t __lcd_disp_ctrl(struct DisplayRsc *disp)
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x、y，坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
@@ -281,7 +286,7 @@ static bool_t __lcd_set_pixel_bm(struct RectBitmap *bitmap,
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -295,7 +300,7 @@ static bool_t __lcd_line_bm(struct RectBitmap *bitmap,struct Rectangle *limit,
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -402,7 +407,7 @@ bool_t __lcd_set_pixel_group_screen(struct PointCdn *PixelGroup,u32 color,u32 n,
 
     for(i=0;i<n;i++)
     {
-        offset = PixelGroup[i].y*CN_LCD_XSIZE + PixelGroup[i].x;
+        offset = PixelGroup[i].y*CFG_LCD_XSIZE + PixelGroup[i].x;
         dest = *(u16 *)&(lcd.pFrameBuffe[offset]);
         dest = GK_BlendRop2(dest,color,r2_code);
 
@@ -460,7 +465,7 @@ bool_t __lcd_line_screen(struct Rectangle *limit,
 //功能: 在screen中画一条直线，只绘制在limit限定的区域内的部分。
 //参数: limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -472,7 +477,7 @@ static bool_t __lcd_line_screen_ie(struct Rectangle *limit,
 }
 
 //----screen中填充矩形-----------------------------------------------------------
-//功能: 把screen中的矩形用color颜色填充，color的格式是cn_sys_pf_e8r8g8b8。
+//功能: 把screen中的矩形用color颜色填充，color的格式是CN_SYS_PF_ERGB8888。
 //参数: dst_rect，待填充的矩形
 //      color，填充颜色
 //返回: true=成功绘制，false=失败
@@ -505,7 +510,7 @@ static bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
 }
 
 //----从screen中取像素---------------------------------------------------------
-//功能: 从screen中取一像素，并转换成cn_sys_pf_e8r8g8b8或cn_sys_pf_a8r8g8b8格式。
+//功能: 从screen中取一像素，并转换成CN_SYS_PF_ERGB8888或cn_sys_pf_a8r8g8b8格式。
 //参数: x、y，坐标
 //返回: 像素颜色值
 //-----------------------------------------------------------------------------
@@ -584,8 +589,8 @@ static bool_t Lcd_Config(struct LCD_ConFig *lcd)
     lcd->DEPolarity   =kELCDIF_DataEnableActiveHigh;
     lcd->PCPolarity   =kELCDIF_DriveDataOnRisingClkEdge;
 
-    lcd->width = CN_LCD_XSIZE;
-    lcd->height = CN_LCD_YSIZE;
+    lcd->width = CFG_LCD_XSIZE;
+    lcd->height = CFG_LCD_YSIZE;
     return true;
 }
 
@@ -607,10 +612,10 @@ struct DisplayRsc* ModuleInstall_LCD(const char *DisplayName,\
         return NULL;
 
     FrameBitmap.bm_bits=(u8 *)s_frameBuffer;
-    FrameBitmap.width = CN_LCD_XSIZE;
-    FrameBitmap.height = CN_LCD_YSIZE;
+    FrameBitmap.width = CFG_LCD_XSIZE;
+    FrameBitmap.height = CFG_LCD_YSIZE;
     FrameBitmap.PixelFormat = lcd.LcdPixelFormat;
-    FrameBitmap.linebytes = CN_LCD_XSIZE*lcd.pixsize;
+    FrameBitmap.linebytes = CFG_LCD_XSIZE *lcd.pixsize;
     FrameBitmap.ExColor = 0xffffffff;
     frame_win.wm_bitmap = &FrameBitmap;
 
@@ -620,8 +625,8 @@ struct DisplayRsc* ModuleInstall_LCD(const char *DisplayName,\
 
     tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
     tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
-    lcd_display.width = CN_LCD_XSIZE;
-    lcd_display.height = CN_LCD_YSIZE;
+    lcd_display.width = CFG_LCD_XSIZE;
+    lcd_display.height = CFG_LCD_YSIZE;
     lcd_display.pixel_format = lcd.LcdPixelFormat;
 
     lcd_display.draw.SetPixelToBitmap = __lcd_set_pixel_bm;

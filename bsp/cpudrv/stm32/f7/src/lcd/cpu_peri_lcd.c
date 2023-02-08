@@ -35,7 +35,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -68,7 +68,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"heap","graphical kernel"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"graphical kernel" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:none           //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -355,7 +355,7 @@ static bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x、y，坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888 格式
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
@@ -369,7 +369,7 @@ static bool_t __lcd_set_pixel_bm(struct RectBitmap *bitmap,
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -383,7 +383,7 @@ static bool_t __lcd_line_bm(struct RectBitmap *bitmap,struct Rectangle *limit,
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -475,7 +475,7 @@ bool_t __lcd_blt_bm_to_bm(struct RectBitmap *dst_bitmap,
 {
 
     u16 *src_offset,*dst_offset;    //源位图点阵缓冲区可能不对齐!!!
-    u32 width,height,y;
+    s32 width,height,y;
     u32 timeout=0;
     bool_t flag=true;
     struct RopGroup Rop = { 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
@@ -662,7 +662,7 @@ bool_t __lcd_line_screen(struct Rectangle *limit,
 //功能: 在screen中画一条直线，只绘制在limit限定的区域内的部分。
 //参数: limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -673,7 +673,7 @@ static bool_t __lcd_line_screen_ie(struct Rectangle *limit,
     return false;
 }
 //----screen中填充矩形-----------------------------------------------------------
-//功能: 把screen中的矩形用color颜色填充，color的格式是cn_sys_pf_e8r8g8b8。
+//功能: 把screen中的矩形用color颜色填充，color的格式是CN_SYS_PF_ERGB8888。
 //参数: dst_rect，待填充的矩形
 //      color，填充颜色
 //返回: true=成功绘制，false=失败
@@ -751,7 +751,7 @@ static bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     return flag;
 }
 //----从screen中取像素---------------------------------------------------------
-//功能: 从screen中取一像素，并转换成cn_sys_pf_e8r8g8b8或cn_sys_pf_a8r8g8b8格式。
+//功能: 从screen中取一像素，并转换成CN_SYS_PF_ERGB8888或cn_sys_pf_a8r8g8b8格式。
 //参数: x、y，坐标
 //返回: 像素颜色值
 //-----------------------------------------------------------------------------

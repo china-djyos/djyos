@@ -191,7 +191,7 @@ s32  ModuleInstall_SD(const char *targetfs,u8 doformat)
                 targetobj = OBJ_MatchPath(targetfs, &notfind);
                 if(notfind)
                 {
-                    error_printf("SDCARD"," not found need to install file system.");
+                    error_printf("SDCARD"," not found need to install file system.\r\n");
                     return -1;
                 }
                 super = (struct FsCore *)OBJ_GetPrivate(targetobj);
@@ -203,7 +203,7 @@ s32  ModuleInstall_SD(const char *targetfs,u8 doformat)
                 else
                 {
                     super->MediaDrv = 0;
-                    error_printf("SDCARD","  install file system type not FAT");
+                    error_printf("SDCARD","  install file system type not FAT\r\n");
                     return -1;
                 }
 
@@ -214,7 +214,7 @@ s32  ModuleInstall_SD(const char *targetfs,u8 doformat)
             }
             else
             {
-                warning_printf("SDCARD", "  No file system is installed");
+                warning_printf("SDCARD", "  No file system is installed\r\n");
             }
             return (0);
         }

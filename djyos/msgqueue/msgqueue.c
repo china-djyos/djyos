@@ -37,7 +37,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -82,11 +82,11 @@
 //component name:"message queue"//消息队列
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//select:required               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"lock"  //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"none"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -124,7 +124,7 @@ bool_t ModuleInstall_MsgQ (void)
     s_ptMsgQ_Dir = OBJ_NewChild(OBJ_GetRoot(), (fnObjOps)-1, 0, "message queue");
     if(!s_ptMsgQ_Dir)
     {
-        error_printf("module","message queue");
+        error_printf("module","message queue\r\n");
         return (FALSE);
     }
 
@@ -176,12 +176,12 @@ struct MsgQueue *MsgQ_Create( s32 MaxMsgs,u32  MsgLength,u32 Options)
         {
             free(MQ);
             MQ = NULL;
-            error_printf("msgque","create failed(add to obj).");
+            error_printf("msgque","create failed(add to obj).\r\n");
         }
     }
     else
     {
-            error_printf("msgque","create failed(no space).");
+            error_printf("msgque","create failed(no space).\r\n");
     }
 
     return MQ;
@@ -197,28 +197,30 @@ struct MsgQueue *MsgQ_Create( s32 MaxMsgs,u32  MsgLength,u32 Options)
 bool_t MsgQ_Delete(struct MsgQueue *pMsgQ)
 {
     bool_t result;
-    Lock_MutexPend(&s_tMsgQ_Mutex,CN_TIMEOUT_FOREVER);
-    if(pMsgQ != NULL)
+    if(Lock_MutexPend(&s_tMsgQ_Mutex,CN_TIMEOUT_FOREVER))
     {
-        if(Lock_SempCheckBlock(&(pMsgQ->MsgSendSemp))
-                || Lock_SempCheckBlock(&(pMsgQ->MsgRecvSemp)) )
+        if(pMsgQ != NULL)
         {
-            result = false;
+            if(Lock_SempCheckBlock(&(pMsgQ->MsgSendSemp))
+                    || Lock_SempCheckBlock(&(pMsgQ->MsgRecvSemp)) )
+            {
+                result = false;
+            }
+            else
+            {
+                OBJ_Delete(pMsgQ->HostObj);          //删除信号量结点
+                Lock_SempDelete_s(&(pMsgQ->MsgSendSemp));
+                Lock_SempDelete_s(&(pMsgQ->MsgRecvSemp));
+                free(pMsgQ);
+                result = true;
+            }
         }
         else
         {
-            OBJ_Delete(pMsgQ->HostObj);          //删除信号量结点
-            Lock_SempDelete_s(&(pMsgQ->MsgSendSemp));
-            Lock_SempDelete_s(&(pMsgQ->MsgRecvSemp));
-            free(pMsgQ);
-            result = true;
+            result = false;
         }
+        Lock_MutexPost(&s_tMsgQ_Mutex);
     }
-    else
-    {
-        result = false;
-    }
-    Lock_MutexPost(&s_tMsgQ_Mutex);
     return result;
 }
 

@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -87,7 +87,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"device file system","file system","lock","stdio"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"device file system","file system"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -305,16 +305,18 @@ bool_t Ymodem_PathSet(const char *Path)
         // -2是因为Path最后一个字符不是'/'，需要补足
         if(len < CN_YMODEM_NAME_LENGTH - 2)
         {
-            Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER);
-    //      pYmodem->Path = Path;
-            strcpy(pYmodem->FileName, Path);
-            //最后一个字符不是'/'或'\\'，需要补上
-            if((pYmodem->FileName[len-1] != '/') && (pYmodem->FileName[len-1] != '\\'))
+            if(Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER))
             {
-                pYmodem->FileName[len] = '/';
-                pYmodem->FileName[len] = '\0';
+        //      pYmodem->Path = Path;
+                strcpy(pYmodem->FileName, Path);
+                //最后一个字符不是'/'或'\\'，需要补上
+                if((pYmodem->FileName[len-1] != '/') && (pYmodem->FileName[len-1] != '\\'))
+                {
+                    pYmodem->FileName[len] = '/';
+                    pYmodem->FileName[len] = '\0';
+                }
+                Lock_MutexPost(pYmodem->pYmodemMutex);
             }
-            Lock_MutexPost(pYmodem->pYmodemMutex);
             Ret = true;
         }
     }
@@ -725,7 +727,8 @@ bool_t downloadym(char *Param)
         debug_printf("MODULE","YMODEM IS NOT INSTALLED !\r\n");
         return false;
     }
-    Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER))
+        return false;
 
     pYmodem->File   = NULL;
 //  pYmodem->FileOps  = YMODEM_FILE_NOOPS;
@@ -758,7 +761,7 @@ bool_t downloadym(char *Param)
         if (CntOver++ < 60)
         {
             write_char(CN_YMODEM_C, s_s32gYmodemDevOut); //超时则重新发送C
-            printf("\b\b\b\b\b%2dS ",60-CntOver);
+            printf("\b\b\b\b\b%2dS \r\n",60-CntOver);
             continue;
         }
         else
@@ -970,7 +973,8 @@ bool_t uploadym(char *Param)
         error_printf("MODULE","YMODEM IS NOT INSTALLED !\r\n");
         return false;
     }
-    Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER))
+        return false;
 
     FileName = (char *)shell_inputs(Param, &NextParam);
     if(NULL == FileName)

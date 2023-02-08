@@ -115,7 +115,7 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     bitmap.ExColor = CN_COLOR_WHITE;
     bitmap.height=(s32)(qrcode->width);
     bitmap.width=(s32)(qrcode->width);
-    GDD_DrawBitmap(hdc,rc0.left+75,rc0.top+20,&bitmap,CN_SYS_PF_GRAY1,RopCode);
+    GDD_DrawBitmap(hdc, rc0.left+75,rc0.top+20,&bitmap,CN_SYS_PF_GRAY1,RopCode);
 
     GDD_EndPaint(hwnd,hdc);
     QRcode_free(qrcode);
@@ -136,7 +136,8 @@ void    GDD_Demo_Qrcode(void)
 {
     s_gQrcodeDemoMsgLink.MsgNum = sizeof(s_gQrcodeMsgTable) / sizeof(struct MsgProcTable);
     s_gQrcodeDemoMsgLink.myTable = (struct MsgProcTable *)&s_gQrcodeMsgTable;
-    GDD_CreateGuiApp("ЖўЮЌТы", &s_gQrcodeDemoMsgLink, 0x800, CN_WINBUF_PARENT,WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU);
+    GDD_CreateGuiApp("ЖўЮЌТы", &s_gQrcodeDemoMsgLink, 0,0,-1,0, 0x800, CN_WINBUF_PARENT,
+                WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE);
     GDD_WaitGuiAppExit("ЖўЮЌТы");
 
 }

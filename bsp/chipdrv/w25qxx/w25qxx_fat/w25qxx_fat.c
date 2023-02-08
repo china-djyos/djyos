@@ -230,7 +230,7 @@ bool_t ModuleInstall_W25qxxInstallFat(const char *TargetFs,s32 bend, u32 doforma
                 sz.block = 1;
                 if(-1 == __W25qxx_Req(format, 0 , bend, &sz))
                 {
-                    warning_printf("w25q"," Format failure.");
+                    warning_printf("w25q"," Format failure.\r\n");
                     return false;
                 }
             }

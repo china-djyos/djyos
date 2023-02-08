@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -69,7 +69,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"gd5f1gq5x"	//SPI和QSPI接口的flash芯片
+//component name:"gd5f1gq5x"    //SPI和QSPI接口的flash芯片
 //parent:"none"//填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -98,8 +98,8 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-								
-								
+
+
 
 #define ECC_ENABLE_SPARE_WRITE_LEN          64          //默认是使能了芯片的硬件ECC的，后64字节用于硬件ECC了，软件不允许操作
 
@@ -271,7 +271,8 @@ s32 Gd5f1g_EraseBlock(u32 block_no)
     }
 
     block_no = block_no << 6;
-    Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER))
+        return -1;
 
     if(Gd5f1g_WaitBusy(5000) == false)
     {
@@ -326,7 +327,8 @@ u32 Gd5f1g_ReadSpare(u32 PageNo, u8* buf)
         error_printf("gd5f1g", "read spare param fail. buf = %x, PageNo =%d.\r\n", buf, PageNo);
         return res;
     }
-    Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER))
+        return res;
     t2 = DJY_GetSysTime();
     t3 = t2 - t1;
 
@@ -396,7 +398,8 @@ u32 Gd5f1g_WriteSpare(u32 PageNo, u8* buf)
         error_printf("gd5f1g", "write spare param fail. buf = %x, PageNo =%d.\r\n", buf, PageNo);
         return res;
     }
-    Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER))
+        return res;
 
     if(Gd5f1g_WaitBusy(5000))
     {
@@ -444,7 +447,8 @@ u32 Gd5f1g_ReadPage(u32 PageNo, u8* buf, u32 Flags)
         return res;
     }
 
-    Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER))
+        return res;
 
     switch (Flags & MASK_ECC)
     {
@@ -510,7 +514,8 @@ u32 Gd5f1g_WritePage(u32 PageNo, u8* buf, u32 Flags)
         return res;
     }
 
-    Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(gd5f1g_lock,CN_TIMEOUT_FOREVER))
+        return res;
     if(Gd5f1g_WaitBusy(5000))
     {
         if(QSPI_Send_CMD(Gd5f1g_PageProgramx4,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_1_LINE,QSPI_ADDRESS_16_BITS,QSPI_DATA_4_LINES))
@@ -1251,7 +1256,7 @@ s32 __Gd5f1g_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
     targetobj = OBJ_MatchPath(fs, &notfind);
     if(notfind)
     {
-        error_printf("gd5f1g"," not found need to install file system.");
+        error_printf("gd5f1g"," not found need to install file system.\r\n");
         return -1;
     }
     super = (struct FsCore *)OBJ_GetPrivate(targetobj);

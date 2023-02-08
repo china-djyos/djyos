@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -124,6 +124,7 @@ struct DC
     struct FontObj *pFontDef;   //默认字体,这个值在创建DC时指定,后续将不可更改
     struct FontObj *pFont;      //当前字体,这个值在DC使用过程中,可以被更改
     struct Charset *pCharset;   //当前字符集
+    struct Rectangle DrawArea;  //本DC的可绘制区，相对于窗口坐标
     HWND hwnd;                  //DC所属窗口
     u32 DCType;                 //DC类型
     s32 CurX,CurY;              //当前位置
@@ -131,14 +132,13 @@ struct DC
     u32 FillColor;              //填充颜色
     u32 TextColor;              //字体颜色
     u32 SyncTime;               //同步时间
-    u32 HyalineColor;           //透明显示透明色，RopCode允许透明色时用,RGB888
     struct RopGroup RopCode;    //光栅码
 
 };
 
-#define WF_NCPAINT      (1<<0)  //非客户区绘制
-#define WF_PAINT        (1<<1)  //客户区绘制
-#define WF_ERASEBKGND   (1<<2)  //擦除背景
+#define WF_MAINWIN      (1<<0)  //这是个主窗口，有自己的消息队列和消息循环
+                                //无此标志的窗口，使用父窗口的消息队列，由父窗口消息循环处理
+#define WF_ERASEBKGND   (1<<1)  //擦除背景
 
 struct WINDOW
 {
@@ -155,12 +155,13 @@ struct WINDOW
     u16     EventID;        //窗口所属事件ID
     u16     WinId;          //窗口ID
 
-    u8      BorderSize;     //边框大小
+    u8      BorderSize;     //边框大小，所有子窗口共享所属主窗口的。
     u8      CaptionSize;    //标题栏大小
-    u16     Flag;           //窗口标记，例如：WF_ERASEBKGND
-    u32     Style;          //窗口风格,高16位系统使用，例如：WS_CHILD
+    u16     Flag;           //窗口标记，例如： WF_ERASEBKGND
+    u32     Style;          //窗口风格,高16位系统使用，例如：WS_CAPTION
                             //0~7 bit=控件类型，8~15 bit = 控件风格
-    RECT    CliRect;        //窗口客户区(使用屏幕坐标)
+//  RECT    CliRect;        //窗口客户区(使用屏幕坐标)
+    RECT    CliRect;        //窗口客户区(改为窗口左上角为原点的坐标)
     u32     DrawColor;      //绘制颜色，创建子窗口时，将继承
     u32     FillColor;      //填充颜色，创建子窗口时，将继承
     u32     TextColor;      //字体颜色，创建子窗口时，将继承
@@ -195,16 +196,11 @@ bool_t  __GDD_Lock(void);
 void    __GDD_Unlock(void);
 bool_t GDD_AdoptWin(HWND Hwnd ,HWND NewParent);
 void    GDD_InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type);
-void    __GDD_OffsetRect(RECT *prc,s32 dx,s32 dy);
-void    __GDD_InflateRect(RECT *prc,s32 dx,s32 dy);
-void    __GDD_InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b);
-bool_t  __PtInRect(const RECT *prc,const POINT *pt);
 
 
 bool_t  __GDD_PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
 void    __GDD_PostTimerMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,struct WinTimer *ptmr);
 
-void    __GDD_InvalidateWindow(HWND hwnd,bool_t bErase);
 struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size);
 void    __GUI_DeleteMsgQ(struct WinMsgQueueCB *pMsgQ);
 void    __GDD_RemoveWindowTimer(HWND hwnd);
@@ -214,7 +210,7 @@ void __GDD_DeleteChildWindowData(HWND hwnd);
 struct WinMsgQueueCB *__GDD_GetWindowMsgQ(HWND hwnd);
 bool_t __GDD_WinMsgProc(struct WindowMsg *pMsg);
 u32         __GDD_GetWindowEvent(HWND hwnd);
-ptu32_t GDD_GetGK_Message(void);
+ptu32_t GDD_GK_MessageLoop(void);
 
 /*============================================================================*/
 

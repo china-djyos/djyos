@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -511,7 +511,7 @@ static bool_t __IoDevOut(tagPPP *ppp, u16 proto, tagCH *chdr, u8 *buf, u16 l,
         if (ppp->debug.endebug) {
             time_t logtime;
             logtime = time(NULL);
-            debug_printf("PPP","[%s:S:%04d]7e ", ctime(&logtime), txbuff->lenbuffer);
+            debug_printf("PPP","[%s:S:%04d]7e \r\n", ctime(&logtime), txbuff->lenbuffer);
             for (int i = 0; i < txbuff->lenbuffer; i++) {
                 debug_printf("PPP","%02x ", txbuff->buffer[i]);
             }
@@ -1032,10 +1032,10 @@ static void __FrameDeal(tagPPP *ppp, u16 proto, tagCH *ch, u8 *data, u16 len) {
     if (ppp->debug.endebug) {
         time_t logtime;
         logtime = time(NULL);
-        debug_printf("PPP","[%s:R:%04d]", ctime(&logtime),
+        debug_printf("PPP","[%s:R:%04d]\r\n", ctime(&logtime),
                 ppp->rcvbuf.lenbuffer);
         for (int i = 0; i < ppp->rcvbuf.lenbuffer; i++) {
-            debug_printf("PPP","%02x ", ppp->rcvbuf.buffer[i]);
+            debug_printf("PPP","%02x \r\n", ppp->rcvbuf.buffer[i]);
         }
         printf("\n\r");
     }

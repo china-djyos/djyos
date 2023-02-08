@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -253,17 +253,17 @@ static s32 __stdio_close(struct objhandle *hdl)
     if(hdl==__stdio_lookup[0])
     {
         __stdio_lookup[0] = NULL;
-        warning_printf("stdio","\"in\"(0) is closed.");
+        warning_printf("stdio","\"in\"(0) is closed.\r\n");
     }
     else if(hdl==__stdio_lookup[1])
     {
         __stdio_lookup[1] = NULL;
-        warning_printf("stdio","\"out\"(1) is closed.");
+        warning_printf("stdio","\"out\"(1) is closed.\r\n");
     }
     else if(hdl==__stdio_lookup[2])
     {
         __stdio_lookup[2] = NULL;
-        warning_printf("stdio","\"err\"(2) is closed.");
+        warning_printf("stdio","\"err\"(2) is closed.\r\n");
     }
 
 //  return (Handle_Delete(hdl));
@@ -611,7 +611,8 @@ s32 __stdio_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 //      runmode -- 标准IO文件的运行模式；
 // 返回：成功（0）；失败（-1）；
 // 备注：因为"STDIN"等的结构中的fd（文件号）被人为改变成了0等，
-//      这会导致读写时找不到其原始的上下文；此处的查找表示为了保存这个上下文；
+//      这会导致读写时找不到其原始的上下文；此处的查找表是为了保存这个上下文；
+//      仅能调用本函数三次，且三次调用 type 分别为 0、1、2
 // ============================================================================
 static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 {
@@ -631,12 +632,12 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
     new_fp = (FILE*)&__stdio_filestruct[type];
     new_fp->ungetbuf = EOF;
     new_fp->flags = fp->flags;
-    if((DJY_GetRunMode() < CN_RUNMODE_MP) && (S_ISFLOW(info.st_mode)))
-    {
-        res = __File_BufNew(new_fp);
-        if(res)
-            goto __ERR_STDIO_SET;
-    }
+//    if((DJY_GetRunMode() < CN_RUNMODE_MP) && (!S_ISFLOW(info.st_mode)))
+//    {
+//        res = __File_BufNew(new_fp);
+//        if(res)
+//            goto __ERR_STDIO_SET;
+//    }
 
     fcntl(fp->fd, F_SETTIMEOUT, CN_TIMEOUT_FOREVER); // 将所定向的设备设置为forver（阻塞式）；
     switch(type)
@@ -739,8 +740,8 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 
 __ERR_STDIO_SET:
 
-    __File_BufDel(new_fp);
-    free(new_fp);
+//    __File_BufDel(new_fp);
+//    free(new_fp);
     if(hdl)
         __stdio_close(hdl);
 
@@ -832,7 +833,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     res = __stdio_build(runmode);
     if(res)
     {
-        debug_printf("module","STDIO install failed(cannot build).");
+        debug_printf("module","STDIO install failed(cannot build).\r\n");
         return (-1);
     }
 
@@ -859,7 +860,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     }
     if(res == -1)
     {
-        debug_printf("module","STDIO install failed(\"in\" cannot set).");
+        debug_printf("module","STDIO install failed(\"in\" cannot set).\r\n");
         goto __INSTALL_STDIO_ERR;
     }
 
@@ -886,7 +887,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     }
     if(res == -1)
     {
-        debug_printf("module","STDIO install failed(\"out\" cannot set).");
+        debug_printf("module","STDIO install failed(\"out\" cannot set).\r\n");
         goto __INSTALL_STDIO_ERR;
     }
 
@@ -905,11 +906,11 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     res = __stdio_set(2, fd, (O_RDWR | O_APPEND), runmode);
     if(res)
     {
-        debug_printf("module","STDIO install failed(\"err\" cannot set).");
+        debug_printf("module","STDIO install failed(\"err\" cannot set).\r\n");
         goto __INSTALL_STDIO_ERR;
     }
 
-    info_printf("module","STDIO installed, IN : \"%s\", OUT : \"%s\", ERR : \"%s\".", inname, outname, errname);
+    info_printf("module","STDIO installed, IN : \"%s\", OUT : \"%s\", ERR : \"%s\".\r\n", inname, outname, errname);
     return (0);
 
 __INSTALL_STDIO_ERR:

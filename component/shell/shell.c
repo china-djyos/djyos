@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -97,7 +97,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"stdio"            //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"none"            //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -117,7 +117,7 @@
 #define CFG_ADD_ROUTINE_SHELL      true        //"是否添加常规shell命令",
 #define CFG_ADD_EXPAND_SHELL       true        //"是否添加拓展shell命令",
 #define CFG_ADD_GLOBAL_FUN         false       //"添加全局函数到shell",
-#define CFG_SHOW_ADD_SHEELL        true        //"显示在编译窗口添加的shell命令",
+#define CFG_SHOW_ADD_SHEELL        true        //"编译时显示shell命令",
 //%$#@string,1,10,
 //%$#@SYMBOL        ***不经配置界面，直接定义符号
 //%$#select,        ***从列出的选项中选择若干个定义成宏
@@ -222,10 +222,14 @@ static enum param_typr ParameterFlagTab[PARAMETER_MAX];
 // ============================================================================
 bool_t shell_add(struct shell_list *pLisTtab)
 {
-    Lock_MutexPend(__shell_mutex,CN_TIMEOUT_FOREVER);
-    dListInsertBefore(&shells_list.list,&pLisTtab->list);
-    Lock_MutexPost(__shell_mutex);
-    return (TRUE);
+    if(Lock_MutexPend(__shell_mutex,CN_TIMEOUT_FOREVER))
+    {
+        dListInsertBefore(&shells_list.list,&pLisTtab->list);
+        Lock_MutexPost(__shell_mutex);
+        return (TRUE);
+    }
+    else
+        return false;
 }
 
 // ============================================================================
@@ -236,10 +240,14 @@ bool_t shell_add(struct shell_list *pLisTtab)
 // ============================================================================
 bool_t shell_del(struct shell_list *pLisTtab)
 {
-    Lock_MutexPend(__shell_mutex,CN_TIMEOUT_FOREVER);
-    dListRemove(&pLisTtab->list);
-    Lock_MutexPost(__shell_mutex);
-    return TRUE;
+    if(Lock_MutexPend(__shell_mutex,CN_TIMEOUT_FOREVER))
+    {
+        dListRemove(&pLisTtab->list);
+        Lock_MutexPost(__shell_mutex);
+        return TRUE;
+    }
+    else
+        return false;
 }
 
 // ============================================================================
@@ -796,11 +804,11 @@ static void putsbackspace(int times)
     for(i =0;i<times;i++)
     {
         ch ='\b';  //move the cursor left
-        putc(ch,stdout);
+        putchar(ch);
         ch =' ';   //space key
-        putc(ch,stdout);
+        putchar(ch);
         ch ='\b';  //move the cursor left
-        putc(ch,stdout);
+        putchar(ch);
     }
 }
 static void putsnxtspace(int times)
@@ -810,7 +818,7 @@ static void putsnxtspace(int times)
     ch =' ';  //just put the space
     for(i =0;i<times;i++)
     {
-        putc(ch,stdout);
+        putchar(ch);
     }
 }
 //absolutely,just put the right cursor,maybe different terminal has different right virtual key
@@ -821,11 +829,11 @@ static void  movescursorright(int times,u32 vk)
     for(i =0;i<times;i++)
     {
         ch = (char)(vk&0xff);
-        putc(ch,stdout);
+        putchar(ch);
         ch = (char)((vk>>8)&0xff);
-        putc(ch,stdout);
+        putchar(ch);
         ch = (char)((vk>>16)&0xff);
-        putc(ch,stdout);
+        putchar(ch);
     }
 }
 //absolutely,just put the left cursor,maybe different terminal has different right virtual key
@@ -835,7 +843,7 @@ static void  movescursoleft(int times)
     int i =0;
     for(i =0;i<times;i++)
     {
-        putc(ch,stdout);
+        putchar(ch);
     }
 }
 
@@ -864,7 +872,7 @@ static ptu32_t Sh_Service(void)
 
      while(1)
      {
-         res = getc(stdin);
+         res = getchar( );
          if(EOF == res)
          {
              DJY_EventDelay(1000); // 获取数据错误或者end of file，延时1ms再继续（防止出现死循环现象，导致其他线程卡死）。
@@ -1086,7 +1094,7 @@ static ptu32_t Sh_Service(void)
                  {
                      cmdbuf.curcmd[cmdbuf.curoffset] = ch;
                      cmdbuf.curoffset++;
-                     putc(ch,stdout);   //should do the echo
+                     putchar(ch);   //should do the echo
                  }
                  //flush the vk
                  vk = CN_VK_NULL;
@@ -1130,7 +1138,7 @@ s32 ModuleInstall_Shell(ptu32_t para)
     if(shell_evtt==CN_EVTT_ID_INVALID)
     {
         Lock_MutexDelete(__shell_mutex);
-        error_printf("module", "shell install failed.");
+        error_printf("module", "shell install failed.\r\n");
         return (-1);
     }
 

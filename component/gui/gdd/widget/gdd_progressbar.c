@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -377,7 +377,7 @@ static u32 __Widget_ProgressBarGetRange(struct WindowMsg *pMsg)
     return 0;
 }
 
-//----设置进度条进度当前值消息响应函数-----------------------------------------------
+//----设置进度条进度当前值消息响应函数-------------------------------------------
 //功能：设置进度条范围消息响应函数
 //参数：pMsg，消息指针
 //返回：成功则返回true，失败则返回false.
@@ -397,7 +397,7 @@ static bool_t __Widget_ProgressBarSetPos(struct WindowMsg *pMsg)
     return false;
 }
 
-//----获取进度条进度当前值消息响应函数-----------------------------------------------
+//----获取进度条进度当前值消息响应函数-------------------------------------------
 //功能：获取进度条范围消息响应函数
 //参数：pMsg，消息指针
 //返回：成功则返回范围值，失败则返回0.
@@ -440,8 +440,9 @@ HWND Widget_CreateProgressBar(  const char *Text,u32 Style,
     HWND pGddWin;
     s_gProgressBarMsgLink.MsgNum = sizeof(s_gProgressBarMsgProcTable) / sizeof(struct MsgProcTable);
     s_gProgressBarMsgLink.myTable = (struct MsgProcTable *)&s_gProgressBarMsgProcTable;
-    pGddWin = GDD_CreateWindow(Text,WS_CHILD|Style,x,y,w,h,hParent,WinId,
-                                CN_WINBUF_PARENT,pdata,&s_gProgressBarMsgLink);
+    pGddWin = GDD_CreateWindow(Text,Style,x,y,w,h,hParent,WinId,
+                                CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
+                                &s_gProgressBarMsgLink);
     if(UserMsgTableLink != NULL)
         GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;

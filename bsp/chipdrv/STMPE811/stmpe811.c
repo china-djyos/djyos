@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -71,7 +71,7 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    struct GkWinObj;
 //    extern ptu32_t ModuleInstall_Touch_Stmpe811(void);
-//    ModuleInstall_Touch_Stmpe811(stmpe811_desktop);
+//    ModuleInstall_Touch_Stmpe811( );
 //#if(CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == true)
 //    extern bool_t GDD_AddInputDev(const char *InputDevName);
 //    GDD_AddInputDev(CFG_STMPE811_TOUCH_DEV_NAME);
@@ -86,7 +86,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:later               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"graphical kernel","rtc","lock","touch","iicbus","graphical decorate development"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"graphical kernel","lock","touch","iicbus","graphical decorate development"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -372,20 +372,20 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
 //    }
 //    else
     {
-        limit_left = desktop->limit_left;
-        limit_top = desktop->limit_top;
-        limit_right = desktop->limit_right;
-        limit_bottom = desktop->limit_bottom;
+        limit_left = desktop->limit.left;
+        limit_top = desktop->limit.top;
+        limit_right = desktop->limit.right;
+        limit_bottom = desktop->limit.bottom;
     //    GK_CreateWin(desktop,desktop,limit_left,limit_top,limit_right,limit_bottom,
     //                      CN_COLOR_WHITE,CN_WINBUF_BUF,"&tg_touch_adjust",CN_R3_SRCCOPY,0);
     //    GK_SetPrio(desktop,-1,CN_GK_SYNC);
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+50,
                        "touch", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+70,
                        "TOUCH", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
-        GK_Lineto(desktop,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
-        GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
+        GK_Lineto(desktop,NULL,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
+        GK_Lineto(desktop,NULL,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
         GK_SyncShow(CN_TIMEOUT_FOREVER);
         while(!read_touch_stmpe811(&touch_xyz0));           //记录触摸屏第一点校正值
         DJY_DelayUs(300);
@@ -409,14 +409,14 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
 
 
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+50,
                        "touch", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+        GK_DrawText(desktop,NULL,NULL,NULL,limit_left+10,limit_top+70,
                        "TOUCH", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
-        GK_Lineto(desktop,limit_right-40,limit_bottom-20,
+        GK_Lineto(desktop,NULL,limit_right-40,limit_bottom-20,
                       limit_right,limit_bottom-20,
                       CN_COLOR_RED,CN_R2_COPYPEN,0);
-        GK_Lineto(desktop,limit_right-20,limit_bottom-40,
+        GK_Lineto(desktop,NULL,limit_right-20,limit_bottom-40,
                       limit_right-20,limit_bottom,
                       CN_COLOR_RED,CN_R2_COPYPEN,0);
         GK_SyncShow(CN_TIMEOUT_FOREVER);

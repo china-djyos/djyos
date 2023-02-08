@@ -13,7 +13,7 @@
 			"timer",
 			"uart",
 			"wdt"],
-			"mian_freq":0,
+			"main_freq":0,
 			"memories":{
 				
 			}

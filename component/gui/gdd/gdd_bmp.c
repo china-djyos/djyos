@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -95,330 +95,101 @@ typedef struct
 
 }tagBITMAPINFOHEADER;
 
-
-typedef long FXPT16DOT16, *LPFXPT16DOT16;
-typedef long FXPT2DOT30, *LPFXPT2DOT30;
-
-typedef struct tagCIEXYZ
-{
-    FXPT2DOT30 ciexyzX;
-    FXPT2DOT30 ciexyzY;
-    FXPT2DOT30 ciexyzZ;
-} CIEXYZ;
-typedef CIEXYZ *LPCIEXYZ;
-
-typedef struct tagICEXYZTRIPLE
-{
-    CIEXYZ ciexyzRed;
-    CIEXYZ ciexyzGreen;
-    CIEXYZ ciexyzBlue;
-} CIEXYZTRIPLE;
-typedef CIEXYZTRIPLE *LPCIEXYZTRIPLE;
-
-typedef struct
-{
-    u32 biSize;
-    u32 biWidth;
-    u32 biHeight;
-    u16 biPlanes;
-    u16 biBitCount;
-    u32 biCompression;
-    u32 biSizeImage;
-    u32 biXPelsPerMeter;
-    u32 biYPelsPerMeter;
-    u32 biColorUsed;
-    u32 biColorImportant;
-
-    u32 biRedMask;
-    u32 biGreenMask;
-    u32 biBlueMask;
-    u32 biAlphaMask;
-
-    u32 biCSType;
-    CIEXYZTRIPLE biEndpoints;
-    u32 biGammaRed;
-    u32 biGammaGreen;
-    u32 biGammaBlue;
-} BITMAPHEADER_V4;
-
-typedef struct
-{
-    u32 biSize;
-    u32 biWidth;
-    u32 biHeight;
-    u16 biPlanes;
-    u16 biBitCount;
-    u32 biCompression;
-    u32 biSizeImage;
-    u32 biXPelsPerMeter;
-    u32 biYPelsPerMeter;
-    u32 biColorUsed;
-    u32 biColorImportant;
-
-    u32 biRedMask;
-    u32 biGreenMask;
-    u32 biBlueMask;
-    u32 biAlphaMask;
-
-    u32 biCSType;
-    CIEXYZTRIPLE biEndpoints;
-    u32 biGammaRed;
-    u32 biGammaGreen;
-    u32 biGammaBlue;
-
-    u32 biIntent;
-    u32 biProfileData;
-    u32 biProfileSize;
-    u32 biReserved;
-} BITMAPHEADER_V5;
-
-
-#define PROFILE_LINKED          'LINK'
-#define PROFILE_EMBEDDED        'MBED'
-
-
 #define BI_RGB        0L
 #define BI_RLE8       1L
 #define BI_RLE4       2L
 #define BI_BITFIELDS  3L
 
-/*============================================================================*/
-typedef    s32 FN_READ_DATA(u8 *buf,u32 offset,u32 size,const void *pdata);
-
-typedef    struct{
-    const void *pData;
-    FN_READ_DATA *pfReadData;
-}GUI_GET_DATA;
-
-/*============================================================================*/
-
-static s32  __GDD_ReadDataFromMemory(u8 *buf,u32 offset,u32 size,const void *pdata)
+//-----------------------------------------------------------------------------
+//功能：绘制BMP文件格式的二进制图像数据，图像数据是已二进制数组的形式保存在程序中或者
+//      内存中的，如果图像存储在文件系统中，请用 GDD_DrawBMPFile 函数
+//参数：hdc，目标窗口句柄
+//      x，y，欲显示的坐标，左上角
+//      bmp_data，指向图像数据的指针
+//      palette，自定义调色板，对于调色板位图，如果本参数为 NULL，则使用图形文件中的调色板
+//              否则使用本调色板。注：16位及以上的真彩色无调色板。
+//      HyalineColor，如果hdc中的ropcode使能透明色，此处定义颜色值，否则无效
+//返回：true=成功调用，false = 失败
+//函数原名： GDD_DrawBMP
+//------------------------------------------------------------------------------
+bool_t GDD_DrawWinBMPArray(HDC hdc,s32 x,s32 y,const void *bmp_data,u32 *palette,
+                        u32 HyalineColor)
 {
-    memcpy(buf,(u8*)pdata+offset,size);
-    return size;
-}
-
-/*============================================================================*/
-
-bool_t GDD_GetBitmapInfo(tagBMP_INFO *bm_info,tagBMP_HEADER *pBmpHdr)
-{
-    s32 line_bytes;
-
-    if (bm_info == NULL )
-    {
-        return FALSE;
-    }
-
-    if (pBmpHdr->bfType != 0x4D42)
-    {
-        return FALSE;
-    }
-
-    bm_info->Width = pBmpHdr->biWidth;
-    bm_info->Height = pBmpHdr->biHeight;
-
-    switch (pBmpHdr->biBitCount)
-    {
-    case 1:
-        line_bytes = pBmpHdr->biWidth >> 3;
-        if (line_bytes & 0x03)
-        {
-            line_bytes += 4 - (line_bytes & 0x03);
-        }
-        bm_info->LineBytes = line_bytes;
-        bm_info->Format = CN_SYS_PF_PALETTE1;
-        return TRUE;
-        ////
-
-    case 4:
-        line_bytes = pBmpHdr->biWidth >> 1;
-        if (line_bytes & 0x03)
-        {
-            line_bytes += 4 - (line_bytes & 0x03);
-        }
-        bm_info->LineBytes = line_bytes;
-        bm_info->Format = CN_SYS_PF_PALETTE4;
-        return TRUE;
-        ////
-
-    case 8:
-        line_bytes = pBmpHdr->biWidth;
-        if (line_bytes & 0x03)
-        {
-            line_bytes += 4 - (line_bytes & 0x03);
-        }
-        bm_info->LineBytes = line_bytes;
-        bm_info->Format = CN_SYS_PF_PALETTE8;
-        return TRUE;
-        ////
-
-    case 16:
-        line_bytes = pBmpHdr->biWidth * 2;
-        if (line_bytes & 0x03)
-        {
-            line_bytes += 4 - (line_bytes & 0x03);
-        }
-        bm_info->LineBytes = line_bytes;
-        bm_info->Format = CN_SYS_PF_RGB565;
-        return TRUE;
-        ////
-
-    case 24:
-        line_bytes = pBmpHdr->biWidth * 3;
-        if (line_bytes & 0x03)
-        {
-            line_bytes += 4 - (line_bytes & 0x03);
-        }
-        bm_info->LineBytes = line_bytes;
-        bm_info->Format = CN_SYS_PF_RGB888;
-        return TRUE;
-        ////
-
-    default:
-        bm_info->Format = 0xFFFF;
-        bm_info->Width = 0;
-        bm_info->Height = 0;
-        bm_info->LineBytes = 0;
-        return FALSE;
-
-    }
-
-    return FALSE;
-
-}
-
-/*============================================================================*/
-
-bool_t __GDD_DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
-{
-    u32 buf[64 / 4];
-    BITMAPHEADER_V4 *pBmp;
-    tagBITMAPFILEHEADER *p_bmp_hdr;
-    struct RectBitmap *bm;
-    s32 i, line_bytes, w, h, bfOffsetBits, xoff, yoff;
+    tagBMP_HEADER *BMP;
+    struct RectBitmap bm;
+    s32 line_bytes, w, h, bfOffsetBits;
     u32 offset;
-    struct RopGroup RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
-    ////
 
-    if (rd == NULL )
+    if (NULL == bmp_data )
+    {
+        return FALSE;
+    }
+    BMP = bmp_data;
+
+    if (BMP->bfType != 0x4D42)
     {
         return FALSE;
     }
 
-    if (rd->pfReadData == NULL )
+    bfOffsetBits =BMP->bfOffBits;
+
+    w = BMP->biWidth;
+    h = BMP->biHeight;
+
+    if (h < 0)
     {
-        return FALSE;
+        bm.reversal = 0;
+        h = 0-h;
     }
-
-    offset = 0;
-    rd->pfReadData((u8*)buf, offset, 14, rd->pData);
-
-    p_bmp_hdr =(tagBITMAPFILEHEADER*)buf;
-    if (p_bmp_hdr->bfType != 0x4D42)
-    {
-        return FALSE;
-    }
-
-    bfOffsetBits =p_bmp_hdr->bfOffBits;
-
-    offset = 14;
-    rd->pfReadData((u8*)buf, offset, 56, rd->pData);
-    pBmp = (BITMAPHEADER_V4*) buf;
-
-    xoff = 0;
-    yoff = 0;
-    w = pBmp->biWidth;
-    h = pBmp->biHeight;
-
-    switch (pBmp->biBitCount)
+    else
+        bm.reversal = 1;
+    switch (BMP->biBitCount)
     {
     case    1:
         {
+            u32 color_tbl[2];
 
-            u32 *color_tbl;
-
-            line_bytes = pBmp->biWidth >> 3;
-            if (line_bytes & 0x03)
-            {
-                line_bytes += 4 - (line_bytes & 0x03);
-            }
+            line_bytes = align_up(8,BMP->biWidth) >> 3;     //位数字节边界向上对齐，然后÷8
+            line_bytes = align_up(4, line_bytes);           //行尺寸4字节对齐
 
             offset =bfOffsetBits-(2*4);
-            color_tbl =(u32*)malloc(2*4+line_bytes);
+            if (palette == NULL)
+                memcpy((u8*)color_tbl, bmp_data+offset,2*4);
 
-            for(i=0;i<2;i++)
-            {
-                u32 xrgb;
-                rd->pfReadData((u8*)&xrgb,offset,4,rd->pData);
-                color_tbl[i]=xrgb;
-                offset += 4;
-            }
-
-            offset = bfOffsetBits;
-            offset += pBmp->biHeight * line_bytes - line_bytes;
-            offset -= yoff * line_bytes;
-
-            bm    =(BITMAP*)buf;
-            bm->PixelFormat  =CN_SYS_PF_PALETTE1;
-            bm->width        =w;
-            bm->height       =1;
-            bm->linebytes    =line_bytes;
-            bm->ExColor      =(ptu32_t)color_tbl;
-            bm->bm_bits      =(u8*)color_tbl+(2*4);
-
-            for (i = 0; i < h; i++)
-            {
-                rd->pfReadData((u8*)bm->bm_bits, offset, line_bytes, rd->pData);
-                GDD_DrawBitmap(hdc, x, y + i, bm, 0,RopCode);
-                offset -= line_bytes;
-            }
-
-            free(color_tbl);
+            bm.PixelFormat  =CN_SYS_PF_PALETTE1;
+            bm.width        =w;
+            bm.height       =h;
+            bm.linebytes    =line_bytes;
+            bm.ExColor      =(palette==NULL)?(ptu32_t)color_tbl:(ptu32_t)palette;
+            bm.bm_bits      =(u8*)bmp_data+bfOffsetBits;
+            GDD_DrawBitmap(hdc, x, y, &bm, HyalineColor);
+            //这里需要执行绘制操作，因为 bm 和 color_tbl 是局部变量
+            GDD_SyncShow(hdc->hwnd);
             return TRUE;
         }
         ////////
 
     case    4:
         {
-            u32 *color_tbl;
+            u32 color_tbl[16];
 
-            line_bytes = pBmp->biWidth >> 1;
-            if (line_bytes & 0x03)
-            {
-                line_bytes += 4 - (line_bytes & 0x03);
-            }
+            line_bytes = align_up(8,BMP->biWidth*4) >> 3;   //位数字节边界向上对齐，然后÷8
+            line_bytes = align_up(4, line_bytes);           //行尺寸4字节对齐
 
-            offset =bfOffsetBits-(16*4);
-            color_tbl =(u32*)malloc(16*4+line_bytes);
+            offset = bfOffsetBits-(16*4);
+            if (palette == NULL)
+                memcpy((u8*)color_tbl, bmp_data+offset,16*4);
 
-            for(i=0;i<16;i++)
-            {
-                u32 xrgb;
-                rd->pfReadData((u8*)&xrgb,offset,4,rd->pData);
-                color_tbl[i]=xrgb;
-                offset += 4;
-            }
+            bm.PixelFormat  =CN_SYS_PF_PALETTE4;
+            bm.width        =w;
+            bm.height       =h;
+            bm.linebytes    =line_bytes;
+            bm.ExColor      =(palette==NULL)?(ptu32_t)color_tbl:(ptu32_t)palette;
+            bm.bm_bits      =(u8*)bmp_data + bfOffsetBits;
+            GDD_DrawBitmap(hdc, x, y, &bm, HyalineColor);
+            //这里需要执行绘制操作，因为 bm 和 color_tbl 是局部变量
+            GDD_SyncShow(hdc->hwnd);
 
-            offset = bfOffsetBits;
-            offset += pBmp->biHeight * line_bytes - line_bytes;
-            offset -= yoff * line_bytes;
-
-            bm    =(BITMAP*)buf;
-            bm->PixelFormat  =CN_SYS_PF_PALETTE4;
-            bm->width        =w;
-            bm->height       =1;
-            bm->linebytes    =line_bytes;
-            bm->ExColor      =(ptu32_t)color_tbl;
-            bm->bm_bits      =(u8*)color_tbl+(16*4);
-
-            for (i = 0; i < h; i++)
-            {
-                rd->pfReadData((u8*)bm->bm_bits, offset, line_bytes, rd->pData);
-                GDD_DrawBitmap(hdc, x, y + i, bm, 0,RopCode);
-                offset -= line_bytes;
-            }
-
-            free(color_tbl);
             return TRUE;
         }
         ////////
@@ -427,43 +198,31 @@ bool_t __GDD_DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
         {
             u32 *color_tbl;
 
-            line_bytes = pBmp->biWidth;
-            if (line_bytes & 0x03)
+            line_bytes = align_up(4, BMP->biWidth);           //行尺寸4字节对齐
+
+            offset = bfOffsetBits-(256*4);
+            if (palette == NULL)
             {
-                line_bytes += 4 - (line_bytes & 0x03);
+                if (align_up(4, bmp_data+offset) == bmp_data+offset)
+                    color_tbl = bmp_data+offset;    //如果位图中的调色板地址本身已经对齐，则直接用。
+                else
+                {
+                    color_tbl = malloc(256*4);
+                    if (color_tbl == NULL)
+                        return false;
+                    memcpy((u8*)color_tbl, bmp_data+offset,16*4);
+                }
             }
 
-            offset =bfOffsetBits-(256*4);
-            color_tbl =(u32*)malloc(256*4+line_bytes);
-
-            for(i=0;i<256;i++)
-            {
-                u32 xrgb;
-                rd->pfReadData((u8*)&xrgb,offset,4,rd->pData);
-                color_tbl[i]=xrgb;
-                offset += 4;
-            }
-
-            offset = bfOffsetBits;
-            offset += pBmp->biHeight * line_bytes - line_bytes;
-            offset -= yoff * line_bytes;
-            offset += xoff;
-
-            bm    =(BITMAP*)buf;
-            bm->PixelFormat  =CN_SYS_PF_PALETTE8;
-            bm->width        =w;
-            bm->height       =1;
-            bm->linebytes    =line_bytes;
-            bm->ExColor      =(ptu32_t)color_tbl;
-            bm->bm_bits      =(u8*)color_tbl+(256*4);
-
-            for (i = 0; i < h; i++)
-            {
-                rd->pfReadData((u8*)bm->bm_bits, offset, line_bytes, rd->pData);
-                GDD_DrawBitmap(hdc, x, y + i, bm,0,RopCode);
-                offset -= line_bytes;
-            }
-
+            bm.PixelFormat  =CN_SYS_PF_PALETTE4;
+            bm.width        =w;
+            bm.height       =h;
+            bm.linebytes    =line_bytes;
+            bm.ExColor      =(palette==NULL)?(ptu32_t)color_tbl:(ptu32_t)palette;
+            bm.bm_bits      =(u8*)bmp_data + bfOffsetBits;
+            GDD_DrawBitmap(hdc, x, y, &bm, HyalineColor);
+            //这里需要执行绘制操作，因为 bm 和 color_tbl 是局部变量
+            GDD_SyncShow(hdc->hwnd);
             free(color_tbl);
             return TRUE;
         }
@@ -471,100 +230,33 @@ bool_t __GDD_DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
 
     case 16:
 
-        line_bytes = pBmp->biWidth * 2;
-//      if (line_bytes & 0x03)
-//      {
-//          line_bytes += 4 - (line_bytes & 0x03);
-//      }
-
-//      offset  = bfOffsetBits;
-//      offset += pBmp->biHeight * line_bytes - line_bytes;
-//      offset -= yoff * line_bytes;
-//      offset += xoff * 2;
-
+        line_bytes = BMP->biWidth * 2;
         line_bytes = align_up(4, line_bytes);
 
-        bm = (BITMAP*)buf;
-        bm->reversal = true;
-        bm->PixelFormat =CN_SYS_PF_RGB565;
-        bm->width  =w;
-        bm->height =h;
-        bm->linebytes =line_bytes;
-        bm->ExColor =(ptu32_t)0;
-//      bm->bm_bits =malloc(line_bytes);
-        bm->bm_bits =(u8*)rd->pData + bfOffsetBits;
-        GDD_DrawBitmap(hdc,x,y,bm,0,RopCode);
-
-//      if(bm->bm_bits!=NULL)
-//      {
-//          for (i = 0; i < h; i++)
-//          {
-//              rd->pfReadData((u8*)bm->bm_bits,offset,line_bytes,rd->pData);
-//              GDD_DrawBitmap(hdc,x,y+i,bm,0,RopCode);
-//              offset -= line_bytes;
-//          }
-//
-//          free(bm->bm_bits);
-//      }
+        bm.PixelFormat =CN_SYS_PF_RGB565;
+        bm.width  =w;
+        bm.height =h;
+        bm.linebytes =line_bytes;
+        bm.ExColor =(ptu32_t)0;
+        bm.bm_bits =(u8*)bmp_data + bfOffsetBits;
+        GDD_DrawBitmap(hdc, x,y,&bm,HyalineColor);
+        //这里需要执行绘制操作，因为 bm 是局部变量
+        GDD_SyncShow(hdc->hwnd);
         return TRUE;
-        ////////
 
     case 24:
 
-      line_bytes = pBmp->biWidth * 3;
-//      if (line_bytes & 0x03)
-//      {
-//          line_bytes += 4 - (line_bytes & 0x03);
-//      }
-
+        line_bytes = BMP->biWidth * 3;
         line_bytes = align_up(4, line_bytes);
-
-//      offset  = bfOffsetBits;
-//      offset += pBmp->biHeight * line_bytes - line_bytes;
-//      offset -= yoff * line_bytes;
-//      offset += xoff * 3;
-
-        bm = (BITMAP*)buf;
-        bm->reversal = true;
-        bm->PixelFormat =CN_SYS_PF_RGB888;
-        bm->width  =w;
-        bm->height =h;
-        bm->linebytes =line_bytes;
-        bm->ExColor =(ptu32_t)0;
-        bm->bm_bits = (u8*)rd->pData + bfOffsetBits;
-        GDD_DrawBitmap(hdc,x,y,bm,0,RopCode);
-
-#if 0
-        bm->bm_bits =malloc(line_bytes);
-
-        if(bm->bm_bits!=NULL)
-        {
-            for (i = 0; i < h; i++)
-            {
-
-                rd->pfReadData((u8*)bm->bm_bits,offset,line_bytes,rd->pData);
-                GDD_DrawBitmap(hdc,x,y+i,bm,0,RopCode);
-//                DJY_EventDelay(10*mS);//todo:
-                offset -= line_bytes;
-            }
-
-            free(bm->bm_bits);
-        }
-#else
-//      u8 * addr = malloc(line_bytes *h);
-//      if(addr != NULL)
-//      {
-//          for (i = 0; i < h; i++)
-//          {
-//              bm->bm_bits = addr+(line_bytes*i);
-//              rd->pfReadData((u8*)bm->bm_bits,offset,line_bytes,rd->pData);
-//              GDD_DrawBitmap(hdc,x,y+i,bm,0,RopCode);
-//              offset -= line_bytes;
-//          }
-//          free(addr);
-//      }
-
-#endif
+        bm.PixelFormat =CN_SYS_PF_RGB888;
+        bm.width  =w;
+        bm.height =h;
+        bm.linebytes =line_bytes;
+        bm.ExColor =(ptu32_t)0;
+        bm.bm_bits = (u8*)bmp_data + bfOffsetBits;
+        GDD_DrawBitmap(hdc,x,y,&bm,HyalineColor);
+        //这里需要执行绘制操作，因为 bm 是局部变量
+        GDD_SyncShow(hdc->hwnd);
         return TRUE;
         ////////
 
@@ -576,15 +268,4 @@ bool_t __GDD_DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
     return FALSE;
 }
 
-/*============================================================================*/
 
-bool_t GDD_DrawBMP(HDC hdc,s32 x,s32 y,const void *bmp_data)
-{
-    GUI_GET_DATA rd_data;
-    rd_data.pData =bmp_data;
-    rd_data.pfReadData =__GDD_ReadDataFromMemory;
-    return __GDD_DrawBMP(hdc,x,y,&rd_data);
-}
-
-
-/*============================================================================*/

@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -104,11 +104,16 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
     DisplayObject = OBJ_SearchChild(DisplayObject, DisplayName);    //取显示器对象
     desktop = malloc(sizeof(struct GkWinObj));
     if((NULL == DisplayObject) || (NULL == desktop))
+    {
+        free(desktop);
         return result;
+    }
     memset(desktop, 0, sizeof(struct GkWinObj));
     para.display = (struct DisplayObj *)OBJ_GetPrivate(DisplayObject);
     para.desktop = desktop;
-    para.name = (char *)DesktopName;
+    // para.name = (char *)DesktopName;
+    strncpy(para.name, DesktopName, CN_GKWIN_NAME_LIMIT);
+    para.name[CN_GKWIN_NAME_LIMIT] = '\0';
     para.width = width;
     para.height = height;
     para.color = color;
@@ -182,8 +187,7 @@ struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
                          s32 left,s32 top,s32 right,s32 bottom,
                          u32 color,u32 buf_mode,
                          const char *name,u16 PixelFormat,u32 HyalineColor,
-                         u32 BaseColor,struct RopGroup RopMode,
-                         bool_t unfill)
+                         u32 BaseColor,struct RopGroup RopMode)
 {
     struct GkscParaCreateGkwin para;
     struct GkWinObj *result;
@@ -198,12 +202,13 @@ struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
     para.bottom = bottom;
     para.color = color;
     para.buf_mode = buf_mode;
-    para.name = (char*)name;
+    // para.name = (char*)name;
+    strncpy(para.name, name, CN_GKWIN_NAME_LIMIT);
+    para.name[CN_GKWIN_NAME_LIMIT] = '\0';
     para.PixelFormat = PixelFormat;
     para.HyalineColor = HyalineColor;
     para.BaseColor = BaseColor;
     para.RopCode = RopMode;
-    para.unfill = unfill;
     __GK_SyscallChunnel(CN_GKSC_CREAT_GKWIN,CN_TIMEOUT_FOREVER,
                             &para,sizeof(para),NULL,0);
     if(*para.result == NULL)
@@ -252,7 +257,7 @@ void GK_SyncShow(u32 SyncTime)
 
 //----重刷显示器---------------------------------------------------------------
 //功能: 重新刷新显示器,不管是否有更新。GK_SyncShow只是刷新有改变的部分,
-//      GK_ApiRefresh则是不管有没有改变,全部重刷,但只针对具体显示器。
+//      GK_RefreshDisplay 则是不管有没有改变,全部重刷,但只针对具体显示器。
 //      在以下情况应该调用本函数:
 //      1. 由镜像显示器驱动程序调用，镜像显示器插入时，必须调用。
 //      2. 显示器本身从休眠醒来,且显示器内部没有缓冲.
@@ -329,7 +334,7 @@ void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *rect,
 //      Rop2Mode，二元光栅操作码，参见 CN_R2_BLACK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_DrawText(struct GkWinObj *gkwin,
+void GK_DrawText(struct GkWinObj *gkwin,struct Rectangle *range,
                     struct FontObj *pFont,
                     struct Charset *pCharset,
                     s32 x,s32 y,
@@ -340,6 +345,15 @@ void GK_DrawText(struct GkWinObj *gkwin,
     struct GkscParaDrawText para;
     if((NULL == gkwin) || (NULL == text) || (0 == count))
         return;
+    if(NULL != range)       //若给定了限定区，则判断之
+    {
+        para.range = *range;
+    }
+    else
+    {
+        para.range = (struct Rectangle){0,0,0,0};
+    }
+
     para.gkwin = gkwin;
     para.pFont = pFont;
     para.pCharset = pCharset;
@@ -362,19 +376,28 @@ void GK_DrawText(struct GkWinObj *gkwin,
 //      Rop2Mode，二元光栅操作码，参见 CN_R2_BLACK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_SetPixel(struct GkWinObj *gkwin,s32 x,s32 y,
+void GK_SetPixel(struct GkWinObj *gkwin,struct Rectangle *range,s32 x,s32 y,
                         u32 color,u32 Rop2Code,u32 SyncTime)
 {
     struct GkscParaSetPixel para;
+    struct Rectangle *wlimit = &gkwin->limit;
     if(NULL == gkwin)
         return;
-    para.gkwin = gkwin;
-    para.x = x;
-    para.y = y;
-    para.color = color;
-    para.Rop2Code = Rop2Code;
-    __GK_SyscallChunnel(CN_GKSC_SET_PIXEL,SyncTime,
-                        &para,sizeof(para),NULL,0);
+    if(NULL != range)       //若给定了限定区，则判断之
+    {
+        if((x < range->left) || (x >= range->right)||(y < range->top) || (y >= range->bottom))
+            return;
+    }
+    if( (x >= wlimit->left) && (x < wlimit->right)&&(y >= wlimit->top) && (y < wlimit->bottom) )
+    {
+        para.gkwin = gkwin;
+        para.x = x;
+        para.y = y;
+        para.color = color;
+        para.Rop2Code = Rop2Code;
+        __GK_SyscallChunnel(CN_GKSC_SET_PIXEL,SyncTime,
+                            &para,sizeof(para),NULL,0);
+    }
     return;
 }
 //----画单像素宽直线，不包含结束端点-------------------------------------------
@@ -385,12 +408,21 @@ void GK_SetPixel(struct GkWinObj *gkwin,s32 x,s32 y,
 //      Rop2Mode，二元光栅操作码，参见 CN_R2_BLACK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_Lineto(struct GkWinObj *gkwin, s32 x1,s32 y1,
+void GK_Lineto(struct GkWinObj *gkwin,struct Rectangle *range, s32 x1,s32 y1,
                     s32 x2,s32 y2,u32 color,u32 Rop2Code,u32 SyncTime)
 {
     struct GkscParaLineto para;
     if(NULL == gkwin)
         return;
+    if(NULL != range)       //若给定了限定区，则判断之
+    {
+        para.range = *range;
+    }
+    else
+    {
+        para.range = (struct Rectangle){0,0,0,0};
+    }
+
     para.gkwin = gkwin;
     para.x1 = x1;
     para.y1 = y1;
@@ -439,9 +471,8 @@ void GK_LinetoIe(struct GkWinObj *gkwin, s32 x1,s32 y1,
 //      RopMode, 光栅码，参见 CN_ROP_ALPHA_SRC_MSK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_DrawBitMap(struct GkWinObj *gkwin,
-                    struct RectBitmap *bitmap,
-                    s32 x,s32 y,
+void GK_DrawBitMap(struct GkWinObj *gkwin,struct Rectangle *range,
+                    struct RectBitmap *bitmap,s32 x,s32 y,
                     u32 HyalineColor,struct RopGroup RopCode,u32 SyncTime)
 {
     struct GkscParaDrawBitmapRop para;
@@ -454,6 +485,14 @@ void GK_DrawBitMap(struct GkWinObj *gkwin,
         return;
     else
         para.bitmap = *bitmap;
+    if(NULL != range)       //若给定了限定区，则判断之
+    {
+        para.range = *range;
+    }
+    else
+    {
+        para.range = (struct Rectangle){0,0,0,0};
+    }
 
     para.HyalineColor = HyalineColor;
     para.x = x;
@@ -463,6 +502,7 @@ void GK_DrawBitMap(struct GkWinObj *gkwin,
                         &para,sizeof(para),NULL,0);
     return;
 }
+
 //----画单像素宽的圆-----------------------------------------------------------
 //功能: 画单像素宽的圆。
 //参数: gkwin，绘制的目标窗口
@@ -606,7 +646,7 @@ struct GkWinObj* GK_TraveScion(struct GkWinObj *Ancestor,struct GkWinObj *Curren
 //功能: 根据当前位置，返回下一个子窗口，反复调用直到返回NULL。
 //参数: Parent，父窗口
 //      Current，当前遍历位置
-//返回: 下一个父窗口
+//返回: 下一个子窗口
 //-----------------------------------------------------------------------------
 struct GkWinObj* GK_TraveChild(struct GkWinObj *Parent,struct GkWinObj *Current)
 {
@@ -642,7 +682,7 @@ void GK_AdoptWin(struct GkWinObj *gkwin, struct GkWinObj *NewParent)
 //      left、top，窗口移动后的左上角坐标，相对于父窗口
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_MoveWin(struct GkWinObj *gkwin, s32 left,s32 top,u32 SyncTime)
+void GK_MoveWin(struct GkWinObj *gkwin, s32 left,s32 top)
 {
     struct GkscParaMoveWin para;
     if(NULL == gkwin)
@@ -650,7 +690,7 @@ void GK_MoveWin(struct GkWinObj *gkwin, s32 left,s32 top,u32 SyncTime)
     para.gkwin = gkwin;
     para.left = left;
     para.top = top;
-    __GK_SyscallChunnel(CN_GKSC_MOVE_WIN,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_MOVE_WIN, CN_TIMEOUT_FOREVER,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -662,7 +702,7 @@ void GK_MoveWin(struct GkWinObj *gkwin, s32 left,s32 top,u32 SyncTime)
 //返回: 无
 //-----------------------------------------------------------------------------
 void GK_ChangeWinArea(struct GkWinObj *gkwin, s32 left,s32 top,
-                                       s32 right,s32 bottom, u32 SyncTime)
+                                       s32 right,s32 bottom)
 {
     struct GkscParaChangeWinArea para;
     if(NULL == gkwin)
@@ -672,7 +712,7 @@ void GK_ChangeWinArea(struct GkWinObj *gkwin, s32 left,s32 top,
     para.top = top;
     para.right = right;
     para.bottom = bottom;
-    __GK_SyscallChunnel(CN_GKSC_CHANGE_WIN_AREA,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_CHANGE_WIN_AREA,CN_TIMEOUT_FOREVER,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -868,7 +908,7 @@ struct GkWinObj *GK_GetParentWin(struct GkWinObj *gkwin)
         return NULL;
 }
 //----取子窗口指针------------------------------------------------------
-//功能: 略
+//功能: 略，实际跟 GK_GetFirstWin 等效
 //参数: gkwin，父窗口
 //返回: 子窗口指针
 //-----------------------------------------------------------------------------
@@ -927,24 +967,104 @@ struct GkWinObj *GK_GetFirstWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetLastWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetTwig(gkwin->HostObj));
+        return (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetPrev(OBJ_GetHead(gkwin->HostObj)));
     else
         return NULL;
 }
 
-//----取窗口显示区域-----------------------------------------------------------
-//功能: 略
+//----取窗口区域-----------------------------------------------------------
+//功能: 取窗口区域在显示器上的坐标，不判定是否可见
 //参数: gkwin，窗口
+//      rc，用于返回结果的矩形结构
 //返回: 显示区域,显示器的绝对坐标
 //-----------------------------------------------------------------------------
-void GK_GetArea(struct GkWinObj *gkwin, struct Rectangle *rc)
+void GK_GetScreenArea(struct GkWinObj *gkwin, struct Rectangle *rc)
 {
     if((gkwin != NULL) && (rc != NULL))
     {
-        rc->left = gkwin->absx0;
-        rc->top = gkwin->absy0;
-        rc->right = gkwin->absx0 + gkwin->right - gkwin->left;
-        rc->bottom = gkwin->absy0 + gkwin->bottom - gkwin->top;
+        rc->left = gkwin->ScreenX;
+        rc->top = gkwin->ScreenY;
+        rc->right = gkwin->ScreenX + gkwin->area.right - gkwin->area.left;
+        rc->bottom = gkwin->ScreenY + gkwin->area.bottom - gkwin->area.top;
+    }
+    return ;
+}
+
+//----取窗口区域-----------------------------------------------------------
+//功能: 取窗口区域在父窗口上的坐标，不判定是否可见
+//参数: gkwin，窗口
+//      rc，用于返回结果的矩形结构
+//返回: 显示区域,显示器的绝对坐标
+//-----------------------------------------------------------------------------
+void GK_GetLcArea(struct GkWinObj *gkwin, struct Rectangle *rc)
+{
+    if((gkwin != NULL) && (rc != NULL))
+    {
+        *rc = gkwin->area;
+    }
+    return ;
+}
+
+//----取窗口尺寸-----------------------------------------------------------
+//功能: 取窗口尺寸
+//参数: gkwin，窗口
+//      size，用于返回尺寸的坐标
+//返回: 显示区域,显示器的绝对坐标
+//-----------------------------------------------------------------------------
+void GK_GetSize(struct GkWinObj *gkwin, struct PointCdn *size)
+{
+    if((gkwin != NULL) && (size != NULL))
+    {
+        size->x = gkwin->area.right - gkwin->area.left;
+        size->y = gkwin->area.bottom - gkwin->area.top;
+    }
+    return ;
+}
+
+//----取窗口相对父窗口位置-----------------------------------------------------------
+//功能: 取窗口在父窗口坐标系下的位置，如果是桌面窗口，则取屏幕坐标系
+//参数: gkwin，窗口
+//      lc，用于返回结果
+//返回: 显示区域,显示器的绝对坐标
+//-----------------------------------------------------------------------------
+void GK_GetLocation(struct GkWinObj *gkwin, struct PointCdn *lc)
+{
+    if((gkwin != NULL) && (lc != NULL))
+    {
+        lc->x = gkwin->area.left;
+        lc->y = gkwin->area.top;
+    }
+    return ;
+}
+
+//----取窗口相对screen位置-----------------------------------------------------------
+//功能: 取窗口在屏幕坐标系下的位置
+//参数: gkwin，窗口
+//      lc，用于返回结果
+//返回: 显示区域,显示器的绝对坐标
+//-----------------------------------------------------------------------------
+void GK_GetScreenLocation(struct GkWinObj *gkwin, struct PointCdn *lc)
+{
+    if((gkwin != NULL) && (lc != NULL))
+    {
+        lc->x = gkwin->ScreenX;
+        lc->y = gkwin->ScreenY;
+    }
+    return ;
+}
+
+//----取窗口所在显示器尺寸---------------------------------------------------
+//功能: 取窗口尺寸
+//参数: gkwin，窗口
+//      size，用于返回尺寸的坐标
+//返回: 显示区域,显示器的绝对坐标
+//-----------------------------------------------------------------------------
+void GK_GetDspSize(struct GkWinObj *gkwin, struct PointCdn *size)
+{
+    if((gkwin != NULL) && (size != NULL))
+    {
+        size->x = gkwin->disp->width;
+        size->y = gkwin->disp->height;
     }
     return ;
 }
@@ -965,7 +1085,7 @@ void GK_SetName(struct GkWinObj *gkwin,const char *name)
     gkwin->win_name[size] = '\0';     //串封口(加结束符)
 }
 
-//----设置窗口名-----------------------------------------------------------
+//----取窗口名-----------------------------------------------------------
 //功能: 略
 //参数: gkwin，窗口
 //返回: 显示区域
@@ -997,6 +1117,13 @@ bool_t GK_IsWinVisible(struct GkWinObj *gkwin)
 
 extern struct GkChunnel g_tGkChunnel;
 
+//------------------------------------------------------------------------------
+//功能：读取一条guikernel传递给（ 例如gdd）的消息
+//参数：Request，接收消息的缓冲区
+//      bufsize，缓冲区尺寸
+//      timeout，超时时间，uS数
+//返回：成功获取返回命令码（消息的第一个16位数），没有命令则返回  CN_GKUC_NULL
+//------------------------------------------------------------------------------
 u32 GK_ReadRequest(u8 *Request, u16 bufsize, u32 timeout)
 {
     u16 id,size;

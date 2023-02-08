@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -77,18 +77,28 @@ static  void    __GDD_EndDraw(HDC hdc)
 }
 #pragma GCC diagnostic pop
 
-static  void    __GDD_LPtoDP(HDC hdc,POINT *pt,s32 count)
+//----DC坐标转为窗口坐标---------------------------------------------------------
+//功能：把以DC类型对象的左上角为原点的坐标，转换为以窗口左上角为原点的坐标，平移量是
+//      DC到窗口区域的偏移量，例如DC_TYPE_CLIENT，则平移客户区原点到窗口原点之间的差值。
+//参数：hdc，被操作的DC
+//      pt，待转换的坐标
+//      count，待平移的坐标数量
+//返回：无
+//-----------------------------------------------------------------------------
+static  void    __GDD_Cdn_DC_toWin(HDC hdc,POINT *pt,s32 count)
 {
-    RECT rc;
+//  RECT rc;
     switch(hdc->DCType)
     {
         case    DC_TYPE_PAINT:
         case    DC_TYPE_CLIENT:
-            GK_GetArea(hdc->pGkWin, &rc);
+//          GK_GetScreenArea(hdc->pGkWin, &rc);   //窗口在显示器上的坐标
             while(count--)
             {
-                pt->x +=(hdc->hwnd->CliRect.left - rc.left);
-                pt->y +=(hdc->hwnd->CliRect.top - rc.top);
+//              pt->x +=(hdc->hwnd->CliRect.left - rc.left);
+//              pt->y +=(hdc->hwnd->CliRect.top - rc.top);
+                pt->x +=(hdc->hwnd->CliRect.left);
+                pt->y +=(hdc->hwnd->CliRect.top);
                 pt++;
             }
             break;
@@ -97,9 +107,7 @@ static  void    __GDD_LPtoDP(HDC hdc,POINT *pt,s32 count)
         case    DC_TYPE_WINDOW:
             while(count--)
             {
-                //pt->x +=(hdc->hwnd->CliRect.left - hdc->hwnd->WinRect.left);
-                //pt->y +=(hdc->hwnd->CliRect.top - hdc->hwnd->WinRect.top);
-                //pt++;
+                //原坐标系与目标坐标系相同，无须修改。
             }
             break;
 
@@ -135,14 +143,14 @@ u32 GDD_AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha)
 //----更新显示------------------------------------------------------------------
 //功能：更新显示，不仅仅更新hwnd窗口，而是更新所有窗口。因为hwnd窗口的改变，可能导致其他
 //      窗口的改变。又，可能出现跨显示器的窗口，故更新所有显示器。
-//参数：hwnd，调用UpdateDisplay的窗口，有hwnd所在的消息循环执行更新显示器的代码，但更
-//           新范围不限于该窗口。
+//参数：hwnd，窗口句柄，执行hwnd所在的主窗口（或桌面）的消息循环，最后执行刷新显示的
+//      消息，刷新的是整个图形系统，不限于本窗口。
 //返回：无
+//注意：如果存在多个主窗口，不执行非hwnd所在的主窗口在排队中的消息。
 //-----------------------------------------------------------------------------
-void    GDD_UpdateDisplay(HWND hwnd)
+void    GDD_SyncShow(HWND hwnd)
 {
-//  GK_SyncShow(timeout);
-    GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
+    GDD_SendMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
 }
 
 /*============================================================================*/
@@ -150,7 +158,7 @@ void    GDD_UpdateDisplay(HWND hwnd)
 
 void    GDD_InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type)
 {
-
+    struct PointCdn sz;
     pdc->pGkWin     =gk_win;
     pdc->hwnd       =hwnd;
     pdc->DCType     =dc_type;
@@ -163,9 +171,28 @@ void    GDD_InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type)
     pdc->DrawColor  =hwnd->DrawColor;
     pdc->FillColor  =hwnd->FillColor;
     pdc->TextColor  =hwnd->TextColor;
-    pdc->SyncTime   =0;
-    //pdc->RopCode    =(struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
+    pdc->SyncTime   = CN_TIMEOUT_FOREVER;
     pdc->RopCode=gk_win->RopCode;
+    switch(pdc->DCType)
+    {
+        case    DC_TYPE_PAINT:
+        case    DC_TYPE_CLIENT:
+            pdc->DrawArea = hwnd->CliRect;
+            break;
+            ////
+
+        case    DC_TYPE_WINDOW:
+            GK_GetSize(pdc->pGkWin, &sz);
+            pdc->DrawArea.left = 0;
+            pdc->DrawArea.top = 0;
+            pdc->DrawArea.right = sz.x;
+            pdc->DrawArea.bottom = sz.y;
+            break;
+
+        default:
+            break;
+            ////
+    }
 
 }
 
@@ -181,8 +208,8 @@ bool_t  GDD_DeleteDC(HDC hdc)
 }
 
 
-//----设置当前光栅码-------------------------------------------------------------
-//描述: 略.
+//----设置光栅码-------------------------------------------------------------
+//描述: 设置DC的光栅操作编码，并返回原来的。
 //参数：hdc: 绘图上下文句柄.
 //     RopCode: 新的光栅码.
 //返回：旧的光栅码.
@@ -516,8 +543,8 @@ void GDD_SetPixel(HDC hdc,s32 x,s32 y,u32 color)
     {
         pt.x =x;
         pt.y =y;
-        __GDD_LPtoDP(hdc,&pt,1);
-        GK_SetPixel(hdc->pGkWin,pt.x,pt.y,color,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+        __GDD_Cdn_DC_toWin(hdc,&pt,1);
+        GK_SetPixel(hdc->pGkWin,NULL,pt.x,pt.y,color,hdc->RopCode.Rop2Mode,hdc->SyncTime);
         __GDD_EndDraw(hdc);
     }
 }
@@ -539,10 +566,11 @@ void    GDD_DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
         pt[0].y =y0;
         pt[1].x =x1;
         pt[1].y =y1;
-        __GDD_LPtoDP(hdc,pt,2);
+        __GDD_Cdn_DC_toWin(hdc,pt,2);
 
-        GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+        GK_Lineto(hdc->pGkWin, &hdc->DrawArea, pt[0].x, pt[0].y, pt[1].x, pt[1].y,
                 hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+        __GDD_EndDraw(hdc);
     }
 }
 
@@ -576,8 +604,8 @@ void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
                  pt[0].y =y0+2*temp*(i-1);
                  pt[1].x =x1;
                  pt[1].y =y0+2*temp*(i);
-                 __GDD_LPtoDP(hdc,pt,2);
-                GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+                 __GDD_Cdn_DC_toWin(hdc,pt,2);
+                GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                         hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             }
         }
@@ -603,14 +631,15 @@ void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
              pt[0].y =y0;
              pt[1].x =x0+2*temp*(i);
              pt[1].y =y1;
-             __GDD_LPtoDP(hdc,pt,2);
-            GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+             __GDD_Cdn_DC_toWin(hdc,pt,2);
+            GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                     hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
           }
         }
         else
         {
         }
+        __GDD_EndDraw(hdc);
     }
 }
 //----画线----------------------------------------------------------------------
@@ -630,10 +659,11 @@ void    GDD_DrawLineEx(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,u32 color)
         pt[0].y =y0;
         pt[1].x =x1;
         pt[1].y =y1;
-        __GDD_LPtoDP(hdc,pt,2);
+        __GDD_Cdn_DC_toWin(hdc,pt,2);
 
-        GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+        GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                 color,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+        __GDD_EndDraw(hdc);
     }
 }
 
@@ -655,9 +685,9 @@ void    GDD_DrawLineTo(HDC hdc,s32 x,s32 y)
         pt[1].x =x;
         pt[1].y =y;
 
-        __GDD_LPtoDP(hdc,pt,2);
+        __GDD_Cdn_DC_toWin(hdc,pt,2);
 
-        GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+        GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                 hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
 
         __GDD_MoveTo(hdc,x,y,NULL);
@@ -681,7 +711,7 @@ bool_t    GDD_TextOut(HDC hdc,s32 x,s32 y,const char *text,s32 count)
         {
             pt.x =x;
             pt.y =y;
-            __GDD_LPtoDP(hdc,&pt,1);
+            __GDD_Cdn_DC_toWin(hdc,&pt,1);
 
             x =pt.x;
             y =pt.y;
@@ -693,7 +723,7 @@ bool_t    GDD_TextOut(HDC hdc,s32 x,s32 y,const char *text,s32 count)
 
             if(text!=NULL)
             {
-               GK_DrawText(hdc->pGkWin,hdc->pFont,hdc->pCharset,
+                GK_DrawText(hdc->pGkWin, &hdc->DrawArea,hdc->pFont, hdc->pCharset,
                                       x,y,text,count,hdc->TextColor,
                                       hdc->RopCode.Rop2Mode,hdc->SyncTime);
 
@@ -876,8 +906,10 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
         if(line_count<=1)
         {
             //单行
-            GDD_CopyRect(&rc0,prc);
-            GDD_CopyRect(&rc,prc);
+//          GDD_CopyRect(&rc0,prc);
+            rc0 = *prc;
+//          GDD_CopyRect(&rc,prc);
+            rc = *prc;
             GDD_InflateRect(&rc,-1,-1);
             GDD_AdjustTextRect(hdc,text,count,&rc,flag);
 
@@ -903,8 +935,10 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
 
             line_h = Font_GetFontLineHeight(hdc->pFont)+5;
 //            printf("----line_h = %d----\r\n",line_h);
-            GDD_CopyRect(&rc0,prc);
-            GDD_CopyRect(&rc,prc);
+//          GDD_CopyRect(&rc0,prc);
+//          GDD_CopyRect(&rc,prc);
+            rc0 = *prc;
+            rc = *prc;
             GDD_InflateRect(&rc,-1,-1);
 
             if(flag&DT_BORDER)
@@ -1005,10 +1039,11 @@ void    GDD_DrawRect(HDC hdc,const RECT *prc)
 
     if(prc != NULL)
     {
-        GDD_CopyRect(&rc,prc);
+//      GDD_CopyRect(&rc,prc);
+        rc = *prc;
         if(__GDD_BeginDraw(hdc))
         {
-            __GDD_LPtoDP(hdc,(POINT*)&rc,2);
+            __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
 
             x0 =rc.left;
             y0 =rc.top;
@@ -1027,7 +1062,6 @@ void    GDD_DrawRect(HDC hdc,const RECT *prc)
             __GDD_EndDraw(hdc);
         }
     }
-
 }
 
 //----填充矩形------------------------------------------------------------------
@@ -1044,10 +1078,11 @@ void    GDD_FillRect(HDC hdc,const RECT *prc)
     {
         if(prc!=NULL)
         {
-            GDD_CopyRect(&rc,prc);
+//          GDD_CopyRect(&rc,prc);
+            rc = *prc;
             if(__GDD_BeginDraw(hdc))
             {
-                __GDD_LPtoDP(hdc,(POINT*)&rc,2);
+                __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
 
                 GK_FillRect(hdc->pGkWin,&rc,hdc->FillColor,hdc->FillColor,
                             CN_FILLRECT_MODE_N,hdc->SyncTime);
@@ -1071,10 +1106,11 @@ void    GDD_FillRectEx(HDC hdc,const RECT *prc,u32 color)
     {
         if(prc!=NULL)
         {
-            GDD_CopyRect(&rc,prc);
+//          GDD_CopyRect(&rc,prc);
+            rc = *prc;
             if(__GDD_BeginDraw(hdc))
             {
-                __GDD_LPtoDP(hdc,(POINT*)&rc,2);
+                __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
 
                 GK_FillRect(hdc->pGkWin,&rc,color,color,
                             CN_FILLRECT_MODE_N,hdc->SyncTime);
@@ -1109,9 +1145,10 @@ void    GDD_GradientFillRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2,u32 m
         {
             if(__GDD_BeginDraw(hdc))
             {
-                GDD_CopyRect(&rc,prc);
+//              GDD_CopyRect(&rc,prc);
+                rc = *prc;
 
-                __GDD_LPtoDP(hdc,(POINT*)&rc,2);
+                __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
 
                 gk_rc.left = rc.left;
                 gk_rc.top = rc.top;
@@ -1160,23 +1197,30 @@ void    GDD_Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2)
     RECT rc;
 
     if(hdc!=NULL)
-    if(prc!=NULL)
     {
-        GDD_CopyRect(&rc,prc);
-        c=GDD_SetDrawColor(hdc,Color1);
-        GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1); //L
-        GDD_DrawLine(hdc,0,0,GDD_RectW(&rc)-1,0); //U
+        if(prc!=NULL)
+        {
+            if(__GDD_BeginDraw(hdc))
+            {
+//              GDD_CopyRect(&rc,prc);
+                rc = *prc;
+                c=GDD_SetDrawColor(hdc,Color1);
+                GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1); //L
+                GDD_DrawLine(hdc,0,0,GDD_RectW(&rc)-1,0); //U
 
-        GDD_SetDrawColor(hdc,Color2);
-        GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //R
-        GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
-        GDD_SetDrawColor(hdc,c);
+                GDD_SetDrawColor(hdc,Color2);
+                GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //R
+                GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
+                GDD_SetDrawColor(hdc,c);
 
-        c=GDD_SetFillColor(hdc,GDD_AlphaBlendColor(Color1,Color2,128));
+                c=GDD_SetFillColor(hdc,GDD_AlphaBlendColor(Color1,Color2,128));
 
-        GDD_InflateRect(&rc,-1,-1);
-        GDD_FillRect(hdc,&rc);
-        GDD_SetFillColor(hdc,c);
+                GDD_InflateRect(&rc,-1,-1);
+                GDD_FillRect(hdc,&rc);
+                GDD_SetFillColor(hdc,c);
+                __GDD_EndDraw(hdc);
+            }
+        }
     }
 
 }
@@ -1190,77 +1234,21 @@ void    GDD_Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2)
 //------------------------------------------------------------------------------
 void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 {
-     s32 x = 0;
-     s32 y = r;
-     s32 delta = 2*(1-r);
-     s32 direction;
-     u32 color;
-     ////
 
+     ////
+     POINT pt;
      if(hdc!=NULL)
      {
-         color =GDD_GetDrawColor(hdc);
-         while (y >= 0)
+         if(__GDD_BeginDraw(hdc))
          {
-
-            GDD_SetPixel(hdc,cx+x, cy+y, color);
-            GDD_SetPixel(hdc,cx-x, cy+y, color);
-            GDD_SetPixel(hdc,cx-x, cy-y, color);
-            GDD_SetPixel(hdc,cx+x, cy-y, color);
-            ////
-
-            if (delta < 0)
-            {
-                 if ((2*(delta+y)-1) < 0)
-                 {
-                  direction = 1;
-                 }
-                 else
-                 {
-                  direction = 2;
-                 }
-             }
-             else if(delta > 0)
-             {
-                 if ((2*(delta-x)-1) <= 0)
-                 {
-                  direction = 2;
-                 }
-                 else
-                 {
-                  direction = 3;
-                 }
-             }
-             else
-             {
-                   direction=2;
-             }
-
-             ////
-
-             switch(direction)
-             {
-
-              case 1:
-                     x++;
-                      delta += (2*x+1);
-                      break;
-
-              case 2:
-                      x++;
-                      y--;
-                      delta += 2*(x-y+1);
-                       break;
-
-              case 3:
-                      y--;
-                      delta += (-2*y+1);
-                       break;
-
-             }
-
+             pt.x = cx;
+             pt.y = cy;
+             __GDD_Cdn_DC_toWin(hdc, &pt, 1);
+             GK_DrawCircle(hdc->pGkWin, cx, cy, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
+             __GDD_EndDraw(hdc);
          }
-    }
+
+     }
 }
 
 //----填充圆------------------------------------------------------------------
@@ -1272,33 +1260,37 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 //------------------------------------------------------------------------------
 void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 {
-      s32 i;
-      s32 imax = ((s32)((s32)r*707))/1000+1;
-      s32 sqmax = (s32)r*(s32)r+(s32)r/2;
-      s32 x=r;
-      u32 color_bk;
+    s32 i;
+    s32 imax = ((s32)((s32)r*707))/1000+1;
+    s32 sqmax = (s32)r*(s32)r+(s32)r/2;
+    s32 x=r;
 
-      color_bk =GDD_SetDrawColor(hdc,GDD_GetFillColor(hdc));
-
-      GDD_DrawLine(hdc,cx-r,cy,cx+r+1,cy);
-      for (i=1; i<= imax; i++)
-      {
-        if ((i*i+x*x) >sqmax)
+    if(hdc!=NULL)
+    {
+        if(__GDD_BeginDraw(hdc))
         {
 
-          if (x>imax)
-          {
-            GDD_DrawLine(hdc,cx-i+1,cy+x, cx+i,cy+x);
-               GDD_DrawLine(hdc,cx-i+1,cy-x, cx+i,cy-x);
-          }
-          x--;
+            GDD_DrawLine(hdc,cx-r,cy,cx+r+1,cy);
+            for (i=1; i<= imax; i++)
+            {
+                if ((i*i+x*x) >sqmax)
+                {
+
+                    if (x>imax)
+                    {
+                          GDD_DrawLine(hdc,cx-i+1,cy+x, cx+i,cy+x);
+                          GDD_DrawLine(hdc,cx-i+1,cy-x, cx+i,cy-x);
+                    }
+                    x--;
+                }
+
+                GDD_DrawLine(hdc,cx-x,cy+i, cx+x+1,cy+i);
+                GDD_DrawLine(hdc,cx-x,cy-i, cx+x+1,cy-i);
+            }
+
+            __GDD_EndDraw(hdc);
         }
-
-        GDD_DrawLine(hdc,cx-x,cy+i, cx+x+1,cy+i);
-        GDD_DrawLine(hdc,cx-x,cy-i, cx+x+1,cy-i);
-      }
-
-      GDD_SetDrawColor(hdc,color_bk);
+    }
 }
 
 //----画椭圆------------------------------------------------------------------
@@ -1321,28 +1313,32 @@ void     GDD_DrawEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
                +(_rx*_rx*_ry>>1);
     xOld = x = rx;
 
-     for(y=0; y<=ry; y++)
-     {
-        if(y==ry)
+    if(__GDD_BeginDraw(hdc))
+    {
+        for(y=0; y<=ry; y++)
         {
-          x=0;
-        }
-        else
-        {
-          SumY =((s32)(rx*rx))*((s32)(y*y));
-          while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
-                 (x>0) && (Sum>OutConst)) x--;
-        }
+            if(y==ry)
+            {
+                x=0;
+            }
+            else
+            {
+                SumY =((s32)(rx*rx))*((s32)(y*y));
+                while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
+                       (x>0) && (Sum>OutConst)) x--;
+            }
 
-        if(y)
-        {
-          GDD_DrawLine(hdc,cx-xOld,cy-y+1,cx-x,cy-y);
-          GDD_DrawLine(hdc,cx-xOld,cy+y-1,cx-x,cy+y);
-          GDD_DrawLine(hdc,cx+xOld,cy-y+1,cx+x,cy-y);
-          GDD_DrawLine(hdc,cx+xOld,cy+y-1,cx+x,cy+y);
+            if(y)
+            {
+                GDD_DrawLine(hdc,cx-xOld,cy-y+1,cx-x,cy-y);
+                GDD_DrawLine(hdc,cx-xOld,cy+y-1,cx-x,cy+y);
+                GDD_DrawLine(hdc,cx+xOld,cy-y+1,cx+x,cy-y);
+                GDD_DrawLine(hdc,cx+xOld,cy+y-1,cx+x,cy+y);
+            }
+            xOld = x;
         }
-        xOld = x;
-     }
+        __GDD_EndDraw(hdc);
+    }
 
 }
 
@@ -1360,31 +1356,30 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
     s32 x,y;
     u32 _rx = rx;
     u32 _ry = ry;
-    u32 color_bk;
-
-    color_bk =GDD_SetDrawColor(hdc,GDD_GetFillColor(hdc));
 
     OutConst = _rx*_rx*_ry*_ry
                 +(_rx*_rx*_ry>>1);
-     x = rx;
-     for (y=0; y<=ry; y++)
-     {
-          SumY =((s32)(rx*rx))*((s32)(y*y));
+    x = rx;
+    if(__GDD_BeginDraw(hdc))
+    {
+        for (y=0; y<=ry; y++)
+        {
+             SumY =((s32)(rx*rx))*((s32)(y*y));
 
-          while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
-                 (x>0) && (Sum>OutConst))
-          {
-             x--;
-          }
-          GDD_DrawLine(hdc,cx-x, cy+y, cx+x,cy+y);
+             while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
+                    (x>0) && (Sum>OutConst))
+             {
+                x--;
+             }
+             GDD_DrawLine(hdc,cx-x, cy+y, cx+x,cy+y);
 
-          if(y)
-          {
-             GDD_DrawLine(hdc,cx-x, cy-y, cx+x,cy-y);
-          }
+             if(y)
+             {
+                GDD_DrawLine(hdc,cx-x, cy-y, cx+x,cy-y);
+             }
+        }
+        __GDD_EndDraw(hdc);
     }
-
-    GDD_SetDrawColor(hdc,color_bk);
 
 }
 
@@ -1418,44 +1413,56 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
   quarter3=(s32)(radius*3.14159*3/2);
   quarter4=(s32)(radius*3.14159*2);
 
-  color =GDD_GetDrawColor(hdc);
-  while(1)
-  {
-      c=quarter4-step;
-    if(c>=c1 && c<=c2)    GDD_SetPixel(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ),color );
+    if(__GDD_BeginDraw(hdc))
+    {
+        color =GDD_GetDrawColor(hdc);
+        while(1)
+        {
+              c=quarter4-step;
+            if(c>=c1 && c<=c2)
+                GDD_SetPixel(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ),color );
 
-    if(step>=c1 && step<=c2) GDD_SetPixel(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),color );
+            if(step>=c1 && step<=c2)
+                 GDD_SetPixel(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),color );
 
-    c=quarter2+step;
-    if(c>=c1 && c<=c2) GDD_SetPixel(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),color );
+            c=quarter2+step;
+            if(c>=c1 && c<=c2)
+                GDD_SetPixel(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),color );
 
-    c=quarter2-step;
-    if(c>=c1 && c<=c2) GDD_SetPixel(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),color );
+            c=quarter2-step;
+            if(c>=c1 && c<=c2)
+                GDD_SetPixel(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),color );
 
-    if (  x - xCenter  >=  y - yCenter  ) break;
+            if (  x - xCenter  >=  y - yCenter  ) break;
 
-    c=quarter3+step;
-    if(c>=c1 && c<=c2) GDD_SetPixel(hdc, x, y,color );
+            c=quarter3+step;
+            if(c>=c1 && c<=c2)
+                 GDD_SetPixel(hdc, x, y,color );
 
-    c=quarter1-step;
-    if(c>=c1 && c<=c2) GDD_SetPixel(hdc,x, yCenter - (y - yCenter),color );
+            c=quarter1-step;
+            if(c>=c1 && c<=c2)
+                 GDD_SetPixel(hdc,x, yCenter - (y - yCenter),color );
 
-    c=quarter3-step;
-    if(c>=c1 && c<=c2) GDD_SetPixel(hdc, xCenter - (x - xCenter), y,color );
+            c=quarter3-step;
+            if(c>=c1 && c<=c2)
+                 GDD_SetPixel(hdc, xCenter - (x - xCenter), y,color );
 
-    c= quarter1+step;
-    if(c>=c1 && c<=c2) GDD_SetPixel(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter),color );
+            c= quarter1+step;
+            if(c>=c1 && c<=c2)
+                 GDD_SetPixel(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter),color );
 
-    if ( d < 0 )
-    { d = d + ((x - xCenter) << 2) + 6;
+            if ( d < 0 )
+            { d = d + ((x - xCenter) << 2) + 6;
+            }
+            else
+            { d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
+              y--;
+            }
+            x++;
+            step++;
+        }
+        __GDD_EndDraw(hdc);
     }
-    else
-    { d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
-      y--;
-    }
-    x++;
-    step++;
-  }
 
 }
 
@@ -1488,45 +1495,60 @@ void    GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
   quarter2=(s32)(radius*3.14159);
   quarter3=(s32)(radius*3.14159*3/2);
   quarter4=(s32)(radius*3.14159*2);
-  color =GDD_GetFillColor(hdc);
 
-  while(1)
-  {
-      c=quarter4-step;
-    if(c>=c1 && c<=c2)    GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ) ,xCenter,yCenter ,color);
+    if(__GDD_BeginDraw(hdc))
+    {
+        color =GDD_GetFillColor(hdc);
 
-    if(step>=c1 && step<=c2) GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter ,color);
+        while(1)
+        {
+            c=quarter4-step;
+            if(c>=c1 && c<=c2)
+                GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ) ,xCenter,yCenter ,color);
 
-    c=quarter2+step;
-    if(c>=c1 && c<=c2) GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),xCenter,yCenter ,color);
+            if(step>=c1 && step<=c2)
+                GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter ,color);
 
-    c=quarter2-step;
-    if(c>=c1 && c<=c2) GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter,color);
+            c=quarter2+step;
+            if(c>=c1 && c<=c2)
+                GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),xCenter,yCenter ,color);
 
-    if (  x - xCenter  >=  y - yCenter  ) break;
+            c=quarter2-step;
+            if(c>=c1 && c<=c2)
+                 GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter,color);
 
-    c=quarter3+step;
-    if(c>=c1 && c<=c2) GDD_DrawLineEx(hdc, x, y,xCenter,yCenter ,color);
+            if (  x - xCenter  >=  y - yCenter  ) break;
 
-    c=quarter1-step;
-    if(c>=c1 && c<=c2) GDD_DrawLineEx(hdc,x, yCenter - (y - yCenter),xCenter,yCenter ,color);
+            c=quarter3+step;
+            if(c>=c1 && c<=c2)
+                 GDD_DrawLineEx(hdc, x, y,xCenter,yCenter ,color);
 
-    c=quarter3-step;
-    if(c>=c1 && c<=c2) GDD_DrawLineEx(hdc, xCenter - (x - xCenter), y ,xCenter,yCenter,color);
+            c=quarter1-step;
+            if(c>=c1 && c<=c2)
+                 GDD_DrawLineEx(hdc,x, yCenter - (y - yCenter),xCenter,yCenter ,color);
 
-    c= quarter1+step;
-    if(c>=c1 && c<=c2) GDD_DrawLineEx(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter) ,xCenter,yCenter,color);
+            c=quarter3-step;
+            if(c>=c1 && c<=c2)
+                 GDD_DrawLineEx(hdc, xCenter - (x - xCenter), y ,xCenter,yCenter,color);
 
-    if ( d < 0 )
-    { d = d + ((x - xCenter) << 2) + 6;
+            c= quarter1+step;
+            if(c>=c1 && c<=c2)
+                GDD_DrawLineEx(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter) ,xCenter,yCenter,color);
+
+            if ( d < 0 )
+            {
+                d = d + ((x - xCenter) << 2) + 6;
+            }
+            else
+            {
+                d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
+                y--;
+            }
+            x++;
+            step++;
+        }
+        __GDD_EndDraw(hdc);
     }
-    else
-    { d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
-      y--;
-    }
-    x++;
-    step++;
-  }
 }
 
 //----绘制3阶Bezier线----------------------------------------------------------
@@ -1575,10 +1597,10 @@ void GDD_DrawBezier3(HDC hdc,const POINT *pt,s32 cnt)
 }
 
 
-//----绘制曲线------------------------------------------------------------------
-//描述: 使用DrawColor绘制曲线.
+//----绘制折线------------------------------------------------------------------
+//描述: 使用DrawColor绘制由多段直线组成的折线.
 //参数：hdc: 绘图上下文句柄.
-//      pt: 曲线坐标点.
+//      pt: 折线坐标点数组.
 //      count: 坐标点数量.
 //返回：无.
 //------------------------------------------------------------------------------
@@ -1603,7 +1625,7 @@ void    GDD_DrawPolyLine(HDC hdc,const POINT *pt,s32 count)
 //返回：无.
 //------------------------------------------------------------------------------
 
-void    GDD_DrawGroupBox(HDC hdc,const RECT *prc,const char *Text)
+void GDD_DrawGroupBox(HDC hdc,const RECT *prc,const char *Text)
 {
     s32 i,text_w,text_h,text_offset;
     u32 old_color;
@@ -1665,29 +1687,26 @@ void    GDD_DrawGroupBox(HDC hdc,const RECT *prc,const char *Text)
 
 }
 //----绘制位图------------------------------------------------------------------
-//描述:
+//描述: 位图格式由 gui kernel 定义，图形句柄 hdc 的 rop 属性会影响输出效果。当你看到
+//      “奇怪”的绘制结果时，请检查 hdc->RopCode 的设置。
 //参数：hdc: 绘图上下文句柄.
+//      x，y，绘图坐标
+//      bitmap，待绘制的位图
+//      HyalineColor，透明色，hdc的rop属性中的透明色使能属性置位才有效
 //返回：无.
 //------------------------------------------------------------------------------
-bool_t    GDD_DrawBitmap(HDC hdc,s32 x,s32 y,struct RectBitmap *bitmap,u32 HyalineColor,struct RopGroup RopCode)
+bool_t    GDD_DrawBitmap(HDC hdc,s32 x,s32 y,struct RectBitmap *bitmap,u32 HyalineColor)
 {
     POINT pt;
     if(__GDD_BeginDraw(hdc))
     {
         pt.x =x;
         pt.y =y;
-        __GDD_LPtoDP(hdc,&pt,1);
+        __GDD_Cdn_DC_toWin(hdc,&pt,1);
 
-        GK_DrawBitMap(hdc->pGkWin,bitmap,pt.x,pt.y,HyalineColor,RopCode,hdc->SyncTime);
+        GK_DrawBitMap(hdc->pGkWin,&hdc->DrawArea, bitmap,pt.x,pt.y,HyalineColor,hdc->RopCode,hdc->SyncTime);
         __GDD_EndDraw(hdc);
         return true;
     }
     return false;
 }
-
-/*============================================================================*/
-/*============================================================================*/
-/*============================================================================*/
-/*============================================================================*/
-
-

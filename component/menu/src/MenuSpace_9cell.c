@@ -37,7 +37,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -128,7 +128,7 @@ struct Rectangle   CalDisAreaFromPre_9cell(struct menu_displaypara *pre,struct m
        number=CalDisBettween2Menuitem(pre->FVisualMenuitem, pre->OperatingMenuitem);
       //计算水平位置
       limit_start=pre->MenuitemSpace.width+cn_space_margin;
-      limit_end=cur->AppWin->absx0+cur->AppWin->right-cur->AppWin->left-pre->CurWin->absx0;
+      limit_end=cur->AppWin->ScreenX+cur->AppWin->right-cur->AppWin->left-pre->CurWin->ScreenX;
       cal_start=limit_start;//在九宫格中这两者是相同的
       cal_end=cal_start+cur->MenuitemSpace.width+cn_space_margin;
       if(cal_end>limit_end)//水平位置不够，则一票否决
@@ -142,7 +142,7 @@ struct Rectangle   CalDisAreaFromPre_9cell(struct menu_displaypara *pre,struct m
       }
       //计算垂直位置，记得放在中间
       length=(cur->MenuitemSpace.height)*menuitem_num+cn_space_margin;
-      limit_start=cur->AppWin->absy0-pre->CurWin->absy0;
+      limit_start=cur->AppWin->ScreenY-pre->CurWin->ScreenY;
       limit_end=limit_start+cur->AppWin->bottom-cur->AppWin->top;
       if(length>(limit_end-limit_start))//空间不富裕，不必考虑中间位置了
       {
@@ -207,15 +207,15 @@ void adjustvisualmenuitem_9cell(struct menu_displaypara  *dispara)
     }
     else
     {
-       deep_cal=dispara->CurWin->absy0+dispara->CurWin->bottom-dispara->CurWin->top;
-       deep_limit=dispara->AppWin->absy0+dispara->AppWin->bottom-dispara->AppWin->top;
+       deep_cal=dispara->CurWin->ScreenY+dispara->CurWin->bottom-dispara->CurWin->top;
+       deep_limit=dispara->AppWin->ScreenY+dispara->AppWin->bottom-dispara->AppWin->top;
        if(deep_cal>deep_limit)//有超出的部分
        {
-        dis_height=deep_limit-dispara->CurWin->absy0;
+        dis_height=deep_limit-dispara->CurWin->ScreenY;
        }
        else
        {
-        dis_height=deep_cal-dispara->CurWin->absy0;
+        dis_height=deep_cal-dispara->CurWin->ScreenY;
        }
        if(dis_height==0)
        {

@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -56,7 +56,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdio.h>
-
+#include <string.h>
 
 //
 // @brief  调试输出等级开关
@@ -71,12 +71,12 @@ extern "C" {
 #define CN_DEBUG        7 // debug-level messages
 
 extern u32 debuglevel;
-
+#define FILE_NAME(x) strrchr(x,'/')?strrchr(x,'/')+1:x
 /*调试级别的消息*/
 #define debug_printf(module,fmt, ...) do{\
 if (debuglevel >= (CN_DEBUG)) \
 {\
-    printf("\r\ndbug : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("dbug : %s:%s:%d:[%s] : "fmt"", FILE_NAME(__FILE__), __func__, __LINE__, module, ##__VA_ARGS__);\
 }\
 }while (0)
 
@@ -84,22 +84,24 @@ if (debuglevel >= (CN_DEBUG)) \
 #define info_printf(module, fmt, ...) do{\
 if (debuglevel >= CN_INFO) \
 {\
-    printf("\r\ninfo : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("info : %s:%s:%d:[%s] : "fmt"", FILE_NAME(__FILE__), __func__, __LINE__, module, ##__VA_ARGS__);\
 } \
 }while (0)
 
 /*正常但又重要的条件，用于提醒。常用于与安全相关的消息*/
-#define notice_printf(module,fmt, ...) \
-do{ if (debuglevel >= (CN_NOTICE)) printf("\r\n: note : %-6.6s : "fmt"", module, ##__VA_ARGS__); } while (0)
+#define notice_printf(module,fmt, ...) do{ \
+if (debuglevel >= (CN_NOTICE)) \
+{\
+    printf("note : %s:%s:%d:[%s] : "fmt"", FILE_NAME(__FILE__), __func__, __LINE__, module, ##__VA_ARGS__);\
+}\
+} while (0)
 
 /*警告条件，对可能出现问题的情况进行警告*/
 
 #define warning_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_WARNING)) \
 {\
-    printf("\r\nwarn : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-    printf("\r\n       FILE: %s", __FILE__); \
-    printf("\r\n       LINE: %d\r\n", __LINE__); \
+    printf("warn : %s:%s:%d:[%s] : "fmt"", FILE_NAME(__FILE__), __func__, __LINE__, module, ##__VA_ARGS__);\
 }\
 } while (0)
 
@@ -108,9 +110,7 @@ if (debuglevel >= (CN_WARNING)) \
 #define error_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_ERR)) \
 {\
-    printf("\r\nerro : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-    printf("\r\n       FILE: %s", __FILE__); \
-    printf("\r\n       LINE: %d\r\n", __LINE__); \
+    printf("erro : %s:%s:%d:[%s] : "fmt"", FILE_NAME(__FILE__), __func__, __LINE__, module, ##__VA_ARGS__);\
 }\
 } while (0)
 
@@ -118,9 +118,7 @@ if (debuglevel >= (CN_ERR)) \
 #define critical_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_CRIT)) \
 {\
-    printf("\r\ncrit : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-    printf("\r\n       FILE: %s", __FILE__); \
-    printf("\r\n       LINE: %d\r\n", __LINE__); \
+    printf("crit : %s:%s:%d:[%s] : "fmt"", FILE_NAME(__FILE__), __func__, __LINE__, module, ##__VA_ARGS__);\
 }\
 } while (0)
 
@@ -128,9 +126,7 @@ if (debuglevel >= (CN_CRIT)) \
 #define alert_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_ALERT)) \
 {\
-    printf("\r\nalet : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-    printf("\r\n       FILE: %s", __FILE__); \
-    printf("\r\n       LINE: %d\r\n", __LINE__); \
+    printf("alert : %s:%s:%d:[%s] : "fmt"", FILE_NAME(__FILE__), __func__, __LINE__, module, ##__VA_ARGS__);\
 }\
 } while (0)
 
@@ -138,14 +134,13 @@ if (debuglevel >= (CN_ALERT)) \
 #define emergency_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_EMERG)) \
 {\
-    printf("\r\nemer : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-    printf("\r\n       FILE: %s", __FILE__); \
-    printf("\r\n       LINE: %d\r\n", __LINE__); \
+    printf("emer : %s:%s:%d:[%s] : "fmt"", FILE_NAME(__FILE__), __func__, __LINE__, module, ##__VA_ARGS__);\
 }\
 } while (0)
 
 
-
+bool_t DbugSetPrintfLevel(u32 Level);
+u32 DbugGetPrintfLevel(void);
 
 
 #ifdef __cplusplus

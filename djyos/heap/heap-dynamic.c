@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -230,7 +230,7 @@ const ucpu_t cn_low_xbit_msk []=
 };
 
 struct EventECB;
-//通用堆的同步指针，专用堆使用对控制块 struct HeapCB 的 mem_sync 成员
+//通用堆的同步指针，专用堆使用相应堆控制块 struct HeapCB 的 mem_sync 成员
 static struct EventECB *s_ptGenMemSync;
 //分配栈的同步指针，如果线程在分配栈时被互斥量阻塞，将进入本队列。
 static struct EventECB *s_ptStackSync;
@@ -250,11 +250,12 @@ extern struct HeapCB *tg_pSysHeap;   //堆链指针，系统中所有的堆被链接在一起。
 
 void *__Heap_Malloc(ptu32_t size,u32 timeout);
 void  __Heap_Free(void * pl_mem);
+bool_t  __Heap_DjyFree(void * pl_mem,u32 timeout);
 void *__Heap_Realloc(void *p, ptu32_t NewSize);
 void *__Heap_MallocHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 void *__Heap_MallocLc(ptu32_t size,u32 timeout);
 void *__Heap_MallocLcHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout);
-void  __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap);
+bool_t __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap, u32 timeout);
 void *__Heap_MallocStack(struct EventECB *event, u32 size);
 
 //void __M_ShowHeap(void);
@@ -274,11 +275,11 @@ void __Heap_CheckSTackSync(void);
 
 extern void *  (*M_Malloc)(ptu32_t size,u32 timeout);
 extern void *  (*M_Realloc) (void *, ptu32_t NewSize);
-extern void  (*M_Free)(void * pl_mem);
+extern bool_t  (*M_Free)(void * pl_mem,u32 timeout);
 extern void *  (*M_MallocHeap)(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 extern void *  (*M_MallocLc)(ptu32_t size,u32 timeout);
 extern void *  (*M_MallocLcHeap)(ptu32_t size,struct HeapCB *Heap, u32 timeout);
-extern void    (*M_FreeHeap)(void * pl_mem,struct HeapCB *Heap);
+extern bool_t  (*M_FreeHeap)(void * pl_mem,struct HeapCB *Heap, u32 timeout);
 extern void *  (*__MallocStack)(struct EventECB *pl_ecb,u32 size);
 extern ptu32_t (*M_FormatSizeHeap)(ptu32_t size,struct HeapCB *Heap);
 extern ptu32_t (*M_FormatSize)(ptu32_t size);
@@ -1186,7 +1187,7 @@ bool_t Heap_DynamicModuleInit(void)
 
     M_Malloc = __Heap_Malloc;
     M_Realloc = __Heap_Realloc;
-    M_Free = __Heap_Free;
+    M_Free = __Heap_DjyFree;
     M_MallocHeap = __Heap_MallocHeap;
     M_MallocLc = __Heap_MallocLc;
     M_MallocLcHeap = __Heap_MallocLcHeap;
@@ -1202,41 +1203,6 @@ bool_t Heap_DynamicModuleInit(void)
 
     return true;
 }
-
-//lst debug
-//void *event11m[2000];
-//u32 moff = 0,foff = 0;
-//void save11(void *p)
-//{
-//    s32 loop;
-//    if((g_ptEventRunning->event_id == 10) && (p != NULL))
-//    {
-//        for(loop = moff; loop >0; loop--)
-//        {
-//            if(p == event11m[loop-1])
-//                printk("error = %x\r\n", p);
-//        }
-//        if(moff < 2000)
-//        {
-//            event11m[moff] = p;
-//            moff++;
-//        }
-//    }
-//}
-//void free11(void *p)
-//{
-//    s32 loop;
-//    if((p != NULL))
-//    {
-//        for(loop = moff - 1; loop >= 0; loop--)
-//        {
-//            if(event11m[loop] == p)
-//            {
-//                event11m[loop] += 1;
-//            }
-//        }
-//    }
-//}
 
 //----从内存堆中分配内存-------------------------------------------------------
 //功能：1.规格化内存尺寸，计算满足要求的最小内存尺寸，计算该块内存尺寸的阶数
@@ -1542,7 +1508,7 @@ void __Heap_WaitMemoryStack(struct EventECB *event,u32 size)
 //   作者: 罗侍田
 //-----------------------------------------------------------------------------
 extern void __Heap_WaitMemoryStack(struct EventECB *event,u32 size);
-bool_t __DJY_RaiseTempPrioForStack(u16 event_id);
+bool_t __DJY_RaiseTempPrioForStack(struct EventECB *event);
 void __DJY_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status);
 void *__Heap_MallocStack(struct EventECB *event, u32 size)
 {
@@ -1565,7 +1531,7 @@ void *__Heap_MallocStack(struct EventECB *event, u32 size)
     {
         if(Lock_MutexQuery(&tg_pSysHeap->HeapMutex) == false)
         {
-            __DJY_RaiseTempPrioForStack(tg_pSysHeap->HeapMutex.owner->event_id);
+            __DJY_RaiseTempPrioForStack(tg_pSysHeap->HeapMutex.owner);
             __DJY_AddToBlockForStack(&s_ptStackSync,CN_BLOCK_PRIO,CN_STS_WAIT_MUTEX);
             result = NULL;
         }
@@ -1606,7 +1572,6 @@ void *__Heap_MallocStack(struct EventECB *event, u32 size)
             result = ua_address;
         }
     }
-//    save11(result);     //lst debug
     return result;
 }
 
@@ -1883,7 +1848,7 @@ ptu32_t __Heap_FormatSize(ptu32_t size)
 //返回：错误返回flase,正确时返回true
 //-----------------------------------------------------------------------------
 extern struct EventECB g_tECB_Table[];
-void __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap)
+bool_t __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap, u32 timeout)
 {
     struct HeapCession *Cession;
     struct HeapCB *CurHeap;
@@ -1963,7 +1928,13 @@ void __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     //计算释放的内存块的首页页号
     ua_pages_no=ua_temp1 / Cession->PageSize;
 
-    Lock_MutexPend(&(CurHeap->HeapMutex),CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(&(CurHeap->HeapMutex),timeout))
+    {
+        DJY_SaveLastError(EN_MEM_FREE_SCH);  //关调度下不能阻塞,直接退出.
+        //这里不能用printf,能走到这里，一定是因为关调度情况下调用Lock_MutexPend
+        //printf会调用stdout，进而可能又调用 Lock_MutexPend
+        printk("malloc：free memory when close sch");
+    }
     //查找释放的内存块的阶号,从0起计.通过阶号也可以确定内存块的大小.
     //确定内存块的类型,局部内存需要知道拥有该内存的事件id，
     //全局内存无需清理内存分配跟踪表,无需知道拥有该内存的事件id
@@ -2207,13 +2178,20 @@ void __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     return;
 }
 
+//c库的free函数接口用，将来重新编译c库时，就不用单独给它提供函数了。
 void __Heap_Free(void * pl_mem)
 {
     if( tg_pSysHeap == NULL)
         return;
-//  recordfree(pl_mem);
-    __Heap_FreeHeap(pl_mem,tg_pSysHeap);
+    __Heap_FreeHeap(pl_mem,tg_pSysHeap,CN_TIMEOUT_FOREVER);
     return;
+}
+bool_t __Heap_DjyFree(void * pl_mem,u32 timeout)
+{
+    if( tg_pSysHeap == NULL)
+        return false;
+    __Heap_FreeHeap(pl_mem,tg_pSysHeap,timeout);
+    return true;
 }
 
 ptu32_t __Heap_GetMaxFreeBlockHeapIn(struct HeapCB *Heap)

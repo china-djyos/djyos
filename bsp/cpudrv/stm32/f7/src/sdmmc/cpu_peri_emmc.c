@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -229,41 +229,42 @@ int _MMC_Read(BYTE *pBuf, DWORD qwSector, UINT dwCount)
     u32 count = (u32)dwCount;
     int ret = 0;
 
-    Lock_MutexPend(pOperationMutex, CN_TIMEOUT_FOREVER);
-
-    res = HAL_MMC_ReadBlocks(&handleMMC, buf, block, count, 0xFFFF);
-    if(HAL_OK != res)
+    if(Lock_MutexPend(pOperationMutex, CN_TIMEOUT_FOREVER))
     {
-        printk("\r\nEMMC : debug : read <%xH> <%xH> <%xH> <%xH>\r\n", block, count, res, handleMMC.ErrorCode);
-        ret = -1;
-    }
-    else
-    {   // 查询设备完成，即是否完成
-        while(1)
+        res = HAL_MMC_ReadBlocks(&handleMMC, buf, block, count, 0xFFFF);
+        if(HAL_OK != res)
         {
-            DJY_EventDelay(1);
-            if(count++ == SDMMC_MAX_TRIAL)
-            {
-                ret = -1;
-                printk("\r\nEMMC : debug : read timeout\r\n");
-                break;
-            }
-
-            res = SDMMC_CmdSendStatus(handleMMC.Instance, (u32)(handleMMC.MmcCard.RelCardAdd << 16));
-            if(HAL_MMC_ERROR_NONE != res)
-            {
-                ret = -1;
-                printk("\r\nEMMC : debug : read status <%xH>\r\n", res);
-                break;
-            }
-
-            response = SDMMC_GetResponse(handleMMC.Instance, SDMMC_RESP1);
-            if((response & 1 << 8) && ((response & (0xF << 9)) != (0x7 << 9)))
-                break;
+            printk("\r\nEMMC : debug : read <%xH> <%xH> <%xH> <%xH>\r\n", block, count, res, handleMMC.ErrorCode);
+            ret = -1;
         }
-    }
+        else
+        {   // 查询设备完成，即是否完成
+            while(1)
+            {
+                DJY_EventDelay(1);
+                if(count++ == SDMMC_MAX_TRIAL)
+                {
+                    ret = -1;
+                    printk("\r\nEMMC : debug : read timeout\r\n");
+                    break;
+                }
 
-    Lock_MutexPost(pOperationMutex);
+                res = SDMMC_CmdSendStatus(handleMMC.Instance, (u32)(handleMMC.MmcCard.RelCardAdd << 16));
+                if(HAL_MMC_ERROR_NONE != res)
+                {
+                    ret = -1;
+                    printk("\r\nEMMC : debug : read status <%xH>\r\n", res);
+                    break;
+                }
+
+                response = SDMMC_GetResponse(handleMMC.Instance, SDMMC_RESP1);
+                if((response & 1 << 8) && ((response & (0xF << 9)) != (0x7 << 9)))
+                    break;
+            }
+        }
+
+        Lock_MutexPost(pOperationMutex);
+    }
     return (ret);
 }
 
@@ -282,42 +283,43 @@ int _MMC_Write(BYTE *pBuf, DWORD qwSector, UINT dwCount)
     u32 count = (u32)dwCount;
     int ret = 0;
 
-    Lock_MutexPend(pOperationMutex, CN_TIMEOUT_FOREVER);
-
-    res = HAL_MMC_WriteBlocks(&handleMMC, buf, block, count, 0xFFFF);
-    if(HAL_OK != res)
+    if(Lock_MutexPend(pOperationMutex, CN_TIMEOUT_FOREVER))
     {
-        printk("\r\nEMMC : debug : write <%xH> <%xH> <%xH> <%xH>\r\n", block, count, res, handleMMC.ErrorCode);
-        ret = -1;
-    }
-    else
-    {
-        // 查询设备是否ready，即是否完成
-        while(1)
+        res = HAL_MMC_WriteBlocks(&handleMMC, buf, block, count, 0xFFFF);
+        if(HAL_OK != res)
         {
-            DJY_EventDelay(1);
-            if(count++ == SDMMC_MAX_TRIAL)
-            {
-                ret = -1;
-                printk("\r\nEMMC : debug : write timeout\r\n");
-                break;
-            }
-
-            res = SDMMC_CmdSendStatus(handleMMC.Instance, (u32)(handleMMC.MmcCard.RelCardAdd << 16));
-            if(HAL_MMC_ERROR_NONE != res)
-            {
-                ret = -1;
-                printk("\r\nEMMC : debug : write status <%xH>\r\n", res);
-                break;
-            }
-
-            response = SDMMC_GetResponse(handleMMC.Instance, SDMMC_RESP1);
-            if((response & 1 << 8) && ((response & (0xF << 9)) != (0x7 << 9)))
-                break;
+            printk("\r\nEMMC : debug : write <%xH> <%xH> <%xH> <%xH>\r\n", block, count, res, handleMMC.ErrorCode);
+            ret = -1;
         }
-    }
+        else
+        {
+            // 查询设备是否ready，即是否完成
+            while(1)
+            {
+                DJY_EventDelay(1);
+                if(count++ == SDMMC_MAX_TRIAL)
+                {
+                    ret = -1;
+                    printk("\r\nEMMC : debug : write timeout\r\n");
+                    break;
+                }
 
-    Lock_MutexPost(pOperationMutex);
+                res = SDMMC_CmdSendStatus(handleMMC.Instance, (u32)(handleMMC.MmcCard.RelCardAdd << 16));
+                if(HAL_MMC_ERROR_NONE != res)
+                {
+                    ret = -1;
+                    printk("\r\nEMMC : debug : write status <%xH>\r\n", res);
+                    break;
+                }
+
+                response = SDMMC_GetResponse(handleMMC.Instance, SDMMC_RESP1);
+                if((response & 1 << 8) && ((response & (0xF << 9)) != (0x7 << 9)))
+                    break;
+            }
+        }
+
+        Lock_MutexPost(pOperationMutex);
+    }
     return (ret);
 }
 
@@ -440,7 +442,7 @@ s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed)
         targetobj = OBJ_MatchPath(targetfs, &notfind);
         if(notfind)
         {
-            error_printf("mmc"," not found need to install file system.");
+            error_printf("mmc"," not found need to install file system.\r\n");
             return -1;
         }
         super = (struct FsCore *)OBJ_GetPrivate(targetobj);
@@ -452,7 +454,7 @@ s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed)
         else
         {
             super->MediaDrv = 0;
-            error_printf("mmc","  install file system type not FAT");
+            error_printf("mmc","  install file system type not FAT\r\n");
             return -1;
         }
 
@@ -463,7 +465,7 @@ s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed)
     }
     else
     {
-        warning_printf("mmc", "  No file system is installed");
+        warning_printf("mmc", "  No file system is installed\r\n");
     }
     return (0);
 }
@@ -492,14 +494,16 @@ s32 MMC_Erase(s32 dwArgC, ...)
 
     if(-1 == range) // 擦除整个设备
     {
-        Lock_MutexPend(pOperationMutex, CN_TIMEOUT_FOREVER);
-        res = HAL_MMC_Erase(&handleMMC, 0, handleMMC.MmcCard.LogBlockNbr-1);
-        if(res)
+        if(Lock_MutexPend(pOperationMutex, CN_TIMEOUT_FOREVER))
         {
-            printk("\r\nEMMC : debug : erase failed.\r\n");
+            res = HAL_MMC_Erase(&handleMMC, 0, handleMMC.MmcCard.LogBlockNbr-1);
+            if(res)
+            {
+                printk("\r\nEMMC : debug : erase failed.\r\n");
+            }
+            Lock_MutexPost(pOperationMutex);
+            DJY_EventDelay(3000000); // 等待一段时间
         }
-        Lock_MutexPost(pOperationMutex);
-        DJY_EventDelay(3000000); // 等待一段时间
     }
 
     return (res);

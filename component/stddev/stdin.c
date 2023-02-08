@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -210,26 +210,108 @@ s64 __sc_strtoll(ptu32_t Source,s32 (*__GetChar)(ptu32_t Source,s32 *Offset),s32
 //参数：无
 //返回：输入的字符，错误则返回EOF
 //-----------------------------------------------------------------------------
-#ifndef getchar
 s32 getchar( void )
 {
-    return getc(stdin);//todo:stdio.h已经宏实现
+#if(CFG_STDIO_STDIOFILE == true)
+    if(File_IsValid(stdin))
+    {
+        return getc(stdin);
+    }
+    else
+    {
+        if (GetCharDirect != NULL)
+            return GetCharDirect( );
+        else
+            return EOF;
+    }
+#else       // for #if(CFG_STDIO_STDIOFILE == true)
+    if (GetCharDirect != NULL)
+        return GetCharDirect( );
+    else
+        return EOF;
+#endif      // for #if(CFG_STDIO_STDIOFILE == true)
 }
-#endif
+
 //----从stdin输入一个字符串----------------------------------------------------
-//功能：从stdin输入一个字符串，stdin可以是设备，也可以是文件，甚至可以NULL（原始
-//      硬件）。狗血的c标准，fgets函数有buf长度限定，但gets却没有，程序员应该自
-//      己保证缓冲区足够长。
+//功能：从stdin输入一个字符串。c标准fgets函数有buf长度限定，但gets却没有，以回车或换行
+//      结束输入，程序员应该自己保证缓冲区足够长。
+//      如果stdin文件未初始化，则从选定的串口中输入
 //参数：buf ，接收字符串的缓冲区
 //返回：正确则返回buf指针，错误则返回NULL，并设置错误标志
-//特注：1、gets会读出回车键，并替换成'\0'，scanf则把回车键留在输入缓冲区。
-//      2、本函数对buf没有长度限制，强烈建议不要使用，用fgets替代。
+//特注：1、gets会读出回车/换行键，并替换成'\0'，scanf则把回车键留在输入缓冲区。
+//     2、本函数对buf没有长度限制，强烈建议不要使用，用 fgets 替代，但如果stdin未初始化，
+//        fgets不会自动转到去读串口。
 //-----------------------------------------------------------------------------
 char * gets(char *buf)
 {
-    fgets(buf,CN_LIMIT_SINT32,stdin);
+    s32 i = 0;
+    char ch;
+#if(CFG_STDIO_STDIOFILE == true)
+    if(File_IsValid(stdin))
+    {
+        return fgets(buf,CN_LIMIT_SINT32,stdin);
+    }
+    else
+    {
+        if (GetCharDirect != NULL)
+        {
+            while(1)
+            {
+               ch = GetCharDirect( );
+               // 忽略回车，以换行符结束，能兼容WINDOWS和LINUX格式文件。
+               // MAC不用考虑，从 OSx开始已经兼容LINUX了。
+               if('\r' == ch)
+               {
+                   continue; // WINDOWS格式文本文件有 '\r'，跳过
+               }
+               else if('\n' == ch) // 遇换行符，输入结束
+               {
+                   buf[i] = '\0';
+                   break;
+               }
+               else
+               {
+                   buf[i] = ch;
+               }
+               i++;
+           }
+            return buf;
+        }
+        else
+            return NULL;
+    }
+
     return buf;
+#else       // for #if(CFG_STDIO_STDIOFILE == true)
+    if (GetCharDirect != NULL)
+    {
+        while(1)
+        {
+           ch = GetCharDirect( );
+           // 忽略回车，以换行符结束，能兼容WINDOWS和LINUX格式文件。
+           // MAC不用考虑，从 OSx开始已经兼容LINUX了。
+           if('\r' == ch)
+           {
+               continue; // WINDOWS格式文本文件有 '\r'，跳过
+           }
+           else if('\n' == ch) // 遇换行符，输入结束
+           {
+               buf[i] = '\0';
+               break;
+           }
+           else
+           {
+               buf[i] = ch;
+           }
+           i++;
+       }
+        return buf;
+    }
+    else
+        return NULL;
+#endif      // for #if(CFG_STDIO_STDIOFILE == true)
 }
+
 
 //----从字符串中读取一个字符---------------------------------------------------
 //功能：从字符串中读入一个字符
@@ -253,10 +335,17 @@ s32 __GetCharFromStr(ptu32_t Source,s32 *Offset)
 //-----------------------------------------------------------------------------
 s32 __GetCharFromFile(ptu32_t Source,s32 *Offset)
 {
+#if(CFG_MODULE_ENABLE_FILE_SYSTEM == true)
     s32 ch;
-    ch = getc((FILE*)Source);
+    if (Source == stdin)
+        ch = getchar();
+    else
+        ch = getc((FILE*)Source);
     (*Offset)++;
     return ch;
+#else      // for #if(CFG_MODULE_ENABLE_FILE_SYSTEM == true)
+    return EOF;
+#endif      // for #if(CFG_MODULE_ENABLE_FILE_SYSTEM == true)
 }
 
 //---------------------------------------------------------------------------
@@ -529,13 +618,26 @@ s32 fscanf(FILE *fp,const char * fmt, ...)
     s32 i;
     if (fp == NULL)
         return 0;
-    else
-    {
-        va_start(args,fmt);
-        i = __vsnscanf((ptu32_t)fp,SCANF_FROM_FILE,fmt,args);
-        va_end(args);
-    }
+#if(CFG_MODULE_ENABLE_FILE_SYSTEM == true)
+
+#if(CFG_STDIO_STDIOFILE == true)
+    va_start(args,fmt);
+    i = __vsnscanf((ptu32_t)fp,SCANF_FROM_FILE,fmt,args);
+    va_end(args);
     return i;
+#else       // for #if(CFG_STDIO_STDIOFILE == true)
+    va_start(args,fmt);
+    if (fp != stdin)
+        i = __vsnscanf((ptu32_t)fp,SCANF_FROM_FILE,fmt,args);
+    else
+        i = 0;
+    va_end(args);
+    return i;
+#endif      // for #if(CFG_STDIO_STDIOFILE == true)
+
+#else       // for #if(CFG_MODULE_ENABLE_FILE_SYSTEM == true)
+    return 0;
+#endif      // for #if(CFG_MODULE_ENABLE_FILE_SYSTEM == true)
 }
 
 s32 sscanf(const char * buf, const char * fmt, ...)

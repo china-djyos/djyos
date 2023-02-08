@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -250,11 +250,11 @@ ptu32_t __GDD_MessageLoop( void )
     u32 result = 0;
     HWND MyHwnd;
     DJY_GetEventPara((ptu32_t *)&MyHwnd,NULL);
-    MyHwnd->EventID   = DJY_GetMyEventId();
+    MyHwnd->EventID = DJY_GetMyEventId();
 
     while(GDD_GetMessage(&msg,MyHwnd,&SyncMsg))
     {
-        //如果被处理的是发给主窗口的close消息，处理完成后退出消息循环
+        //如果被处理的是发给主窗口（或desktop）的close消息，处理完成后退出消息循环
         //注msg.hwnd不能在调用DispatchMessage后访问，因为对于MSG_CLOSE来说，消息
         //里的hwnd在调用DispatchMessage后已经被清除。
         if( (msg.Code == MSG_CLOSE) && (msg.hwnd == MyHwnd) )
@@ -286,28 +286,31 @@ ptu32_t __GDD_MessageLoop( void )
 static u32 __GDD_PostSyncMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 {
     struct WinMsgQueueCB *pMsgQ;
-    u32 res;
+    u32 res = -1;
 
 
     pMsgQ =__GDD_GetWindowMsgQ(hwnd);
 
-    Lock_MutexPend(pMsgQ->mutex_lock,CN_TIMEOUT_FOREVER);
+    if(Lock_MutexPend(pMsgQ->mutex_lock,CN_TIMEOUT_FOREVER))
+    {
 
-    __GDD_InitMsg(&pMsgQ->sync_msg,hwnd,msg,param1,param2);
-
-
-//    Lock_SempPost(pMsgQ->sem_sync_recv);
-
-    Lock_SempPost(pMsgQ->sem_msg);    //发送消息信号量
-
-    Lock_SempPend(pMsgQ->sem_sync_send,CN_TIMEOUT_FOREVER);
+        __GDD_InitMsg(&pMsgQ->sync_msg,hwnd,msg,param1,param2);
 
 
-    res=pMsgQ->sync_msg.Param1;
+    //    Lock_SempPost(pMsgQ->sem_sync_recv);
 
-    Lock_MutexPost(pMsgQ->mutex_lock);
+        Lock_SempPost(pMsgQ->sem_msg);    //发送消息信号量
 
-    return res;
+        //if 那行不报错的话，说明调度是允许的，可以不判 Lock_SempPend 是否成功
+        Lock_SempPend(pMsgQ->sem_sync_send,CN_TIMEOUT_FOREVER);
+
+
+        res=pMsgQ->sync_msg.Param1;
+
+        Lock_MutexPost(pMsgQ->mutex_lock);
+    }
+
+    return res;     //如果 Lock_MutexPend 报错，这里返回的结果并无意义
 
 }
 
@@ -485,7 +488,7 @@ void    __GDD_PostTimerMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,struct WinT
 //-----------------------------------------------------------------------------
 void __GDD_PostCloseMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd)
 {
-    if(hwnd == GDD_GetDesktopWindow( ))
+    if(hwnd == GDD_GetDesktopWindow(NULL ))
         return;                 //桌面不接收close消息。
     //判断窗口node_msg_close是否为空,如果不为空,
     //则表示该窗口节点已经加入到消息队列的 list_msg_close中.
@@ -507,6 +510,8 @@ void __GDD_PostCloseMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd)
 static void __GDD_PostRefreshMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd)
 {
     __GDD_InitMsg(&pMsgQ->refresh_msg, hwnd, MSG_SYNC_DISPLAY, 0, 0);
+    //发送消息信号量
+    Lock_SempPost(pMsgQ->sem_msg);
     return ;
 }
 
@@ -792,10 +797,11 @@ static bool_t __GDD_PeekRefreshMessage(struct WinMsgQueueCB *pMsgQ,struct Window
 /*============================================================================*/
 
 //----获取消息------------------------------------------------------------------
-//描述: 丛消息队列中以阻塞方式获取一条消息.
-//参数：pMsg: 消息缓冲区指针,获得的消息会存放到该消息缓冲区中.
-//     hwnd: 窗口句柄.
-//返回：当获得了MSG_QUIT时,该函数返回FALSE,否则返回TRUE.
+//描述: 从消息队列中以阻塞方式获取一条消息.
+//参数： pMsg: 消息缓冲区指针,获得的消息会存放到该消息缓冲区中.
+//      hwnd: 窗口句柄，实际上是主窗口或者desktop窗口。
+//      SyncMsg，输出参数，true表示获取了一条同步消息
+//返回：true=成功获取消息，false=失败（不会失败）
 //------------------------------------------------------------------------------
 bool_t    GDD_GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
 {
@@ -806,7 +812,6 @@ bool_t    GDD_GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
     *SyncMsg = false;
     while(1)
     {
-
         if(__HWND_Lock(hwnd))
         {
             GetMsg = true;
@@ -846,7 +851,7 @@ bool_t    GDD_GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
 
         if(GetMsg)
         {
-            break;
+            break;      //已经获取了消息
         }
         else
         {
@@ -857,6 +862,7 @@ bool_t    GDD_GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
 
                 if(NULL!=pMsgQ)
                 {
+                    //等待，直到有消息进入队列
                     Lock_SempPend(pMsgQ->sem_msg,CN_TIMEOUT_FOREVER);
                 }
 
@@ -866,7 +872,13 @@ bool_t    GDD_GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
     return res;
 }
 
-ptu32_t GDD_GetGK_Message(void)
+//------------------------------------------------------------------------------
+//功能：处理GK上传消息的循环，当前并无实际功能，因为GK也只是搭了个架子，并无实际上传消息，
+//      在没有图形buffer的硬件平台中，执行诸如移动窗口之类的操作时，必须使用本功能。
+//参数：无
+//返回：无
+//------------------------------------------------------------------------------
+ptu32_t GDD_GK_MessageLoop(void)
 {
     define_align_buf(TaskBuffer,CN_USERCALL_MSG_SIZE);
 //    u8 TaskBuffer[CN_USERCALL_MSG_SIZE];

@@ -819,7 +819,7 @@ void pciauto_setup_device(struct pci_controller *hose,
 
         found_mem64 = 0;
 //        pcie_debug("PCI Autoconfig First: BAR %d, I/O, bar_response=0x%llx, ", bar_nr, (u64)bar_response);
-        debug_printf("pci","PCI Autoconfig First: BAR %d, I/O, bar_response=0x%llx, ", bar_nr, (u64)bar_response);
+        debug_printf("pci","PCI Autoconfig First: BAR %d, I/O, bar_response=0x%llx, \r\n", bar_nr, (u64)bar_response);
         /* Check the BAR type and set our address mask */
         if (bar_response & PCI_BASE_ADDRESS_SPACE)
         {
@@ -828,7 +828,7 @@ void pciauto_setup_device(struct pci_controller *hose,
             bar_res = io;
 
 //            pcie_debug("PCI Autoconfig: BAR %d, I/O, size=0x%llx, ", bar_nr, (u64)bar_size);
-            debug_printf("pci","PCI Autoconfig: BAR %d, I/O, size=0x%llx, ", bar_nr, (u64)bar_size);
+            debug_printf("pci","PCI Autoconfig: BAR %d, I/O, size=0x%llx, \r\n", bar_nr, (u64)bar_size);
 
         }
         else
@@ -859,10 +859,10 @@ void pciauto_setup_device(struct pci_controller *hose,
                 bar_res = mem;
 
 //            pcie_debug("PCI Autoconfig: BAR %d, Mem, size=0x%llx, ", bar_nr, (u64)bar_size);
-            debug_printf("pci","PCI Autoconfig: BAR %d, Mem, size=0x%llx, ", bar_nr, (u64)bar_size);
+            debug_printf("pci","PCI Autoconfig: BAR %d, Mem, size=0x%llx, \r\n", bar_nr, (u64)bar_size);
         }
 //        pcie_debug("bar_res bus_start : %llx, size=0x%llx, ", (u64)bar_res->bus_start, (u64)bar_res->size);
-        debug_printf("pci","bar_res bus_start : %llx, size=0x%llx, ", (u64)bar_res->bus_start, (u64)bar_res->size);
+        debug_printf("pci","bar_res bus_start : %llx, size=0x%llx, \r\n", (u64)bar_res->bus_start, (u64)bar_res->size);
         if (pciauto_region_allocate(bar_res, bar_size, &bar_value) == 0)
         {
             /* Write it out and update our limit */
@@ -1015,7 +1015,7 @@ s32 pciauto_config_device(struct pci_controller *hose, pci_dev_t dev)
                        indent++;
 
                     /* Print leading space, including bus indentation */
-                       debug_printf("pci","%*c", indent + 1, ' ');
+                       debug_printf("pci","%*c\r\n", indent + 1, ' ');
 
                     if (__pci_print_dev(hose, dev))
                     {

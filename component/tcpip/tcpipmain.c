@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -60,10 +60,10 @@
 bool_t tcpipver(char *param)
 {
     param = param;
-    info_printf("tcpip","Copyright (c) 2018, Djyos Open source Development team. All rights reserved.");
-    info_printf("tcpip","VERSION  :%s ",CN_TCPIP_VERSION);
-    info_printf("tcpip","TIME     :%s ",__TIME__);
-    info_printf("tcpip","DATE     :%s ",__DATE__);
+    info_printf("tcpip","Copyright (c) 2018, Djyos Open source Development team. All rights reserved.\r\n");
+    info_printf("tcpip","VERSION  :%s \r\n",CN_TCPIP_VERSION);
+    info_printf("tcpip","TIME     :%s \r\n",__TIME__);
+    info_printf("tcpip","DATE     :%s \r\n",__DATE__);
     return true;
 }
 
@@ -71,7 +71,7 @@ bool_t tcpipver(char *param)
 //we need a function to do the format result
 static void __LoadLog(const char *name,bool_t ret)
 {
-    info_printf("tcpip","LOAD:%-12s------------%s",name,ret?"SUCCESS":"FAILURE");
+    info_printf("tcpip","LOAD:%-12s------------%s\r\n",name,ret?"SUCCESS":"FAILURE");
     return;
 }
 // =============================================================================
@@ -268,13 +268,13 @@ bool_t ModuleInstall_TcpIp(void)
     {
         goto TCPIP_INITERR;
     }
-    info_printf("tcpip","*********DJY TCP/IP INIT SUCCESS**********************");
+    info_printf("tcpip","*********DJY TCP/IP INIT SUCCESS**********************\r\n");
 
     return ret;
 #endif
 
 TCPIP_INITERR:
-    error_printf("tcpip","*********DJY TCP/IP INIT  FAILED**********************");
+    error_printf("tcpip","*********DJY TCP/IP INIT  FAILED**********************\r\n");
     return ret;
 }
 ADD_TO_ROUTINE_SHELL(tcpipver,tcpipver,"usage:tcpipver");

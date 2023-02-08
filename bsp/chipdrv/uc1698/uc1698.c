@@ -70,6 +70,9 @@
 //%$#@num,0,65536,
 #define CFG_LCD_XSIZE   240             //"LCD宽度",
 #define CFG_LCD_YSIZE   128             //"LCD高度",
+//%$#@num,,,
+#define CFG_LCD_XSIZE_UM   36500            //"LCD宽度-微米数",
+#define CFG_LCD_YSIZE_UM   48600            //"LCD高度-微米数",
 //%$#@enum,true,false,
 //%$#@string,1,10,
 #define CFG_DISPLAY_NAME               "UC1698"   //"显示器名称",
@@ -414,7 +417,7 @@ bool_t __lcd_line_screen_ie(struct Rectangle *limit,
     return false;
 }
 //----screen中填充矩形-----------------------------------------------------------
-//功能: 把screen中的矩形用color颜色填充，color的格式是cn_sys_pf_e8r8g8b8
+//功能: 把screen中的矩形用color颜色填充，color的格式是CN_SYS_PF_ERGB8888
 //参数: dst_rect,待填充的矩形
 //      color，填充颜色
 //返回:  true=成功绘制，false=失败
@@ -610,7 +613,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
 
 #pragma GCC pop_options
 //----从screen中取像素---------------------------------------------------------
-//功能: 从screen中取一像素，并转换成cn_sys_pf_e8r8g8b8或cn_sys_pf_a8r8g8b8格式
+//功能: 从screen中取一像素，并转换成CN_SYS_PF_ERGB8888或cn_sys_pf_a8r8g8b8格式
 //参数: x,y，坐标
 //返回: 像素颜色值
 //-----------------------------------------------------------------------------
@@ -657,8 +660,8 @@ ptu32_t ModuleInstall_UC1698(void)
     frame_win.wm_bitmap = &FrameBitmap;
     tg_lcd_display.frame_buffer = &frame_win;
 
-    tg_lcd_display.width_um = 0;
-    tg_lcd_display.height_um = 0;
+    tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
+    tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
     tg_lcd_display.width = CFG_LCD_XSIZE;
     tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_GRAY4;

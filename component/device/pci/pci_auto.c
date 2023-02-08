@@ -62,7 +62,7 @@ s32 pciauto_region_allocate(struct pci_region *res, pci_size_t size,
     if (!res) {
 //        pcie_debug("No resource");
 
-        debug_printf("pciauto","No resource");
+        debug_printf("pciauto","No resource\r\n");
         goto error;
     }
 
@@ -70,14 +70,14 @@ s32 pciauto_region_allocate(struct pci_region *res, pci_size_t size,
 
     if (addr - res->bus_start + size > res->size) {
 //        pcie_debug("No room in resource");
-        debug_printf("pciauto","No room in resource");
+        debug_printf("pciauto","No room in resource\r\n");
         goto error;
     }
 
     res->bus_lower = addr + size;
 
 //    pcie_debug("address=0x%llx bus_lower=0x%llx", (u64)addr, (u64)res->bus_lower);
-    debug_printf("pciauto","address=0x%llx bus_lower=0x%llx", (u64)addr, (u64)res->bus_lower);
+    debug_printf("pciauto","address=0x%llx bus_lower=0x%llx\r\n", (u64)addr, (u64)res->bus_lower);
     *bar = addr;
     return 0;
 

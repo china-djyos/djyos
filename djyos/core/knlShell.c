@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -322,7 +322,7 @@ u32 knlYipHook(struct Wdt *wdt)
 #pragma GCC diagnostic pop
 
 // ============================================================================
-// 功能：统计一定内事件运行占用率
+// 功能：统计一定时间内事件运行CPU占用率
 // 参数：无；
 // 返回：无；
 // 备注：
@@ -335,6 +335,7 @@ ptu32_t kernel_spy(void)
     struct Wdt *wdt;
     DJY_GetEventPara((ptu32_t*)(&cycle), NULL);
     cycle *=mS;
+#if(CFG_MODULE_ENABLE_WATCH_DOG == true)
 #if(CFG_IDLE_MONITOR_CYCLE > 0)
 #if(CFG_IDLE_WDT_RESET == false)
     wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, knlYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
@@ -342,6 +343,7 @@ ptu32_t kernel_spy(void)
     wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
 #endif  //for (CFG_IDLE_WDT_RESET != 1)
 #endif  //for (CFG_IDLE_MONITOR_CYCLE > 0)
+#endif  //for #if(CFG_MODULE_ENABLE_WATCH_DOG == true)
     while(1)
     {
 
@@ -353,6 +355,7 @@ ptu32_t kernel_spy(void)
            g_tECB_Table[pl_ecb].consumed_time_record =
                             (u32)g_tECB_Table[pl_ecb].consumed_time;
         }
+#if(CFG_MODULE_ENABLE_WATCH_DOG == true)
 #if(CFG_IDLE_MONITOR_CYCLE > 0)
         //如果idle事件运行时间超过 1/16，则喂狗
         if(g_tECB_Table[0].consumed_time_second > (cycle >> 4))
@@ -360,6 +363,7 @@ ptu32_t kernel_spy(void)
             Wdt_Clean(wdt);
         }
 #endif  //for (CFG_IDLE_MONITOR_CYCLE > 0)
+#endif  //for #if(CFG_MODULE_ENABLE_WATCH_DOG == true)
         DJY_EventDelay(cycle); // 延时1秒；
     }
 #endif

@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -129,16 +129,16 @@ bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name)
         frame_buffer->RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
         //帧缓冲总是CN_R3_SRCCOPY，不需要pattern。
 //        frame_buffer->pat_buf = NULL;
-        frame_buffer->absx0 = 0;
-        frame_buffer->absy0 = 0;
-        frame_buffer->left = 0;
-        frame_buffer->top = 0;
-        frame_buffer->right = frame_bitmap->width;
-        frame_buffer->bottom = frame_bitmap->height;
-        frame_buffer->limit_left = 0;
-        frame_buffer->limit_top = 0;
-        frame_buffer->limit_right = frame_bitmap->width;
-        frame_buffer->limit_bottom = frame_bitmap->height;
+        frame_buffer->ScreenX = 0;
+        frame_buffer->ScreenY = 0;
+        frame_buffer->area.left = 0;
+        frame_buffer->area.top = 0;
+        frame_buffer->area.right = frame_bitmap->width;
+        frame_buffer->area.bottom = frame_bitmap->height;
+        frame_buffer->limit.left = 0;
+        frame_buffer->limit.top = 0;
+        frame_buffer->limit.right = frame_bitmap->width;
+        frame_buffer->limit.bottom = frame_bitmap->height;
     }
     Obj = OBJ_SearchChild(OBJ_GetRoot(), "display");     //取显示器目录
     Obj = OBJ_NewChild(Obj, (fnObjOps)-1, (ptu32_t)display, name);

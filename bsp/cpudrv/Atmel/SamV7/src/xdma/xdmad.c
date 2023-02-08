@@ -206,46 +206,48 @@ void XDMAD_Initialize( sXdmad *pXdmad, uint8_t bPollingMode )
     uint32_t volatile timer=0x7FF;
 
     assert( pXdmad) ;
-    LockMutex(pXdmad->xdmaMutex, timer);
-    if (xDmad_Initialized)
+    if(LockMutex(pXdmad->xdmaMutex, timer))
     {
+        if (xDmad_Initialized)
+        {
+            ReleaseMutex(pXdmad->xdmaMutex);
+            return;
+        }
+        pXdmad->pXdmacs = XDMAC;
+        pXdmad->pollingMode = bPollingMode;
+        pXdmad->numControllers = XDMAC_CONTROLLER_NUM;
+        pXdmad->numChannels    = (XDMAC_GTYPE_NB_CH( XDMAC_GetType(XDMAC) ) + 1);
+
+        XDMAD_ResetXdmac();
+
+        for (j = 0; j < pXdmad->numChannels; j ++)
+        {
+            pXdmad->XdmaChannels[j].fCallback = 0;
+            pXdmad->XdmaChannels[j].pArg      = 0;
+            pXdmad->XdmaChannels[j].bIrqOwner    = 0;
+            pXdmad->XdmaChannels[j].bSrcPeriphID = 0;
+            pXdmad->XdmaChannels[j].bDstPeriphID = 0;
+            pXdmad->XdmaChannels[j].bSrcTxIfID   = 0;
+            pXdmad->XdmaChannels[j].bSrcRxIfID   = 0;
+            pXdmad->XdmaChannels[j].bDstTxIfID   = 0;
+            pXdmad->XdmaChannels[j].bDstRxIfID   = 0;
+            pXdmad->XdmaChannels[j].state = XDMAD_STATE_FREE;
+        }
+        xDmad_Initialized = 1;
+
+        if(Int_Register(CN_INT_LINE_XDMAC))
+        {
+            Int_SetClearType(CN_INT_LINE_XDMAC,CN_INT_CLEAR_AUTO);
+            Int_IsrConnect(CN_INT_LINE_XDMAC,(u32 ( *)(ptu32_t))XDMAD_Handler);
+            Int_SetIsrPara(CN_INT_LINE_XDMAC,&dmad);
+            Int_SettoAsynSignal(CN_INT_LINE_XDMAC);
+            Int_ClearLine(CN_INT_LINE_XDMAC);
+            Int_RestoreAsynLine(CN_INT_LINE_XDMAC);
+        }
+
+
         ReleaseMutex(pXdmad->xdmaMutex);
-        return;
     }
-    pXdmad->pXdmacs = XDMAC;
-    pXdmad->pollingMode = bPollingMode;
-    pXdmad->numControllers = XDMAC_CONTROLLER_NUM;
-    pXdmad->numChannels    = (XDMAC_GTYPE_NB_CH( XDMAC_GetType(XDMAC) ) + 1);
-
-    XDMAD_ResetXdmac();
-
-    for (j = 0; j < pXdmad->numChannels; j ++)
-    {
-        pXdmad->XdmaChannels[j].fCallback = 0;
-        pXdmad->XdmaChannels[j].pArg      = 0;
-        pXdmad->XdmaChannels[j].bIrqOwner    = 0;
-        pXdmad->XdmaChannels[j].bSrcPeriphID = 0;
-        pXdmad->XdmaChannels[j].bDstPeriphID = 0;
-        pXdmad->XdmaChannels[j].bSrcTxIfID   = 0;
-        pXdmad->XdmaChannels[j].bSrcRxIfID   = 0;
-        pXdmad->XdmaChannels[j].bDstTxIfID   = 0;
-        pXdmad->XdmaChannels[j].bDstRxIfID   = 0;
-        pXdmad->XdmaChannels[j].state = XDMAD_STATE_FREE;
-    }
-    xDmad_Initialized = 1;
-
-    if(Int_Register(CN_INT_LINE_XDMAC))
-    {
-        Int_SetClearType(CN_INT_LINE_XDMAC,CN_INT_CLEAR_AUTO);
-        Int_IsrConnect(CN_INT_LINE_XDMAC,(u32 ( *)(ptu32_t))XDMAD_Handler);
-        Int_SetIsrPara(CN_INT_LINE_XDMAC,&dmad);
-        Int_SettoAsynSignal(CN_INT_LINE_XDMAC);
-        Int_ClearLine(CN_INT_LINE_XDMAC);
-        Int_RestoreAsynLine(CN_INT_LINE_XDMAC);
-    }
-
-
-    ReleaseMutex(pXdmad->xdmaMutex);
 }
 
 
@@ -264,9 +266,11 @@ uint32_t XDMAD_AllocateChannel( sXdmad *pXdmad,
     uint32_t dwChannel = XDMAD_ALLOC_FAILED;
     uint32_t volatile timer=0x7FF;
 
-    LockMutex(pXdmad->xdmaMutex, timer);
-    dwChannel = XDMAD_AllocateXdmacChannel( pXdmad,  bSrcID, bDstID );
-    ReleaseMutex(pXdmad->xdmaMutex);
+    if(LockMutex(pXdmad->xdmaMutex, timer))
+    {
+        dwChannel = XDMAD_AllocateXdmacChannel( pXdmad,  bSrcID, bDstID );
+        ReleaseMutex(pXdmad->xdmaMutex);
+    }
 
     return dwChannel;
 }

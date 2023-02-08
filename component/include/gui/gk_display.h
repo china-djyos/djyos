@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -95,7 +95,7 @@ extern "C" {
 //----对于所要求的绘制操作,硬件加速器只支持部分的情况,可以在函数中做条件判断,
 //    实现能支持的功能,不支持的功能则返回false,由gkernel实现
 //特殊情况:虚拟显示器,需要远程界面但本地却没有显示器的情况,将会在本地虚拟出一个
-//显示器,虚拟显示器driver中国全部绘制图像到screen的函数,都无须实现,其他同前面所述
+//显示器,虚拟显示器driver中全部绘制图像到screen的函数,都无须实现,其他同前面所述
 
 //如果不是虚拟显示器，则此2函数，SetPixelToScreen,CopyBitmapToScreen，必须实现
 //一个。如果应用不使用直接写屏，且有framebuffer，则建议实现CopyBitmapToScreen即可。
@@ -107,7 +107,7 @@ struct DispDraw
     //参数:
     // bitmap: 绘制的目标位图
     // x,y: 目标坐标,相对于bitmap的.
-    // color: 格式是cn_sys_pf_e8r8g8b8
+    // color: 格式是 CN_SYS_PF_ERGB8888
     // r2_code: 显示效果,详见gkernel.h中的CN_R2_BLACK族常数定义
     bool_t (*SetPixelToBitmap)(struct RectBitmap *bitmap,
                          s32 x,s32 y,u32 color,u32 r2_code);
@@ -121,7 +121,7 @@ struct DispDraw
     //       并非bitmap中的相对坐标.limit的坐标包含左和上边界,不包含右和下边界.
     // x1,y1: 绘制起点,包含
     // x2,y2: 绘制终点,不包含
-    // color: 格式是cn_sys_pf_e8r8g8b8
+    // color: 格式是CN_SYS_PF_ERGB8888
     // r2_code: 显示效果,详见gkernel.h中的CN_R2_BLACK族常数定义
     bool_t (*LineToBitmap)(struct RectBitmap *bitmap,struct Rectangle *limit,
                         s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 r2_code);
@@ -135,7 +135,7 @@ struct DispDraw
     //       并非bitmap中的相对坐标.limit的坐标包含左和上边界,不包含右和下边界.
     // x1,y1: 绘制起点,包含
     // x2,y2: 绘制终点,包含
-    // color: 格式是cn_sys_pf_e8r8g8b8
+    // color: 格式是CN_SYS_PF_ERGB8888
     // r2_code: 显示效果,详见gkernel.h中的CN_R2_BLACK族常数定义
     bool_t (*LineToBitmapIe)(struct RectBitmap *bitmap,struct Rectangle *limit,
                         s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 r2_code);

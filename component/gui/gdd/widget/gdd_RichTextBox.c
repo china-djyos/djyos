@@ -343,7 +343,7 @@ static bool_t __Widget_MoveCursor(HWND hwnd,u8 idx)
     GDD_CursorMove(x,y);
 
 //    GDD_MoveWindow(g_CursorHwnd,x,y);
-    GDD_UpdateDisplay(hwnd);
+    GDD_SyncShow(hwnd);
 //  GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
     return true;
 }
@@ -585,24 +585,8 @@ static ptu32_t __Widget_RichTextBoxCreate(struct WindowMsg *pMsg)
         }
     GDD_GetClientRect(hwnd,&rc0);
 //    GDD_CursorInit();
-    Widget_CreateButton("插入换行",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-60,60,24,hwnd,ID_INSERT,0,NULL);
-    Widget_CreateButton("改变颜色",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-30,60,24,hwnd,ID_COLOR,0,NULL);
-    return true;
-}
-
-//窗口背景擦除
-static ptu32_t __Widget_RichTextBoxErasebkgnd(struct WindowMsg *pMsg)
-{
-    HWND hwnd;
-    HDC  hdc;
-    RECT rc0;
-
-    hwnd =pMsg->hwnd;
-    hdc =(HDC)pMsg->Param1;
-    GDD_GetClientRect(hwnd,&rc0);
-    GDD_SetFillColor(hdc,RGB(200,200,200));
-    GDD_FillRect(hdc,&rc0);
-
+    Widget_CreateButton("插入换行",BS_NORMAL|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-60,60,24,hwnd,ID_INSERT,0,NULL);
+    Widget_CreateButton("改变颜色",BS_HOLD|WS_BORDER|WS_VISIBLE,GDD_RectW(&rc0)-64,GDD_RectH(&rc0)-30,60,24,hwnd,ID_COLOR,0,NULL);
     return true;
 }
 
@@ -679,6 +663,7 @@ void    Widget_CreateRichTextBox(void)
 {
     s_gDrawTextDemoMsgLink.MsgNum = sizeof(s_gDrawTextMsgTable) / sizeof(struct MsgProcTable);
     s_gDrawTextDemoMsgLink.myTable = (struct MsgProcTable *)&s_gDrawTextMsgTable;
-    GDD_CreateGuiApp("DrawText", &s_gDrawTextDemoMsgLink, 0x1000, CN_WINBUF_PARENT, 0);
+    GDD_CreateGuiApp("DrawText", &s_gDrawTextDemoMsgLink, 0,0,-1,0, 0x1000, CN_WINBUF_PARENT,
+                0, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE);
     GDD_WaitGuiAppExit("DrawText");
 }

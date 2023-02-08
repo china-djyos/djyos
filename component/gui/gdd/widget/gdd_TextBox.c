@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -300,7 +300,7 @@ static bool_t __Widget_MoveCursor(HWND hwnd,u8 idx)
     GDD_CursorMove(x,y);
 
 //    GDD_MoveWindow(g_CursorHwnd,x,y);
-    GDD_UpdateDisplay(hwnd);
+    GDD_SyncShow(hwnd);
 //  GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
     return true;
 }
@@ -979,7 +979,7 @@ static bool_t __Widget_TextBoxSetFocus(struct WindowMsg *pMsg)
 //    hwnd =pMsg->hwnd;
 //    if(hwnd==NULL)
 //        return false;
-//    Tmrhwnd=GDD_GetDesktopWindow();
+//    Tmrhwnd=GDD_GetDesktopWindow(NULL);
 //    if(Tmrhwnd!=NULL)
 //    {
 //       GDD_PostMessage(Tmrhwnd,MSG_TIMER_START,CN_CURSOR_TIMER_ID,(ptu32_t)hwnd);
@@ -1000,7 +1000,7 @@ static bool_t __Widget_TextBoxKillFocus(struct WindowMsg *pMsg)
 //     hwnd =pMsg->hwnd;
 //     if(hwnd==NULL)
 //          return false;
-//     Tmrhwnd=GDD_GetDesktopWindow();
+//     Tmrhwnd=GDD_GetDesktopWindow(NULL);
 //     if(Tmrhwnd!=NULL)
 //     {
 //         GDD_PostMessage(Tmrhwnd,MSG_TIMER_STOP,CN_CURSOR_TIMER_ID,(ptu32_t)hwnd);
@@ -1127,15 +1127,15 @@ static struct MsgTableLink  s_gTextBoxMsgLink;
 // =============================================================================
 HWND Widget_CreateTextBox(const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,ptu32_t pdata,
+                    HWND hParent,u32 WinId,TextBox *pTB,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
     s_gTextBoxMsgLink.MsgNum = sizeof(s_gTextBoxMsgProcTable) / sizeof(struct MsgProcTable);
     s_gTextBoxMsgLink.myTable = (struct MsgProcTable *)&s_gTextBoxMsgProcTable;
-    pGddWin = GDD_CreateWindow(Text, WS_CHILD | WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,
+    pGddWin = GDD_CreateWindow(Text,  WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,
                                 x, y, w, h, hParent, WinId, CN_WINBUF_PARENT,
-                                pdata, &s_gTextBoxMsgLink);
+                                (ptu32_t)pTB, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE, &s_gTextBoxMsgLink);
     if(UserMsgTableLink != NULL)
         GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;

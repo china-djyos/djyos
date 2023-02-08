@@ -40,7 +40,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -104,7 +104,7 @@ struct GkscParaCreateDesktop
 {
     struct DisplayObj *display;     //所属显示器
     struct GkWinObj *desktop;       //桌面窗口,由上层分配结构体
-    char *name;                     //桌面窗口的名字
+    char name[CN_GKWIN_NAME_LIMIT+1];                     //桌面窗口的名字
     s32 width,height;               //桌面尺寸，若小于显示器尺寸则调整为显示器尺寸
     u32 color;                      //创建桌面时填充的颜色
     u32 buf_mode;    //定义缓冲模式，参见 CN_WINBUF_PARENT 族常量定义
@@ -116,12 +116,11 @@ struct GkscParaCreateDesktop
 struct GkscParaCreateGkwin
 {
     struct GkWinObj *parent_gkwin;   //新窗口的父窗口
-//  struct GkWinObj *gkwin;          //新窗口,由调用者分配结构体
     struct GkWinObj **result;        //用于返回结果
     s32 left,top,right,bottom;          //新窗口的位置，相对于父窗口的坐标
     u32 color;                          //创建窗口时填充的颜色
     u32 buf_mode;    //定义缓冲模式，参见 CN_WINBUF_PARENT 族常量定义
-    char *name;             //窗口名字(标题)
+    char name[CN_GKWIN_NAME_LIMIT+1];             //窗口名字(标题)
     //以下成员只在buf_mode=true时有效，否则忽略之。
     u16 PixelFormat;                //像素格式，不允许用编号大于CN_GKWIN_PF_LIMIT的格式
     u16 rsv;                        //保留用于4字节对齐
@@ -129,7 +128,6 @@ struct GkscParaCreateGkwin
     u32 BaseColor  ;                //灰度图基色(当pf_type == CN_SYS_PF_GRAY1 ~8)
                                     //pf_type取其他值时不需要此参数
     struct RopGroup RopCode;        //窗口的光栅属性，在windows的光栅操作码的基础上有扩展
-    bool_t unfill;                  //true表示新建窗口不填充。
 };
 struct GkscParaFillWin
 {
@@ -152,6 +150,7 @@ struct GkscParaGradientFillWin
 struct GkscParaDrawText
 {
     struct GkWinObj* gkwin;         //目标窗口
+    struct Rectangle range;         //允许绘制区域，相对于gkwin的坐标
     struct FontObj *pFont;          //使用的字体,NULL表示用系统当前字体
     struct Charset *pCharset;       //使用的字符集,NULL表示用系统当前字符集
     s32 x, y;                       //显示位置，相对于gkwin
@@ -159,7 +158,7 @@ struct GkscParaDrawText
     u32 color;                      //画点使用的颜色
     u32 Rop2Code;                   //rop2编码
 };
-struct GkscParaSetPixel
+struct GkscParaSetPixel     //本命令没有限制区域，在api中先行判断
 {
     struct GkWinObj *gkwin;         //绘制的目标窗口
     s32 x,y;                        //点对应的坐标
@@ -169,6 +168,7 @@ struct GkscParaSetPixel
 struct GkscParaDrawBitmapRop
 {
     struct GkWinObj *gkwin;         //绘制的目标窗口
+    struct Rectangle range;         //允许绘制区域，相对于gkwin的坐标
     struct RectBitmap bitmap;       //待绘制的位图
     u32 HyalineColor;               //透明色,与bitmap相同格式
     s32 x,y;                        //绘制位置的左上角坐标
@@ -177,6 +177,7 @@ struct GkscParaDrawBitmapRop
 struct GkscParaLineto
 {
     struct GkWinObj *gkwin;         //绘制的目标窗口
+    struct Rectangle range;         //允许绘制区域，相对于gkwin的坐标
     s32 x1,y1,x2,y2;                //目标直线的起点，终点坐标
     u32 color;                      //绘制直线使用的颜色
     u32 Rop2Code;                   //二元光栅操作码

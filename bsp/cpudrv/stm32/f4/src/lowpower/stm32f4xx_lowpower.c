@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -76,7 +76,7 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    void ModuleInstall_LowPower (void)
+//    void ModuleInstall_LowPower (void);
 //    ModuleInstall_LowPower();
 //%$#@end initcode  ****初始化代码结束
 
@@ -187,14 +187,24 @@ void __LP_BSP_EntrySleep(u8 sleep_level, u32 pend_ticks)
     switch(sleep_level)
     {
         case CN_SLEEP_L0:
-            SCB->SCR |= SCB_SCR_SEVONPEND_Msk;
-            SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+            //    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
+//            __Int_ClearAllLine();
+            HAL_PWR_EnableSEVOnPend();
+            /* Clear SLEEPDEEP bit of Cortex System Control Register */
+            CLEAR_BIT(SCB->SCR, ((uint32_t)SCB_SCR_SLEEPDEEP_Msk));
             __WFE();
+//            HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
             break;
         case CN_SLEEP_L1:
-            SCB->SCR |= SCB_SCR_SEVONPEND_Msk;
-            SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+//            __Int_ClearAllLine();
+            HAL_PWR_EnableSEVOnPend();
+            HAL_PWREx_EnableFlashPowerDown();
+            CLEAR_BIT(PWR->CR,  PWR_CR_PDDS);
+            MODIFY_REG(PWR->CR, PWR_CR_LPDS, PWR_LOWPOWERREGULATOR_ON);
+            SET_BIT(SCB->SCR, ((uint32_t)SCB_SCR_SLEEPDEEP_Msk));
             __WFE();
+            __asm volatile( "nop" );
+//          HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFE);
             break;
         case CN_SLEEP_L2:
             //禁止中断
@@ -224,7 +234,7 @@ bool_t __LP_BSP_SaveRamL3(void)
 //-----------------------------------------------------------------------------
 //功能: 安装低功耗组件，要把一些低功耗需要使用到的函数，注册到系统中
 //参数: __LP_BSP_EntrySleep：进入休眠；__LP_BSP_SaveSleepLevel：保存休眠等级；__LP_BSP_SaveRamL3：保存进入休眠等级3之前的内存，
-//		__LP_BSP_AsmSaveReg：获取含自己的返回地址在内的上下文并保存到栈中
+//      __LP_BSP_AsmSaveReg：获取含自己的返回地址在内的上下文并保存到栈中
 //返回: 无
 //-----------------------------------------------------------------------------
 void ModuleInstall_LowPower (void)

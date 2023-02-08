@@ -429,43 +429,46 @@ bool_t Gd25q64c_Erase_Sector(u32 SectorNum)
 {
     u32 Dst_Addr;
     u8 sndbuf[4];
-    Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
-
-    if(Gd25q64c_WaitReady(80000*mS) == false)    //超时等于最大操作时间
+    if(Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER))
     {
-        Lock_MutexPost(pgd25q64c_Lock);
-        printf("\r\n QFLASH : debug : device is busy before Sector Erase.");
-        return false;
-    }
+        if(Gd25q64c_WaitReady(80000*mS) == false)    //超时等于最大操作时间
+        {
+            Lock_MutexPost(pgd25q64c_Lock);
+            printf("\r\n QFLASH : debug : device is busy before Sector Erase.");
+            return false;
+        }
 
-    if(Gd25q64c_Write_Enable() != true)
-    {
-        Lock_MutexPost(pgd25q64c_Lock);
-        return false;
-    }
+        if(Gd25q64c_Write_Enable() != true)
+        {
+            Lock_MutexPost(pgd25q64c_Lock);
+            return false;
+        }
 
-    Dst_Addr = SectorNum * gd25q64c_SectorSize;
+        Dst_Addr = SectorNum * gd25q64c_SectorSize;
 
-    sndbuf[0] = gd25q64c_SectorErase;
-    sndbuf[3] = Dst_Addr & 0xff;
-    sndbuf[2] = (Dst_Addr >> 8) & 0xff;
-    sndbuf[1] = (Dst_Addr >> 16) & 0xff;
+        sndbuf[0] = gd25q64c_SectorErase;
+        sndbuf[3] = Dst_Addr & 0xff;
+        sndbuf[2] = (Dst_Addr >> 8) & 0xff;
+        sndbuf[1] = (Dst_Addr >> 16) & 0xff;
 
-    Gd25q64c_CsActive();
+        Gd25q64c_CsActive();
 
-    if(Gd25q64c_TxRx(sndbuf,4,NULL,0,0) == false)
-    {
+        if(Gd25q64c_TxRx(sndbuf,4,NULL,0,0) == false)
+        {
+            Gd25q64c_CsInactive();
+            Lock_MutexPost(pgd25q64c_Lock);
+            return false;
+        }
+
         Gd25q64c_CsInactive();
+
+
+    //  Gd25q64c_WaitReady(200*mS);    //扇区擦除时间是200mS
         Lock_MutexPost(pgd25q64c_Lock);
-        return false;
+        return true;
     }
-
-    Gd25q64c_CsInactive();
-
-
-//  Gd25q64c_WaitReady(200*mS);    //扇区擦除时间是200mS
-    Lock_MutexPost(pgd25q64c_Lock);
-    return true;
+    else
+        return false; 
 }
 
 //=====================================================================
@@ -478,43 +481,46 @@ bool_t Gd25q64c_Erase_Block(u32 BlockNum)
 {
     u32 Dst_Addr;
     u8 sndbuf[4];
-    Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
-
-    if(Gd25q64c_WaitReady(80000*mS) == false)    //超时等于最大操作时间
+    if(Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER))
     {
-        Lock_MutexPost(pgd25q64c_Lock);
-        printf("\r\n QFLASH : debug : device is busy before Sector Erase.");
-        return false;
-    }
+        if(Gd25q64c_WaitReady(80000*mS) == false)    //超时等于最大操作时间
+        {
+            Lock_MutexPost(pgd25q64c_Lock);
+            printf("\r\n QFLASH : debug : device is busy before Sector Erase.");
+            return false;
+        }
 
-    if(Gd25q64c_Write_Enable() != true)
-    {
-        Lock_MutexPost(pgd25q64c_Lock);
-        return false;
-    }
+        if(Gd25q64c_Write_Enable() != true)
+        {
+            Lock_MutexPost(pgd25q64c_Lock);
+            return false;
+        }
 
-    Dst_Addr = BlockNum * gd25q64_des->SectorsPerBlock * gd25q64c_SectorSize;
+        Dst_Addr = BlockNum * gd25q64_des->SectorsPerBlock * gd25q64c_SectorSize;
 
-    sndbuf[0] = gd25q64c_BlockErase;
-    sndbuf[3] = Dst_Addr & 0xff;
-    sndbuf[2] = (Dst_Addr >> 8) & 0xff;
-    sndbuf[1] = (Dst_Addr >> 16) & 0xff;
+        sndbuf[0] = gd25q64c_BlockErase;
+        sndbuf[3] = Dst_Addr & 0xff;
+        sndbuf[2] = (Dst_Addr >> 8) & 0xff;
+        sndbuf[1] = (Dst_Addr >> 16) & 0xff;
 
-    Gd25q64c_CsActive();
+        Gd25q64c_CsActive();
 
-    if(Gd25q64c_TxRx(sndbuf,4,NULL,0,0) == false)
-    {
+        if(Gd25q64c_TxRx(sndbuf,4,NULL,0,0) == false)
+        {
+            Gd25q64c_CsInactive();
+            Lock_MutexPost(pgd25q64c_Lock);
+            return false;
+        }
+
         Gd25q64c_CsInactive();
+
+
+    //  Gd25q64c_WaitReady(2000*mS);   //32K block擦除时间是1S，64K的是1.5S
         Lock_MutexPost(pgd25q64c_Lock);
-        return false;
+        return true;
     }
-
-    Gd25q64c_CsInactive();
-
-
-//  Gd25q64c_WaitReady(2000*mS);   //32K block擦除时间是1S，64K的是1.5S
-    Lock_MutexPost(pgd25q64c_Lock);
-    return true;
+    else
+        return false; 
 }
 
 //=====================================================================
@@ -528,40 +534,43 @@ bool_t Gd25q64c_Erase_Chip(void)
     u8 status = 0;
     u32 time = 0;
     u8 sndbuf[1];
-    Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
-
-    if(Gd25q64c_WaitReady(80000*mS) == false)   //4Mbytes的芯片擦除时间最大80S
+    if(Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER))
     {
-        printf("\r\n FLASH : debug : device is busy before Chip Erase.");
-        Lock_MutexPost(pgd25q64c_Lock);
-        return false;
-    }
+        if(Gd25q64c_WaitReady(80000*mS) == false)   //4Mbytes的芯片擦除时间最大80S
+        {
+            printf("\r\n FLASH : debug : device is busy before Chip Erase.");
+            Lock_MutexPost(pgd25q64c_Lock);
+            return false;
+        }
 
-    if(Gd25q64c_Write_Enable() != true)
-    {
-        Lock_MutexPost(pgd25q64c_Lock);
-        return false;
-    }
+        if(Gd25q64c_Write_Enable() != true)
+        {
+            Lock_MutexPost(pgd25q64c_Lock);
+            return false;
+        }
 
-    sndbuf[0] = gd25q64c_ChipErase;
+        sndbuf[0] = gd25q64c_ChipErase;
 
-    Gd25q64c_CsActive();
+        Gd25q64c_CsActive();
 
-    if(Gd25q64c_TxRx(sndbuf,1,NULL,0,0) == false)
-    {
+        if(Gd25q64c_TxRx(sndbuf,1,NULL,0,0) == false)
+        {
+            Gd25q64c_CsInactive();
+            Lock_MutexPost(pgd25q64c_Lock);
+            return false;
+        }
+
         Gd25q64c_CsInactive();
+
+        printf("\r\n gd25q64c Erase, Please Wait.");
+        Gd25q64c_WaitReady(80000*mS);   //4Mbytes的芯片擦除时间最大80S
+
+        printf("\r\ngd25q64c Erase Chip Succeed\r\n");
         Lock_MutexPost(pgd25q64c_Lock);
-        return false;
+        return true;
     }
-
-    Gd25q64c_CsInactive();
-
-    printf("\r\n gd25q64c Erase, Please Wait.");
-    Gd25q64c_WaitReady(80000*mS);   //4Mbytes的芯片擦除时间最大80S
-
-    printf("\r\ngd25q64c Erase Chip Succeed\r\n");
-    Lock_MutexPost(pgd25q64c_Lock);
-    return true;
+    else
+        return false; 
 }
 
 
@@ -577,42 +586,45 @@ bool_t Gd25q64c_WritePage(u8* pBuffer,u32 PageNum)
 {
     u8 sndbuf[4 + 256];
     u32 WriteAddr;
-    Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
-
-    WriteAddr = PageNum * gd25q64c_PageSize;
-
-    if(Gd25q64c_WaitReady(80000*mS) == false)
+    if(Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER))
     {
-        printf("\r\n FLASH : debug : device is busy before Page Write.");
-        Lock_MutexPost(pgd25q64c_Lock);
-        return false;
-    }
+        WriteAddr = PageNum * gd25q64c_PageSize;
 
-    if(Gd25q64c_Write_Enable() != true)                  //写使能
-    {
-        Lock_MutexPost(pgd25q64c_Lock);
-        return false;
-    }
+        if(Gd25q64c_WaitReady(80000*mS) == false)
+        {
+            printf("\r\n FLASH : debug : device is busy before Page Write.");
+            Lock_MutexPost(pgd25q64c_Lock);
+            return false;
+        }
 
-    sndbuf[0] = gd25q64c_PageProgram;
-    sndbuf[3] = WriteAddr & 0xff;
-    sndbuf[2] = (WriteAddr >> 8) & 0xff;
-    sndbuf[1] = (WriteAddr >> 16) & 0xff;
-    memcpy(sndbuf + 4, pBuffer, gd25q64c_PageSize);
+        if(Gd25q64c_Write_Enable() != true)                  //写使能
+        {
+            Lock_MutexPost(pgd25q64c_Lock);
+            return false;
+        }
 
-    Gd25q64c_CsActive();
+        sndbuf[0] = gd25q64c_PageProgram;
+        sndbuf[3] = WriteAddr & 0xff;
+        sndbuf[2] = (WriteAddr >> 8) & 0xff;
+        sndbuf[1] = (WriteAddr >> 16) & 0xff;
+        memcpy(sndbuf + 4, pBuffer, gd25q64c_PageSize);
 
-    if(Gd25q64c_TxRx(sndbuf, 4 + 256 ,NULL,0,0) == false)
-    {
+        Gd25q64c_CsActive();
+
+        if(Gd25q64c_TxRx(sndbuf, 4 + 256 ,NULL,0,0) == false)
+        {
+            Gd25q64c_CsInactive();
+            Lock_MutexPost(pgd25q64c_Lock);
+            return false;
+        }
+
         Gd25q64c_CsInactive();
+
         Lock_MutexPost(pgd25q64c_Lock);
-        return false;
+        return true;
     }
-
-    Gd25q64c_CsInactive();
-
-    Lock_MutexPost(pgd25q64c_Lock);
-    return true;
+    else
+        return false; 
 
 }
 
@@ -629,7 +641,8 @@ bool_t Gd25q64c_WriteNoErase(u8* pBuffer,u32 WriteAddr,u32 NumByteToWrite)
     u32 remain = 0, page_num = 0;
     bool_t ret = false;
     u8 write_buf[256];
-    Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER))
+        return ret;
     page_num = WriteAddr / 256;
     remain = 256 - WriteAddr % 256;  //单页还剩余的字节数
     if(NumByteToWrite <= remain)
@@ -697,7 +710,8 @@ bool_t Gd25q64c_Write(u8* pBuffer,u32 WriteAddr,u32 len)
     bool_t ret = true,temp;
     u32 t,t1,t2;
 
-    Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER))
+        return false;
     sec = WriteAddr / gd25q64c_SectorSize;          //扇区地址
     sec_off = WriteAddr % gd25q64c_SectorSize;      //扇区偏移
     sec_remain = gd25q64c_SectorSize- sec_off;      //扇区剩余大小
@@ -796,7 +810,8 @@ bool_t Gd25q64c_ReadPage(u8* pBuffer,u32 PageNum)
 {
     u32 ReadAddr;
     u8 sndbuf[4];
-    Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER))
+        return false;
     ReadAddr = PageNum * gd25q64c_PageSize;
 
     sndbuf[0] = gd25q64c_ReadData;
@@ -840,7 +855,8 @@ bool_t Gd25q64c_Read(u8* pBuffer,u32 ReadAddr,u32 NumByteToRead)
 
 //    u32 t;
 //    extern u32 timewait;       //toto,lst dbg
-    Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER);
+    if(!Lock_MutexPend(pgd25q64c_Lock,CN_TIMEOUT_FOREVER))
+        return false;
 
     sndbuf[0] = gd25q64c_ReadData;
     sndbuf[3] = ReadAddr & 0xff;
@@ -1117,7 +1133,7 @@ s32 ModuleInstall_Gd25q64c(void)
         sz.block = 1;
         if(-1 == __gd25q64c_req(format, 0 , -1, &sz))
         {
-            warning_printf("gd25"," Format failure.");
+            warning_printf("gd25"," Format failure.\r\n");
         }
     }
 
@@ -1173,7 +1189,7 @@ bool_t __GD25_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd, void *mediad
     targetobj = OBJ_MatchPath(fs, &notfind);    //根据mount点名字找mount点的obj
     if(notfind)
     {
-        error_printf("gd25"," not found need to install file system.");
+        error_printf("gd25"," not found need to install file system.\r\n");
         return false;
     }
     super = (struct FsCore *)OBJ_GetPrivate(targetobj); //获取obj的私有数据

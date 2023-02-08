@@ -36,7 +36,7 @@
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
 // 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
 // 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
@@ -631,7 +631,7 @@ void lcd_display_off(void)
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x、y，坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: 无
 bool_t __lcd_set_pixel_bm(struct RectBitmap *bitmap,
@@ -646,7 +646,7 @@ bool_t __lcd_set_pixel_bm(struct RectBitmap *bitmap,
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -662,7 +662,7 @@ bool_t __lcd_line_bm(struct RectBitmap *bitmap,struct Rectangle *limit,
 //参数: bitmap，目标位图
 //      limit，限制矩形，只绘制在该矩形内部的部分
 //      x1、y1、x2、y2，起点终点坐标
-//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      color，绘图用的颜色，CN_SYS_PF_ERGB8888格式
 //      r2_code，二元光栅操作码
 //返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
 //-----------------------------------------------------------------------------
@@ -914,7 +914,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     return true;
 }
 
-//从screen中取一像素，并转换成cn_sys_pf_e8r8g8b8
+//从screen中取一像素，并转换成CN_SYS_PF_ERGB8888
 u32 __lcd_get_pixel_screen(s32 x,s32 y)
 {
     printf("__lcd_get_pixel_screen\r\n");
@@ -965,7 +965,7 @@ void DispMainInterface(unsigned char *pic)
        bitmap.height=CFG_LCD_YSIZE;
        bitmap.width=CFG_LCD_XSIZE;
        bitmap.reversal = true;
-       GK_DrawBitMap(desktop,&bitmap,0,0,0,RopCode,100000);
+       GK_DrawBitMap(desktop,NULL,&bitmap,0,0,0,RopCode,100000);
        GK_SyncShow(100000);
 }
 
