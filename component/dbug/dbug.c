@@ -3,11 +3,11 @@
 #include"shell.h"
 //DJYOS操作系统默认调试打印等级
 
-#ifdef DEBUG
-u32 debuglevel=CN_DEBUG;
-#else
-u32 debuglevel=CN_ERR;
-#endif
+//#ifdef DEBUG
+u32 debuglevel=CFG_DEBUG_PRINT_LEVEL;
+//#else
+//u32 debuglevel=CN_ERR;
+//#endif
 
 
 // ============================================================================
