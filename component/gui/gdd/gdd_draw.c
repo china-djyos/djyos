@@ -150,13 +150,13 @@ u32 GDD_AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha)
 //-----------------------------------------------------------------------------
 void    GDD_SyncShow(HWND hwnd)
 {
-    GDD_SendMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
+    GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
 }
 
 /*============================================================================*/
 /*============================================================================*/
 
-void    GDD_InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type)
+void    GDD_InitDC(HDC pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type)
 {
     struct PointCdn sz;
     pdc->pGkWin     =gk_win;

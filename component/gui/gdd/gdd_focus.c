@@ -95,11 +95,11 @@ bool_t GDD_SetFocusWindow(HWND hwnd)
 
     if(wnd!=NULL)
     {
-        GDD_SendMessage(wnd,MSG_KILLFOCUS,0,0);
+        GDD_PostMessage(wnd,MSG_KILLFOCUS,0,0);
     }
     if(hwnd!=NULL)
     {
-        GDD_SendMessage(hwnd,MSG_SETFOCUS,0,0);
+        GDD_PostMessage(hwnd,MSG_SETFOCUS,0,0);
     }
 
     return true;

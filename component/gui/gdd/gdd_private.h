@@ -103,7 +103,6 @@ extern "C" {
 #define WINDOW_CAPTION_TEXT_COLOR   RGB(255,255,255)    //窗口标题栏文字颜色
 
 
-typedef struct DC       DC;
 struct WinMsgQueueCB;
 
 /*============================================================================*/
@@ -195,7 +194,7 @@ void    __HWND_Unlock(HWND hwnd);
 bool_t  __GDD_Lock(void);
 void    __GDD_Unlock(void);
 bool_t GDD_AdoptWin(HWND Hwnd ,HWND NewParent);
-void    GDD_InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type);
+void    GDD_InitDC(HDC pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type);
 
 
 bool_t  __GDD_PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 param1,ptu32_t param2);

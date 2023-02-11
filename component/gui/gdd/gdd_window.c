@@ -1092,7 +1092,12 @@ void __GDD_DeleteMainWindowData(HWND hwnd)
 //------------------------------------------------------------------------------
 void    GDD_DestroyWindow(HWND hwnd)
 {
-    GDD_PostMessage(hwnd, MSG_CLOSE, 0, 0);
+    if(GDD_PostMessage(hwnd, MSG_CLOSE, 0, 0))
+    {
+        //执行 MSG_CLOSE 消息后，hwnd将被释放，此后将无法执行显示刷新操作，故需要给
+        //父窗口发一个刷新消息。
+        GDD_SyncShow(GDD_GetWindowParent(hwnd));
+    }
 }
 
 //----销毁全部子窗口-----------------------------------------------------------
@@ -1328,12 +1333,12 @@ bool_t GDD_GetWindowTextColor(HWND hwnd,u32 *pTextColor)
 //------------------------------------------------------------------------------
 HDC GDD_GetWindowDC(HWND hwnd)
 {
-    DC *pdc;
+    HDC pdc;
 
-    pdc =malloc(sizeof(DC));
+    pdc =malloc(sizeof(struct DC));
     if(pdc!=NULL)
     {
-        memset(pdc, 0, sizeof(DC));
+        memset(pdc, 0, sizeof(struct DC));
         GDD_InitDC(pdc,hwnd->pGkWin,hwnd,DC_TYPE_WINDOW);
     }
     return DC2HDC(pdc);
@@ -1348,12 +1353,12 @@ HDC GDD_GetWindowDC(HWND hwnd)
 //------------------------------------------------------------------------------
 HDC GDD_GetClientDC(HWND hwnd)
 {
-    DC *pdc;
+    HDC pdc;
 
-    pdc =malloc(sizeof(DC));
+    pdc = malloc(sizeof(struct DC));
     if(pdc!=NULL)
     {
-        memset(pdc, 0, sizeof(DC));
+        memset(pdc, 0, sizeof(struct DC));
         GDD_InitDC(pdc,hwnd->pGkWin,hwnd,DC_TYPE_CLIENT);
     }
     return DC2HDC(pdc);
@@ -1447,7 +1452,7 @@ HDC GDD_BeginPaint(HWND hwnd)
 //------------------------------------------------------------------------------
 bool_t    GDD_EndPaint(HWND hwnd,HDC hdc)
 {
-    GDD_SendMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
+    GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
     return  GDD_DeleteDC(hdc);
 }
 
