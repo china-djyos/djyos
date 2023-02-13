@@ -155,7 +155,6 @@ void    GDD_SyncShow(HWND hwnd)
 
 /*============================================================================*/
 /*============================================================================*/
-
 void    GDD_InitDC(HDC pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type)
 {
     struct PointCdn sz;
@@ -188,6 +187,13 @@ void    GDD_InitDC(HDC pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type)
             pdc->DrawArea.right = sz.x;
             pdc->DrawArea.bottom = sz.y;
             break;
+        case    DC_TYPE_CAPTION:
+            GK_GetSize(pdc->pGkWin, &sz);
+            pdc->DrawArea.left = DEF_BORDER_SIZE + DEF_DLGFRAME_SIZE;
+            pdc->DrawArea.top =  DEF_BORDER_SIZE + DEF_DLGFRAME_SIZE;
+            pdc->DrawArea.right = sz.x - DEF_BORDER_SIZE - DEF_DLGFRAME_SIZE;;
+            pdc->DrawArea.bottom =  DEF_BORDER_SIZE + DEF_DLGFRAME_SIZE + DEF_CAPTION_SIZE;
+            break;
 
         default:
             break;
@@ -207,7 +213,16 @@ bool_t  GDD_DeleteDC(HDC hdc)
     return FALSE;
 }
 
-
+//----重设可绘制区---------------------------------------------------------------
+//功能：重新设置DC的可绘制区
+//参数：hdc: 绘图上下文句柄.
+//     NewArea: 新的可绘制区
+//返回：无
+//------------------------------------------------------------------------------
+void GDD_SetDrawArea(HDC hdc, struct Rectangle *DrawArea)
+{
+    hdc->DrawArea = *DrawArea;
+}
 //----设置光栅码-------------------------------------------------------------
 //描述: 设置DC的光栅操作编码，并返回原来的。
 //参数：hdc: 绘图上下文句柄.
@@ -248,7 +263,7 @@ struct RopGroup GDD_GetRopCode(HDC hdc)
 //     old_pt: 输出旧的坐标位置,如果该参数为NULL,刚不输出旧的坐标位置.
 //返回：无.
 //------------------------------------------------------------------------------
-static  void    __GDD_MoveTo(HDC hdc,s32 x,s32 y,POINT *old_pt)
+static  void __GDD_MoveTo(HDC hdc,s32 x,s32 y,POINT *old_pt)
 {
 
     if(old_pt!=NULL)
@@ -268,7 +283,7 @@ static  void    __GDD_MoveTo(HDC hdc,s32 x,s32 y,POINT *old_pt)
 //     old_pt: 输出旧的坐标位置,如果该参数为NULL,刚不输出旧的坐标位置.
 //返回：无.
 //------------------------------------------------------------------------------
-void    GDD_MoveTo(HDC hdc,s32 x,s32 y,POINT *old_pt)
+void GDD_MoveTo(HDC hdc,s32 x,s32 y,POINT *old_pt)
 {
     if(hdc!=NULL)
     {
@@ -1047,17 +1062,17 @@ void    GDD_DrawRect(HDC hdc,const RECT *prc)
 
             x0 =rc.left;
             y0 =rc.top;
-            x1 =rc.right-1;
-            y1 =rc.bottom-1;
+            x1 =rc.right;
+            y1 =rc.bottom;
 
             //Left
-            GK_LinetoIe(hdc->pGkWin,x0,y0,x0,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+            GK_Lineto(hdc->pGkWin,&hdc->DrawArea,x0,y0,x0,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             //Top
-            GK_LinetoIe(hdc->pGkWin,x0,y0,x1,y0,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+            GK_Lineto(hdc->pGkWin,&hdc->DrawArea,x0,y1,x1,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             //Right
-            GK_LinetoIe(hdc->pGkWin,x1,y0,x1,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+            GK_Lineto(hdc->pGkWin,&hdc->DrawArea,x1,y1,x1,y0,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             //Bottom
-            GK_LinetoIe(hdc->pGkWin,x0,y1,x1,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+            GK_Lineto(hdc->pGkWin,&hdc->DrawArea,x1,y0,x0,y0,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
 
             __GDD_EndDraw(hdc);
         }

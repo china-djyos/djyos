@@ -307,6 +307,7 @@ struct MsgTableLink
 HDC     CreateDC(struct GkWinObj *gk_win,const RECT *prc);
 bool_t    GDD_DeleteDC(HDC hdc);
 
+void GDD_SetDrawArea(HDC hdc, struct Rectangle *DrawArea);
 struct RopGroup GDD_SetRopCode(HDC hdc,struct RopGroup RopCode);
 struct RopGroup GDD_GetRopCode(HDC hdc);
 void   GDD_MoveTo(HDC hdc,s32 x,s32 y,POINT *old_pt);

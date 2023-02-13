@@ -1092,11 +1092,13 @@ void __GDD_DeleteMainWindowData(HWND hwnd)
 //------------------------------------------------------------------------------
 void    GDD_DestroyWindow(HWND hwnd)
 {
+    HWND parent;
+    parent = GDD_GetWindowParent(hwnd);
     if(GDD_PostMessage(hwnd, MSG_CLOSE, 0, 0))
     {
         //执行 MSG_CLOSE 消息后，hwnd将被释放，此后将无法执行显示刷新操作，故需要给
         //父窗口发一个刷新消息。
-        GDD_SyncShow(GDD_GetWindowParent(hwnd));
+        GDD_SyncShow(parent);
     }
 }
 
@@ -1479,23 +1481,27 @@ static ptu32_t __GDD_DefWindowProcNCPAINT(struct WindowMsg *pMsg)
             if(hwnd->Style&WS_BORDER)
             {
                 GDD_SetDrawColor(hdc,WINDOW_BORDER_COLOR);
+                GDD_InflateRectEx(&rc,0,0,-1,-1);      //边框右下坐标并不包含在矩形区域内
                 GDD_DrawRect(hdc,&rc);
-                GDD_InflateRect(&rc,-1,-1);
+                GDD_InflateRectEx(&rc,-1,-1,0,0);
             }
 
             if(hwnd->Style&WS_DLGFRAME)
             {
                 GDD_SetDrawColor(hdc,WINDOW_DLGFRAME_COLOR1);
+                GDD_InflateRectEx(&rc,0,0,-1,-1);      //边框右下坐标并不包含在矩形区域内
                 GDD_DrawRect(hdc,&rc);
-                GDD_InflateRect(&rc,-1,-1);
+                GDD_InflateRectEx(&rc,-1,-1,0,0);
 
                 GDD_SetDrawColor(hdc,WINDOW_DLGFRAME_COLOR2);
+                GDD_InflateRectEx(&rc,0,0,-1,-1);      //边框右下坐标并不包含在矩形区域内
                 GDD_DrawRect(hdc,&rc);
-                GDD_InflateRect(&rc,-1,-1);
+                GDD_InflateRectEx(&rc,-1,-1,0,0);
 
                 GDD_SetDrawColor(hdc,WINDOW_DLGFRAME_COLOR3);
+                GDD_InflateRectEx(&rc,0,0,-1,-1);      //边框右下坐标并不包含在矩形区域内
                 GDD_DrawRect(hdc,&rc);
-                GDD_InflateRect(&rc,-1,-1);
+                GDD_InflateRectEx(&rc,-1,-1,0,0);
             }
 
             if(hwnd->Style&WS_CAPTION)
@@ -1505,6 +1511,7 @@ static ptu32_t __GDD_DefWindowProcNCPAINT(struct WindowMsg *pMsg)
                 GDD_GradientFillRect(hdc,&rc,RGB(0,100,200),RGB(0,30,100),CN_FILLRECT_MODE_UD);
 
                 GDD_SetTextColor(hdc,WINDOW_CAPTION_TEXT_COLOR);
+                GDD_SetDrawArea(hdc, &rc);
                 GDD_InflateRect(&rc,-1,-1);
                 GDD_DrawText(hdc, hwnd->Text, -1, &rc, DT_LEFT | DT_VCENTER);
             }

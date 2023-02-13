@@ -100,7 +100,7 @@ extern "C" {
 #define WINDOW_DLGFRAME_COLOR1      RGB(70,70,100)      //窗口对话边框颜色1
 #define WINDOW_DLGFRAME_COLOR2      RGB(70,70,220)      //窗口对话边框颜色2
 #define WINDOW_DLGFRAME_COLOR3      RGB(70,70,90)       //窗口对话边框颜色3
-#define WINDOW_CAPTION_TEXT_COLOR   RGB(255,255,255)    //窗口标题栏文字颜色
+#define WINDOW_CAPTION_TEXT_COLOR   RGB(255,255,0)    //窗口标题栏文字颜色
 
 
 struct WinMsgQueueCB;
@@ -116,6 +116,7 @@ struct WinMsgQueueCB;
 #define DC_TYPE_PAINT   0
 #define DC_TYPE_CLIENT  1
 #define DC_TYPE_WINDOW  2
+#define DC_TYPE_CAPTION 3
 
 struct DC
 {
