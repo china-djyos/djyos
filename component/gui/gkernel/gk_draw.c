@@ -1817,7 +1817,7 @@ void __GK_DrawOline(struct GkWinObj *gkwin,s32 x1,s32 y1,
     }
 }
 
-//----画垂直线(不含端点)-------------------------------------------------------
+//----画垂直线(不含结束端点)-------------------------------------------------------
 //功能: 在窗口内画一条垂直线，只画limit限定的部分
 //参数: gkwin，目标窗口指针
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
@@ -1832,32 +1832,67 @@ void __GK_VlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
 {
     s32 y;
     s32 msk_x1,msk_y1,msk_y2;
+    s32 flag = (y1>y2)?-1:1;
     u32 pf_color;
+
     struct RectBitmap *bitmap;
-    if(y1>y2)
-        __gk_swap(y1,y2);
-    if((x1<limit->left) || (x1 >= limit->right)
-        ||(y2 <= limit->top) || (y1 >= limit->bottom))
-        return;         //所绘直线在limit之外
-    bitmap = gkwin->wm_bitmap;
+
+
     //垂直线超出limit的部分不绘制
-    if(y1 < limit->top)
-        y1 = limit->top;
-    if(y2 >= limit->bottom)
-        y2 = limit->bottom-1;
+    if(flag==-1)
+    {
+        if((x1<limit->left) || (x1 >= limit->right)
+                            ||(y1 <= limit->top) || (y2 >= limit->bottom))
+                        return;         //所绘直线在limit之外
+        bitmap = gkwin->wm_bitmap;
+        if(y1>= limit->bottom)
+                y1 = limit->bottom-1;
+        if(y2 < limit->top)
+                y2 = limit->top;
+    }
+    else if(flag == 1)
+    {
+        if((x1<limit->left) || (x1 >= limit->right)
+                    ||(y2 <= limit->top) || (y1 >= limit->bottom))
+                return;         //所绘直线在limit之外
+        bitmap = gkwin->wm_bitmap;
+        if(y1 < limit->top)
+            y1 = limit->top;
+        if(y2 >= limit->bottom)
+            y2 = limit->bottom-1;
+    }
+
     if(bitmap->PixelFormat & CN_CUSTOM_PF)
     {
-        for(y = y1; y < y2;y++)
+        if(flag==1)
         {
-            gkwin->disp->draw.SetPixelToBitmap(bitmap,x1,y,color,Rop2Code);
+            for(y = y1; y < y2;y++)
+            {
+                gkwin->disp->draw.SetPixelToBitmap(bitmap,x1,y,color,Rop2Code);
+            }
+        }else
+        {
+            for(y = y1; y > y2;y--)
+            {
+                gkwin->disp->draw.SetPixelToBitmap(bitmap,x1,y,color,Rop2Code);
+            }
         }
     }else
     {
         //用户给定颜色颜色格式为rgb24
         pf_color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,color);
-        for(y = y1;y < y2;y++)
+        if(flag==1)
         {
-            __GK_SetPixelRop2Bm(bitmap,x1,y,pf_color,Rop2Code);
+            for(y = y1; y < y2;y++)
+            {
+                __GK_SetPixelRop2Bm(bitmap,x1,y,pf_color,Rop2Code);
+            }
+        }else
+        {
+            for(y = y1; y > y2;y--)
+            {
+                __GK_SetPixelRop2Bm(bitmap,x1,y,pf_color,Rop2Code);
+            }
         }
     }
 
@@ -1865,17 +1900,27 @@ void __GK_VlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
     if(gkwin->WinProperty.ChangeFlag != CN_GKWIN_CHANGE_ALL)
     {
         gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_PART;  //标志窗口部分修改
-        msk_x1 = x1/8;     //计算x1在msk位图中第几列
         msk_y1 = y1/8;     //计算y1在msk位图中第几行
-        msk_y2 = (y2-1)/8; //计算(y2-1)在msk位图中第几行，-1是因为终点不包含在内
-        for(y = msk_y1;y <= msk_y2;y++)
-        {   //将changed_msk相应的bit置1
-            __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x1,y);
+        msk_x1 = x1/8;     //计算x1在msk位图中第几列
+        if(flag==1)
+        {
+            msk_y2 = (y2-1)/8; //计算(y2-1)在msk位图中第几行，-1是因为终点不包含在内
+            for(y = msk_y1;y <= msk_y2;y++)
+            {   //将changed_msk相应的bit置1
+                __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x1,y);
+            }
+        }else
+        {
+            msk_y2 = (y2+1)/8; //计算(y2-1)在msk位图中第几行，-1是因为终点不包含在内
+            for(y = msk_y1;y >= msk_y2;y--)
+            {   //将changed_msk相应的bit置1
+                __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x1,y);
+            }
         }
     }
 }
 
-//----画水平直线(不含端点)-------------------------------------------------------
+//----画水平直线(不含结束端点)-------------------------------------------------------
 //功能: 在窗口内画一条水平直线，只画limit限定的部分
 //参数: gkwin，目标窗口指针
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
@@ -1890,49 +1935,95 @@ void __GK_HlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
 {
     s32 x;
     s32 msk_x1,msk_x2,msk_y1;
+    s32 flag = (x1>x2)?-1:1;
     u32 pf_color;
+
     struct RectBitmap *bitmap;
-    if(x1>x2)
-        __gk_swap(x1,x2);
-    if((y1<limit->top) || (y1 >= limit->bottom)
-        ||(x2 <= limit->left) || (x1 >= limit->right))
-        return;         //所绘直线在limit之外
-    bitmap = gkwin->wm_bitmap;
+
     //水平线在limit外部分不绘制
-    if(x1 < limit->left)
-        x1 = limit->left;
-    if(x2 >= limit->right)
-        x2 = limit->right-1;
+    if(flag == 1)
+    {
+        if((y1<limit->top) || (y1 >= limit->bottom)
+        ||(x2 <= limit->left) || (x1 >= limit->right))
+            return;         //所绘直线在limit之外
+        bitmap = gkwin->wm_bitmap;
+        if(x1 < limit->left)
+            x1 = limit->left;
+        if(x2 >= limit->right)
+            x2 = limit->right-1;
+    }
+    else if(flag == -1)
+    {
+        if((y1<limit->top) || (y1 >= limit->bottom)
+                    ||(x1 <= limit->left) || (x2 >= limit->right))
+                    return;         //所绘直线在limit之外
+        bitmap = gkwin->wm_bitmap;
+
+        if(x1 >= limit->right)
+            x1 = limit->right-1;
+        if(x2 < limit->left)
+            x2 = limit->left;
+    }
+
     if(bitmap->PixelFormat & CN_CUSTOM_PF)
     {
-        for(x = x1; x <= x2;x++)
+        if(flag==1)
         {
-            gkwin->disp->draw.SetPixelToBitmap(bitmap,x,y1,color,Rop2Code);
+            for(x = x1; x <= x2;x++)
+            {
+                gkwin->disp->draw.SetPixelToBitmap(bitmap,x,y1,color,Rop2Code);
+            }
+        }else
+        {
+            for(x = x1; x >= x2;x--)
+            {
+                gkwin->disp->draw.SetPixelToBitmap(bitmap,x,y1,color,Rop2Code);
+            }
         }
     }else
     {
         //用户给定颜色颜色格式为rgb24
         pf_color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,color);
-        for(x = x1;x < x2;x++)
-        {//对1、2、4位色screen，这个循环很耗cpu，考虑改进--db
-            __GK_SetPixelRop2Bm(bitmap,x,y1,pf_color,Rop2Code);
+        if(flag==1)
+        {
+            for(x = x1;x < x2;x++)
+            {//对1、2、4位色screen，这个循环很耗cpu，考虑改进--db
+                __GK_SetPixelRop2Bm(bitmap,x,y1,pf_color,Rop2Code);
+            }
+        }else
+        {
+            for(x = x1;x > x2;x--)
+            {//对1、2、4位色screen，这个循环很耗cpu，考虑改进--db
+                __GK_SetPixelRop2Bm(bitmap,x,y1,pf_color,Rop2Code);
+            }
         }
-    }
 
-    //下面处理changed_msk标志位图，把窗口中因划线而修改的区域着色
-    if(gkwin->WinProperty.ChangeFlag != CN_GKWIN_CHANGE_ALL)
-    {
-        gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_PART;  //标志窗口部分修改
-        msk_x1 = x1/8;     //计算x1在msk位图中第几列
-        msk_x2 = (x2-1)/8; //计算(x2-1)在msk位图中第几列，-1是因为终点不包含在内
-        msk_y1 = y1/8;     //计算y1在msk位图中第几行
-        for(x = msk_x1;x <= msk_x2;x++)
-        {   //将changed_msk相应的bit置1
-            __GK_SetChangeMsk(&(gkwin->changed_msk),x,msk_y1);
+        //下面处理changed_msk标志位图，把窗口中因划线而修改的区域着色
+        if(gkwin->WinProperty.ChangeFlag != CN_GKWIN_CHANGE_ALL)
+        {
+            gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_PART;  //标志窗口部分修改
+            msk_x1 = x1/8;     //计算x1在msk位图中第几列
+            msk_y1 = y1/8;     //计算y1在msk位图中第几行
+            if(flag==1)
+            {
+                msk_x2 = (x2-1)/8; //计算(x2-1)在msk位图中第几列，-1是因为终点不包含在内
+                for(x = msk_x1;x <= msk_x2;x++)
+                {   //将changed_msk相应的bit置1
+                        __GK_SetChangeMsk(&(gkwin->changed_msk),x,msk_y1);
+                }
+            }else
+            {
+                msk_x2 = (x2+1)/8; //计算(x2-1)在msk位图中第几列，-1是因为终点不包含在内
+                for(x = msk_x1;x >= msk_x2;x--)
+                {//将changed_msk相应的bit置1
+                    __GK_SetChangeMsk(&(gkwin->changed_msk),x,msk_y1);
+                }
+            }
         }
     }
 }
-//----画斜线(不含端点)---------------------------------------------------------
+
+//----画斜线(不含结束端点)---------------------------------------------------------
 //功能: 在窗口内画一条斜线，只画limit限定的部分
 //参数: gkwin，目标窗口指针
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
