@@ -1314,14 +1314,14 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
     while(1)
     {   //查找同级窗口中和优先级等于para->prio的的窗口，扫描以z轴为对象
         //扫描顺序:从z轴段前端向后端进行扫描，只扫兄弟窗口，不扫子窗口
-        if(target_section->WinProperty.Zprio >= (s32)para->prio)
+        if(target_section->WinProperty.Zprio >= para->prio)
             break;
         //扫描目标窗口所在z轴段最后一窗口，终止跳出
         if(target_section == section_start)
             break;
         target_section = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetNext(target_section->HostObj));
     }
-    if(target_section->WinProperty.Zprio >= (s32)para->prio)
+    if(target_section->WinProperty.Zprio >= para->prio)
     {   // 找到gkwin同级窗口中优先级低于或等于新prio的窗口
         if((target_section == gkwin)
             || (target_section == (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetNext(gkwin->HostObj))))

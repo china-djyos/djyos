@@ -742,7 +742,7 @@ void GK_SetBoundMode(struct GkWinObj *gkwin, u32 mode)
 //      sync_time，绘制图形时间同步，在此时间内不管是否绘制完成都返回
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_SetPrio(struct GkWinObj *gkwin, u32 prio,u32 SyncTime)
+void GK_SetPrio(struct GkWinObj *gkwin, s32 prio,u32 SyncTime)
 {
     struct GkscParaSetPrio para;
     if(NULL == gkwin)

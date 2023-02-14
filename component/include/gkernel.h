@@ -379,7 +379,7 @@ void GK_MoveWin(struct GkWinObj *gkwin,s32 left,s32 top);
 void GK_ChangeWinArea(struct GkWinObj *gkwin, s32 left,s32 top,
                                        s32 right,s32 bottom);
 void GK_SetBoundMode(struct GkWinObj *gkwin,bool_t mode);
-void GK_SetPrio(struct GkWinObj *gkwin,u32 prio,u32 sync_time);
+void GK_SetPrio(struct GkWinObj *gkwin,s32 prio,u32 sync_time);
 bool_t GK_SetRopCode(struct GkWinObj *gkwin,
                             struct RopGroup RopCode,u32 sync_time);
 //bool_t GK_SetPatBuf(struct GkWinRsc *gkwin,
