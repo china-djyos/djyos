@@ -1282,10 +1282,13 @@ void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 
     if(hdc!=NULL)
     {
+        cx +=(hdc->hwnd->CliRect.left);
+        cy +=(hdc->hwnd->CliRect.top);
         if(__GDD_BeginDraw(hdc))
         {
 
-            GDD_DrawLine(hdc,cx-r,cy,cx+r+1,cy);
+            GK_Lineto(hdc->pGkWin, &hdc->DrawArea, cx-r,cy,cx+r+1,cy,
+                    hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             for (i=1; i<= imax; i++)
             {
                 if ((i*i+x*x) >sqmax)
@@ -1293,14 +1296,18 @@ void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 
                     if (x>imax)
                     {
-                          GDD_DrawLine(hdc,cx-i+1,cy+x, cx+i,cy+x);
-                          GDD_DrawLine(hdc,cx-i+1,cy-x, cx+i,cy-x);
+                        GK_Lineto(hdc->pGkWin, &hdc->DrawArea, cx-i+1,cy+x, cx+i,cy+x,
+                                hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                        GK_Lineto(hdc->pGkWin, &hdc->DrawArea, cx-i+1,cy-x, cx+i,cy-x,
+                                hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
                     }
                     x--;
                 }
 
-                GDD_DrawLine(hdc,cx-x,cy+i, cx+x+1,cy+i);
-                GDD_DrawLine(hdc,cx-x,cy-i, cx+x+1,cy-i);
+                GK_Lineto(hdc->pGkWin, &hdc->DrawArea,cx-x,cy+i, cx+x+1,cy+i,
+                        hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                GK_Lineto(hdc->pGkWin, &hdc->DrawArea,cx-x,cy-i, cx+x+1,cy-i,
+                        hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             }
 
             __GDD_EndDraw(hdc);
@@ -1371,12 +1378,14 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
     s32 x,y;
     u32 _rx = rx;
     u32 _ry = ry;
+    u32 color;
 
     OutConst = _rx*_rx*_ry*_ry
                 +(_rx*_rx*_ry>>1);
     x = rx;
     if(__GDD_BeginDraw(hdc))
     {
+        color =GDD_GetFillColor(hdc);
         for (y=0; y<=ry; y++)
         {
              SumY =((s32)(rx*rx))*((s32)(y*y));
@@ -1386,11 +1395,11 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
              {
                 x--;
              }
-             GDD_DrawLine(hdc,cx-x, cy+y, cx+x,cy+y);
+             GDD_DrawLineEx(hdc,cx-x, cy+y, cx+x,cy+y,color);
 
              if(y)
              {
-                GDD_DrawLine(hdc,cx-x, cy-y, cx+x,cy-y);
+                GDD_DrawLineEx(hdc,cx-x, cy-y, cx+x,cy-y,color);
              }
         }
         __GDD_EndDraw(hdc);

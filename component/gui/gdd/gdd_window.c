@@ -970,7 +970,7 @@ HWND __GDD_CreateWindow(struct GkWinObj *pGkWin,u32 Style,
 //      x,y,w,h: 窗口位置和大小,位置相对于父窗口
 //      hParent: 父窗口句柄.如果是NULL,则默认桌面为父窗口.
 //      WinId: 窗口Id.————即将废除，不要使用
-//      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT 等。
+//      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT 等。若父窗口无缓冲，子窗口不能有缓冲。
 //      pdata: 用户自定义附加数据.//
 //      PixelFormat,像素格式，在gkernel.h中定义， CN_SYS_PF_DISPLAY 表示与显示器相同，推荐。
 //      BaseColor, 灰度图基色，(仅在PixelFormat == CN_SYS_PF_GRAY1 ~8时有用)
@@ -1782,7 +1782,7 @@ void __GDD_ClearMainWindow(HWND hwnd)
 //      Style: 窗口风格(参考 WS_VISIBLE 族常量)
 //      x,y,w,h: 窗口位置和大小,位置相对于父窗口，如果 w == -1，表示使用桌面尺寸。
 //      MemSize，该应用所需的内存量，即执行消息循环的线程栈尺寸
-//      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT等。
+//      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT等。若桌面无缓冲，主窗口不能有缓冲。
 //      pdata: 用户自定义附加数据.
 //      PixelFormat,像素格式，在gkernel.h中定义， CN_SYS_PF_DISPLAY 表示与显示器相同，推荐。
 //      BaseColor, 灰度图基色，(仅在PixelFormat == CN_SYS_PF_GRAY1 ~8时有用)
