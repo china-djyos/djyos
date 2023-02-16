@@ -2043,114 +2043,121 @@ void __GK_OlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
     //取得斜线与limit的交点，砍掉limit外面的部分
     if(__GK_OlineSectInter(limit,&x1,&y1,&x2,&y2))
     {
-        __GK_DrawOline(gkwin,x1,y1,x2,y2,color,Rop2Code);//绘制斜线
-
-        //下面处理changed_msk标志位图，把窗口中因划线而修改的区域着色
-        if(gkwin->WinProperty.ChangeFlag != CN_GKWIN_CHANGE_ALL)
+        if(y1 == y2)        //限制在limit内部的是水平线
+            __GK_HlinetoWin(gkwin,limit,x1,y1,x2,color,Rop2Code);
+        else if(x1 == x2)   //限制在limit内部的是垂直线
+            __GK_VlinetoWin(gkwin,limit,x1,y1,y2,color,Rop2Code);
+        else
         {
-            gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_PART;//标志窗口部分修改
-            dx = abs(x2-x1);
-            dy = abs(y2-y1);
-            //x方向变化量大
-            if(dx > dy)
+            __GK_DrawOline(gkwin,x1,y1,x2,y2,color,Rop2Code);//绘制斜线
+
+            //下面处理changed_msk标志位图，把窗口中因划线而修改的区域着色
+            if(gkwin->WinProperty.ChangeFlag != CN_GKWIN_CHANGE_ALL)
             {
-                if(((x1>x2)&&(y1>y2)) || ((x1<x2)&&(y1<y2)))
-                {//x、y增减方向相同，即同增或者同减
-                    //选取x1、x2中较小的数作为x1
-                    if(x1 > x2)
-                    {
-                        __gk_swap(x1,x2);
-                        __gk_swap(y1,y2);
+                gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_PART;//标志窗口部分修改
+                dx = abs(x2-x1);
+                dy = abs(y2-y1);
+                //x方向变化量大
+                if(dx > dy)
+                {
+                    if(((x1>x2)&&(y1>y2)) || ((x1<x2)&&(y1<y2)))
+                    {//x、y增减方向相同，即同增或者同减
+                        //选取x1、x2中较小的数作为x1
+                        if(x1 > x2)
+                        {
+                            __gk_swap(x1,x2);
+                            __gk_swap(y1,y2);
+                        }
+                        //向下对齐，取8*8像素，x每变化8像素后y与直线的交点，
+                        //将斜线上所有的点所在的8*8像素区域对应的
+                        //在changed_msk中的bit置为1，具体说明请看djygui的书
+                        for(x = align_down(8,x1); x <= x2; x+=8)
+                        {
+                            //对计算的交点进行四舍五入处理，x、y增减方向相同
+                            //所以以0.5为基准量
+                            y = ((((x-x1)<<1)*(y2-y1)+(x2-x1))/((x2-x1)<<1))+y1;
+                            msk_x = x/8;    //计算x在msk位图中第几列
+                            msk_y = y/8;    //计算y在msk位图中第几行
+                            //将changed_msk相应的bit置1
+                            __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
+                            //标志(msk_x，msk_y)下面的一个点
+                            msk_y += 1;
+                            //将changed_msk相应的bit置1
+                            __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
+                        }
                     }
-                    //向下对齐，取8*8像素，x每变化8像素后y与直线的交点，
-                    //将斜线上所有的点所在的8*8像素区域对应的
-                    //在changed_msk中的bit置为1，具体说明请看djygui的书
-                    for(x = align_down(8,x1); x <= x2; x+=8)
-                    {
-                        //对计算的交点进行四舍五入处理，x、y增减方向相同
-                        //所以以0.5为基准量
-                        y = ((((x-x1)<<1)*(y2-y1)+(x2-x1))/((x2-x1)<<1))+y1;
-                        msk_x = x/8;    //计算x在msk位图中第几列
-                        msk_y = y/8;    //计算y在msk位图中第几行
-                        //将changed_msk相应的bit置1
-                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
-                        //标志(msk_x，msk_y)下面的一个点
-                        msk_y += 1;
-                        //将changed_msk相应的bit置1
-                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
+                    else
+                    {//x、y增减方向相反，即x增、y减，x减、y增
+                        //选取x1、x2中较小的数作为x1
+                        if(x1 > x2)
+                        {
+                            __gk_swap(x1,x2);
+                            __gk_swap(y1,y2);
+                        }
+                        //向下对齐，取8*8像素，x每变化8像素后y与直线的交点，
+                        //将斜线上所有的点所在的8*8像素区域对应的
+                        //在changed_msk中的bit置为1，具体说明请看djygui的书
+                        for(x = align_down(8,x1); x <= x2; x+=8)
+                        {
+                            //对所得交点进行四舍五入处理，y为减方向，所以以-0.5为基准量
+                            y = ((((x-x1)<<1)*(y2-y1)-(x2-x1))/((x2-x1)<<1))+y1;
+                            msk_x = x/8;    //计算x在msk位图中第几列
+                            msk_y = y/8;    //计算y在msk位图中第几行
+                            //将changed_msk相应的bit置1
+                            __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
+                            //标志(msk_x，msk_y)上面的一个点
+                            msk_y -= 1;
+                            //将changed_msk相应的bit置1
+                            __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
+                        }
                     }
-                }
-                else
-                {//x、y增减方向相反，即x增、y减，x减、y增
-                    //选取x1、x2中较小的数作为x1
-                    if(x1 > x2)
-                    {
-                        __gk_swap(x1,x2);
-                        __gk_swap(y1,y2);
+                }else
+                {//y方向变化量大，或者x，y变化量相等
+                    if(((x1>x2)&&(y1>y2)) || ((x1<x2)&&(y1<y2)))
+                    {//x、y增减方向相同，即同增或者同减
+                        //选取y1、y2中较小的数作为y1
+                        if(y1 > y2)
+                        {
+                            __gk_swap(x1,x2);
+                            __gk_swap(y1,y2);
+                        }
+                        //向下对齐，取8*8像素，y每变化8像素后x与直线的交点，
+                        //将斜线上所有的点所在的8*8像素区域对应的
+                        //在changed_msk中的bit置为1，具体说明请看djygui的书
+                        for(y = align_down(8,y1); y <= y2; y+=8)
+                        {
+                            x = ((((y-y1)<<1)*(x2-x1)+(y2-y1))/((y2-y1)<<1))+x1;
+                            msk_x = x/8;    //计算x在msk位图中第几列
+                            msk_y = y/8;    //计算y在msk位图中第几行
+                            //将changed_msk相应的bit置1
+                            __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
+                            msk_x += 1;
+                            //将changed_msk相应的bit置1
+                            __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
+                        }
                     }
-                    //向下对齐，取8*8像素，x每变化8像素后y与直线的交点，
-                    //将斜线上所有的点所在的8*8像素区域对应的
-                    //在changed_msk中的bit置为1，具体说明请看djygui的书
-                    for(x = align_down(8,x1); x <= x2; x+=8)
-                    {
-                        //对所得交点进行四舍五入处理，y为减方向，所以以-0.5为基准量
-                        y = ((((x-x1)<<1)*(y2-y1)-(x2-x1))/((x2-x1)<<1))+y1;
-                        msk_x = x/8;    //计算x在msk位图中第几列
-                        msk_y = y/8;    //计算y在msk位图中第几行
-                        //将changed_msk相应的bit置1
-                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
-                        //标志(msk_x，msk_y)上面的一个点
-                        msk_y -= 1;
-                        //将changed_msk相应的bit置1
-                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
-                    }
-                }
-            }else
-            {//y方向变化量大，或者x，y变化量相等
-                if(((x1>x2)&&(y1>y2)) || ((x1<x2)&&(y1<y2)))
-                {//x、y增减方向相同，即同增或者同减
-                    //选取y1、y2中较小的数作为y1
-                    if(y1 > y2)
-                    {
-                        __gk_swap(x1,x2);
-                        __gk_swap(y1,y2);
-                    }
-                    //向下对齐，取8*8像素，y每变化8像素后x与直线的交点，
-                    //将斜线上所有的点所在的8*8像素区域对应的
-                    //在changed_msk中的bit置为1，具体说明请看djygui的书
-                    for(y = align_down(8,y1); y <= y2; y+=8)
-                    {
-                        x = ((((y-y1)<<1)*(x2-x1)+(y2-y1))/((y2-y1)<<1))+x1;
-                        msk_x = x/8;    //计算x在msk位图中第几列
-                        msk_y = y/8;    //计算y在msk位图中第几行
-                        //将changed_msk相应的bit置1
-                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
-                        msk_x += 1;
-                        //将changed_msk相应的bit置1
-                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
-                    }
-                }
-                else
-                {//x、y增减方向相反，即x增、y减，x减、y增
-                    //选取y1、y2中较小的数作为y1
-                    if(y1 > y2)
-                    {
-                        __gk_swap(x1,x2);
-                        __gk_swap(y1,y2);
-                    }
-                    //向下对齐，取8*8像素，y每变化8像素后x与直线的交点，
-                    //将斜线上所有的点所在的8*8像素区域对应的
-                    //在changed_msk中的bit置为1，具体说明请看djygui的书
-                    for(y = align_down(8,y1); y <= y2; y+=8)
-                    {
-                        x = ((((y-y1)<<1)*(x2-x1)-(y2-y1))/((y2-y1)<<1))+x1;
-                        msk_x = x/8;    //计算x在msk位图中第几列
-                        msk_y = y/8;    //计算y在msk位图中第几行
-                        //将changed_msk相应的bit置1
-                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
-                        msk_x -= 1;
-                        //将changed_msk相应的bit置1
-                        __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
+                    else
+                    {//x、y增减方向相反，即x增、y减，x减、y增
+                        //选取y1、y2中较小的数作为y1
+                        if(y1 > y2)
+                        {
+                            __gk_swap(x1,x2);
+                            __gk_swap(y1,y2);
+                        }
+                        //向下对齐，取8*8像素，y每变化8像素后x与直线的交点，
+                        //将斜线上所有的点所在的8*8像素区域对应的
+                        //在changed_msk中的bit置为1，具体说明请看djygui的书
+                        for(y = align_down(8,y1); y <= y2; y+=8)
+                        {
+                            x = ((((y-y1)<<1)*(x2-x1)-(y2-y1))/((y2-y1)<<1))+x1;
+                            msk_x = x/8;    //计算x在msk位图中第几列
+                            msk_y = y/8;    //计算y在msk位图中第几行
+                            //将changed_msk相应的bit置1
+                            __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
+                            msk_x -= 1;
+                            //将changed_msk相应的bit置1
+                            __GK_SetChangeMsk(&(gkwin->changed_msk),msk_x,msk_y);
+                        }
                     }
                 }
             }
