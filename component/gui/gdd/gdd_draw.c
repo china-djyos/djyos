@@ -589,70 +589,137 @@ void    GDD_DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
     }
 }
 
-void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
+//---------------虚线绘制函数---------------------------
+//描述：绘制单个像素宽的虚线
+//参数：hdc：绘图上下文句柄
+//      x0,y0: 起始坐标.
+//      x1,y1: 结束坐标.
+//      temp_draw:每段绘制的长度
+//      temp_past:每段不绘制的长度
+//返回：无.
+//------------------------------------------------------------------------------
+void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 temp_draw,s32 temp_past)
 {
     POINT pt[2];
     u32 i,num;
     s32 dot;
-    s8 temp=1;
+    s32 temp=temp_draw+temp_past;
+
     if(__GDD_BeginDraw(hdc))
     {
-        if(x0==x1)
+        if(x0==x1)//垂直线
         {
-            dot=y1-y0;
+            dot=abs(y1-y0);
+
             if(dot==0)
                 return;
-            else if(dot<0)
-            {
-                dot=-dot;
-                temp=-1;
-            }
+            if(dot/(temp)!=0)
+            num = dot/(temp)+1;
             else
+                num = dot/(temp);
+            if(y0>y1)//判断方向
             {
+                temp=~temp+1;
+                temp_past=~temp_past+1;
+                temp_draw=~temp_draw+1;
             }
-            if(dot%2!=0)
-                dot=dot+1;
-            num=dot/2;
-            for(i=1;i<=num;i++)
+            for(i=1;i<num;i++)
             {
                  pt[0].x =x0;
-                 pt[0].y =y0+2*temp*(i-1);
+                 pt[0].y =y0+(temp)*(i-1);
                  pt[1].x =x1;
-                 pt[1].y =y0+2*temp*(i);
+                 pt[1].y =y0+i*(temp)-temp_past;
                  __GDD_Cdn_DC_toWin(hdc,pt,2);
                 GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                         hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             }
+            //绘制最后一段
+            pt[0].x =x0;
+            pt[0].y =y0+(temp)*(num-1);
+            pt[1].x =x1;
+            pt[1].y =((y0+num*(temp)-temp_past)>dot)?y1:(y0+num*(temp)-temp_past);
+             __GDD_Cdn_DC_toWin(hdc,pt,2);
+            GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+                    hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
         }
-        else if(y0==y1)
+
+        else if(y0==y1)//水平线
         {
-          dot=x1-x0;
+          dot=abs(x1-x0);
           if(dot==0)
               return;
-          else if(dot<0)
-          {
-              dot=-dot;
-              temp=-1;
-          }
+          if(dot/(temp)!=0)
+              num = dot/(temp)+1;
           else
+              num = dot/(temp);
+          if(x0>x1)//判断方向
           {
+              temp=~temp+1;
+              temp_past=~temp_past+1;
+              temp_draw=~temp_draw+1;
           }
-          if(dot%2!=0)
-                dot=dot+1;
-          num=dot/2;
+
           for(i=1;i<=num;i++)
           {
-             pt[0].x =x0+2*temp*(i-1);
+             pt[0].x =x0+(temp)*(i-1);
              pt[0].y =y0;
-             pt[1].x =x0+2*temp*(i);
+             pt[1].x =x0+i*(temp)-temp_past;
              pt[1].y =y1;
              __GDD_Cdn_DC_toWin(hdc,pt,2);
             GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                     hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
           }
+          //绘制最后一段
+          pt[0].x =x0+(temp)*(num-1);
+          pt[0].y =y0;
+          pt[1].x =((x0+num*(temp)-temp_past)>dot)?x1:(x0+num*(temp)-temp_past);
+          pt[1].y =y1;
+          __GDD_Cdn_DC_toWin(hdc,pt,2);
+         GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+                 hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
         }
-        else
+
+        else//绘制斜线
         {
+            s32 dy,dx,past_x,past_y;
+            s32 flag_x=1;
+            dot = sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));//斜线长度
+            if(dot==0)
+                return;
+            if(dot/(temp)!=0)
+                num = dot/(temp)+1;
+            else
+                num = dot/(temp);
+
+            dy =(y1-y0)*temp/dot;
+            dx = (x1-x0)*temp/dot;
+            past_x = (x1-x0)*temp_past/dot;
+            past_y = (y1-y0)*temp_past/dot;
+
+            for(i=1;i<num;i++)
+            {
+                pt[0].x =x0+dx*(i-1);
+                pt[0].y =y0+dy*(i-1);
+                pt[1].x =x0+dx*i-past_x;
+                pt[1].y =y0+dy*i-past_y;
+                __GDD_Cdn_DC_toWin(hdc,pt,2);
+               GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+                       hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+            }
+            pt[0].x =x0+dx*(num-1);
+            pt[0].y =y0+dy*(num-1);
+            if(x0<x1)
+                pt[1].x =(x0+dx*num-past_x)>dot?x1:x0+dx*num-past_x;
+            else if(x0>x1)
+                pt[1].x =(x0+dx*num-past_x)<dot?x1:x0+dx*num-past_x;
+
+            if(y0<y1)
+                pt[1].y =(y0+dy*num-past_y)>dot?y1:y0+dy*num-past_y;
+            if(y0>y1)
+                pt[1].y =(y0+dy*num-past_y)<dot?y1:y0+dy*num-past_y;
+            __GDD_Cdn_DC_toWin(hdc,pt,2);
+           GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+                   hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
         }
         __GDD_EndDraw(hdc);
     }
