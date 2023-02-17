@@ -100,10 +100,9 @@ extern "C" {
 #define WINDOW_DLGFRAME_COLOR1      RGB(70,70,100)      //窗口对话边框颜色1
 #define WINDOW_DLGFRAME_COLOR2      RGB(70,70,220)      //窗口对话边框颜色2
 #define WINDOW_DLGFRAME_COLOR3      RGB(70,70,90)       //窗口对话边框颜色3
-#define WINDOW_CAPTION_TEXT_COLOR   RGB(255,255,255)    //窗口标题栏文字颜色
+#define WINDOW_CAPTION_TEXT_COLOR   RGB(255,255,0)    //窗口标题栏文字颜色
 
 
-typedef struct DC       DC;
 struct WinMsgQueueCB;
 
 /*============================================================================*/
@@ -117,6 +116,7 @@ struct WinMsgQueueCB;
 #define DC_TYPE_PAINT   0
 #define DC_TYPE_CLIENT  1
 #define DC_TYPE_WINDOW  2
+#define DC_TYPE_CAPTION 3
 
 struct DC
 {
@@ -195,7 +195,7 @@ void    __HWND_Unlock(HWND hwnd);
 bool_t  __GDD_Lock(void);
 void    __GDD_Unlock(void);
 bool_t GDD_AdoptWin(HWND Hwnd ,HWND NewParent);
-void    GDD_InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type);
+void    GDD_InitDC(HDC pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type);
 
 
 bool_t  __GDD_PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 param1,ptu32_t param2);

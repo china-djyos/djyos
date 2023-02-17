@@ -220,7 +220,7 @@ struct GkscParaSetBoundMode
 struct GkscParaSetPrio
 {
     struct GkWinObj *gkwin;      //目标窗口
-    u32 prio;                   //新的优先级
+    s32 prio;                   //新的优先级
 };
 struct GkscParaSetVisible
 {

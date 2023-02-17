@@ -301,9 +301,8 @@ static u32 __GDD_PostSyncMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 
         Lock_SempPost(pMsgQ->sem_msg);    //发送消息信号量
 
-        //if 那行不报错的话，说明调度是允许的，可以不判 Lock_SempPend 是否成功
+        //"if"那行不报错的话，说明调度是允许的，可以不判 Lock_SempPend 是否成功
         Lock_SempPend(pMsgQ->sem_sync_send,CN_TIMEOUT_FOREVER);
-
 
         res=pMsgQ->sync_msg.Param1;
 
@@ -360,8 +359,11 @@ static bool_t __GDD_PeekSyncMessage(struct WinMsgQueueCB *pMsgQ,struct WindowMsg
 //      param1: 消息参数1.
 //      param2: 消息参数2.
 //返回：消息处理结果.
-//特注：如果在同一个主窗口以及所属子窗口范围内调用SendMessage发消息，将引发递归
-//      调用，慎用！为了栈安全，建议使用PostMessage，除非你需要等待执行结果。
+//特注：1、如果在同一个主窗口以及所属子窗口的消息响应函数内调用SendMessage发消息，将
+//      引发递归调用，慎用！为了栈安全，应该使用PostMessage，除非你需要等待执行结果。
+//      2、sendmessage消息将优先执行，不等待消息队列中其他消息
+//      3、如果目标窗口不处理消息，消息循环将一直等待（没办法，参照Windows的API，接口
+//         定义就是如此）
 //------------------------------------------------------------------------------
 u32 GDD_SendMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 {
@@ -802,6 +804,8 @@ static bool_t __GDD_PeekRefreshMessage(struct WinMsgQueueCB *pMsgQ,struct Window
 //      hwnd: 窗口句柄，实际上是主窗口或者desktop窗口。
 //      SyncMsg，输出参数，true表示获取了一条同步消息
 //返回：true=成功获取消息，false=失败（不会失败）
+//消息提取顺序：1、close消息，2、同步消息，即sendmessage发送的消息，3、异步消息；
+//      4、非客户区绘制消息，5、客户区绘制消息，6、timer消息，7、刷新消息
 //------------------------------------------------------------------------------
 bool_t    GDD_GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
 {

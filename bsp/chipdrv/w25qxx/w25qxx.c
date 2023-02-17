@@ -459,7 +459,7 @@ bool_t W25QXX_Read(u8* buf,u32 addr,u32 len)
         }
         Lock_MutexPost(W25qxx_Lock);
     }
-    return false;
+    return ret;
 }
 
 //-----------------------------------------------------------------------------
