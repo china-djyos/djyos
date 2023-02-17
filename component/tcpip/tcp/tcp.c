@@ -3743,7 +3743,7 @@ static void __tcptick(void)
                             __ResetCCB(ccb,EN_TCP_MC_2FREE);
                             __DeleCCB(ccb);
                             sock = client->Nextsock;
-                            __hashSocketRemove(client);
+                            __hashSocketRemove(client);     //会把client->SockSync删除掉，所以不释放锁
                             SocketFree(client);
                         }
                         else

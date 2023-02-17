@@ -970,7 +970,7 @@ HWND __GDD_CreateWindow(struct GkWinObj *pGkWin,u32 Style,
 //      x,y,w,h: 窗口位置和大小,位置相对于父窗口
 //      hParent: 父窗口句柄.如果是NULL,则默认桌面为父窗口.
 //      WinId: 窗口Id.————即将废除，不要使用
-//      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT 等。
+//      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT 等。若父窗口无缓冲，子窗口不能有缓冲。
 //      pdata: 用户自定义附加数据.//
 //      PixelFormat,像素格式，在gkernel.h中定义， CN_SYS_PF_DISPLAY 表示与显示器相同，推荐。
 //      BaseColor, 灰度图基色，(仅在PixelFormat == CN_SYS_PF_GRAY1 ~8时有用)
@@ -1092,7 +1092,14 @@ void __GDD_DeleteMainWindowData(HWND hwnd)
 //------------------------------------------------------------------------------
 void    GDD_DestroyWindow(HWND hwnd)
 {
-    GDD_PostMessage(hwnd, MSG_CLOSE, 0, 0);
+    HWND parent;
+    parent = GDD_GetWindowParent(hwnd);
+    if(GDD_PostMessage(hwnd, MSG_CLOSE, 0, 0))
+    {
+        //执行 MSG_CLOSE 消息后，hwnd将被释放，此后将无法执行显示刷新操作，故需要给
+        //父窗口发一个刷新消息。
+        GDD_SyncShow(parent);
+    }
 }
 
 //----销毁全部子窗口-----------------------------------------------------------
@@ -1328,12 +1335,12 @@ bool_t GDD_GetWindowTextColor(HWND hwnd,u32 *pTextColor)
 //------------------------------------------------------------------------------
 HDC GDD_GetWindowDC(HWND hwnd)
 {
-    DC *pdc;
+    HDC pdc;
 
-    pdc =malloc(sizeof(DC));
+    pdc =malloc(sizeof(struct DC));
     if(pdc!=NULL)
     {
-        memset(pdc, 0, sizeof(DC));
+        memset(pdc, 0, sizeof(struct DC));
         GDD_InitDC(pdc,hwnd->pGkWin,hwnd,DC_TYPE_WINDOW);
     }
     return DC2HDC(pdc);
@@ -1348,12 +1355,12 @@ HDC GDD_GetWindowDC(HWND hwnd)
 //------------------------------------------------------------------------------
 HDC GDD_GetClientDC(HWND hwnd)
 {
-    DC *pdc;
+    HDC pdc;
 
-    pdc =malloc(sizeof(DC));
+    pdc = malloc(sizeof(struct DC));
     if(pdc!=NULL)
     {
-        memset(pdc, 0, sizeof(DC));
+        memset(pdc, 0, sizeof(struct DC));
         GDD_InitDC(pdc,hwnd->pGkWin,hwnd,DC_TYPE_CLIENT);
     }
     return DC2HDC(pdc);
@@ -1447,7 +1454,7 @@ HDC GDD_BeginPaint(HWND hwnd)
 //------------------------------------------------------------------------------
 bool_t    GDD_EndPaint(HWND hwnd,HDC hdc)
 {
-    GDD_SendMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
+    GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
     return  GDD_DeleteDC(hdc);
 }
 
@@ -1474,23 +1481,27 @@ static ptu32_t __GDD_DefWindowProcNCPAINT(struct WindowMsg *pMsg)
             if(hwnd->Style&WS_BORDER)
             {
                 GDD_SetDrawColor(hdc,WINDOW_BORDER_COLOR);
+                GDD_InflateRectEx(&rc,0,0,-1,-1);      //边框右下坐标并不包含在矩形区域内
                 GDD_DrawRect(hdc,&rc);
-                GDD_InflateRect(&rc,-1,-1);
+                GDD_InflateRectEx(&rc,-1,-1,0,0);
             }
 
             if(hwnd->Style&WS_DLGFRAME)
             {
                 GDD_SetDrawColor(hdc,WINDOW_DLGFRAME_COLOR1);
+                GDD_InflateRectEx(&rc,0,0,-1,-1);      //边框右下坐标并不包含在矩形区域内
                 GDD_DrawRect(hdc,&rc);
-                GDD_InflateRect(&rc,-1,-1);
+                GDD_InflateRectEx(&rc,-1,-1,0,0);
 
                 GDD_SetDrawColor(hdc,WINDOW_DLGFRAME_COLOR2);
+                GDD_InflateRectEx(&rc,0,0,-1,-1);      //边框右下坐标并不包含在矩形区域内
                 GDD_DrawRect(hdc,&rc);
-                GDD_InflateRect(&rc,-1,-1);
+                GDD_InflateRectEx(&rc,-1,-1,0,0);
 
                 GDD_SetDrawColor(hdc,WINDOW_DLGFRAME_COLOR3);
+                GDD_InflateRectEx(&rc,0,0,-1,-1);      //边框右下坐标并不包含在矩形区域内
                 GDD_DrawRect(hdc,&rc);
-                GDD_InflateRect(&rc,-1,-1);
+                GDD_InflateRectEx(&rc,-1,-1,0,0);
             }
 
             if(hwnd->Style&WS_CAPTION)
@@ -1500,6 +1511,7 @@ static ptu32_t __GDD_DefWindowProcNCPAINT(struct WindowMsg *pMsg)
                 GDD_GradientFillRect(hdc,&rc,RGB(0,100,200),RGB(0,30,100),CN_FILLRECT_MODE_UD);
 
                 GDD_SetTextColor(hdc,WINDOW_CAPTION_TEXT_COLOR);
+                GDD_SetDrawArea(hdc, &rc);
                 GDD_InflateRect(&rc,-1,-1);
                 GDD_DrawText(hdc, hwnd->Text, -1, &rc, DT_LEFT | DT_VCENTER);
             }
@@ -1770,7 +1782,7 @@ void __GDD_ClearMainWindow(HWND hwnd)
 //      Style: 窗口风格(参考 WS_VISIBLE 族常量)
 //      x,y,w,h: 窗口位置和大小,位置相对于父窗口，如果 w == -1，表示使用桌面尺寸。
 //      MemSize，该应用所需的内存量，即执行消息循环的线程栈尺寸
-//      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT等。
+//      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT等。若桌面无缓冲，主窗口不能有缓冲。
 //      pdata: 用户自定义附加数据.
 //      PixelFormat,像素格式，在gkernel.h中定义， CN_SYS_PF_DISPLAY 表示与显示器相同，推荐。
 //      BaseColor, 灰度图基色，(仅在PixelFormat == CN_SYS_PF_GRAY1 ~8时有用)
