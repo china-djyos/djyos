@@ -120,18 +120,15 @@ typedef struct
 
 #pragma pack()
 
-
-
-
 /*============================================================================*/
 //// 消息数据结构
 struct WindowMsg
 {
-    HWND hwnd;      //消息所属窗口.
-    u32 Code;       //消息代码.
+    HWND hwnd;          //消息所属窗口.
+    u32 Code;           //消息代码.
     ptu32_t Param1;     //消息参数1,不同消息代码,意义不同.
     ptu32_t Param2;     //消息参数2,不同消息代码,意义不同.
-    const void* ExData;     //消息扩展数据
+    const void* ExData; //消息扩展数据
 
 };
 
@@ -142,16 +139,15 @@ struct MsgProcTable
     ptu32_t (*MsgProc)(struct WindowMsg *pMsg);
 };
 
-// 窗口需要处理的消息链表，实现时注意，链表的Head节点是最先需要处理的，直到
-// LinkNext == NULL才结束处理。
+// 窗口需要处理的消息链表，实现时注意，链表的Head节点是最后加入的节点，head->prev是
+// 最早加入的节点
 struct MsgTableLink
 {
-//    struct MsgTableLink *LinkPrev;
-//    struct MsgTableLink **pLinkTab;    //消息处理函数继承时，备份链表用。
-//    struct MsgTableLink *LinkAdd;
-//    list_t TableLink;
+//    struct MsgTableLink *PrevMsg;
+//    struct MsgTableLink *NextMsg;
     struct MsgProcTable *myTable;
     u32 MsgNum;
+//    struct MsgProcTable myTable[];
 };
 
 

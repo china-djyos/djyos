@@ -226,13 +226,6 @@ u32 GDD_DispatchMessage(struct WindowMsg *pMsg)
 {
     u32 res=0;
 
-//  if(NULL!=pMsg)
-//  {
-//      if(__GDD_GetWindowEvent(pMsg->hwnd) == DJY_GetMyEventId())
-//      { //同线程内,直接调用窗口过程.
-//          res =__GDD_WinMsgProc(pMsg);
-//      }
-//  }
     res =__GDD_WinMsgProc(pMsg);
     return res;
 }

@@ -702,14 +702,23 @@ HWND Widget_CreateListBox(  const char *Text,u32 Style,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
-    s_gListBoxMsgLink.MsgNum = sizeof(s_gListBoxMsgProcTable) / sizeof(struct MsgProcTable);
-    s_gListBoxMsgLink.myTable = (struct MsgProcTable *)&s_gListBoxMsgProcTable;
-    pGddWin=GDD_CreateWindow(Text, WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
-                            CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
-                            &s_gListBoxMsgLink);
-    if(UserMsgTableLink != NULL)
-        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-    return pGddWin;
+    if(hParent == NULL)
+        hParent = GDD_GetDesktopWindow(NULL);
+    //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
+    //完成后，即消息处理函数表完整后再取出消息处理。
+    if(__HWND_Lock(hParent))
+    {
+        s_gListBoxMsgLink.MsgNum = sizeof(s_gListBoxMsgProcTable) / sizeof(struct MsgProcTable);
+        s_gListBoxMsgLink.myTable = (struct MsgProcTable *)&s_gListBoxMsgProcTable;
+        pGddWin=GDD_CreateWindow(Text, WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
+                                CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
+                                &s_gListBoxMsgLink);
+        if(UserMsgTableLink != NULL)
+            GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        return pGddWin;
+    }
+    else
+        return NULL;
 }
 
 /*============================================================================*/

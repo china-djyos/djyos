@@ -103,7 +103,7 @@ static struct MsgProcTable s_gDefWindowMsgProcTable[] =
 static struct MsgTableLink  s_gDefWindowMsgLink;
 
 //----取窗口句柄---------------------------------------------------------------
-//功能：根据gkwin指针，去所属的gdd窗口句柄
+//功能：根据gkwin指针，取所属的gdd窗口句柄
 //参数：gkwin，gkwin指针
 //返回：gdd窗口句柄
 //---------------------------------------------------------------------------
@@ -111,6 +111,11 @@ HWND GDD_GetHwnd(struct GkWinObj *gkwin)
 {
     return (HWND)GK_GetUserTag(gkwin);
 }
+
+//------------------------------------------------------------------------------
+//功能：连接消息处理函数表
+//参数：
+
 
 //----屏幕坐标转客户坐标---------------------------------------------------------
 //描述: 把一组屏幕坐标值，转换为窗口客户区左上角为原点的相对坐标
@@ -1199,7 +1204,7 @@ bool_t    GDD_InvalidateWindow(HWND hwnd,bool_t bErase)
 {
     if(GDD_IsWindowVisible(hwnd))
     {
-            GDD_PostMessage(hwnd,MSG_PAINT,bErase,0);
+        GDD_PostMessage(hwnd,MSG_PAINT,bErase,0);
     }
     return true;
 }
@@ -1386,11 +1391,11 @@ bool_t    GDD_ReleaseDC(HDC hdc)
 bool_t    __HWND_Lock(HWND hwnd)
 {
     bool_t result = false;
-    if(__GDD_Lock())    //不先锁住GDD，可能会死锁的
-    {
+//  if(__GDD_Lock())    //不先锁住GDD，可能会死锁的
+//  {
         result = Lock_MutexPend(hwnd->mutex_lock, CN_TIMEOUT_FOREVER);
-        __GDD_Unlock( );
-    }
+//      __GDD_Unlock( );
+//  }
     return result;
 }
 
