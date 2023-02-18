@@ -138,6 +138,7 @@ HWND Widget_CreateLabel(  const char *Text,u32 Style,
 
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __HWND_Unlock(hParent);
         return pGddWin;
     }
     else

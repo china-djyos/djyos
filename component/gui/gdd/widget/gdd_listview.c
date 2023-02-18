@@ -808,6 +808,7 @@ HWND Widget_CreateListView(  const char *Text,u32 Style,
                                 &s_gListViewMsgLink);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __HWND_Unlock(hParent);
         return pGddWin;
     }
     else

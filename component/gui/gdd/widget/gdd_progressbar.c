@@ -451,6 +451,7 @@ HWND Widget_CreateProgressBar(  const char *Text,u32 Style,
                                     &s_gProgressBarMsgLink);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __HWND_Unlock(hParent);
         return pGddWin;
     }
     else

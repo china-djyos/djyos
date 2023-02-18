@@ -715,6 +715,7 @@ HWND Widget_CreateListBox(  const char *Text,u32 Style,
                                 &s_gListBoxMsgLink);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __HWND_Unlock(hParent);
         return pGddWin;
     }
     else

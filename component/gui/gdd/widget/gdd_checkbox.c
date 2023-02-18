@@ -223,6 +223,7 @@ HWND Widget_CreateCheckBox(  const char *Text,u32 Style,
                                 &s_gCheckBoxMsgLink);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __HWND_Unlock(hParent);
         return pGddWin;
     }
     else

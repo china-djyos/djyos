@@ -549,6 +549,7 @@ HWND Widget_CreateVirKeyBoard(const char *Text,u32 Style,
                                 &s_gVirKeyBoardMsgLink);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __HWND_Unlock(hParent);
         return pGddWin;
     }
     else
