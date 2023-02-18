@@ -1012,7 +1012,7 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
         else
         {
             //多行
-            s32 x0,y0,line_h;
+            s32 x0,y0,line_h,yy,y1;
             char *p0,*p1;
 
             line_h = Font_GetFontLineHeight(hdc->pFont)+5;
@@ -1030,22 +1030,27 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
             }
 
             if(flag&DT_BKGND)
-            {
-                GDD_FillRect(hdc,&rc0);
+            {                GDD_FillRect(hdc,&rc0);
             }
 
             y0 =rc.top;
+            x0=rc.left;
             switch(flag&DT_ALIGN_V_MASK)
             {
                 case    DT_VCENTER://(line_count-1)*line_h)为行间距
-                    y0 += ((GDD_RectH(&rc)-(line_count*line_h)-((line_count-1)*line_h))/2);
+                        //y0 += ((GDD_RectH(&rc)-(line_count*line_h)-((line_count-1)*line_h))/2);
+                        yy=(line_count-1)*line_h;
+                        y0 +=(GDD_RectH(&rc) - yy)/2 -line_h/3;
                         break;
                         ////
                 case    DT_TOP:
                         break;
                         ////
                 case    DT_BOTTOM://(line_count-1)*line_h)为行间距
-                        y0 += (GDD_RectH(&rc) - (line_count*line_h)-((line_count-1)*line_h));
+                        //y0 += (GDD_RectH(&rc) - (line_count*line_h)-((line_count-1)*line_h));
+                        GDD_AdjustTextRect(hdc,text,count,&rc,flag);
+                        yy=(line_count-1)*line_h;
+                        y0 =rc.top - yy;
                         break;
                         ////
                 default:
@@ -1068,7 +1073,8 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
                     switch(flag&DT_ALIGN_H_MASK)
                     {
                         case    DT_CENTER:
-                                x0 =(GDD_RectW(&rc)-__GDD_GetTextWidth(hdc,p0,charnum))>>1;
+                                //x0 =(GDD_RectW(&rc)-__GDD_GetTextWidth(hdc,p0,charnum))>>1;
+                                x0 +=(GDD_RectW(&rc)-__GDD_GetTextWidth(hdc,p0,charnum))/2;
                                 break;
                                 ////
                         case    DT_LEFT:
@@ -1076,7 +1082,7 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
                                 break;
                                 ////
                         case    DT_RIGHT:
-                                x0 =(GDD_RectW(&rc)-__GDD_GetTextWidth(hdc,p0,charnum));
+                                x0 +=(GDD_RectW(&rc)-__GDD_GetTextWidth(hdc,p0,charnum));
                                 break;
                                 ////
                         default:
