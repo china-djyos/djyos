@@ -494,6 +494,8 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
     desktop->WinProperty.DirectDraw = CN_GKWIN_UNDIRECT_DRAW; //非直接写屏
     desktop->WinProperty.BoundLimit = CN_BOUND_LIMIT;
     desktop->WinProperty.Visible = CN_GKWIN_VISIBLE;
+    desktop->WinProperty.AncestorVisible = CN_GKWIN_VISIBLE;
+    desktop->WinProperty.VisibleExec = CN_GKWIN_VISIBLE;
     desktop->RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  }; //桌面固定
     desktop->ScreenX = 0;
     desktop->ScreenY = 0;
@@ -661,6 +663,8 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     gkwin->WinProperty.DirectDraw = CN_GKWIN_UNDIRECT_DRAW; //非直接写屏
     gkwin->WinProperty.BoundLimit = CN_BOUND_LIMIT;
     gkwin->WinProperty.Visible = CN_GKWIN_VISIBLE;
+    gkwin->WinProperty.AncestorVisible = CN_GKWIN_VISIBLE;
+    gkwin->WinProperty.VisibleExec = CN_GKWIN_VISIBLE;
 
     gkwin->RopCode = RopCode;
 
@@ -1260,7 +1264,7 @@ void __GK_SetBoundMode(struct GkscParaSetBoundMode *para)
 }
 
 //----设置窗口是否可视---------------------------------------------------------
-//功能：设置一个窗口的可视属性，桌面不能设置
+//功能：设置一个窗口的可视属性，桌面不能修改可视属性。
 //参数: gkwin，目标窗口
 //      visible，CN_GKWIN_VISIBLE=可视，CN_GKWIN_HIDE=隐藏
 //返回：无
@@ -1268,16 +1272,59 @@ void __GK_SetBoundMode(struct GkscParaSetBoundMode *para)
 void __GK_SetVisible(struct GkscParaSetVisible *para)
 {
     struct GkWinObj *gkwin;
+    struct GkWinObj *curwin,*parent;
     struct DisplayObj *display;
 
     gkwin = para->gkwin;
     display = para->gkwin->disp;
     if(gkwin == display->desktop)  //桌面窗口可视属性不可改变
         return;
-    gkwin->WinProperty.Visible = para->Visible;
 
-    __GK_ScanNewVisibleClip(gkwin->disp);
-    gkwin->disp->reset_clip = true;
+    if(gkwin->WinProperty.Visible != para->Visible)
+    {
+        curwin = gkwin;
+        curwin->WinProperty.Visible = para->Visible;
+        curwin->WinProperty.VisibleExec = curwin->WinProperty.AncestorVisible && para->Visible;
+        if(para->Visible == CN_GKWIN_HIDE)  //可见变隐藏，所有儿孙窗口的祖先状态设为隐藏
+        {
+            while(1)
+            {
+                curwin = (struct GkWinObj *)OBJ_GetPrivate(
+                                OBJ_ForeachScion(gkwin->HostObj,curwin->HostObj));
+                if(curwin != NULL)
+                {
+                    curwin->WinProperty.AncestorVisible = CN_GKWIN_HIDE;
+                    curwin->WinProperty.VisibleExec = CN_GKWIN_HIDE;
+                }
+                else
+                    break;
+            }
+        }
+        else
+        {
+            while(1)
+            {
+                curwin = (struct GkWinObj *)OBJ_GetPrivate(OBJ_ForeachScion(gkwin->HostObj,curwin->HostObj));
+                if(curwin != NULL)
+                {
+                    parent = (struct GkWinObj *)OBJ_GetPrivate(
+                                OBJ_GetParent(curwin->HostObj));
+                    if(parent->WinProperty.AncestorVisible && parent->WinProperty.Visible)
+                        curwin->WinProperty.AncestorVisible = CN_GKWIN_VISIBLE;
+                    else
+                        curwin->WinProperty.AncestorVisible = CN_GKWIN_HIDE;
+                    curwin->WinProperty.VisibleExec = curwin->WinProperty.AncestorVisible
+                                                    && curwin->WinProperty.Visible;
+
+                }
+                else
+                    break;
+            }
+        }
+
+        __GK_ScanNewVisibleClip(gkwin->disp);
+        gkwin->disp->reset_clip = true;
+    }
 
 }
 
@@ -1573,8 +1620,10 @@ void __gk_destroy_win(struct GkWinObj *gkwin)
 void __GK_DestroyWin(struct GkWinObj *gkwin)
 {
     struct GkWinObj *CurWin;
-    while((CurWin = (struct GkWinObj *)OBJ_GetPrivate((struct Object*)OBJ_GetTwig(gkwin->HostObj))) != NULL)
+    struct Object *gkobj;
+    while((gkobj = OBJ_GetTwig(gkwin->HostObj)) != NULL)
     {
+        CurWin = (struct GkWinObj *)OBJ_GetPrivate(gkobj);
         __gk_destroy_win(CurWin);
         M_FreeHeap(CurWin,CurWin->disp->DisplayHeap,CN_TIMEOUT_FOREVER);
     }
@@ -2014,13 +2063,13 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
             __GK_Lineto(&para);
             result = sizeof(struct GkscParaLineto);
         } break;
-        case CN_GKSC_LINETO_INC_END:
-        {
-            struct GkscParaLineto para;
-            memcpy(&para,ParaAddr,sizeof(struct GkscParaLineto));
-            __GK_LinetoIe(&para);
-            result = sizeof(struct GkscParaLineto);
-        } break;
+//        case CN_GKSC_LINETO_INC_END:
+//        {
+//            struct GkscParaLineto para;
+//            memcpy(&para,ParaAddr,sizeof(struct GkscParaLineto));
+//            __GK_LinetoIe(&para);
+//            result = sizeof(struct GkscParaLineto);
+//        } break;
         case CN_GKSC_DRAW_BITMAP_ROP:
         {
             struct GkscParaDrawBitmapRop para;

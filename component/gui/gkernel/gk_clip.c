@@ -405,7 +405,7 @@ bool_t __GK_ScanVisibleClip(struct GkWinObj *newwin)
     s32 num,rect_left,rect_top,rect_right,rect_bottom,loop,temp;
     u8 *sort_array_x,*sort_array_y;
 
-    if(newwin->WinProperty.Visible == CN_GKWIN_HIDE)
+    if(newwin->WinProperty.VisibleExec == CN_GKWIN_HIDE)
         return true;
     display = newwin->disp;
     num = (display->width+1)*sizeof(u8) + (display->height+1)*sizeof(u8);
@@ -420,7 +420,7 @@ bool_t __GK_ScanVisibleClip(struct GkWinObj *newwin)
     while(1)
     {
         //要求窗口可视，且被祖先窗口限制后，仍然有可视范围
-        if((tempwin->WinProperty.Visible == CN_GKWIN_VISIBLE)
+        if((tempwin->WinProperty.VisibleExec == CN_GKWIN_VISIBLE)
            &&(tempwin->limit.right != 0) && (tempwin->limit.bottom != 0) )
         {
             //取窗口可视边框，该边框是窗口受祖先窗口限制后的矩形
@@ -494,7 +494,7 @@ bool_t __GK_ScanVisibleClip(struct GkWinObj *newwin)
 //  while(1)
 //  {
         clip = clip_head;
-        if(newwin->WinProperty.Visible == CN_GKWIN_VISIBLE)
+        if(newwin->WinProperty.VisibleExec == CN_GKWIN_VISIBLE)
         {
             for(loop = temp; loop >0; loop--)
             {
@@ -570,7 +570,7 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
     while(1)
     {
         //要求窗口可视，且被祖先窗口限制后，仍然有可视范围
-        if((tempwin->WinProperty.Visible == CN_GKWIN_VISIBLE)
+        if((tempwin->WinProperty.VisibleExec == CN_GKWIN_VISIBLE)
            &&(tempwin->limit.right != 0) && (tempwin->limit.bottom != 0) )
         {
             //取窗口可视边框，该边框是窗口受祖先窗口限制后的矩形
@@ -643,7 +643,7 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
     while(1)
     {
         clip = clip_head;
-        if(tempwin->WinProperty.Visible == CN_GKWIN_VISIBLE)
+        if(tempwin->WinProperty.VisibleExec == CN_GKWIN_VISIBLE)
         {
             for(loop = temp; loop >0; loop--)
             {

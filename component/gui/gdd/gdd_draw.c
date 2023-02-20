@@ -1099,7 +1099,7 @@ void    GDD_FillRect(HDC hdc,const RECT *prc)
             {
                 __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
 
-                GK_FillRect(hdc->pGkWin,&rc,hdc->FillColor,hdc->FillColor,
+                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,& rc, hdc->FillColor, hdc->FillColor,
                             CN_FILLRECT_MODE_N,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
@@ -1127,7 +1127,7 @@ void    GDD_FillRectEx(HDC hdc,const RECT *prc,u32 color)
             {
                 __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
 
-                GK_FillRect(hdc->pGkWin,&rc,color,color,
+                GK_FillRect(hdc->pGkWin,&hdc->DrawArea ,&rc,color,color,
                             CN_FILLRECT_MODE_N,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
@@ -1189,7 +1189,7 @@ void    GDD_GradientFillRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2,u32 m
                             break;
 
                 }
-                GK_FillRect(hdc->pGkWin,&gk_rc,Color1,Color2,
+                GK_FillRect(hdc->pGkWin,&hdc->DrawArea ,&gk_rc,Color1,Color2,
                             mode,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
@@ -1210,6 +1210,7 @@ void    GDD_Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2)
 {
     u32 c;
     RECT rc;
+    s32 x0,x1,y0,y1;
 
     if(hdc!=NULL)
     {
@@ -1219,20 +1220,29 @@ void    GDD_Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2)
             {
 //              GDD_CopyRect(&rc,prc);
                 rc = *prc;
-                c=GDD_SetDrawColor(hdc,Color1);
-                GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1); //L
-                GDD_DrawLine(hdc,0,0,GDD_RectW(&rc)-1,0); //U
+                __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
+                x0 =rc.left;
+                y0 =rc.top;
+                x1 =rc.right-1;
+                y1 =rc.bottom-1;
 
+                c=GDD_SetDrawColor(hdc,Color1);
+                //Left
+                GK_Lineto(hdc->pGkWin,&hdc->DrawArea,x0,y0,x0,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                //top
+                GK_Lineto(hdc->pGkWin,&hdc->DrawArea,x1,y0,x0,y0,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
                 GDD_SetDrawColor(hdc,Color2);
-                GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //R
-                GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
+                //Right
+                GK_Lineto(hdc->pGkWin,&hdc->DrawArea,x1,y1,x1,y0,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                //bottom
+                GK_Lineto(hdc->pGkWin,&hdc->DrawArea,x0,y1,x1,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+
                 GDD_SetDrawColor(hdc,c);
 
-                c=GDD_SetFillColor(hdc,GDD_AlphaBlendColor(Color1,Color2,128));
+                c = GDD_AlphaBlendColor(Color1,Color2,128);
 
                 GDD_InflateRect(&rc,-1,-1);
-                GDD_FillRect(hdc,&rc);
-                GDD_SetFillColor(hdc,c);
+                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,&rc, c, c, CN_FILLRECT_MODE_N,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
         }
@@ -1259,7 +1269,7 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
              pt.x = cx;
              pt.y = cy;
              __GDD_Cdn_DC_toWin(hdc, &pt, 1);
-             GK_DrawCircle(hdc->pGkWin, cx, cy, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
+             GK_DrawCircle(hdc->pGkWin, &hdc->DrawArea,cx, cy, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
              __GDD_EndDraw(hdc);
          }
 

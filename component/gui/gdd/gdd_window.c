@@ -1122,9 +1122,10 @@ void GDD_DestroyAllChild(HWND hwnd)
         while(Current != NULL)
         {
 //            GDD_SetWindowHide(Current);     //MSG_CLOSE消息是最后处理的，先隐藏窗口
-          GDD_PostMessage(Current, MSG_CLOSE, 0, 0);
+            GDD_PostMessage(Current, MSG_CLOSE, 0, 0);
             Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
         }
+        GDD_SyncShow(hwnd);
         __GDD_Unlock();
     }
 //  GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY,0,0);
@@ -1220,7 +1221,7 @@ bool_t GDD_SetWindowShow(HWND hwnd)
     if(__HWND_Lock(hwnd))
     {
         hwnd->Style |= WS_VISIBLE;
-        GK_SetVisible(hwnd->pGkWin,CN_GKWIN_VISIBLE,0);
+        GK_SetVisible(hwnd->pGkWin,CN_GKWIN_VISIBLE,CN_TIMEOUT_FOREVER);
         __HWND_Unlock(hwnd);
         return TRUE;
     }
@@ -1236,7 +1237,7 @@ bool_t GDD_SetWindowHide(HWND hwnd)
     if(__HWND_Lock(hwnd))
     {
         hwnd->Style &= ~ WS_VISIBLE;
-        GK_SetVisible(hwnd->pGkWin,CN_GKWIN_HIDE,0);
+        GK_SetVisible(hwnd->pGkWin,CN_GKWIN_HIDE,CN_TIMEOUT_FOREVER);
         __HWND_Unlock(hwnd);
         return TRUE;
     }

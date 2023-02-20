@@ -92,7 +92,7 @@ struct RectBitmap;
 //绘制命令组
 #define CN_GKSC_SET_PIXEL           0x100   //画点命令
 #define CN_GKSC_LINETO              0x101   //画单像素宽线命令，不包含结束端点
-#define CN_GKSC_LINETO_INC_END      0x102   //画单像素宽线命令，包含结束端点
+//#define CN_GKSC_LINETO_INC_END      0x102   //画单像素宽线命令，包含结束端点
 #define CN_GKSC_DRAW_BITMAP_ROP     0x104   //画bitmap,带光栅操作
 #define CN_GKSC_FILL_WIN            0x105   //用指定颜色填充窗口
 #define CN_GKSC_DRAW_TEXT           0x106
@@ -138,6 +138,7 @@ struct GkscParaFillWin
 struct GkscParaGradientFillWin
 {
     struct GkWinObj *gkwin;         //绘制的目标窗口
+    struct Rectangle range;         //允许绘制区域，相对于gkwin的坐标
     struct Rectangle rect;          //待填充的矩形
     u32 Color0;                     //颜色0
     u32 Color1;                     //颜色1
@@ -158,6 +159,8 @@ struct GkscParaDrawText
     u32 color;                      //画点使用的颜色
     u32 Rop2Code;                   //rop2编码
 };
+
+//画点是否超出可绘制范围，由gk_api中的函数判定，不由gk_draw中的绘制函数负责。
 struct GkscParaSetPixel     //本命令没有限制区域，在api中先行判断
 {
     struct GkWinObj *gkwin;         //绘制的目标窗口
@@ -185,6 +188,7 @@ struct GkscParaLineto
 struct GkscParaDrawCircle
 {
     struct GkWinObj *gkwin;         //绘制的目标窗口
+    struct Rectangle range;         //允许绘制区域，相对于gkwin的坐标
     s32 x0,y0;                      //圆心坐标
     s32 r;                          //圆的半径
     u32 color;                      //画圆使用的颜色
@@ -193,6 +197,7 @@ struct GkscParaDrawCircle
 struct GkscParaBezier
 {
     struct GkWinObj *gkwin;         //绘制的目标窗口
+    struct Rectangle range;         //允许绘制区域，相对于gkwin的坐标
     float x1,y1,x2,y2,x3,y3,x4,y4;  //绘制Bezier曲线的四个控制点
     u32 color;                      //画Bezier曲线使用的颜色
     u32 Rop2Code;                   //二元光栅操作码

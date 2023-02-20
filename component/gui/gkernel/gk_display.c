@@ -123,6 +123,8 @@ bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name)
         frame_buffer->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;
         frame_buffer->WinProperty.BoundLimit = CN_BOUND_LIMIT;
         frame_buffer->WinProperty.Visible = CN_GKWIN_VISIBLE;
+        frame_buffer->WinProperty.AncestorVisible = CN_GKWIN_VISIBLE;
+        frame_buffer->WinProperty.VisibleExec = CN_GKWIN_VISIBLE;
         //帧缓冲总是CN_R3_SRCCOPY，dest_blend总是FALSE
         frame_buffer->WinProperty.DestBlend = CN_GKWIN_DEST_HIDE;
         frame_buffer->HyalineColor = 0;
