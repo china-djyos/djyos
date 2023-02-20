@@ -585,6 +585,47 @@ HWND    GDD_GetWindowFromPoint(struct GkWinObj *desktop, POINT *pt)
     else
         return NULL;
 }
+static ptu32_t __GDD_DrawWinCaption(HWND hwnd)
+{
+    HDC hdc;
+    RECT rc;
+
+
+    hdc =GDD_GetWindowDC(hwnd);
+    if(NULL!=hdc)
+    {
+        GDD_GetWindowRect(hwnd,&rc);
+        GDD_ScreenToWindow(hwnd,(POINT*)&rc,2);
+
+        if(__HWND_Lock(hwnd))
+        {
+            if(hwnd->Style&WS_BORDER)
+            {
+                GDD_InflateRectEx(&rc,-1,-1,-1,-1);
+            }
+
+            if(hwnd->Style&WS_DLGFRAME)
+            {
+                GDD_InflateRectEx(&rc,-3,-3,-3,-3);
+            }
+
+            if(hwnd->Style&WS_CAPTION)
+            {
+                rc.bottom =rc.top+hwnd->CaptionSize;
+
+                GDD_GradientFillRect(hdc,&rc,RGB(0,100,200),RGB(0,30,100),CN_FILLRECT_MODE_UD);
+
+                GDD_SetTextColor(hdc,WINDOW_CAPTION_TEXT_COLOR);
+                GDD_SetDrawArea(hdc, &rc);
+                GDD_InflateRect(&rc,-1,-1);
+                GDD_DrawText(hdc, hwnd->Text, -1, &rc, DT_LEFT | DT_VCENTER);
+            }
+            __HWND_Unlock(hwnd);
+        }
+        GDD_ReleaseDC(hdc);
+    }
+    return 0;
+}
 
 //----ÉèÖÃ´°¿ÚÃû×Ö-------------------------------------------------------------
 //ÃèÊö: ÂÔ.
@@ -595,6 +636,7 @@ HWND    GDD_GetWindowFromPoint(struct GkWinObj *desktop, POINT *pt)
 void GDD_SetWindowName(HWND hwnd, char *NewName)
 {
     GK_SetName(hwnd->pGkWin, NewName);
+    __GDD_DrawWinCaption(hwnd);
     return ;
 }
 
