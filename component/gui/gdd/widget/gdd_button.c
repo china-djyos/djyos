@@ -101,7 +101,6 @@ static  bool_t __Widget_ButtonPaint(struct WindowMsg *pMsg)
     GDD_GetClientRect(hwnd,&rc);
     Widget_GetAttr(hwnd,ENUM_WIDGET_FILL_COLOR,&color);
     GDD_SetFillColor(hdc,color);
-    GDD_FillRect(hdc,&rc);
     if(hwnd->Style&WS_DISABLE)
     {
         GDD_FillRect(hdc,&rc);
@@ -125,9 +124,10 @@ static  bool_t __Widget_ButtonPaint(struct WindowMsg *pMsg)
                         RGB(210,210,210),RGB(150,150,150),CN_FILLRECT_MODE_UD);
                 break;
 
-                case    BS_SIMPLE:
+            case    BS_SIMPLE:
                     GDD_SetDrawColor(hdc,CN_COLOR_BLACK);
                     GDD_InflateRectEx(&rc,0,0,-1,-1);      //边框右下坐标并不包含在矩形区域内
+                    GDD_FillRect(hdc,&rc);
                     GDD_DrawRect(hdc,&rc);
                     break;
 

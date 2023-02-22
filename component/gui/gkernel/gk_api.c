@@ -1135,7 +1135,7 @@ bool_t GK_IsWinVisible(struct GkWinObj *gkwin)
 {
     if(NULL == gkwin)
         return false;
-    if(gkwin->WinProperty.Visible == CN_GKWIN_HIDE)
+    if(gkwin->WinProperty.VisibleExec == CN_GKWIN_HIDE)
         return false;
     else
         return true;

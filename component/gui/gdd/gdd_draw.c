@@ -559,7 +559,7 @@ void GDD_SetPixel(HDC hdc,s32 x,s32 y,u32 color)
         pt.x =x;
         pt.y =y;
         __GDD_Cdn_DC_toWin(hdc,&pt,1);
-        GK_SetPixel(hdc->pGkWin,NULL,pt.x,pt.y,color,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+        GK_SetPixel(hdc->pGkWin,&hdc->DrawArea, pt.x,pt.y,color,hdc->RopCode.Rop2Mode,hdc->SyncTime);
         __GDD_EndDraw(hdc);
     }
 }
