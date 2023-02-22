@@ -333,6 +333,7 @@ void    GDD_DrawLineEx(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,u32 color);
 void    GDD_DrawLineTo(HDC hdc,s32 x,s32 y);
 bool_t  GDD_TextOut(HDC hdc,s32 x,s32 y,const char *text,s32 count);
 bool_t  GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 flag);
+void    GDD_FillTrangle(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2);
 void    GDD_DrawRect(HDC hdc,const RECT *prc);;
 void    GDD_FillRect(HDC hdc,const RECT *prc);
 void    GDD_FillRectEx(HDC hdc,const RECT *prc,u32 color);

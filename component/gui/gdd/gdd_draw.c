@@ -66,6 +66,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
+#define __gdd_swap(a, b){a^=b; b^=a; a^=b;}
+
 static  bool_t    __GDD_BeginDraw(HDC hdc)
 {
     return TRUE;
@@ -681,20 +683,12 @@ void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 temp_draw,s32
 
         else//绘制斜线
         {
-            s32 dy,dx,past_x,past_y;
-            s32 flag_x=1;
-            dot = sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));//斜线长度
-            if(dot==0)
-                return;
-            if(dot/(temp)!=0)
-                num = dot/(temp)+1;
-            else
-                num = dot/(temp);
-
-            dy =(y1-y0)*temp/dot;
-            dx = (x1-x0)*temp/dot;
-            past_x = (x1-x0)*temp_past/dot;
-            past_y = (y1-y0)*temp_past/dot;
+            float dt = sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));//斜线长度
+            num = dt/(temp)+1;
+            float dy =(y1-y0)*temp/dt;
+            float dx = (x1-x0)*temp/dt;
+            float past_x = (x1-x0)*temp_past/dt;
+            float past_y = (y1-y0)*temp_past/dt;
 
             for(i=1;i<num;i++)
             {
@@ -709,14 +703,13 @@ void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 temp_draw,s32
             pt[0].x =x0+dx*(num-1);
             pt[0].y =y0+dy*(num-1);
             if(x0<x1)
-                pt[1].x =(x0+dx*num-past_x)>dot?x1:x0+dx*num-past_x;
+                pt[1].x =(x0+dx*num-past_x)>dt?x1:x0+dx*num-past_x;
             else if(x0>x1)
-                pt[1].x =(x0+dx*num-past_x)<dot?x1:x0+dx*num-past_x;
-
+                pt[1].x =(x0+dx*num-past_x)<dt?x1:x0+dx*num-past_x;
             if(y0<y1)
-                pt[1].y =(y0+dy*num-past_y)>dot?y1:y0+dy*num-past_y;
+                pt[1].y =(y0+dy*num-past_y)>dt?y1:y0+dy*num-past_y;
             if(y0>y1)
-                pt[1].y =(y0+dy*num-past_y)<dot?y1:y0+dy*num-past_y;
+                pt[1].y =(y0+dy*num-past_y)<dt?y1:y0+dy*num-past_y;
             __GDD_Cdn_DC_toWin(hdc,pt,2);
            GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                    hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
@@ -1112,6 +1105,96 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
     return FALSE;
 
 }
+//----------------------绘制一个实心三角形---------
+//描述: 使用FillTrangle绘制一个实心三角形
+//参数:hdc: 绘图上下文句柄.
+//    x0,y0;x1,y1;x2,y2;三个坐标点
+//返回:无
+void GDD_FillTrangle(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
+{
+    if(hdc!=NULL)
+    {
+        if(((x0 *y1 + x1 *y2 + x2 *y0 - x0 *y2 - x1 *y0 - x2 *y1)/2)==0)//判断三点共线
+            return;
+        if(y0>y1)
+        {
+            __gdd_swap(x0,x1);
+            __gdd_swap(y0,y1);
+        }
+        if(y0>y2)
+        {
+            __gdd_swap(x0,x2);
+            __gdd_swap(y0,y2);
+        }
+        if(y1>y2)
+        {
+            __gdd_swap(y1,y2);
+            __gdd_swap(x1,x2);
+        }
+
+
+        if(y0==y1)
+        {
+            draw_trangle_up(hdc,x0,y0,x1,y1,x2,y2);
+        }
+        else if(y1==y2)
+        {
+            draw_trangle_dowm(hdc,x0,y0,x1,y1,x2,y2);
+        }
+        else
+        {
+            s32 x=(x0-x2)*(y1-y2)/(y0-y2)+x2;
+            __GDD_trangle_dowm(hdc,x0,y0,x1,y1,x,y1);
+            __GDD_trangle_up(hdc,x,y1,x1,y1,x2,y2);
+        }
+    }
+}
+//          ^       x0,y0
+//         / \
+//        ￣  ￣    x1,y1   x2,y2
+void __GDD_trangle_dowm(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
+{
+    if(x1>x2)
+    {
+        __gdd_swap(x1,x2);
+        __gdd_swap(y1,y2);
+    }
+     float dxy_left = (x0-x1)*1.0/(y0-y1) ;
+     float dxy_right = (x0-x2)*1.0/(y0-y2);
+     float xr = x2 ,xL = x1 ;
+
+     for(int y=y1 ; y >y0 ;y--)
+     {
+         GDD_DrawLine(hdc,(s32)(xL+0.5),y,(s32)((xr+0.5)),y);
+         xL -= dxy_left ;
+         xr -= dxy_right ;
+     }
+}
+//    __   x0,y0    x1,y1
+//    \/
+//             x2,y2
+void __GDD_trangle_up(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
+{
+
+    if(x0>x1)
+    {
+        __gdd_swap(x0,x1);
+        __gdd_swap(y0,y1);
+    }
+
+    float dxy_left = (x0-x2)*1.0/(y0-y2) ;
+      float dxy_right = (x1-x2)*1.0/(y1-y2);
+      float xr = x1 ,xl = x0 ;
+      for(int y=y1 ; y <y2 ;y++)
+      {
+          GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
+          xl += dxy_left ;
+          xr += dxy_right ;
+      }
+}
+
+
+
 
 //----绘制矩形------------------------------------------------------------------
 //描述: 使用DrawColor绘制一个空心矩形.
@@ -1505,8 +1588,20 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
   s32 quarter1,quarter2,quarter3,quarter4;
   u32 color;
 
+  if(angle1>angle2) angle2 = angle2+360;
   if(radius<=0)
   {
+      return;
+  }
+  if(angle2>360)
+  {
+      if(angle2-angle1>=360)
+          GDD_DrawCircle(hdc,xCenter,yCenter,radius);
+      else
+      {
+      GDD_DrawSector(hdc, xCenter,yCenter,radius,angle1,360);
+      GDD_DrawSector(hdc, xCenter,yCenter,radius,0,angle2-360);
+      }
       return;
   }
 
