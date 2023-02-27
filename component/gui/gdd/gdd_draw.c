@@ -1425,7 +1425,7 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
              pt.x = cx;
              pt.y = cy;
              __GDD_Cdn_DC_toWin(hdc, &pt, 1);
-             GK_DrawCircle(hdc->pGkWin, &hdc->DrawArea,cx, cy, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
+             GK_DrawCircle(hdc->pGkWin, &hdc->DrawArea,pt.x, pt.y, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
              __GDD_EndDraw(hdc);
          }
 
