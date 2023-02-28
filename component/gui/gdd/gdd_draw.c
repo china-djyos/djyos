@@ -948,6 +948,111 @@ s32  GDD_GetStrLineCount(struct Charset *myCharset, const char *str)
     return linenum;
 }
 
+
+//----绘制一条任意宽度的直线------------------------------------------------------
+//描述: 绘制一条任意宽度的直线
+//参数：hdc: 绘图上下文句柄.
+//      x0,y0、x1,y1: 坐标.
+//      width:宽度.
+//返回：无.
+//------------------------------------------------------------------------------
+void GDD_DrawLinefill(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width)
+{
+    POINT p[4];
+    if(hdc!=NULL)
+    {
+        if(width<2)//判断宽度是否符合
+        {
+            if(width==1)
+                GDD_DrawLine(hdc,x0,y0,x1,y1);
+            return ;
+        }
+        if(y0==y1)//水平线
+        {
+            if(x0>x1)
+            {
+                swap(x0,x1);
+                swap(y0,y1);
+            }
+            RECT prc;
+            prc=(RECT){x0,y0 - (width>>1),x1,y0 - (width>>1) + width-1};
+            GDD_FillRectEx(hdc,&prc,hdc->DrawColor);
+        }
+        else if(x0==x1)//垂直线
+        {
+            if(y0>y1)
+           {
+               swap(x0,x1);
+               swap(y0,y1);
+           }
+            RECT prc;
+            prc=(RECT){x0+(width>>1) - width-1,y0,x0 + (width>>1),y1};
+            GDD_FillRectEx(hdc,&prc,hdc->DrawColor);
+        }
+        else//斜线
+        {
+            if(y0>y1)
+            {
+                swap(x0,x1);
+                swap(y0,y1);
+            }
+            float dx = width*((y1-y0)*1.0/sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)))/2;
+            float dy = width*((x1-x0)*1.0/sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)))/2;
+            p[0].x = x0 + dx;
+            p[0].y = y0 - dy;
+            p[1].x = x0-dx;
+            p[1].y = y0 + dy;
+            p[2].x = x1-dx;
+            p[2].y = y1 +dy;
+            p[3].x = x1+dx;
+            p[3].y = y1 - dy;
+            __GDD_fillrect(hdc,p[1].x,p[1].y,p[2].x,p[2].y,p[3].x,p[3].y,p[0].x,p[0].y);
+        }
+    }
+}
+void __GDD_fillrect(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2,s32 x3,s32 y3)
+{
+    if(y0<y3)
+    {
+        if(y3>y1)
+        {
+            __GDD_fillrect(hdc,x1,y1,x2,y2,x3,y3,x0,y0);
+            return;
+        }
+        s32 xtop = (y3-y0)*(x1-x0)/(y1-y0)+x0;
+        s32 xbuttom = (y1-y3)*(x2-x3)/(y2-y3)+x3;
+        __GDD_trangle_dowm(hdc,x0,y0,xtop,y3,x3,y3);
+        __Parallelogram(hdc,xtop,y3,x1,y1,xbuttom,y1,x3,y3);
+        __GDD_trangle_up(hdc,x1,y1,xbuttom,y1,x2,y2);
+    }
+    else if(y0>y3)
+    {
+        if(y0>y2)
+        {
+            __GDD_fillrect(hdc,x3,y3,x0,y0,x1,y1,x2,y2);
+            return;
+        }
+        s32 xtop = (y0-y3)*(x2-x3)/(y2-y3)+x3;
+        s32 xbuttom = (y2-y0)*(x1-x0)/(y1-y0)+x0;
+        __GDD_trangle_dowm(hdc,x3,y3,xtop,y0,x0,y0);
+        __Parallelogram(hdc,x0,y0,xbuttom,y2,x2,y2,xtop,y0);
+        __GDD_trangle_up(hdc,xbuttom,y2,x2,y2,x1,y1);
+    }
+    else
+        __Parallelogram(hdc,x0,y0,x1,y1,x2,y2,x3,y3);
+}
+
+void __Parallelogram(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2,s32 x3,s32 y3)
+{
+
+    s32 dx = abs(x0-x1),dy = abs(y0-y1);
+    float k = (x1-x0)*1.0/(y1-y0);
+    for(int i=0;i<dy;i++)
+    {
+        GDD_DrawLine(hdc,x0+i*k+0.5,y0+i,x3+i*k+0.5,y0+i);
+    }
+
+}
 //----在矩形范围内绘制字符串---------------------------------------------------
 //描述: 在指定矩形范围内绘制字符串,使用TextColor作为颜色值,支持回车与换行符,
 //      该函数可以指定是否绘制字符串边框和背景,以前指定对齐方式的组合.
@@ -1135,11 +1240,11 @@ void GDD_FillTrangle(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
 
         if(y0==y1)
         {
-            draw_trangle_up(hdc,x0,y0,x1,y1,x2,y2);
+            __GDD_trangle_up(hdc,x0,y0,x1,y1,x2,y2);
         }
         else if(y1==y2)
         {
-            draw_trangle_dowm(hdc,x0,y0,x1,y1,x2,y2);
+            __GDD_trangle_dowm(hdc,x0,y0,x1,y1,x2,y2);
         }
         else
         {
@@ -1165,10 +1270,11 @@ void __GDD_trangle_dowm(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
 
      for(int y=y1 ; y >y0 ;y--)
      {
-         GDD_DrawLine(hdc,(s32)(xL+0.5),y,(s32)((xr+0.5)),y);
+         GDD_DrawLineEx(hdc,(s32)(xL+0.5),y,(s32)((xr+0.5)),y,hdc->FillColor);
          xL -= dxy_left ;
          xr -= dxy_right ;
      }
+     GDD_SetPixel(hdc,x0,y0,hdc->FillColor);
 }
 //    __   x0,y0    x1,y1
 //    \/
@@ -1187,10 +1293,11 @@ void __GDD_trangle_up(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
       float xr = x1 ,xl = x0 ;
       for(int y=y1 ; y <y2 ;y++)
       {
-          GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
+          GDD_DrawLineEx(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y,hdc->FillColor);
           xl += dxy_left ;
           xr += dxy_right ;
       }
+      GDD_SetPixel(hdc,x2,y2,hdc->FillColor);
 }
 
 
