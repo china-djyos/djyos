@@ -220,8 +220,8 @@ bool_t    GDD_WindowToScreen(HWND hwnd,POINT *pt,s32 count)
             GK_GetScreenArea(hwnd->pGkWin, &rc);
             for(i=0;i<count;i++)
             {
-                pt->x += rc.left;
-                pt->y += rc.top;
+                pt[i].x += rc.left;
+                pt[i].y += rc.top;
             }
             __HWND_Unlock(hwnd);
             return TRUE;
