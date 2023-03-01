@@ -840,7 +840,7 @@ HWND    GDD_InitGddDesktop(struct GkWinObj *desktop)
         pGddWin->mutex_lock =Lock_MutexCreate(NULL);
         pGddWin->pMsgQ      =__GUI_CreateMsgQ(32);
         pGddWin->DrawColor = CN_DEF_DRAW_COLOR;
-        pGddWin->FillColor = CN_DEF_FILL_COLOR;
+        pGddWin->BGColor = CN_DEF_FILL_COLOR;
         pGddWin->TextColor = CN_DEF_TEXT_COLOR;
         if((pGddWin->mutex_lock==NULL)||(pGddWin->pMsgQ==NULL))
         {
@@ -944,7 +944,7 @@ HWND __GDD_CreateWindow(struct GkWinObj *pGkWin,u32 Style,
                 pGddWin->mutex_lock =hParent->mutex_lock;  //组件窗口使用父窗口锁
                 pGddWin->pMsgQ      =hParent->pMsgQ;       //组件窗口使用父窗口消息队列
                 pGddWin->DrawColor = hParent->DrawColor;
-                pGddWin->FillColor = hParent->FillColor;
+                pGddWin->BGColor = hParent->BGColor;
                 pGddWin->TextColor = hParent->TextColor;
             }
             else
@@ -953,7 +953,7 @@ HWND __GDD_CreateWindow(struct GkWinObj *pGkWin,u32 Style,
                 pGddWin->mutex_lock =Lock_MutexCreate(NULL);
                 pGddWin->pMsgQ      =__GUI_CreateMsgQ(32);
                 pGddWin->DrawColor = CN_DEF_DRAW_COLOR;
-                pGddWin->FillColor = CN_DEF_FILL_COLOR;
+                pGddWin->BGColor = CN_DEF_FILL_COLOR;
                 pGddWin->TextColor = CN_DEF_TEXT_COLOR;
 
                 if((pGddWin->mutex_lock==NULL)||(pGddWin->pMsgQ==NULL))
@@ -1314,7 +1314,7 @@ bool_t GDD_SetWindowHyalineColor(HWND hwnd,u32 HyalineColor)
     return FALSE;
 }
 
-bool_t GDD_SetWindowFillColor(HWND hwnd,u32 FillColor)
+bool_t GDD_SetWindowBackGroundColor(HWND hwnd,u32 BGColor)
 {
     HWND pGddWin=NULL;
     if(hwnd==NULL)
@@ -1322,14 +1322,14 @@ bool_t GDD_SetWindowFillColor(HWND hwnd,u32 FillColor)
     if(__HWND_Lock(hwnd))
     {
         pGddWin=hwnd;
-        pGddWin->FillColor=FillColor;
+        pGddWin->BGColor=BGColor;
         __HWND_Unlock(hwnd);
         return TRUE;
     }
     return FALSE;
 }
 
-bool_t GDD_GetWindowFillColor(HWND hwnd,u32 *pFillColor)
+bool_t GDD_GetWindowBackGroundColor(HWND hwnd,u32 *pBGColor)
 {
     HWND pGddWin=NULL;
     if(hwnd==NULL)
@@ -1337,7 +1337,7 @@ bool_t GDD_GetWindowFillColor(HWND hwnd,u32 *pFillColor)
     if(__HWND_Lock(hwnd))
     {
         pGddWin=hwnd;
-        *pFillColor=pGddWin->FillColor;
+        *pBGColor =pGddWin->BGColor;
         __HWND_Unlock(hwnd);
         return TRUE;
     }
@@ -1584,7 +1584,7 @@ static ptu32_t __GDD_DefWindowProcERASEBKGND(struct WindowMsg *pMsg)
     if(hdc!=NULL)
     {
         GDD_GetClientRect(pMsg->hwnd,&rc);
-        GDD_FillRect(hdc,&rc);
+        GDD_FillRectEx(hdc,&rc,hdc->BGColor);
         return 1;
     }
     return 0;

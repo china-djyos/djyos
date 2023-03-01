@@ -715,9 +715,9 @@ static  bool_t __Widget_TextBoxPaint(struct WindowMsg *pMsg)
    GDD_GetClientRect(hwnd,&rc);
 
    Widget_GetAttr(hwnd,ENUM_WIDGET_FILL_COLOR,&color);
-//   GDD_SetFillColor(hdc,color);
-   GDD_SetFillColor(hdc,RGB(178,178,178));
-   GDD_FillRect(hdc,&rc);
+//   GDD_SetBackGroundColor(hdc,color);
+   GDD_SetBackGroundColor(hdc,RGB(178,178,178));
+   GDD_FillRectEx(hdc,&rc,hdc->BGColor);
    if(hwnd->Style&WS_BORDER)
    {
       if(hwnd->Style&LABEL_BORDER_FIXED3D)

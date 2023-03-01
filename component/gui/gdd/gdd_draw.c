@@ -170,7 +170,7 @@ void    GDD_InitDC(HDC pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type)
     pdc->CurX       =0;
     pdc->CurY       =0;
     pdc->DrawColor  =hwnd->DrawColor;
-    pdc->FillColor  =hwnd->FillColor;
+    pdc->BGColor  =hwnd->BGColor;
     pdc->TextColor  =hwnd->TextColor;
     pdc->SyncTime   = CN_TIMEOUT_FOREVER;
     pdc->RopCode=gk_win->RopCode;
@@ -335,20 +335,20 @@ u32 GDD_GetDrawColor(HDC hdc)
     return old;
 }
 
-//----设置当前填充颜色-----------------------------------------------------------
-//描述: 当前填充颜色会影响所有填充类函数,如FillRect,GDD_FillCircle...
+//----设置当前背景颜色-----------------------------------------------------------
+//描述: 当前背景颜色会影响所有背景类函数 (原函数名：  GDD_SetFillColor  .
 //参数：hdc: 绘图上下文句柄.
-//      color: 新的填充颜色.
+//      color: 新的背景颜色.
 //返回：旧的绘制颜色.
 //------------------------------------------------------------------------------
-u32 GDD_SetFillColor(HDC hdc,u32 color)
+u32 GDD_SetBackGroundColor(HDC hdc,u32 color)
 {
     u32 old;
 
     if(hdc!=NULL)
     {
-        old =hdc->FillColor;
-        hdc->FillColor = color;
+        old =hdc->BGColor;
+        hdc->BGColor = color;
     }
     else
     {
@@ -357,18 +357,18 @@ u32 GDD_SetFillColor(HDC hdc,u32 color)
     return old;
 }
 
-//----获得当前填充颜色-----------------------------------------------------------
-//描述: 略.
+//----获得当前背景颜色-----------------------------------------------------------
+//描述: 略.   (原函数名：  GDD_GetFillColor .
 //参数：hdc: 绘图上下文句柄.
-//返回：当前填充颜色.
+//返回：当前背景颜色.
 //------------------------------------------------------------------------------
-u32 GDD_GetFillColor(HDC hdc)
+u32 GDD_GetBackGroundColor(HDC hdc)
 {
     u32 old;
 
     if(hdc!=NULL)
     {
-        old =hdc->FillColor;
+        old =hdc->BGColor;
     }
     else
     {
@@ -971,8 +971,8 @@ void GDD_DrawLinefill(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width)
         {
             if(x0>x1)
             {
-                swap(x0,x1);
-                swap(y0,y1);
+                __gdd_swap(x0,x1);
+                __gdd_swap(y0,y1);
             }
             RECT prc;
             prc=(RECT){x0,y0 - (width>>1),x1,y0 - (width>>1) + width-1};
@@ -982,8 +982,8 @@ void GDD_DrawLinefill(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width)
         {
             if(y0>y1)
            {
-               swap(x0,x1);
-               swap(y0,y1);
+                __gdd_swap(x0,x1);
+                __gdd_swap(y0,y1);
            }
             RECT prc;
             prc=(RECT){x0+(width>>1) - width-1,y0,x0 + (width>>1),y1};
@@ -993,8 +993,8 @@ void GDD_DrawLinefill(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width)
         {
             if(y0>y1)
             {
-                swap(x0,x1);
-                swap(y0,y1);
+                __gdd_swap(x0,x1);
+                __gdd_swap(y0,y1);
             }
             float dx = width*((y1-y0)*1.0/sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)))/2;
             float dy = width*((x1-x0)*1.0/sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)))/2;
@@ -1101,7 +1101,7 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
 
             if(flag&DT_BKGND)
             {
-                GDD_FillRect(hdc,&rc0);
+                GDD_FillRectEx(hdc,&rc0,hdc->BGColor);
             }
 
            GDD_TextOut(hdc,rc.left,rc.top,text,count);
@@ -1128,7 +1128,7 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
             }
 
             if(flag&DT_BKGND)
-            {                GDD_FillRect(hdc,&rc0);
+            {                GDD_FillRectEx(hdc,&rc0,hdc->BGColor);
             }
 
             y0 =rc.top;
@@ -1270,11 +1270,11 @@ void __GDD_trangle_dowm(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
 
      for(int y=y1 ; y >y0 ;y--)
      {
-         GDD_DrawLineEx(hdc,(s32)(xL+0.5),y,(s32)((xr+0.5)),y,hdc->FillColor);
+         GDD_DrawLine(hdc,(s32)(xL+0.5),y,(s32)((xr+0.5)),y);
          xL -= dxy_left ;
          xr -= dxy_right ;
      }
-     GDD_SetPixel(hdc,x0,y0,hdc->FillColor);
+     GDD_SetPixel(hdc,x0,y0,hdc->DrawColor);
 }
 //    __   x0,y0    x1,y1
 //    \/
@@ -1293,11 +1293,11 @@ void __GDD_trangle_up(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
       float xr = x1 ,xl = x0 ;
       for(int y=y1 ; y <y2 ;y++)
       {
-          GDD_DrawLineEx(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y,hdc->FillColor);
+          GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
           xl += dxy_left ;
           xr += dxy_right ;
       }
-      GDD_SetPixel(hdc,x2,y2,hdc->FillColor);
+      GDD_SetPixel(hdc,x2,y2,hdc->DrawColor);
 }
 
 
@@ -1342,8 +1342,8 @@ void    GDD_DrawRect(HDC hdc,const RECT *prc)
     }
 }
 
-//----填充矩形------------------------------------------------------------------
-//描述: 使用FillColor填充一个实心矩形.
+//----绘制矩形------------------------------------------------------------------
+//描述: 使用DrawColor绘制一个实心矩形.
 //参数：hdc: 绘图上下文句柄.
 //      prc: 矩形参数.
 //返回：无.
@@ -1362,7 +1362,7 @@ void    GDD_FillRect(HDC hdc,const RECT *prc)
             {
                 __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
 
-                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,& rc, hdc->FillColor, hdc->FillColor,
+                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,& rc, hdc->DrawColor, hdc->DrawColor,
                             CN_FILLRECT_MODE_N,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
@@ -1370,8 +1370,8 @@ void    GDD_FillRect(HDC hdc,const RECT *prc)
     }
 
 }
-//----填充矩形------------------------------------------------------------------
-//描述: 使用指定颜色填充一个实心矩形.
+//----绘制实心矩形------------------------------------------------------------------
+//描述: 使用指定颜色绘制一个实心矩形.
 //参数：hdc: 绘图上下文句柄.
 //      prc: 矩形参数.
 //返回：无.
@@ -1539,8 +1539,8 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
      }
 }
 
-//----填充圆------------------------------------------------------------------
-//描述: 使用FillColor填充一个实心圆.
+//----绘制实心圆------------------------------------------------------------------
+//描述: 使用DrawColor绘制一个实心圆.
 //参数：hdc: 绘图上下文句柄.
 //      cx,cy: 圆的中心坐标
 //      r: 圆的半径
@@ -1561,7 +1561,7 @@ void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
         {
 
             GK_Lineto(hdc->pGkWin, &hdc->DrawArea, cx-r,cy,cx+r+1,cy,
-                    hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                    hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             for (i=1; i<= imax; i++)
             {
                 if ((i*i+x*x) >sqmax)
@@ -1570,17 +1570,17 @@ void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
                     if (x>imax)
                     {
                         GK_Lineto(hdc->pGkWin, &hdc->DrawArea, cx-i+1,cy+x, cx+i,cy+x,
-                                hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                                hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
                         GK_Lineto(hdc->pGkWin, &hdc->DrawArea, cx-i+1,cy-x, cx+i,cy-x,
-                                hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                                hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
                     }
                     x--;
                 }
 
                 GK_Lineto(hdc->pGkWin, &hdc->DrawArea,cx-x,cy+i, cx+x+1,cy+i,
-                        hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                        hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
                 GK_Lineto(hdc->pGkWin, &hdc->DrawArea,cx-x,cy-i, cx+x+1,cy-i,
-                        hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                        hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             }
 
             __GDD_EndDraw(hdc);
@@ -1637,8 +1637,8 @@ void     GDD_DrawEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
 
 }
 
-//----填充椭圆------------------------------------------------------------------
-//描述: 使用FillColor填充一个实心椭圆.
+//----绘制椭圆------------------------------------------------------------------
+//描述: 使用DrawColor绘制一个实心椭圆.
 //参数：hdc: 绘图上下文句柄.
 //      cx,cy: 椭圆的中心坐标
 //      rx: 椭圆的水平半径
@@ -1658,7 +1658,7 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
     x = rx;
     if(__GDD_BeginDraw(hdc))
     {
-        color =GDD_GetFillColor(hdc);
+        color =GDD_GetDrawColor(hdc);
         for (y=0; y<=ry; y++)
         {
              SumY =((s32)(rx*rx))*((s32)(y*y));
@@ -1775,8 +1775,8 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
 
 }
 
-//----填充扇形------------------------------------------------------------------
-//描述: 使用FillColor填充扇形.
+//----绘制实心扇形------------------------------------------------------------------
+//描述: 使用DrawColor绘制实心扇形.
 //参数：hdc: 绘图上下文句柄.
 //      xCenter,yCenter: 扇形的中心坐标
 //      radius: 扇形半径
@@ -1807,7 +1807,7 @@ void    GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
 
     if(__GDD_BeginDraw(hdc))
     {
-        color =GDD_GetFillColor(hdc);
+        color =GDD_GetDrawColor(hdc);
 
         while(1)
         {

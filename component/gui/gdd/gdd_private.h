@@ -129,7 +129,7 @@ struct DC
     u32 DCType;                 //DC类型
     s32 CurX,CurY;              //当前位置
     u32 DrawColor;              //绘制颜色
-    u32 FillColor;              //填充颜色
+    u32 BGColor;              //背景颜色
     u32 TextColor;              //字体颜色
     u32 SyncTime;               //同步时间
     struct RopGroup RopCode;    //光栅码
@@ -164,7 +164,7 @@ struct WINDOW
 //  RECT    CliRect;        //窗口客户区(使用屏幕坐标)
     RECT    CliRect;        //窗口客户区(改为窗口左上角为原点的坐标)
     u32     DrawColor;      //绘制颜色，创建子窗口时，将继承
-    u32     FillColor;      //填充颜色，创建子窗口时，将继承
+    u32     BGColor;      //背景颜色，创建子窗口时，将继承
     u32     TextColor;      //字体颜色，创建子窗口时，将继承
 
     list_t  list_timer;         //窗口定时器链表

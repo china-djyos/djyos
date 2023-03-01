@@ -614,16 +614,16 @@ static ptu32_t __Widget_RichTextBoxPaint(struct WindowMsg *pMsg)
 
     if(bColor==true)
        {
-        GDD_SetFillColor(hdc,RGB(200,200,0));
+        GDD_SetBackGroundColor(hdc,RGB(200,200,0));
        }
     else
-        GDD_SetFillColor(hdc,RGB(0,200,0));
+        GDD_SetBackGroundColor(hdc,RGB(0,200,0));
 
-    GDD_FillRect(hdc,&rc);
+    GDD_FillRectEx(hdc,&rc,hdc->BGColor);
 
     GDD_SetTextColor(hdc,RGB(1,0,0));
     GDD_SetDrawColor(hdc,RGB(255,255,255));
-//    GDD_SetFillColor(hdc,RGB(200,0,240));
+//    GDD_SetBackGroundColor(hdc,RGB(200,0,240));
 
     i=DT_LEFT|DT_VCENTER;
     if(bBorder)

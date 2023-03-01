@@ -615,7 +615,7 @@ static bool_t __Widget_ListViewPaint(struct WindowMsg *pMsg)
     ////
 
     GDD_SetTextColor(hdc,RGB(0,0,0));
-    GDD_SetFillColor(hdc,RGB(220,220,220));
+    GDD_SetBackGroundColor(hdc,RGB(220,220,220));
     GDD_SetDrawColor(hdc,RGB(160,160,200));
 
     //draw org hdr
@@ -662,7 +662,7 @@ static bool_t __Widget_ListViewPaint(struct WindowMsg *pMsg)
         //»æÖÆÐÐ±êÇ©
         GDD_SetRect(&rc,x,y,pLV->row_width,row->Height);
         GDD_SetTextColor(hdc,RGB(0,0,0));
-        GDD_SetFillColor(hdc,RGB(160,160,160));
+        GDD_SetBackGroundColor(hdc,RGB(160,160,160));
         GDD_SetDrawColor(hdc,RGB(160,160,200));
 
         rc0 =rc;
@@ -695,7 +695,7 @@ static bool_t __Widget_ListViewPaint(struct WindowMsg *pMsg)
                 cell =&row->cell_item[i];
 
                 GDD_SetTextColor(hdc,cell->TextColor);
-                GDD_SetFillColor(hdc,cell->BackColor);
+                GDD_SetBackGroundColor(hdc,cell->BackColor);
                 GDD_SetDrawColor(hdc,RGB(160,160,200));
 
                 dt =DT_BKGND|DT_BORDER;
