@@ -53,8 +53,8 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
 
     hdc=GDD_BeginPaint(hwnd);
     GDD_GetClientRect(hwnd,&rc0);
-    GDD_SetFillColor(hdc,RGB(250,250,250));
-    GDD_FillRect(hdc,&rc0);
+    GDD_SetBackGroundColor(hdc,RGB(250,250,250));
+    GDD_FillRectEx(hdc,&rc0,hdc->BGColor);
 
     prog1_val=0;
     prog2_val=0;
@@ -224,8 +224,8 @@ static ptu32_t HmiErasebkgnd(struct WindowMsg *pMsg)
     hwnd =pMsg->hwnd;
     hdc =(HDC)pMsg->Param1;
     GDD_GetClientRect(hwnd,&rc0);
-    GDD_SetFillColor(hdc,RGB(200,200,200));
-    GDD_FillRect(hdc,&rc0);
+    GDD_SetBackGroundColor(hdc,RGB(200,200,200));
+    GDD_FillRectEx(hdc,&rc0,hdc->BGColor);
     return true;
 }
 

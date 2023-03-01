@@ -214,7 +214,7 @@ static ptu32_t HmiPaintMove(struct WindowMsg  *pMsg)
 
     GDD_GetClientRect(hwnd,&rc0);
     GDD_SetTextColor(hdc,RGB(0,240,0));
-    GDD_SetFillColor(hdc,RGB(40,40,40));
+    GDD_SetBackGroundColor(hdc,RGB(40,40,40));
     GDD_SetDrawColor(hdc,RGB(0,240,0));
 
     GDD_GetWindowRect(hwnd,&rc);

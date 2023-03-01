@@ -100,19 +100,19 @@ static  bool_t __Widget_ButtonPaint(struct WindowMsg *pMsg)
         return false;
     GDD_GetClientRect(hwnd,&rc);
     Widget_GetAttr(hwnd,ENUM_WIDGET_FILL_COLOR,&color);
-    GDD_SetFillColor(hdc,color);
+    GDD_SetBackGroundColor(hdc,color);
     if(hwnd->Style&WS_DISABLE)
     {
-        GDD_FillRect(hdc,&rc);
+        GDD_FillRectEx(hdc,&rc,hdc->BGColor);
         GDD_OffsetRect(&rc,1,1);
     }
     else if(hwnd->Style&BS_PUSHED)
     {
         GDD_SetTextColor(hdc,RGB(255,255,255));
 
-        GDD_SetFillColor(hdc,RGB(0,0,0));
+        GDD_SetBackGroundColor(hdc,RGB(0,0,0));
         GDD_OffsetRect(&rc,1,1);
-        GDD_FillRect(hdc,&rc);
+        GDD_FillRectEx(hdc,&rc,hdc->BGColor);
 
     }
     else
@@ -126,15 +126,15 @@ static  bool_t __Widget_ButtonPaint(struct WindowMsg *pMsg)
 
             case    BS_SIMPLE:
                     GDD_SetDrawColor(hdc,CN_COLOR_BLACK);
-                    GDD_InflateRectEx(&rc,0,0,-1,-1);      //边框右下坐标并不包含在矩形区域内
-                    GDD_FillRect(hdc,&rc);
+                    GDD_InflateRectEx(&rc,0,0,-1,-1);      //±??òóò??×?±ê2￠2?°üo??ú??D???óò?ú
+                    GDD_FillRectEx(hdc,&rc,hdc->BGColor);
                     GDD_DrawRect(hdc,&rc);
                     break;
 
                 case    BS_FLAT:
                 default:
-                    GDD_SetFillColor(hdc,RGB(255,255,255));
-                    GDD_FillRect(hdc,&rc);
+                    GDD_SetBackGroundColor(hdc,RGB(255,255,255));
+                    GDD_FillRectEx(hdc,&rc,hdc->BGColor);
                     break;
 
             }
