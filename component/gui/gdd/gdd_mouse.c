@@ -81,8 +81,8 @@ static  bool_t __GDD_MousePaint(struct WindowMsg *pMsg)
     if(NULL!=hdc)
     {
         GDD_GetClientRect(hwnd,&rc);
-        GDD_SetFillColor(hdc,RGB(255,0,0));
-        GDD_FillRect(hdc,&rc);
+        GDD_SetBackGroundColor(hdc,RGB(255,0,0));
+        GDD_FillRectEx(hdc,&rc,hdc->BGColor);
 
         GDD_SetDrawColor(hdc,RGB(1,1,1));
         GDD_DrawLine(hdc,0,4,8,4);

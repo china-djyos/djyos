@@ -70,16 +70,16 @@
 #include "dbug.h"
 //#include "arm32_stdint.h"
 
-static bool_t __Widget_SetFillColor(HWND hwnd,uint32_t color)
+static bool_t __Widget_SetBackGroundColor(HWND hwnd,uint32_t color)
 {
-    GDD_SetWindowFillColor(hwnd,color);
+    GDD_SetWindowBackGroundColor(hwnd,color);
     GDD_InvalidateWindow(hwnd,true);
     return true;
 }
 
-static bool_t __Widget_GetFillColor(HWND hwnd,uint32_t *pcolor)
+static bool_t __Widget_GetBackGroundColor(HWND hwnd,uint32_t *pcolor)
 {
-    return (GDD_GetWindowFillColor(hwnd,pcolor));
+    return (GDD_GetWindowBackGroundColor(hwnd,pcolor));
 }
 
 static bool_t __Widget_SetHyalineColor(HWND hwnd,uint32_t color)
@@ -141,7 +141,7 @@ bool_t Widget_SetAttr(HWND hwnd,uint8_t attrid,ptu32_t param)
      switch(attrid)
      {
        case ENUM_WIDGET_FILL_COLOR:
-           __Widget_SetFillColor(hwnd,param);
+           __Widget_SetBackGroundColor(hwnd,param);
            break;
        case ENUM_WIDGET_DRAW_COLOR:
 //         Button_SetDrawColor(hwnd,param);
@@ -175,7 +175,7 @@ bool_t Widget_GetAttr(HWND hwnd,uint8_t attrid,ptu32_t *param)
      switch(attrid)
      {
        case ENUM_WIDGET_FILL_COLOR:
-           __Widget_GetFillColor(hwnd,(u32 *)param);
+           __Widget_GetBackGroundColor(hwnd,(u32 *)param);
            break;
        case ENUM_WIDGET_TEXT_COLOR:
            __Widget_GetTextColor(hwnd,(u32 *)param);

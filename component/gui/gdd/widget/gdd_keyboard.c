@@ -201,8 +201,8 @@ static  bool_t __Widget_VirKeyBoardPaint(struct WindowMsg *pMsg)
     }
 
     GDD_GetClientRect(hwnd,&rc);
-    GDD_SetFillColor(hdc,RGB(255,255,255));
-    GDD_FillRect(hdc,&rc);
+    GDD_SetBackGroundColor(hdc,RGB(255,255,255));
+    GDD_FillRectEx(hdc,&rc,hdc->BGColor);
     width=GDD_RectW(&rc);
     height=GDD_RectH(&rc);
     gs_KeyWidth=(width-(gs_KeyBoardCols+1)*gs_KeySpace)/gs_KeyBoardCols;

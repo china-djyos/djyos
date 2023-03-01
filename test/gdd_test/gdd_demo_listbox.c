@@ -186,8 +186,8 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     hdc =GDD_BeginPaint(hwnd);
 
     GDD_GetClientRect(hwnd,&rc);
-    GDD_SetFillColor(hdc,RGB(200,200,200));
-    GDD_FillRect(hdc,&rc);
+    GDD_SetBackGroundColor(hdc,RGB(200,200,200));
+    GDD_FillRectEx(hdc,&rc,hdc->BGColor);
     GDD_EndPaint(hwnd,hdc);
 
     return true;

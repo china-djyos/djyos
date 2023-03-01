@@ -472,8 +472,8 @@ static  ptu32_t __Widget_ListBoxPaint(struct WindowMsg *pMsg)
     GDD_GetClientRect(hwnd,&rc0);
     if(GDD_GetWindowStyle(hwnd)&LBS_FLAT)
     {
-        GDD_SetFillColor(hdc,RGB(200,200,200));
-        GDD_FillRect(hdc,&rc0);
+        GDD_SetBackGroundColor(hdc,RGB(200,200,200));
+        GDD_FillRectEx(hdc,&rc0,hdc->BGColor);
     }
     else
     {
@@ -520,7 +520,7 @@ static  ptu32_t __Widget_ListBoxPaint(struct WindowMsg *pMsg)
             if(i == pLB->CurSel)
             {   //为当前选中项目.
                 GDD_SetDrawColor(hdc,RGB(255,100,255));
-                GDD_SetFillColor(hdc,RGB(128,0,160));
+                GDD_SetBackGroundColor(hdc,RGB(128,0,160));
                 GDD_SetTextColor(hdc,RGB(0,255,0));
                 GDD_DrawText(hdc,item->szText,-1,&rc,DT_LEFT|DT_VCENTER|DT_BORDER|DT_BKGND);
             }

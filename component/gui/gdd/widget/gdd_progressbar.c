@@ -225,10 +225,10 @@ static  bool_t __Widget_ProgressBarPaint(struct WindowMsg *pMsg)
 
         if(hwnd->Style&PBS_FLAT)
         {
-            GDD_SetFillColor(hdc,pPB->FGColor);
-            GDD_FillRect(hdc,&m_rc[0]);
-            GDD_SetFillColor(hdc,pPB->BGColor);
-            GDD_FillRect(hdc,&m_rc[1]);
+            GDD_SetBackGroundColor(hdc,pPB->FGColor);
+            GDD_FillRectEx(hdc,&m_rc[0],hdc->BGColor);
+            GDD_SetBackGroundColor(hdc,pPB->BGColor);
+            GDD_FillRectEx(hdc,&m_rc[1],hdc->BGColor);
         }
         else
         {

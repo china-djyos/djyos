@@ -263,7 +263,7 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     {
         GDD_SetTextColor(hdc,RGB(0,255,0));
         GDD_SetDrawColor(hdc,RGB(0,200,0));
-        GDD_SetFillColor(hdc,RGB(0,128,0));
+        GDD_SetBackGroundColor(hdc,RGB(0,128,0));
         GDD_DrawText(hdc,"连接成功",-1,&rc,DT_CENTER|DT_VCENTER|DT_BORDER|DT_BKGND);
 
     }
@@ -271,7 +271,7 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     {
         GDD_SetTextColor(hdc,RGB(255,0,0));
         GDD_SetDrawColor(hdc,RGB(200,0,0));
-        GDD_SetFillColor(hdc,RGB(100,0,0));
+        GDD_SetBackGroundColor(hdc,RGB(100,0,0));
         if(timer_500ms_count&0x01)
         {
             GDD_DrawText(hdc,"未连接",-1,&rc,DT_CENTER|DT_VCENTER|DT_BORDER|DT_BKGND);
@@ -292,13 +292,13 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
             24);
     GDD_SetTextColor(hdc,RGB(0,255,255));
     GDD_SetDrawColor(hdc,RGB(0,200,200));
-    GDD_SetFillColor(hdc,RGB(0,80,80));
+    GDD_SetBackGroundColor(hdc,RGB(0,80,80));
     GDD_DrawText(hdc,ZigBeeTimeBuf,-1,&rc,DT_CENTER|DT_VCENTER|DT_BORDER|DT_BKGND);
 
     ////
     GDD_SetTextColor(hdc,RGB(0,255,0));
     GDD_SetDrawColor(hdc,RGB(0,200,0));
-    GDD_SetFillColor(hdc,RGB(0,80,0));
+    GDD_SetBackGroundColor(hdc,RGB(0,80,0));
 
 //  GDD_CopyRect(&rc,&rcZigBeeString);
     rc = rcZigBeeString
