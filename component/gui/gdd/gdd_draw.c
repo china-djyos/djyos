@@ -956,7 +956,7 @@ s32  GDD_GetStrLineCount(struct Charset *myCharset, const char *str)
 //      width:宽度.
 //返回：无.
 //------------------------------------------------------------------------------
-void GDD_DrawLinefill(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width)
+void GDD_DrawThickLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width)
 {
     POINT p[4];
     if(hdc!=NULL)
@@ -975,7 +975,7 @@ void GDD_DrawLinefill(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width)
                 __gdd_swap(y0,y1);
             }
             RECT prc;
-            prc=(RECT){x0,y0 - (width>>1),x1,y0 - (width>>1) + width-1};
+            prc=(RECT){x0,y0 - (width>>1),x1+1,y0 - (width>>1) + width-1};
             GDD_FillRectEx(hdc,&prc,hdc->DrawColor);
         }
         else if(x0==x1)//垂直线
@@ -986,7 +986,7 @@ void GDD_DrawLinefill(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width)
                 __gdd_swap(y0,y1);
            }
             RECT prc;
-            prc=(RECT){x0+(width>>1) - width-1,y0,x0 + (width>>1),y1};
+            prc=(RECT){x0+(width>>1) - width+1,y0,x0 + (width>>1),y1+1};
             GDD_FillRectEx(hdc,&prc,hdc->DrawColor);
         }
         else//斜线
