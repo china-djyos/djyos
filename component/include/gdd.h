@@ -328,7 +328,7 @@ struct Charset *GDD_GetCharset(HDC hdc);
 
 void    GDD_SetPixel(HDC hdc,s32 x,s32 y,u32 color);
 void    GDD_DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1);
-void    GDD_DrawLinefill(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width);
+void    GDD_DrawThickLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width);
 void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 temp_draw,s32 temp_past);
 void    GDD_DrawLineEx(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,u32 color);
 void    GDD_DrawLineTo(HDC hdc,s32 x,s32 y);
