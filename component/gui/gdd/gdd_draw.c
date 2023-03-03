@@ -1270,7 +1270,14 @@ void __GDD_trangle_dowm(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
 
      for(int y=y1 ; y >y0 ;y--)
      {
-         GDD_DrawLine(hdc,(s32)(xL+0.5),y,(s32)((xr+0.5)),y);
+       if((s32)(xr+0.5)!=(s32)(xL+0.5))
+           GDD_DrawLine(hdc,(s32)(xL+0.5),y,(s32)((xr+0.5)),y);
+       else
+       {
+           GDD_DrawLine(hdc,(s32)(xr+0.5),y,(s32)(x0),y0);
+           break;
+       }
+
          xL -= dxy_left ;
          xr -= dxy_right ;
      }
@@ -1293,7 +1300,16 @@ void __GDD_trangle_up(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
       float xr = x1 ,xl = x0 ;
       for(int y=y1 ; y <y2 ;y++)
       {
-          GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
+          if((s32)(xl+0.5)!=(s32)(xr+0.5))
+              GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
+
+          else
+          {
+              GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)(x2),y2);
+              break;
+          }
+              
+
           xl += dxy_left ;
           xr += dxy_right ;
       }
