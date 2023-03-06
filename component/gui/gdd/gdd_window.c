@@ -1441,6 +1441,25 @@ bool_t    __HWND_Lock(HWND hwnd)
 //  }
     return result;
 }
+//----手动擦除窗口-----------------------------------------------------------
+//描述：擦除窗口，使窗口的绘图区变成背景颜色
+//参数:hdc 绘图句柄
+//返回：成功:TRUE; 失败:FLASE;
+//------------------------------------------------------------------------------
+bool_t GDD_ClearWindow(HDC hdc)
+{
+    RECT rc;
+    HWND hwnd;
+    if(hdc!=NULL)
+    {
+        hwnd = hdc->hwnd;
+        GDD_GetClientRect(hwnd,&rc);
+        GDD_FillRectEx(hdc,&rc,hdc->BGColor);
+        return TRUE;
+    }
+    return FALSE;
+}
+
 
 //----解锁窗口------------------------------------------------------------------
 //描述: 当窗口锁定成功后,由该函数进行解锁操作.
