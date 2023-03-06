@@ -376,6 +376,7 @@ HDC     GDD_BeginPaint(HWND hwnd);
 bool_t    GDD_EndPaint(HWND hwnd,HDC hdc);
 
 //´°¿Ú²Ù×÷º¯Êý
+bool_t GDD_ClearWindow(HDC hdc);
 void GDD_AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink);
 HWND    GDD_CreateWindow(const char *Text,u32 Style,
                      s32 x,s32 y,s32 w,s32 h,
