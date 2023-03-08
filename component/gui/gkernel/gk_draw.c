@@ -1774,7 +1774,7 @@ void __GK_DrawOline(struct GkWinObj *gkwin,s32 x1,s32 y1,
     //颜色格式为显卡自定义格式
     if(bitmap->PixelFormat & CN_CUSTOM_PF)
     {
-        for(i=1;i<=dx;i++)
+        for(i=0;i<=dx;i++)
         {
             gkwin->disp->draw.SetPixelToBitmap(bitmap,x,y,color,Rop2Code);
             //取离数学点较近的像素
@@ -1796,7 +1796,7 @@ void __GK_DrawOline(struct GkWinObj *gkwin,s32 x1,s32 y1,
     else
     {//颜色格式为其它格式
         pf_color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,color);
-        for(i=1;i<=dx;i++)
+        for(i=0;i<=dx;i++)
         {
             __GK_SetPixelRop2Bm(bitmap,x,y,pf_color,Rop2Code);
             //取离数学点较近的像素
