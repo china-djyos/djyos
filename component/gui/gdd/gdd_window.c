@@ -1414,6 +1414,25 @@ HDC GDD_GetClientDC(HWND hwnd)
     return DC2HDC(pdc);
 
 }
+//----获得窗口标题栏绘图上下文(DC)-----------------------------------------------
+//描述: 该函数获得的DC,只能在窗口标题栏范围内绘图输出).必须与
+//      GDD_ReleaseDC 函数成对调用，否则会内存泄漏。
+//参数：hwnd:窗口句柄.
+//返回：DC句柄.该DC是新创建并初始化的。
+//------------------------------------------------------------------------------
+HDC GDD_GetCaptionDC(HWND hwnd)
+{
+    HDC pdc;
+
+    pdc = malloc(sizeof(struct DC));
+    if(pdc!=NULL)
+    {
+        memset(pdc, 0, sizeof(struct DC));
+        GDD_InitDC(pdc,hwnd->pGkWin,hwnd,DC_TYPE_CAPTION);
+    }
+    return DC2HDC(pdc);
+
+}
 
 //----释放窗口客户区绘图上下文(DC)-----------------------------------------------
 //描述: 释放窗口客户区绘图上下文(DC)

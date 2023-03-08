@@ -178,7 +178,7 @@ static s32 __stdio_read(struct objhandle *hdl, u8 *buf, u32 size)
     stdio = (struct __stdio*)handle_GetHostObjectPrivate(hdl);
     if(stdio->runmode&CN_STDIO_STDIN_MULTI) // 只有标准输入文件存在多源
     {
-        fd = Multiplex_Wait(stdin_multiplexset, NULL, handle_gettimeout(hdl)); // timeout是forever
+        fd = Multiplex_Wait(stdin_multiplexset, NULL,  NULL,handle_gettimeout(hdl)); // timeout是forever
         if(fd >= 0)
             stdio->fd.direct = fd;
         else
@@ -317,7 +317,7 @@ s32 __stdio_multi(struct objhandle *hdl, u32 acts, s32 fd)
     {
         case 1:
                 if(TRUE == Multiplex_AddObject(stdin_multiplexset, fd,
-                    (CN_MULTIPLEX_SENSINGBIT_READ + CN_MULTIPLEX_SENSINGBIT_OR)))
+                    (CN_MULTIPLEX_SENSINGBIT_READ + CN_MULTIPLEX_SENSINGBIT_OR),0))
                     res = 0;
 
                 break;
@@ -656,7 +656,7 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 
                 // 将当前打开的文件加入监听集合
                 if(FALSE == Multiplex_AddObject(stdin_multiplexset, fp->fd,
-                        (CN_MULTIPLEX_SENSINGBIT_READ + CN_MULTIPLEX_SENSINGBIT_OR)))
+                        (CN_MULTIPLEX_SENSINGBIT_READ + CN_MULTIPLEX_SENSINGBIT_OR),0))
                 {
                     goto __ERR_STDIO_SET;// TODO: 没有找到删除多路复用集的函数；
                 }
@@ -979,7 +979,7 @@ bool_t add2listenset(const char *name)
 
     //JOIN THE STDIN SETS
     Multiplex_AddObject(stdin_multiplexset, dev->fd,
-            (CN_MULTIPLEX_SENSINGBIT_READ + CN_MULTIPLEX_SENSINGBIT_OR));
+            (CN_MULTIPLEX_SENSINGBIT_READ + CN_MULTIPLEX_SENSINGBIT_OR),0);
 
     //ADD IT TO THE STDINDEV LIST
 

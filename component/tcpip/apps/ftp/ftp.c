@@ -81,7 +81,7 @@ bool_t FTP_ServiceInit(void)
 
 //some common function tools here used by the server or client
 //this function used to display the ftp connection stat
-void FTP_ShowClient(tagFtpClient *client)
+void FTP_ShowClient(tagFtpDomain *client)
 {
     info_printf("ftp","Client:user       :%s\r\n",client->user);
     info_printf("ftp","Client:passwd     :%s\r\n",client->passwd);
@@ -104,7 +104,8 @@ void FTP_ShowClient(tagFtpClient *client)
     return;
 }
 
-//use this function to receive the specified line message here,if more message here
+//-----------------------------------------------------------------------------
+//功能：从sock中接收1个命令行，一般用于控制通道
 //we will only storage the first few strings,len must be more than one
 s32 FTP_RcvLine(s32 sock,u8 *buf,s32 len)
 {

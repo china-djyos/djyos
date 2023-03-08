@@ -995,6 +995,7 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
             clip->next = clip;
             clip->previous = clip;
             gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;
+            memset(msk,0,msk_line_words * gkwin->changed_msk.height);
             return clip;            //把整个窗口的可显示区域当作一个剪切域返回
         }
         else
@@ -1054,29 +1055,32 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
         }
 
         //至此，x方向条状clip已经生成，现在沿y方向合并
-        clip = clip_head;
-        do{
-            clip1 = clip->next;
-            while(clip1 != clip)
-            {
-                if((clip1->rect.left == clip->rect.left)
-                    &&(clip1->rect.right == clip->rect.right)
-                    &&((clip->rect.bottom)== clip1->rect.top))//可合并
+        if(clip_head != NULL)
+        {
+            clip = clip_head;
+            do{
+                clip1 = clip->next;
+                while(clip1 != clip)
                 {
-                    clip->rect.bottom += 8;
-                    clip1->previous->next = clip1->next;
-                    clip1->next->previous = clip1->previous;
-                    tempclip = clip1;
-                    clip1 = clip1->next;
-                    Mb_Free(g_ptClipRectPool,tempclip);
-                }else
-                    clip1 = clip1->next;
-            }
-            clip = clip->next;
-        }while(clip != clip_head);
-        gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;
+                    if((clip1->rect.left == clip->rect.left)
+                        &&(clip1->rect.right == clip->rect.right)
+                        &&((clip->rect.bottom)== clip1->rect.top))//可合并
+                    {
+                        clip->rect.bottom += 8;
+                        clip1->previous->next = clip1->next;
+                        clip1->next->previous = clip1->previous;
+                        tempclip = clip1;
+                        clip1 = clip1->next;
+                        Mb_Free(g_ptClipRectPool,tempclip);
+                    }else
+                        clip1 = clip1->next;
+                }
+                clip = clip->next;
+            }while(clip != clip_head);
+            gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;
+        }
+        memset(msk,0,msk_line_words * gkwin->changed_msk.height);
     }
-    memset(msk,0,msk_line_words * gkwin->changed_msk.height);
     return clip_head;
 }
 

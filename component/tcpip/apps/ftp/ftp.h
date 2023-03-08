@@ -111,50 +111,55 @@ typedef enum
 }enFtpErrCode;
 
 //define for the client data structure
-#define CN_FTPCLIENT_BUFLEN   256
-#define CN_FTPCLIENT_TIMEOUT  (60*1000*mS)  //ten seconds
-#define CN_FTPCLIENT_TRYTIMES (3)          //ten times
+#define CN_FTPCLIENT_BUFLEN   512
+#define CN_FTPCLIENT_TIMEOUT  (10*1000*mS)  //ten seconds
+#define CN_FTPCLIENT_TRYTIMES (2)          //ten times
 #define CN_FTP_NAMELEN        (32)
 #define CN_PATH_LENGTH        128          //USE TO LIMITE THE DIR PATH LEN
 
 //define the structure for the control channel
 typedef struct
 {
-    int             s;      //control socket
-    struct in_addr  ipaddr; //net bytes
-    u16             port;   //net bytes
+    s32             s;      //control socket
+    struct in_addr  ipaddr; //ftpd：client IP addr;  ftpc：???
+    u16             port;   //ftpd：client port;     ftpc：???
 }tagChannelCtrl;            //control channel
 //define the structure for the data channel
+//几个socket的连接过程：
+//1、首先创建socket server21port，bind 21号端口，listen之。
+//2、客户端连接21端口，Accept得到 cchannel.s
+//3、cchannel.s进行ftp会话，例如登录。
+//4、接到pasv或port命令，分配端口创建 dchannel.sli
 typedef struct
 {
-    bool_t ispasv;          //which means pasv or port mode
+    bool_t ispasv;          //true = pasv mode，false =  port mode
     struct in_addr  ipaddr; //net bytes
     u16             port;   //net bytes
-    int             slisten; //port socket(return by listen)
-    int             saccept; //port socket(return by accept)
-    int             sconnect;//pasv socket(return by connect)
+    s32             slisten; //执行“PASV”时建立的数据连接
+    s32             saccept; //port socket(return by accept)
+    s32             sconnect;//pasv socket(return by connect)
     char            type;    //type mode
 }tagChannelData;//data channel
 //define the structure for the ftp client controller
 typedef struct __FtpClient
 {
     struct __FtpClient *nxt;
-    tagChannelCtrl cchannel;
-    tagChannelData dchannel;
+    tagChannelCtrl cchannel;                //控制通道
+    tagChannelData dchannel;                //数据通道
     char         ipadr[CN_FTP_NAMELEN];      //server address
     char         user[CN_FTP_NAMELEN];       //user
     char         passwd[CN_FTP_NAMELEN];     //passwd
     char         port[CN_FTP_NAMELEN];       //port
-    char         curdir[CN_PATH_LENGTH];     //store the current directory
+    char         curdir[CN_PATH_LENGTH];     //本地当前各种目录
     u8           buf[CN_FTPCLIENT_BUFLEN]  ; //used for the send and recv buffer
-    int          buflen;     //which means how long the buffer is
-    int          datalen;    //which means how many data in the buffer
-    int          errcode;    //which means the last state
-}tagFtpClient;
-void FTP_ShowClient(tagFtpClient *client);
-int FTP_RcvLine(int sock,u8 *buf,int len);
-int FTP_Connect(struct in_addr *addr,u16 port);
-int FTP_Accept(int s,struct in_addr *ipaddr,u16 *port);
+    s32          buflen;     //which means how long the buffer is
+    s32          datalen;    //which means how many data in the buffer
+    s32          errcode;    //which means the last state
+}tagFtpDomain;
+void FTP_ShowClient(tagFtpDomain *client);
+s32 FTP_RcvLine(s32 sock,u8 *buf,s32 len);
+s32 FTP_Connect(struct in_addr *addr,u16 port);
+s32 FTP_Accept(s32 s,struct in_addr *ipaddr,u16 *port);
 
 
 #endif /* __FTP_H */

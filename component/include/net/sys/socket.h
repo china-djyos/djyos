@@ -293,23 +293,23 @@ enum _EN_SOCKEY_ERRORNO
 #define  CN_SOCKET_IOOR        CN_MULTIPLEX_SENSINGBIT_OR         //BITS OR TRIGGLE
 
 //SOCKET SOCKSTAT
-#define CN_SOCKET_CLIENT        (1<<0)
-#define CN_SOCKET_BIND          (1<<1)
-#define CN_SOCKET_CONNECT       (1<<2)
-#define CN_SOCKET_LISTEN        (1<<3)
-#define CN_SOCKET_SHUTWR        (1<<5)
-#define CN_SOCKET_SHUTRD        (1<<6)
-#define CN_SOCKET_CLOSE         (1<<7)
-#define CN_SOCKET_OPEN          (1<<8)    //if use socket or accept to get the sock
-#define CN_SOCKET_PROBLOCK      (1<<10)
-#define CN_SOCKET_PROASYNC      (1<<11)
-#define CN_SOCKET_PROOOB        (1<<12)
-#define CN_SOCKET_PRONAGLE      (1<<13)
-#define CN_SOCKET_PROLINGER     (1<<14)
-#define CN_SOCKET_PROCORK       (1<<15)     //收集到最大量数据才发送。
-#define CN_SOCKET_PROREUSE      (1<<16)
-#define CN_SOCKET_PROKEEPALIVE  (1<<17)
-#define CN_SOCKET_PROBROAD      (1<<18)
+#define CN_SOCKET_CLIENT        (1<<0)  //初始置位，listen时被清零，不再置位
+#define CN_SOCKET_BIND          (1<<1)  //初始清零，执行 tcpbind 或 udpbind 时置位，不再清零
+#define CN_SOCKET_CONNECT       (1<<2)  //初始清零，执行 __tcpconnect 或 __udpconnect 时置位，不再清零
+#define CN_SOCKET_LISTEN        (1<<3)  //初始清零，listen时被置位，不再清零
+#define CN_SOCKET_SHUTWR        (1<<5)  //未使用
+#define CN_SOCKET_SHUTRD        (1<<6)  //未使用
+#define CN_SOCKET_CLOSE         (1<<7)  //初始清零，执行tcp __closesocket 时置位，不再清零，udp则直接删除socket
+#define CN_SOCKET_OPEN          (1<<8)  //初始或 accept 时置位，不清零
+#define CN_SOCKET_PROBLOCK      (1<<10) //初始置位，用 SO_NONBLOCK 选项修改，udp SO_RCVTIMEO选项也可改变
+#define CN_SOCKET_PROASYNC      (1<<11) //未使用
+#define CN_SOCKET_PROOOB        (1<<12) //未使用
+#define CN_SOCKET_PRONAGLE      (1<<13) //初始置位，TCP_NODELAY 选项修改，控制是否使用nagle算法
+#define CN_SOCKET_PROLINGER     (1<<14) //未使用
+#define CN_SOCKET_PROCORK       (1<<15) //收集到最大量数据才发送。未使用，与nagle类似
+#define CN_SOCKET_PROREUSE      (1<<16) //未使用
+#define CN_SOCKET_PROKEEPALIVE  (1<<17) //未使用
+#define CN_SOCKET_PROBROAD      (1<<18) // tcp 未使用，udp 选项 SO_BROADCAST 设置
 
 #define CN_SOCKET_PROCONNECT    (1<<19)  //使用非阻塞连接时添加这个标志来记录目前发起了连接请求
 #define CN_SOCKET_WAITACCEPT    (1<<20)  // 1 代表正在clst链表中，可能已完成3次握手，也可能未完成
