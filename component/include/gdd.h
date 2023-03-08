@@ -166,7 +166,7 @@ struct MsgTableLink
 #define DT_ALIGN_H_MASK (3<<2)  //垂直对齐控制位msk
 
 #define DT_BORDER       (1<<4)  //绘制边框(使用DrawColor)
-#define DT_BKGND        (1<<5)  //填充背景(使用FillColor)
+#define DT_BKGND        (1<<5)  //填充背景(使用BGColor)
 
 //消息码定义方法：
 //bit0~23：用于定义消息，其中0不使用，1~65535由系统和控件使用，65536以上由用户
@@ -310,8 +310,8 @@ void   GDD_MoveTo(HDC hdc,s32 x,s32 y,POINT *old_pt);
 
 u32 GDD_SetDrawColor(HDC hdc,u32 color);
 u32 GDD_GetDrawColor(HDC hdc);
-u32 GDD_SetFillColor(HDC hdc,u32 color);
-u32 GDD_GetFillColor(HDC hdc);
+u32 GDD_SetBackGroundColor(HDC hdc,u32 color);//(原函数名：  GDD_SetFillColor .
+u32 GDD_GetBackGroundColor(HDC hdc);//(原函数名：  GDD_GetFillColor .
 u32 GDD_SetTextColor(HDC hdc,u32 color);
 u32 GDD_GetTextColor(HDC hdc);
 u32 GDD_SetSyncTime(HDC hdc,u32 sync_time);
@@ -328,11 +328,13 @@ struct Charset *GDD_GetCharset(HDC hdc);
 
 void    GDD_SetPixel(HDC hdc,s32 x,s32 y,u32 color);
 void    GDD_DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1);
+void    GDD_DrawThickLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width);
 void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 temp_draw,s32 temp_past);
 void    GDD_DrawLineEx(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,u32 color);
 void    GDD_DrawLineTo(HDC hdc,s32 x,s32 y);
 bool_t  GDD_TextOut(HDC hdc,s32 x,s32 y,const char *text,s32 count);
 bool_t  GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 flag);
+void    GDD_FillTrangle(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2);
 void    GDD_DrawRect(HDC hdc,const RECT *prc);;
 void    GDD_FillRect(HDC hdc,const RECT *prc);
 void    GDD_FillRectEx(HDC hdc,const RECT *prc,u32 color);
@@ -374,6 +376,7 @@ HDC     GDD_BeginPaint(HWND hwnd);
 bool_t    GDD_EndPaint(HWND hwnd,HDC hdc);
 
 //窗口操作函数
+bool_t GDD_CleanWindow(HDC hdc);
 void GDD_AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink);
 HWND    GDD_CreateWindow(const char *Text,u32 Style,
                      s32 x,s32 y,s32 w,s32 h,
@@ -391,8 +394,8 @@ bool_t    GDD_SetWindowShow(HWND hwnd);
 bool_t    GDD_SetWindowHide(HWND hwnd);
 bool_t GDD_SetWindowRopCode(HWND hwnd, struct RopGroup RopCode);
 bool_t GDD_SetWindowHyalineColor(HWND hwnd,u32 HyalineColor);
-bool_t GDD_SetWindowFillColor(HWND hwnd,u32 FillColor);
-bool_t GDD_GetWindowFillColor(HWND hwnd,u32 *pFillColor);
+bool_t GDD_SetWindowBackGroundColor(HWND hwnd,u32 FillColor);
+bool_t GDD_GetWindowBackGroundColor(HWND hwnd,u32 *pFillColor);
 bool_t GDD_SetWindowTextColor(HWND hwnd,u32 TextColor);
 bool_t GDD_GetWindowTextColor(HWND hwnd,u32 *pTextColor);
 bool_t    EnableWindow(HWND hwnd,bool_t bEnable);

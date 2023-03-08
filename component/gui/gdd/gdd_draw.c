@@ -66,6 +66,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
+#define __gdd_swap(a, b){a^=b; b^=a; a^=b;}
+
 static  bool_t    __GDD_BeginDraw(HDC hdc)
 {
     return TRUE;
@@ -168,7 +170,7 @@ void    GDD_InitDC(HDC pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type)
     pdc->CurX       =0;
     pdc->CurY       =0;
     pdc->DrawColor  =hwnd->DrawColor;
-    pdc->FillColor  =hwnd->FillColor;
+    pdc->BGColor  =hwnd->BGColor;
     pdc->TextColor  =hwnd->TextColor;
     pdc->SyncTime   = CN_TIMEOUT_FOREVER;
     pdc->RopCode=gk_win->RopCode;
@@ -333,20 +335,20 @@ u32 GDD_GetDrawColor(HDC hdc)
     return old;
 }
 
-//----设置当前填充颜色-----------------------------------------------------------
-//描述: 当前填充颜色会影响所有填充类函数,如FillRect,GDD_FillCircle...
+//----设置当前背景颜色-----------------------------------------------------------
+//描述: 当前背景颜色会影响所有背景类函数 (原函数名：  GDD_SetFillColor  .
 //参数：hdc: 绘图上下文句柄.
-//      color: 新的填充颜色.
+//      color: 新的背景颜色.
 //返回：旧的绘制颜色.
 //------------------------------------------------------------------------------
-u32 GDD_SetFillColor(HDC hdc,u32 color)
+u32 GDD_SetBackGroundColor(HDC hdc,u32 color)
 {
     u32 old;
 
     if(hdc!=NULL)
     {
-        old =hdc->FillColor;
-        hdc->FillColor = color;
+        old =hdc->BGColor;
+        hdc->BGColor = color;
     }
     else
     {
@@ -355,18 +357,18 @@ u32 GDD_SetFillColor(HDC hdc,u32 color)
     return old;
 }
 
-//----获得当前填充颜色-----------------------------------------------------------
-//描述: 略.
+//----获得当前背景颜色-----------------------------------------------------------
+//描述: 略.   (原函数名：  GDD_GetFillColor .
 //参数：hdc: 绘图上下文句柄.
-//返回：当前填充颜色.
+//返回：当前背景颜色.
 //------------------------------------------------------------------------------
-u32 GDD_GetFillColor(HDC hdc)
+u32 GDD_GetBackGroundColor(HDC hdc)
 {
     u32 old;
 
     if(hdc!=NULL)
     {
-        old =hdc->FillColor;
+        old =hdc->BGColor;
     }
     else
     {
@@ -681,20 +683,12 @@ void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 temp_draw,s32
 
         else//绘制斜线
         {
-            s32 dy,dx,past_x,past_y;
-            s32 flag_x=1;
-            dot = sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));//斜线长度
-            if(dot==0)
-                return;
-            if(dot/(temp)!=0)
-                num = dot/(temp)+1;
-            else
-                num = dot/(temp);
-
-            dy =(y1-y0)*temp/dot;
-            dx = (x1-x0)*temp/dot;
-            past_x = (x1-x0)*temp_past/dot;
-            past_y = (y1-y0)*temp_past/dot;
+            float dt = sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));//斜线长度
+            num = dt/(temp)+1;
+            float dy =(y1-y0)*temp/dt;
+            float dx = (x1-x0)*temp/dt;
+            float past_x = (x1-x0)*temp_past/dt;
+            float past_y = (y1-y0)*temp_past/dt;
 
             for(i=1;i<num;i++)
             {
@@ -709,14 +703,13 @@ void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 temp_draw,s32
             pt[0].x =x0+dx*(num-1);
             pt[0].y =y0+dy*(num-1);
             if(x0<x1)
-                pt[1].x =(x0+dx*num-past_x)>dot?x1:x0+dx*num-past_x;
+                pt[1].x =(x0+dx*num-past_x)>dt?x1:x0+dx*num-past_x;
             else if(x0>x1)
-                pt[1].x =(x0+dx*num-past_x)<dot?x1:x0+dx*num-past_x;
-
+                pt[1].x =(x0+dx*num-past_x)<dt?x1:x0+dx*num-past_x;
             if(y0<y1)
-                pt[1].y =(y0+dy*num-past_y)>dot?y1:y0+dy*num-past_y;
+                pt[1].y =(y0+dy*num-past_y)>dt?y1:y0+dy*num-past_y;
             if(y0>y1)
-                pt[1].y =(y0+dy*num-past_y)<dot?y1:y0+dy*num-past_y;
+                pt[1].y =(y0+dy*num-past_y)<dt?y1:y0+dy*num-past_y;
             __GDD_Cdn_DC_toWin(hdc,pt,2);
            GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                    hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
@@ -955,6 +948,111 @@ s32  GDD_GetStrLineCount(struct Charset *myCharset, const char *str)
     return linenum;
 }
 
+
+//----绘制一条任意宽度的直线------------------------------------------------------
+//描述: 绘制一条任意宽度的直线
+//参数：hdc: 绘图上下文句柄.
+//      x0,y0、x1,y1: 坐标.
+//      width:宽度.
+//返回：无.
+//------------------------------------------------------------------------------
+void GDD_DrawThickLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width)
+{
+    POINT p[4];
+    if(hdc!=NULL)
+    {
+        if(width<2)//判断宽度是否符合
+        {
+            if(width==1)
+                GDD_DrawLine(hdc,x0,y0,x1,y1);
+            return ;
+        }
+        if(y0==y1)//水平线
+        {
+            if(x0>x1)
+            {
+                __gdd_swap(x0,x1);
+                __gdd_swap(y0,y1);
+            }
+            RECT prc;
+            prc=(RECT){x0,y0 - (width>>1),x1+1,y0 - (width>>1) + width-1};
+            GDD_FillRectEx(hdc,&prc,hdc->DrawColor);
+        }
+        else if(x0==x1)//垂直线
+        {
+            if(y0>y1)
+           {
+                __gdd_swap(x0,x1);
+                __gdd_swap(y0,y1);
+           }
+            RECT prc;
+            prc=(RECT){x0+(width>>1) - width+1,y0,x0 + (width>>1),y1+1};
+            GDD_FillRectEx(hdc,&prc,hdc->DrawColor);
+        }
+        else//斜线
+        {
+            if(y0>y1)
+            {
+                __gdd_swap(x0,x1);
+                __gdd_swap(y0,y1);
+            }
+            float dx = width*((y1-y0)*1.0/sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)))/2;
+            float dy = width*((x1-x0)*1.0/sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)))/2;
+            p[0].x = x0 + dx;
+            p[0].y = y0 - dy;
+            p[1].x = x0-dx;
+            p[1].y = y0 + dy;
+            p[2].x = x1-dx;
+            p[2].y = y1 +dy;
+            p[3].x = x1+dx;
+            p[3].y = y1 - dy;
+            __GDD_fillrect(hdc,p[1].x,p[1].y,p[2].x,p[2].y,p[3].x,p[3].y,p[0].x,p[0].y);
+        }
+    }
+}
+void __GDD_fillrect(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2,s32 x3,s32 y3)
+{
+    if(y0<y3)
+    {
+        if(y3>y1)
+        {
+            __GDD_fillrect(hdc,x1,y1,x2,y2,x3,y3,x0,y0);
+            return;
+        }
+        s32 xtop = (y3-y0)*(x1-x0)/(y1-y0)+x0;
+        s32 xbuttom = (y1-y3)*(x2-x3)/(y2-y3)+x3;
+        __GDD_trangle_dowm(hdc,x0,y0,xtop,y3,x3,y3);
+        __Parallelogram(hdc,xtop,y3,x1,y1,xbuttom,y1,x3,y3);
+        __GDD_trangle_up(hdc,x1,y1,xbuttom,y1,x2,y2);
+    }
+    else if(y0>y3)
+    {
+        if(y0>y2)
+        {
+            __GDD_fillrect(hdc,x3,y3,x0,y0,x1,y1,x2,y2);
+            return;
+        }
+        s32 xtop = (y0-y3)*(x2-x3)/(y2-y3)+x3;
+        s32 xbuttom = (y2-y0)*(x1-x0)/(y1-y0)+x0;
+        __GDD_trangle_dowm(hdc,x3,y3,xtop,y0,x0,y0);
+        __Parallelogram(hdc,x0,y0,xbuttom,y2,x2,y2,xtop,y0);
+        __GDD_trangle_up(hdc,xbuttom,y2,x2,y2,x1,y1);
+    }
+    else
+        __Parallelogram(hdc,x0,y0,x1,y1,x2,y2,x3,y3);
+}
+
+void __Parallelogram(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2,s32 x3,s32 y3)
+{
+
+    s32 dx = abs(x0-x1),dy = abs(y0-y1);
+    float k = (x1-x0)*1.0/(y1-y0);
+    for(int i=0;i<dy;i++)
+    {
+        GDD_DrawLine(hdc,x0+i*k+0.5,y0+i,x3+i*k+0.5,y0+i);
+    }
+
+}
 //----在矩形范围内绘制字符串---------------------------------------------------
 //描述: 在指定矩形范围内绘制字符串,使用TextColor作为颜色值,支持回车与换行符,
 //      该函数可以指定是否绘制字符串边框和背景,以前指定对齐方式的组合.
@@ -1003,7 +1101,7 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
 
             if(flag&DT_BKGND)
             {
-                GDD_FillRect(hdc,&rc0);
+                GDD_FillRectEx(hdc,&rc0,hdc->BGColor);
             }
 
            GDD_TextOut(hdc,rc.left,rc.top,text,count);
@@ -1030,7 +1128,7 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
             }
 
             if(flag&DT_BKGND)
-            {                GDD_FillRect(hdc,&rc0);
+            {                GDD_FillRectEx(hdc,&rc0,hdc->BGColor);
             }
 
             y0 =rc.top;
@@ -1112,6 +1210,114 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
     return FALSE;
 
 }
+//----------------------绘制一个实心三角形---------
+//描述: 使用FillTrangle绘制一个实心三角形
+//参数:hdc: 绘图上下文句柄.
+//    x0,y0;x1,y1;x2,y2;三个坐标点
+//返回:无
+void GDD_FillTrangle(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
+{
+    if(hdc!=NULL)
+    {
+        if(((x0 *y1 + x1 *y2 + x2 *y0 - x0 *y2 - x1 *y0 - x2 *y1)/2)==0)//判断三点共线
+            return;
+        if(y0>y1)
+        {
+            __gdd_swap(x0,x1);
+            __gdd_swap(y0,y1);
+        }
+        if(y0>y2)
+        {
+            __gdd_swap(x0,x2);
+            __gdd_swap(y0,y2);
+        }
+        if(y1>y2)
+        {
+            __gdd_swap(y1,y2);
+            __gdd_swap(x1,x2);
+        }
+
+
+        if(y0==y1)
+        {
+            __GDD_trangle_up(hdc,x0,y0,x1,y1,x2,y2);
+        }
+        else if(y1==y2)
+        {
+            __GDD_trangle_dowm(hdc,x0,y0,x1,y1,x2,y2);
+        }
+        else
+        {
+            s32 x=(x0-x2)*(y1-y2)/(y0-y2)+x2;
+            __GDD_trangle_dowm(hdc,x0,y0,x1,y1,x,y1);
+            __GDD_trangle_up(hdc,x,y1,x1,y1,x2,y2);
+        }
+    }
+}
+//          ^       x0,y0
+//         / \
+//        ￣  ￣    x1,y1   x2,y2
+void __GDD_trangle_dowm(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
+{
+    if(x1>x2)
+    {
+        __gdd_swap(x1,x2);
+        __gdd_swap(y1,y2);
+    }
+     float dxy_left = (x0-x1)*1.0/(y0-y1) ;
+     float dxy_right = (x0-x2)*1.0/(y0-y2);
+     float xr = x2 ,xL = x1 ;
+
+     for(int y=y1 ; y >y0 ;y--)
+     {
+       if((s32)(xr+0.5)!=(s32)(xL+0.5))
+           GDD_DrawLine(hdc,(s32)(xL+0.5),y,(s32)((xr+0.5)),y);
+       else
+       {
+           GDD_DrawLine(hdc,(s32)(xr+0.5),y,(s32)(x0),y0);
+           break;
+       }
+
+         xL -= dxy_left ;
+         xr -= dxy_right ;
+     }
+     GDD_SetPixel(hdc,x0,y0,hdc->DrawColor);
+}
+//    __   x0,y0    x1,y1
+//    \/
+//             x2,y2
+void __GDD_trangle_up(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
+{
+
+    if(x0>x1)
+    {
+        __gdd_swap(x0,x1);
+        __gdd_swap(y0,y1);
+    }
+
+    float dxy_left = (x0-x2)*1.0/(y0-y2) ;
+      float dxy_right = (x1-x2)*1.0/(y1-y2);
+      float xr = x1 ,xl = x0 ;
+      for(int y=y1 ; y <y2 ;y++)
+      {
+          if((s32)(xl+0.5)!=(s32)(xr+0.5))
+              GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
+
+          else
+          {
+              GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)(x2),y2);
+              break;
+          }
+              
+
+          xl += dxy_left ;
+          xr += dxy_right ;
+      }
+      GDD_SetPixel(hdc,x2,y2,hdc->DrawColor);
+}
+
+
+
 
 //----绘制矩形------------------------------------------------------------------
 //描述: 使用DrawColor绘制一个空心矩形.
@@ -1152,8 +1358,8 @@ void    GDD_DrawRect(HDC hdc,const RECT *prc)
     }
 }
 
-//----填充矩形------------------------------------------------------------------
-//描述: 使用FillColor填充一个实心矩形.
+//----绘制矩形------------------------------------------------------------------
+//描述: 使用DrawColor绘制一个实心矩形.
 //参数：hdc: 绘图上下文句柄.
 //      prc: 矩形参数.
 //返回：无.
@@ -1172,7 +1378,7 @@ void    GDD_FillRect(HDC hdc,const RECT *prc)
             {
                 __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
 
-                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,& rc, hdc->FillColor, hdc->FillColor,
+                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,& rc, hdc->DrawColor, hdc->DrawColor,
                             CN_FILLRECT_MODE_N,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
@@ -1180,8 +1386,8 @@ void    GDD_FillRect(HDC hdc,const RECT *prc)
     }
 
 }
-//----填充矩形------------------------------------------------------------------
-//描述: 使用指定颜色填充一个实心矩形.
+//----绘制实心矩形------------------------------------------------------------------
+//描述: 使用指定颜色绘制一个实心矩形.
 //参数：hdc: 绘图上下文句柄.
 //      prc: 矩形参数.
 //返回：无.
@@ -1342,15 +1548,15 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
              pt.x = cx;
              pt.y = cy;
              __GDD_Cdn_DC_toWin(hdc, &pt, 1);
-             GK_DrawCircle(hdc->pGkWin, &hdc->DrawArea,cx, cy, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
+             GK_DrawCircle(hdc->pGkWin, &hdc->DrawArea,pt.x, pt.y, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
              __GDD_EndDraw(hdc);
          }
 
      }
 }
 
-//----填充圆------------------------------------------------------------------
-//描述: 使用FillColor填充一个实心圆.
+//----绘制实心圆------------------------------------------------------------------
+//描述: 使用DrawColor绘制一个实心圆.
 //参数：hdc: 绘图上下文句柄.
 //      cx,cy: 圆的中心坐标
 //      r: 圆的半径
@@ -1371,7 +1577,7 @@ void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
         {
 
             GK_Lineto(hdc->pGkWin, &hdc->DrawArea, cx-r,cy,cx+r+1,cy,
-                    hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                    hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             for (i=1; i<= imax; i++)
             {
                 if ((i*i+x*x) >sqmax)
@@ -1380,17 +1586,17 @@ void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
                     if (x>imax)
                     {
                         GK_Lineto(hdc->pGkWin, &hdc->DrawArea, cx-i+1,cy+x, cx+i,cy+x,
-                                hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                                hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
                         GK_Lineto(hdc->pGkWin, &hdc->DrawArea, cx-i+1,cy-x, cx+i,cy-x,
-                                hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                                hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
                     }
                     x--;
                 }
 
                 GK_Lineto(hdc->pGkWin, &hdc->DrawArea,cx-x,cy+i, cx+x+1,cy+i,
-                        hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                        hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
                 GK_Lineto(hdc->pGkWin, &hdc->DrawArea,cx-x,cy-i, cx+x+1,cy-i,
-                        hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                        hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             }
 
             __GDD_EndDraw(hdc);
@@ -1447,8 +1653,8 @@ void     GDD_DrawEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
 
 }
 
-//----填充椭圆------------------------------------------------------------------
-//描述: 使用FillColor填充一个实心椭圆.
+//----绘制椭圆------------------------------------------------------------------
+//描述: 使用DrawColor绘制一个实心椭圆.
 //参数：hdc: 绘图上下文句柄.
 //      cx,cy: 椭圆的中心坐标
 //      rx: 椭圆的水平半径
@@ -1468,7 +1674,7 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
     x = rx;
     if(__GDD_BeginDraw(hdc))
     {
-        color =GDD_GetFillColor(hdc);
+        color =GDD_GetDrawColor(hdc);
         for (y=0; y<=ry; y++)
         {
              SumY =((s32)(rx*rx))*((s32)(y*y));
@@ -1505,8 +1711,20 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
   s32 quarter1,quarter2,quarter3,quarter4;
   u32 color;
 
+  if(angle1>angle2) angle2 = angle2+360;
   if(radius<=0)
   {
+      return;
+  }
+  if(angle2>360)
+  {
+      if(angle2-angle1>=360)
+          GDD_DrawCircle(hdc,xCenter,yCenter,radius);
+      else
+      {
+      GDD_DrawSector(hdc, xCenter,yCenter,radius,angle1,360);
+      GDD_DrawSector(hdc, xCenter,yCenter,radius,0,angle2-360);
+      }
       return;
   }
 
@@ -1573,8 +1791,8 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
 
 }
 
-//----填充扇形------------------------------------------------------------------
-//描述: 使用FillColor填充扇形.
+//----绘制实心扇形------------------------------------------------------------------
+//描述: 使用DrawColor绘制实心扇形.
 //参数：hdc: 绘图上下文句柄.
 //      xCenter,yCenter: 扇形的中心坐标
 //      radius: 扇形半径
@@ -1605,7 +1823,7 @@ void    GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
 
     if(__GDD_BeginDraw(hdc))
     {
-        color =GDD_GetFillColor(hdc);
+        color =GDD_GetDrawColor(hdc);
 
         while(1)
         {

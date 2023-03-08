@@ -46,8 +46,8 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     HDC hdc;
     hdc =GDD_BeginPaint(hwnd);  //开始绘图并获得绘图上下文(hdc)。
     GDD_GetClientRect(hwnd,&rc0);           //获得窗口客户区矩形
-    GDD_SetFillColor(hdc,RGB(255,255,255)); //设置填充色。
-    GDD_FillRect(hdc,&rc0);                 //填充矩形。
+    GDD_SetBackGroundColor(hdc,RGB(255,255,255)); //设置填充色。
+    GDD_FillRectEx(hdc,&rc0,hdc->BGColor);                 //填充矩形。
     GDD_SetTextColor(hdc,RGB(255,0,0));     //设置文字颜色。
     GDD_TextOut(hdc,100,100,"Hello World!",-1);  //在客户区10,20的位置输出文字。
     GDD_EndPaint(hwnd,hdc); //结束绘制并释放绘图上下文。

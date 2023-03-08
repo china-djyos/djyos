@@ -160,12 +160,12 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     GDD_GetClientRect(hwnd,&rc0);
 
     GDD_SetRect(&rc,2,10,GDD_RectW(&rc0)-2*2,90);
-    GDD_SetFillColor(hdc,RGB(000,200,200));
-    GDD_FillRect(hdc,&rc);
+    GDD_SetBackGroundColor(hdc,RGB(000,200,200));
+    GDD_FillRectEx(hdc,&rc,hdc->BGColor);
 
     GDD_SetTextColor(hdc,DrawText_Color_Tbl[color_idx].text_color);
     GDD_SetDrawColor(hdc,DrawText_Color_Tbl[color_idx].bd_color);
-    GDD_SetFillColor(hdc,DrawText_Color_Tbl[color_idx].bk_color);
+    GDD_SetBackGroundColor(hdc,DrawText_Color_Tbl[color_idx].bk_color);
 
     i=DrawText_Cfg_Tbl[cfg_idx].flag;
     if(bBorder)
@@ -192,8 +192,8 @@ static ptu32_t HmiErasebkgnd(struct WindowMsg *pMsg)
     hwnd =pMsg->hwnd;
     hdc =(HDC)pMsg->Param1;
     GDD_GetClientRect(hwnd,&rc0);
-    GDD_SetFillColor(hdc,RGB(200,200,200));
-    GDD_FillRect(hdc,&rc0);
+    GDD_SetBackGroundColor(hdc,RGB(200,200,200));
+    GDD_FillRectEx(hdc,&rc0,hdc->BGColor);
 
     return true;
 }

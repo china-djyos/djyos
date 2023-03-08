@@ -1817,7 +1817,7 @@ void __GK_DrawOline(struct GkWinObj *gkwin,s32 x1,s32 y1,
     }
 }
 
-//----画垂直线(不含结束端点)-------------------------------------------------------
+//----画垂直线-------------------------------------------------------
 //功能: 在窗口内画一条垂直线，只画limit限定的部分
 //参数: gkwin，目标窗口指针
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
@@ -1866,13 +1866,13 @@ void __GK_VlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
     {
         if(flag==1)
         {
-            for(y = y1; y < y2;y++)
+            for(y = y1; y <= y2;y++)
             {
                 gkwin->disp->draw.SetPixelToBitmap(bitmap,x1,y,color,Rop2Code);
             }
         }else
         {
-            for(y = y1; y > y2;y--)
+            for(y = y1; y >= y2;y--)
             {
                 gkwin->disp->draw.SetPixelToBitmap(bitmap,x1,y,color,Rop2Code);
             }
@@ -1883,13 +1883,13 @@ void __GK_VlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
         pf_color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,color);
         if(flag==1)
         {
-            for(y = y1; y < y2;y++)
+            for(y = y1; y <= y2;y++)
             {
                 __GK_SetPixelRop2Bm(bitmap,x1,y,pf_color,Rop2Code);
             }
         }else
         {
-            for(y = y1; y > y2;y--)
+            for(y = y1; y >= y2;y--)
             {
                 __GK_SetPixelRop2Bm(bitmap,x1,y,pf_color,Rop2Code);
             }
@@ -1920,7 +1920,7 @@ void __GK_VlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
     }
 }
 
-//----画水平直线(不含结束端点)-------------------------------------------------------
+//----画水平直线-------------------------------------------------------
 //功能: 在窗口内画一条水平直线，只画limit限定的部分
 //参数: gkwin，目标窗口指针
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
@@ -1986,13 +1986,13 @@ void __GK_HlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
         pf_color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,color);
         if(flag==1)
         {
-            for(x = x1;x < x2;x++)
+            for(x = x1;x <= x2;x++)
             {//对1、2、4位色screen，这个循环很耗cpu，考虑改进--db
                 __GK_SetPixelRop2Bm(bitmap,x,y1,pf_color,Rop2Code);
             }
         }else
         {
-            for(x = x1;x > x2;x--)
+            for(x = x1;x >= x2;x--)
             {//对1、2、4位色screen，这个循环很耗cpu，考虑改进--db
                 __GK_SetPixelRop2Bm(bitmap,x,y1,pf_color,Rop2Code);
             }
@@ -2023,7 +2023,7 @@ void __GK_HlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
     }
 }
 
-//----画斜线(不含结束端点)---------------------------------------------------------
+//----画斜线---------------------------------------------------------
 //功能: 在窗口内画一条斜线，只画limit限定的部分
 //参数: gkwin，目标窗口指针
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
@@ -2164,8 +2164,8 @@ void __GK_OlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
         }
     }
 }
-//----画直线(不含端点)---------------------------------------------------------
-//功能: 在窗口上画直线，端点不画，须处理changed_msk区。
+//----画线---------------------------------------------------------
+//功能: 在窗口上画直线，须处理changed_msk区。
 //参数: gkwin，目标窗口指针
 //      limit，允许绘图的限制区域，一个矩形的区域,超出此区域的直线不画
 //      x1、y1、x2、y2，起点和终点坐标
@@ -2211,8 +2211,8 @@ void __GK_SetPixelScreen(struct DisplayObj *display,s32 x,s32 y,
     }
 }
 
-//----画直线(不含端点)---------------------------------------------------------
-//功能: 在screen上直接画直线，端点不画。
+//----画直线---------------------------------------------------------
+//功能: 在screen上直接画直线。
 //参数: display，绘制的目标显示器
 //      limit，允许绘图的限制区域，一个矩形的区域，超出此区域的直线不画
 //      x1、y1、x2、y2，起点和终点坐标

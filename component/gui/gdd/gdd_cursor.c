@@ -89,8 +89,8 @@ static bool_t __GDD_CursorCreate(struct WindowMsg *pMsg)
         GDD_GetClientRect(hwnd,&rc);
         x=GDD_RectW(&rc);
         y=GDD_RectH(&rc);
-        GDD_SetFillColor(hdc,RGB(255,0,0));
-        GDD_FillRect(hdc,&rc);
+        GDD_SetBackGroundColor(hdc,RGB(255,0,0));
+        GDD_FillRectEx(hdc,&rc,hdc->BGColor);
         GDD_SetDrawColor(hdc,RGB(1,1,1));
         GDD_DrawLine(hdc,x/2,0,x/2,y);
         GDD_EndPaint(hwnd,hdc);
