@@ -345,6 +345,7 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r);
 void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r);
 void    GDD_DrawEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry);
 void    GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry);
+void    GDD_DrawPie(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
 void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
 void    GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
 void    GDD_DrawBezier3(HDC hdc,const POINT *pt,s32 cnt);
@@ -394,8 +395,8 @@ bool_t    GDD_SetWindowShow(HWND hwnd);
 bool_t    GDD_SetWindowHide(HWND hwnd);
 bool_t GDD_SetWindowRopCode(HWND hwnd, struct RopGroup RopCode);
 bool_t GDD_SetWindowHyalineColor(HWND hwnd,u32 HyalineColor);
-bool_t GDD_SetWindowBackGroundColor(HWND hwnd,u32 FillColor);
-bool_t GDD_GetWindowBackGroundColor(HWND hwnd,u32 *pFillColor);
+bool_t GDD_SetWindowBackGroundColor(HWND hwnd,u32 FillColor);//原函数名  GDD_SetWindowFillColor
+bool_t GDD_GetWindowBackGroundColor(HWND hwnd,u32 *pFillColor);//原函数名  GDD_GetWindowFillColor
 bool_t GDD_SetWindowTextColor(HWND hwnd,u32 TextColor);
 bool_t GDD_GetWindowTextColor(HWND hwnd,u32 *pTextColor);
 bool_t    EnableWindow(HWND hwnd,bool_t bEnable);

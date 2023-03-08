@@ -1314,7 +1314,7 @@ bool_t GDD_SetWindowHyalineColor(HWND hwnd,u32 HyalineColor)
     return FALSE;
 }
 
-bool_t GDD_SetWindowBackGroundColor(HWND hwnd,u32 BGColor)
+bool_t GDD_SetWindowBackGroundColor(HWND hwnd,u32 BGColor)//原函数名  GDD_SetWindowFillColor
 {
     HWND pGddWin=NULL;
     if(hwnd==NULL)
@@ -1329,7 +1329,7 @@ bool_t GDD_SetWindowBackGroundColor(HWND hwnd,u32 BGColor)
     return FALSE;
 }
 
-bool_t GDD_GetWindowBackGroundColor(HWND hwnd,u32 *pBGColor)
+bool_t GDD_GetWindowBackGroundColor(HWND hwnd,u32 *pBGColor)//原函数名   GDD_GetWindowFillColor
 {
     HWND pGddWin=NULL;
     if(hwnd==NULL)
