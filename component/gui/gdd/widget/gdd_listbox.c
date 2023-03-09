@@ -710,9 +710,8 @@ HWND Widget_CreateListBox(  const char *Text,u32 Style,
     {
         s_gListBoxMsgLink.MsgNum = sizeof(s_gListBoxMsgProcTable) / sizeof(struct MsgProcTable);
         s_gListBoxMsgLink.myTable = (struct MsgProcTable *)&s_gListBoxMsgProcTable;
-        pGddWin=GDD_CreateWindow(Text, WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
-                                CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
-                                &s_gListBoxMsgLink);
+        pGddWin=GDD_CreateWindow(Text,&s_gListBoxMsgLink, x,y,w,h,CN_WINBUF_PARENT,
+                                 WS_CAN_FOCUS|Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,WinId,pdata,hParent);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
         __HWND_Unlock(hParent);

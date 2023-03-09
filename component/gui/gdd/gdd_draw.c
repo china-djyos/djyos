@@ -1426,22 +1426,22 @@ void __GDD_trangle_up(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
     }
 
     float dxy_left = (x0-x2)*1.0/(y0-y2) ;
-      float dxy_right = (x1-x2)*1.0/(y1-y2);
-      float xr = x1 ,xl = x0 ;
-      for(int y=y1 ; y <y2 ;y++)
-      {
-          if((s32)(xl+0.5)!=(s32)(xr+0.5))
-              GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
+    float dxy_right = (x1-x2)*1.0/(y1-y2);
+    float xr = x1 ,xl = x0 ;
+    for(int y=y1 ; y <y2 ;y++)
+    {
+        if((s32)(xl+0.5)!=(s32)(xr+0.5))
+            GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
 
-          else
-              {
-              GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)(x2),y2);
-          break;
-              }
-          xl += dxy_left ;
-          xr += dxy_right ;
-      }
-      GDD_SetPixel(hdc,x2,y2,hdc->DrawColor);
+        else
+        {
+            GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)(x2),y2);
+            break;
+        }
+        xl += dxy_left ;
+        xr += dxy_right ;
+    }
+    GDD_SetPixel(hdc,x2,y2,hdc->DrawColor);
 }
 void __GetAnypoint_in_Circle(s32 xCenter, s32 yCenter, s32 radius, s32 angle,POINT *p)
 {
@@ -2243,47 +2243,16 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
 
 }
 
-//------------------绘制一个空心饼图----------------------------------------
-//描述: 使用DrawPie绘制扇形.
+//----绘制弧线------------------------------------------------------------------
+//描述: 使用GDD_Drawarc绘制一段弧线.   （原函数名 GDD_DrawSector
 //参数：hdc: 绘图上下文句柄.
-//      xCenter,yCenter: 扇形的中心坐标
-//      radius: 扇形半径
-//      angle1: 扇形起始点角度
-//      angle2: 扇形结束点角度
+//      xCenter,yCenter: 圆弧的中心坐标
+//      radius: 圆弧半径
+//      angle1: 圆弧起始点角度
+//      angle2: 圆弧结束点角度
 //返回：无.
 //------------------------------------------------------------------------------
-void    GDD_DrawPie(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
-{
-    POINT p[2];
-
-    if(radius<=0)
-    {
-        return;
-    }
-    if(angle1>angle2) angle2+=360;
-    if(angle2-angle1>=360)
-     {
-        GDD_DrawCircle(hdc,xCenter,yCenter,radius);
-        return;
-     }
-    __GetAnypoint_in_Circle(xCenter,yCenter,radius,angle1,&p[0]);
-    __GetAnypoint_in_Circle(xCenter,yCenter,radius,angle2,&p[1]);
-    GDD_DrawLine(hdc,xCenter,yCenter,p[0].x,p[0].y);
-    GDD_DrawLine(hdc,xCenter,yCenter,p[1].x,p[1].y);
-
-    GDD_DrawSector(hdc, xCenter,yCenter,radius,angle1,angle2);
-}
-
-//----绘制扇形------------------------------------------------------------------
-//描述: 使用DrawColor绘制扇形.
-//参数：hdc: 绘图上下文句柄.
-//      xCenter,yCenter: 扇形的中心坐标
-//      radius: 扇形半径
-//      angle1: 扇形起始点角度
-//      angle2: 扇形结束点角度
-//返回：无.
-//------------------------------------------------------------------------------
-void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
+void    GDD_DrawArc(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
 {
     s32 x,y,index,d;
     s32 sign[4][2] = {{1, 1}, {-1, 1}, {1, -1}, {-1, -1}};
@@ -2348,9 +2317,39 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
             }
             x++;
         }
-        __GDD_EndDraw(hdc);
+            __GDD_EndDraw(hdc);
     }
+}
 
+//------------------绘制一个空心扇形---------------------------------------
+//描述: 使用GDD_DrawSector绘制扇形.
+//参数：hdc: 绘图上下文句柄.
+//      xCenter,yCenter: 扇形的中心坐标
+//      radius: 扇形半径
+//      angle1: 扇形起始点角度
+//      angle2: 扇形结束点角度
+//返回：无.
+//------------------------------------------------------------------------------
+void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
+{
+    POINT p[2];
+
+    if(radius<=0)
+    {
+        return;
+    }
+    if(angle1>angle2) angle2+=360;
+    if(angle2-angle1>=360)
+     {
+        GDD_DrawCircle(hdc,xCenter,yCenter,radius);
+        return;
+     }
+    __GetAnypoint_in_Circle(xCenter,yCenter,radius,angle1,&p[0]);
+    __GetAnypoint_in_Circle(xCenter,yCenter,radius,angle2,&p[1]);
+    GDD_DrawLine(hdc,xCenter,yCenter,p[0].x,p[0].y);
+    GDD_DrawLine(hdc,xCenter,yCenter,p[1].x,p[1].y);
+
+    GDD_DrawSector(hdc, xCenter,yCenter,radius,angle1,angle2);
 }
 
 //----绘制实心扇形------------------------------------------------------------------
