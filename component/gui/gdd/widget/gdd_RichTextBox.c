@@ -663,7 +663,8 @@ void    Widget_CreateRichTextBox(void)
 {
     s_gDrawTextDemoMsgLink.MsgNum = sizeof(s_gDrawTextMsgTable) / sizeof(struct MsgProcTable);
     s_gDrawTextDemoMsgLink.myTable = (struct MsgProcTable *)&s_gDrawTextMsgTable;
-    GDD_CreateGuiApp("DrawText", &s_gDrawTextDemoMsgLink, 0,0,-1,0, 0x1000, CN_WINBUF_PARENT,
-                0, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE);
+    GDD_CreateGuiApp("DrawText", &s_gDrawTextDemoMsgLink, 0,0,-1,0, CN_WINBUF_PARENT,
+                0, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE, 0x1000);
+
     GDD_WaitGuiAppExit("DrawText");
 }

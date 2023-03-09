@@ -345,7 +345,7 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r);
 void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r);
 void    GDD_DrawEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry);
 void    GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry);
-void    GDD_DrawPie(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
+void    GDD_DrawArc(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
 void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
 void    GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
 void    GDD_DrawBezier3(HDC hdc,const POINT *pt,s32 cnt);
@@ -377,14 +377,11 @@ HDC     GDD_BeginPaint(HWND hwnd);
 bool_t    GDD_EndPaint(HWND hwnd,HDC hdc);
 
 //窗口操作函数
-bool_t GDD_CleanWindow(HDC hdc);
+bool_t GDD_CleanClient(HDC hdc);
 void GDD_AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink);
-HWND    GDD_CreateWindow(const char *Text,u32 Style,
+HWND GDD_CreateWindow(const char *Text,struct MsgTableLink *pUserMsgTableLink,
                      s32 x,s32 y,s32 w,s32 h,
-                     HWND hParent,u16 WinId,
-                     u32 BufProperty, ptu32_t pdata,
-                     u16 PixelFormat,u32 BaseColor,
-                     struct MsgTableLink *pUserMsgTableLink);
+                     u32 BufProperty,u32 Style,u16 PixelFormat,u32 BaseColor,u16 WinId,ptu32_t pdata,HWND hParent);
 void    GDD_DestroyWindow(HWND hwnd);
 void    GDD_DestroyAllChild(HWND hwnd);
 bool_t    GDD_MoveWindow(HWND hwnd,s32 x,s32 y);
@@ -440,7 +437,7 @@ void    GDD_SyncShow(HWND hwnd);//函数原名 ： GDD_UpdateDisplay
 void GDD_WaitGuiAppExit(char *AppName);
 HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
                       s32 x,s32 y,s32 w,s32 h,
-                      u32 MemSize, u32 WinBuf,u32 Style,u16 PixelFormat,u32 BaseColor);
+                      u32 BufProperty,u32 Style,u16 PixelFormat,u32 BaseColor,u32 MemSize);
 
 /*===========================================================================*/
 #include <gui\gdd_timer.h>
