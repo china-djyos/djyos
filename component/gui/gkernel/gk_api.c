@@ -73,6 +73,8 @@
 #include <gdd.h>
 #include <msgqueue.h>
 #include <gui/gk_display.h>
+
+#define __gk_swap(a, b){a^=b; b^=a; a^=b;}
 //----创建桌面-----------------------------------------------------------------
 //功能: 创建桌面，新显示器加入后，首先要创建桌面才能使用。桌面其实和一个普通窗口
 //      非常类似，差别主要在于:
@@ -321,6 +323,12 @@ void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *range,struct Rectangle
     {
         para.range = (struct Rectangle){0,0,0,0};
     }
+    if((rect->right)<(rect->left))
+        __gk_swap((rect->right),(rect->left));
+    if((rect->bottom)<(rect->top))
+        __gk_swap((rect->bottom),(rect->top));
+
+
     para.gkwin = gkwin;
     para.rect = *rect;
     para.Color0 = Color0;

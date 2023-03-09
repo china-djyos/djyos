@@ -1426,22 +1426,22 @@ void __GDD_trangle_up(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
     }
 
     float dxy_left = (x0-x2)*1.0/(y0-y2) ;
-      float dxy_right = (x1-x2)*1.0/(y1-y2);
-      float xr = x1 ,xl = x0 ;
-      for(int y=y1 ; y <y2 ;y++)
-      {
-          if((s32)(xl+0.5)!=(s32)(xr+0.5))
-              GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
+    float dxy_right = (x1-x2)*1.0/(y1-y2);
+    float xr = x1 ,xl = x0 ;
+    for(int y=y1 ; y <y2 ;y++)
+    {
+        if((s32)(xl+0.5)!=(s32)(xr+0.5))
+            GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
 
-          else
-              {
-              GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)(x2),y2);
-          break;
-              }
-          xl += dxy_left ;
-          xr += dxy_right ;
-      }
-      GDD_SetPixel(hdc,x2,y2,hdc->DrawColor);
+        else
+        {
+            GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)(x2),y2);
+            break;
+        }
+        xl += dxy_left ;
+        xr += dxy_right ;
+    }
+    GDD_SetPixel(hdc,x2,y2,hdc->DrawColor);
 }
 void __GetAnypoint_in_Circle(s32 xCenter, s32 yCenter, s32 radius, s32 angle,POINT *p)
 {
