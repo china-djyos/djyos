@@ -803,9 +803,8 @@ HWND Widget_CreateListView(  const char *Text,u32 Style,
     {
         s_gListViewMsgLink.MsgNum = sizeof(s_gListViewMsgProcTable) / sizeof(struct MsgProcTable);
         s_gListViewMsgLink.myTable = (struct MsgProcTable *)&s_gListViewMsgProcTable;
-        pGddWin=GDD_CreateWindow(Text, WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
-                                CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
-                                &s_gListViewMsgLink);
+        pGddWin=GDD_CreateWindow(Text,&s_gListViewMsgLink, x,y,w,h,CN_WINBUF_PARENT,
+                                 WS_CAN_FOCUS|Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,WinId,pdata,hParent);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
         __HWND_Unlock(hParent);

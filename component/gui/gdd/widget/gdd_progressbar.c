@@ -446,9 +446,8 @@ HWND Widget_CreateProgressBar(  const char *Text,u32 Style,
     {
         s_gProgressBarMsgLink.MsgNum = sizeof(s_gProgressBarMsgProcTable) / sizeof(struct MsgProcTable);
         s_gProgressBarMsgLink.myTable = (struct MsgProcTable *)&s_gProgressBarMsgProcTable;
-        pGddWin = GDD_CreateWindow(Text,Style,x,y,w,h,hParent,WinId,
-                                    CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
-                                    &s_gProgressBarMsgLink);
+        pGddWin=GDD_CreateWindow(Text,&s_gProgressBarMsgLink, x,y,w,h,CN_WINBUF_PARENT,
+                                 Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,WinId,pdata,hParent);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
         __HWND_Unlock(hParent);
