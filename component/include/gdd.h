@@ -368,6 +368,7 @@ u32     GDD_GetWindowStyle(HWND hwnd);
 ptu32_t   GDD_GetWindowPrivateData(HWND hwnd);
 void    GDD_SetWindowPrivateData(HWND hwnd,ptu32_t data);
 HWND    GDD_InitGddDesktop(struct GkWinObj *desktop);
+HWND GDD_GetWindowHandle(char *WinText);
 
 //DC²Ù×÷º¯Êý
 HDC     GDD_GetWindowDC(HWND hwnd);
@@ -428,6 +429,10 @@ bool_t    GDD_ScreenToClient(HWND hwnd,POINT *pt,s32 count);
 bool_t    GDD_ClientToScreen(HWND hwnd,POINT *pt,s32 count);
 bool_t    GDD_ScreenToWindow(HWND hwnd,POINT *pt,s32 count);
 bool_t    GDD_WindowToScreen(HWND hwnd,POINT *pt,s32 count);
+HWND GDD_GetHwnd(struct GkWinObj *gkwin);
+void GDD_SetWindowName(HWND hwnd, char *NewName);
+bool_t GDD_AddInputDev(const char *InputDevName);
+bool_t GDD_DeleteInputDev(const char *InputDevName);
 
 /*===========================================================================*/
 void    ModuleInstall_GDD(struct GkWinObj *desktop);
