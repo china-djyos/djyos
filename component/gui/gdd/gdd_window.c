@@ -133,6 +133,8 @@ bool_t    GDD_ScreenToClient(HWND hwnd,POINT *pt,s32 count)
         if(__HWND_Lock(hwnd))
         {
             GK_GetScreenLocation(hwnd->pGkWin, &scrlc);
+            scrlc.y = scrlc.y + hwnd->CaptionSize + hwnd->BorderSize;
+            scrlc.x = scrlc.x + hwnd->BorderSize;
             for(i=0;i<count;i++)
             {
                 pt[i].x -= scrlc.x;
@@ -161,6 +163,8 @@ bool_t    GDD_ClientToScreen(HWND hwnd,POINT *pt,s32 count)
         if(__HWND_Lock(hwnd))
         {
             GK_GetScreenLocation(hwnd->pGkWin, &scrlc);
+            scrlc.y = scrlc.y + hwnd->CaptionSize + hwnd->BorderSize;
+            scrlc.x = scrlc.x + hwnd->BorderSize;
             for(i=0;i<count;i++)
             {
                 pt[i].x += scrlc.x;
