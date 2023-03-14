@@ -1443,6 +1443,143 @@ void __GDD_trangle_up(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
     }
     GDD_SetPixel(hdc,x2,y2,hdc->DrawColor);
 }
+
+void  __fillsector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
+{
+    s32 ymin,ymax;
+    s32 x,y,arc_error,height,erro;
+    s32 D_x,D_y,xflag,yflag,line_error;
+    s32 sign[4][2] = {{1, 1}, {-1, 1}, {1, -1}, {-1, -1}};
+    RECT prc[4];
+    POINT p[2];
+    POINT point;
+    __GetAnypoint_in_Circle(xCenter, yCenter,radius,angle1,&p[0]);
+    __GetAnypoint_in_Circle(xCenter, yCenter,radius,angle2,&p[1]);
+
+    if(angle1>=0 && angle2<= 180)
+    {
+        if(angle1<=90 && angle2>= 90)
+        {
+            ymin = yCenter - radius;
+            ymax = yCenter;
+        }
+        else if(angle2< 90)
+        {
+            ymin = p[1].y;
+            ymax = yCenter;
+        }
+        else if(angle1>90)
+        {
+            ymin = p[0].y;
+            ymax = yCenter;
+        }
+    }
+    else if(angle1>=180 && angle2<= 360)
+    {
+        if(angle1<=270 && angle2>= 270)
+        {
+            ymin = yCenter ;
+            ymax = yCenter + radius;
+        }
+        else if(angle2< 270)
+        {
+            ymax = p[1].y;
+            ymin = yCenter;
+        }
+        else if(angle1>270)
+        {
+            ymax = p[0].y;
+            ymin = yCenter;
+        }
+    }
+
+    s32 dy = ymax - ymin + 1;//0-10有11个单位
+    s32 x_max[dy],x_min[dy];
+    for(int i = 0; i<dy;i++)
+    {
+        x_min[i] = xCenter+radius+2;
+        x_max[i] = xCenter-radius-2;
+    }
+    __Sector_area_get(xCenter,yCenter,radius,angle1,angle2,&prc[0],&prc[1],&prc[2],&prc[3]);
+    x = 0;
+    y = radius;
+    arc_error = (3-2*radius);
+    while (x <= y)//获取弧上点
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            point.x = (x * sign[i][0] + xCenter);
+            point.y = (y * sign[i][1] + yCenter);
+
+            if ((GDD_PtInRect(&prc[0],&point))||(GDD_PtInRect(&prc[1], &point)))
+            {
+                height = point.y-ymin;
+                if(point.x< x_min[height])
+                    x_min[height] = point.x;
+                if(point.x> x_max[height])
+                    x_max[height] = point.x;
+            }
+
+            point.x = (y * sign[i][0] + xCenter);
+            point.y = (x * sign[i][1] + yCenter);
+            if ((GDD_PtInRect(&prc[0], &point)) ||(GDD_PtInRect(&prc[1], &point)))
+            {
+                height = point.y - ymin;
+                if(point.x < x_min[height])
+                    x_min[height] = point.x;
+                if(point.x > x_max[height])
+                    x_max[height] = point.x;
+            }
+        }
+        if (arc_error < 0)
+        {
+            arc_error += 4 * x + 6;
+        }
+        else
+        {
+            arc_error += 4 * (x - y) + 8;
+            y--;
+        }
+        x++;
+    }
+
+    for(int i = 0;i<2;i++)//获取两条线上的点
+    {
+        if(p[i].y == yCenter)
+            continue;
+
+        point.x = xCenter;
+        point.y = yCenter;
+        D_x = abs(p[i].x - point.x);
+        D_y = abs(p[i].y - point.y);
+        xflag = (point.x < p[i].x) ? 1 : -1;
+        yflag = (point.y < p[i].y) ? 1 : -1;
+        line_error = ((D_x > D_y) ? D_x : -D_y) >> 2;
+
+        while((point.x != p[i].x) || (point.y != p[i].y))
+        {
+            height = point.y - ymin;
+            if(point.x< x_min[height])
+                x_min[height] = point.x;
+            if(point.x> x_max[height])
+                x_max[height] = point.x;
+
+            erro = line_error;
+            if(erro > -D_x) { line_error -= D_y; point.x += xflag;}
+            if(erro <  D_y) { line_error += D_x; point.y += yflag;}
+
+        }
+    }
+    for(int i = 0; i < dy; i++)//连点
+    {
+        if(x_min[i] != x_max[i])
+            GDD_DrawLine(hdc,x_min[i],ymin+i,x_max[i],ymin+i);
+        else
+            GDD_SetPixel(hdc,x_min[i],ymin+i,hdc->DrawColor);
+    }
+}
+
+
 void __GetAnypoint_in_Circle(s32 xCenter, s32 yCenter, s32 radius, s32 angle,POINT *p)
 {
     s32 x,y,d;
@@ -1523,7 +1660,7 @@ void __GetAnypoint_in_Circle(s32 xCenter, s32 yCenter, s32 radius, s32 angle,POI
         }
 
         x = 0;
-        y = (s32)radius;
+        y = radius;
         d = (s32)(5 - 4 * radius);
 
         p->x = (p->x * x_sign);
@@ -1574,8 +1711,8 @@ void __Sector_area_get(s32 xCenter, s32 yCenter, u32 radius, s32 start_angle, s3
 
     POINT start_point;
     POINT end_point;
-    s32 ori_r = radius;
-    s32 neg_r = (-ori_r);
+    s32 r_begin = radius;
+    s32 r_end = (-r_begin);
 
     memset(area_1, 0, sizeof(RECT));
     memset(area_2, 0, sizeof(RECT));
@@ -1597,52 +1734,52 @@ void __Sector_area_get(s32 xCenter, s32 yCenter, u32 radius, s32 start_angle, s3
         else
         {
             area_1 -> left = 0;
-            area_1 -> top = neg_r;
+            area_1 -> top = r_end;
             area_1 -> right = start_point.x+1;
             area_1 -> bottom = start_point.y+1;
 
             if (end_angle <= 180)
             {
                 area_2 -> left = end_point.x;
-                area_2 -> top = neg_r;
-                area_2 -> right = 0+1;
+                area_2 -> top = r_end;
+                area_2 -> right = 1;
                 area_2 -> bottom = end_point.y+1;
             }
             else
             {
-                area_2 -> left = neg_r;
-                area_2 -> top = neg_r;
-                area_2 -> right = 0+1;
-                area_2 -> bottom = 0+1;
+                area_2 -> left = r_end;
+                area_2 -> top = r_end;
+                area_2 -> right = 1;
+                area_2 -> bottom = 1;
 
                 if (end_angle <= 270)
                 {
-                    area_3 -> left = neg_r;
+                    area_3 -> left = r_end;
                     area_3 -> top = 0;
                     area_3 -> right = end_point.x+1;
                     area_3 -> bottom = end_point.y+1;
                 }
                 else
                 {
-                    area_2 -> bottom = ori_r+1;
+                    area_2 -> bottom = r_begin+1;
                     if (end_angle <= 360)
                     {
                         area_3 -> left = 0;
                         area_3 -> top = end_point.y;
                         area_3 -> right = end_point.x+1;
-                        area_3 -> bottom = ori_r+1;
+                        area_3 -> bottom = r_begin+1;
                     }
                     else
                     {
                         area_3 -> left = 0;
                         area_3 -> top = 0;
-                        area_3 -> right = ori_r+1;
-                        area_3 -> bottom = ori_r+1;
+                        area_3 -> right = r_begin+1;
+                        area_3 -> bottom = r_begin+1;
 
                         area_4 -> left = end_point.x;
                         area_4 -> top = end_point.y;
-                        area_4 -> right = ori_r+1;
-                        area_4 -> bottom = 0+1;
+                        area_4 -> right = r_begin+1;
+                        area_4 -> bottom = 1;
                     }
                 }
             }
@@ -1659,53 +1796,53 @@ void __Sector_area_get(s32 xCenter, s32 yCenter, u32 radius, s32 start_angle, s3
         }
         else
         {
-            area_1 -> left = neg_r;
+            area_1 -> left = r_end;
             area_1 -> top = start_point.y;
             area_1 -> right = start_point.x+1;
-            area_1 -> bottom = 0+1;
+            area_1 -> bottom = 1;
 
             if (end_angle <= 270)
             {
-                area_2 -> left = neg_r;
+                area_2 -> left = r_end;
                 area_2 -> top = 0;
                 area_2 -> right = end_point.x+1;
                 area_2 -> bottom = end_point.y+1;
             }
             else
             {
-                area_2 -> left = neg_r;
+                area_2 -> left = r_end;
                 area_2 -> top = 0;
-                area_2 -> right = 0+1;
-                area_2 -> bottom = ori_r+1;
+                area_2 -> right = 1;
+                area_2 -> bottom = r_begin+1;
 
                 if (end_angle <= 360)
                 {
                     area_3 -> left = 0;
                     area_3 -> top = end_point.y;
                     area_3 -> right = end_point.x+1;
-                    area_3 -> bottom = ori_r+1;
+                    area_3 -> bottom = r_begin+1;
                 }
                 else
                 {
-                    area_2 -> right = ori_r+1;
+                    area_2 -> right = r_begin+1;
 
                     if (end_angle <= 450)
                     {
                         area_3 -> left = end_point.x;
                         area_3 -> top = end_point.y;
-                        area_3 -> right = ori_r+1;
-                        area_3 -> bottom = 0+1;
+                        area_3 -> right = r_begin+1;
+                        area_3 -> bottom = 1;
                     }
                     else
                     {
                         area_3 -> left = 0;
-                        area_3 -> top = neg_r;
-                        area_3 -> right = ori_r+1;
-                        area_3 -> bottom = 0+1;
+                        area_3 -> top = r_end;
+                        area_3 -> right = r_begin+1;
+                        area_3 -> bottom = 1;
 
                         area_4 -> left = end_point.x;
-                        area_4 -> top = neg_r;
-                        area_4 -> right = 0+1;
+                        area_4 -> top = r_end;
+                        area_4 -> right = 1;
                         area_4 -> bottom = end_point.y+1;
                     }
                 }
@@ -1725,49 +1862,49 @@ void __Sector_area_get(s32 xCenter, s32 yCenter, u32 radius, s32 start_angle, s3
         {
             area_1 -> left = start_point.x;
             area_1 -> top = start_point.y;
-            area_1 -> right = 0+1;
-            area_1 -> bottom = ori_r+1;
+            area_1 -> right = 1;
+            area_1 -> bottom = r_begin+1;
 
             if (end_angle <= 360)
             {
                 area_2 -> left = 0;
                 area_2 -> top = end_point.y;
                 area_2 -> right = end_point.x+1;
-                area_2 -> bottom = ori_r+1;
+                area_2 -> bottom = r_begin+1;
             }
             else
             {
                 area_2 -> left = 0;
                 area_2 -> top = 0;
-                area_2 -> right = ori_r+1;
-                area_2 -> bottom = ori_r+1;
+                area_2 -> right = r_begin+1;
+                area_2 -> bottom = r_begin+1;
 
                 if (end_angle <= 450)
                 {
                     area_3 -> left = end_point.x;
                     area_3 -> top = end_point.y;
-                    area_3 -> right = ori_r+1;
-                    area_3 -> bottom = ori_r+1;
+                    area_3 -> right = r_begin+1;
+                    area_3 -> bottom = r_begin+1;
                 }
                 else
                 {
-                    area_2 -> top = neg_r+1;
+                    area_2 -> top = r_end+1;
 
                     if (end_angle <= 540)
                     {
                         area_3 -> left = end_point.x;
-                        area_3 -> top = neg_r;
-                        area_3 -> right = 0+1;
+                        area_3 -> top = r_end;
+                        area_3 -> right = 1;
                         area_3 -> bottom = end_point.y+1;
                     }
                     else
                     {
-                        area_3 -> left = neg_r;
-                        area_3 -> top = neg_r;
-                        area_3 -> right = 0+1;
-                        area_3 -> bottom = 0+1;
+                        area_3 -> left = r_end;
+                        area_3 -> top = r_end;
+                        area_3 -> right = 1;
+                        area_3 -> bottom = 1;
 
-                        area_4 -> left = neg_r;
+                        area_4 -> left = r_end;
                         area_4 -> top = 0;
                         area_4 -> right = end_point.x+1;
                         area_4 -> bottom = end_point.y+1;
@@ -1789,52 +1926,52 @@ void __Sector_area_get(s32 xCenter, s32 yCenter, u32 radius, s32 start_angle, s3
         {
             area_1 -> left = start_point.x;
             area_1 -> top = 0;
-            area_1 -> right = ori_r+1;
+            area_1 -> right = r_begin+1;
             area_1 -> bottom = start_point.y+1;
 
             if (end_angle <= 450)
             {
                 area_2 -> left = end_point.x;
                 area_2 -> top = end_point.y;
-                area_2 -> right = ori_r+1;
-                area_2 -> bottom = 0+1;
+                area_2 -> right = r_begin+1;
+                area_2 -> bottom = 1;
             }
             else
             {
                 area_2 -> left = 0;
-                area_2 -> top = neg_r;
-                area_2 -> right = ori_r+1;
-                area_2 -> bottom = 0+1;
+                area_2 -> top = r_end;
+                area_2 -> right = r_begin+1;
+                area_2 -> bottom = 1;
 
                 if (end_angle <= 540)
                 {
                     area_3 -> left = end_point.x;
-                    area_3 -> top = neg_r;
-                    area_3 -> right = 0+1;
+                    area_3 -> top = r_end;
+                    area_3 -> right = 1;
                     area_3 -> bottom = end_point.y+1;
                 }
                 else
                 {
-                    area_2 -> left = neg_r+1;
+                    area_2 -> left = r_end+1;
 
                     if (end_angle <= 630)
                     {
-                        area_3 -> left = neg_r;
+                        area_3 -> left = r_end;
                         area_3 -> top = 0;
                         area_3 -> right = end_point.x+1;
                         area_3 -> bottom = end_point.y+1;
                     }
                     else
                     {
-                        area_3 -> left = neg_r;
+                        area_3 -> left = r_end;
                         area_3 -> top = 0;
-                        area_3 -> right = 0+1;
-                        area_3 -> bottom = ori_r+1;
+                        area_3 -> right = 1;
+                        area_3 -> bottom = r_begin+1;
 
                         area_4 -> left = 0;
                         area_4 -> top = end_point.y;
                         area_4 -> right = end_point.x+1;
-                        area_4 -> bottom = ori_r+1;
+                        area_4 -> bottom = r_begin+1;
                     }
                 }
             }
@@ -2257,12 +2394,9 @@ void    GDD_DrawArc(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32
     s32 x,y,index,d;
     s32 sign[4][2] = {{1, 1}, {-1, 1}, {1, -1}, {-1, -1}};
     POINT point;
-    POINT p[2];
     RECT prc[4];
-    if(radius<=0)
-    {
+    if(radius<=0||(angle1==angle2))
         return;
-    }
 
     if(hdc!=NULL)
     {
@@ -2334,10 +2468,8 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
 {
     POINT p[2];
 
-    if(radius<=0)
-    {
+    if(radius<=0||(angle1==angle2))
         return;
-    }
     if(angle1>angle2) angle2+=360;
     if(angle2-angle1>=360)
      {
@@ -2349,7 +2481,7 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
     GDD_DrawLine(hdc,xCenter,yCenter,p[0].x,p[0].y);
     GDD_DrawLine(hdc,xCenter,yCenter,p[1].x,p[1].y);
 
-    GDD_DrawSector(hdc, xCenter,yCenter,radius,angle1,angle2);
+    GDD_DrawArc(hdc, xCenter,yCenter,radius,angle1,angle2);
 }
 
 //----绘制实心扇形------------------------------------------------------------------
@@ -2361,81 +2493,66 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
 //      angle2: 扇形结束点角度
 //返回：无.
 //------------------------------------------------------------------------------
-void    GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
+void GDD_Fillsector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
 {
-  s32 x, y, d,c1,c2,c,step=0;
-  s32 quarter1,quarter2,quarter3,quarter4;
-  u32 color;
-
-  if(radius<=0)
-  {
-      return;
-  }
-
-  x = xCenter;
-  y = yCenter + radius;
-  d = 3 - 2 * radius;
-  c1=(s32)(angle1*radius*3.14159/180);
-  c2=(s32)(angle2*radius*3.14159/180);
-  quarter1=(s32)(radius*3.14159/2);
-  quarter2=(s32)(radius*3.14159);
-  quarter3=(s32)(radius*3.14159*3/2);
-  quarter4=(s32)(radius*3.14159*2);
-
-    if(__GDD_BeginDraw(hdc))
+    if(radius<=0||(angle1==angle2))
+        return;
+    if(hdc != NULL)
     {
-        color =GDD_GetDrawColor(hdc);
-
-        while(1)
+        if(angle2-angle1>=360)//满360 直接画圆
         {
-            c=quarter4-step;
-            if(c>=c1 && c<=c2)
-                GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ) ,xCenter,yCenter ,color);
+            GDD_FillCircle(hdc,xCenter,yCenter,radius);
+            return;
+        }
+        if(angle1>angle2)//从小角度画到大的角度
+             angle2+=360;
 
-            if(step>=c1 && step<=c2)
-                GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter ,color);
+        while(angle1<0)
+        {
+            angle1 += 360;
+            angle2 += 360;
+        }
 
-            c=quarter2+step;
-            if(c>=c1 && c<=c2)
-                GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),xCenter,yCenter ,color);
+        angle1 = angle1 % 360;//度数矫正
+        angle2 = angle2 % 720;
 
-            c=quarter2-step;
-            if(c>=c1 && c<=c2)
-                 GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter,color);
-
-            if (  x - xCenter  >=  y - yCenter  ) break;
-
-            c=quarter3+step;
-            if(c>=c1 && c<=c2)
-                 GDD_DrawLineEx(hdc, x, y,xCenter,yCenter ,color);
-
-            c=quarter1-step;
-            if(c>=c1 && c<=c2)
-                 GDD_DrawLineEx(hdc,x, yCenter - (y - yCenter),xCenter,yCenter ,color);
-
-            c=quarter3-step;
-            if(c>=c1 && c<=c2)
-                 GDD_DrawLineEx(hdc, xCenter - (x - xCenter), y ,xCenter,yCenter,color);
-
-            c= quarter1+step;
-            if(c>=c1 && c<=c2)
-                GDD_DrawLineEx(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter) ,xCenter,yCenter,color);
-
-            if ( d < 0 )
+        if(angle1<=180)//上半区域
+        {
+            if(angle2<=180)
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,angle2);
+            else if(angle2 <=360)
             {
-                d = d + ((x - xCenter) << 2) + 6;
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,180);
+                __fillsector(hdc, xCenter,yCenter,radius,180,angle2);
             }
             else
             {
-                d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
-                y--;
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,180);
+                __fillsector(hdc, xCenter,yCenter,radius,180,360);
+                __fillsector(hdc, xCenter,yCenter,radius,0,angle2-360);
             }
-            x++;
-            step++;
+        }
+        else if(angle1>=180)//下半区域
+        {
+            if(angle2<=360)
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,angle2);
+            else if(angle2 <=540)
+            {
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,360);
+                __fillsector(hdc, xCenter,yCenter,radius,0,angle2-360);
+            }
+            else
+            {
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,360);
+                __fillsector(hdc, xCenter,yCenter,radius,0,180);
+                __fillsector(hdc, xCenter,yCenter,radius,180,angle2-360);
+            }
         }
         __GDD_EndDraw(hdc);
     }
 }
+
+
 
 //----绘制3阶Bezier线----------------------------------------------------------
 //描述: 按指定坐标点绘制连续的贝塞尔线
