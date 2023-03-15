@@ -1134,54 +1134,100 @@ void GDD_DrawThickLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width)
             p[2].y = y1 +dy;
             p[3].x = x1+dx;
             p[3].y = y1 - dy;
-            __GDD_fillrect(hdc,p[1].x,p[1].y,p[2].x,p[2].y,p[3].x,p[3].y,p[0].x,p[0].y);
+            __Fillrectangle(hdc,&p);
+
         }
     }
 }
-void __GDD_fillrect(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2,s32 x3,s32 y3)
+
+void __Fillrectangle(HDC hdc,POINT *p)
 {
-    if(y0<y3)
+    s32 x0,y0;
+    s32 height;
+    s32 dy,dx,yflag,xflag,line_error,error;
+
+    s32 ymax ,ymin,xmax,xmin;
+    p[0].y>p[1].y?(ymax = p[0].y,ymin = p[1].y):(ymax = p[1].y,ymin = p[0].y);
+    ((ymax>p[2].y)? (ymin>p[2].y?ymin = p[2].y:NULL):(ymax = p[2].y));
+    ((ymax>p[3].y)? (ymin>p[3].y?ymin = p[3].y:NULL):(ymax = p[3].y));
+
+    p[0].x>p[1].x?(xmax = p[0].x,xmin = p[1].x):(xmax = p[1].x,xmin = p[0].x);
+    ((xmax>p[2].x)? (xmin>p[2].x?xmin = p[2].x:NULL):(xmax = p[2].x));
+    ((xmax>p[3].x)? (xmin>p[3].x?xmin = p[3].x:NULL):(xmax = p[3].x-2));
+
+    s32 Drop = ymax - ymin + 1;
+    s32 Xmax[Drop],Xmin[Drop];
+    for(int i = 0;i < Drop;i++)
     {
-        if(y3>y1)
-        {
-            __GDD_fillrect(hdc,x1,y1,x2,y2,x3,y3,x0,y0);
-            return;
-        }
-        s32 xtop = (y3-y0)*(x1-x0)/(y1-y0)+x0;
-        s32 xbuttom = (y1-y3)*(x2-x3)/(y2-y3)+x3;
-        __GDD_trangle_dowm(hdc,x0,y0,xtop,y3,x3,y3);
-        __Parallelogram(hdc,xtop,y3,x1,y1,xbuttom,y1,x3,y3);
-        __GDD_trangle_up(hdc,x1,y1,xbuttom,y1,x2,y2);
+        Xmax[i] = xmin;
+        Xmin[i] = xmax;
     }
-    else if(y0>y3)
+    for(int i = 0;i<4;i++)
     {
-        if(y0>y2)
-        {
-            __GDD_fillrect(hdc,x3,y3,x0,y0,x1,y1,x2,y2);
-            return;
-        }
-        s32 xtop = (y0-y3)*(x2-x3)/(y2-y3)+x3;
-        s32 xbuttom = (y2-y0)*(x1-x0)/(y1-y0)+x0;
-        __GDD_trangle_dowm(hdc,x3,y3,xtop,y0,x0,y0);
-        __Parallelogram(hdc,x0,y0,xbuttom,y2,x2,y2,xtop,y0);
-        __GDD_trangle_up(hdc,xbuttom,y2,x2,y2,x1,y1);
+        height = p[i].y - ymin;//四个点的位置
+        if(p[i].x< Xmin[height])
+            Xmin[height] = p[i].x;
+        if(p[i].x> Xmax[height])
+            Xmax[height] = p[i].x;
     }
-    else
-        __Parallelogram(hdc,x0,y0,x1,y1,x2,y2,x3,y3);
+    for(int i = 0;i<3;i+=2)
+    {
+        x0 = p[i].x;
+        y0 = p[i].y;
+        dx = abs(p[3-i].x - x0);
+        xflag = x0 < p[3-i].x ? 1 : -1;
+        dy = abs(p[3-i].y - y0);
+        yflag = y0 < p[3-i].y ? 1 : -1;
+        line_error = (dx > dy ? dx : -dy) / 2;
+
+        if(y0 != p[3-i].y)
+        {
+            while(x0 != p[3-i].x || y0 != p[3-i].y)
+            {
+                height = y0 - ymin;
+                if(x0< Xmin[height])
+                    Xmin[height] = x0;
+                if(x0> Xmax[height])
+                    Xmax[height] = x0;
+
+                error = line_error;
+                if(error > -dx) { line_error -= dy; x0 += xflag;}
+                if(error <  dy) { line_error += dx; y0 += yflag;}
+            }
+        }
+        x0 = p[i].x;
+        y0 = p[i].y;
+        dx = abs(p[i+1].x - x0), xflag = x0 < p[i+1].x ? 1 : -1;
+        dy = abs(p[i+1].y - y0), yflag =y0 < p[i+1].y ? 1 : -1;
+        line_error = (dx > dy ? dx : -dy) / 2;
+
+        if(y0 != p[i+1].y)
+        {
+            while(x0 != p[i+1].x || y0 != p[i+1].y)
+            {
+                height = y0 - ymin;
+                if(x0< Xmin[height])
+                    Xmin[height] = x0;
+                if(x0>Xmax[height])
+                    Xmax[height] = x0;
+
+                error = line_error;
+                if(error > -dx) { line_error -= dy; x0 += xflag;}
+                if(error <  dy) { line_error += dx; y0 += yflag;}
+            }
+        }
+    }
+    for(int i = 0; i < Drop; i++)//连点
+    {
+        if(Xmin[i] != Xmax[i])
+            GDD_DrawLine(hdc,Xmin[i],ymin+i,Xmax[i],ymin+i);
+        else
+            GDD_SetPixel(hdc,Xmin[i],ymin+i,hdc->DrawColor);
+    }
 }
 
-void __Parallelogram(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2,s32 x3,s32 y3)
-{
 
-   // s32 dx = abs(x0-x1);
-    s32 dy = abs(y0-y1);
-    float k = (x1-x0)*1.0/(y1-y0);
-    for(int i=0;i<dy;i++)
-    {
-        GDD_DrawLine(hdc,x0+i*k+0.5,y0+i,x3+i*k+0.5,y0+i);
-    }
 
-}
 //----在矩形范围内绘制字符串---------------------------------------------------
 //描述: 在指定矩形范围内绘制字符串,使用TextColor作为颜色值,支持回车与换行符,
 //      该函数可以指定是否绘制字符串边框和背景,以前指定对齐方式的组合.
@@ -2493,7 +2539,7 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
 //      angle2: 扇形结束点角度
 //返回：无.
 //------------------------------------------------------------------------------
-void GDD_Fillsector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
+void GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
 {
     if(radius<=0||(angle1==angle2))
         return;
