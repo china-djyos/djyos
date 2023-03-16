@@ -2051,6 +2051,181 @@ void __Sector_area_get(s32 xCenter, s32 yCenter, u32 radius, s32 start_angle, s3
     area_4 -> bottom = (s32)(area_4 -> bottom + yCenter);
 }
 
+//----绘制实心圆角矩形-----------------------------------------------------------
+//描述: 使用FillRounddRect绘制一个实心圆角矩形.
+//参数：hdc: 绘图上下文句柄.
+//      rec: 矩形参数.
+//      arc_r 圆角半径
+//返回：无.
+//------------------------------------------------------------------------------
+void    GDD_FillRounddRect(HDC hdc,RECT *rec, s32 arc_r)
+{
+    s32 rx,ry;
+    s32 OutConst, Sum, SumY;
+    RECT prc;
+    prc = *rec;
+    s32 cx,dx,cy,dy;
+    s32 x,y;
+    s32 xOld;
+    if(hdc==NULL)
+        return;
+    if(arc_r<=0)
+    {
+        if(arc_r==0)
+            GDD_FillRect(hdc,&prc);
+        return;
+    }
+    if(prc.right<prc.left)
+        __gdd_swap(prc.right,prc.left);
+    if(prc.bottom<prc.top)
+        __gdd_swap(prc.bottom,prc.top);
+
+    cx = ((prc.right-prc.left)/2) + prc.left;//中心点坐标
+    cy = ((prc.bottom-prc.top)/2) + prc.top;
+
+    if(arc_r * 2 <= (prc.bottom-prc.top))
+    {
+        ry = arc_r;
+        dy = cy - prc.top - ry;
+    }
+    else
+    {
+        ry = (prc.bottom-prc.top)/2;
+        dy = 0;
+    }
+    if(arc_r * 2 <= (prc.right-prc.left))
+    {
+        rx = arc_r;
+        dx = cx - prc.left - rx;
+    }
+    else
+    {
+        rx = (prc.right-prc.left)/2;
+        dx = 0;
+    }
+    u32 _rx = rx;
+    u32 _ry = ry;
+    OutConst = _rx*_rx*_ry*_ry +(_rx*_rx*_ry>>1);
+    xOld = x = rx;
+
+    for(y=0; y<=ry; y++)
+    {
+        if(y==ry)
+        {
+            x=0;
+        }
+        else
+        {
+            SumY =((s32)(rx*rx))*((s32)(y*y));
+            while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
+                   (x>0) && (Sum>OutConst)) x--;
+        }
+        if(y)
+        {
+            GDD_DrawLine(hdc,cx-xOld-dx,cy-y-dy,cx+xOld+dx,cy-y-dy);
+            GDD_DrawLine(hdc,cx-xOld-dx,cy+y+dy,cx+xOld+dx,cy+y+dy);
+        }
+        xOld = x;
+    }
+    if(dy!=0){
+        RECT rc = (RECT){prc.left,prc.top+rx,prc.right+1,prc.bottom-rx+1};
+        GDD_FillRect(hdc,&rc);}
+    GDD_DrawLine(hdc,prc.left,cy,prc.right,cy);
+    __GDD_EndDraw(hdc);
+}
+
+//----绘制圆角矩形-----------------------------------------------------------
+//描述: 使用DrawRounddRect绘制一个空心圆角矩形.
+//参数：hdc: 绘图上下文句柄.
+//      rec: 矩形参数.
+//      arc_r 圆角半径
+//返回：无.
+//------------------------------------------------------------------------------
+void    GDD_DrawRounddRect(HDC hdc,RECT *rec, s32 arc_r)
+{
+    s32 rx,ry;
+    s32 OutConst, Sum, SumY;
+    RECT prc;
+    prc = *rec;
+    s32 cx,dx,cy,dy;
+    s32 x,y;
+    s32 xOld;
+    if(hdc==NULL)
+        return;
+    if(arc_r<=0)
+    {
+        if(arc_r==0)
+            GDD_DrawRect(hdc,&prc);
+        return;
+    }
+    if(prc.right<prc.left)
+        __gdd_swap(prc.right,prc.left);
+    if(prc.bottom<prc.top)
+        __gdd_swap(prc.bottom,prc.top);
+
+    cx = ((prc.right-prc.left)/2) + prc.left;//中心点坐标
+    cy = ((prc.bottom-prc.top)/2) + prc.top;
+
+    if(arc_r * 2 <= (prc.bottom-prc.top))
+    {
+        ry = arc_r;
+        dy = cy - prc.top - ry;
+    }
+    else
+    {
+        ry = (prc.bottom-prc.top)/2;
+        dy = 0;
+    }
+    if(arc_r * 2 <= (prc.right-prc.left))
+    {
+        rx = arc_r;
+        dx = cx - prc.left - rx;
+    }
+    else
+    {
+        rx = (prc.right-prc.left)/2;
+        dx = 0;
+    }
+    u32 _rx = rx;
+    u32 _ry = ry;
+
+    OutConst = _rx*_rx*_ry*_ry +(_rx*_rx*_ry>>1);
+
+    xOld = x = rx;
+
+    for(y=0; y<=ry; y++)
+    {
+        if(y==ry)
+        {
+            x=0;
+        }
+        else
+        {
+            SumY =((s32)(rx*rx))*((s32)(y*y));
+            while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
+                   (x>0) && (Sum>OutConst)) x--;
+        }
+        if(y)
+        {
+            GDD_DrawLine(hdc,cx-xOld-dx,cy-y+1-dy,cx-x-dx,cy-y-dy);
+            GDD_DrawLine(hdc,cx-xOld-dx,cy+y-1+dy,cx-x-dx,cy+y+dy);
+            GDD_DrawLine(hdc,cx+xOld+dx,cy-y+1-dy,cx+x+dx,cy-y-dy);
+            GDD_DrawLine(hdc,cx+xOld+dx,cy+y-1+dy,cx+x+dx,cy+y+dy);
+        }
+        xOld = x;
+    }
+    if(dy!=0){
+    GDD_DrawLine(hdc,prc.left,prc.top+rx,prc.left,prc.bottom-rx);
+    GDD_DrawLine(hdc,prc.right,prc.top+rx,prc.right,prc.bottom-rx);}
+
+    if(dx!=0){
+    GDD_DrawLine(hdc,prc.left+rx,prc.top,prc.right-rx,prc.top);
+    GDD_DrawLine(hdc,prc.left+rx,prc.bottom,prc.right-rx,prc.bottom);}
+
+    __GDD_EndDraw(hdc);
+}
+
+
 
 
 //----绘制矩形------------------------------------------------------------------
