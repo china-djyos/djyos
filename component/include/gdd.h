@@ -263,6 +263,7 @@ struct MsgTableLink
 #define MSG_ListBox_GETITEMDATA     0x220D  //获得列表框项目数据; Param1:项目索引; Param2:忽略; 返回:项目数值.
 
 #define MSG_WM_USER                 0x10000 //用户定义的消息起始代码
+#define MSG_SWITCH_UI       (MSG_WM_USER+0)
 /*============================================================================*/
 //// 控件通知码
 

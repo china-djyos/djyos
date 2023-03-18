@@ -112,8 +112,8 @@ typedef enum
 
 //define for the client data structure
 #define CN_FTPCLIENT_BUFLEN   512
-#define CN_FTPCLIENT_TIMEOUT  (10*1000*mS)  //ten seconds
-#define CN_FTPCLIENT_TRYTIMES (2)          //ten times
+#define CN_FTPCLIENT_TIMEOUT  (60*1000*mS)  //60 seconds
+#define CN_FTPCLIENT_TRYTIMES (3)          //ten times
 #define CN_FTP_NAMELEN        (32)
 #define CN_PATH_LENGTH        128          //USE TO LIMITE THE DIR PATH LEN
 

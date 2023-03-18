@@ -277,7 +277,7 @@ HWND Widget_CreateButton(  const char *Text,u32 Style,
         hParent = GDD_GetDesktopWindow(NULL);
     //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
     //完成后，即消息处理函数表完整后再取出消息处理。
-    if(__HWND_Lock(hParent))
+    if(__GDD_Lock())
     {
         s_gButtonMsgLink.MsgNum = sizeof(s_gButtonMsgProcTable) / sizeof(struct MsgProcTable);
         s_gButtonMsgLink.myTable = (struct MsgProcTable *)&s_gButtonMsgProcTable;
@@ -286,7 +286,7 @@ HWND Widget_CreateButton(  const char *Text,u32 Style,
                                 &s_gButtonMsgLink);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-        __HWND_Unlock(hParent);
+        __GDD_Unlock();
         return pGddWin;
     }
     else

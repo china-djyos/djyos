@@ -215,7 +215,7 @@ struct GkscParaMoveWin
 struct GkscParaChangeWinArea
 {
     struct GkWinObj *gkwin;      //目标窗口
-    s32 left,top,right,bottom;      //目标窗口新的坐标
+    s32 left,top,right,bottom;      //目标窗口新的坐标，相对于父窗口
 };
 struct GkscParaSetBoundMode
 {

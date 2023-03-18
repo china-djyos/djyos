@@ -861,7 +861,7 @@ HWND    GDD_InitGddDesktop(struct GkWinObj *desktop)
         HWND_Desktop = pGddWin;
 
         MyEvtt = DJY_EvttRegist(EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0, __GDD_MessageLoop,
-                                NULL, 1024, "desktop");
+                                NULL, CFG_DESKTOP_STACK_SIZE, "desktop");
         if(MyEvtt != CN_EVTT_ID_INVALID)
         {
             MyEventid=DJY_EventPop(MyEvtt, NULL, 0, (ptu32_t)pGddWin, 0, 0);
@@ -1102,6 +1102,7 @@ void __GDD_DeleteChildWindowData(HWND hwnd)
     dListRemove(&hwnd->node_msg_ncpaint);
     dListRemove(&hwnd->node_msg_paint);
     __GDD_RemoveWindowTimer(hwnd);
+    __GUI_DeleteMsg(hwnd);
 //  __GUI_DeleteMsgQ(hwnd->pMsgQ);      //子窗口共享主窗口消息队列
 //  Lock_MutexDelete(hwnd->mutex_lock); //子窗口没有私有的 mutex_lock,不用释放.
 

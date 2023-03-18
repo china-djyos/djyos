@@ -76,7 +76,7 @@ struct MemCellPool
     u32 cell_limit;         //如果increment !=0，本成员限定该内存池的最大尺寸，
                             //单位为内存块数。
     char *Name;
-    void * next_inc_pool;   //增量地址，用于记录本内存池运行过程中的增量，利于在
+    void *next_inc_pool;    //增量地址，用于记录本内存池运行过程中的增量，利于在
                             //删除内存池时释放之。
 };
 

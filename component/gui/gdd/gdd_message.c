@@ -201,6 +201,78 @@ ErrorExit:
     return NULL;
 }
 
+//从消息队列中删除指定句柄的所有消息。
+void    __GUI_DeleteMsg(HWND hwnd)
+{
+    struct MsgList *currentmsg;
+    struct MsgList *premsg,*freemsg;
+    struct WinMsgQueueCB *pMsgQ = hwnd->pMsgQ;
+    if(pMsgQ)
+    {
+        premsg = pMsgQ->post_first;
+        currentmsg = premsg;
+        while(currentmsg != NULL)
+        {
+            if(currentmsg->Msg.hwnd != hwnd)        //不释放消息
+            {
+                if(currentmsg == premsg)
+                {
+                    currentmsg = currentmsg->Next;
+                }
+                else
+                {
+                    premsg = currentmsg;
+                    currentmsg = currentmsg->Next;
+                }
+            }
+            else
+            {
+                freemsg = currentmsg;   //取出需要释放的msg
+                if(freemsg == pMsgQ->post_first)     //被释放的是队列头
+                {
+                    if(freemsg == pMsgQ->post_last) //同时又是队列尾，说明全释放
+                    {
+                        pMsgQ->post_first =NULL;
+                        pMsgQ->post_last  =NULL;
+                        currentmsg = NULL;
+                    }
+                    else                            //不是队列尾，队列尾不动
+                    {
+                        currentmsg = currentmsg->Next;
+                        premsg = currentmsg;
+                        pMsgQ->post_first = currentmsg;
+                    }
+                }
+                else                                //被释放的不是队列头
+                {
+                    if(freemsg == pMsgQ->post_last) //是队列尾
+                    {
+                        pMsgQ->post_last  = premsg;
+                        premsg->Next = NULL;
+                        currentmsg = NULL;
+                    }
+                    else                            //不是头也不是尾
+                    {
+                        currentmsg = currentmsg->Next;
+                        premsg->Next = currentmsg;
+                    }
+                }
+                if(NULL==pMsgQ->post_free)
+                {
+                    pMsgQ->post_free = freemsg;
+                    freemsg->Next = NULL;
+                }
+                else
+                {
+                    freemsg->Next =pMsgQ->post_free;
+                    pMsgQ->post_free = freemsg;
+                }
+            }
+        }
+    }
+
+}
+//删除整个消息队列，释放内存
 void    __GUI_DeleteMsgQ(struct WinMsgQueueCB *pMsgQ)
 {
     if(pMsgQ)
@@ -211,7 +283,7 @@ void    __GUI_DeleteMsgQ(struct WinMsgQueueCB *pMsgQ)
 
         Lock_MutexDelete(pMsgQ->mutex_lock);
 
-        free(pMsgQ->post_pbuf);
+        free(pMsgQ->post_pbuf);     //可删除全部消息
         free(pMsgQ);
     }
 
@@ -555,16 +627,16 @@ bool_t    __GDD_PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 pa
         Lock_SempPost(pMsgQ->sem_msg);
         res =TRUE;
     }
-    else
-    {
-        new_msg = pMsgQ->post_first;
-        //printf("************ %s message num = %d\r\n", hwnd->Text, Lock_SempQueryFree(pMsgQ->sem_msg));
-        while(new_msg != NULL)
-        {
-            printf("------%s code = %d\r\n", new_msg->Msg.hwnd->Text, new_msg->Msg.Code);
-            new_msg = new_msg->Next;
-        }
-    }
+//    else
+//    {
+//        new_msg = pMsgQ->post_first;
+//        //printf("************ %s message num = %d\r\n", hwnd->Text, Lock_SempQueryFree(pMsgQ->sem_msg));
+//        while(new_msg != NULL)
+//        {
+//            printf("------%s code = %d\r\n", new_msg->Msg.hwnd->Text, new_msg->Msg.Code);
+//            new_msg = new_msg->Next;
+//        }
+//    }
 
     return res;
 }

@@ -72,6 +72,38 @@
 #include "dbug.h"
 struct MemCellPool *g_ptClipRectPool;   //剪切域内存池
 
+void __GK_GetWinOutline(struct GkWinObj *gkwin, struct Rectangle *target)
+{
+    if(gkwin->WinProperty.VisibleExec == CN_GKWIN_VISIBLE)
+    {
+        *target = gkwin->limit;
+        target->left += gkwin->ScreenX;
+        target->top += gkwin->ScreenY;
+        target->right += gkwin->ScreenX;
+        target->bottom += gkwin->ScreenY;
+    }
+    else
+    {
+        *target = (struct Rectangle){CN_LIMIT_SINT32,CN_LIMIT_SINT32,CN_MIN_SINT32,CN_MIN_SINT32};
+    }
+    return;
+}
+
+//------------------------------------------------------------------------------
+//
+void __GK_GetWinAndRectOutline(struct GkWinObj *gkwin,struct Rectangle *range)
+{
+    struct Rectangle temp;
+    if(gkwin->WinProperty.VisibleExec == CN_GKWIN_VISIBLE)
+    {
+        temp = gkwin->limit;
+        __GK_GetWinOutline(gkwin, &temp);
+        if(range->left > temp.left) range->left = temp.left;
+        if(range->top > temp.top) range->top = temp.top;
+        if(range->right < temp.right) range->right = temp.right;
+        if(range->bottom < temp.bottom) range->bottom = temp.bottom;
+    }
+}
 //----释放clip队列-------------------------------------------------------------
 //功能: 释放一个clip队列的所有节点，该队列是一个双向循环队列。
 //参数: clip，指向待释放队列的一个节点的指针
@@ -250,39 +282,6 @@ struct ClipRect * __GK_CombineClip(struct ClipRect *clipq)
     return  __GK_CombineClip_s(startclip);
 }
 
-
-
-//----求矩形交集---------------------------------------------------------------
-//功能: 给定两个矩形，求他们相交后的矩形。
-//参数: rect1，矩形1指针
-//      rect2，矩形2指针
-//      result，返回结果指针
-//返回: true = 两矩形相交，false = 不相交
-//-----------------------------------------------------------------------------
-/*
-bool_t __GK_GetRectInts(struct Rectangle *rect1,struct Rectangle *rect2,
-                     struct Rectangle *result)
-{
-    s16 max_left,max_top,min_right,min_bottom;
-    //求两矩形左上角的最大坐标值
-    max_left = rect1->left > rect2->left? rect1->left:rect2->left;
-    max_top = rect1->top > rect2->top? rect1->top:rect2->top;
-    //求两矩形右下角的最小坐标值
-    min_right = rect1->right > rect2->right?rect2->right:rect1->right;
-    min_bottom = rect1->bottom > rect2->bottom?rect2->bottom:rect1->bottom;
-    if((min_right <= max_left) || (min_bottom <= max_top))
-        return false;
-    else
-    {
-        result->left = max_left;
-        result->top = max_top;
-        result->right = min_right;
-        result->bottom = min_bottom;
-        return true;
-    }
-}
-*/
-
 //----合并区域通用版-----------------------------------------------------------
 //功能: 把给定的剪切域队列中可合并的区域合并，与简化版不同的是，队列中的clip是
 //      随机排列的。方法是:
@@ -389,175 +388,23 @@ bool_t __GK_GetRectInts(struct Rectangle *rect1,struct Rectangle *rect2,
         return true;
     }
 }
-
-//----生成新窗口的可视域---------------------------------------------------------
-//功能: 创建一个新窗口后，用本函数为其生成可视域，只生成了本窗口的可视域，受其影响的其他
-//      窗口没有修改可视域。会有问题吗？
-//参数: newwin，新窗口
-//返回: false=失败，一般是因为剪切域池容量不够
-//-----------------------------------------------------------------------------
-bool_t __GK_ScanVisibleClip(struct GkWinObj *newwin)
-{
-    struct DisplayObj *display;
-    struct GkWinObj *tempwin;
-    struct Rectangle *rect;
-    struct ClipRect *clip,*clip1,*clip_head = NULL;
-    s32 num,rect_left,rect_top,rect_right,rect_bottom,loop,temp;
-    u8 *sort_array_x,*sort_array_y;
-
-    if(newwin->WinProperty.VisibleExec == CN_GKWIN_HIDE)
-        return true;
-    display = newwin->disp;
-    num = (display->width+1)*sizeof(u8) + (display->height+1)*sizeof(u8);
-    sort_array_x = M_MallocLc(num,0);
-    if(sort_array_x == NULL)
-        return false;
-    memset(sort_array_x,0,num);
-    sort_array_y = sort_array_x + display->width+1;
-    tempwin = display->z_topmost;
-//    rect_left = 0;
-//    rect_top = 0;
-    while(1)
-    {
-        //要求窗口可视，且被祖先窗口限制后，仍然有可视范围
-        if((tempwin->WinProperty.VisibleExec == CN_GKWIN_VISIBLE)
-           &&(tempwin->limit.right != 0) && (tempwin->limit.bottom != 0) )
-        {
-            //取窗口可视边框，该边框是窗口受祖先窗口限制后的矩形
-            temp = tempwin->limit.left + tempwin->ScreenX;
-            sort_array_x[temp] = 1;
-
-            temp = tempwin->limit.right + tempwin->ScreenX;
-            sort_array_x[temp] = 1;
-
-            temp = tempwin->limit.top + tempwin->ScreenY;
-            sort_array_y[temp] = 1;
-
-            temp = tempwin->limit.bottom + tempwin->ScreenY;
-             sort_array_y[temp] = 1;
-        }
-        //执行__GK_GetRedrawClipAll函数注释中的step1
-        //保存窗口原来的可视域
-//      tempwin->visible_bak = tempwin->visible_clip;
-//      tempwin->visible_clip = NULL;
-        if(tempwin != newwin)
-            tempwin = tempwin->z_back;
-        else
-            break;
-    }
-//  //处理桌面下的窗口，这些窗口肯定没有可视域
-//  while(1)
-//  {
-//      tempwin = tempwin->z_back;
-//      if(tempwin == display->z_topmost)
-//          break;
-//      tempwin->visible_bak = tempwin->visible_clip;
-//      tempwin->visible_clip = NULL;
-//  }
-    //按从左到右，从上到下的顺序(顺序不能改变)把所有垂直线、水平线围成的小clip
-    //串成双向链表，由clip_head做链表头
-    rect_top = 0;
-    temp = 0;
-    for(rect_bottom =1;rect_bottom <= display->height; rect_bottom++)
-    {
-        if(sort_array_y[rect_bottom] == 0)
-            continue;
-        rect_left = 0;
-        for(rect_right =1;rect_right <= display->width; rect_right++)
-        {
-            if(sort_array_x[rect_right] == 0)
-                continue;
-            clip = (struct ClipRect*)Mb_Malloc(g_ptClipRectPool,0);
-            if(clip != NULL)
-            {
-                clip->rect.left = rect_left;
-                clip->rect.right = rect_right;
-                clip->rect.top = rect_top;
-                clip->rect.bottom = rect_bottom;
-                rect_left = rect_right;
-                __GK_ClipConnect(&clip_head,clip);      //把小clip加入到链接起来
-                temp++;
-            }
-            else
-            {
-                __GK_FreeClipQueue(clip_head);
-                free(sort_array_x);
-                return false;           //内存池不足，无法生成可视域队列
-            }
-        }
-        rect_top = rect_bottom;
-    }
-    free(sort_array_x);
-
-    //下面判断小clip的归属，并把他们加入到所属win的new_clip队列中
-//  tempwin = display->z_topmost;
-//  while(1)
-//  {
-        clip = clip_head;
-        if(newwin->WinProperty.VisibleExec == CN_GKWIN_VISIBLE)
-        {
-            for(loop = temp; loop >0; loop--)
-            {
-                rect = &(clip->rect);
-                if((rect->left>=newwin->limit.left + newwin->ScreenX)
-                   &&(rect->top>=newwin->limit.top + newwin->ScreenY)
-                   &&(rect->right<=newwin->limit.right + newwin->ScreenX)
-                   &&(rect->bottom<=newwin->limit.bottom + newwin->ScreenY))
-                {   //矩形在tempwin的可显示范围内,若不在则无需处理
-                    //允许alpha或透明，区域将加入窗口可视域，但不从临时链表中删除。
-                    if(newwin->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
-                    {
-                        clip1 = (struct ClipRect*)Mb_Malloc(g_ptClipRectPool,0);
-                        if(clip1 != NULL)
-                        {
-                            *clip1 = *clip;
-                        }
-                        else
-                        {
-                            __GK_FreeClipQueue(clip_head);
-                            return false;           //内存池不足，无法生成可视域队列
-                        }
-                    }else   //不允许透明和alpha，区域加入窗口可视域，从临时链表删除
-                    {
-                        if(clip == clip_head)
-                            clip_head = clip_head->next;
-                        clip1 = clip;
-                        clip->previous->next = clip->next;
-                        clip->next->previous = clip->previous;
-                        temp--;
-                    }
-                    clip = clip->next;
-                    //把小clip加入到visible_clip队列中
-                    __GK_ClipConnect(&newwin->visible_clip,clip1);
-                }else       //矩形不在tpwin的可显示范围内，无需处理。
-                {
-                    clip = clip->next;
-                }
-            }
-            __GK_CombineClip_s(newwin->visible_clip);//合并clip,按先x后y的顺序合并
-        }
-//      if(tempwin != display->desktop)
-//          tempwin = tempwin->z_back;
-//      else
-//          break;
-//  }
-    return true;
-}
-
 //----扫描新可视域---------------------------------------------------------------
 //功能: 1、把visible_clip备份到 visible_bak 中。
 //      2、所有窗口生成新的visible_clip
 //参数: display，被扫描的显示器
+//      range，扫描区域限制，有问题，暂未启用
 //返回: false=失败，一般是因为剪切域池容量不够
 //-----------------------------------------------------------------------------
-bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
+bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display,struct Rectangle *range)
 {
     struct GkWinObj *tempwin;
     struct Rectangle *rect;
+    s32 left,right,top,bottom;
     struct ClipRect *clip,*clip1,*clip_head = NULL;
     s32 num,rect_left,rect_top,rect_right,rect_bottom,loop,temp;
     u8 *sort_array_x,*sort_array_y;
 
+    u32 t1 = (u32)DJY_GetSysTime();
     num = (display->width+1)*sizeof(u8) + (display->height+1)*sizeof(u8);
     sort_array_x = M_MallocLc(num,0);
     if(sort_array_x == NULL)
@@ -588,7 +435,10 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
         }
         //执行 __GK_GetRedrawClipAll 函数注释中的step1
         //保存窗口原来的可视域
-        tempwin->visible_clip = __GK_FreeClipQueue(tempwin->visible_clip);
+        if(tempwin->visible_clip != tempwin->visible_bak)
+            tempwin->visible_clip = __GK_FreeClipQueue(tempwin->visible_clip);
+        else
+            tempwin->visible_clip = NULL;
         if(tempwin != display->desktop)
             tempwin = tempwin->z_back;
         else
@@ -600,8 +450,16 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
         tempwin = tempwin->z_back;
         if(tempwin == display->z_topmost)
             break;
-        tempwin->visible_bak = NULL;
-        tempwin->visible_clip = NULL;
+        if(tempwin->visible_clip == tempwin->visible_bak)
+        {
+            tempwin->visible_clip = __GK_FreeClipQueue(tempwin->visible_clip);
+            tempwin->visible_bak = NULL;
+        }
+        else
+        {
+            tempwin->visible_clip = __GK_FreeClipQueue(tempwin->visible_clip);
+            tempwin->visible_bak =  __GK_FreeClipQueue(tempwin->visible_bak);
+        }
     }
     //按从左到右，从上到下的顺序(顺序不能改变)把所有垂直线、水平线围成的小clip
     //串成双向链表，由clip_head做链表头
@@ -616,7 +474,7 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
         {
             if(sort_array_x[rect_right] == 0)
                 continue;
-            clip = (struct ClipRect*)Mb_Malloc(g_ptClipRectPool,0);
+            clip = __GK_AllocClip(0);
             if(clip != NULL)
             {
                 clip->rect.left = rect_left;
@@ -645,18 +503,20 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
         clip = clip_head;
         if(tempwin->WinProperty.VisibleExec == CN_GKWIN_VISIBLE)
         {
+            left = tempwin->limit.left + tempwin->ScreenX;
+            right = tempwin->limit.right + tempwin->ScreenX;
+            top = tempwin->limit.top + tempwin->ScreenY;
+            bottom = tempwin->limit.bottom + tempwin->ScreenY;
             for(loop = temp; loop >0; loop--)
             {
                 rect = &(clip->rect);
-                if((rect->left>=tempwin->limit.left + tempwin->ScreenX)
-                   &&(rect->top>=tempwin->limit.top + tempwin->ScreenY)
-                   &&(rect->right<=tempwin->limit.right + tempwin->ScreenX)
-                   &&(rect->bottom<=tempwin->limit.bottom + tempwin->ScreenY))
+                if((rect->left>=left) && (rect->top>=top)
+                   &&(rect->right<=right) &&(rect->bottom<=bottom))
                 {   //矩形在tempwin的可显示范围内,若不在则无需处理
                     //允许alpha或透明，区域将加入窗口可视域，但不从临时链表中删除。
                     if(tempwin->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
                     {
-                        clip1 = (struct ClipRect*)Mb_Malloc(g_ptClipRectPool,0);
+                        clip1 = __GK_AllocClip(0);
                         if(clip1 != NULL)
                         {
                             *clip1 = *clip;
@@ -692,9 +552,23 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
     }
     return true;
 }
+
+
+//注释掉的原因：想改成只扫描 range 范围内的区域，但有问题，对完整包含 range 的大窗口
+//没法处理，等想到方案时再开放。
+////----扫描新可视域---------------------------------------------------------------
+////功能: 1、把visible_clip备份到 visible_bak 中。
+////      2、所有窗口生成新的visible_clip
+////参数: display，被扫描的显示器
+////      range，扫描此区域所涉及的窗口
+////返回: false=失败，一般是因为剪切域池容量不够
+////-----------------------------------------------------------------------------
+//bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display,struct Rectangle *range)
 //{
 //    struct GkWinObj *tempwin;
 //    struct Rectangle *rect;
+//    struct Rectangle winoutline,outline;
+//    s32 left,right,top,bottom;
 //    struct ClipRect *clip,*clip1,*clip_head = NULL;
 //    s32 num,rect_left,rect_top,rect_right,rect_bottom,loop,temp;
 //    u8 *sort_array_x,*sort_array_y;
@@ -706,31 +580,38 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
 //    memset(sort_array_x,0,num);
 //    sort_array_y = sort_array_x + display->width+1;
 //    tempwin = display->z_topmost;
+//    if(range)
+//        outline = *range;
+//    else
+//        outline = display->desktop->limit;
 ////    rect_left = 0;
 ////    rect_top = 0;
 //    while(1)
 //    {
 //        //要求窗口可视，且被祖先窗口限制后，仍然有可视范围
-//        if((tempwin->WinProperty.Visible == CN_GKWIN_VISIBLE)
-//           &&(tempwin->limit.right != 0) && (tempwin->limit.bottom != 0) )
+//        if(tempwin->WinProperty.VisibleExec == CN_GKWIN_VISIBLE)
 //        {
-//            //取窗口可视边框，该边框是窗口受祖先窗口限制后的矩形
-//            temp = tempwin->limit.left + tempwin->ScreenX;
-//            sort_array_x[temp] = 1;
+//            __GK_GetWinOutline(tempwin, &winoutline);
+//            if(__GK_GetRectInts(&winoutline,&outline,&winoutline))
+//            {
+//                //取窗口可视边框，该边框是窗口受祖先窗口限制后的矩形
+//                temp = tempwin->limit.left + tempwin->ScreenX;
+//                sort_array_x[temp] = 1;
 //
-//            temp = tempwin->limit.right + tempwin->ScreenX;
-//            sort_array_x[temp] = 1;
+//                temp = tempwin->limit.right + tempwin->ScreenX;
+//                sort_array_x[temp] = 1;
 //
-//            temp = tempwin->limit.top + tempwin->ScreenY;
-//            sort_array_y[temp] = 1;
+//                temp = tempwin->limit.top + tempwin->ScreenY;
+//                sort_array_y[temp] = 1;
 //
-//            temp = tempwin->limit.bottom + tempwin->ScreenY;
-//             sort_array_y[temp] = 1;
+//                temp = tempwin->limit.bottom + tempwin->ScreenY;
+//                 sort_array_y[temp] = 1;
+//                if(tempwin->visible_clip != tempwin->visible_bak)
+//                    tempwin->visible_clip = __GK_FreeClipQueue(tempwin->visible_clip);
+//                else
+//                    tempwin->visible_clip = NULL;
+//            }
 //        }
-//        //执行__GK_GetRedrawClipAll函数注释中的step1
-//        //保存窗口原来的可视域
-//        tempwin->visible_bak = tempwin->visible_clip;
-//        tempwin->visible_clip = NULL;
 //        if(tempwin != display->desktop)
 //            tempwin = tempwin->z_back;
 //        else
@@ -742,8 +623,16 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
 //        tempwin = tempwin->z_back;
 //        if(tempwin == display->z_topmost)
 //            break;
-//        tempwin->visible_bak = tempwin->visible_clip;
-//        tempwin->visible_clip = NULL;
+//        if(tempwin->visible_clip == tempwin->visible_bak)
+//        {
+//            tempwin->visible_clip = __GK_FreeClipQueue(tempwin->visible_clip);
+//            tempwin->visible_bak = NULL;
+//        }
+//        else
+//        {
+//            tempwin->visible_clip = __GK_FreeClipQueue(tempwin->visible_clip);
+//            tempwin->visible_bak =  __GK_FreeClipQueue(tempwin->visible_bak);
+//        }
 //    }
 //    //按从左到右，从上到下的顺序(顺序不能改变)把所有垂直线、水平线围成的小clip
 //    //串成双向链表，由clip_head做链表头
@@ -758,7 +647,7 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
 //        {
 //            if(sort_array_x[rect_right] == 0)
 //                continue;
-//            clip = (struct ClipRect*)Mb_Malloc(g_ptClipRectPool,0);
+//            clip = __GK_AllocClip(0);
 //            if(clip != NULL)
 //            {
 //                clip->rect.left = rect_left;
@@ -785,47 +674,53 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
 //    while(1)
 //    {
 //        clip = clip_head;
-//        if(tempwin->WinProperty.Visible == CN_GKWIN_VISIBLE)
+//        if(tempwin->WinProperty.VisibleExec == CN_GKWIN_VISIBLE)
 //        {
-//            for(loop = temp; loop >0; loop--)
+//            __GK_GetWinOutline(tempwin, &winoutline);
+//            if(__GK_GetRectInts(&winoutline,&outline,&winoutline))
 //            {
-//                rect = &(clip->rect);
-//                if((rect->left>=tempwin->limit.left + tempwin->ScreenX)
-//                   &&(rect->top>=tempwin->limit.top + tempwin->ScreenY)
-//                   &&(rect->right<=tempwin->limit.right + tempwin->ScreenX)
-//                   &&(rect->bottom<=tempwin->limit.bottom + tempwin->ScreenY))
-//                {   //矩形在tempwin的可显示范围内,若不在则无需处理
-//                    //允许alpha或透明，区域将加入窗口可视域，但不从临时链表中删除。
-//                    if(tempwin->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
-//                    {
-//                        clip1 = (struct ClipRect*)Mb_Malloc(g_ptClipRectPool,0);
-//                        if(clip1 != NULL)
-//                        {
-//                            *clip1 = *clip;
-//                        }
-//                        else
-//                        {
-//                            __GK_FreeClipQueue(clip_head);
-//                            return false;           //内存池不足，无法生成可视域队列
-//                        }
-//                    }else   //不允许透明和alpha，区域加入窗口可视域，从临时链表删除
-//                    {
-//                        if(clip == clip_head)
-//                            clip_head = clip_head->next;
-//                        clip1 = clip;
-//                        clip->previous->next = clip->next;
-//                        clip->next->previous = clip->previous;
-//                        temp--;
-//                    }
-//                    clip = clip->next;
-//                    //把小clip加入到visible_clip队列中
-//                    __GK_ClipConnect(&tempwin->visible_clip,clip1);
-//                }else       //矩形不在tpwin的可显示范围内，无需处理。
+//                left = tempwin->limit.left + tempwin->ScreenX;
+//                right = tempwin->limit.right + tempwin->ScreenX;
+//                top = tempwin->limit.top + tempwin->ScreenY;
+//                bottom = tempwin->limit.bottom + tempwin->ScreenY;
+//                for(loop = temp; loop >0; loop--)
 //                {
-//                    clip = clip->next;
+//                    rect = &(clip->rect);
+//                    if((rect->left>=left) && (rect->top>=top)
+//                       &&(rect->right<=right) &&(rect->bottom<=bottom))
+//                    {   //矩形在tempwin的可显示范围内,若不在则无需处理
+//                        //允许alpha或透明，区域将加入窗口可视域，但不从临时链表中删除。
+//                        if(tempwin->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
+//                        {
+//                            clip1 = __GK_AllocClip(0);
+//                            if(clip1 != NULL)
+//                            {
+//                                *clip1 = *clip;
+//                            }
+//                            else
+//                            {
+//                                __GK_FreeClipQueue(clip_head);
+//                                return false;           //内存池不足，无法生成可视域队列
+//                            }
+//                        }else   //不允许透明和alpha，区域加入窗口可视域，从临时链表删除
+//                        {
+//                            if(clip == clip_head)
+//                                clip_head = clip_head->next;
+//                            clip1 = clip;
+//                            clip->previous->next = clip->next;
+//                            clip->next->previous = clip->previous;
+//                            temp--;
+//                        }
+//                        clip = clip->next;
+//                        //把小clip加入到visible_clip队列中
+//                        __GK_ClipConnect(&tempwin->visible_clip,clip1);
+//                    }else       //矩形不在tpwin的可显示范围内，无需处理。
+//                    {
+//                        clip = clip->next;
+//                    }
 //                }
+//                __GK_CombineClip_s(tempwin->visible_clip);//合并clip,按先x后y的顺序合并
 //            }
-//            __GK_CombineClip_s(tempwin->visible_clip);//合并clip,按先x后y的顺序合并
 //        }
 //        if(tempwin != display->desktop)
 //            tempwin = tempwin->z_back;
@@ -836,33 +731,17 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
 //}
 
 //----生成新可视域-------------------------------------------------------------
-//功能: 全部窗口生成新的可视域队列，把原来的可视域放到visible_bak中，并释放原来
-//      的visible_bak队列:然后生成新的可视域，最后把新增可视域加入到redraw_clip
-//      队列中。完成的是 __GK_GetRedrawClipAll 函数注释中的step1~3。
+//功能: 把全部窗口的新增可视域转移到redraw队列中，释放visible_bak队列.
 //参数: display，被扫描的显示器
 //返回: false=失败，一般是因为剪切域池容量不够
 //-----------------------------------------------------------------------------
-bool_t __GK_GetVisibleClip(struct DisplayObj *display)
+bool_t __GK_GetNewVisibleClip(struct DisplayObj *display)
 {
     struct GkWinObj *tempwin;
-//  if(__GK_ScanNewVisibleClip(display) == false)
-//      return false;
     tempwin = display->z_topmost;
     while(1)
     {
-        //备份visible_clip
-        tempwin->copy_clip = __GK_CopyClipLink(tempwin->visible_clip);
-//        if(tempwin->WinProperty.ChangeFlag == CN_GKWIN_CHANGE_ALL)
-//        {
-//            //全部可视域需重绘，
-//            __GK_ClipLinkConnect(&tempwin->redraw_clip,tempwin->visible_clip);
-//            tempwin->visible_clip = NULL;   //可视域已经全部加入重绘域
-//            tempwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;
-//        }
-//        else
-        {
-            __GK_GetNewClip(tempwin);         //新增可视域加入redraw_clip
-        }
+        __GK_GetNewClip(tempwin);         //新增可视域加入redraw_clip
         if(tempwin != display->desktop)
             tempwin = tempwin->z_back;
         else
@@ -885,7 +764,7 @@ struct ClipRect * __GK_CopyClipLink(struct ClipRect *clip_link)
         return NULL;
 
     //创建第一个节点
-    clip1 = (struct ClipRect*)Mb_Malloc(g_ptClipRectPool,0);
+    clip1 = __GK_AllocClip(0);
     if(clip1 == NULL)
         return NULL;
     clip1->rect = clip_rsc->rect;
@@ -894,7 +773,7 @@ struct ClipRect * __GK_CopyClipLink(struct ClipRect *clip_link)
     clip_rsc = clip_rsc->next;
     while(clip_rsc != clip_link)
     {
-        clip2 = (struct ClipRect*)Mb_Malloc(g_ptClipRectPool,0);
+        clip2 = __GK_AllocClip(0);
         if(clip2 == NULL)
             goto error_exit;
         clip2->rect = clip_rsc->rect;
@@ -985,7 +864,7 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
 
     if(gkwin->WinProperty.ChangeFlag == CN_GKWIN_CHANGE_ALL)   //整个窗口均被修改
     {
-        clip = (struct ClipRect *)Mb_Malloc(g_ptClipRectPool,0);
+        clip = __GK_AllocClip(0);
         if(clip != NULL)
         {
             clip->rect.left = gkwin->limit.left + gkwin->ScreenX;
@@ -1021,7 +900,7 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
                     if(start == false)      //changed block开始被修改
                     {
                         start = true;
-                        clip =(struct ClipRect*)Mb_Malloc(g_ptClipRectPool,0);
+                        clip =__GK_AllocClip(0);
                         if(clip != NULL)
                         {
                             clip->rect.left = gkwin->ScreenX + offset_bit*8;
@@ -1150,7 +1029,7 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
             {
                 if(__GK_GetRectInts(&workloop->rect,&subloop->rect,&ints_rect))
                 {//矩形相交
-                    temp1 = (struct ClipRect *)Mb_Malloc(g_ptClipRectPool,0);
+                    temp1 = __GK_AllocClip(0);
                     temp1->rect = ints_rect;
                     //把相交区域加入clip_ints
                     __GK_ClipConnect(&clip_ints,temp1);
@@ -1176,8 +1055,7 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
                             workloop = workloop->next;
                         }else
                         {
-                            temp1 =
-                             (struct ClipRect *)Mb_Malloc(g_ptClipRectPool,0);
+                            temp1 = __GK_AllocClip(0);
                             temp1->rect.left = src_rect.left;
                             temp1->rect.top = subloop->rect.top;
                             temp1->rect.right = subloop->rect.left;
@@ -1201,8 +1079,7 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
                             workloop = workloop->next;
                         }else
                         {
-                            temp1 =
-                             (struct ClipRect *)Mb_Malloc(g_ptClipRectPool,0);
+                            temp1 = __GK_AllocClip(0);
                             temp1->rect.left = subloop->rect.right;
                             if(src_rect.top < subloop->rect.top)
                                 temp1->rect.top = subloop->rect.top;
@@ -1225,8 +1102,7 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
                             workloop = workloop->next;
                         }else
                         {
-                            temp1 =
-                             (struct ClipRect *)Mb_Malloc(g_ptClipRectPool,0);
+                            temp1 = __GK_AllocClip(0);
                             temp1->rect.left = src_rect.left;
                             temp1->rect.top = subloop->rect.bottom;
                             temp1->rect.right = src_rect.right;
@@ -1277,11 +1153,11 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
     *different = difftemp;
     *ins = clip_ints;
 }
+
 //----取得新增重绘域-----------------------------------------------------------
 //功能: 出现在visible_clip中且不在visible_bak的区域，加入redraw_clip。
 //      同时出现在visible_clip和visible_bak中的部分，留在visible_clip中
-//      如果dest_blend==true，则仅在visible_bak出现的部分留在visible_bak
-//      否则，释放 visible_bak
+//      释放 visible_bak
 //参数: gkwin，目标窗口
 //返回: 无
 //-----------------------------------------------------------------------------
@@ -1292,31 +1168,24 @@ void __GK_GetNewClip(struct GkWinObj *gkwin)
 
     if(gkwin->visible_bak != NULL)
     {
-        __GK_ClipLinkSub(gkwin->visible_clip,gkwin->visible_bak,&res,&redraw);
-        __GK_ClipLinkConnect(&gkwin->redraw_clip,redraw);
-        gkwin->visible_clip = res;
-        if(gkwin->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
-        {
-            __GK_ClipLinkSub(gkwin->visible_bak,gkwin->visible_clip,
-                              &res,&redraw);
-            gkwin->visible_bak = redraw;
-            __GK_FreeClipQueue(res);
-        }
-        else
-        {
-            gkwin->visible_bak = __GK_FreeClipQueue(gkwin->visible_bak);
-        }
+        //res返回相交部分，即非新增、已经显示的部分，
+        //redraw返仅出现在 work_clip 的部分，即新增须绘制的部分。
+        //work_clip 将被释放
+        __GK_ClipLinkSub(gkwin->work_clip,gkwin->visible_bak,&res,&redraw);
+        __GK_ClipLinkConnect(&gkwin->redraw_clip,redraw);   //新增部分去了redraw
+        gkwin->work_clip = res;                          //非新增部分留在work
+        gkwin->visible_bak = __GK_FreeClipQueue(gkwin->visible_bak);
     }
     else
     {
-        __GK_ClipLinkConnect(&gkwin->redraw_clip,gkwin->visible_clip);
-        gkwin->visible_clip = NULL;
+        gkwin->redraw_clip = gkwin->work_clip; //新创建的窗口，可视域全部需要绘制
+        gkwin->work_clip = NULL;
     }
 }
 
 //----提取剪切域交集-----------------------------------------------------------
 //功能: 剪取srcclip队列中与desclip相交部分，不相交的部分仍然留在srcclip中。
-//参数: srcclip，原剪切域链表
+//参数: srcclip，原剪切域链表，也用于返回两个队列不想交的部分
 //      desclip，目标剪切域链表
 //返回: 提取的可视域，NULL = 没有相交部分
 //-----------------------------------------------------------------------------
@@ -1331,23 +1200,34 @@ struct ClipRect *__GK_GetClipLinkInts(struct ClipRect **srcclip,
 }
 
 //----生成重绘区域-------------------------------------------------------------
-//功能: 扫描整个窗口链表，重新生成全部窗口的可视域,以及待重绘的clip，方法和过程:
-//      1、释放所有的visible_bak，把visible_clip转到visible_bak中。
-//      2、重新生成所有win的visible_clip，并复制到 copy_clip 中临时保存。
-//      3、visible_clip减去中visible_bak所得加入redraw_clip队列。剩余部分保留在
-//          visible_clip中。如果窗口的dest_blend == true，则visible_bak中保存
-//          由可见变为不可见的部分，否则visible_bak将被释放。
-//      4、从changed msk中提取changed_clip。
-//      5、取visible_clip与changed_clip的交集，加入redraw_clip队列。
-//      6、从z_top起，取visible_bak,扫描其后窗口的可视域，与其重叠的部分，加入
-//         redraw域。符合此条件的visible_bak，必定是因为窗口移开所致。
-//      7、从z_top起，对dest_blend == true的win，扫描z轴中在其后面的
-//         win的visible_clip，与其需重绘部分重叠的，加入redraw_clip队列。
-//         此后dest_blend != true的win的visible_clip可释放。
-//      8、合并前几步产生的redraw_clip队列。
-//      9、从z_top起，对任一dest_blend == true的win的visible_clip，扫描z轴中在其
+//功能: 扫描整个窗口链表，重新生成全部窗口的可视域,以及待重绘的clip，方法描述：
+//      其他函数相关过程：
+//      当可视域发生改变（例如新建、移动、改变窗口尺寸时），将重新生成全部窗口的可视域
+//      visible_clip，并置位display->reset_clip
+//      本函数完成的过程：
+//      把visible_clip复制一份到 work_clip，然后逐步转移到redraw：
+//      1、work_clip 相比bak新增部分转移到redraw
+//      2、work_clip 与change_msk相交部分转移到redraw
+//          以下两步，有透明属性的窗口执行：
+//      3、本窗口redraw与背后窗口的 work_clip 相交部分转移到背后窗口的redraw
+//      4、本窗口 work_clip 与背后窗口的redraw相交部分转移到本窗口redraw
+//      处理过程:
+//      1、把visible_clip复制到 work_clip 中临时保存。
+//      2、work_clip减去中visible_bak所得作为新增可视域加入redraw_clip队列。
+//        剩余部分保留在work_clip中，待与change_msk比较。
+//      3、从changed msk中提取changed_clip。
+//      4、取work_clip（此时保存的是可视域中非新增部分）与changed_clip的交集，
+//        加入redraw_clip队列。
+// 取消 6、从z_top起，取visible_bak,扫描其后窗口的可视域，与其重叠的部分，加入
+//         redraw域。符合此条件的visible_bak，必定是因为窗口移动所致。
+//      5、redraw透明窗口将导致被遮盖窗口相应位置也要重绘。从z_top起，
+//        扫描dest_blend == true的winz轴后面的win的 work_clip，与其需重绘部分重叠
+//        的，加入各自窗口的redraw_clip队列。
+//        此后dest_blend != true的win的work_clip可释放。
+//      6、合并前几步产生的redraw_clip队列。
+//      7、从z_top起，对任一dest_blend == true的win的 work_clip，扫描z轴中在其
 //         后面的win的redraw_clip，重叠的部分加入redraw_clip队列，并合并之。
-//      10、从copy_clip中恢复visible_bak
+//      8、同步 visible_clip和visible_bak
 //参数: display，被扫描的显示器
 //返回: false=失败，一般是因为剪切域池容量不够
 //-----------------------------------------------------------------------------
@@ -1356,46 +1236,46 @@ bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
     struct GkWinObj *tempwin;
     struct GkWinObj *special_win;
     struct ClipRect *changed_clip,*tempclip1;
-    if(display->reset_clip == true)         //看是否需要重新生成可视域
+    tempwin = display->z_topmost;
+    while(1)        //完成step1
     {
-        if(__GK_GetVisibleClip(display) == false)     //完成step1、step2、step3
+        tempwin->work_clip = __GK_CopyClipLink(tempwin->visible_clip);
+        if(tempwin != display->desktop)
+            tempwin = tempwin->z_back;
+        else
+            break;
+    }
+    if(display->reset_clip == true)         //看是否需要重新生成重绘域
+    {
+        if(__GK_GetNewVisibleClip(display) == false)     //完成step2
             return false;
         display->reset_clip = false;
     }
     tempwin = display->desktop;
     while(1)
-    {   //扫描desktop到z_topmost之间的全部窗口，完成step4~5，在desktop后面的
+    {   //扫描desktop到z_topmost之间的全部窗口，完成step3~4，在desktop后面的
         //窗口不显示，或者在step1~3中已经全部转移到 redraw_clip 中，无需处理。
-        if(tempwin->visible_clip != NULL)
+        if(tempwin->work_clip != NULL)
         {
             //备份visible_clip
-            if(tempwin->copy_clip == NULL)  //copy_clip可能已经在step1~3中设置了
-                tempwin->copy_clip = __GK_CopyClipLink(tempwin->visible_clip);
-            //整个窗口全部被修改，整体绘制、窗口移动、拉伸、压缩会导致全体修改
-            //reset_clip == true成立的话，cn_gkwin_change_all的情况在
-            //__gk_get_visible_clip函数中已经完成，在该函数中完成，可以减轻不少
-            //运算量，而且对这里没有影响。
             if(tempwin->WinProperty.ChangeFlag == CN_GKWIN_CHANGE_ALL)
             {
                 //全部可视域需重绘
-                __GK_ClipLinkConnect(&tempwin->redraw_clip,
-                                       tempwin->visible_clip);
-                tempwin->visible_clip = NULL;   //可视域已经全部加入重绘域
+                tempwin->redraw_clip =
+                                __GK_FreeClipQueue(tempwin->redraw_clip);
+                tempwin->redraw_clip = tempwin->work_clip;
+                tempwin->work_clip = NULL;   //可视域已经全部加入重绘域
                 tempwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;
-            }else
+            }else if(tempwin->WinProperty.ChangeFlag == CN_GKWIN_CHANGE_PART)
             {   //有部分修改
-                if(tempwin->WinProperty.ChangeFlag == CN_GKWIN_CHANGE_PART)
-                {
-                    //取得修改域
-                    changed_clip = __GK_GetChangedClip(tempwin);
-                    //提取可视域中修改的区域
-                    tempclip1 = __GK_GetClipLinkInts(
-                                    &tempwin->visible_clip,changed_clip);
-                    __GK_FreeClipQueue(changed_clip);
-                    //把修改区域加入到redraw_clip中
-                    __GK_ClipLinkConnect(&tempwin->redraw_clip,tempclip1);
-                    tempwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;
-                }
+                changed_clip = __GK_GetChangedClip(tempwin);    //取得修改域
+                //提取可视域中修改的区域
+                tempclip1 = __GK_GetClipLinkInts(
+                                &tempwin->work_clip,changed_clip);
+                __GK_FreeClipQueue(changed_clip);
+                //把修改区域加入到redraw_clip中
+                __GK_ClipLinkConnect(&tempwin->redraw_clip,tempclip1);
+                tempwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;
             }
 //              tempwin->visible_bak = NULL;
         }
@@ -1409,25 +1289,54 @@ bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
             break;
     }
 
-    //执行step6，改变位置的、dest_blend=true的窗口，改变前遮挡的其他窗口的
-    //可视域，加入redraw域。
+//    //执行step6，改变位置的、dest_blend=true的窗口，改变前遮挡的其他窗口的
+//    //可视域，加入redraw域。
+//    special_win = display->z_topmost;
+//    while(1)
+//    {
+//        //窗口移动，伸缩会导致visible_bak != NULL
+//        if((special_win->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
+//                    && (special_win->visible_bak != NULL))
+//        {
+//            tempwin = special_win->z_back;
+//            while(1)
+//            {
+////                tempclip2 = __GK_CopyClipLink(special_win->visible_bak);
+//                //取得背景窗口需要重绘的区域
+//                tempclip1 =
+//                    __GK_GetClipLinkInts(&tempwin->visible_clip,
+//                                          special_win->visible_bak);
+//
+////                __GK_FreeClipQueue(tempclip2);
+//                //把修改区域加入到背景窗口redraw_clip中
+//                __GK_ClipLinkConnect(&tempwin->redraw_clip,tempclip1);
+//                if(tempwin != display->desktop)
+//                    tempwin = tempwin->z_back;
+//                else
+//                    break;
+//            }
+//            special_win->visible_bak = __GK_FreeClipQueue(special_win->visible_bak);
+//        }
+//        if(special_win != display->desktop)
+//            special_win = special_win->z_back;
+//        else
+//            break;
+//    }
+
+    //执行step5
+    //redraw透明窗口将导致被遮盖窗口相应位置也要重绘。
     special_win = display->z_topmost;
     while(1)
     {
-        //窗口移动，伸缩会导致visible_bak != NULL
-        if((special_win->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
-                    && (special_win->visible_bak != NULL))
-        {
+        if(special_win->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
+        {//special_win需要背景参与运算才执行下面的程序
             tempwin = special_win->z_back;
             while(1)
             {
-//                tempclip2 = __GK_CopyClipLink(special_win->visible_bak);
                 //取得背景窗口需要重绘的区域
                 tempclip1 =
-                    __GK_GetClipLinkInts(&tempwin->visible_clip,
-                                          special_win->visible_bak);
+                    __GK_GetClipLinkInts(&tempwin->work_clip,special_win->redraw_clip);
 
-//                __GK_FreeClipQueue(tempclip2);
                 //把修改区域加入到背景窗口redraw_clip中
                 __GK_ClipLinkConnect(&tempwin->redraw_clip,tempclip1);
                 if(tempwin != display->desktop)
@@ -1435,7 +1344,11 @@ bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
                 else
                     break;
             }
-            special_win->visible_bak = __GK_FreeClipQueue(special_win->visible_bak);
+        }
+        else
+        {//释放掉不需要背景参与运算的窗口的可视域工作队列
+            special_win->work_clip =
+                            __GK_FreeClipQueue(special_win->work_clip);
         }
         if(special_win != display->desktop)
             special_win = special_win->z_back;
@@ -1443,44 +1356,7 @@ bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
             break;
     }
 
-    //执行step7，窗口需要背景参与运算，此窗口内容有改变
-    special_win = display->z_topmost;
-    while(1)
-    {   //hjj,step7和step9存在先后执行的情况，调用__gk_get_cliplink_ints_res
-        //会对参数有影响(可能导致参数值改变)，使用时应多做考虑
-        if(special_win->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
-        {//special_win需要背景参与运算才执行下面的程序
-            if(special_win->redraw_clip != NULL)
-            {
-                tempwin = special_win->z_back;
-                while(1)
-                {
-                    //取得背景窗口需要重绘的区域
-                    tempclip1 =
-                        __GK_GetClipLinkInts(&tempwin->visible_clip,
-                                                special_win->redraw_clip);
-
-                    //把修改区域加入到背景窗口redraw_clip中
-                    __GK_ClipLinkConnect(&tempwin->redraw_clip,tempclip1);
-                    if(tempwin != display->desktop)
-                        tempwin = tempwin->z_back;
-                    else
-                        break;
-                }
-            }
-        }
-        else
-        {//释放掉不需要背景参与运算的窗口的可视域
-            special_win->visible_clip =
-                            __GK_FreeClipQueue(special_win->visible_clip);
-        }
-        if(special_win != display->desktop)
-            special_win = special_win->z_back;
-        else
-            break;
-    }
-
-    //执行step8，合并前几步产生的redraw_clip队列
+    //执行step6，合并前几步产生的redraw_clip队列
     tempwin = display->z_topmost;
     while(1)
     {
@@ -1492,42 +1368,39 @@ bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
             break;
     }
 
-    //执行step9，本步骤无须判断desktop，故循环体有所不同
+    //执行step7，本步骤无须判断desktop，因为 desktop 后面的窗口肯定不显示，故循环体有所不同
     //需要背景参与运算的窗口，其背景改变
     special_win = display->z_topmost;
     do{
         if((special_win->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
-                        &&(special_win->visible_clip != NULL))
+                        &&(special_win->work_clip != NULL))
         {//special_win需要背景窗口参与运算，才执行下面的程序
             tempwin = special_win;
             do{
                 tempwin = tempwin->z_back;
                 //取得背景窗口的修改域
                 tempclip1 =
-                    __GK_GetClipLinkInts(&special_win->visible_clip,
+                    __GK_GetClipLinkInts(&special_win->work_clip,
                                               tempwin->redraw_clip);
                 //把修改区域加入到窗口的redraw_clip中
                 __GK_ClipLinkConnect(&special_win->redraw_clip,tempclip1);
             }while(tempwin != display->desktop);
-            //释放掉不需要使用的区域
-            special_win->visible_clip =
-                            __GK_FreeClipQueue(special_win->visible_clip);
             //合并redraw_clip
             special_win->redraw_clip =
                             __GK_CombineClip(special_win->redraw_clip);
         }
+        //释放掉不需要使用的区域
+        special_win->work_clip =
+                        __GK_FreeClipQueue(special_win->work_clip);
         special_win = special_win->z_back;
     }while(special_win != display->desktop);
 
-    //执行step10，从copy_clip中恢复visible_clip
+    //执行step8，
     tempwin = display->z_topmost;
     while(1)
     {
-        tempwin->visible_bak =
-                        __GK_FreeClipQueue(tempwin->visible_bak);
-        tempwin->visible_bak = __GK_CopyClipLink(tempwin->copy_clip);
-        tempwin->visible_clip = tempwin->copy_clip;
-        tempwin->copy_clip = NULL;
+        tempwin->visible_bak = tempwin->visible_clip;
+        tempwin->work_clip = NULL;
         if(tempwin != display->desktop)
             tempwin = tempwin->z_back;
         else

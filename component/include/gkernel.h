@@ -314,7 +314,7 @@ struct GkWinObj                  //窗口资源定义
     struct ClipRect *visible_bak;  //原可视域链表,双向循环链表
     struct ClipRect *redraw_clip;  //需要刷新显示的可视域链表
     struct ClipRect *changed_clip; //被修改的区域链表
-    struct ClipRect *copy_clip;    //用于visible_clip的临时备份
+    struct ClipRect *work_clip;    //用于visible_clip的临时备份
     struct DisplayObj *disp;       //本窗口所属显示器
     struct GkWinProperty WinProperty;   //窗口的状态和属性
     u32 HyalineColor;           //透明显示色，RopCode允许透明色时用,RGB888

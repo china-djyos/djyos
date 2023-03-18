@@ -65,13 +65,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+void __GK_GetWinOutline(struct GkWinObj *gkwin, struct Rectangle *target);
+void __GK_GetWinAndRectOutline(struct GkWinObj *gkwin,struct Rectangle *range);
 struct ClipRect *__GK_FreeClipQueue(struct ClipRect *clip);
 struct ClipRect * __GK_CombineClip_s(struct ClipRect *clipq);
 struct ClipRect * __GK_CombineClip(struct ClipRect *clipq);
 bool_t __GK_GetRectInts(struct Rectangle *rect1,struct Rectangle *rect2,
                      struct Rectangle *result);
-extern bool_t __GK_ScanVisibleClip(struct GkWinObj *newwin);
-extern bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display);
+//extern bool_t __GK_ScanVisibleClip(struct GkWinObj *newwin);
+bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display,struct Rectangle *range);
 bool_t __GK_GetVisibleClip(struct DisplayObj *display);
 struct ClipRect *  __GK_CopyClipLink(struct ClipRect *clip_link);
 void __GK_ClipLinkConnect(struct ClipRect **mlink,struct ClipRect *sub);

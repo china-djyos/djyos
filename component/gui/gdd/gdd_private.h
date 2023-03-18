@@ -203,6 +203,7 @@ bool_t  __GDD_PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 para
 void    __GDD_PostTimerMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,struct WinTimer *ptmr);
 
 struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size);
+void    __GUI_DeleteMsg(HWND hwnd);
 void    __GUI_DeleteMsgQ(struct WinMsgQueueCB *pMsgQ);
 void    __GDD_RemoveWindowTimer(HWND hwnd);
 void    __GDD_DeleteMainWindowData(HWND hwnd);

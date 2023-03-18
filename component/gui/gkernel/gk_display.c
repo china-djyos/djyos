@@ -116,7 +116,7 @@ bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name)
         frame_buffer->visible_clip = NULL;
         frame_buffer->redraw_clip = NULL;
         frame_buffer->changed_clip = NULL;
-        frame_buffer->copy_clip = NULL;
+        frame_buffer->work_clip = NULL;
         frame_buffer->disp = display;
         frame_buffer->WinProperty.Zprio = CN_ZPRIO_DEFAULT;
         frame_buffer->WinProperty.DirectDraw = CN_GKWIN_UNDIRECT_DRAW;

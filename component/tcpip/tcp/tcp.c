@@ -142,7 +142,7 @@ enum _EN_TCPSTATE
 #define CN_TCP_CHANNEL_STATARCV    (1<<1)  //APP COULD RCV DATA
 #define CN_TCP_CHANNEL_STATKSND    (1<<2)  //STACK COULD SND DATA
 #define CN_TCP_CHANNEL_STATKRCV    (1<<3)  //STACK COULD RCV DATA
-#define CN_TCP_CHANNEL_STATCONGEST (1<<4)  //the rcv window is full or channel is bad，取消
+//#define CN_TCP_CHANNEL_STATCONGEST (1<<4)  //the rcv window is full or channel is bad，取消
 
 //tcp timer定义，所有定义都是tcp ticks 数，每tick=100mS。
 #define CN_TCP_TICK_TIME                   (100*mS) //Units:Micro Seconds
@@ -1778,7 +1778,7 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
 {
     s32 result,prebuflen;
     u32 timeout;
-    s32 endtime;
+    u32 endtime;
     struct ClientCB    *ccb;
     bool_t locked= false;
     s32 rout = 0;
