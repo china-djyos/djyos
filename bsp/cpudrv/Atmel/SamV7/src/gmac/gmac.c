@@ -1119,10 +1119,10 @@ static ptu32_t __GmacRcvTask(void)
                     len = PkgGetDataLen(pkg);
                     pDrive->fnrcvhook(rawbuf,len);
                 }
-                else
-                {
+                // else
+                // {
                     Link_NetDevPush(handle,pkg);
-                }
+                // }
                 PkgTryFreePart(pkg);
                 pDrive->debuginfo.rcvTimes++;
             }

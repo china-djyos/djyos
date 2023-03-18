@@ -120,6 +120,134 @@ static  void    __GDD_Cdn_DC_toWin(HDC hdc,POINT *pt,s32 count)
 }
 /*============================================================================*/
 
+
+void _circle_pos32_get(s32 xcenter, s32 ycenter, u32 r, s32 angle,POINT *p)
+{
+    s32     x;
+    s32     y;
+    s32     d;
+    s32     x_sign;
+    s32     y_sign;
+
+    bool_t swap = FALSE;
+
+    angle %= 360;
+
+    if (angle < 0)
+    {
+        angle += 360;
+    }
+
+    if (angle == 0)
+    {
+        p->x = (xcenter + (s32)r);
+        p->y = ycenter;
+    }
+    else if (angle == 90)
+    {
+        p->x = xcenter;
+        p->y = (ycenter - (s32)r);
+    }
+    else if (angle == 180)
+    {
+        p->x = (xcenter - (s32)r);
+        p->y = ycenter;
+    }
+    else if (angle == 270)
+    {
+        p->x = xcenter;
+        p->y = (ycenter + (s32)r);
+    }
+    else
+    {
+        p->x = (s32)(r*cos(3.14159*angle*1.0/180));
+        p->y = (s32)(r*sin(3.14159*angle*1.0/180));
+        if (angle <= 90)
+        {
+            x_sign = 1;
+            y_sign = 1;
+
+            if (angle < 45)
+            {
+                swap = TRUE;
+            }
+        }
+        else if (angle <= 180)
+        {
+            x_sign = -1;
+            y_sign = 1;
+
+            if (angle > 135)
+            {
+                swap = TRUE;
+            }
+        }
+        else if (angle <= 270)
+        {
+            x_sign = -1;
+            y_sign = -1;
+
+            if (angle < 225)
+            {
+                swap = TRUE;
+            }
+        }
+        else
+        {
+            x_sign = 1;
+            y_sign = -1;
+
+            if (angle > 315)
+            {
+                swap = TRUE;
+            }
+        }
+
+        x = 0;
+        y = (s32)r;
+        d = (s32)(5 - 4 * r);
+
+        p->x = (p->x * x_sign);
+        p->y = (p->y * y_sign);
+
+        if (swap)
+        {
+            __gdd_swap(p->x, p->y);
+        }
+
+        while (x <= y)
+        {
+            if ((x > p->x) || (y < p->y))
+            {
+                break;
+            }
+
+            if (d < 0)
+            {
+                d += 8 * x + 12;
+            }
+            else
+            {
+                d += 8 * (x - y) + 20;
+                y--;
+            }
+            x++;
+        }
+
+        if (swap)
+        {
+            __gdd_swap(x, y);
+        }
+        x *= x_sign;
+        y *= y_sign;
+        p->x = (xcenter + x);
+        p->y = (ycenter - y);
+    }
+
+    return ;
+}
+
+
 u32 GDD_AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha)
 {
     u8 r1,g1,b1;
@@ -335,8 +463,8 @@ u32 GDD_GetDrawColor(HDC hdc)
     return old;
 }
 
-//----设置当前背景颜色-----------------------------------------------------------
-//描述: 当前背景颜色会影响所有背景类函数 (原函数名：  GDD_SetFillColor  .
+//----设置当前hdc背景颜色-----------------------------------------------------------
+//描述: 改变目标hdc的BGColor属性   (原函数名：  GDD_SetFillColor  .
 //参数：hdc: 绘图上下文句柄.
 //      color: 新的背景颜色.
 //返回：旧的绘制颜色.
@@ -358,7 +486,7 @@ u32 GDD_SetBackGroundColor(HDC hdc,u32 color)
 }
 
 //----获得当前背景颜色-----------------------------------------------------------
-//描述: 略.   (原函数名：  GDD_GetFillColor .
+//描述: 获取目标hdc的BGColor属性.   (原函数名：  GDD_GetFillColor .
 //参数：hdc: 绘图上下文句柄.
 //返回：当前背景颜色.
 //------------------------------------------------------------------------------
@@ -1006,53 +1134,100 @@ void GDD_DrawThickLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width)
             p[2].y = y1 +dy;
             p[3].x = x1+dx;
             p[3].y = y1 - dy;
-            __GDD_fillrect(hdc,p[1].x,p[1].y,p[2].x,p[2].y,p[3].x,p[3].y,p[0].x,p[0].y);
+            __Fillrectangle(hdc,&p);
+
         }
     }
 }
-void __GDD_fillrect(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2,s32 x3,s32 y3)
+
+void __Fillrectangle(HDC hdc,POINT *p)
 {
-    if(y0<y3)
+    s32 x0,y0;
+    s32 height;
+    s32 dy,dx,yflag,xflag,line_error,error;
+
+    s32 ymax ,ymin,xmax,xmin;
+    p[0].y>p[1].y?(ymax = p[0].y,ymin = p[1].y):(ymax = p[1].y,ymin = p[0].y);
+    ((ymax>p[2].y)? (ymin>p[2].y?ymin = p[2].y:NULL):(ymax = p[2].y));
+    ((ymax>p[3].y)? (ymin>p[3].y?ymin = p[3].y:NULL):(ymax = p[3].y));
+
+    p[0].x>p[1].x?(xmax = p[0].x,xmin = p[1].x):(xmax = p[1].x,xmin = p[0].x);
+    ((xmax>p[2].x)? (xmin>p[2].x?xmin = p[2].x:NULL):(xmax = p[2].x));
+    ((xmax>p[3].x)? (xmin>p[3].x?xmin = p[3].x:NULL):(xmax = p[3].x-2));
+
+    s32 Drop = ymax - ymin + 1;
+    s32 Xmax[Drop],Xmin[Drop];
+    for(int i = 0;i < Drop;i++)
     {
-        if(y3>y1)
-        {
-            __GDD_fillrect(hdc,x1,y1,x2,y2,x3,y3,x0,y0);
-            return;
-        }
-        s32 xtop = (y3-y0)*(x1-x0)/(y1-y0)+x0;
-        s32 xbuttom = (y1-y3)*(x2-x3)/(y2-y3)+x3;
-        __GDD_trangle_dowm(hdc,x0,y0,xtop,y3,x3,y3);
-        __Parallelogram(hdc,xtop,y3,x1,y1,xbuttom,y1,x3,y3);
-        __GDD_trangle_up(hdc,x1,y1,xbuttom,y1,x2,y2);
+        Xmax[i] = xmin;
+        Xmin[i] = xmax;
     }
-    else if(y0>y3)
+    for(int i = 0;i<4;i++)
     {
-        if(y0>y2)
-        {
-            __GDD_fillrect(hdc,x3,y3,x0,y0,x1,y1,x2,y2);
-            return;
-        }
-        s32 xtop = (y0-y3)*(x2-x3)/(y2-y3)+x3;
-        s32 xbuttom = (y2-y0)*(x1-x0)/(y1-y0)+x0;
-        __GDD_trangle_dowm(hdc,x3,y3,xtop,y0,x0,y0);
-        __Parallelogram(hdc,x0,y0,xbuttom,y2,x2,y2,xtop,y0);
-        __GDD_trangle_up(hdc,xbuttom,y2,x2,y2,x1,y1);
+        height = p[i].y - ymin;//四个点的位置
+        if(p[i].x< Xmin[height])
+            Xmin[height] = p[i].x;
+        if(p[i].x> Xmax[height])
+            Xmax[height] = p[i].x;
     }
-    else
-        __Parallelogram(hdc,x0,y0,x1,y1,x2,y2,x3,y3);
+    for(int i = 0;i<3;i+=2)
+    {
+        x0 = p[i].x;
+        y0 = p[i].y;
+        dx = abs(p[3-i].x - x0);
+        xflag = x0 < p[3-i].x ? 1 : -1;
+        dy = abs(p[3-i].y - y0);
+        yflag = y0 < p[3-i].y ? 1 : -1;
+        line_error = (dx > dy ? dx : -dy) / 2;
+
+        if(y0 != p[3-i].y)
+        {
+            while(x0 != p[3-i].x || y0 != p[3-i].y)
+            {
+                height = y0 - ymin;
+                if(x0< Xmin[height])
+                    Xmin[height] = x0;
+                if(x0> Xmax[height])
+                    Xmax[height] = x0;
+
+                error = line_error;
+                if(error > -dx) { line_error -= dy; x0 += xflag;}
+                if(error <  dy) { line_error += dx; y0 += yflag;}
+            }
+        }
+        x0 = p[i].x;
+        y0 = p[i].y;
+        dx = abs(p[i+1].x - x0), xflag = x0 < p[i+1].x ? 1 : -1;
+        dy = abs(p[i+1].y - y0), yflag =y0 < p[i+1].y ? 1 : -1;
+        line_error = (dx > dy ? dx : -dy) / 2;
+
+        if(y0 != p[i+1].y)
+        {
+            while(x0 != p[i+1].x || y0 != p[i+1].y)
+            {
+                height = y0 - ymin;
+                if(x0< Xmin[height])
+                    Xmin[height] = x0;
+                if(x0>Xmax[height])
+                    Xmax[height] = x0;
+
+                error = line_error;
+                if(error > -dx) { line_error -= dy; x0 += xflag;}
+                if(error <  dy) { line_error += dx; y0 += yflag;}
+            }
+        }
+    }
+    for(int i = 0; i < Drop; i++)//连点
+    {
+        if(Xmin[i] != Xmax[i])
+            GDD_DrawLine(hdc,Xmin[i],ymin+i,Xmax[i],ymin+i);
+        else
+            GDD_SetPixel(hdc,Xmin[i],ymin+i,hdc->DrawColor);
+    }
 }
 
-void __Parallelogram(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2,s32 x3,s32 y3)
-{
 
-    s32 dx = abs(x0-x1),dy = abs(y0-y1);
-    float k = (x1-x0)*1.0/(y1-y0);
-    for(int i=0;i<dy;i++)
-    {
-        GDD_DrawLine(hdc,x0+i*k+0.5,y0+i,x3+i*k+0.5,y0+i);
-    }
 
-}
 //----在矩形范围内绘制字符串---------------------------------------------------
 //描述: 在指定矩形范围内绘制字符串,使用TextColor作为颜色值,支持回车与换行符,
 //      该函数可以指定是否绘制字符串边框和背景,以前指定对齐方式的组合.
@@ -1264,7 +1439,8 @@ void __GDD_trangle_dowm(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
         __gdd_swap(x1,x2);
         __gdd_swap(y1,y2);
     }
-     float dxy_left = (x0-x1)*1.0/(y0-y1) ;
+
+     float dxy_left = (x0-x1)*1.0/(y0-y1);
      float dxy_right = (x0-x2)*1.0/(y0-y2);
      float xr = x2 ,xL = x1 ;
 
@@ -1296,24 +1472,757 @@ void __GDD_trangle_up(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
     }
 
     float dxy_left = (x0-x2)*1.0/(y0-y2) ;
-      float dxy_right = (x1-x2)*1.0/(y1-y2);
-      float xr = x1 ,xl = x0 ;
-      for(int y=y1 ; y <y2 ;y++)
-      {
-          if((s32)(xl+0.5)!=(s32)(xr+0.5))
-              GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
+    float dxy_right = (x1-x2)*1.0/(y1-y2);
+    float xr = x1 ,xl = x0 ;
+    for(int y=y1 ; y <y2 ;y++)
+    {
+        if((s32)(xl+0.5)!=(s32)(xr+0.5))
+            GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
 
-          else
-          {
-              GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)(x2),y2);
-              break;
-          }
-              
+        else
+        {
+            GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)(x2),y2);
+            break;
+        }
+        xl += dxy_left ;
+        xr += dxy_right ;
+    }
+    GDD_SetPixel(hdc,x2,y2,hdc->DrawColor);
+}
 
-          xl += dxy_left ;
-          xr += dxy_right ;
-      }
-      GDD_SetPixel(hdc,x2,y2,hdc->DrawColor);
+void  __fillsector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
+{
+    s32 ymin,ymax;
+    s32 x,y,arc_error,height,erro;
+    s32 D_x,D_y,xflag,yflag,line_error;
+    s32 sign[4][2] = {{1, 1}, {-1, 1}, {1, -1}, {-1, -1}};
+    RECT prc[4];
+    POINT p[2];
+    POINT point;
+    __GetAnypoint_in_Circle(xCenter, yCenter,radius,angle1,&p[0]);
+    __GetAnypoint_in_Circle(xCenter, yCenter,radius,angle2,&p[1]);
+
+    if(angle1>=0 && angle2<= 180)
+    {
+        if(angle1<=90 && angle2>= 90)
+        {
+            ymin = yCenter - radius;
+            ymax = yCenter;
+        }
+        else if(angle2< 90)
+        {
+            ymin = p[1].y;
+            ymax = yCenter;
+        }
+        else if(angle1>90)
+        {
+            ymin = p[0].y;
+            ymax = yCenter;
+        }
+    }
+    else if(angle1>=180 && angle2<= 360)
+    {
+        if(angle1<=270 && angle2>= 270)
+        {
+            ymin = yCenter ;
+            ymax = yCenter + radius;
+        }
+        else if(angle2< 270)
+        {
+            ymax = p[1].y;
+            ymin = yCenter;
+        }
+        else if(angle1>270)
+        {
+            ymax = p[0].y;
+            ymin = yCenter;
+        }
+    }
+
+    s32 dy = ymax - ymin + 1;//0-10有11个单位
+    s32 x_max[dy],x_min[dy];
+    for(int i = 0; i<dy;i++)
+    {
+        x_min[i] = xCenter+radius+2;
+        x_max[i] = xCenter-radius-2;
+    }
+    __Sector_area_get(xCenter,yCenter,radius,angle1,angle2,&prc[0],&prc[1],&prc[2],&prc[3]);
+    x = 0;
+    y = radius;
+    arc_error = (3-2*radius);
+    while (x <= y)//获取弧上点
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            point.x = (x * sign[i][0] + xCenter);
+            point.y = (y * sign[i][1] + yCenter);
+
+            if ((GDD_PtInRect(&prc[0],&point))||(GDD_PtInRect(&prc[1], &point)))
+            {
+                height = point.y-ymin;
+                if(point.x< x_min[height])
+                    x_min[height] = point.x;
+                if(point.x> x_max[height])
+                    x_max[height] = point.x;
+            }
+
+            point.x = (y * sign[i][0] + xCenter);
+            point.y = (x * sign[i][1] + yCenter);
+            if ((GDD_PtInRect(&prc[0], &point)) ||(GDD_PtInRect(&prc[1], &point)))
+            {
+                height = point.y - ymin;
+                if(point.x < x_min[height])
+                    x_min[height] = point.x;
+                if(point.x > x_max[height])
+                    x_max[height] = point.x;
+            }
+        }
+        if (arc_error < 0)
+        {
+            arc_error += 4 * x + 6;
+        }
+        else
+        {
+            arc_error += 4 * (x - y) + 8;
+            y--;
+        }
+        x++;
+    }
+
+    for(int i = 0;i<2;i++)//获取两条线上的点
+    {
+        if(p[i].y == yCenter)
+            continue;
+
+        height = p[i].y - ymin;
+        if(p[i].x< x_min[height])
+            x_min[height] = p[i].x;
+        if(p[i].x> x_max[height])
+            x_max[height] = p[i].x;
+
+        point.x = xCenter;
+        point.y = yCenter;
+        D_x = abs(p[i].x - point.x);
+        D_y = abs(p[i].y - point.y);
+        xflag = (point.x < p[i].x) ? 1 : -1;
+        yflag = (point.y < p[i].y) ? 1 : -1;
+        line_error = ((D_x > D_y) ? D_x : -D_y) >> 1;
+
+        while((point.x != p[i].x) || (point.y != p[i].y))
+        {
+            height = point.y - ymin;
+            if(point.x< x_min[height])
+                x_min[height] = point.x;
+            if(point.x> x_max[height])
+                x_max[height] = point.x;
+
+            erro = line_error;
+            if(erro > -D_x) { line_error -= D_y; point.x += xflag;}
+            if(erro <  D_y) { line_error += D_x; point.y += yflag;}
+
+        }
+    }
+    for(int i = 0; i < dy; i++)//连点
+    {
+        if(x_min[i] != x_max[i])
+            GDD_DrawLine(hdc,x_min[i],ymin+i,x_max[i],ymin+i);
+        else
+            GDD_SetPixel(hdc,x_min[i],ymin+i,hdc->DrawColor);
+    }
+}
+
+
+void __GetAnypoint_in_Circle(s32 xCenter, s32 yCenter, s32 radius, s32 angle,POINT *p)
+{
+    s32 x,y,d;
+    s32 x_sign,y_sign;
+
+    bool_t swap = FALSE;
+
+    angle %= 360;
+
+    if (angle < 0)
+    {
+        angle += 360;
+    }
+
+    if (angle == 0)
+    {
+        p->x = (xCenter + (s32)radius);
+        p->y = yCenter;
+    }
+    else if (angle == 90)
+    {
+        p->x = xCenter;
+        p->y = (yCenter - (s32)radius);
+    }
+    else if (angle == 180)
+    {
+        p->x = (xCenter - (s32)radius);
+        p->y = yCenter;
+    }
+    else if (angle == 270)
+    {
+        p->x = xCenter;
+        p->y = (yCenter + (s32)radius);
+    }
+    else
+    {
+        p->x = (s32)(radius*cos(3.14159*angle*1.0/180));
+        p->y = (s32)(radius*sin(3.14159*angle*1.0/180));
+        if (angle <= 90)
+        {
+            x_sign = 1;
+            y_sign = 1;
+
+            if (angle < 45)
+            {
+                swap = TRUE;
+            }
+        }
+        else if (angle <= 180)
+        {
+            x_sign = -1;
+            y_sign = 1;
+
+            if (angle > 135)
+            {
+                swap = TRUE;
+            }
+        }
+        else if (angle <= 270)
+        {
+            x_sign = -1;
+            y_sign = -1;
+
+            if (angle < 225)
+            {
+                swap = TRUE;
+            }
+        }
+        else
+        {
+            x_sign = 1;
+            y_sign = -1;
+
+            if (angle > 315)
+            {
+                swap = TRUE;
+            }
+        }
+
+        x = 0;
+        y = radius;
+        d = (s32)(5 - 4 * radius);
+
+        p->x = (p->x * x_sign);
+        p->y = (p->y * y_sign);
+
+        if (swap)
+        {
+            __gdd_swap(p->x, p->y);
+        }
+
+        while (x <= y)
+        {
+            if ((x > p->x) || (y < p->y))
+            {
+                break;
+            }
+
+            if (d < 0)
+            {
+                d += 8 * x + 12;
+            }
+            else
+            {
+                d += 8 * (x - y) + 20;
+                y--;
+            }
+            x++;
+        }
+
+        if (swap)
+        {
+            __gdd_swap(x, y);
+        }
+
+        x *= x_sign;
+        y *= y_sign;
+
+        p->x = (xCenter + x);
+        p->y = (yCenter - y);
+    }
+
+    return ;
+}
+
+void __Sector_area_get(s32 xCenter, s32 yCenter, u32 radius, s32 start_angle, s32 end_angle,
+                                         RECT *area_1, RECT *area_2, RECT *area_3, RECT *area_4)
+{
+
+    POINT start_point;
+    POINT end_point;
+    s32 r_begin = radius;
+    s32 r_end = (-r_begin);
+
+    memset(area_1, 0, sizeof(RECT));
+    memset(area_2, 0, sizeof(RECT));
+    memset(area_3, 0, sizeof(RECT));
+    memset(area_4, 0, sizeof(RECT));
+
+    __GetAnypoint_in_Circle(0, 0, radius, start_angle, &start_point);
+    __GetAnypoint_in_Circle(0, 0, radius, end_angle, &end_point);
+
+    if (start_angle < 90)
+    {
+        if (end_angle <= 90)
+        {
+            area_1 -> left = end_point.x;
+            area_1 -> top = end_point.y;
+            area_1 -> right = start_point.x+1;
+            area_1 -> bottom = start_point.y+1;
+        }
+        else
+        {
+            area_1 -> left = 0;
+            area_1 -> top = r_end;
+            area_1 -> right = start_point.x+1;
+            area_1 -> bottom = start_point.y+1;
+
+            if (end_angle <= 180)
+            {
+                area_2 -> left = end_point.x;
+                area_2 -> top = r_end;
+                area_2 -> right = 1;
+                area_2 -> bottom = end_point.y+1;
+            }
+            else
+            {
+                area_2 -> left = r_end;
+                area_2 -> top = r_end;
+                area_2 -> right = 1;
+                area_2 -> bottom = 1;
+
+                if (end_angle <= 270)
+                {
+                    area_3 -> left = r_end;
+                    area_3 -> top = 0;
+                    area_3 -> right = end_point.x+1;
+                    area_3 -> bottom = end_point.y+1;
+                }
+                else
+                {
+                    area_2 -> bottom = r_begin+1;
+                    if (end_angle <= 360)
+                    {
+                        area_3 -> left = 0;
+                        area_3 -> top = end_point.y;
+                        area_3 -> right = end_point.x+1;
+                        area_3 -> bottom = r_begin+1;
+                    }
+                    else
+                    {
+                        area_3 -> left = 0;
+                        area_3 -> top = 0;
+                        area_3 -> right = r_begin+1;
+                        area_3 -> bottom = r_begin+1;
+
+                        area_4 -> left = end_point.x;
+                        area_4 -> top = end_point.y;
+                        area_4 -> right = r_begin+1;
+                        area_4 -> bottom = 1;
+                    }
+                }
+            }
+        }
+    }
+    else if (start_angle < 180)
+    {
+        if (end_angle <= 180)
+        {
+            area_1 -> left = end_point.x;
+            area_1 -> top = start_point.y;
+            area_1 -> right = start_point.x+1;
+            area_1 -> bottom = end_point.y+1;
+        }
+        else
+        {
+            area_1 -> left = r_end;
+            area_1 -> top = start_point.y;
+            area_1 -> right = start_point.x+1;
+            area_1 -> bottom = 1;
+
+            if (end_angle <= 270)
+            {
+                area_2 -> left = r_end;
+                area_2 -> top = 0;
+                area_2 -> right = end_point.x+1;
+                area_2 -> bottom = end_point.y+1;
+            }
+            else
+            {
+                area_2 -> left = r_end;
+                area_2 -> top = 0;
+                area_2 -> right = 1;
+                area_2 -> bottom = r_begin+1;
+
+                if (end_angle <= 360)
+                {
+                    area_3 -> left = 0;
+                    area_3 -> top = end_point.y;
+                    area_3 -> right = end_point.x+1;
+                    area_3 -> bottom = r_begin+1;
+                }
+                else
+                {
+                    area_2 -> right = r_begin+1;
+
+                    if (end_angle <= 450)
+                    {
+                        area_3 -> left = end_point.x;
+                        area_3 -> top = end_point.y;
+                        area_3 -> right = r_begin+1;
+                        area_3 -> bottom = 1;
+                    }
+                    else
+                    {
+                        area_3 -> left = 0;
+                        area_3 -> top = r_end;
+                        area_3 -> right = r_begin+1;
+                        area_3 -> bottom = 1;
+
+                        area_4 -> left = end_point.x;
+                        area_4 -> top = r_end;
+                        area_4 -> right = 1;
+                        area_4 -> bottom = end_point.y+1;
+                    }
+                }
+            }
+        }
+    }
+    else if (start_angle < 270)
+    {
+        if (end_angle <= 270)
+        {
+            area_1 -> left = start_point.x;
+            area_1 -> top = start_point.y;
+            area_1 -> right = end_point.x+1;
+            area_1 -> bottom = end_point.y+1;
+        }
+        else
+        {
+            area_1 -> left = start_point.x;
+            area_1 -> top = start_point.y;
+            area_1 -> right = 1;
+            area_1 -> bottom = r_begin+1;
+
+            if (end_angle <= 360)
+            {
+                area_2 -> left = 0;
+                area_2 -> top = end_point.y;
+                area_2 -> right = end_point.x+1;
+                area_2 -> bottom = r_begin+1;
+            }
+            else
+            {
+                area_2 -> left = 0;
+                area_2 -> top = 0;
+                area_2 -> right = r_begin+1;
+                area_2 -> bottom = r_begin+1;
+
+                if (end_angle <= 450)
+                {
+                    area_3 -> left = end_point.x;
+                    area_3 -> top = end_point.y;
+                    area_3 -> right = r_begin+1;
+                    area_3 -> bottom = r_begin+1;
+                }
+                else
+                {
+                    area_2 -> top = r_end+1;
+
+                    if (end_angle <= 540)
+                    {
+                        area_3 -> left = end_point.x;
+                        area_3 -> top = r_end;
+                        area_3 -> right = 1;
+                        area_3 -> bottom = end_point.y+1;
+                    }
+                    else
+                    {
+                        area_3 -> left = r_end;
+                        area_3 -> top = r_end;
+                        area_3 -> right = 1;
+                        area_3 -> bottom = 1;
+
+                        area_4 -> left = r_end;
+                        area_4 -> top = 0;
+                        area_4 -> right = end_point.x+1;
+                        area_4 -> bottom = end_point.y+1;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        if (end_angle <= 360)
+        {
+            area_1 -> left = start_point.x;
+            area_1 -> top = end_point.y;
+            area_1 -> right = end_point.x+1;
+            area_1 -> bottom = start_point.y+1;
+        }
+        else
+        {
+            area_1 -> left = start_point.x;
+            area_1 -> top = 0;
+            area_1 -> right = r_begin+1;
+            area_1 -> bottom = start_point.y+1;
+
+            if (end_angle <= 450)
+            {
+                area_2 -> left = end_point.x;
+                area_2 -> top = end_point.y;
+                area_2 -> right = r_begin+1;
+                area_2 -> bottom = 1;
+            }
+            else
+            {
+                area_2 -> left = 0;
+                area_2 -> top = r_end;
+                area_2 -> right = r_begin+1;
+                area_2 -> bottom = 1;
+
+                if (end_angle <= 540)
+                {
+                    area_3 -> left = end_point.x;
+                    area_3 -> top = r_end;
+                    area_3 -> right = 1;
+                    area_3 -> bottom = end_point.y+1;
+                }
+                else
+                {
+                    area_2 -> left = r_end+1;
+
+                    if (end_angle <= 630)
+                    {
+                        area_3 -> left = r_end;
+                        area_3 -> top = 0;
+                        area_3 -> right = end_point.x+1;
+                        area_3 -> bottom = end_point.y+1;
+                    }
+                    else
+                    {
+                        area_3 -> left = r_end;
+                        area_3 -> top = 0;
+                        area_3 -> right = 1;
+                        area_3 -> bottom = r_begin+1;
+
+                        area_4 -> left = 0;
+                        area_4 -> top = end_point.y;
+                        area_4 -> right = end_point.x+1;
+                        area_4 -> bottom = r_begin+1;
+                    }
+                }
+            }
+        }
+    }
+
+    area_1 -> left = (s32)(area_1 -> left + xCenter);
+    area_1 -> top = (s32)(area_1 -> top + yCenter);
+    area_1 -> right = (s32)(area_1 -> right + xCenter);
+    area_1 -> bottom = (s32)(area_1 -> bottom + yCenter);
+
+    area_2 -> left = (s32)(area_2 -> left + xCenter);
+    area_2 -> top = (s32)(area_2 -> top + yCenter);
+    area_2 -> right = (s32)(area_2 -> right + xCenter);
+    area_2 -> bottom = (s32)(area_2 -> bottom + yCenter);
+
+    area_3 -> left = (s32)(area_3 -> left + xCenter);
+    area_3 -> top = (s32)(area_3 -> top + yCenter);
+    area_3 -> right = (s32)(area_3 -> right + xCenter);
+    area_3 -> bottom = (s32)(area_3 -> bottom + yCenter);
+
+    area_4 -> left = (s32)(area_4 -> left + xCenter);
+    area_4 -> top = (s32)(area_4 -> top + yCenter);
+    area_4 -> right = (s32)(area_4 -> right + xCenter);
+    area_4 -> bottom = (s32)(area_4 -> bottom + yCenter);
+}
+
+//----绘制实心圆角矩形-----------------------------------------------------------
+//描述: 使用FillRounddRect绘制一个实心圆角矩形.
+//参数：hdc: 绘图上下文句柄.
+//      rec: 矩形参数.
+//      arc_r 圆角半径
+//返回：无.
+//------------------------------------------------------------------------------
+void    GDD_FillRounddRect(HDC hdc,RECT *rec, s32 arc_r)
+{
+    s32 rx,ry;
+    s32 OutConst, Sum, SumY;
+    RECT prc;
+    prc = *rec;
+    s32 cx,dx,cy,dy;
+    s32 x,y;
+    s32 xOld;
+    if(hdc==NULL)
+        return;
+    if(arc_r<=0)
+    {
+        if(arc_r==0)
+            GDD_FillRect(hdc,&prc);
+        return;
+    }
+    if(prc.right<prc.left)
+        __gdd_swap(prc.right,prc.left);
+    if(prc.bottom<prc.top)
+        __gdd_swap(prc.bottom,prc.top);
+
+    cx = ((prc.right-prc.left)/2) + prc.left;//中心点坐标
+    cy = ((prc.bottom-prc.top)/2) + prc.top;
+
+    if(arc_r * 2 <= (prc.bottom-prc.top))
+    {
+        ry = arc_r;
+        dy = cy - prc.top - ry;
+    }
+    else
+    {
+        ry = (prc.bottom-prc.top)/2;
+        dy = 0;
+    }
+    if(arc_r * 2 <= (prc.right-prc.left))
+    {
+        rx = arc_r;
+        dx = cx - prc.left - rx;
+    }
+    else
+    {
+        rx = (prc.right-prc.left)/2;
+        dx = 0;
+    }
+    u32 _rx = rx;
+    u32 _ry = ry;
+    OutConst = _rx*_rx*_ry*_ry +(_rx*_rx*_ry>>1);
+    xOld = x = rx;
+
+    for(y=0; y<=ry; y++)
+    {
+        if(y==ry)
+        {
+            x=0;
+        }
+        else
+        {
+            SumY =((s32)(rx*rx))*((s32)(y*y));
+            while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
+                   (x>0) && (Sum>OutConst)) x--;
+        }
+        if(y)
+        {
+            GDD_DrawLine(hdc,cx-xOld-dx,cy-y-dy,cx+xOld+dx,cy-y-dy);
+            GDD_DrawLine(hdc,cx-xOld-dx,cy+y+dy,cx+xOld+dx,cy+y+dy);
+        }
+        xOld = x;
+    }
+    if(dy!=0){
+        RECT rc = (RECT){prc.left,prc.top+rx,prc.right+1,prc.bottom-rx+1};
+        GDD_FillRect(hdc,&rc);}
+    GDD_DrawLine(hdc,prc.left,cy,prc.right,cy);
+    __GDD_EndDraw(hdc);
+}
+
+//----绘制圆角矩形-----------------------------------------------------------
+//描述: 使用DrawRounddRect绘制一个空心圆角矩形.
+//参数：hdc: 绘图上下文句柄.
+//      rec: 矩形参数.
+//      arc_r 圆角半径
+//返回：无.
+//------------------------------------------------------------------------------
+void    GDD_DrawRounddRect(HDC hdc,RECT *rec, s32 arc_r)
+{
+    s32 rx,ry;
+    s32 OutConst, Sum, SumY;
+    RECT prc;
+    prc = *rec;
+    s32 cx,dx,cy,dy;
+    s32 x,y;
+    s32 xOld;
+    if(hdc==NULL)
+        return;
+    if(arc_r<=0)
+    {
+        if(arc_r==0)
+            GDD_DrawRect(hdc,&prc);
+        return;
+    }
+    if(prc.right<prc.left)
+        __gdd_swap(prc.right,prc.left);
+    if(prc.bottom<prc.top)
+        __gdd_swap(prc.bottom,prc.top);
+
+    cx = ((prc.right-prc.left)/2) + prc.left;//中心点坐标
+    cy = ((prc.bottom-prc.top)/2) + prc.top;
+
+    if(arc_r * 2 <= (prc.bottom-prc.top))
+    {
+        ry = arc_r;
+        dy = cy - prc.top - ry;
+    }
+    else
+    {
+        ry = (prc.bottom-prc.top)/2;
+        dy = 0;
+    }
+    if(arc_r * 2 <= (prc.right-prc.left))
+    {
+        rx = arc_r;
+        dx = cx - prc.left - rx;
+    }
+    else
+    {
+        rx = (prc.right-prc.left)/2;
+        dx = 0;
+    }
+    u32 _rx = rx;
+    u32 _ry = ry;
+
+    OutConst = _rx*_rx*_ry*_ry +(_rx*_rx*_ry>>1);
+
+    xOld = x = rx;
+
+    for(y=0; y<=ry; y++)
+    {
+        if(y==ry)
+        {
+            x=0;
+        }
+        else
+        {
+            SumY =((s32)(rx*rx))*((s32)(y*y));
+            while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
+                   (x>0) && (Sum>OutConst)) x--;
+        }
+        if(y)
+        {
+            GDD_DrawLine(hdc,cx-xOld-dx,cy-y+1-dy,cx-x-dx,cy-y-dy);
+            GDD_DrawLine(hdc,cx-xOld-dx,cy+y-1+dy,cx-x-dx,cy+y+dy);
+            GDD_DrawLine(hdc,cx+xOld+dx,cy-y+1-dy,cx+x+dx,cy-y-dy);
+            GDD_DrawLine(hdc,cx+xOld+dx,cy+y-1+dy,cx+x+dx,cy+y+dy);
+        }
+        xOld = x;
+    }
+    if(dy!=0){
+    GDD_DrawLine(hdc,prc.left,prc.top+rx,prc.left,prc.bottom-rx);
+    GDD_DrawLine(hdc,prc.right,prc.top+rx,prc.right,prc.bottom-rx);}
+
+    if(dx!=0){
+    GDD_DrawLine(hdc,prc.left+rx,prc.top,prc.right-rx,prc.top);
+    GDD_DrawLine(hdc,prc.left+rx,prc.bottom,prc.right-rx,prc.bottom);}
+
+    __GDD_EndDraw(hdc);
 }
 
 
@@ -1358,7 +2267,7 @@ void    GDD_DrawRect(HDC hdc,const RECT *prc)
     }
 }
 
-//----绘制矩形------------------------------------------------------------------
+//----绘制实心矩形------------------------------------------------------------------
 //描述: 使用DrawColor绘制一个实心矩形.
 //参数：hdc: 绘图上下文句柄.
 //      prc: 矩形参数.
@@ -1386,7 +2295,7 @@ void    GDD_FillRect(HDC hdc,const RECT *prc)
     }
 
 }
-//----绘制实心矩形------------------------------------------------------------------
+//----指定颜色绘制实心矩形------------------------------------------------------------------
 //描述: 使用指定颜色绘制一个实心矩形.
 //参数：hdc: 绘图上下文句柄.
 //      prc: 矩形参数.
@@ -1541,6 +2450,7 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 
      ////
      POINT pt;
+     if(r<=0) return;
      if(hdc!=NULL)
      {
          if(__GDD_BeginDraw(hdc))
@@ -1569,6 +2479,7 @@ void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
     s32 sqmax = (s32)r*(s32)r+(s32)r/2;
     s32 x=r;
 
+    if(r<=0) return;
     if(hdc!=NULL)
     {
         cx +=(hdc->hwnd->CliRect.left);
@@ -1619,7 +2530,7 @@ void     GDD_DrawEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
     s32 xOld;
     u32 _rx = rx;
     u32 _ry = ry;
-
+    if(rx<=0||ry<=0) return;
     OutConst =   _rx*_rx*_ry*_ry
                +(_rx*_rx*_ry>>1);
     xOld = x = rx;
@@ -1668,7 +2579,7 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
     u32 _rx = rx;
     u32 _ry = ry;
     u32 color;
-
+    if(rx<=0||ry<=0) return;
     OutConst = _rx*_rx*_ry*_ry
                 +(_rx*_rx*_ry>>1);
     x = rx;
@@ -1696,8 +2607,83 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
 
 }
 
-//----绘制扇形------------------------------------------------------------------
-//描述: 使用DrawColor绘制扇形.
+//----绘制弧线------------------------------------------------------------------
+//描述: 使用GDD_Drawarc绘制一段弧线.   （原函数名 GDD_DrawSector
+//参数：hdc: 绘图上下文句柄.
+//      xCenter,yCenter: 圆弧的中心坐标
+//      radius: 圆弧半径
+//      angle1: 圆弧起始点角度
+//      angle2: 圆弧结束点角度
+//返回：无.
+//------------------------------------------------------------------------------
+void    GDD_DrawArc(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
+{
+    s32 x,y,index,d;
+    s32 sign[4][2] = {{1, 1}, {-1, 1}, {1, -1}, {-1, -1}};
+    POINT point;
+    RECT prc[4];
+    if(radius<=0||(angle1==angle2))
+        return;
+
+    if(hdc!=NULL)
+    {
+        if(angle2-angle1>=360)
+         {
+            GDD_DrawCircle(hdc,xCenter,yCenter,radius);
+            return;
+         }
+        if(angle1>angle2) angle2+=360;
+        while(angle1<0)
+        {
+            angle1+=360;
+        }
+        while(angle2<0)
+        {
+            angle2+=360;
+        }
+        x = 0;
+        y = (s32)radius;
+        d = (s32)(3 - 2 * radius);
+
+        __Sector_area_get(xCenter,yCenter,radius,angle1,angle2,&prc[0],&prc[1],&prc[2],&prc[3]);
+        while (x <= y)
+        {
+            for (index = 0; index < 4; index++)
+            {
+                point.x = (x * sign[index][0] + xCenter);
+                point.y = (y * sign[index][1] + yCenter);
+
+                if ((GDD_PtInRect(&prc[0],&point))||(GDD_PtInRect(&prc[1], &point)) ||
+                    (GDD_PtInRect(&prc[2], &point)) ||(GDD_PtInRect(&prc[3], &point)))
+                {
+                    GDD_SetPixel(hdc,point.x,point.y,hdc->DrawColor);
+                }
+
+                point.x = (y * sign[index][0] + xCenter);
+                point.y = (x * sign[index][1] + yCenter);
+                if ((GDD_PtInRect(&prc[0], &point)) ||(GDD_PtInRect(&prc[1], &point)) ||
+                    (GDD_PtInRect(&prc[2], &point)) ||(GDD_PtInRect(&prc[3], &point)))
+                {
+                    GDD_SetPixel(hdc,point.x,point.y,hdc->DrawColor);
+                }
+            }
+            if (d < 0)
+            {
+                d += 4 * x + 6;
+            }
+            else
+            {
+                d += 4 * (x - y) + 8;
+                y--;
+            }
+            x++;
+        }
+            __GDD_EndDraw(hdc);
+    }
+}
+
+//------------------绘制一个空心扇形---------------------------------------
+//描述: 使用GDD_DrawSector绘制扇形.
 //参数：hdc: 绘图上下文句柄.
 //      xCenter,yCenter: 扇形的中心坐标
 //      radius: 扇形半径
@@ -1707,88 +2693,22 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
 //------------------------------------------------------------------------------
 void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
 {
-  s32 x, y, d,c1,c2,c,step=0;
-  s32 quarter1,quarter2,quarter3,quarter4;
-  u32 color;
+    POINT p[2];
 
-  if(angle1>angle2) angle2 = angle2+360;
-  if(radius<=0)
-  {
-      return;
-  }
-  if(angle2>360)
-  {
-      if(angle2-angle1>=360)
-          GDD_DrawCircle(hdc,xCenter,yCenter,radius);
-      else
-      {
-      GDD_DrawSector(hdc, xCenter,yCenter,radius,angle1,360);
-      GDD_DrawSector(hdc, xCenter,yCenter,radius,0,angle2-360);
-      }
-      return;
-  }
+    if(radius<=0||(angle1==angle2))
+        return;
+    if(angle1>angle2) angle2+=360;
+    if(angle2-angle1>=360)
+     {
+        GDD_DrawCircle(hdc,xCenter,yCenter,radius);
+        return;
+     }
+    __GetAnypoint_in_Circle(xCenter,yCenter,radius,angle1,&p[0]);
+    __GetAnypoint_in_Circle(xCenter,yCenter,radius,angle2,&p[1]);
+    GDD_DrawLine(hdc,xCenter,yCenter,p[0].x,p[0].y);
+    GDD_DrawLine(hdc,xCenter,yCenter,p[1].x,p[1].y);
 
-  x = xCenter;
-  y = yCenter + radius;
-  d = 3 - 2 * radius;
-  c1=(s32)(angle1*radius*3.14159/180);
-  c2=(s32)(angle2*radius*3.14159/180);
-  quarter1=(s32)(radius*3.14159/2);
-  quarter2=(s32)(radius*3.14159);
-  quarter3=(s32)(radius*3.14159*3/2);
-  quarter4=(s32)(radius*3.14159*2);
-
-    if(__GDD_BeginDraw(hdc))
-    {
-        color =GDD_GetDrawColor(hdc);
-        while(1)
-        {
-              c=quarter4-step;
-            if(c>=c1 && c<=c2)
-                GDD_SetPixel(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ),color );
-
-            if(step>=c1 && step<=c2)
-                 GDD_SetPixel(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),color );
-
-            c=quarter2+step;
-            if(c>=c1 && c<=c2)
-                GDD_SetPixel(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),color );
-
-            c=quarter2-step;
-            if(c>=c1 && c<=c2)
-                GDD_SetPixel(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),color );
-
-            if (  x - xCenter  >=  y - yCenter  ) break;
-
-            c=quarter3+step;
-            if(c>=c1 && c<=c2)
-                 GDD_SetPixel(hdc, x, y,color );
-
-            c=quarter1-step;
-            if(c>=c1 && c<=c2)
-                 GDD_SetPixel(hdc,x, yCenter - (y - yCenter),color );
-
-            c=quarter3-step;
-            if(c>=c1 && c<=c2)
-                 GDD_SetPixel(hdc, xCenter - (x - xCenter), y,color );
-
-            c= quarter1+step;
-            if(c>=c1 && c<=c2)
-                 GDD_SetPixel(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter),color );
-
-            if ( d < 0 )
-            { d = d + ((x - xCenter) << 2) + 6;
-            }
-            else
-            { d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
-              y--;
-            }
-            x++;
-            step++;
-        }
-        __GDD_EndDraw(hdc);
-    }
-
+    GDD_DrawArc(hdc, xCenter,yCenter,radius,angle1,angle2);
 }
 
 //----绘制实心扇形------------------------------------------------------------------
@@ -1800,81 +2720,66 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
 //      angle2: 扇形结束点角度
 //返回：无.
 //------------------------------------------------------------------------------
-void    GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
+void GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
 {
-  s32 x, y, d,c1,c2,c,step=0;
-  s32 quarter1,quarter2,quarter3,quarter4;
-  u32 color;
-
-  if(radius<=0)
-  {
-      return;
-  }
-
-  x = xCenter;
-  y = yCenter + radius;
-  d = 3 - 2 * radius;
-  c1=(s32)(angle1*radius*3.14159/180);
-  c2=(s32)(angle2*radius*3.14159/180);
-  quarter1=(s32)(radius*3.14159/2);
-  quarter2=(s32)(radius*3.14159);
-  quarter3=(s32)(radius*3.14159*3/2);
-  quarter4=(s32)(radius*3.14159*2);
-
-    if(__GDD_BeginDraw(hdc))
+    if(radius<=0||(angle1==angle2))
+        return;
+    if(hdc != NULL)
     {
-        color =GDD_GetDrawColor(hdc);
-
-        while(1)
+        if(angle2-angle1>=360)//满360 直接画圆
         {
-            c=quarter4-step;
-            if(c>=c1 && c<=c2)
-                GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ) ,xCenter,yCenter ,color);
+            GDD_FillCircle(hdc,xCenter,yCenter,radius);
+            return;
+        }
+        if(angle1>angle2)//从小角度画到大的角度
+             angle2+=360;
 
-            if(step>=c1 && step<=c2)
-                GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter ,color);
+        while(angle1<0)
+        {
+            angle1 += 360;
+            angle2 += 360;
+        }
 
-            c=quarter2+step;
-            if(c>=c1 && c<=c2)
-                GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),xCenter,yCenter ,color);
+        angle1 = angle1 % 360;//度数矫正
+        angle2 = angle2 % 720;
 
-            c=quarter2-step;
-            if(c>=c1 && c<=c2)
-                 GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter,color);
-
-            if (  x - xCenter  >=  y - yCenter  ) break;
-
-            c=quarter3+step;
-            if(c>=c1 && c<=c2)
-                 GDD_DrawLineEx(hdc, x, y,xCenter,yCenter ,color);
-
-            c=quarter1-step;
-            if(c>=c1 && c<=c2)
-                 GDD_DrawLineEx(hdc,x, yCenter - (y - yCenter),xCenter,yCenter ,color);
-
-            c=quarter3-step;
-            if(c>=c1 && c<=c2)
-                 GDD_DrawLineEx(hdc, xCenter - (x - xCenter), y ,xCenter,yCenter,color);
-
-            c= quarter1+step;
-            if(c>=c1 && c<=c2)
-                GDD_DrawLineEx(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter) ,xCenter,yCenter,color);
-
-            if ( d < 0 )
+        if(angle1<=180)//上半区域
+        {
+            if(angle2<=180)
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,angle2);
+            else if(angle2 <=360)
             {
-                d = d + ((x - xCenter) << 2) + 6;
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,180);
+                __fillsector(hdc, xCenter,yCenter,radius,180,angle2);
             }
             else
             {
-                d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
-                y--;
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,180);
+                __fillsector(hdc, xCenter,yCenter,radius,180,360);
+                __fillsector(hdc, xCenter,yCenter,radius,0,angle2-360);
             }
-            x++;
-            step++;
+        }
+        else if(angle1>=180)//下半区域
+        {
+            if(angle2<=360)
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,angle2);
+            else if(angle2 <=540)
+            {
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,360);
+                __fillsector(hdc, xCenter,yCenter,radius,0,angle2-360);
+            }
+            else
+            {
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,360);
+                __fillsector(hdc, xCenter,yCenter,radius,0,180);
+                __fillsector(hdc, xCenter,yCenter,radius,180,angle2-360);
+            }
         }
         __GDD_EndDraw(hdc);
     }
 }
+
+
 
 //----绘制3阶Bezier线----------------------------------------------------------
 //描述: 按指定坐标点绘制连续的贝塞尔线

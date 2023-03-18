@@ -73,6 +73,8 @@
 #include <gdd.h>
 #include <msgqueue.h>
 #include <gui/gk_display.h>
+
+#define __gk_swap(a, b){a^=b; b^=a; a^=b;}
 //----创建桌面-----------------------------------------------------------------
 //功能: 创建桌面，新显示器加入后，首先要创建桌面才能使用。桌面其实和一个普通窗口
 //      非常类似，差别主要在于:
@@ -311,6 +313,7 @@ void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *range,struct Rectangle
                             u32 Color0,u32 Color1,u32 Mode,u32 SyncTime)
 {
     struct GkscParaGradientFillWin para;
+    s32 flag = 0;
     if(NULL == gkwin)
         return;
     if(NULL != range)       //若给定了限定区，则判断之
@@ -321,6 +324,54 @@ void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *range,struct Rectangle
     {
         para.range = (struct Rectangle){0,0,0,0};
     }
+    if((rect->right)<(rect->left))
+    {
+        __gk_swap((rect->right),(rect->left));
+        if((Mode!= 0)||(Mode != CN_FILLRECT_MODE_N))
+            flag+=1;
+    }
+    if((rect->bottom)<(rect->top))
+    {
+        __gk_swap((rect->bottom),(rect->top));
+        if((Mode!= 0)||(Mode != CN_FILLRECT_MODE_N))
+            flag+=2;
+    }
+    if(flag == 0);
+    else if(flag == 1)
+    {
+        if(Mode == CN_FILLRECT_MODE_LR)
+        {
+            __gk_swap(Color0,Color1);
+        }
+        else if(Mode ==CN_FILLRECT_MODE_LU2RD)
+        {
+            Mode = CN_FILLRECT_MODE_RU2LD;
+        }
+        else if(Mode ==CN_FILLRECT_MODE_RU2LD)
+        {
+            Mode = CN_FILLRECT_MODE_LU2RD;
+        }
+    }
+    else if(flag == 2)
+    {
+        if(Mode == CN_FILLRECT_MODE_UD)
+        {
+            __gk_swap(Color0,Color1);
+        }
+        else if(Mode == CN_FILLRECT_MODE_LU2RD)
+        {
+            Mode = CN_FILLRECT_MODE_RU2LD;
+            __gk_swap(Color0,Color1);
+        }
+        else if(Mode == CN_FILLRECT_MODE_RU2LD)
+        {
+            Mode = CN_FILLRECT_MODE_LU2RD;
+            __gk_swap(Color0,Color1);
+        }
+    }
+    else if(flag == 3)
+        __gk_swap(Color0,Color1);
+
     para.gkwin = gkwin;
     para.rect = *rect;
     para.Color0 = Color0;
