@@ -540,7 +540,7 @@ HWND Widget_CreateVirKeyBoard(const char *Text,u32 Style,
         hParent = GDD_GetDesktopWindow(NULL);
     //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
     //完成后，即消息处理函数表完整后再取出消息处理。
-    if(__HWND_Lock(hParent))
+    if(__GDD_Lock())
     {
         s_gVirKeyBoardMsgLink.MsgNum = sizeof(s_gVirKeyBoardMsgProcTable) / sizeof(struct MsgProcTable);
         s_gVirKeyBoardMsgLink.myTable = (struct MsgProcTable *)&s_gVirKeyBoardMsgProcTable;
@@ -549,7 +549,7 @@ HWND Widget_CreateVirKeyBoard(const char *Text,u32 Style,
                                 &s_gVirKeyBoardMsgLink);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-        __HWND_Unlock(hParent);
+        __GDD_Unlock();
         return pGddWin;
     }
     else

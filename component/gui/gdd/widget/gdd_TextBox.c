@@ -1143,7 +1143,7 @@ HWND Widget_CreateTextBox(const char *Text,u32 Style,
         hParent = GDD_GetDesktopWindow(NULL);
     //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
     //完成后，即消息处理函数表完整后再取出消息处理。
-    if(__HWND_Lock(hParent))
+    if(__GDD_Lock())
     {
         s_gTextBoxMsgLink.MsgNum = sizeof(s_gTextBoxMsgProcTable) / sizeof(struct MsgProcTable);
         s_gTextBoxMsgLink.myTable = (struct MsgProcTable *)&s_gTextBoxMsgProcTable;
@@ -1152,7 +1152,7 @@ HWND Widget_CreateTextBox(const char *Text,u32 Style,
                                     (ptu32_t)pTB, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE, &s_gTextBoxMsgLink);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-        __HWND_Unlock(hParent);
+        __GDD_Unlock();
         return pGddWin;
     }
     else

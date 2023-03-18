@@ -214,7 +214,7 @@ HWND Widget_CreateCheckBox(  const char *Text,u32 Style,
         hParent = GDD_GetDesktopWindow(NULL);
     //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
     //完成后，即消息处理函数表完整后再取出消息处理。
-    if(__HWND_Lock(hParent))
+    if(__GDD_Lock())
     {
         s_gCheckBoxMsgLink.MsgNum = sizeof(s_gCheckBoxMsgProcTable) / sizeof(struct MsgProcTable);
         s_gCheckBoxMsgLink.myTable = (struct MsgProcTable *)&s_gCheckBoxMsgProcTable;
@@ -223,7 +223,7 @@ HWND Widget_CreateCheckBox(  const char *Text,u32 Style,
                                 &s_gCheckBoxMsgLink);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-        __HWND_Unlock(hParent);
+        __GDD_Unlock();
         return pGddWin;
     }
     else
