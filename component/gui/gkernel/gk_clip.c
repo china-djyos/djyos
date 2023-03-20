@@ -861,7 +861,8 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
     s16 loopx,loopy;
     bool_t start;
     s32 width,height;
-
+    msk = gkwin->changed_msk.bm_bits;
+    msk_line_words = gkwin->changed_msk.linebytes;
     if(gkwin->WinProperty.ChangeFlag == CN_GKWIN_CHANGE_ALL)   //整个窗口均被修改
     {
         clip = __GK_AllocClip(0);
@@ -885,10 +886,8 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
     }else       //部分修改，先按x方向取得剪切域，再按y方向合并
     {
         offset = 0;                 //首行字偏移量
-        msk = gkwin->changed_msk.bm_bits;
         width = gkwin->wm_bitmap->width;
         height = gkwin->wm_bitmap->height;
-        msk_line_words = gkwin->changed_msk.linebytes;
         for(loopy = 0; loopy < height; loopy +=8)
         {
             start = false;      //开始一段连续的被修改区域
