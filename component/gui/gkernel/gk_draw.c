@@ -4623,10 +4623,10 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
         && (DstGkwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
     {
         //处理方法:在win buffer中绘图，着色changed_msk
-        if(!my_draw_fun->FillRectToBitmap(bitmap,&target,&target,Color0,Color1,Mode))
+        if(!my_draw_fun->FillRectToBitmap(bitmap,&para->rect,&target,Color0,Color1,Mode))
         {
             //硬件加速不支持填充位图，则用软件实现
-            __GK_GradientFillRectSoft(bitmap,&target,&target,Color0,Color1,Mode);
+            __GK_GradientFillRectSoft(bitmap,&para->rect,&target,Color0,Color1,Mode);
         }
         __GK_ShadingRect(DstGkwin,&para->rect);//着色填充区域的changed_msk
     }else       //无win buffer，或直接写屏属性为true
@@ -4649,10 +4649,10 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                 {
                     //帧缓冲的坐标即绝对坐标，故无须坐标变换
                     if(!my_draw_fun->FillRectToBitmap(fb_gkwin->wm_bitmap,
-                                         &target,&ins_rect,Color0,Color1,Mode))
+                                         &para->rect,&ins_rect,Color0,Color1,Mode))
                     {
                         //硬件加速不支持填充位图，则用软件实现
-                        __GK_GradientFillRectSoft(fb_gkwin->wm_bitmap,&target,
+                        __GK_GradientFillRectSoft(fb_gkwin->wm_bitmap,&para->rect,
                                                 &ins_rect,Color0,Color1,Mode);
                     }
                     //标志填充区域的changed_msk
@@ -4672,10 +4672,10 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                 if(__GK_GetRectInts(&clip->rect,&target,&ins_rect))
                 {
                     //硬件加速不支持填充位图，则用软件实现
-                    if(!my_draw_fun->FillRectToScreen(&target,&ins_rect,
+                    if(!my_draw_fun->FillRectToScreen(&para->rect,&ins_rect,
                                                       Color0,Color1,Mode))
                     {
-                        __GK_GradientFillScreenRect(my_draw_fun,&target,
+                        __GK_GradientFillScreenRect(my_draw_fun,&para->rect,
                                                 &ins_rect,Color0,Color1,Mode);
                     }
                     mirror = DstGkwin->disp->HostObj;
@@ -4683,10 +4683,10 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                     while(current != NULL)
                     {
                         MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
-                        if(!MirrorDisplay->draw.FillRectToScreen(&target,&ins_rect,
+                        if(!MirrorDisplay->draw.FillRectToScreen(&para->rect,&ins_rect,
                                                        Color0,Color1,Mode) )
                         {
-                            __GK_GradientFillScreenRect(&MirrorDisplay->draw,&target,
+                            __GK_GradientFillScreenRect(&MirrorDisplay->draw,&para->rect,
                                                 &ins_rect,Color0,Color1,Mode);
                         }
                         current = OBJ_ForeachChild(mirror,current);
