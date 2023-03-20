@@ -652,7 +652,7 @@ bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
     u32 y,x;
     u16 pixel;
     u16 *dst_offset;
-
+    u32 i = 0, len = 0;
 //    printf("__lcd_fill_rect_bm\r\n");
     if(Mode != CN_FILLRECT_MODE_N)
         return false;
@@ -667,8 +667,11 @@ bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
 
     for(y = Focus->top; y < Focus->bottom; y++)
     {
-
-        memset16(dst_offset,pixel,(Focus->right-Focus->left));
+        len = (Focus->right - Focus->left);
+        for (i = 0; i < len; i++)
+        {
+            dst_offset[i] = pixel;
+        }
         dst_offset += dst_bitmap->linebytes >> 1;
 
     }
