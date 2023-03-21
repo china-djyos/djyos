@@ -862,6 +862,10 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
     bool_t start;
     s32 width,height;
 
+    msk = gkwin->changed_msk.bm_bits;
+    msk_line_words = gkwin->changed_msk.linebytes;
+    width = gkwin->changed_msk.width;
+    height = gkwin->changed_msk.height;
     if(gkwin->WinProperty.ChangeFlag == CN_GKWIN_CHANGE_ALL)   //整个窗口均被修改
     {
         clip = __GK_AllocClip(0);
@@ -874,7 +878,7 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
             clip->next = clip;
             clip->previous = clip;
             gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;
-            memset(msk,0,msk_line_words * gkwin->changed_msk.height);
+            memset(msk,0,msk_line_words * height);
             return clip;            //把整个窗口的可显示区域当作一个剪切域返回
         }
         else
@@ -885,10 +889,6 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
     }else       //部分修改，先按x方向取得剪切域，再按y方向合并
     {
         offset = 0;                 //首行字偏移量
-        msk = gkwin->changed_msk.bm_bits;
-        width = gkwin->wm_bitmap->width;
-        height = gkwin->wm_bitmap->height;
-        msk_line_words = gkwin->changed_msk.linebytes;
         for(loopy = 0; loopy < height; loopy +=8)
         {
             start = false;      //开始一段连续的被修改区域
@@ -1174,7 +1174,17 @@ void __GK_GetNewClip(struct GkWinObj *gkwin)
         __GK_ClipLinkSub(gkwin->work_clip,gkwin->visible_bak,&res,&redraw);
         __GK_ClipLinkConnect(&gkwin->redraw_clip,redraw);   //新增部分去了redraw
         gkwin->work_clip = res;                          //非新增部分留在work
-        gkwin->visible_bak = __GK_FreeClipQueue(gkwin->visible_bak);
+        if(gkwin->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
+        {
+            __GK_ClipLinkSub(gkwin->visible_bak,gkwin->work_clip,
+                              &res,&redraw);
+            gkwin->visible_bak = redraw;
+            __GK_FreeClipQueue(res);
+        }
+        else
+        {
+            gkwin->visible_bak = __GK_FreeClipQueue(gkwin->visible_bak);
+        }
     }
     else
     {
@@ -1214,20 +1224,21 @@ struct ClipRect *__GK_GetClipLinkInts(struct ClipRect **srcclip,
 //      处理过程:
 //      1、把visible_clip复制到 work_clip 中临时保存。
 //      2、work_clip减去中visible_bak所得作为新增可视域加入redraw_clip队列。
-//        剩余部分保留在work_clip中，待与change_msk比较。
+//        剩余部分保留在work_clip中，待与change_msk比较。如果窗口的dest_blend == true，
+//        则visible_bak中保存由可见变为不可见的部分，否则visible_bak将被释放。
 //      3、从changed msk中提取changed_clip。
 //      4、取work_clip（此时保存的是可视域中非新增部分）与changed_clip的交集，
 //        加入redraw_clip队列。
-// 取消 6、从z_top起，取visible_bak,扫描其后窗口的可视域，与其重叠的部分，加入
-//         redraw域。符合此条件的visible_bak，必定是因为窗口移动所致。
-//      5、redraw透明窗口将导致被遮盖窗口相应位置也要重绘。从z_top起，
+//      5、从z_top起，取visible_bak,扫描其后窗口的可视域，与其重叠的部分，加入
+//         redraw域。visible_bak中有值，可能是窗口移动所致、透明窗口可视变不可视导致。
+//      6、redraw透明窗口将导致被遮盖窗口相应位置也要重绘。从z_top起，
 //        扫描dest_blend == true的winz轴后面的win的 work_clip，与其需重绘部分重叠
 //        的，加入各自窗口的redraw_clip队列。
 //        此后dest_blend != true的win的work_clip可释放。
-//      6、合并前几步产生的redraw_clip队列。
-//      7、从z_top起，对任一dest_blend == true的win的 work_clip，扫描z轴中在其
+//      7、合并前几步产生的redraw_clip队列。
+//      8、从z_top起，对任一dest_blend == true的win的 work_clip，扫描z轴中在其
 //         后面的win的redraw_clip，重叠的部分加入redraw_clip队列，并合并之。
-//      8、同步 visible_clip和visible_bak
+//      9、同步 visible_clip和visible_bak
 //参数: display，被扫描的显示器
 //返回: false=失败，一般是因为剪切域池容量不够
 //-----------------------------------------------------------------------------
@@ -1289,41 +1300,39 @@ bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
             break;
     }
 
-//    //执行step6，改变位置的、dest_blend=true的窗口，改变前遮挡的其他窗口的
-//    //可视域，加入redraw域。
-//    special_win = display->z_topmost;
-//    while(1)
-//    {
-//        //窗口移动，伸缩会导致visible_bak != NULL
-//        if((special_win->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
-//                    && (special_win->visible_bak != NULL))
-//        {
-//            tempwin = special_win->z_back;
-//            while(1)
-//            {
-////                tempclip2 = __GK_CopyClipLink(special_win->visible_bak);
-//                //取得背景窗口需要重绘的区域
-//                tempclip1 =
-//                    __GK_GetClipLinkInts(&tempwin->visible_clip,
-//                                          special_win->visible_bak);
-//
-////                __GK_FreeClipQueue(tempclip2);
-//                //把修改区域加入到背景窗口redraw_clip中
-//                __GK_ClipLinkConnect(&tempwin->redraw_clip,tempclip1);
-//                if(tempwin != display->desktop)
-//                    tempwin = tempwin->z_back;
-//                else
-//                    break;
-//            }
-//            special_win->visible_bak = __GK_FreeClipQueue(special_win->visible_bak);
-//        }
-//        if(special_win != display->desktop)
-//            special_win = special_win->z_back;
-//        else
-//            break;
-//    }
+    //执行step5，dest_blend=true的窗口，如果有从可见变为不可见的部分，需要把被其遮挡
+    //的其他窗口的可视域，加入redraw域。
+    special_win = display->z_topmost;
+    while(1)
+    {
+        //窗口移动，伸缩会导致visible_bak != NULL
+        if((special_win->WinProperty.DestBlend == CN_GKWIN_DEST_VISIBLE)
+                    && (special_win->visible_bak != NULL))
+        {
+            tempwin = special_win->z_back;
+            while(1)
+            {
+                //取得背景窗口需要重绘的区域
+                tempclip1 =
+                    __GK_GetClipLinkInts(&tempwin->work_clip,
+                                          special_win->visible_bak);
 
-    //执行step5
+                //把修改区域加入到背景窗口redraw_clip中
+                __GK_ClipLinkConnect(&tempwin->redraw_clip,tempclip1);
+                if(tempwin != display->desktop)
+                    tempwin = tempwin->z_back;
+                else
+                    break;
+            }
+            special_win->visible_bak = __GK_FreeClipQueue(special_win->visible_bak);
+        }
+        if(special_win != display->desktop)
+            special_win = special_win->z_back;
+        else
+            break;
+    }
+
+    //执行step6
     //redraw透明窗口将导致被遮盖窗口相应位置也要重绘。
     special_win = display->z_topmost;
     while(1)
@@ -1356,7 +1365,7 @@ bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
             break;
     }
 
-    //执行step6，合并前几步产生的redraw_clip队列
+    //执行step7，合并前几步产生的redraw_clip队列
     tempwin = display->z_topmost;
     while(1)
     {
@@ -1368,7 +1377,7 @@ bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
             break;
     }
 
-    //执行step7，本步骤无须判断desktop，因为 desktop 后面的窗口肯定不显示，故循环体有所不同
+    //执行step8，本步骤无须判断desktop，因为 desktop 后面的窗口肯定不显示，故循环体有所不同
     //需要背景参与运算的窗口，其背景改变
     special_win = display->z_topmost;
     do{
@@ -1395,7 +1404,7 @@ bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
         special_win = special_win->z_back;
     }while(special_win != display->desktop);
 
-    //执行step8，
+    //执行step9，
     tempwin = display->z_topmost;
     while(1)
     {

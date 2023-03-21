@@ -996,14 +996,15 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
 //-----------------------------------------------------------------------------
 void __GK_AdoptWin(struct GkscParaAdoptWin *para)
 {
-    struct GkWinObj *last,*foremost,*gkwin,*Ztarget,*NowWin;
+    struct GkWinObj *last,*foremost,*gkwin,*Ztarget,*NowWin,*oldparent;
     struct Object *parent,*point;
     struct DisplayObj *display;
     struct Rectangle range;
     gkwin = para->gkwin;
     parent = para->NewParent->HostObj;
+    oldparent = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetParent(gkwin->HostObj));
     display = gkwin->disp;
-    if(OBJ_GetParent(gkwin->HostObj) == parent)  //新的父窗口没改变
+    if(oldparent == para->NewParent)  //新的父窗口没改变
         return ;
 
     //因gkwin可能有子窗口，其与子窗口一起，在Z轴中占据连续的一段，
@@ -1058,6 +1059,16 @@ void __GK_AdoptWin(struct GkscParaAdoptWin *para)
             Ztarget = (struct GkWinObj *)parent;       //父窗口在插入点和gkwin之间
         else
             Ztarget = __GK_GetZsectionEnd( NowWin );
+    }
+    NowWin = foremost;
+    while(1)
+    {
+        NowWin->ScreenX += para->NewParent->ScreenX -  oldparent->ScreenX;
+        NowWin->ScreenY += para->NewParent->ScreenY -  oldparent->ScreenY;
+        if(NowWin != last)
+            NowWin = NowWin->z_back;
+        else
+            break;
     }
     foremost->z_top->z_back = last->z_back;
     last->z_back->z_top = foremost->z_top;
