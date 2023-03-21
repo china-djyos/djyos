@@ -1272,9 +1272,10 @@ bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
             if(tempwin->WinProperty.ChangeFlag == CN_GKWIN_CHANGE_ALL)
             {
                 //全部可视域需重绘
-                tempwin->redraw_clip =
-                                __GK_FreeClipQueue(tempwin->redraw_clip);
-                tempwin->redraw_clip = tempwin->work_clip;
+//                tempwin->redraw_clip =
+//                                __GK_FreeClipQueue(tempwin->redraw_clip);
+                __GK_ClipLinkConnect(&tempwin->redraw_clip,tempwin->work_clip);
+//                tempwin->redraw_clip = tempwin->work_clip;
                 tempwin->work_clip = NULL;   //可视域已经全部加入重绘域
                 tempwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;
             }else if(tempwin->WinProperty.ChangeFlag == CN_GKWIN_CHANGE_PART)

@@ -1171,7 +1171,7 @@ bool_t    GDD_MoveWindow(HWND hwnd,s32 x,s32 y)
     if(__GDD_Lock())
     {
 
-        GK_MoveWin(hwnd->pGkWin, hwnd->CliRect.left + x, hwnd->CliRect.top + y);
+        GK_MoveWin(hwnd->pGkWin, x, y);
         __GDD_Unlock();
         return TRUE;
     }
