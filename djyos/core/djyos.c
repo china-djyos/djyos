@@ -257,12 +257,12 @@ bool_t __DJY_CheckStack(s16 event_id)
     {
         if(stack[loop] != pads)
         {
-            result = false;   //安全区内发生了改变，有溢出风险
             break;
         }
     }
     if((loop << 2) <= level)        //超越警戒线，
     {
+        result = false;   //安全区内发生了改变，有溢出风险
         if(&stack[loop] < Vm->stack_used)   //突破警戒线到新高度
         {
             Vm->stack_used = &stack[loop];  //记录新的已用指针

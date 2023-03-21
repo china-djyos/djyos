@@ -864,8 +864,8 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
 
     msk = gkwin->changed_msk.bm_bits;
     msk_line_words = gkwin->changed_msk.linebytes;
-    width = gkwin->changed_msk.width;
-    height = gkwin->changed_msk.height;
+    width = gkwin->wm_bitmap->width;
+    height = gkwin->wm_bitmap->height;
     if(gkwin->WinProperty.ChangeFlag == CN_GKWIN_CHANGE_ALL)   //整个窗口均被修改
     {
         clip = __GK_AllocClip(0);
@@ -878,7 +878,7 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
             clip->next = clip;
             clip->previous = clip;
             gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;
-            memset(msk,0,msk_line_words * height);
+            memset(msk,0,msk_line_words * gkwin->changed_msk.height);
             return clip;            //把整个窗口的可显示区域当作一个剪切域返回
         }
         else
