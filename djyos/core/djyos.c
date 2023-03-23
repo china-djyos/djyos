@@ -650,11 +650,11 @@ void __DJY_SelectEventToRun(void)
         if(pl_evtt->my_free_vm != NULL)     //该事件类型有空闲的线程,直接使用
         {
             StackSize = pl_evtt->my_free_vm->stack_size;
-            memset(pl_evtt->my_free_vm,'d',StackSize);
-            pl_evtt->my_free_vm->stack_top = (u32*)((ptu32_t)pl_evtt->my_free_vm+StackSize); //栈顶地址，移植敏感
+            memset(pl_evtt->my_free_vm,'d',StackSize + sizeof(struct ThreadVm));
+            pl_evtt->my_free_vm->stack_top = (u32*)((ptu32_t)pl_evtt->my_free_vm+StackSize + sizeof(struct ThreadVm)); //栈顶地址，移植敏感
             pl_evtt->my_free_vm->stack_used = pl_evtt->my_free_vm->stack_top;
             pl_evtt->my_free_vm->next = NULL;
-            pl_evtt->my_free_vm->stack_size = StackSize - sizeof(struct ThreadVm); //保存栈深度
+            pl_evtt->my_free_vm->stack_size = StackSize; //保存栈深度
             pl_evtt->my_free_vm->host_vm = NULL;
             //复位线程并重置线程
             __asm_reset_thread(pl_evtt->thread_routine,pl_evtt->my_free_vm);
@@ -3351,12 +3351,14 @@ ptu32_t __DJY_Service(void)
         Int_RestoreAsynSignal();
         //注：改成tickless模式后，因没有tick中断，不再需要判断，每次运行直接跑栈检查
         level=LP_GetSleepLevel();
-        if(level==CN_SLEEP_NORMAL)
+        if((level==CN_SLEEP_NORMAL) && (CFG_IDLE_CHECK_STACK))
         {
-          for(loop = 0; loop<CFG_EVENT_LIMIT; loop++)
-          {
+            for(loop = 0; loop<CFG_EVENT_LIMIT; loop++)
+            {
+                Int_SaveAsynSignal();
                 __DJY_CheckStack(loop);
-          }
+                Int_RestoreAsynSignal();
+            }
         }
         CleanWakeupEvent();
         atom_bak = Int_LowAtomStart();
