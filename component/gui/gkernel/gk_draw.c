@@ -2947,7 +2947,7 @@ void __GK_DrawCircleBm(struct GkWinObj *gkwin,struct Rectangle *limit,
     bitmap = gkwin->wm_bitmap;
     //要求给定的颜色的颜色格式为24位
     //绘制像素前需将24位调整为与显示屏一致的颜色格式
-    pf_color = GK_ConvertRGB24ToPF(gkwin->disp->pixel_format,color);
+    pf_color = GK_ConvertRGB24ToPF(bitmap->PixelFormat, color);
 
     //整个圆都在limit内
     if((x0-limit->left >= r)&&(limit->right-x0 > r)

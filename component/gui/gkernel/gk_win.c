@@ -1065,6 +1065,7 @@ void __GK_AdoptWin(struct GkscParaAdoptWin *para)
     {
         NowWin->ScreenX += para->NewParent->ScreenX -  oldparent->ScreenX;
         NowWin->ScreenY += para->NewParent->ScreenY -  oldparent->ScreenY;
+        __GK_SetBound(NowWin);
         if(NowWin != last)
             NowWin = NowWin->z_back;
         else
@@ -1247,8 +1248,8 @@ void __GK_SetBound(struct GkWinObj *gkwin)
     else
         gkwin->limit.bottom = ancestor_absy + ancestor->limit.bottom - gkwin->area.top;
 
-    if(         (gkwin->limit.left   > gkwin->area.right)
-            ||  (gkwin->limit.top    > gkwin->area.bottom)
+    if(         (gkwin->limit.left   >= gkwin->limit.right)
+            ||  (gkwin->limit.top    >= gkwin->limit.bottom)
             ||  (gkwin->limit.right  < 0)
             ||  (gkwin->limit.bottom < 0)    )
     {
@@ -1258,6 +1259,7 @@ void __GK_SetBound(struct GkWinObj *gkwin)
         gkwin->limit.bottom =0;
     }
 }
+
 //----设置边界模式-------------------------------------------------------------
 //功能: 设定窗口的显示边界是否受父窗口限制，限制后，子窗口超出父窗口的部分将不予
 //      显示，desktop的直接子窗口默认受限，不能更改。
@@ -1568,6 +1570,7 @@ bool_t __GK_SetRopCode(struct GkscParaSetRopCode *para)
             mygkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
             __GK_GetWinOutline(mygkwin,&range);
             __GK_ScanNewVisibleClip(mydisplay,&range);
+            mydisplay->reset_clip = true;
         }
 
 //      mygkwin->RopCode &= ~CN_ROP_ROP2_MSK;   //窗口属性不支持rop2
@@ -1610,6 +1613,7 @@ bool_t __GK_SetHyalineColor(struct GkscParaSetHyalineColor *para)
             mygkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
             __GK_GetWinOutline(mygkwin,&range);
             __GK_ScanNewVisibleClip(mygkwin->disp,&range);
+            mygkwin->disp->reset_clip = true;
         }
     }
     return true;

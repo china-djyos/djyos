@@ -91,7 +91,7 @@ static bool_t __GDD_CursorCreate(struct WindowMsg *pMsg)
         y=GDD_RectH(&rc);
         GDD_SetBackGroundColor(hdc,RGB(255,0,0));
         GDD_FillRectEx(hdc,&rc,hdc->BGColor);
-        GDD_SetDrawColor(hdc,RGB(1,1,1));
+        GDD_SetDrawColor(hdc,RGB(128,128,128));
         GDD_DrawLine(hdc,x/2,0,x/2,y);
         GDD_EndPaint(hwnd,hdc);
     }
@@ -130,6 +130,17 @@ static bool_t __GDD_CursorFlash(struct WindowMsg *pMsg)
         }
         GDD_SyncShow(pMsg->hwnd);
     }
+    return true;
+}
+
+//----光标闪烁函数-------------------------------------------------------------
+//功能：响应光标窗口的定时器消息
+//参数：pMsg，消息指针
+//返回：固定true
+//-----------------------------------------------------------------------------
+static bool_t __GDD_CursorClose(struct WindowMsg *pMsg)
+{
+    g_ptCursorHwnd = NULL;
     return true;
 }
 
@@ -183,21 +194,23 @@ void GDD_CursorMove( s32 absX , s32 absY )
         GDD_MoveWindow(g_ptCursorHwnd, absX, absY);
 }
 
-//----设置光标的宿主窗口-------------------------------------------------------
-//功能：如题，光标宿主一般随焦点窗口改变。
-//参数：HostWin，新的宿主窗口
-//返回：无
-//-----------------------------------------------------------------------------
-void GDD_CursorSetHost(HWND HostWin)
-{
-    if(g_ptCursorHwnd != NULL)
-        GK_AdoptWin(g_ptCursorHwnd->pGkWin, HostWin->pGkWin);
-}
+//备注：光标窗口固定以桌面为父窗口，不可改变
+////----设置光标的宿主窗口-------------------------------------------------------
+////功能：如题，光标宿主一般随焦点窗口改变。
+////参数：HostWin，新的宿主窗口
+////返回：无
+////-----------------------------------------------------------------------------
+//void GDD_CursorSetHost(HWND HostWin)
+//{
+//    if(g_ptCursorHwnd != NULL)
+//        GK_AdoptWin(g_ptCursorHwnd->pGkWin, HostWin->pGkWin);
+//}
 //光标消息处理函数链表
 static struct MsgProcTable s_gCursorMsgProcTable[]=
 {
     {MSG_CREATE,__GDD_CursorCreate},
     {MSG_TIMER,__GDD_CursorFlash},
+    {MSG_CLOSE,__GDD_CursorClose},
 };
 
 static struct MsgTableLink  s_gCursorMsgLink;
@@ -205,29 +218,33 @@ static struct MsgTableLink  s_gCursorMsgLink;
 bool_t GDD_CursorInit(void)
 {
     struct RopGroup RopCode;
-
-    s_gCursorMsgLink.MsgNum = sizeof(s_gCursorMsgProcTable) / sizeof(struct MsgProcTable);
-    s_gCursorMsgLink.myTable = (struct MsgProcTable *)&s_gCursorMsgProcTable;
-    g_ptCursorHwnd = GDD_CreateWindow("Cursor!@#$^",&s_gCursorMsgLink,0,0,2, 12,CN_WINBUF_PARENT,0,CN_SYS_PF_DISPLAY,
-                        CN_COLOR_WHITE,0,0,NULL);
-
-    if(g_ptCursorHwnd!=NULL)
+    if(g_ptCursorHwnd == NULL)
     {
-         GK_SetPrio(g_ptCursorHwnd->pGkWin,CN_WINDOW_ZPRIO_CURSOR , CN_TIMEOUT_FOREVER);
-         RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_XORPEN, 0, 0, 0  };
-         GK_SetRopCode(g_ptCursorHwnd->pGkWin, RopCode, CN_TIMEOUT_FOREVER);
+        s_gCursorMsgLink.MsgNum = sizeof(s_gCursorMsgProcTable) / sizeof(struct MsgProcTable);
+        s_gCursorMsgLink.myTable = (struct MsgProcTable *)&s_gCursorMsgProcTable;
+        g_ptCursorHwnd = GDD_CreateWindow("Cursor!@#$^",&s_gCursorMsgLink,0,0,2, 12,CN_WINBUF_PARENT,0,CN_SYS_PF_DISPLAY,
+                            CN_COLOR_WHITE,0,0,NULL);
 
-         sg_tpCursorTimer =GDD_CreateTimer(g_ptCursorHwnd,0,CN_CURSOR_FLASH_TIME);
-         GDD_StartTimer(sg_tpCursorTimer);
-         if(sg_tpCursorTimer == NULL)
-         {
-             GDD_DestroyWindow(g_ptCursorHwnd);
-             return false;
+        if(g_ptCursorHwnd!=NULL)
+        {
+             GK_SetPrio(g_ptCursorHwnd->pGkWin,CN_WINDOW_ZPRIO_CURSOR , CN_TIMEOUT_FOREVER);
+             RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_XORPEN, 0, 0, 0  };
+             GK_SetRopCode(g_ptCursorHwnd->pGkWin, RopCode, CN_TIMEOUT_FOREVER);
+
+             sg_tpCursorTimer =GDD_CreateTimer(g_ptCursorHwnd,0,CN_CURSOR_FLASH_TIME);
+             GDD_StartTimer(sg_tpCursorTimer);
+             if(sg_tpCursorTimer == NULL)
+             {
+                 GDD_DestroyWindow(g_ptCursorHwnd);
+                 return false;
+             }
+             GDD_SetWindowHide(g_ptCursorHwnd);
+             return true;
          }
-         GDD_SetWindowHide(g_ptCursorHwnd);
-         return true;
-     }
-    return false;
+        return false;
+    }
+    else
+        return true;
 }
 
 

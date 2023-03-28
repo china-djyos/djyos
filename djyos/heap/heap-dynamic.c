@@ -978,7 +978,7 @@ bool_t __Heap_InitCession(struct HeapCession *Cession)
     }
 
     ua_temp = __Heap_CalculateExpense(ua_pages); //初估控制结构需要的字节数
-    if(ua_faction < ua_temp)
+    if(ua_faction < ua_temp)    //看看堆空间取整页后的余数够不够
     {
         //初估控制结构除ua_faction外还需要的页数
         ua_temp = (ua_temp-ua_faction+Cession->PageSize-1)
@@ -1408,7 +1408,6 @@ void *__Heap_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
     }
     Lock_MutexPost(&Heap->HeapMutex);
     __Heap_CheckSTackSync( );
-//  if(result != NULL) recordwho(result);
     return result;
 }
 void *__Heap_Malloc(ptu32_t size,u32 timeout)

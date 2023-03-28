@@ -424,7 +424,7 @@ void GK_DrawText(struct GkWinObj *gkwin,struct Rectangle *range,
                     struct FontObj *pFont,
                     struct Charset *pCharset,
                     s32 x,s32 y,
-                    const char *text,u32 count,u32 color,
+                    const char *text,s32 count,u32 color,
                     u32 Rop2Code,u32 SyncTime);
 void GK_SetPixel(struct GkWinObj *gkwin,struct Rectangle *range,s32 x,s32 y,
                         u32 color,u32 Rop2Code,u32 SyncTime);

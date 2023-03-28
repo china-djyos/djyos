@@ -81,11 +81,11 @@ bool_t GDD_SetFocusWindow(HWND hwnd)
     {
         wnd =HWND_Focus;
         HWND_Focus =hwnd;
-        GDD_CursorSetHost(hwnd);
-        if( GDD_CursorCheckStatus(hwnd) )
-            GDD_CursorSetShow();
-        else
-            GDD_CursorSetHide();
+//        GDD_CursorSetHost(hwnd);
+//        if( GDD_CursorCheckStatus(hwnd) )
+//            GDD_CursorSetShow();
+//        else
+//            GDD_CursorSetHide();
         __GDD_Unlock();
     }
     else

@@ -940,6 +940,7 @@ static bool_t __Widget_TextBoxTouchDown(struct WindowMsg *pMsg)
     y=loc>>16;
     chnum=pTB->ChNum;
     str=hwnd->Text;
+//  GDD_CursorSetHost(hwnd);
     if(str==NULL)
     {
          pTB->CursorLoc=0;
@@ -963,8 +964,6 @@ static bool_t __Widget_TextBoxTouchDown(struct WindowMsg *pMsg)
         }
     }
     GDD_SetWindowPrivateData(hwnd,(ptu32_t)pTB);
-
-    GDD_CursorSetHost(hwnd);
 
     GDD_SetFocusWindow(hwnd);
 

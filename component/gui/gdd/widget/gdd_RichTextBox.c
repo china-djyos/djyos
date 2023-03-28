@@ -510,7 +510,7 @@ static bool_t __Widget_RichTextBoxTouchDown(struct WindowMsg *pMsg)
     }
     GDD_SetWindowPrivateData(hwnd,(ptu32_t)pRTB);
 
-    GDD_CursorSetHost(hwnd);
+//    GDD_CursorSetHost(hwnd);
 
     GDD_SetFocusWindow(hwnd);
 

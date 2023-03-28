@@ -494,6 +494,7 @@ void *Mb_Malloc(struct MemCellPool *pool,u32 timeout)
 void Mb_Free(struct MemCellPool *pool,void *block)
 {
     atom_low_t atom_low;
+//    struct MemCellFree* temp;
     if(pool == NULL)
         return;
 //    pl_continue = (void*)pool->pool_offset;
@@ -508,6 +509,19 @@ void Mb_Free(struct MemCellPool *pool,void *block)
 //        return ;
     atom_low = Int_LowAtomStart( );
     //查看待释放的内存块是否已经在free_list队列中。
+//    temp = pool->free_list;
+//    while(1)
+//    {
+//        if(block == temp)
+//        {
+//            printk("pool free error\r\n");
+//            break;
+//        }
+//        else
+//            temp = temp->next;
+//        if(temp == pool->free_list)
+//            break;
+//    }
     if(pool->free_list == NULL)
     {
         pool->free_list = (struct MemCellFree*)block;
