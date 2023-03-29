@@ -1146,7 +1146,7 @@ void __Fillrectangle(HDC hdc,POINT *p)
     s32 x0,y0;
     s32 height;
     s32 dy,dx,yflag,xflag,line_error,error;
-
+    s32 i;
     s32 ymax ,ymin,xmax,xmin;
     p[0].y>p[1].y?(ymax = p[0].y,ymin = p[1].y):(ymax = p[1].y,ymin = p[0].y);
     ((ymax>p[2].y)? (ymin>p[2].y?ymin = p[2].y:NULL):(ymax = p[2].y));
@@ -1157,13 +1157,18 @@ void __Fillrectangle(HDC hdc,POINT *p)
     ((xmax>p[3].x)? (xmin>p[3].x?xmin = p[3].x:NULL):(xmax = p[3].x-2));
 
     s32 Drop = ymax - ymin + 1;
-    s32 Xmax[Drop],Xmin[Drop];
+    s32 *Xmax = (s32 *)malloc( sizeof(s32)*Drop );
+    s32 *Xmin = (s32 *)malloc( sizeof(s32)*Drop );
+
+    if(Xmax == NULL||Xmin == NULL)
+        return;
+
     for(int i = 0;i < Drop;i++)
     {
         Xmax[i] = xmin;
         Xmin[i] = xmax;
     }
-    for(int i = 0;i<4;i++)
+    for(i = 0;i<4;i++)
     {
         height = p[i].y - ymin;//四个点的位置
         if(p[i].x< Xmin[height])
@@ -1171,7 +1176,7 @@ void __Fillrectangle(HDC hdc,POINT *p)
         if(p[i].x> Xmax[height])
             Xmax[height] = p[i].x;
     }
-    for(int i = 0;i<3;i+=2)
+    for(i = 0;i<3;i+=2)
     {
         x0 = p[i].x;
         y0 = p[i].y;
@@ -1218,13 +1223,21 @@ void __Fillrectangle(HDC hdc,POINT *p)
             }
         }
     }
-    for(int i = 0; i < Drop; i++)//连点
+    if(ymin<0)
+        i = abs(ymin);
+    else i = 0;
+    for(; i < Drop; i++)//连点
     {
         if(Xmin[i] != Xmax[i])
             GDD_DrawLine(hdc,Xmin[i],ymin+i,Xmax[i],ymin+i);
         else
             GDD_SetPixel(hdc,Xmin[i],ymin+i,hdc->DrawColor);
     }
+    free(Xmin);
+    free(Xmax);
+    Xmin = NULL;
+    Xmax = NULL;
+    return ;
 }
 
 
@@ -1541,7 +1554,10 @@ void  __fillsector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 
     }
 
     s32 dy = ymax - ymin + 1;//0-10有11个单位
-    s32 x_max[dy],x_min[dy];
+    s32 *x_max = (s32 *)malloc( sizeof(s32)*dy );
+    s32 *x_min = (s32 *)malloc( sizeof(s32)*dy );
+    if(x_max == NULL||x_min == NULL)
+        return;
     for(int i = 0; i<dy;i++)
     {
         x_min[i] = xCenter+radius+2;
@@ -1630,6 +1646,11 @@ void  __fillsector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 
         else
             GDD_SetPixel(hdc,x_min[i],ymin+i,hdc->DrawColor);
     }
+    free(x_min);
+    x_min = NULL;
+    free(x_max);
+    x_max = NULL;
+    return ;
 }
 
 
