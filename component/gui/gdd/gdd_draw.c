@@ -812,36 +812,44 @@ void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 temp_draw,s32
 
         else//绘制斜线
         {
+            s32 i=0;
+            s32 error,line_error;//
+            s32 para,draw;
             float dt = sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));//斜线长度
-            num = dt/(temp)+1;
-            float dy =(y1-y0)*temp/dt;
-            float dx = (x1-x0)*temp/dt;
-            float past_x = (x1-x0)*temp_past/dt;
-            float past_y = (y1-y0)*temp_past/dt;
-
-            for(i=1;i<num;i++)
+            s32 dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+            s32 dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+            line_error = (dx > dy ? dx : -dy) / 2;
+            GDD_SetPixel(hdc,x0,y0,hdc->DrawColor);
+            if(dx<dy)//陡
             {
-                pt[0].x =x0+dx*(i-1);
-                pt[0].y =y0+dy*(i-1);
-                pt[1].x =x0+dx*i-past_x;
-                pt[1].y =y0+dy*i-past_y;
-                __GDD_Cdn_DC_toWin(hdc,pt,2);
-               GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
-                       hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                para = abs((s32)((y1-y0)*(temp_draw+temp_past)*1.0/dt+0.5));
+                draw = abs((s32)((y1-y0)*temp_draw*1.0/dt+0.5));
+                while( x0 != x1 || y0 != y1)
+                {
+                    error = line_error;
+                    if(error > -dx) { line_error -= dy; x0 += sx;}
+                    if(error <  dy) { line_error += dx; y0 += sy;i++;}
+                    if(i<draw)
+                        GDD_SetPixel(hdc,(s32)x0,y0,hdc->DrawColor);
+                    else if(i<para);
+                    else i = 0;
+                }
             }
-            pt[0].x =x0+dx*(num-1);
-            pt[0].y =y0+dy*(num-1);
-            if(x0<x1)
-                pt[1].x =(x0+dx*num-past_x)>dt?x1:x0+dx*num-past_x;
-            else if(x0>x1)
-                pt[1].x =(x0+dx*num-past_x)<dt?x1:x0+dx*num-past_x;
-            if(y0<y1)
-                pt[1].y =(y0+dy*num-past_y)>dt?y1:y0+dy*num-past_y;
-            if(y0>y1)
-                pt[1].y =(y0+dy*num-past_y)<dt?y1:y0+dy*num-past_y;
-            __GDD_Cdn_DC_toWin(hdc,pt,2);
-           GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
-                   hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+            else//平
+            {
+                para = abs((s32)((x1-x0)*(temp_draw+temp_past)*1.0/dt+0.5));
+                draw = abs((s32)((x1-x0)*temp_draw*1.0/dt+0.5));
+                while( x0 != x1 || y0 != y1)
+                {
+                    error = line_error;
+                    if(error > -dx) { line_error -= dy; x0 += sx;i++;}
+                    if(error <  dy) { line_error += dx; y0 += sy;}
+                    if(i<draw)
+                        GDD_SetPixel(hdc,(s32)x0,y0,hdc->DrawColor);
+                    else if(i<para);
+                    else i = 0;
+                }
+            }
         }
         __GDD_EndDraw(hdc);
     }
