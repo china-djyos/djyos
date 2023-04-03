@@ -1099,6 +1099,9 @@ void    GDD_DestroyWindow(HWND hwnd)
 {
     HWND parent;
     parent = GDD_GetWindowParent(hwnd);
+    hwnd->Text = NULL;  //它指向GK的窗口名，下一行GK将被释放
+    GK_DestroyWin(hwnd->pGkWin);
+    hwnd->pGkWin = NULL;
     if(GDD_PostMessage(hwnd, MSG_CLOSE, 0, 0))
     {
         //执行 MSG_CLOSE 消息后，hwnd将被释放，此后将无法执行显示刷新操作，故需要给
@@ -1122,6 +1125,9 @@ void GDD_DestroyAllChild(HWND hwnd)
         while(Current != NULL)
         {
 //            GDD_SetWindowHide(Current);     //MSG_CLOSE消息是最后处理的，先隐藏窗口
+            Current->Text = NULL;  //它指向GK的窗口名，下一行GK将被释放
+            GK_DestroyWin(Current->pGkWin);
+            Current->pGkWin = NULL;
             GDD_PostMessage(Current, MSG_CLOSE, 0, 0);
             Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
         }
@@ -1644,7 +1650,9 @@ static ptu32_t __GDD_DefWindowProcCLOSE(struct WindowMsg *pMsg)
             __GDD_WinMsgProc(&SubMsg);
             Current = __GDD_GetWindowTwig(hwnd);
         }
-        GK_DestroyWin(hwnd->pGkWin);
+        //GK_DestroyWin必须在GDD的API中删除，否则消息延迟处理会导致销毁窗口后不能立即
+        //创建同名窗口。
+//      GK_DestroyWin(hwnd->pGkWin);
 //      __GDD_Unlock();
 //  }
     return 0;
