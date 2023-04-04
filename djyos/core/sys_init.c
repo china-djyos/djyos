@@ -105,8 +105,8 @@ void SYS_Start(void)
     __DjyInitTick();
     __DJY_InitSys( );
     __InitMB();
-    // Mb_ModuleInit函数需要创建信号量，调用ModuleInstall_Lock之前，创建信号量是允许的，
-    // 但不能对其做Post和pend操作。而ModuleInstall_Lock需要创建内存池，则只能在调用
+    // __InitMB 函数需要创建信号量，调用 __InitLock 之前，创建信号量是允许的，
+    // 但不能对其做Post和pend操作。而 __InitLock 需要创建内存池，故先调用 __InitMB
     __InitLock();
     OBJ_ModuleInit();
     Handle_ModuleInit();          // 对象句柄体系初始化；

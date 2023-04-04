@@ -472,8 +472,8 @@ static  ptu32_t __Widget_ListBoxPaint(struct WindowMsg *pMsg)
     GDD_GetClientRect(hwnd,&rc0);
     if(GDD_GetWindowStyle(hwnd)&LBS_FLAT)
     {
-        GDD_SetFillColor(hdc,RGB(200,200,200));
-        GDD_FillRect(hdc,&rc0);
+        GDD_SetBackGroundColor(hdc,RGB(200,200,200));
+        GDD_FillRectEx(hdc,&rc0,hdc->BGColor);
     }
     else
     {
@@ -520,7 +520,7 @@ static  ptu32_t __Widget_ListBoxPaint(struct WindowMsg *pMsg)
             if(i == pLB->CurSel)
             {   //为当前选中项目.
                 GDD_SetDrawColor(hdc,RGB(255,100,255));
-                GDD_SetFillColor(hdc,RGB(128,0,160));
+                GDD_SetBackGroundColor(hdc,RGB(128,0,160));
                 GDD_SetTextColor(hdc,RGB(0,255,0));
                 GDD_DrawText(hdc,item->szText,-1,&rc,DT_LEFT|DT_VCENTER|DT_BORDER|DT_BKGND);
             }
@@ -702,14 +702,23 @@ HWND Widget_CreateListBox(  const char *Text,u32 Style,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
-    s_gListBoxMsgLink.MsgNum = sizeof(s_gListBoxMsgProcTable) / sizeof(struct MsgProcTable);
-    s_gListBoxMsgLink.myTable = (struct MsgProcTable *)&s_gListBoxMsgProcTable;
-    pGddWin=GDD_CreateWindow(Text, WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
-                            CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
-                            &s_gListBoxMsgLink);
-    if(UserMsgTableLink != NULL)
-        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-    return pGddWin;
+    if(hParent == NULL)
+        hParent = GDD_GetDesktopWindow(NULL);
+    //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
+    //完成后，即消息处理函数表完整后再取出消息处理。
+    if(__GDD_Lock())
+    {
+        s_gListBoxMsgLink.MsgNum = sizeof(s_gListBoxMsgProcTable) / sizeof(struct MsgProcTable);
+        s_gListBoxMsgLink.myTable = (struct MsgProcTable *)&s_gListBoxMsgProcTable;
+        pGddWin=GDD_CreateWindow(Text,&s_gListBoxMsgLink, x,y,w,h,CN_WINBUF_PARENT,
+                                 WS_CAN_FOCUS|Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,WinId,pdata,hParent);
+        if(UserMsgTableLink != NULL)
+            GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __GDD_Unlock();
+        return pGddWin;
+    }
+    else
+        return NULL;
 }
 
 /*============================================================================*/

@@ -100,20 +100,20 @@ static  bool_t __Widget_ButtonPaint(struct WindowMsg *pMsg)
         return false;
     GDD_GetClientRect(hwnd,&rc);
     Widget_GetAttr(hwnd,ENUM_WIDGET_FILL_COLOR,&color);
-    GDD_SetFillColor(hdc,color);
-    GDD_FillRect(hdc,&rc);
+    GDD_SetBackGroundColor(hdc,color);
     if(hwnd->Style&WS_DISABLE)
     {
-        GDD_FillRect(hdc,&rc);
+        GDD_FillRectEx(hdc,&rc,hdc->BGColor);
         GDD_OffsetRect(&rc,1,1);
     }
     else if(hwnd->Style&BS_PUSHED)
     {
         GDD_SetTextColor(hdc,RGB(255,255,255));
 
-        GDD_SetFillColor(hdc,RGB(0,0,0));
-        GDD_FillRect(hdc,&rc);
+        GDD_SetBackGroundColor(hdc,RGB(0,0,0));
         GDD_OffsetRect(&rc,1,1);
+        GDD_FillRectEx(hdc,&rc,hdc->BGColor);
+
     }
     else
     {
@@ -124,23 +124,17 @@ static  bool_t __Widget_ButtonPaint(struct WindowMsg *pMsg)
                         RGB(210,210,210),RGB(150,150,150),CN_FILLRECT_MODE_UD);
                 break;
 
-                case    BS_SIMPLE:
+            case    BS_SIMPLE:
                     GDD_SetDrawColor(hdc,CN_COLOR_BLACK);
-                    GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)); //L
-                    GDD_DrawLine(hdc,0,0,GDD_RectW(&rc),0);   //U
-
-                    GDD_SetDrawColor(hdc,CN_COLOR_BLACK);
-                    GDD_DrawLine(hdc,GDD_RectW(&rc),0,GDD_RectW(&rc),GDD_RectH(&rc)); //R
-                    GDD_DrawLine(hdc,0,GDD_RectH(&rc),GDD_RectW(&rc),GDD_RectH(&rc)); //D
-
-                    GDD_InflateRect(&rc,-1,-1);
-
+                    GDD_InflateRectEx(&rc,0,0,-1,-1);      //±??òóò??×?±ê2￠2?°üo??ú??D???óò?ú
+                    GDD_FillRectEx(hdc,&rc,hdc->BGColor);
+                    GDD_DrawRect(hdc,&rc);
                     break;
 
                 case    BS_FLAT:
                 default:
-                    GDD_SetFillColor(hdc,RGB(255,255,255));
-                    GDD_FillRect(hdc,&rc);
+                    GDD_SetBackGroundColor(hdc,RGB(255,255,255));
+                    GDD_FillRectEx(hdc,&rc,hdc->BGColor);
                     break;
 
             }
@@ -279,13 +273,22 @@ HWND Widget_CreateButton(  const char *Text,u32 Style,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
-    s_gButtonMsgLink.MsgNum = sizeof(s_gButtonMsgProcTable) / sizeof(struct MsgProcTable);
-    s_gButtonMsgLink.myTable = (struct MsgProcTable *)&s_gButtonMsgProcTable;
-    pGddWin=GDD_CreateWindow(Text, WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
-                            CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
-                            &s_gButtonMsgLink);
-    if(UserMsgTableLink != NULL)
-        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-    return pGddWin;
+    if(hParent == NULL)
+        hParent = GDD_GetDesktopWindow(NULL);
+    //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
+    //完成后，即消息处理函数表完整后再取出消息处理。
+    if(__GDD_Lock())
+    {
+        s_gButtonMsgLink.MsgNum = sizeof(s_gButtonMsgProcTable) / sizeof(struct MsgProcTable);
+        s_gButtonMsgLink.myTable = (struct MsgProcTable *)&s_gButtonMsgProcTable;
+        pGddWin=GDD_CreateWindow(Text,&s_gButtonMsgLink, x,y,w,h,CN_WINBUF_PARENT,
+                                 WS_CAN_FOCUS|Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,WinId,pdata,hParent);
+        if(UserMsgTableLink != NULL)
+            GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __GDD_Unlock();
+        return pGddWin;
+    }
+    else
+        return NULL;
 }
 

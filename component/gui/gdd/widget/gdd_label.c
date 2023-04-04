@@ -80,16 +80,28 @@ static  bool_t __Widget_LabelPaint(struct WindowMsg *pMsg)
     if(NULL!=hdc)
     {
         GDD_GetClientRect(hwnd,&rc);
-        GDD_SetFillColor(hdc,RGB(255,0,0));
-        GDD_FillRect(hdc,&rc);
+        GDD_SetBackGroundColor(hdc,RGB(255,0,0));
+        GDD_FillRectEx(hdc,&rc,hdc->BGColor);
         if(hwnd->Style&WS_BORDER)
-        {
-             GDD_SetDrawColor(hdc,RGB(169,169,169));
-             GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1);      //L
-             GDD_DrawLine(hdc,0,0,GDD_RectW(&rc)-1,0);      //U
-             GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //R
-             GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
-        }
+           {
+              if(hwnd->Style&LABEL_BORDER_FIXED3D)
+              {
+                 GDD_SetDrawColor(hdc,RGB(173,173,173));
+                 GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1); //L
+                 GDD_SetDrawColor(hdc,RGB(92,92,92));
+                 GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
+                 GDD_DrawLine(hdc,GDD_RectW(&rc)-1,GDD_RectH(&rc),GDD_RectW(&rc)-1,0); //R
+                 GDD_SetDrawColor(hdc,RGB(173,173,173));
+                 GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,0,0);   //U
+
+              }
+              else
+              {
+                 GDD_SetDrawColor(hdc,RGB(169,169,169));
+                 GDD_InflateRectEx(&rc,0,0,-1,-1);      //边框右下坐标并不包含在矩形区域内
+                 GDD_DrawRect(hdc,&rc);
+              }
+            }
 
         GDD_SetTextColor(hdc,RGB(1,1,1));
         GDD_DrawText(hdc,hwnd->Text,-1,&rc,DT_VCENTER|DT_LEFT);
@@ -112,13 +124,21 @@ HWND Widget_CreateLabel(  const char *Text,u32 Style,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
-    s_gLabelMsgLink.MsgNum = sizeof(s_gLabelMsgProcTable) / sizeof(struct MsgProcTable);
-    s_gLabelMsgLink.myTable =(struct MsgProcTable *)&s_gLabelMsgProcTable;
-    pGddWin = GDD_CreateWindow(Text,  Style, x, y, w, h, hParent, WinId,
-                            CN_WINBUF_PARENT, pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
-                            &s_gLabelMsgLink);
-
-    if(UserMsgTableLink != NULL)
-        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-    return pGddWin;
+    if(hParent == NULL)
+        hParent = GDD_GetDesktopWindow(NULL);
+    //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
+    //完成后，即消息处理函数表完整后再取出消息处理。
+    if(__GDD_Lock())
+    {
+        s_gLabelMsgLink.MsgNum = sizeof(s_gLabelMsgProcTable) / sizeof(struct MsgProcTable);
+        s_gLabelMsgLink.myTable =(struct MsgProcTable *)&s_gLabelMsgProcTable;
+        pGddWin=GDD_CreateWindow(Text,&s_gLabelMsgLink, x,y,w,h,CN_WINBUF_PARENT,
+                                 Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,WinId,pdata,hParent);
+        if(UserMsgTableLink != NULL)
+            GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __GDD_Unlock();
+        return pGddWin;
+    }
+    else
+        return NULL;
 }

@@ -125,6 +125,7 @@ static struct dListNode s_tPoolHead;        // 把所有内存池控制块串起来
 //static struct Object *s_ptPoolObject;
 //static FILE *s_ptPoolFp;
 static struct MemCellPool *s_ptPoolCtrl;    // 管理内存池控制块本身的内存池
+static struct MutexLCB s_tPoolMutex;                  // 当内存池需要增量时，保护内存池控制块
 
 s32 Mb_PoolObjOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
@@ -160,6 +161,7 @@ ptu32_t __InitMB(void)
 
     Lock_SempCreate_s(&CtrlPool.memb_semp,CFG_MEMPOOL_LIMIT,
                       CFG_MEMPOOL_LIMIT,CN_BLOCK_FIFO,"固定块分配池");
+    Lock_MutexCreate_s(&s_tPoolMutex,"内存池增量锁");
     return (0);
 }
 
@@ -399,50 +401,62 @@ void *Mb_Malloc(struct MemCellPool *pool,u32 timeout)
 {
     void *result,*inc;
     s32 inc_size,inc_cell;
+    u32 endtime;
     atom_low_t atom_low;
     if(pool == NULL)
         return NULL;
+    if(timeout != CN_TIMEOUT_FOREVER)
+        endtime = timeout + (u32)DJY_GetSysTime();
+    else
+        endtime = timeout;
     //没有取得信号量，表明内存池空,这个信号量是保护内存池的，确保被分配的内存块
     //不超过内存池的容量
     //Lock_SempPend的超时参数应该是 0，不是timeout，因为此处不是等待空闲内存，而是判断
     //是否需要增量。
     if(Lock_SempPend(&pool->memb_semp,0) == false)  //无信号量，表明内存块已经用完
     {
-        //注意:上一行和下一行之间可能发生线程切换
-        Int_SaveAsynSignal();
-        //内存池容量未达到上限，可以继续增加
-        if(Lock_SempQueryCapacital(&pool->memb_semp) < pool->cell_limit)
+        if(Lock_MutexPend(&s_tPoolMutex, timeout))
         {
-            //此时timeout只能为0，因为在禁止异步信号的情况下，不为0也没用
-            //+ align_up_sys(1)是为了对齐
-            inc = M_Malloc(pool->cell_increment*pool->cell_size
-                                + align_up_sys(1),timeout);
-            if(inc != NULL)
+            //内存池容量未达到上限，可以继续增加
+            if(Lock_SempQueryCapacital(&pool->memb_semp) < pool->cell_limit)
             {
-                //检查实际分配到的内存量
-                inc_size = M_CheckSize(inc) - align_up_sys(1);
-                inc_cell = inc_size/pool->cell_size;
-                Lock_SempExpand(&pool->memb_semp, inc_cell);
-                Lock_SempPend(&pool->memb_semp,0); // 去掉当前需申请的一个
-                pool->continue_pool = (void*)((ptu32_t)inc + align_up_sys(1));
-                pool->pool_offset = (ptu32_t)pool->continue_pool + inc_cell*pool->cell_size;
-                //以下初始化增量表，该表用于标记动态增加的内存块，利于删除内存池
-                //时释放内存，以免内存丢失。
-                *(void **)inc = pool->next_inc_pool;
-                pool->next_inc_pool = inc;
-                Int_RestoreAsynSignal();
+                if(endtime == CN_TIMEOUT_FOREVER)
+                    timeout = CN_TIMEOUT_FOREVER;
+                else
+                    timeout = endtime - (u32)DJY_GetSysTime();
+                //+ align_up_sys(1)是为了对齐
+                inc = M_Malloc(pool->cell_increment*pool->cell_size
+                                    + align_up_sys(1),timeout);
+                if(inc != NULL)
+                {
+                    //检查实际分配到的内存量
+                    inc_size = M_CheckSize(inc) - align_up_sys(1);
+                    inc_cell = inc_size/pool->cell_size;
+                    Lock_SempExpand(&pool->memb_semp, inc_cell);
+                    Lock_SempPend(&pool->memb_semp,0); // 去掉当前需申请的一个
+                    pool->continue_pool = (void*)((ptu32_t)inc + align_up_sys(1));
+                    pool->pool_offset = (ptu32_t)pool->continue_pool + inc_cell*pool->cell_size;
+
+                    //以下初始化增量表，该表用于标记动态增加的内存块，利于删除内存池
+                    //时释放内存，以免内存丢失。
+                    *(void **)inc = pool->next_inc_pool;
+                    pool->next_inc_pool = inc;
+                    Lock_MutexPost(&s_tPoolMutex);
+                }
+                else
+                {
+                    Lock_MutexPost(&s_tPoolMutex);
+                    return NULL;
+                }
             }
             else
             {
-                Int_RestoreAsynSignal();
+                Lock_MutexPost(&s_tPoolMutex);
                 return NULL;
             }
         }
         else
-        {
-            Int_RestoreAsynSignal();
             return NULL;
-        }
     }
 
     //注:从semp_pend到int_low_atom_start之间发生抢占是允许的，因为信号量已经
@@ -480,6 +494,7 @@ void *Mb_Malloc(struct MemCellPool *pool,u32 timeout)
 void Mb_Free(struct MemCellPool *pool,void *block)
 {
     atom_low_t atom_low;
+//    struct MemCellFree* temp;
     if(pool == NULL)
         return;
 //    pl_continue = (void*)pool->pool_offset;
@@ -494,6 +509,19 @@ void Mb_Free(struct MemCellPool *pool,void *block)
 //        return ;
     atom_low = Int_LowAtomStart( );
     //查看待释放的内存块是否已经在free_list队列中。
+//    temp = pool->free_list;
+//    while(1)
+//    {
+//        if(block == temp)
+//        {
+//            printk("pool free error\r\n");
+//            break;
+//        }
+//        else
+//            temp = temp->next;
+//        if(temp == pool->free_list)
+//            break;
+//    }
     if(pool->free_list == NULL)
     {
         pool->free_list = (struct MemCellFree*)block;

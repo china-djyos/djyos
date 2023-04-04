@@ -34,6 +34,8 @@
 //%$#@num,0,1024,
 #define CFG_DESKTOP_WIDTH       0           //"桌面宽度",桌面尺寸（像素数）宽度，0=显示器宽度
 #define CFG_DESKTOP_HEIGHT      0           //"桌面高度",桌面尺寸（像素数）高度，0=显示器高度
+//%$#@num,0,65536,
+#define CFG_DESKTOP_STACK_SIZE  1024        //"桌面消息运行栈尺寸",处理桌面窗口收到的消息的函数的运行栈尺寸
 //%$#@enum,true,false,
 #define CFG_DESKTOP_BUF         true        //"桌面窗口是否带缓存"，内存稀少的硬件可不带缓存
 //%$#@string,1,127,

@@ -123,7 +123,7 @@ void __GK_BezierScreen(struct DisplayObj *display,struct Rectangle *limit,
 void __GK_SetPixel(struct GkscParaSetPixel *para);
 void __GK_Bezier(struct GkscParaBezier *para);
 void __GK_Lineto(struct GkscParaLineto *para);
-void __GK_LinetoIe(struct GkscParaLineto *para);
+//void __GK_LinetoIe(struct GkscParaLineto *para);
 void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes);
 void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para);
 void __GK_GradientFillRect(struct GkscParaGradientFillWin *para);

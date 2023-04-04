@@ -81,8 +81,8 @@ static  bool_t __GDD_MousePaint(struct WindowMsg *pMsg)
     if(NULL!=hdc)
     {
         GDD_GetClientRect(hwnd,&rc);
-        GDD_SetFillColor(hdc,RGB(255,0,0));
-        GDD_FillRect(hdc,&rc);
+        GDD_SetBackGroundColor(hdc,RGB(255,0,0));
+        GDD_FillRectEx(hdc,&rc,hdc->BGColor);
 
         GDD_SetDrawColor(hdc,RGB(1,1,1));
         GDD_DrawLine(hdc,0,4,8,4);
@@ -115,9 +115,8 @@ bool_t GDD_CreateMouseIcon( void )
     y = sz.y / 2 -rc.top;
     s_gMouseWinMsgLink.MsgNum = sizeof(s_gMouseMsgProcTable) / sizeof(struct MsgProcTable);
     s_gMouseWinMsgLink.myTable = (struct MsgProcTable *)&s_gMouseMsgProcTable;
-    sg_pMouseHwnd = GDD_CreateWindow("Mouse_Cursor", 0, x,y, 8, 8, NULL, 0,
-                                  CN_WINBUF_BUF, 0, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
-                                  &s_gMouseWinMsgLink);
+    sg_pMouseHwnd = GDD_CreateWindow("Mouse_Cursor",&s_gMouseWinMsgLink,x,y, 8, 8,
+                                  CN_WINBUF_BUF,0,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE, 0,0,NULL);
     if(sg_pMouseHwnd != NULL)
     {
        GK_SetPrio(sg_pMouseHwnd->pGkWin,CN_WINDOW_ZPRIO_MOUSE , CN_TIMEOUT_FOREVER);

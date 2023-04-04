@@ -1207,7 +1207,7 @@ struct Object *OBJ_BuildTempPath(struct Object *begin, fnObjOps ObjOps,
                 path++; // 查找直至'/'或'\0'
 
             seglen = path - segst;
-            name = malloc(seglen + 1);
+            name = (char *)M_Malloc(seglen + 1, CN_TIMEOUT_FOREVER);
             if(!name)
             {
                 printf("\r\n: dbug : object : memory out(%s). ", __FUNCTION__);
@@ -1354,7 +1354,7 @@ struct Object *OBJ_NewPrev(struct Object *loc, fnObjOps ObjOps,
               return (NULL); // child已经存在；
         }
 
-        cname = malloc(strlen(name)+1);
+        cname = (char *)M_Malloc(strlen(name) + 1, CN_TIMEOUT_FOREVER);
         if(!cname)
           return (NULL);
 
@@ -1449,7 +1449,7 @@ struct Object *OBJ_NewNext(struct Object *loc, fnObjOps ObjOps,
                 return (NULL); // child已经存在；
         }
 
-        cname = malloc(strlen(name)+1);
+        cname = (char *)M_Malloc(strlen(name) + 1, CN_TIMEOUT_FOREVER);
         if(!cname)
             return (NULL);
 
@@ -1540,7 +1540,7 @@ struct Object *OBJ_NewChild(struct Object *parent, fnObjOps ObjOps,
         if(NULL != OBJ_SearchChild(parent, name))
             return (NULL); // child已经存在；
 
-        cname = malloc(strlen(name)+1);
+        cname = (char *)M_Malloc(strlen(name) + 1, CN_TIMEOUT_FOREVER);
         if(!cname)
             return (NULL);
 
@@ -1634,7 +1634,7 @@ struct Object *OBJ_NewHead(struct Object *loc, fnObjOps ObjOps,
                 return (NULL); // child已经存在；
         }
 
-        cname = malloc(strlen(name)+1);
+        cname = (char *)M_Malloc(strlen(name) + 1, CN_TIMEOUT_FOREVER);
         if(!cname)
             return (NULL);
 
@@ -2616,7 +2616,7 @@ s32 OBJ_CurWorkPath(char *Buf, u32 BufSize)
             goto FAIL;
         }
 
-        PathTemp = (char*)malloc(Offset + 1);
+        PathTemp = (char *)M_Malloc(Offset + 1, CN_TIMEOUT_FOREVER);
         if(NULL == PathTemp)
         {
             Ret = -3; // 内存不足

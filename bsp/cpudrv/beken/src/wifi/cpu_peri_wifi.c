@@ -319,10 +319,10 @@ void MacRcv(void *p)
             len = PkgGetDataLen(pkg);
             pDrive->fnrcvhook(rawbuf,len);
         }
-        else
-        {
+        // else
+        // {
             Link_NetDevPush(pDrive->devhandle,pkg);
-        }
+        // }
         PkgTryFreePart(pkg);
     }
 }

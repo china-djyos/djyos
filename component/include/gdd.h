@@ -120,18 +120,15 @@ typedef struct
 
 #pragma pack()
 
-
-
-
 /*============================================================================*/
 //// 消息数据结构
 struct WindowMsg
 {
-    HWND hwnd;      //消息所属窗口.
-    u32 Code;       //消息代码.
+    HWND hwnd;          //消息所属窗口.
+    u32 Code;           //消息代码.
     ptu32_t Param1;     //消息参数1,不同消息代码,意义不同.
     ptu32_t Param2;     //消息参数2,不同消息代码,意义不同.
-    const void* ExData;     //消息扩展数据
+    const void* ExData; //消息扩展数据
 
 };
 
@@ -142,16 +139,15 @@ struct MsgProcTable
     ptu32_t (*MsgProc)(struct WindowMsg *pMsg);
 };
 
-// 窗口需要处理的消息链表，实现时注意，链表的Head节点是最先需要处理的，直到
-// LinkNext == NULL才结束处理。
+// 窗口需要处理的消息链表，实现时注意，链表的Head节点是最后加入的节点，head->prev是
+// 最早加入的节点
 struct MsgTableLink
 {
-//    struct MsgTableLink *LinkPrev;
-//    struct MsgTableLink **pLinkTab;    //消息处理函数继承时，备份链表用。
-//    struct MsgTableLink *LinkAdd;
-//    list_t TableLink;
+//    struct MsgTableLink *PrevMsg;
+//    struct MsgTableLink *NextMsg;
     struct MsgProcTable *myTable;
     u32 MsgNum;
+//    struct MsgProcTable myTable[];
 };
 
 
@@ -170,7 +166,7 @@ struct MsgTableLink
 #define DT_ALIGN_H_MASK (3<<2)  //垂直对齐控制位msk
 
 #define DT_BORDER       (1<<4)  //绘制边框(使用DrawColor)
-#define DT_BKGND        (1<<5)  //填充背景(使用FillColor)
+#define DT_BKGND        (1<<5)  //填充背景(使用BGColor)
 
 //消息码定义方法：
 //bit0~23：用于定义消息，其中0不使用，1~65535由系统和控件使用，65536以上由用户
@@ -267,6 +263,7 @@ struct MsgTableLink
 #define MSG_ListBox_GETITEMDATA     0x220D  //获得列表框项目数据; Param1:项目索引; Param2:忽略; 返回:项目数值.
 
 #define MSG_WM_USER                 0x10000 //用户定义的消息起始代码
+#define MSG_SWITCH_UI       (MSG_WM_USER+0)
 /*============================================================================*/
 //// 控件通知码
 
@@ -314,8 +311,8 @@ void   GDD_MoveTo(HDC hdc,s32 x,s32 y,POINT *old_pt);
 
 u32 GDD_SetDrawColor(HDC hdc,u32 color);
 u32 GDD_GetDrawColor(HDC hdc);
-u32 GDD_SetFillColor(HDC hdc,u32 color);
-u32 GDD_GetFillColor(HDC hdc);
+u32 GDD_SetBackGroundColor(HDC hdc,u32 color);//(原函数名：  GDD_SetFillColor .
+u32 GDD_GetBackGroundColor(HDC hdc);//(原函数名：  GDD_GetFillColor .
 u32 GDD_SetTextColor(HDC hdc,u32 color);
 u32 GDD_GetTextColor(HDC hdc);
 u32 GDD_SetSyncTime(HDC hdc,u32 sync_time);
@@ -332,12 +329,16 @@ struct Charset *GDD_GetCharset(HDC hdc);
 
 void    GDD_SetPixel(HDC hdc,s32 x,s32 y,u32 color);
 void    GDD_DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1);
-void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1);
+void    GDD_DrawThickLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width);
+void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 temp_draw,s32 temp_past);
 void    GDD_DrawLineEx(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,u32 color);
 void    GDD_DrawLineTo(HDC hdc,s32 x,s32 y);
 bool_t  GDD_TextOut(HDC hdc,s32 x,s32 y,const char *text,s32 count);
 bool_t  GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 flag);
-void    GDD_DrawRect(HDC hdc,const RECT *prc);;
+void    GDD_FillTrangle(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2);
+void    GDD_FillRoundRect(HDC hdc,RECT *rec, s32 arc_r);
+void    GDD_DrawRoundRect(HDC hdc,RECT *rec, s32 arc_r);
+void    GDD_DrawRect(HDC hdc,const RECT *prc);
 void    GDD_FillRect(HDC hdc,const RECT *prc);
 void    GDD_FillRectEx(HDC hdc,const RECT *prc,u32 color);
 void    GDD_GradientFillRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2,u32 mode);
@@ -347,6 +348,7 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r);
 void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r);
 void    GDD_DrawEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry);
 void    GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry);
+void    GDD_DrawArc(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
 void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
 void    GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2);
 void    GDD_DrawBezier3(HDC hdc,const POINT *pt,s32 cnt);
@@ -369,6 +371,7 @@ u32     GDD_GetWindowStyle(HWND hwnd);
 ptu32_t   GDD_GetWindowPrivateData(HWND hwnd);
 void    GDD_SetWindowPrivateData(HWND hwnd,ptu32_t data);
 HWND    GDD_InitGddDesktop(struct GkWinObj *desktop);
+HWND GDD_GetWindowHandle(char *WinText);
 
 //DC操作函数
 HDC     GDD_GetWindowDC(HWND hwnd);
@@ -378,13 +381,11 @@ HDC     GDD_BeginPaint(HWND hwnd);
 bool_t    GDD_EndPaint(HWND hwnd,HDC hdc);
 
 //窗口操作函数
+bool_t GDD_CleanClient(HDC hdc);
 void GDD_AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink);
-HWND    GDD_CreateWindow(const char *Text,u32 Style,
+HWND GDD_CreateWindow(const char *Text,struct MsgTableLink *pUserMsgTableLink,
                      s32 x,s32 y,s32 w,s32 h,
-                     HWND hParent,u16 WinId,
-                     u32 BufProperty, ptu32_t pdata,
-                     u16 PixelFormat,u32 BaseColor,
-                     struct MsgTableLink *pUserMsgTableLink);
+                     u32 BufProperty,u32 Style,u16 PixelFormat,u32 BaseColor,u16 WinId,ptu32_t pdata,HWND hParent);
 void    GDD_DestroyWindow(HWND hwnd);
 void    GDD_DestroyAllChild(HWND hwnd);
 bool_t    GDD_MoveWindow(HWND hwnd,s32 x,s32 y);
@@ -395,8 +396,8 @@ bool_t    GDD_SetWindowShow(HWND hwnd);
 bool_t    GDD_SetWindowHide(HWND hwnd);
 bool_t GDD_SetWindowRopCode(HWND hwnd, struct RopGroup RopCode);
 bool_t GDD_SetWindowHyalineColor(HWND hwnd,u32 HyalineColor);
-bool_t GDD_SetWindowFillColor(HWND hwnd,u32 FillColor);
-bool_t GDD_GetWindowFillColor(HWND hwnd,u32 *pFillColor);
+bool_t GDD_SetWindowBackGroundColor(HWND hwnd,u32 FillColor);//原函数名  GDD_SetWindowFillColor
+bool_t GDD_GetWindowBackGroundColor(HWND hwnd,u32 *pFillColor);//原函数名  GDD_GetWindowFillColor
 bool_t GDD_SetWindowTextColor(HWND hwnd,u32 TextColor);
 bool_t GDD_GetWindowTextColor(HWND hwnd,u32 *pTextColor);
 bool_t    EnableWindow(HWND hwnd,bool_t bEnable);
@@ -431,6 +432,10 @@ bool_t    GDD_ScreenToClient(HWND hwnd,POINT *pt,s32 count);
 bool_t    GDD_ClientToScreen(HWND hwnd,POINT *pt,s32 count);
 bool_t    GDD_ScreenToWindow(HWND hwnd,POINT *pt,s32 count);
 bool_t    GDD_WindowToScreen(HWND hwnd,POINT *pt,s32 count);
+HWND GDD_GetHwnd(struct GkWinObj *gkwin);
+void GDD_SetWindowName(HWND hwnd, char *NewName);
+bool_t GDD_AddInputDev(const char *InputDevName);
+bool_t GDD_DeleteInputDev(const char *InputDevName);
 
 /*===========================================================================*/
 void    ModuleInstall_GDD(struct GkWinObj *desktop);
@@ -440,7 +445,7 @@ void    GDD_SyncShow(HWND hwnd);//函数原名 ： GDD_UpdateDisplay
 void GDD_WaitGuiAppExit(char *AppName);
 HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
                       s32 x,s32 y,s32 w,s32 h,
-                      u32 MemSize, u32 WinBuf,u32 Style,u16 PixelFormat,u32 BaseColor);
+                      u32 BufProperty,u32 Style,u16 PixelFormat,u32 BaseColor,u32 MemSize);
 
 /*===========================================================================*/
 #include <gui\gdd_timer.h>

@@ -91,9 +91,9 @@ struct MultiplexSetsCB;
 struct MultiplexObjectCB;
 
 struct MultiplexSetsCB *Multiplex_Create(u32 ActiveLevel);
-bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit);
+bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit,ptu32_t MpObjTag);
 bool_t Multiplex_DelObject(struct MultiplexSetsCB  *Sets,s32 Fd);
-s32 Multiplex_Wait( struct MultiplexSetsCB *Sets,u32 *Status,u32 Timeout);
+s32 Multiplex_Wait(struct MultiplexSetsCB *Sets, u32 *Status, ptu32_t *MpObjTag,u32 Timeout);
 
 #ifdef __cplusplus
 }

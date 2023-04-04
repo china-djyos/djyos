@@ -292,6 +292,8 @@ struct GkWinProperty
                                 //false=不受父窗口边界限制,但如果父窗口是受限的，
                                 //则限制于祖父窗口
     u32 Visible:1;              //窗口是否隐藏
+    u32 AncestorVisible:1;      //祖先窗口被隐藏，则本窗口必定隐藏，故须记录祖先可视状态
+    u32 VisibleExec:1;          //窗口是否隐藏的运行值，祖先和自身相与得到。
 };
 
 //微言:原来定义了光标和输入焦点,但考虑到光标应该是应用程序的事,删除了.
@@ -312,7 +314,7 @@ struct GkWinObj                  //窗口资源定义
     struct ClipRect *visible_bak;  //原可视域链表,双向循环链表
     struct ClipRect *redraw_clip;  //需要刷新显示的可视域链表
     struct ClipRect *changed_clip; //被修改的区域链表
-    struct ClipRect *copy_clip;    //用于visible_clip的临时备份
+    struct ClipRect *work_clip;    //用于visible_clip的临时备份
     struct DisplayObj *disp;       //本窗口所属显示器
     struct GkWinProperty WinProperty;   //窗口的状态和属性
     u32 HyalineColor;           //透明显示色，RopCode允许透明色时用,RGB888
@@ -366,7 +368,7 @@ struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
                          const char *name,u16 PixelFormat,u32 HyalineColor,
                          u32 BaseColor,struct RopGroup RopMode);
 void GK_FillWin(struct GkWinObj *gkwin,u32 color,u32 sync_time);
-void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *rect,
+void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *range,struct Rectangle *rect,
                             u32 Color0,u32 Color1,u32 Mode,u32 sync_time);
 void GK_SyncShow(u32 sync_time);
 void GK_RefreshDisplay(struct DisplayObj *Display);
@@ -422,20 +424,20 @@ void GK_DrawText(struct GkWinObj *gkwin,struct Rectangle *range,
                     struct FontObj *pFont,
                     struct Charset *pCharset,
                     s32 x,s32 y,
-                    const char *text,u32 count,u32 color,
+                    const char *text,s32 count,u32 color,
                     u32 Rop2Code,u32 SyncTime);
 void GK_SetPixel(struct GkWinObj *gkwin,struct Rectangle *range,s32 x,s32 y,
                         u32 color,u32 Rop2Code,u32 SyncTime);
 void GK_Lineto(struct GkWinObj *gkwin,struct Rectangle *range, s32 x1,s32 y1,
                     s32 x2,s32 y2,u32 color,u32 rop2_code,u32 sync_time);
-void GK_LinetoIe(struct GkWinObj *gkwin, s32 x1,s32 y1,
-                    s32 x2,s32 y2,u32 color,u32 rop2_code,u32 sync_time);
+//void GK_LinetoIe(struct GkWinObj *gkwin, s32 x1,s32 y1,
+//                    s32 x2,s32 y2,u32 color,u32 rop2_code,u32 sync_time);
 void GK_DrawBitMap(struct GkWinObj *gkwin,struct Rectangle *range,
                     struct RectBitmap *bitmap,s32 x,s32 y,
                     u32 HyalineColor,struct RopGroup RopCode,u32 SyncTime);
-void GK_DrawCircle(struct GkWinObj *gkwin,s32 x0,s32 y0,
+void GK_DrawCircle(struct GkWinObj *gkwin,struct Rectangle *range,s32 x0,s32 y0,
                     u32 r,u32 color,u32 rop2_code,u32 sync_time);
-void GK_DrawBezier(struct GkWinObj *gkwin,float x1,float y1,
+void GK_DrawBezier(struct GkWinObj *gkwin,struct Rectangle *range,float x1,float y1,
                     float x2,float y2,float x3,float y3,float x4,float y4,
                     u32 color,u32 rop2_code,u32 sync_time);
 u32 GK_GetPixelBm(struct RectBitmap *bitmap,s32 x,s32 y);

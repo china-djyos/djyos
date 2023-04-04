@@ -70,7 +70,7 @@ void GDD_CursorSetShow( void );
 void GDD_CursorSetHide( void );
 void GDD_CursorOffset( s32 deltaX , s32 deltaY );
 void GDD_CursorMove( s32 absX , s32 absY );
-void GDD_CursorSetHost(HWND HostWin);
+//void GDD_CursorSetHost(HWND HostWin);
 bool_t GDD_CursorInit(void);
 
 #if __cplusplus

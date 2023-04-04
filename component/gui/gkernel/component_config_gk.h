@@ -31,6 +31,8 @@
 //#warning  " graphical_kernel  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_GRAPHICAL_KERNEL    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+//%$#@num,100,10000,
+#define CFG_CLIPPOOL_SIZE           3000    //"剪切域池长度限值",如果打印“please inc CFG_CLIPPOOL_SIZE"，增加此项配置
 //%$#@num,128,16384,
 #define CFG_GKERNEL_CMD_DEEP        1024    //"命令缓冲区长度",上层应用（例如gdd）向gkernel传递命令的缓冲区长度（字节数）
 #define CFG_USER_REQUEST_DEEP       128     //"请求缓冲区长度",gkernel向上层请求命令的缓冲区长度（字节数）

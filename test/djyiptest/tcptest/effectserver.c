@@ -172,7 +172,7 @@ ptu32_t tcptstserver(void)
 //      printf("Sever:Set server noblock failed!\n\r");
 //  }
 
-    if(Multiplex_AddObject(acceptsets,sockfd,CN_SOCKET_IOACCEPT))
+    if(Multiplex_AddObject(acceptsets,sockfd,CN_SOCKET_IOACCEPT,0))
     {
         printf("add server to acceptsets success!\n\r");
     }
@@ -182,7 +182,7 @@ ptu32_t tcptstserver(void)
     }
     while(1)
     {
-        if(sockfd != Multiplex_Wait(acceptsets,NULL, CN_TIMEOUT_FOREVER))
+        if(sockfd != Multiplex_Wait(acceptsets,NULL,  NULL,CN_TIMEOUT_FOREVER))
         {
             printf("MultiIo activated err!\n\r");
         }
@@ -308,7 +308,7 @@ ptu32_t tcptstserver(void)
                 printf("Client:set noblock failed!\n\r");
             }
             //
-            if(Multiplex_AddObject(writesets,clientfd,CN_SOCKET_IOWRITE))
+            if(Multiplex_AddObject(writesets,clientfd,CN_SOCKET_IOWRITE,0))
             {
                 printf("add client to writesets success!\n\r");
             }
@@ -321,7 +321,7 @@ ptu32_t tcptstserver(void)
             sndtimestart = (u32)DJY_GetSysTime();
             while(1)
             {
-                multiid = Multiplex_Wait(writesets,NULL, CN_TIMEOUT_FOREVER);
+                multiid = Multiplex_Wait(writesets,NULL, NULL, CN_TIMEOUT_FOREVER);
                 if(clientfd == multiid)
                 {
                     sndlen = send(clientfd,sndbuf,CN_SNDBUF_LEN,0);

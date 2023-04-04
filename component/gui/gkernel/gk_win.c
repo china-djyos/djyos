@@ -152,7 +152,7 @@ bool_t ModuleInstall_GK(void)
     g_ptClipRectPool = Mb_CreatePool(&g_tClipRect,
                                   CN_CLIP_INIT_NUM,
                                   sizeof(struct ClipRect),
-                                  100,2000, "clip area");
+                                  100,CFG_CLIPPOOL_SIZE, "clip area");
 
     g_u16GkServerEvent = DJY_EventPop(g_u16GkServerEvtt,NULL,0,0,0,0);
 //  g_u16GkUsercallServerEvent = DJY_EventPop(g_u16GkUsercallServerEvtt,NULL,0,0,0,0);
@@ -191,6 +191,14 @@ exit_error:
     return false;
 }
 
+struct ClipRect *__GK_AllocClip(u32 timeout)
+{
+    struct ClipRect *clip;
+    clip = (struct ClipRect *)Mb_Malloc(g_ptClipRectPool,timeout);
+    if(clip == NULL)
+        printk("please inc CFG_CLIPPOOL_SIZE\r\n");
+    return clip;
+}
 //根据像素格式，计算显示缓冲所需要的内存尺寸。
 u32 __gk_cal_buf_size(u32 xsize,u32 ysize,u32 *linesize,u16 PixelFormat)
 {
@@ -494,6 +502,8 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
     desktop->WinProperty.DirectDraw = CN_GKWIN_UNDIRECT_DRAW; //非直接写屏
     desktop->WinProperty.BoundLimit = CN_BOUND_LIMIT;
     desktop->WinProperty.Visible = CN_GKWIN_VISIBLE;
+    desktop->WinProperty.AncestorVisible = CN_GKWIN_VISIBLE;
+    desktop->WinProperty.VisibleExec = CN_GKWIN_VISIBLE;
     desktop->RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  }; //桌面固定
     desktop->ScreenX = 0;
     desktop->ScreenY = 0;
@@ -508,7 +518,7 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
 
     display->z_topmost = desktop;
     display->desktop = desktop;
-    clip = (struct ClipRect*)Mb_Malloc(g_ptClipRectPool,0);
+    clip = __GK_AllocClip(0);
     NewWindow = OBJ_NewChild(s_ptWindowDir, (fnObjOps)-1, (ptu32_t)desktop, (const char*)(desktop->win_name));
     if((clip == NULL) || (NewWindow == NULL))
     {
@@ -606,6 +616,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     //z轴中被移动的窗口段最前端的窗口
     struct GkWinObj *move_end;
     struct GkWinObj *gkwin;
+    struct Rectangle temp2;
 
     width = para->right - para->left;
     height = para->bottom - para->top;
@@ -661,6 +672,8 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     gkwin->WinProperty.DirectDraw = CN_GKWIN_UNDIRECT_DRAW; //非直接写屏
     gkwin->WinProperty.BoundLimit = CN_BOUND_LIMIT;
     gkwin->WinProperty.Visible = CN_GKWIN_VISIBLE;
+    gkwin->WinProperty.AncestorVisible = CN_GKWIN_VISIBLE;
+    gkwin->WinProperty.VisibleExec = CN_GKWIN_VISIBLE;
 
     gkwin->RopCode = RopCode;
 
@@ -816,13 +829,8 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     __GK_SetBound(gkwin);
     gkwin->visible_bak = NULL;
     gkwin->visible_clip = NULL;
-    __GK_ScanNewVisibleClip(display);
-//    if(!para->unfill)
-//    {
-//        para_fill.gkwin = gkwin;
-//        para_fill.color = para->color;
-//        __GK_FillWin(&para_fill);
-//    }
+    __GK_GetWinOutline(gkwin, &temp2);
+    __GK_ScanNewVisibleClip(display, &temp2);
     display->reset_clip = true;
 
     return gkwin;
@@ -832,8 +840,6 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
 //功能: 改变一个窗口的尺寸以及位置，如果没改尺寸，实际上就是一个gk_move_win。
 //参数: gcwin，目标窗口
 //      new_area，新的窗口尺寸和位置
-//      mode，改尺寸后，窗口图像处理模式，0=保持不变，1=拉伸或压缩，
-//            缓冲窗口才有效
 //返回: true = 成功，false = 失败(一般是内存分配导致)
 //注: 有缓冲区的情况下，如果只是移动了位置，不需要重新绘制。
 //    如果修改了尺寸，应用程序应该重绘，直接重绘即可，无须等待重绘消息。
@@ -846,8 +852,10 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
     struct Object *changing,*current;
     struct DisplayObj *disp;
     struct GkscParaMoveWin movwin_para;
+    struct Rectangle range;
 
     cwawin = para->gkwin;
+    __GK_GetWinOutline(cwawin, &range);
     disp = cwawin->disp;
     left = para->left;
     top = para->top;
@@ -952,6 +960,7 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
     }
 
     cwawin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
+    __GK_GetWinAndRectOutline(cwawin, &range);
 
     changing = cwawin->HostObj;
     current = OBJ_ForeachScion(changing, changing);
@@ -969,10 +978,11 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
     {
         temp = (struct GkWinObj*)OBJ_GetPrivate(current);
         __GK_SetBound(temp);
+        __GK_GetWinAndRectOutline(cwawin, &range);
         temp->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
         current = OBJ_ForeachScion(changing, current);
     }
-    __GK_ScanNewVisibleClip(cwawin->disp);
+    __GK_ScanNewVisibleClip(cwawin->disp,&range);
     cwawin->disp->reset_clip = true;
     return true;
 }
@@ -986,20 +996,28 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
 //-----------------------------------------------------------------------------
 void __GK_AdoptWin(struct GkscParaAdoptWin *para)
 {
-    struct GkWinObj *last,*foremost,*gkwin,*Ztarget,*NowWin;
+    struct GkWinObj *last,*foremost,*gkwin,*Ztarget,*NowWin,*oldparent;
     struct Object *parent,*point;
     struct DisplayObj *display;
+    struct Rectangle range;
     gkwin = para->gkwin;
     parent = para->NewParent->HostObj;
+    oldparent = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetParent(gkwin->HostObj));
     display = gkwin->disp;
-    if(OBJ_GetParent(gkwin->HostObj) == parent)  //新的父窗口没改变
+    if(oldparent == para->NewParent)  //新的父窗口没改变
         return ;
 
     //因gkwin可能有子窗口，其与子窗口一起，在Z轴中占据连续的一段，
     //取gkwin在Z轴中最前和最后端的窗口
     last = __GK_GetZsectionStart(gkwin);
     foremost = __GK_GetZsectionEnd(gkwin);
-
+    __GK_GetWinOutline(last, &range);
+    NowWin = foremost;
+    while(NowWin != last)
+    {
+        __GK_GetWinAndRectOutline(NowWin, &range);
+        NowWin = NowWin->z_back;
+    }
     //以下过程处理对象队列。
     if(OBJ_GetChild(parent) == NULL)
     {
@@ -1042,6 +1060,17 @@ void __GK_AdoptWin(struct GkscParaAdoptWin *para)
         else
             Ztarget = __GK_GetZsectionEnd( NowWin );
     }
+    NowWin = foremost;
+    while(1)
+    {
+        NowWin->ScreenX += para->NewParent->ScreenX -  oldparent->ScreenX;
+        NowWin->ScreenY += para->NewParent->ScreenY -  oldparent->ScreenY;
+        __GK_SetBound(NowWin);
+        if(NowWin != last)
+            NowWin = NowWin->z_back;
+        else
+            break;
+    }
     foremost->z_top->z_back = last->z_back;
     last->z_back->z_top = foremost->z_top;
     //当 Ztarget->z_top==foremos==lastt时这样操作会出错
@@ -1050,7 +1079,7 @@ void __GK_AdoptWin(struct GkscParaAdoptWin *para)
     foremost->z_top = Ztarget->z_top;
     Ztarget->z_top = last;
     last->z_back = Ztarget;
-    __GK_ScanNewVisibleClip(display);
+    __GK_ScanNewVisibleClip(display,&range);
     display->reset_clip = true;
 }
 
@@ -1067,7 +1096,10 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
     struct GkWinObj *movewin;
     struct Object *moving,*current;
     struct DisplayObj *disp;
+    struct Rectangle range;
+
     movewin = para->gkwin;
+    __GK_GetWinOutline(movewin, &range);
     if((para->left == movewin->area.left) && (para->top == movewin->area.top))
         return;                                 //位置没有修改，直接返回。
     disp = movewin->disp;
@@ -1133,6 +1165,7 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
 //          delta_left = 0;
         __GK_SetBound(movewin);                        //设置可显示边界
     }
+    __GK_GetWinAndRectOutline(movewin, &range);
     moving = movewin->HostObj;
     current = OBJ_ForeachScion(moving, moving);
     //遍历gkwin的所有子孙窗口
@@ -1149,17 +1182,18 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
     {
         movewin = (struct GkWinObj*)OBJ_GetPrivate(current);
         __GK_SetBound(movewin);
+        __GK_GetWinAndRectOutline(movewin, &range);
         movewin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
         current = OBJ_ForeachScion(moving, current);
     }
-    __GK_ScanNewVisibleClip(movewin->disp);
+    __GK_ScanNewVisibleClip(movewin->disp,&range);
     movewin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
     movewin->disp->reset_clip = true;
 }
 
 //----设置可显示边界-----------------------------------------------------------
 //功能: 任何窗口，如果即使不考虑被z轴前端窗口剪切，其窗口可显示范围也是有限的，
-//      受 bound_limit=tru e的、世代最近的祖先窗口的可显示边界限制。窗口位置改变
+//      受 bound_limit=true的、世代最近的祖先窗口的可显示边界限制。窗口位置改变
 //      后，需要重置可显示边界。
 //      gkwin，被重置的窗口
 //返回: 无
@@ -1214,8 +1248,8 @@ void __GK_SetBound(struct GkWinObj *gkwin)
     else
         gkwin->limit.bottom = ancestor_absy + ancestor->limit.bottom - gkwin->area.top;
 
-    if(         (gkwin->limit.left   > gkwin->area.right)
-            ||  (gkwin->limit.top    > gkwin->area.bottom)
+    if(         (gkwin->limit.left   >= gkwin->limit.right)
+            ||  (gkwin->limit.top    >= gkwin->limit.bottom)
             ||  (gkwin->limit.right  < 0)
             ||  (gkwin->limit.bottom < 0)    )
     {
@@ -1225,6 +1259,7 @@ void __GK_SetBound(struct GkWinObj *gkwin)
         gkwin->limit.bottom =0;
     }
 }
+
 //----设置边界模式-------------------------------------------------------------
 //功能: 设定窗口的显示边界是否受父窗口限制，限制后，子窗口超出父窗口的部分将不予
 //      显示，desktop的直接子窗口默认受限，不能更改。
@@ -1234,19 +1269,22 @@ void __GK_SetBound(struct GkWinObj *gkwin)
 //-----------------------------------------------------------------------------
 void __GK_SetBoundMode(struct GkscParaSetBoundMode *para)
 {
-    struct GkWinObj *current;
+    struct GkWinObj *current = para->gkwin;
     struct Object *Scion,*ancestor;
-    if(para->gkwin == NULL)
+    struct Rectangle range;
+
+    if(current == NULL)
         return;
-    if(para->gkwin == para->gkwin->disp->desktop)   //桌面不可修改边界模式
+    if(current == current->disp->desktop)   //桌面不可修改边界模式
         return;
-    if(para->gkwin->WinProperty.BoundLimit == para->mode)      //模式未改变
+    if(current->WinProperty.BoundLimit == para->mode)      //模式未改变
         return;
-    if(para->gkwin->disp->desktop->HostObj == OBJ_GetParent(para->gkwin->HostObj))
+    if(current->disp->desktop->HostObj == OBJ_GetParent(current->HostObj))
         return;                         //直接放在桌面的子窗口，不许改变
     //目标窗口边界模式改变，窗口属性改变
-    para->gkwin->WinProperty.BoundLimit = CN_BOUND_LIMIT;
-    __GK_SetBound(para->gkwin);
+    current->WinProperty.BoundLimit = CN_BOUND_LIMIT;
+    __GK_SetBound(current);
+    __GK_GetWinOutline(current,&range);
     ancestor = para->gkwin->HostObj;
     Scion = OBJ_ForeachScion(ancestor,ancestor);
     //遍历gkwin的所有子孙窗口
@@ -1254,13 +1292,15 @@ void __GK_SetBoundMode(struct GkscParaSetBoundMode *para)
     {
         current = (struct GkWinObj*)OBJ_GetPrivate(Scion);
         __GK_SetBound(current);
+        __GK_GetWinAndRectOutline(current, &range);
+        Scion = OBJ_ForeachScion(ancestor, Scion);
     }
-    __GK_ScanNewVisibleClip(para->gkwin->disp);
+    __GK_ScanNewVisibleClip(para->gkwin->disp,&range);
     para->gkwin->disp->reset_clip = true;
 }
 
 //----设置窗口是否可视---------------------------------------------------------
-//功能：设置一个窗口的可视属性，桌面不能设置
+//功能：设置一个窗口的可视属性，桌面不能修改可视属性。
 //参数: gkwin，目标窗口
 //      visible，CN_GKWIN_VISIBLE=可视，CN_GKWIN_HIDE=隐藏
 //返回：无
@@ -1268,16 +1308,61 @@ void __GK_SetBoundMode(struct GkscParaSetBoundMode *para)
 void __GK_SetVisible(struct GkscParaSetVisible *para)
 {
     struct GkWinObj *gkwin;
+    struct GkWinObj *curwin,*parent;
     struct DisplayObj *display;
-
+    struct Rectangle range;
     gkwin = para->gkwin;
     display = para->gkwin->disp;
     if(gkwin == display->desktop)  //桌面窗口可视属性不可改变
         return;
-    gkwin->WinProperty.Visible = para->Visible;
 
-    __GK_ScanNewVisibleClip(gkwin->disp);
-    gkwin->disp->reset_clip = true;
+    if(gkwin->WinProperty.Visible != para->Visible)
+    {
+        curwin = gkwin;
+        curwin->WinProperty.Visible = para->Visible;
+        curwin->WinProperty.VisibleExec = curwin->WinProperty.AncestorVisible && para->Visible;
+        __GK_GetWinOutline(curwin,&range);
+        if(para->Visible == CN_GKWIN_HIDE)  //可见变隐藏，所有儿孙窗口的祖先状态设为隐藏
+        {
+            while(1)
+            {
+                curwin = (struct GkWinObj *)OBJ_GetPrivate(
+                                OBJ_ForeachScion(gkwin->HostObj,curwin->HostObj));
+                if(curwin != NULL)
+                {
+                    curwin->WinProperty.AncestorVisible = CN_GKWIN_HIDE;
+                    curwin->WinProperty.VisibleExec = CN_GKWIN_HIDE;
+                    __GK_GetWinAndRectOutline(curwin,&range);
+                }
+                else
+                    break;
+            }
+        }
+        else
+        {
+            while(1)
+            {
+                curwin = (struct GkWinObj *)OBJ_GetPrivate(OBJ_ForeachScion(gkwin->HostObj,curwin->HostObj));
+                if(curwin != NULL)
+                {
+                    parent = (struct GkWinObj *)OBJ_GetPrivate(
+                                OBJ_GetParent(curwin->HostObj));
+                    if(parent->WinProperty.AncestorVisible && parent->WinProperty.Visible)
+                        curwin->WinProperty.AncestorVisible = CN_GKWIN_VISIBLE;
+                    else
+                        curwin->WinProperty.AncestorVisible = CN_GKWIN_HIDE;
+                    curwin->WinProperty.VisibleExec = curwin->WinProperty.AncestorVisible
+                                                    && curwin->WinProperty.Visible;
+                    __GK_GetWinAndRectOutline(curwin,&range);
+                }
+                else
+                    break;
+            }
+        }
+
+        __GK_ScanNewVisibleClip(gkwin->disp,&range);
+        gkwin->disp->reset_clip = true;
+    }
 
 }
 
@@ -1300,6 +1385,7 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
     struct GkWinObj *section_start;
     //z轴中被移动的窗口段最前端的窗口
     struct GkWinObj *section_end,*target_win;
+    struct Rectangle range;
 
     gkwin = para->gkwin;
     display = para->gkwin->disp;
@@ -1310,6 +1396,13 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
     //取z轴中被移动的窗口段最前端的窗口段
     section_end = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetChild(parent->HostObj));
     section_start = (struct GkWinObj *)OBJ_GetPrivate(OBJ_GetPrev(section_end->HostObj));
+    __GK_GetWinOutline(section_start, &range);
+    target_section = section_end;
+    while(target_section != section_start)
+    {
+        __GK_GetWinAndRectOutline(target_section, &range);
+        target_section = target_section->z_back;
+    }
     target_section = section_end;
     while(1)
     {   //查找同级窗口中和优先级等于para->prio的的窗口，扫描以z轴为对象
@@ -1347,7 +1440,7 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
                 parent->z_back = section_end;
 
                 gkwin->WinProperty.Zprio = para->prio;
-                __GK_ScanNewVisibleClip(display);
+                __GK_ScanNewVisibleClip(display,&range);
                 display->reset_clip = true;
             }
             else if((gkwin->WinProperty.Zprio > CN_ZPRIO_DEFAULT)
@@ -1370,7 +1463,7 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
                 parent->z_top = section_start;
 
                 gkwin->WinProperty.Zprio = para->prio;
-                __GK_ScanNewVisibleClip(display);
+                __GK_ScanNewVisibleClip(display,&range);
                 display->reset_clip = true;
             }
             else    //其他情况，无须移动z轴
@@ -1404,7 +1497,7 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
             target_win->z_top = section_start;
 
             gkwin->WinProperty.Zprio = para->prio;
-            __GK_ScanNewVisibleClip(display);
+            __GK_ScanNewVisibleClip(display,&range);
             display->reset_clip = true;
         }
     }
@@ -1437,7 +1530,7 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
         target_win->z_back = section_end;
 
         gkwin->WinProperty.Zprio = para->prio;
-        __GK_ScanNewVisibleClip(display);
+        __GK_ScanNewVisibleClip(display,&range);
         display->reset_clip = true;
     }
 }
@@ -1453,6 +1546,7 @@ bool_t __GK_SetRopCode(struct GkscParaSetRopCode *para)
     struct GkWinObj *mygkwin;
     struct DisplayObj *mydisplay;
     u32 blend;
+    struct Rectangle range;
 
     mygkwin = para->gkwin;
     mydisplay = mygkwin->disp;
@@ -1474,7 +1568,9 @@ bool_t __GK_SetRopCode(struct GkscParaSetRopCode *para)
         {
             mygkwin->WinProperty.DestBlend = blend;
             mygkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
-            __GK_ScanNewVisibleClip(mydisplay);
+            __GK_GetWinOutline(mygkwin,&range);
+            __GK_ScanNewVisibleClip(mydisplay,&range);
+            mydisplay->reset_clip = true;
         }
 
 //      mygkwin->RopCode &= ~CN_ROP_ROP2_MSK;   //窗口属性不支持rop2
@@ -1491,28 +1587,33 @@ bool_t __GK_SetRopCode(struct GkscParaSetRopCode *para)
 bool_t __GK_SetHyalineColor(struct GkscParaSetHyalineColor *para)
 {
     u32 color;
+    struct GkWinObj *mygkwin;
+    struct Rectangle range;
+    mygkwin = para->gkwin;
     //桌面不需要KeyColor
-    if(para->gkwin->disp->desktop == para->gkwin)
+    if(mygkwin->disp->desktop == mygkwin)
         return false;
-    if(para->gkwin->wm_bitmap == NULL)
+    if(mygkwin->wm_bitmap == NULL)
         return false;
-    color = GK_ConvertRGB24ToPF(para->gkwin->wm_bitmap->PixelFormat,para->HyalineColor);
-    para->gkwin->HyalineColor =
-        GK_ConvertColorToRGB24(para->gkwin->wm_bitmap->PixelFormat, color, para->gkwin->wm_bitmap->ExColor);
+    color = GK_ConvertRGB24ToPF(mygkwin->wm_bitmap->PixelFormat,para->HyalineColor);
+    mygkwin->HyalineColor =
+        GK_ConvertColorToRGB24(mygkwin->wm_bitmap->PixelFormat, color, mygkwin->wm_bitmap->ExColor);
 
-    if((para->gkwin->RopCode.HyalineEn == 1)
-       && (para->gkwin->HyalineColor == para->HyalineColor))
+    if((mygkwin->RopCode.HyalineEn == 1)
+       && (mygkwin->HyalineColor == para->HyalineColor))
     {
         //无须做任何事
     }
     else
     {
-        para->gkwin->RopCode.HyalineEn = 1;
-        if(para->gkwin->WinProperty.DestBlend != CN_GKWIN_DEST_VISIBLE)
+        mygkwin->RopCode.HyalineEn = 1;
+        if(mygkwin->WinProperty.DestBlend != CN_GKWIN_DEST_VISIBLE)
         {
-            para->gkwin->WinProperty.DestBlend = CN_GKWIN_DEST_VISIBLE;
-            para->gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
-            __GK_ScanNewVisibleClip(para->gkwin->disp);
+            mygkwin->WinProperty.DestBlend = CN_GKWIN_DEST_VISIBLE;
+            mygkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
+            __GK_GetWinOutline(mygkwin,&range);
+            __GK_ScanNewVisibleClip(mygkwin->disp,&range);
+            mygkwin->disp->reset_clip = true;
         }
     }
     return true;
@@ -1549,8 +1650,16 @@ void __gk_destroy_win(struct GkWinObj *gkwin)
     OBJ_Delete(gkwin->HostObj);
     if(gkwin->visible_clip != NULL)
         gkwin->disp->reset_clip = true;
-    gkwin->visible_clip = __GK_FreeClipQueue(gkwin->visible_clip);
-    gkwin->visible_bak =  __GK_FreeClipQueue(gkwin->visible_bak);
+    if(gkwin->visible_clip == gkwin->visible_bak)
+    {
+        gkwin->visible_clip = __GK_FreeClipQueue(gkwin->visible_clip);
+        gkwin->visible_bak = NULL;
+    }
+    else
+    {
+        gkwin->visible_clip = __GK_FreeClipQueue(gkwin->visible_clip);
+        gkwin->visible_bak =  __GK_FreeClipQueue(gkwin->visible_bak);
+    }
     if(gkwin->disp->frame_buffer != NULL)
     {
         if(gkwin->wm_bitmap != NULL)//有帧缓冲在缓冲模式下
@@ -1565,6 +1674,7 @@ void __gk_destroy_win(struct GkWinObj *gkwin)
     else
         return;
 }
+
 //----销毁窗口-------------------------------------------------------------
 //功能: 释放窗口所占用的资源。销毁窗口，同时销毁窗口的子孙窗口。
 //参数: gkwin，目标窗口
@@ -1573,18 +1683,26 @@ void __gk_destroy_win(struct GkWinObj *gkwin)
 void __GK_DestroyWin(struct GkWinObj *gkwin)
 {
     struct GkWinObj *CurWin;
-    while((CurWin = (struct GkWinObj *)OBJ_GetPrivate((struct Object*)OBJ_GetTwig(gkwin->HostObj))) != NULL)
+    struct Object *gkobj;
+    struct DisplayObj *Display;
+    struct Rectangle range;
+    __GK_GetWinOutline(gkwin, &range);
+    while((gkobj = OBJ_GetTwig(gkwin->HostObj)) != NULL)
     {
+        CurWin = (struct GkWinObj *)OBJ_GetPrivate(gkobj);
+        __GK_GetWinAndRectOutline(CurWin, &range);
         __gk_destroy_win(CurWin);
         M_FreeHeap(CurWin,CurWin->disp->DisplayHeap,CN_TIMEOUT_FOREVER);
     }
+    Display = gkwin->disp;
     __gk_destroy_win(gkwin);
-    M_FreeHeap(gkwin,gkwin->disp->DisplayHeap,CN_TIMEOUT_FOREVER);
-    if(gkwin->disp->reset_clip == true)
+    M_FreeHeap(gkwin,Display->DisplayHeap,CN_TIMEOUT_FOREVER);
+    if(Display->reset_clip == true)
     {
-        __GK_ScanNewVisibleClip(gkwin->disp);
+        __GK_ScanNewVisibleClip(Display,&range);
     }
 }
+
 
 //----输出窗口redraw部分-------------------------------------------------------
 //功能: 把所有窗口有修改的可视域输出至显示器，假设可视域已经准备好。
@@ -1647,8 +1765,7 @@ void __GK_OutputRedraw(struct DisplayObj *display)
 
                     __GK_UsercallChunnel((void*)&repaint,sizeof(struct GkucParaRepaint),
                                             1000*mS);
-
-                    //等待用户完成重绘操作，超时(1秒)不候
+                    gkwin->redraw_clip = __GK_FreeClipQueue(gkwin->redraw_clip);
                 }else                                   //有窗口缓冲
                 {
                     do
@@ -2014,13 +2131,13 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
             __GK_Lineto(&para);
             result = sizeof(struct GkscParaLineto);
         } break;
-        case CN_GKSC_LINETO_INC_END:
-        {
-            struct GkscParaLineto para;
-            memcpy(&para,ParaAddr,sizeof(struct GkscParaLineto));
-            __GK_LinetoIe(&para);
-            result = sizeof(struct GkscParaLineto);
-        } break;
+//        case CN_GKSC_LINETO_INC_END:
+//        {
+//            struct GkscParaLineto para;
+//            memcpy(&para,ParaAddr,sizeof(struct GkscParaLineto));
+//            __GK_LinetoIe(&para);
+//            result = sizeof(struct GkscParaLineto);
+//        } break;
         case CN_GKSC_DRAW_BITMAP_ROP:
         {
             struct GkscParaDrawBitmapRop para;

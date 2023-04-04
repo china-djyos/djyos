@@ -173,12 +173,12 @@ static bool_t __Widget_GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
     u32 wc;
     if(str==NULL)
         return false;
-    cur_enc = Charset_NlsGetCurCharset();
-    str_len=__Widget_GetValidStrLen(cur_enc, str);
+    cur_enc = Charset_NlsGetCurCharset();//获取当前字符集
+    str_len=__Widget_GetValidStrLen(cur_enc, str);//获取字符串长度字节数
     if(str_len==-1)
         return false;
      //计算字符串中字符数
-     cur_font = Font_GetCurFont();
+     cur_font = Font_GetCurFont();//获取字体
      for(; str_len > 0;)
      {
         len= cur_enc->MbToUcs4(&wc, str, -1);
@@ -201,7 +201,8 @@ static bool_t __Widget_GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
             }
             if(pChWidthSum!=NULL)
             {
-              chwidth=cur_font->GetCharWidth(wc);
+              chwidth=cur_font->GetCharWidth(wc);//该字体中此字所占的像素有多少
+
               chwidthsum+=chwidth;
             }
             continue;
@@ -231,13 +232,13 @@ static s16 __Widget_GetStrWidth(char *str,u16 idx)
     if(str==NULL)
          return -1;
     cur_enc = Charset_NlsGetCurCharset();
-    str_len=__Widget_GetValidStrLen(cur_enc, str);
+    str_len=__Widget_GetValidStrLen(cur_enc, str);//计算字符串中字符数
     if(str_len==-1)
          return -1;
     if(idx==0)
         return 0;
     //计算字符串中字符数
-    cur_font = Font_GetCurFont();
+    cur_font = Font_GetCurFont();//字体
     for(; str_len > 0;)
     {
         len= cur_enc->MbToUcs4(&wc, str, -1);
@@ -276,14 +277,15 @@ static bool_t __Widget_MoveCursor(HWND hwnd,u8 idx)
 {
     //内部调用，无需进行参数检查
     TextBox *pTB;
+    HDC hdc;
     char *str;
-    RECT rc;
+    RECT rc,rc0;
     u16 width;
     s32 x,y;
-    pTB=(TextBox *)GDD_GetWindowPrivateData(hwnd);
+    pTB=(TextBox *)GDD_GetWindowPrivateData(hwnd);//获得私有数据
     if(pTB==NULL)
         return false;
-    GDD_GetClientRectToScreen(hwnd,&rc);
+    GDD_GetClientRectToScreen(hwnd,&rc);//转换坐标
     str=hwnd->Text;
     if(str==NULL)
         return false;
@@ -296,7 +298,12 @@ static bool_t __Widget_MoveCursor(HWND hwnd,u8 idx)
         width=__Widget_GetStrWidth(str,idx);
         x=rc.left+width+1;
     }
-    y=rc.top;
+    GDD_GetClientRect(hwnd,&rc0);
+    GDD_InflateRect(&rc0,-1,-1);
+    hdc =GDD_GetClientDC(hwnd);
+    GDD_AdjustTextRect(hdc,str,pTB->ChNum,&rc0,DT_VCENTER|DT_LEFT);
+    GDD_DeleteDC(hdc);
+    y=rc.top+rc0.top+1;
     GDD_CursorMove(x,y);
 
 //    GDD_MoveWindow(g_CursorHwnd,x,y);
@@ -708,19 +715,20 @@ static  bool_t __Widget_TextBoxPaint(struct WindowMsg *pMsg)
    GDD_GetClientRect(hwnd,&rc);
 
    Widget_GetAttr(hwnd,ENUM_WIDGET_FILL_COLOR,&color);
-//   GDD_SetFillColor(hdc,color);
-   GDD_SetFillColor(hdc,RGB(178,178,178));
-   GDD_FillRect(hdc,&rc);
+//   GDD_SetBackGroundColor(hdc,color);
+   GDD_SetBackGroundColor(hdc,RGB(178,178,178));
+   GDD_FillRectEx(hdc,&rc,hdc->BGColor);
    if(hwnd->Style&WS_BORDER)
    {
-      if(hwnd->Style&BORDER_FIXED3D)
+      if(hwnd->Style&LABEL_BORDER_FIXED3D)
       {
-         GDD_SetDrawColor(hdc,RGB(173,173,173));
-         GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1); //L
-         GDD_SetDrawColor(hdc,RGB(234,234,234));
-         GDD_DrawLine(hdc,0,0,GDD_RectW(&rc)-1,0);   //U
-         GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //R
-         GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
+          GDD_SetDrawColor(hdc,RGB(173,173,173));
+          GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1); //L
+          GDD_SetDrawColor(hdc,RGB(92,92,92));
+          GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
+          GDD_DrawLine(hdc,GDD_RectW(&rc)-1,GDD_RectH(&rc),GDD_RectW(&rc)-1,0); //R
+          GDD_SetDrawColor(hdc,RGB(173,173,173));
+          GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,0,0);
       }
       else
       {
@@ -932,6 +940,7 @@ static bool_t __Widget_TextBoxTouchDown(struct WindowMsg *pMsg)
     y=loc>>16;
     chnum=pTB->ChNum;
     str=hwnd->Text;
+//  GDD_CursorSetHost(hwnd);
     if(str==NULL)
     {
          pTB->CursorLoc=0;
@@ -955,8 +964,6 @@ static bool_t __Widget_TextBoxTouchDown(struct WindowMsg *pMsg)
         }
     }
     GDD_SetWindowPrivateData(hwnd,(ptu32_t)pTB);
-
-    GDD_CursorSetHost(hwnd);
 
     GDD_SetFocusWindow(hwnd);
 
@@ -1131,14 +1138,23 @@ HWND Widget_CreateTextBox(const char *Text,u32 Style,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
-    s_gTextBoxMsgLink.MsgNum = sizeof(s_gTextBoxMsgProcTable) / sizeof(struct MsgProcTable);
-    s_gTextBoxMsgLink.myTable = (struct MsgProcTable *)&s_gTextBoxMsgProcTable;
-    pGddWin = GDD_CreateWindow(Text,  WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,
-                                x, y, w, h, hParent, WinId, CN_WINBUF_PARENT,
-                                (ptu32_t)pTB, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE, &s_gTextBoxMsgLink);
-    if(UserMsgTableLink != NULL)
-        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-    return pGddWin;
+    if(hParent == NULL)
+        hParent = GDD_GetDesktopWindow(NULL);
+    //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
+    //完成后，即消息处理函数表完整后再取出消息处理。
+    if(__GDD_Lock())
+    {
+        s_gTextBoxMsgLink.MsgNum = sizeof(s_gTextBoxMsgProcTable) / sizeof(struct MsgProcTable);
+        s_gTextBoxMsgLink.myTable = (struct MsgProcTable *)&s_gTextBoxMsgProcTable;
+        pGddWin=GDD_CreateWindow(Text,&s_gTextBoxMsgLink, x,y,w,h,CN_WINBUF_PARENT,
+                       WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,WinId,(ptu32_t)pTB,hParent);
+        if(UserMsgTableLink != NULL)
+            GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __GDD_Unlock();
+        return pGddWin;
+    }
+    else
+        return NULL;
 }
 
 

@@ -66,6 +66,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
+#define __gdd_swap(a, b){a^=b; b^=a; a^=b;}
+
 static  bool_t    __GDD_BeginDraw(HDC hdc)
 {
     return TRUE;
@@ -118,6 +120,134 @@ static  void    __GDD_Cdn_DC_toWin(HDC hdc,POINT *pt,s32 count)
 }
 /*============================================================================*/
 
+
+void _circle_pos32_get(s32 xcenter, s32 ycenter, u32 r, s32 angle,POINT *p)
+{
+    s32     x;
+    s32     y;
+    s32     d;
+    s32     x_sign;
+    s32     y_sign;
+
+    bool_t swap = FALSE;
+
+    angle %= 360;
+
+    if (angle < 0)
+    {
+        angle += 360;
+    }
+
+    if (angle == 0)
+    {
+        p->x = (xcenter + (s32)r);
+        p->y = ycenter;
+    }
+    else if (angle == 90)
+    {
+        p->x = xcenter;
+        p->y = (ycenter - (s32)r);
+    }
+    else if (angle == 180)
+    {
+        p->x = (xcenter - (s32)r);
+        p->y = ycenter;
+    }
+    else if (angle == 270)
+    {
+        p->x = xcenter;
+        p->y = (ycenter + (s32)r);
+    }
+    else
+    {
+        p->x = (s32)(r*cos(3.14159*angle*1.0/180));
+        p->y = (s32)(r*sin(3.14159*angle*1.0/180));
+        if (angle <= 90)
+        {
+            x_sign = 1;
+            y_sign = 1;
+
+            if (angle < 45)
+            {
+                swap = TRUE;
+            }
+        }
+        else if (angle <= 180)
+        {
+            x_sign = -1;
+            y_sign = 1;
+
+            if (angle > 135)
+            {
+                swap = TRUE;
+            }
+        }
+        else if (angle <= 270)
+        {
+            x_sign = -1;
+            y_sign = -1;
+
+            if (angle < 225)
+            {
+                swap = TRUE;
+            }
+        }
+        else
+        {
+            x_sign = 1;
+            y_sign = -1;
+
+            if (angle > 315)
+            {
+                swap = TRUE;
+            }
+        }
+
+        x = 0;
+        y = (s32)r;
+        d = (s32)(5 - 4 * r);
+
+        p->x = (p->x * x_sign);
+        p->y = (p->y * y_sign);
+
+        if (swap)
+        {
+            __gdd_swap(p->x, p->y);
+        }
+
+        while (x <= y)
+        {
+            if ((x > p->x) || (y < p->y))
+            {
+                break;
+            }
+
+            if (d < 0)
+            {
+                d += 8 * x + 12;
+            }
+            else
+            {
+                d += 8 * (x - y) + 20;
+                y--;
+            }
+            x++;
+        }
+
+        if (swap)
+        {
+            __gdd_swap(x, y);
+        }
+        x *= x_sign;
+        y *= y_sign;
+        p->x = (xcenter + x);
+        p->y = (ycenter - y);
+    }
+
+    return ;
+}
+
+
 u32 GDD_AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha)
 {
     u8 r1,g1,b1;
@@ -150,7 +280,8 @@ u32 GDD_AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha)
 //-----------------------------------------------------------------------------
 void    GDD_SyncShow(HWND hwnd)
 {
-    GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
+    if(hwnd != NULL)
+        GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
 }
 
 /*============================================================================*/
@@ -168,7 +299,7 @@ void    GDD_InitDC(HDC pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type)
     pdc->CurX       =0;
     pdc->CurY       =0;
     pdc->DrawColor  =hwnd->DrawColor;
-    pdc->FillColor  =hwnd->FillColor;
+    pdc->BGColor  =hwnd->BGColor;
     pdc->TextColor  =hwnd->TextColor;
     pdc->SyncTime   = CN_TIMEOUT_FOREVER;
     pdc->RopCode=gk_win->RopCode;
@@ -333,20 +464,20 @@ u32 GDD_GetDrawColor(HDC hdc)
     return old;
 }
 
-//----设置当前填充颜色-----------------------------------------------------------
-//描述: 当前填充颜色会影响所有填充类函数,如FillRect,GDD_FillCircle...
+//----设置当前hdc背景颜色-----------------------------------------------------------
+//描述: 改变目标hdc的BGColor属性   (原函数名：  GDD_SetFillColor  .
 //参数：hdc: 绘图上下文句柄.
-//      color: 新的填充颜色.
+//      color: 新的背景颜色.
 //返回：旧的绘制颜色.
 //------------------------------------------------------------------------------
-u32 GDD_SetFillColor(HDC hdc,u32 color)
+u32 GDD_SetBackGroundColor(HDC hdc,u32 color)
 {
     u32 old;
 
     if(hdc!=NULL)
     {
-        old =hdc->FillColor;
-        hdc->FillColor = color;
+        old =hdc->BGColor;
+        hdc->BGColor = color;
     }
     else
     {
@@ -355,18 +486,18 @@ u32 GDD_SetFillColor(HDC hdc,u32 color)
     return old;
 }
 
-//----获得当前填充颜色-----------------------------------------------------------
-//描述: 略.
+//----获得当前背景颜色-----------------------------------------------------------
+//描述: 获取目标hdc的BGColor属性.   (原函数名：  GDD_GetFillColor .
 //参数：hdc: 绘图上下文句柄.
-//返回：当前填充颜色.
+//返回：当前背景颜色.
 //------------------------------------------------------------------------------
-u32 GDD_GetFillColor(HDC hdc)
+u32 GDD_GetBackGroundColor(HDC hdc)
 {
     u32 old;
 
     if(hdc!=NULL)
     {
-        old =hdc->FillColor;
+        old =hdc->BGColor;
     }
     else
     {
@@ -559,7 +690,7 @@ void GDD_SetPixel(HDC hdc,s32 x,s32 y,u32 color)
         pt.x =x;
         pt.y =y;
         __GDD_Cdn_DC_toWin(hdc,&pt,1);
-        GK_SetPixel(hdc->pGkWin,NULL,pt.x,pt.y,color,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+        GK_SetPixel(hdc->pGkWin,&hdc->DrawArea, pt.x,pt.y,color,hdc->RopCode.Rop2Mode,hdc->SyncTime);
         __GDD_EndDraw(hdc);
     }
 }
@@ -589,70 +720,133 @@ void    GDD_DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
     }
 }
 
-void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
+//---------------虚线绘制函数---------------------------
+//描述：绘制单个像素宽的虚线
+//参数：hdc：绘图上下文句柄
+//      x0,y0: 起始坐标.
+//      x1,y1: 结束坐标.
+//      temp_draw:每段绘制的长度
+//      temp_past:每段不绘制的长度
+//返回：无.
+//------------------------------------------------------------------------------
+void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 temp_draw,s32 temp_past)
 {
     POINT pt[2];
     u32 i,num;
     s32 dot;
-    s8 temp=1;
+    s32 temp=temp_draw+temp_past;
+
     if(__GDD_BeginDraw(hdc))
     {
-        if(x0==x1)
+        if(x0==x1)//垂直线
         {
-            dot=y1-y0;
+            dot=abs(y1-y0);
+
             if(dot==0)
                 return;
-            else if(dot<0)
-            {
-                dot=-dot;
-                temp=-1;
-            }
+            if(dot/(temp)!=0)
+            num = dot/(temp)+1;
             else
+                num = dot/(temp);
+            if(y0>y1)//判断方向
             {
+                temp=~temp+1;
+                temp_past=~temp_past+1;
+                temp_draw=~temp_draw+1;
             }
-            if(dot%2!=0)
-                dot=dot+1;
-            num=dot/2;
-            for(i=1;i<=num;i++)
+            for(i=1;i<num;i++)
             {
                  pt[0].x =x0;
-                 pt[0].y =y0+2*temp*(i-1);
+                 pt[0].y =y0+(temp)*(i-1);
                  pt[1].x =x1;
-                 pt[1].y =y0+2*temp*(i);
+                 pt[1].y =y0+i*(temp)-temp_past;
                  __GDD_Cdn_DC_toWin(hdc,pt,2);
                 GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                         hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             }
+            //绘制最后一段
+            pt[0].x =x0;
+            pt[0].y =y0+(temp)*(num-1);
+            pt[1].x =x1;
+            pt[1].y =((y0+num*(temp)-temp_past)>dot)?y1:(y0+num*(temp)-temp_past);
+             __GDD_Cdn_DC_toWin(hdc,pt,2);
+            GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+                    hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
         }
-        else if(y0==y1)
+
+        else if(y0==y1)//水平线
         {
-          dot=x1-x0;
+          dot=abs(x1-x0);
           if(dot==0)
               return;
-          else if(dot<0)
-          {
-              dot=-dot;
-              temp=-1;
-          }
+          if(dot/(temp)!=0)
+              num = dot/(temp)+1;
           else
+              num = dot/(temp);
+          if(x0>x1)//判断方向
           {
+              temp=~temp+1;
+              temp_past=~temp_past+1;
+              temp_draw=~temp_draw+1;
           }
-          if(dot%2!=0)
-                dot=dot+1;
-          num=dot/2;
+
           for(i=1;i<=num;i++)
           {
-             pt[0].x =x0+2*temp*(i-1);
+             pt[0].x =x0+(temp)*(i-1);
              pt[0].y =y0;
-             pt[1].x =x0+2*temp*(i);
+             pt[1].x =x0+i*(temp)-temp_past;
              pt[1].y =y1;
              __GDD_Cdn_DC_toWin(hdc,pt,2);
             GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                     hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
           }
+          //绘制最后一段
+          pt[0].x =x0+(temp)*(num-1);
+          pt[0].y =y0;
+          pt[1].x =((x0+num*(temp)-temp_past)>dot)?x1:(x0+num*(temp)-temp_past);
+          pt[1].y =y1;
+          __GDD_Cdn_DC_toWin(hdc,pt,2);
+         GK_Lineto(hdc->pGkWin,&hdc->DrawArea,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+                 hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
         }
-        else
+
+        else//绘制斜线
         {
+            s32 i=0;
+            s32 error,line_error;//
+            s32 para,draw,x = x0,y = y0;
+            float dt = sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));//斜线长度
+            s32 dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+            s32 dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+            line_error = (dx > dy ? dx : -dy) / 2;
+            GDD_SetPixel(hdc,x0,y0,hdc->DrawColor);
+            if(dx<dy)//陡
+                {
+                    para = abs((s32)((y1-y0)*(temp_draw+temp_past)*1.0/dt+0.5));
+                    draw = abs((s32)((y1-y0)*temp_draw*1.0/dt+0.5));
+                    while( x0 != x1 || y0 != y1)
+                    {
+                        error = line_error;
+                        if(error > -dx) { line_error -= dy; x0 += sx;}
+                        if(error <  dy) { line_error += dx; y0 += sy;i++;}
+                        if(i==draw) GDD_DrawLine(hdc,x,y,x0,y0);
+                        if(i == para){x = x0;y = y0;i = 0;}
+                    }
+                }
+                else//平
+                {
+                    para = abs((s32)((x1-x0)*(temp_draw+temp_past)*1.0/dt+0.5));
+                    draw = abs((s32)((x1-x0)*temp_draw*1.0/dt+0.5));
+                    while( x0 != x1 || y0 != y1)
+                    {
+                        error = line_error;
+                        if(error > -dx) { line_error -= dy; x0 += sx;i++;}
+                        if(error <  dy) { line_error += dx; y0 += sy;}
+                        if(i==draw) GDD_DrawLine(hdc,x,y,x0,y0);
+                        if(i == para){x = x0;y = y0;i = 0;}
+
+                    }
+                }
         }
         __GDD_EndDraw(hdc);
     }
@@ -888,6 +1082,141 @@ s32  GDD_GetStrLineCount(struct Charset *myCharset, const char *str)
     return linenum;
 }
 
+
+//----绘制一条任意宽度的直线------------------------------------------------------
+//描述: 绘制一条任意宽度的直线
+//参数：hdc: 绘图上下文句柄.
+//      x0,y0、x1,y1: 坐标.
+//      width:宽度.
+//返回：无.
+//------------------------------------------------------------------------------
+void GDD_DrawThickLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 width)
+{
+    POINT p[4];
+    if(hdc!=NULL)
+    {
+        if(width<2)//判断宽度是否符合
+        {
+            if(width==1)
+                GDD_DrawLine(hdc,x0,y0,x1,y1);
+            return ;
+        }
+        if(y0==y1)//水平线
+        {
+            if(x0>x1)
+            {
+                __gdd_swap(x0,x1);
+                __gdd_swap(y0,y1);
+            }
+            RECT prc;
+            prc=(RECT){x0,y0 - (width>>1),x1+1,y0 - (width>>1) + width-1};
+            GDD_FillRectEx(hdc,&prc,hdc->DrawColor);
+        }
+        else if(x0==x1)//垂直线
+        {
+            if(y0>y1)
+           {
+                __gdd_swap(x0,x1);
+                __gdd_swap(y0,y1);
+           }
+            RECT prc;
+            prc=(RECT){x0+(width>>1) - width+1,y0,x0 + (width>>1),y1+1};
+            GDD_FillRectEx(hdc,&prc,hdc->DrawColor);
+        }
+        else//斜线
+        {
+            if(y0>y1)
+            {
+                __gdd_swap(x0,x1);
+                __gdd_swap(y0,y1);
+            }
+            float dx = width*((y1-y0)*1.0/sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)))/2;
+            float dy = width*((x1-x0)*1.0/sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)))/2;
+            if(dx*dy>0)
+            {
+                p[0].x = x0 + dx;
+                p[0].y = y0 - dy;
+                p[1].x = x0 - dx;
+                p[1].y = y0 + dy;
+                p[2].x = x1 - dx;
+                p[2].y = y1 + dy;
+                p[3].x = x1 + dx;
+                p[3].y = y1 - dy;
+            }
+            else
+            {
+                p[3].x = x0 + dx;
+                p[3].y = y0 - dy;
+                p[0].x = x0 - dx;
+                p[0].y = y0 + dy;
+                p[1].x = x1 - dx;
+                p[1].y = y1 + dy;
+                p[2].x = x1 + dx;
+                p[2].y = y1 - dy;
+            }
+            if(p[1].y>p[3].y)
+            {
+                __gdd_swap(p[1].x,p[3].x);
+                __gdd_swap(p[1].y,p[3].y);
+            }
+            __Fillrectangle(hdc,&p);
+        }
+    }
+    __GDD_EndDraw(hdc);
+}
+
+void __Fillrectangle(HDC hdc,POINT *p)
+{
+    s32 x0,y0,x1,y1;
+    s32 dy0,dx0,dx1,dy1,line_error0,line_error1;
+    s32 yflag0,xflag0,yflag1,xflag1,error0,error1;
+    s32 i,j;
+
+    GDD_SetPixel(hdc,p[0].x,p[0].y,hdc->DrawColor);
+    GDD_SetPixel(hdc,p[2].x,p[2].y,hdc->DrawColor);
+
+    for(j = 0;j<2;j++)
+    {
+        for(i = 0;i<3;i= i+2+j)
+        {
+
+            x0 = p[i].x;
+            y0 = p[i].y;
+            dx0 = abs(p[3-i].x - x0),xflag0 = x0 < p[3-i].x ? 1 : -1;
+            dy0 = abs(p[3-i].y - y0),yflag0 = y0 < p[3-i].y ? 1 : -1;
+            line_error0 = (dx0 > dy0 ? dx0 : -dy0) / 2;//0-3
+
+            x1 = p[i+j].x;
+            y1 = p[i+j].y;
+            dx1 = abs(p[i+1+j].x - x1), xflag1 = x1 < p[i+1+j].x ? 1 : -1;
+            dy1 = abs(p[i+1+j].y - y1), yflag1 = y1 < p[i+1+j].y ? 1 : -1;
+            line_error1 = (dx1 > dy1 ? dx1 : -dy1) / 2;//0-1
+            while(x1 != p[i+1+j].x || y1 != p[i+1+j].y)
+            {
+                error1 = line_error1;
+                if(error1 > -dx1) { line_error1 -= dy1; x1 += xflag1;}
+                if(error1 <  dy1)
+                {
+                    line_error1 += dx1;
+                    y1 += yflag1;
+                    while(1)
+                    {
+                        error0 = line_error0;
+                        if(error0 > -dx0) { line_error0 -= dy0; x0 += xflag0;}
+                        if(error0 <  dy0) { line_error0 += dx0; y0 += yflag0;break;}
+                    }
+                    GDD_DrawLine(hdc,x0,y0,x1,y1);
+                }
+            }
+            p[i].x = x0;
+            p[i].y = y0;
+        }
+    }
+    return ;
+}
+
+
+
 //----在矩形范围内绘制字符串---------------------------------------------------
 //描述: 在指定矩形范围内绘制字符串,使用TextColor作为颜色值,支持回车与换行符,
 //      该函数可以指定是否绘制字符串边框和背景,以前指定对齐方式的组合.
@@ -936,7 +1265,7 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
 
             if(flag&DT_BKGND)
             {
-                GDD_FillRect(hdc,&rc0);
+                GDD_FillRectEx(hdc,&rc0,hdc->BGColor);
             }
 
            GDD_TextOut(hdc,rc.left,rc.top,text,count);
@@ -945,7 +1274,7 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
         else
         {
             //多行
-            s32 x0,y0,line_h;
+            s32 x0,y0,line_h,yy,y1;
             char *p0,*p1;
 
             line_h = Font_GetFontLineHeight(hdc->pFont)+5;
@@ -963,22 +1292,27 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
             }
 
             if(flag&DT_BKGND)
-            {
-                GDD_FillRect(hdc,&rc0);
+            {                GDD_FillRectEx(hdc,&rc0,hdc->BGColor);
             }
 
             y0 =rc.top;
+            x0=rc.left;
             switch(flag&DT_ALIGN_V_MASK)
             {
                 case    DT_VCENTER://(line_count-1)*line_h)为行间距
-                    y0 += ((GDD_RectH(&rc)-(line_count*line_h)-((line_count-1)*line_h))/2);
+                        //y0 += ((GDD_RectH(&rc)-(line_count*line_h)-((line_count-1)*line_h))/2);
+                        yy=(line_count-1)*line_h;
+                        y0 +=(GDD_RectH(&rc) - yy)/2 -line_h/3;
                         break;
                         ////
                 case    DT_TOP:
                         break;
                         ////
                 case    DT_BOTTOM://(line_count-1)*line_h)为行间距
-                        y0 += (GDD_RectH(&rc) - (line_count*line_h)-((line_count-1)*line_h));
+                        //y0 += (GDD_RectH(&rc) - (line_count*line_h)-((line_count-1)*line_h));
+                        GDD_AdjustTextRect(hdc,text,count,&rc,flag);
+                        yy=(line_count-1)*line_h;
+                        y0 =rc.top - yy;
                         break;
                         ////
                 default:
@@ -1001,7 +1335,8 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
                     switch(flag&DT_ALIGN_H_MASK)
                     {
                         case    DT_CENTER:
-                                x0 =(GDD_RectW(&rc)-__GDD_GetTextWidth(hdc,p0,charnum))>>1;
+                                //x0 =(GDD_RectW(&rc)-__GDD_GetTextWidth(hdc,p0,charnum))>>1;
+                                x0 +=(GDD_RectW(&rc)-__GDD_GetTextWidth(hdc,p0,charnum))/2;
                                 break;
                                 ////
                         case    DT_LEFT:
@@ -1009,7 +1344,7 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
                                 break;
                                 ////
                         case    DT_RIGHT:
-                                x0 =(GDD_RectW(&rc)-__GDD_GetTextWidth(hdc,p0,charnum));
+                                x0 +=(GDD_RectW(&rc)-__GDD_GetTextWidth(hdc,p0,charnum));
                                 break;
                                 ////
                         default:
@@ -1039,6 +1374,856 @@ bool_t    GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 fl
     return FALSE;
 
 }
+//----------------------绘制一个实心三角形---------
+//描述: 使用FillTrangle绘制一个实心三角形
+//参数:hdc: 绘图上下文句柄.
+//    x0,y0;x1,y1;x2,y2;三个坐标点
+//返回:无
+void GDD_FillTrangle(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
+{
+    if(hdc!=NULL)
+    {
+        if(((x0 *y1 + x1 *y2 + x2 *y0 - x0 *y2 - x1 *y0 - x2 *y1)/2)==0)//判断三点共线
+            return;
+        if(y0>y1)
+        {
+            __gdd_swap(x0,x1);
+            __gdd_swap(y0,y1);
+        }
+        if(y0>y2)
+        {
+            __gdd_swap(x0,x2);
+            __gdd_swap(y0,y2);
+        }
+        if(y1>y2)
+        {
+            __gdd_swap(y1,y2);
+            __gdd_swap(x1,x2);
+        }
+
+
+        if(y0==y1)
+        {
+            __GDD_trangle_up(hdc,x0,y0,x1,y1,x2,y2);
+        }
+        else if(y1==y2)
+        {
+            __GDD_trangle_dowm(hdc,x0,y0,x1,y1,x2,y2);
+        }
+        else
+        {
+            s32 x=(x0-x2)*(y1-y2)/(y0-y2)+x2;
+            __GDD_trangle_dowm(hdc,x0,y0,x1,y1,x,y1);
+            __GDD_trangle_up(hdc,x,y1,x1,y1,x2,y2);
+        }
+    }
+}
+//          ^       x0,y0
+//         / \
+//        ￣  ￣    x1,y1   x2,y2
+void __GDD_trangle_dowm(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
+{
+    if(x1>x2)
+    {
+        __gdd_swap(x1,x2);
+        __gdd_swap(y1,y2);
+    }
+
+     float dxy_left = (x0-x1)*1.0/(y0-y1);
+     float dxy_right = (x0-x2)*1.0/(y0-y2);
+     float xr = x2 ,xL = x1 ;
+
+     for(int y=y1 ; y >y0 ;y--)
+     {
+       if((s32)(xr+0.5)!=(s32)(xL+0.5))
+           GDD_DrawLine(hdc,(s32)(xL+0.5),y,(s32)((xr+0.5)),y);
+       else
+       {
+           GDD_DrawLine(hdc,(s32)(xr+0.5),y,(s32)(x0),y0);
+           break;
+       }
+
+         xL -= dxy_left ;
+         xr -= dxy_right ;
+     }
+     GDD_SetPixel(hdc,x0,y0,hdc->DrawColor);
+}
+//    __   x0,y0    x1,y1
+//    \/
+//             x2,y2
+void __GDD_trangle_up(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2)
+{
+
+    if(x0>x1)
+    {
+        __gdd_swap(x0,x1);
+        __gdd_swap(y0,y1);
+    }
+
+    float dxy_left = (x0-x2)*1.0/(y0-y2) ;
+    float dxy_right = (x1-x2)*1.0/(y1-y2);
+    float xr = x1 ,xl = x0 ;
+    for(int y=y1 ; y <y2 ;y++)
+    {
+        if((s32)(xl+0.5)!=(s32)(xr+0.5))
+            GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)((xr+0.5)),y);
+
+        else
+        {
+            GDD_DrawLine(hdc,(s32)(xl+0.5),y,(s32)(x2),y2);
+            break;
+        }
+        xl += dxy_left ;
+        xr += dxy_right ;
+    }
+    GDD_SetPixel(hdc,x2,y2,hdc->DrawColor);
+}
+
+void  __fillsector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
+{
+    s32 ymin,ymax;
+    s32 x,y,arc_error,height,erro;
+    s32 D_x,D_y,xflag,yflag,line_error;
+    s32 sign[4][2] = {{1, 1}, {-1, 1}, {1, -1}, {-1, -1}};
+    RECT prc[4];
+    POINT p[2];
+    POINT point;
+    __GetAnypoint_in_Circle(xCenter, yCenter,radius,angle1,&p[0]);
+    __GetAnypoint_in_Circle(xCenter, yCenter,radius,angle2,&p[1]);
+
+    if(angle1>=0 && angle2<= 180)
+    {
+        if(angle1<=90 && angle2>= 90)
+        {
+            ymin = yCenter - radius;
+            ymax = yCenter;
+        }
+        else if(angle2< 90)
+        {
+            ymin = p[1].y;
+            ymax = yCenter;
+        }
+        else if(angle1>90)
+        {
+            ymin = p[0].y;
+            ymax = yCenter;
+        }
+    }
+    else if(angle1>=180 && angle2<= 360)
+    {
+        if(angle1<=270 && angle2>= 270)
+        {
+            ymin = yCenter ;
+            ymax = yCenter + radius;
+        }
+        else if(angle2< 270)
+        {
+            ymax = p[1].y;
+            ymin = yCenter;
+        }
+        else if(angle1>270)
+        {
+            ymax = p[0].y;
+            ymin = yCenter;
+        }
+    }
+
+    s32 dy = ymax - ymin + 1;//0-10有11个单位
+    s32 *x_max = (s32 *)malloc( sizeof(s32)*dy );
+    s32 *x_min = (s32 *)malloc( sizeof(s32)*dy );
+    if(x_max == NULL||x_min == NULL)
+        return;
+    for(int i = 0; i<dy;i++)
+    {
+        x_min[i] = xCenter+radius+2;
+        x_max[i] = xCenter-radius-2;
+    }
+    __Sector_area_get(xCenter,yCenter,radius,angle1,angle2,&prc[0],&prc[1],&prc[2],&prc[3]);
+    x = 0;
+    y = radius;
+    arc_error = (3-2*radius);
+    while (x <= y)//获取弧上点
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            point.x = (x * sign[i][0] + xCenter);
+            point.y = (y * sign[i][1] + yCenter);
+
+            if ((GDD_PtInRect(&prc[0],&point))||(GDD_PtInRect(&prc[1], &point)))
+            {
+                height = point.y-ymin;
+                if(point.x< x_min[height])
+                    x_min[height] = point.x;
+                if(point.x> x_max[height])
+                    x_max[height] = point.x;
+            }
+
+            point.x = (y * sign[i][0] + xCenter);
+            point.y = (x * sign[i][1] + yCenter);
+            if ((GDD_PtInRect(&prc[0], &point)) ||(GDD_PtInRect(&prc[1], &point)))
+            {
+                height = point.y - ymin;
+                if(point.x < x_min[height])
+                    x_min[height] = point.x;
+                if(point.x > x_max[height])
+                    x_max[height] = point.x;
+            }
+        }
+        if (arc_error < 0)
+        {
+            arc_error += 4 * x + 6;
+        }
+        else
+        {
+            arc_error += 4 * (x - y) + 8;
+            y--;
+        }
+        x++;
+    }
+
+    for(int i = 0;i<2;i++)//获取两条线上的点
+    {
+        if(p[i].y == yCenter)
+            continue;
+
+        height = p[i].y - ymin;
+        if(p[i].x< x_min[height])
+            x_min[height] = p[i].x;
+        if(p[i].x> x_max[height])
+            x_max[height] = p[i].x;
+
+        point.x = xCenter;
+        point.y = yCenter;
+        D_x = abs(p[i].x - point.x);
+        D_y = abs(p[i].y - point.y);
+        xflag = (point.x < p[i].x) ? 1 : -1;
+        yflag = (point.y < p[i].y) ? 1 : -1;
+        line_error = ((D_x > D_y) ? D_x : -D_y) >> 1;
+
+        while((point.x != p[i].x) || (point.y != p[i].y))
+        {
+            height = point.y - ymin;
+            if(point.x< x_min[height])
+                x_min[height] = point.x;
+            if(point.x> x_max[height])
+                x_max[height] = point.x;
+
+            erro = line_error;
+            if(erro > -D_x) { line_error -= D_y; point.x += xflag;}
+            if(erro <  D_y) { line_error += D_x; point.y += yflag;}
+
+        }
+    }
+    for(int i = 0; i < dy; i++)//连点
+    {
+        if(x_min[i] != x_max[i])
+            GDD_DrawLine(hdc,x_min[i],ymin+i,x_max[i],ymin+i);
+        else
+            GDD_SetPixel(hdc,x_min[i],ymin+i,hdc->DrawColor);
+    }
+    free(x_min);
+    x_min = NULL;
+    free(x_max);
+    x_max = NULL;
+    return ;
+}
+
+
+void __GetAnypoint_in_Circle(s32 xCenter, s32 yCenter, s32 radius, s32 angle,POINT *p)
+{
+    s32 x,y,d;
+    s32 x_sign,y_sign;
+
+    bool_t swap = FALSE;
+
+    angle %= 360;
+
+    if (angle < 0)
+    {
+        angle += 360;
+    }
+
+    if (angle == 0)
+    {
+        p->x = (xCenter + (s32)radius);
+        p->y = yCenter;
+    }
+    else if (angle == 90)
+    {
+        p->x = xCenter;
+        p->y = (yCenter - (s32)radius);
+    }
+    else if (angle == 180)
+    {
+        p->x = (xCenter - (s32)radius);
+        p->y = yCenter;
+    }
+    else if (angle == 270)
+    {
+        p->x = xCenter;
+        p->y = (yCenter + (s32)radius);
+    }
+    else
+    {
+        p->x = (s32)(radius*cos(3.14159*angle*1.0/180));
+        p->y = (s32)(radius*sin(3.14159*angle*1.0/180));
+        if (angle <= 90)
+        {
+            x_sign = 1;
+            y_sign = 1;
+
+            if (angle < 45)
+            {
+                swap = TRUE;
+            }
+        }
+        else if (angle <= 180)
+        {
+            x_sign = -1;
+            y_sign = 1;
+
+            if (angle > 135)
+            {
+                swap = TRUE;
+            }
+        }
+        else if (angle <= 270)
+        {
+            x_sign = -1;
+            y_sign = -1;
+
+            if (angle < 225)
+            {
+                swap = TRUE;
+            }
+        }
+        else
+        {
+            x_sign = 1;
+            y_sign = -1;
+
+            if (angle > 315)
+            {
+                swap = TRUE;
+            }
+        }
+
+        x = 0;
+        y = radius;
+        d = (s32)(5 - 4 * radius);
+
+        p->x = (p->x * x_sign);
+        p->y = (p->y * y_sign);
+
+        if (swap)
+        {
+            __gdd_swap(p->x, p->y);
+        }
+
+        while (x <= y)
+        {
+            if ((x > p->x) || (y < p->y))
+            {
+                break;
+            }
+
+            if (d < 0)
+            {
+                d += 8 * x + 12;
+            }
+            else
+            {
+                d += 8 * (x - y) + 20;
+                y--;
+            }
+            x++;
+        }
+
+        if (swap)
+        {
+            __gdd_swap(x, y);
+        }
+
+        x *= x_sign;
+        y *= y_sign;
+
+        p->x = (xCenter + x);
+        p->y = (yCenter - y);
+    }
+
+    return ;
+}
+
+void __Sector_area_get(s32 xCenter, s32 yCenter, u32 radius, s32 start_angle, s32 end_angle,
+                                         RECT *area_1, RECT *area_2, RECT *area_3, RECT *area_4)
+{
+
+    POINT start_point;
+    POINT end_point;
+    s32 r_begin = radius;
+    s32 r_end = (-r_begin);
+
+    memset(area_1, 0, sizeof(RECT));
+    memset(area_2, 0, sizeof(RECT));
+    memset(area_3, 0, sizeof(RECT));
+    memset(area_4, 0, sizeof(RECT));
+
+    __GetAnypoint_in_Circle(0, 0, radius, start_angle, &start_point);
+    __GetAnypoint_in_Circle(0, 0, radius, end_angle, &end_point);
+
+    if (start_angle < 90)
+    {
+        if (end_angle <= 90)
+        {
+            area_1 -> left = end_point.x;
+            area_1 -> top = end_point.y;
+            area_1 -> right = start_point.x+1;
+            area_1 -> bottom = start_point.y+1;
+        }
+        else
+        {
+            area_1 -> left = 0;
+            area_1 -> top = r_end;
+            area_1 -> right = start_point.x+1;
+            area_1 -> bottom = start_point.y+1;
+
+            if (end_angle <= 180)
+            {
+                area_2 -> left = end_point.x;
+                area_2 -> top = r_end;
+                area_2 -> right = 1;
+                area_2 -> bottom = end_point.y+1;
+            }
+            else
+            {
+                area_2 -> left = r_end;
+                area_2 -> top = r_end;
+                area_2 -> right = 1;
+                area_2 -> bottom = 1;
+
+                if (end_angle <= 270)
+                {
+                    area_3 -> left = r_end;
+                    area_3 -> top = 0;
+                    area_3 -> right = end_point.x+1;
+                    area_3 -> bottom = end_point.y+1;
+                }
+                else
+                {
+                    area_2 -> bottom = r_begin+1;
+                    if (end_angle <= 360)
+                    {
+                        area_3 -> left = 0;
+                        area_3 -> top = end_point.y;
+                        area_3 -> right = end_point.x+1;
+                        area_3 -> bottom = r_begin+1;
+                    }
+                    else
+                    {
+                        area_3 -> left = 0;
+                        area_3 -> top = 0;
+                        area_3 -> right = r_begin+1;
+                        area_3 -> bottom = r_begin+1;
+
+                        area_4 -> left = end_point.x;
+                        area_4 -> top = end_point.y;
+                        area_4 -> right = r_begin+1;
+                        area_4 -> bottom = 1;
+                    }
+                }
+            }
+        }
+    }
+    else if (start_angle < 180)
+    {
+        if (end_angle <= 180)
+        {
+            area_1 -> left = end_point.x;
+            area_1 -> top = start_point.y;
+            area_1 -> right = start_point.x+1;
+            area_1 -> bottom = end_point.y+1;
+        }
+        else
+        {
+            area_1 -> left = r_end;
+            area_1 -> top = start_point.y;
+            area_1 -> right = start_point.x+1;
+            area_1 -> bottom = 1;
+
+            if (end_angle <= 270)
+            {
+                area_2 -> left = r_end;
+                area_2 -> top = 0;
+                area_2 -> right = end_point.x+1;
+                area_2 -> bottom = end_point.y+1;
+            }
+            else
+            {
+                area_2 -> left = r_end;
+                area_2 -> top = 0;
+                area_2 -> right = 1;
+                area_2 -> bottom = r_begin+1;
+
+                if (end_angle <= 360)
+                {
+                    area_3 -> left = 0;
+                    area_3 -> top = end_point.y;
+                    area_3 -> right = end_point.x+1;
+                    area_3 -> bottom = r_begin+1;
+                }
+                else
+                {
+                    area_2 -> right = r_begin+1;
+
+                    if (end_angle <= 450)
+                    {
+                        area_3 -> left = end_point.x;
+                        area_3 -> top = end_point.y;
+                        area_3 -> right = r_begin+1;
+                        area_3 -> bottom = 1;
+                    }
+                    else
+                    {
+                        area_3 -> left = 0;
+                        area_3 -> top = r_end;
+                        area_3 -> right = r_begin+1;
+                        area_3 -> bottom = 1;
+
+                        area_4 -> left = end_point.x;
+                        area_4 -> top = r_end;
+                        area_4 -> right = 1;
+                        area_4 -> bottom = end_point.y+1;
+                    }
+                }
+            }
+        }
+    }
+    else if (start_angle < 270)
+    {
+        if (end_angle <= 270)
+        {
+            area_1 -> left = start_point.x;
+            area_1 -> top = start_point.y;
+            area_1 -> right = end_point.x+1;
+            area_1 -> bottom = end_point.y+1;
+        }
+        else
+        {
+            area_1 -> left = start_point.x;
+            area_1 -> top = start_point.y;
+            area_1 -> right = 1;
+            area_1 -> bottom = r_begin+1;
+
+            if (end_angle <= 360)
+            {
+                area_2 -> left = 0;
+                area_2 -> top = end_point.y;
+                area_2 -> right = end_point.x+1;
+                area_2 -> bottom = r_begin+1;
+            }
+            else
+            {
+                area_2 -> left = 0;
+                area_2 -> top = 0;
+                area_2 -> right = r_begin+1;
+                area_2 -> bottom = r_begin+1;
+
+                if (end_angle <= 450)
+                {
+                    area_3 -> left = end_point.x;
+                    area_3 -> top = end_point.y;
+                    area_3 -> right = r_begin+1;
+                    area_3 -> bottom = r_begin+1;
+                }
+                else
+                {
+                    area_2 -> top = r_end+1;
+
+                    if (end_angle <= 540)
+                    {
+                        area_3 -> left = end_point.x;
+                        area_3 -> top = r_end;
+                        area_3 -> right = 1;
+                        area_3 -> bottom = end_point.y+1;
+                    }
+                    else
+                    {
+                        area_3 -> left = r_end;
+                        area_3 -> top = r_end;
+                        area_3 -> right = 1;
+                        area_3 -> bottom = 1;
+
+                        area_4 -> left = r_end;
+                        area_4 -> top = 0;
+                        area_4 -> right = end_point.x+1;
+                        area_4 -> bottom = end_point.y+1;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        if (end_angle <= 360)
+        {
+            area_1 -> left = start_point.x;
+            area_1 -> top = end_point.y;
+            area_1 -> right = end_point.x+1;
+            area_1 -> bottom = start_point.y+1;
+        }
+        else
+        {
+            area_1 -> left = start_point.x;
+            area_1 -> top = 0;
+            area_1 -> right = r_begin+1;
+            area_1 -> bottom = start_point.y+1;
+
+            if (end_angle <= 450)
+            {
+                area_2 -> left = end_point.x;
+                area_2 -> top = end_point.y;
+                area_2 -> right = r_begin+1;
+                area_2 -> bottom = 1;
+            }
+            else
+            {
+                area_2 -> left = 0;
+                area_2 -> top = r_end;
+                area_2 -> right = r_begin+1;
+                area_2 -> bottom = 1;
+
+                if (end_angle <= 540)
+                {
+                    area_3 -> left = end_point.x;
+                    area_3 -> top = r_end;
+                    area_3 -> right = 1;
+                    area_3 -> bottom = end_point.y+1;
+                }
+                else
+                {
+                    area_2 -> left = r_end+1;
+
+                    if (end_angle <= 630)
+                    {
+                        area_3 -> left = r_end;
+                        area_3 -> top = 0;
+                        area_3 -> right = end_point.x+1;
+                        area_3 -> bottom = end_point.y+1;
+                    }
+                    else
+                    {
+                        area_3 -> left = r_end;
+                        area_3 -> top = 0;
+                        area_3 -> right = 1;
+                        area_3 -> bottom = r_begin+1;
+
+                        area_4 -> left = 0;
+                        area_4 -> top = end_point.y;
+                        area_4 -> right = end_point.x+1;
+                        area_4 -> bottom = r_begin+1;
+                    }
+                }
+            }
+        }
+    }
+
+    area_1 -> left = (s32)(area_1 -> left + xCenter);
+    area_1 -> top = (s32)(area_1 -> top + yCenter);
+    area_1 -> right = (s32)(area_1 -> right + xCenter);
+    area_1 -> bottom = (s32)(area_1 -> bottom + yCenter);
+
+    area_2 -> left = (s32)(area_2 -> left + xCenter);
+    area_2 -> top = (s32)(area_2 -> top + yCenter);
+    area_2 -> right = (s32)(area_2 -> right + xCenter);
+    area_2 -> bottom = (s32)(area_2 -> bottom + yCenter);
+
+    area_3 -> left = (s32)(area_3 -> left + xCenter);
+    area_3 -> top = (s32)(area_3 -> top + yCenter);
+    area_3 -> right = (s32)(area_3 -> right + xCenter);
+    area_3 -> bottom = (s32)(area_3 -> bottom + yCenter);
+
+    area_4 -> left = (s32)(area_4 -> left + xCenter);
+    area_4 -> top = (s32)(area_4 -> top + yCenter);
+    area_4 -> right = (s32)(area_4 -> right + xCenter);
+    area_4 -> bottom = (s32)(area_4 -> bottom + yCenter);
+}
+
+//----绘制实心圆角矩形-----------------------------------------------------------
+//描述: 使用FillRounddRect绘制一个实心圆角矩形.
+//参数：hdc: 绘图上下文句柄.
+//      rec: 矩形参数.
+//      arc_r 圆角半径
+//返回：无.
+//------------------------------------------------------------------------------
+void    GDD_FillRoundRect(HDC hdc,RECT *rec, s32 arc_r)
+{
+    s32 rx,ry;
+    s32 OutConst, Sum, SumY;
+    RECT prc;
+    prc = *rec;
+    s32 cx,dx,cy,dy;
+    s32 x,y;
+    s32 xOld;
+    if(hdc==NULL)
+        return;
+    if(arc_r<=0)
+    {
+        if(arc_r==0)
+            GDD_FillRect(hdc,&prc);
+        return;
+    }
+    if(prc.right<prc.left)
+        __gdd_swap(prc.right,prc.left);
+    if(prc.bottom<prc.top)
+        __gdd_swap(prc.bottom,prc.top);
+
+    cx = ((prc.right-prc.left)/2) + prc.left;//中心点坐标
+    cy = ((prc.bottom-prc.top)/2) + prc.top;
+
+    if(arc_r * 2 <= (prc.bottom-prc.top))
+    {
+        ry = arc_r;
+        dy = cy - prc.top - ry;
+    }
+    else
+    {
+        ry = (prc.bottom-prc.top)/2;
+        dy = 0;
+    }
+    if(arc_r * 2 <= (prc.right-prc.left))
+    {
+        rx = arc_r;
+        dx = cx - prc.left - rx;
+    }
+    else
+    {
+        rx = (prc.right-prc.left)/2;
+        dx = 0;
+    }
+    u32 _rx = rx;
+    u32 _ry = ry;
+    OutConst = _rx*_rx*_ry*_ry +(_rx*_rx*_ry>>1);
+    xOld = x = rx;
+
+    for(y=0; y<=ry; y++)
+    {
+        if(y==ry)
+        {
+            x=0;
+        }
+        else
+        {
+            SumY =((s32)(rx*rx))*((s32)(y*y));
+            while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
+                   (x>0) && (Sum>OutConst)) x--;
+        }
+        if(y)
+        {
+            GDD_DrawLine(hdc,cx-xOld-dx,cy-y-dy,cx+xOld+dx,cy-y-dy);
+            GDD_DrawLine(hdc,cx-xOld-dx,cy+y+dy,cx+xOld+dx,cy+y+dy);
+        }
+        xOld = x;
+    }
+    if(dy!=0){
+        RECT rc = (RECT){prc.left,prc.top+rx,prc.right+1,prc.bottom-rx+1};
+        GDD_FillRect(hdc,&rc);}
+    GDD_DrawLine(hdc,prc.left,cy,prc.right,cy);
+    __GDD_EndDraw(hdc);
+}
+
+//----绘制圆角矩形-----------------------------------------------------------
+//描述: 使用DrawRounddRect绘制一个空心圆角矩形.
+//参数：hdc: 绘图上下文句柄.
+//      rec: 矩形参数.
+//      arc_r 圆角半径
+//返回：无.
+//------------------------------------------------------------------------------
+void    GDD_DrawRoundRect(HDC hdc,RECT *rec, s32 arc_r)
+{
+    s32 rx,ry;
+    s32 OutConst, Sum, SumY;
+    RECT prc;
+    prc = *rec;
+    s32 cx,dx,cy,dy;
+    s32 x,y;
+    s32 xOld;
+    if(hdc==NULL)
+        return;
+    if(arc_r<=0)
+    {
+        if(arc_r==0)
+            GDD_DrawRect(hdc,&prc);
+        return;
+    }
+    if(prc.right<prc.left)
+        __gdd_swap(prc.right,prc.left);
+    if(prc.bottom<prc.top)
+        __gdd_swap(prc.bottom,prc.top);
+
+    cx = ((prc.right-prc.left)/2) + prc.left;//中心点坐标
+    cy = ((prc.bottom-prc.top)/2) + prc.top;
+
+    if(arc_r * 2 <= (prc.bottom-prc.top))
+    {
+        ry = arc_r;
+        dy = cy - prc.top - ry;
+    }
+    else
+    {
+        ry = (prc.bottom-prc.top)/2;
+        dy = 0;
+    }
+    if(arc_r * 2 <= (prc.right-prc.left))
+    {
+        rx = arc_r;
+        dx = cx - prc.left - rx;
+    }
+    else
+    {
+        rx = (prc.right-prc.left)/2;
+        dx = 0;
+    }
+    u32 _rx = rx;
+    u32 _ry = ry;
+
+    OutConst = _rx*_rx*_ry*_ry +(_rx*_rx*_ry>>1);
+
+    xOld = x = rx;
+
+    for(y=0; y<=ry; y++)
+    {
+        if(y==ry)
+        {
+            x=0;
+        }
+        else
+        {
+            SumY =((s32)(rx*rx))*((s32)(y*y));
+            while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
+                   (x>0) && (Sum>OutConst)) x--;
+        }
+        if(y)
+        {
+            GDD_DrawLine(hdc,cx-xOld-dx,cy-y+1-dy,cx-x-dx,cy-y-dy);
+            GDD_DrawLine(hdc,cx-xOld-dx,cy+y-1+dy,cx-x-dx,cy+y+dy);
+            GDD_DrawLine(hdc,cx+xOld+dx,cy-y+1-dy,cx+x+dx,cy-y-dy);
+            GDD_DrawLine(hdc,cx+xOld+dx,cy+y-1+dy,cx+x+dx,cy+y+dy);
+        }
+        xOld = x;
+    }
+    if(dy!=0){
+    GDD_DrawLine(hdc,prc.left,prc.top+rx,prc.left,prc.bottom-rx);
+    GDD_DrawLine(hdc,prc.right,prc.top+rx,prc.right,prc.bottom-rx);}
+
+    if(dx!=0){
+    GDD_DrawLine(hdc,prc.left+rx,prc.top,prc.right-rx,prc.top);
+    GDD_DrawLine(hdc,prc.left+rx,prc.bottom,prc.right-rx,prc.bottom);}
+
+    __GDD_EndDraw(hdc);
+}
+
+
+
 
 //----绘制矩形------------------------------------------------------------------
 //描述: 使用DrawColor绘制一个空心矩形.
@@ -1079,8 +2264,8 @@ void    GDD_DrawRect(HDC hdc,const RECT *prc)
     }
 }
 
-//----填充矩形------------------------------------------------------------------
-//描述: 使用FillColor填充一个实心矩形.
+//----绘制实心矩形------------------------------------------------------------------
+//描述: 使用DrawColor绘制一个实心矩形.
 //参数：hdc: 绘图上下文句柄.
 //      prc: 矩形参数.
 //返回：无.
@@ -1099,7 +2284,7 @@ void    GDD_FillRect(HDC hdc,const RECT *prc)
             {
                 __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
 
-                GK_FillRect(hdc->pGkWin,&rc,hdc->FillColor,hdc->FillColor,
+                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,& rc, hdc->DrawColor, hdc->DrawColor,
                             CN_FILLRECT_MODE_N,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
@@ -1107,8 +2292,8 @@ void    GDD_FillRect(HDC hdc,const RECT *prc)
     }
 
 }
-//----填充矩形------------------------------------------------------------------
-//描述: 使用指定颜色填充一个实心矩形.
+//----指定颜色绘制实心矩形------------------------------------------------------------------
+//描述: 使用指定颜色绘制一个实心矩形.
 //参数：hdc: 绘图上下文句柄.
 //      prc: 矩形参数.
 //返回：无.
@@ -1127,7 +2312,7 @@ void    GDD_FillRectEx(HDC hdc,const RECT *prc,u32 color)
             {
                 __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
 
-                GK_FillRect(hdc->pGkWin,&rc,color,color,
+                GK_FillRect(hdc->pGkWin,&hdc->DrawArea ,&rc,color,color,
                             CN_FILLRECT_MODE_N,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
@@ -1189,7 +2374,7 @@ void    GDD_GradientFillRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2,u32 m
                             break;
 
                 }
-                GK_FillRect(hdc->pGkWin,&gk_rc,Color1,Color2,
+                GK_FillRect(hdc->pGkWin,&hdc->DrawArea ,&gk_rc,Color1,Color2,
                             mode,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
@@ -1210,6 +2395,7 @@ void    GDD_Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2)
 {
     u32 c;
     RECT rc;
+    s32 x0,x1,y0,y1;
 
     if(hdc!=NULL)
     {
@@ -1219,20 +2405,29 @@ void    GDD_Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2)
             {
 //              GDD_CopyRect(&rc,prc);
                 rc = *prc;
-                c=GDD_SetDrawColor(hdc,Color1);
-                GDD_DrawLine(hdc,0,0,0,GDD_RectH(&rc)-1); //L
-                GDD_DrawLine(hdc,0,0,GDD_RectW(&rc)-1,0); //U
+                __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
+                x0 =rc.left;
+                y0 =rc.top;
+                x1 =rc.right-1;
+                y1 =rc.bottom-1;
 
+                c=GDD_SetDrawColor(hdc,Color1);
+                //Left
+                GK_Lineto(hdc->pGkWin,&hdc->DrawArea,x0,y0,x0,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                //top
+                GK_Lineto(hdc->pGkWin,&hdc->DrawArea,x1,y0,x0,y0,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
                 GDD_SetDrawColor(hdc,Color2);
-                GDD_DrawLine(hdc,GDD_RectW(&rc)-1,0,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //R
-                GDD_DrawLine(hdc,0,GDD_RectH(&rc)-1,GDD_RectW(&rc)-1,GDD_RectH(&rc)-1); //D
+                //Right
+                GK_Lineto(hdc->pGkWin,&hdc->DrawArea,x1,y1,x1,y0,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                //bottom
+                GK_Lineto(hdc->pGkWin,&hdc->DrawArea,x0,y1,x1,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+
                 GDD_SetDrawColor(hdc,c);
 
-                c=GDD_SetFillColor(hdc,GDD_AlphaBlendColor(Color1,Color2,128));
+                c = GDD_AlphaBlendColor(Color1,Color2,128);
 
                 GDD_InflateRect(&rc,-1,-1);
-                GDD_FillRect(hdc,&rc);
-                GDD_SetFillColor(hdc,c);
+                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,&rc, c, c, CN_FILLRECT_MODE_N,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
         }
@@ -1252,6 +2447,7 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
 
      ////
      POINT pt;
+     if(r<=0) return;
      if(hdc!=NULL)
      {
          if(__GDD_BeginDraw(hdc))
@@ -1259,15 +2455,15 @@ void    GDD_DrawCircle(HDC hdc,s32 cx,s32 cy,s32 r)
              pt.x = cx;
              pt.y = cy;
              __GDD_Cdn_DC_toWin(hdc, &pt, 1);
-             GK_DrawCircle(hdc->pGkWin, cx, cy, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
+             GK_DrawCircle(hdc->pGkWin, &hdc->DrawArea,pt.x, pt.y, r, hdc->DrawColor, hdc->RopCode.Rop2Mode, hdc->SyncTime);
              __GDD_EndDraw(hdc);
          }
 
      }
 }
 
-//----填充圆------------------------------------------------------------------
-//描述: 使用FillColor填充一个实心圆.
+//----绘制实心圆------------------------------------------------------------------
+//描述: 使用DrawColor绘制一个实心圆.
 //参数：hdc: 绘图上下文句柄.
 //      cx,cy: 圆的中心坐标
 //      r: 圆的半径
@@ -1280,6 +2476,7 @@ void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
     s32 sqmax = (s32)r*(s32)r+(s32)r/2;
     s32 x=r;
 
+    if(r<=0) return;
     if(hdc!=NULL)
     {
         cx +=(hdc->hwnd->CliRect.left);
@@ -1288,7 +2485,7 @@ void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
         {
 
             GK_Lineto(hdc->pGkWin, &hdc->DrawArea, cx-r,cy,cx+r+1,cy,
-                    hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                    hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             for (i=1; i<= imax; i++)
             {
                 if ((i*i+x*x) >sqmax)
@@ -1297,17 +2494,17 @@ void    GDD_FillCircle(HDC hdc,s32 cx,s32 cy,s32 r)
                     if (x>imax)
                     {
                         GK_Lineto(hdc->pGkWin, &hdc->DrawArea, cx-i+1,cy+x, cx+i,cy+x,
-                                hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                                hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
                         GK_Lineto(hdc->pGkWin, &hdc->DrawArea, cx-i+1,cy-x, cx+i,cy-x,
-                                hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                                hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
                     }
                     x--;
                 }
 
                 GK_Lineto(hdc->pGkWin, &hdc->DrawArea,cx-x,cy+i, cx+x+1,cy+i,
-                        hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                        hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
                 GK_Lineto(hdc->pGkWin, &hdc->DrawArea,cx-x,cy-i, cx+x+1,cy-i,
-                        hdc->FillColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+                        hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             }
 
             __GDD_EndDraw(hdc);
@@ -1330,7 +2527,7 @@ void     GDD_DrawEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
     s32 xOld;
     u32 _rx = rx;
     u32 _ry = ry;
-
+    if(rx<=0||ry<=0) return;
     OutConst =   _rx*_rx*_ry*_ry
                +(_rx*_rx*_ry>>1);
     xOld = x = rx;
@@ -1364,8 +2561,8 @@ void     GDD_DrawEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
 
 }
 
-//----填充椭圆------------------------------------------------------------------
-//描述: 使用FillColor填充一个实心椭圆.
+//----绘制椭圆------------------------------------------------------------------
+//描述: 使用DrawColor绘制一个实心椭圆.
 //参数：hdc: 绘图上下文句柄.
 //      cx,cy: 椭圆的中心坐标
 //      rx: 椭圆的水平半径
@@ -1379,13 +2576,13 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
     u32 _rx = rx;
     u32 _ry = ry;
     u32 color;
-
+    if(rx<=0||ry<=0) return;
     OutConst = _rx*_rx*_ry*_ry
                 +(_rx*_rx*_ry>>1);
     x = rx;
     if(__GDD_BeginDraw(hdc))
     {
-        color =GDD_GetFillColor(hdc);
+        color =GDD_GetDrawColor(hdc);
         for (y=0; y<=ry; y++)
         {
              SumY =((s32)(rx*rx))*((s32)(y*y));
@@ -1407,8 +2604,83 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
 
 }
 
-//----绘制扇形------------------------------------------------------------------
-//描述: 使用DrawColor绘制扇形.
+//----绘制弧线------------------------------------------------------------------
+//描述: 使用GDD_Drawarc绘制一段弧线.   （原函数名 GDD_DrawSector
+//参数：hdc: 绘图上下文句柄.
+//      xCenter,yCenter: 圆弧的中心坐标
+//      radius: 圆弧半径
+//      angle1: 圆弧起始点角度
+//      angle2: 圆弧结束点角度
+//返回：无.
+//------------------------------------------------------------------------------
+void    GDD_DrawArc(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
+{
+    s32 x,y,index,d;
+    s32 sign[4][2] = {{1, 1}, {-1, 1}, {1, -1}, {-1, -1}};
+    POINT point;
+    RECT prc[4];
+    if(radius<=0||(angle1==angle2))
+        return;
+
+    if(hdc!=NULL)
+    {
+        if(angle2-angle1>=360)
+         {
+            GDD_DrawCircle(hdc,xCenter,yCenter,radius);
+            return;
+         }
+        if(angle1>angle2) angle2+=360;
+        while(angle1<0)
+        {
+            angle1+=360;
+        }
+        while(angle2<0)
+        {
+            angle2+=360;
+        }
+        x = 0;
+        y = (s32)radius;
+        d = (s32)(3 - 2 * radius);
+
+        __Sector_area_get(xCenter,yCenter,radius,angle1,angle2,&prc[0],&prc[1],&prc[2],&prc[3]);
+        while (x <= y)
+        {
+            for (index = 0; index < 4; index++)
+            {
+                point.x = (x * sign[index][0] + xCenter);
+                point.y = (y * sign[index][1] + yCenter);
+
+                if ((GDD_PtInRect(&prc[0],&point))||(GDD_PtInRect(&prc[1], &point)) ||
+                    (GDD_PtInRect(&prc[2], &point)) ||(GDD_PtInRect(&prc[3], &point)))
+                {
+                    GDD_SetPixel(hdc,point.x,point.y,hdc->DrawColor);
+                }
+
+                point.x = (y * sign[index][0] + xCenter);
+                point.y = (x * sign[index][1] + yCenter);
+                if ((GDD_PtInRect(&prc[0], &point)) ||(GDD_PtInRect(&prc[1], &point)) ||
+                    (GDD_PtInRect(&prc[2], &point)) ||(GDD_PtInRect(&prc[3], &point)))
+                {
+                    GDD_SetPixel(hdc,point.x,point.y,hdc->DrawColor);
+                }
+            }
+            if (d < 0)
+            {
+                d += 4 * x + 6;
+            }
+            else
+            {
+                d += 4 * (x - y) + 8;
+                y--;
+            }
+            x++;
+        }
+            __GDD_EndDraw(hdc);
+    }
+}
+
+//------------------绘制一个空心扇形---------------------------------------
+//描述: 使用GDD_DrawSector绘制扇形.
 //参数：hdc: 绘图上下文句柄.
 //      xCenter,yCenter: 扇形的中心坐标
 //      radius: 扇形半径
@@ -1418,80 +2690,26 @@ void GDD_FillEllipse(HDC hdc,s32 cx, s32 cy, s32 rx, s32 ry)
 //------------------------------------------------------------------------------
 void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
 {
-  s32 x, y, d,c1,c2,c,step=0;
-  s32 quarter1,quarter2,quarter3,quarter4;
-  u32 color;
+    POINT p[2];
 
-  if(radius<=0)
-  {
-      return;
-  }
+    if(radius<=0||(angle1==angle2))
+        return;
+    if(angle1>angle2) angle2+=360;
+    if(angle2-angle1>=360)
+     {
+        GDD_DrawCircle(hdc,xCenter,yCenter,radius);
+        return;
+     }
+    __GetAnypoint_in_Circle(xCenter,yCenter,radius,angle1,&p[0]);
+    __GetAnypoint_in_Circle(xCenter,yCenter,radius,angle2,&p[1]);
+    GDD_DrawLine(hdc,xCenter,yCenter,p[0].x,p[0].y);
+    GDD_DrawLine(hdc,xCenter,yCenter,p[1].x,p[1].y);
 
-  x = xCenter;
-  y = yCenter + radius;
-  d = 3 - 2 * radius;
-  c1=(s32)(angle1*radius*3.14159/180);
-  c2=(s32)(angle2*radius*3.14159/180);
-  quarter1=(s32)(radius*3.14159/2);
-  quarter2=(s32)(radius*3.14159);
-  quarter3=(s32)(radius*3.14159*3/2);
-  quarter4=(s32)(radius*3.14159*2);
-
-    if(__GDD_BeginDraw(hdc))
-    {
-        color =GDD_GetDrawColor(hdc);
-        while(1)
-        {
-              c=quarter4-step;
-            if(c>=c1 && c<=c2)
-                GDD_SetPixel(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ),color );
-
-            if(step>=c1 && step<=c2)
-                 GDD_SetPixel(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),color );
-
-            c=quarter2+step;
-            if(c>=c1 && c<=c2)
-                GDD_SetPixel(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),color );
-
-            c=quarter2-step;
-            if(c>=c1 && c<=c2)
-                GDD_SetPixel(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),color );
-
-            if (  x - xCenter  >=  y - yCenter  ) break;
-
-            c=quarter3+step;
-            if(c>=c1 && c<=c2)
-                 GDD_SetPixel(hdc, x, y,color );
-
-            c=quarter1-step;
-            if(c>=c1 && c<=c2)
-                 GDD_SetPixel(hdc,x, yCenter - (y - yCenter),color );
-
-            c=quarter3-step;
-            if(c>=c1 && c<=c2)
-                 GDD_SetPixel(hdc, xCenter - (x - xCenter), y,color );
-
-            c= quarter1+step;
-            if(c>=c1 && c<=c2)
-                 GDD_SetPixel(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter),color );
-
-            if ( d < 0 )
-            { d = d + ((x - xCenter) << 2) + 6;
-            }
-            else
-            { d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
-              y--;
-            }
-            x++;
-            step++;
-        }
-        __GDD_EndDraw(hdc);
-    }
-
+    GDD_DrawArc(hdc, xCenter,yCenter,radius,angle1,angle2);
 }
 
-//----填充扇形------------------------------------------------------------------
-//描述: 使用FillColor填充扇形.
+//----绘制实心扇形------------------------------------------------------------------
+//描述: 使用DrawColor绘制实心扇形.
 //参数：hdc: 绘图上下文句柄.
 //      xCenter,yCenter: 扇形的中心坐标
 //      radius: 扇形半径
@@ -1499,81 +2717,66 @@ void    GDD_DrawSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,
 //      angle2: 扇形结束点角度
 //返回：无.
 //------------------------------------------------------------------------------
-void    GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
+void GDD_FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 angle2)
 {
-  s32 x, y, d,c1,c2,c,step=0;
-  s32 quarter1,quarter2,quarter3,quarter4;
-  u32 color;
-
-  if(radius<=0)
-  {
-      return;
-  }
-
-  x = xCenter;
-  y = yCenter + radius;
-  d = 3 - 2 * radius;
-  c1=(s32)(angle1*radius*3.14159/180);
-  c2=(s32)(angle2*radius*3.14159/180);
-  quarter1=(s32)(radius*3.14159/2);
-  quarter2=(s32)(radius*3.14159);
-  quarter3=(s32)(radius*3.14159*3/2);
-  quarter4=(s32)(radius*3.14159*2);
-
-    if(__GDD_BeginDraw(hdc))
+    if(radius<=0||(angle1==angle2))
+        return;
+    if(hdc != NULL)
     {
-        color =GDD_GetFillColor(hdc);
-
-        while(1)
+        if(angle2-angle1>=360)//满360 直接画圆
         {
-            c=quarter4-step;
-            if(c>=c1 && c<=c2)
-                GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter + (x - xCenter ) ,xCenter,yCenter ,color);
+            GDD_FillCircle(hdc,xCenter,yCenter,radius);
+            return;
+        }
+        if(angle1>angle2)//从小角度画到大的角度
+             angle2+=360;
 
-            if(step>=c1 && step<=c2)
-                GDD_DrawLineEx(hdc,xCenter + (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter ,color);
+        while(angle1<0)
+        {
+            angle1 += 360;
+            angle2 += 360;
+        }
 
-            c=quarter2+step;
-            if(c>=c1 && c<=c2)
-                GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter + (x - xCenter ),xCenter,yCenter ,color);
+        angle1 = angle1 % 360;//度数矫正
+        angle2 = angle2 % 720;
 
-            c=quarter2-step;
-            if(c>=c1 && c<=c2)
-                 GDD_DrawLineEx(hdc, xCenter - (y - yCenter), yCenter - (x - xCenter),xCenter,yCenter,color);
-
-            if (  x - xCenter  >=  y - yCenter  ) break;
-
-            c=quarter3+step;
-            if(c>=c1 && c<=c2)
-                 GDD_DrawLineEx(hdc, x, y,xCenter,yCenter ,color);
-
-            c=quarter1-step;
-            if(c>=c1 && c<=c2)
-                 GDD_DrawLineEx(hdc,x, yCenter - (y - yCenter),xCenter,yCenter ,color);
-
-            c=quarter3-step;
-            if(c>=c1 && c<=c2)
-                 GDD_DrawLineEx(hdc, xCenter - (x - xCenter), y ,xCenter,yCenter,color);
-
-            c= quarter1+step;
-            if(c>=c1 && c<=c2)
-                GDD_DrawLineEx(hdc, xCenter - (x - xCenter), yCenter - (y - yCenter) ,xCenter,yCenter,color);
-
-            if ( d < 0 )
+        if(angle1<=180)//上半区域
+        {
+            if(angle2<=180)
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,angle2);
+            else if(angle2 <=360)
             {
-                d = d + ((x - xCenter) << 2) + 6;
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,180);
+                __fillsector(hdc, xCenter,yCenter,radius,180,angle2);
             }
             else
             {
-                d = d + (((x - xCenter) - (y - yCenter)) << 2 ) + 10;
-                y--;
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,180);
+                __fillsector(hdc, xCenter,yCenter,radius,180,360);
+                __fillsector(hdc, xCenter,yCenter,radius,0,angle2-360);
             }
-            x++;
-            step++;
+        }
+        else if(angle1>=180)//下半区域
+        {
+            if(angle2<=360)
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,angle2);
+            else if(angle2 <=540)
+            {
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,360);
+                __fillsector(hdc, xCenter,yCenter,radius,0,angle2-360);
+            }
+            else
+            {
+                __fillsector(hdc, xCenter,yCenter,radius,angle1,360);
+                __fillsector(hdc, xCenter,yCenter,radius,0,180);
+                __fillsector(hdc, xCenter,yCenter,radius,180,angle2-360);
+            }
         }
         __GDD_EndDraw(hdc);
     }
 }
+
+
 
 //----绘制3阶Bezier线----------------------------------------------------------
 //描述: 按指定坐标点绘制连续的贝塞尔线

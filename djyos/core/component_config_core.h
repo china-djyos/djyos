@@ -44,6 +44,7 @@
 //%$#@enum,true,false
 #define CFG_IDLE_WDT_RESET      false   //"IDLE监视狗叫复位使能"，IDLE事件监视狗叫时，是否复位
 #define CFG_OS_TINY             false   //"tiny版内核",true=用于资源紧缺的场合，内核会裁剪掉：事件类型名字，事件处理时间统计。
+#define CFG_IDLE_CHECK_STACK    false   //"IDLE检查栈",在IDLE中是否进行栈溢出检查。注意：进行溢出检查的话会影响实时性
 //%$#@string,1,10
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,

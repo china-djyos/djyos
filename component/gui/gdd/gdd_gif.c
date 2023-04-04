@@ -62,6 +62,44 @@
 
 #include    "gdd_private.h"
 
+//gif.c使用说明：
+//ptu32_t gif_demo(void)
+//{
+//    HDC hdc, hdd;
+//    HWND hwnd, hwndLB1, wand, hwndA, A, B, LIU;
+//    RECT prc;
+//    RECT pra;
+//    int r = 70;
+//    s32 cx;
+//    s32 cy;
+//    struct WinTimer* timer;
+//    extern u8 a;
+//    extern u8 b;//1.将GIF图片转换为十六进制的数据，并将数据装入该数组中	//数据参考:u8b[68674]={0X47,0X49,0X46,0X38,0X39,0X61,0XB5,0X03,0XB1,0X02,0XF7,0XFF,0X00,0X6D,0X76};//数据过大无法完全展示，仅参考，需按照实际数据来
+//    u32 c;
+//    HWND tg_pMainWinHwn, button, hwndD, hWND;
+//    s32 count = 4;
+//    u32 color = RGB(255, 0, 0);
+//    u32 colort = RGB(55, 255, 55);
+//    bool_t www = true;
+//    prc = (RECT){ 10,10,180,180 };
+//    tg_pMainWinHwn = GDD_CreateGuiApp("Cursor", NULL, 0, 0, 1024, 600, 65532, CN_WINBUF_BUF, WS_BORDER | WS_CAPTION, CN_SYS_PF_RGB565, 0);
+//    //拿到hdc并开始绘图
+//    c = GDD_OpenGIF(&b, 68674);//创建一个新的GIF解码上下文，参数为上方数组，第二个参数为GIF图片字节数
+//    cx = GDD_GetGIF_Width(c);//获取GIF图像宽度
+//    cy = GDD_GetGIF_Height(c);//获取GIF图像高度
+//    cy = GDD_GetGIF_FrameCount(c);//获取GIF图像总帧数，可以通过该函数知晓图像有多少帧
+//    cx = GDD_GetGIF_FrameDelay(c, 0);//获取GIF图像指定站的延时时间
+//    hdc = GDD_BeginPaint(tg_pMainWinHwn);//指定窗口开始绘制
+//
+//    for (int i = 0; i < 5; i++) {
+//        GDD_DrawGIF_Frame(hdc, 0, -90, c, RGB(255, 255, 255), i);//绘制指定帧数，通过for循环绘制每一帧。i代表每一帧的下标值，可以通过该下标绘制没一个帧数的图像
+//        GDD_SyncShow(tg_pMainWinHwn);
+//    }
+//    GDD_CloseGIF(c);
+//    GDD_EndPaint(tg_pMainWinHwn, hdc);//结束绘制
+//    GDD_SyncShow(tg_pMainWinHwn);
+//
+//}
 
 /*********************************************************************
 *
