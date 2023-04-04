@@ -814,42 +814,39 @@ void    GDD_DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 temp_draw,s32
         {
             s32 i=0;
             s32 error,line_error;//
-            s32 para,draw;
+            s32 para,draw,x = x0,y = y0;
             float dt = sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));//斜线长度
             s32 dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
             s32 dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
             line_error = (dx > dy ? dx : -dy) / 2;
             GDD_SetPixel(hdc,x0,y0,hdc->DrawColor);
             if(dx<dy)//陡
-            {
-                para = abs((s32)((y1-y0)*(temp_draw+temp_past)*1.0/dt+0.5));
-                draw = abs((s32)((y1-y0)*temp_draw*1.0/dt+0.5));
-                while( x0 != x1 || y0 != y1)
                 {
-                    error = line_error;
-                    if(error > -dx) { line_error -= dy; x0 += sx;}
-                    if(error <  dy) { line_error += dx; y0 += sy;i++;}
-                    if(i<draw)
-                        GDD_SetPixel(hdc,(s32)x0,y0,hdc->DrawColor);
-                    else if(i<para);
-                    else i = 0;
+                    para = abs((s32)((y1-y0)*(temp_draw+temp_past)*1.0/dt+0.5));
+                    draw = abs((s32)((y1-y0)*temp_draw*1.0/dt+0.5));
+                    while( x0 != x1 || y0 != y1)
+                    {
+                        error = line_error;
+                        if(error > -dx) { line_error -= dy; x0 += sx;}
+                        if(error <  dy) { line_error += dx; y0 += sy;i++;}
+                        if(i==draw) GDD_DrawLine(hdc,x,y,x0,y0);
+                        if(i == para){x = x0;y = y0;i = 0;}
+                    }
                 }
-            }
-            else//平
-            {
-                para = abs((s32)((x1-x0)*(temp_draw+temp_past)*1.0/dt+0.5));
-                draw = abs((s32)((x1-x0)*temp_draw*1.0/dt+0.5));
-                while( x0 != x1 || y0 != y1)
+                else//平
                 {
-                    error = line_error;
-                    if(error > -dx) { line_error -= dy; x0 += sx;i++;}
-                    if(error <  dy) { line_error += dx; y0 += sy;}
-                    if(i<draw)
-                        GDD_SetPixel(hdc,(s32)x0,y0,hdc->DrawColor);
-                    else if(i<para);
-                    else i = 0;
+                    para = abs((s32)((x1-x0)*(temp_draw+temp_past)*1.0/dt+0.5));
+                    draw = abs((s32)((x1-x0)*temp_draw*1.0/dt+0.5));
+                    while( x0 != x1 || y0 != y1)
+                    {
+                        error = line_error;
+                        if(error > -dx) { line_error -= dy; x0 += sx;i++;}
+                        if(error <  dy) { line_error += dx; y0 += sy;}
+                        if(i==draw) GDD_DrawLine(hdc,x,y,x0,y0);
+                        if(i == para){x = x0;y = y0;i = 0;}
+
+                    }
                 }
-            }
         }
         __GDD_EndDraw(hdc);
     }
@@ -2058,7 +2055,7 @@ void __Sector_area_get(s32 xCenter, s32 yCenter, u32 radius, s32 start_angle, s3
 //      arc_r 圆角半径
 //返回：无.
 //------------------------------------------------------------------------------
-void    GDD_FillRoundRect(HDC hdc,RECT *prc, s32 arc_r)
+void    GDD_FillRoundRect(HDC hdc,RECT *rec, s32 arc_r)
 {
     s32 rx,ry;
     s32 OutConst, Sum, SumY;
