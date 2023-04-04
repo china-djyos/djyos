@@ -1167,7 +1167,7 @@ DIR *opendir(const char *name)
         return (NULL);
     }
 
-    directory = malloc(sizeof(*directory));
+    directory = (char *)M_Malloc(sizeof(*directory), CN_TIMEOUT_FOREVER);
     if(NULL == directory)
     {
         __close(hdl);
@@ -1456,7 +1456,7 @@ char *getcwd(char *buf, size_t size)
 
     if(!buf)
     {
-        buf = malloc(len);
+        buf = (char *)M_Malloc(len, CN_TIMEOUT_FOREVER);
         if(!buf)
             return (NULL);
     }

@@ -129,7 +129,7 @@ struct MultiplexObjectCB
                                         //MultiplexSets包含的情况
     struct MultiplexSetsCB *MySets;     //指向主控制块
     s32 Fd;                             //被MultiplexSets等待的文件
-    ptu32_t ObjectID;                   //被MultiplexSets等待的对象
+    ptu32_t ObjTag;                     //被MultiplexSets等待的对象的特征标签
     u32 ET_SaveBit;                     // ET模式触发 wait 函数返回的触发位。
     u32 PendingBit;                     //bit0~23：对象中已经触发的bit，
                                         //bit31：1=对象已激活。
@@ -255,7 +255,7 @@ struct MultiplexSetsCB* Multiplex_Create(u32 ActiveLevel)
 //                  bit24~31表示模式，参见 CN_MULTIPLEX_SENSINGBIT_OR 的定义
 //返回: true=成功，false=失败。
 //-----------------------------------------------------------------------------
-bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
+bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit,ptu32_t MpObjTag)
 {
     struct objhandle *Kfp;
     struct MultiplexObjectCB *temp;
@@ -316,7 +316,7 @@ bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
             temp->SensingBit = SensingBit;
             temp->PendingBit = InitStatus & CN_MULTIPLEX_STATUSMSK;
             temp->Fd = Fd;
-//          temp->ObjectID = ObjectID;
+            temp->ObjTag = MpObjTag;
             if(Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER))
             {
                 temp->MySets = Sets;            //设定对象所属MultiplexSets
@@ -573,15 +573,15 @@ bool_t __Multiplex_Set(s32 Fd, u32 Status)
 //      在规定时间内无触发行为或者条件错误等都会返回-1.
 //注意: 调用本函数后,Sets的触发状态并没有改变,只有Multiplex_Set会修改Sets的触发
 //      状态,Multiplex的运行过程是:
-//      1.应用程序调用Multiplex_Wait,取得ObjectID返回
-//      2.根据ObjectID访问相应的对象.
+//      1.应用程序调用Multiplex_Wait,取得文件fd返回
+//      2.根据fd访问相应的对象.
 //      3.被访问的对象内部,如果本次访问导致了Sending Bit 变化,调用Multiplex_Set
 //          "告知"Multiplex组件.
 //      4.Multiplex_Set函数修改Sets的状态.
 //      5.反复1~4步,直到全部活动的对象访问完,然后调用 Multiplex_Wait 会进入阻塞状态.
 //      后,如果不对被select的对象做读写
 //-----------------------------------------------------------------------------
-s32 Multiplex_Wait(struct MultiplexSetsCB *Sets, u32 *Status, u32 Timeout)
+s32 Multiplex_Wait(struct MultiplexSetsCB *Sets, u32 *Status, ptu32_t *MpObjTag,u32 Timeout)
 {
     struct MultiplexObjectCB *Object;
     s32 ret = -1;
@@ -640,6 +640,8 @@ s32 Multiplex_Wait(struct MultiplexSetsCB *Sets, u32 *Status, u32 Timeout)
                 *Status = Object->PendingBit;
         }
     }
+    if (MpObjTag != NULL)
+        *MpObjTag = Object->ObjTag;
     Int_RestoreAsynSignal();
 
     return ret;

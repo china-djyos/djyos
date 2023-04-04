@@ -129,7 +129,7 @@ struct DC
     u32 DCType;                 //DC类型
     s32 CurX,CurY;              //当前位置
     u32 DrawColor;              //绘制颜色
-    u32 FillColor;              //填充颜色
+    u32 BGColor;              //背景颜色
     u32 TextColor;              //字体颜色
     u32 SyncTime;               //同步时间
     struct RopGroup RopCode;    //光栅码
@@ -145,10 +145,11 @@ struct WINDOW
     //窗口（一般是控件）的私有消息处理函数表。
     //本成员是实现窗口消息继承机制的关键
     struct MsgTableLink **MyMsgTableLink;
+//    struct MsgTableLink *MyMsgTableLink;
 //  list_t MsgProcFuncTable;
     char    *Text;
-    struct MutexLCB *mutex_lock;        //窗口互斥锁
-    struct WinMsgQueueCB *pMsgQ;        //窗口消息队列
+    struct MutexLCB *mutex_lock;        //窗口互斥锁，子窗口使用所属主窗口的锁
+    struct WinMsgQueueCB *pMsgQ;        //窗口消息队列，子窗口使用所属主窗口的消息队列
     struct GkWinObj *pGkWin;   //继承GkWin
     ptu32_t PrivateData;      //窗口私有数据
 
@@ -163,7 +164,7 @@ struct WINDOW
 //  RECT    CliRect;        //窗口客户区(使用屏幕坐标)
     RECT    CliRect;        //窗口客户区(改为窗口左上角为原点的坐标)
     u32     DrawColor;      //绘制颜色，创建子窗口时，将继承
-    u32     FillColor;      //填充颜色，创建子窗口时，将继承
+    u32     BGColor;      //背景颜色，创建子窗口时，将继承
     u32     TextColor;      //字体颜色，创建子窗口时，将继承
 
     list_t  list_timer;         //窗口定时器链表
@@ -202,6 +203,7 @@ bool_t  __GDD_PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 para
 void    __GDD_PostTimerMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,struct WinTimer *ptmr);
 
 struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size);
+void    __GUI_DeleteMsg(HWND hwnd);
 void    __GUI_DeleteMsgQ(struct WinMsgQueueCB *pMsgQ);
 void    __GDD_RemoveWindowTimer(HWND hwnd);
 void    __GDD_DeleteMainWindowData(HWND hwnd);

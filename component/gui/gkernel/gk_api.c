@@ -73,6 +73,8 @@
 #include <gdd.h>
 #include <msgqueue.h>
 #include <gui/gk_display.h>
+
+#define __gk_swap(a, b){a^=b; b^=a; a^=b;}
 //----创建桌面-----------------------------------------------------------------
 //功能: 创建桌面，新显示器加入后，首先要创建桌面才能使用。桌面其实和一个普通窗口
 //      非常类似，差别主要在于:
@@ -300,18 +302,76 @@ void GK_FillPartWin(struct GkWinRsc *gkwin,
 //----渐变色填充窗口的一部分---------------------------------------------------
 //功能: 用指定颜色填充一个窗口的一部分，颜色按alpha值渐变过渡
 //参数: gkwin，待填充的目标窗口
+//      range，指定窗口的可绘制部分，超出部分将不予填充
 //      rect，待填充的位置
 //      Color0,颜色1，含义见 CN_FILLRECT_MODE_LR 族常量定义
 //      Color1,颜色2，含义见 CN_FILLRECT_MODE_LR 族常量定义
 //      Mode,渐变模式,含义见 CN_FILLRECT_MODE_LR 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *rect,
+void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *range,struct Rectangle *rect,
                             u32 Color0,u32 Color1,u32 Mode,u32 SyncTime)
 {
     struct GkscParaGradientFillWin para;
+    s32 flag = 0;
     if(NULL == gkwin)
         return;
+    if(NULL != range)       //若给定了限定区，则判断之
+    {
+        para.range = *range;
+    }
+    else
+    {
+        para.range = (struct Rectangle){0,0,0,0};
+    }
+    if((rect->right)<(rect->left))
+    {
+        __gk_swap((rect->right),(rect->left));
+        if((Mode!= 0)||(Mode != CN_FILLRECT_MODE_N))
+            flag+=1;
+    }
+    if((rect->bottom)<(rect->top))
+    {
+        __gk_swap((rect->bottom),(rect->top));
+        if((Mode!= 0)||(Mode != CN_FILLRECT_MODE_N))
+            flag+=2;
+    }
+    if(flag == 0);
+    else if(flag == 1)
+    {
+        if(Mode == CN_FILLRECT_MODE_LR)
+        {
+            __gk_swap(Color0,Color1);
+        }
+        else if(Mode ==CN_FILLRECT_MODE_LU2RD)
+        {
+            Mode = CN_FILLRECT_MODE_RU2LD;
+        }
+        else if(Mode ==CN_FILLRECT_MODE_RU2LD)
+        {
+            Mode = CN_FILLRECT_MODE_LU2RD;
+        }
+    }
+    else if(flag == 2)
+    {
+        if(Mode == CN_FILLRECT_MODE_UD)
+        {
+            __gk_swap(Color0,Color1);
+        }
+        else if(Mode == CN_FILLRECT_MODE_LU2RD)
+        {
+            Mode = CN_FILLRECT_MODE_RU2LD;
+            __gk_swap(Color0,Color1);
+        }
+        else if(Mode == CN_FILLRECT_MODE_RU2LD)
+        {
+            Mode = CN_FILLRECT_MODE_LU2RD;
+            __gk_swap(Color0,Color1);
+        }
+    }
+    else if(flag == 3)
+        __gk_swap(Color0,Color1);
+
     para.gkwin = gkwin;
     para.rect = *rect;
     para.Color0 = Color0;
@@ -338,7 +398,7 @@ void GK_DrawText(struct GkWinObj *gkwin,struct Rectangle *range,
                     struct FontObj *pFont,
                     struct Charset *pCharset,
                     s32 x,s32 y,
-                    const char *text,u32 count,u32 color,
+                    const char *text,s32 count,u32 color,
                     u32 Rop2Code,u32 SyncTime)
 {
     u16 TextBytes;
@@ -442,23 +502,23 @@ void GK_Lineto(struct GkWinObj *gkwin,struct Rectangle *range, s32 x1,s32 y1,
 //      Rop2Mode，二元光栅操作码，参见 CN_R2_BLACK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_LinetoIe(struct GkWinObj *gkwin, s32 x1,s32 y1,
-                    s32 x2,s32 y2,u32 color,u32 Rop2Code,u32 SyncTime)
-{
-    struct GkscParaLineto para;
-    if(NULL == gkwin)
-        return;
-    para.gkwin = gkwin;
-    para.x1 = x1;
-    para.y1 = y1;
-    para.x2 = x2;
-    para.y2 = y2;
-    para.color = color;
-    para.Rop2Code = Rop2Code;
-    __GK_SyscallChunnel(CN_GKSC_LINETO_INC_END,SyncTime,
-                        &para,sizeof(para),NULL,0);
-    return;
-}
+//void GK_LinetoIe(struct GkWinObj *gkwin, s32 x1,s32 y1,
+//                    s32 x2,s32 y2,u32 color,u32 Rop2Code,u32 SyncTime)
+//{
+//    struct GkscParaLineto para;
+//    if(NULL == gkwin)
+//        return;
+//    para.gkwin = gkwin;
+//    para.x1 = x1;
+//    para.y1 = y1;
+//    para.x2 = x2;
+//    para.y2 = y2;
+//    para.color = color;
+//    para.Rop2Code = Rop2Code;
+//    __GK_SyscallChunnel(CN_GKSC_LINETO_INC_END,SyncTime,
+//                        &para,sizeof(para),NULL,0);
+//    return;
+//}
 
 //----画光栅位图---------------------------------------------------------------
 //功能: 绘制bitmap，带光栅操作。
@@ -512,12 +572,20 @@ void GK_DrawBitMap(struct GkWinObj *gkwin,struct Rectangle *range,
 //      Rop2Mode，二元光栅操作码，参见 CN_R2_BLACK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_DrawCircle(struct GkWinObj *gkwin,s32 x0,s32 y0,
+void GK_DrawCircle(struct GkWinObj *gkwin,struct Rectangle *range,s32 x0,s32 y0,
                     u32 r,u32 color,u32 Rop2Code,u32 SyncTime)
 {
     struct GkscParaDrawCircle para;
     if(NULL == gkwin)
         return;
+    if(NULL != range)       //若给定了限定区，则判断之
+    {
+        para.range = *range;
+    }
+    else
+    {
+        para.range = (struct Rectangle){0,0,0,0};
+    }
     para.gkwin = gkwin;
     para.x0 = x0;
     para.y0 = y0;
@@ -536,13 +604,21 @@ void GK_DrawCircle(struct GkWinObj *gkwin,s32 x0,s32 y0,
 //      Rop2Mode，二元光栅操作码，参见 CN_R2_BLACK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_DrawBezier(struct GkWinObj *gkwin,float x1,float y1,
+void GK_DrawBezier(struct GkWinObj *gkwin,struct Rectangle *range,float x1,float y1,
                     float x2,float y2,float x3,float y3,float x4,float y4,
                     u32 color,u32 Rop2Code,u32 SyncTime)
 {
     struct GkscParaBezier para;
     if(NULL == gkwin)
         return;
+    if(NULL != range)       //若给定了限定区，则判断之
+    {
+        para.range = *range;
+    }
+    else
+    {
+        para.range = (struct Rectangle){0,0,0,0};
+    }
     para.gkwin = gkwin;
     para.x1 = x1;
     para.y1 = y1;
@@ -760,6 +836,7 @@ void GK_SetPrio(struct GkWinObj *gkwin, s32 prio,u32 SyncTime)
 //      visible，CN_GKWIN_VISIBLE=可视，CN_GKWIN_HIDE=隐藏
 //      sync_time，绘制图形时间同步，在此时间内不管是否绘制完成都返回
 //返回: 无
+//注意：若 sync_time != 无穷，则随后调用 GK_IsWinVisible 可能得到原来的状态
 //-----------------------------------------------------------------------------
 void GK_SetVisible(struct GkWinObj *gkwin, u32 visible,u32 SyncTime)
 {
@@ -880,7 +957,7 @@ void *GK_GetUserTag(struct GkWinObj *gkwin)
     if(gkwin != NULL)
         return gkwin->UserTag;
     else
-        return 0;
+        return NULL;
 }
 
 //----设置gkwin的用户数据------------------------------------------------------
@@ -1109,7 +1186,7 @@ bool_t GK_IsWinVisible(struct GkWinObj *gkwin)
 {
     if(NULL == gkwin)
         return false;
-    if(gkwin->WinProperty.Visible == 0)
+    if(gkwin->WinProperty.VisibleExec == CN_GKWIN_HIDE)
         return false;
     else
         return true;

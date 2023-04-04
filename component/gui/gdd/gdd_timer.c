@@ -359,14 +359,14 @@ ptu32_t GDD_TimerScan(void)
     {
         if(dListIsEmpty(&sg_GddTimerList))
         {
-            //定时器队列空，只有创建定时器才释放信号量
+            //定时器队列空，只有创建并启动定时器才释放信号量
             Lock_SempPend(s_ptGddTimerRun, CN_TIMEOUT_FOREVER);
         }
         else
         {
             NowTime = DJY_GetSysTime( );
             Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
-            tmp = (&sg_GddTimerList)->next;
+            tmp = sg_GddTimerList.next;
             timer = dListEntry(tmp,struct WinTimer,node_sys);
             if(timer->Alarm > NowTime)
             {

@@ -510,7 +510,7 @@ static bool_t __Widget_RichTextBoxTouchDown(struct WindowMsg *pMsg)
     }
     GDD_SetWindowPrivateData(hwnd,(ptu32_t)pRTB);
 
-    GDD_CursorSetHost(hwnd);
+//    GDD_CursorSetHost(hwnd);
 
     GDD_SetFocusWindow(hwnd);
 
@@ -614,16 +614,16 @@ static ptu32_t __Widget_RichTextBoxPaint(struct WindowMsg *pMsg)
 
     if(bColor==true)
        {
-        GDD_SetFillColor(hdc,RGB(200,200,0));
+        GDD_SetBackGroundColor(hdc,RGB(200,200,0));
        }
     else
-        GDD_SetFillColor(hdc,RGB(0,200,0));
+        GDD_SetBackGroundColor(hdc,RGB(0,200,0));
 
-    GDD_FillRect(hdc,&rc);
+    GDD_FillRectEx(hdc,&rc,hdc->BGColor);
 
     GDD_SetTextColor(hdc,RGB(1,0,0));
     GDD_SetDrawColor(hdc,RGB(255,255,255));
-//    GDD_SetFillColor(hdc,RGB(200,0,240));
+//    GDD_SetBackGroundColor(hdc,RGB(200,0,240));
 
     i=DT_LEFT|DT_VCENTER;
     if(bBorder)
@@ -663,7 +663,8 @@ void    Widget_CreateRichTextBox(void)
 {
     s_gDrawTextDemoMsgLink.MsgNum = sizeof(s_gDrawTextMsgTable) / sizeof(struct MsgProcTable);
     s_gDrawTextDemoMsgLink.myTable = (struct MsgProcTable *)&s_gDrawTextMsgTable;
-    GDD_CreateGuiApp("DrawText", &s_gDrawTextDemoMsgLink, 0,0,-1,0, 0x1000, CN_WINBUF_PARENT,
-                0, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE);
+    GDD_CreateGuiApp("DrawText", &s_gDrawTextDemoMsgLink, 0,0,-1,0, CN_WINBUF_PARENT,
+                0, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE, 0x1000);
+
     GDD_WaitGuiAppExit("DrawText");
 }

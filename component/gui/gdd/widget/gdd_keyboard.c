@@ -201,8 +201,8 @@ static  bool_t __Widget_VirKeyBoardPaint(struct WindowMsg *pMsg)
     }
 
     GDD_GetClientRect(hwnd,&rc);
-    GDD_SetFillColor(hdc,RGB(255,255,255));
-    GDD_FillRect(hdc,&rc);
+    GDD_SetBackGroundColor(hdc,RGB(255,255,255));
+    GDD_FillRectEx(hdc,&rc,hdc->BGColor);
     width=GDD_RectW(&rc);
     height=GDD_RectH(&rc);
     gs_KeyWidth=(width-(gs_KeyBoardCols+1)*gs_KeySpace)/gs_KeyBoardCols;
@@ -536,12 +536,21 @@ HWND Widget_CreateVirKeyBoard(const char *Text,u32 Style,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
-    s_gVirKeyBoardMsgLink.MsgNum = sizeof(s_gVirKeyBoardMsgProcTable) / sizeof(struct MsgProcTable);
-    s_gVirKeyBoardMsgLink.myTable = (struct MsgProcTable *)&s_gVirKeyBoardMsgProcTable;
-    pGddWin=GDD_CreateWindow(Text, WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
-                            CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
-                            &s_gVirKeyBoardMsgLink);
-    if(UserMsgTableLink != NULL)
-        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-    return pGddWin;
+    if(hParent == NULL)
+        hParent = GDD_GetDesktopWindow(NULL);
+    //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
+    //完成后，即消息处理函数表完整后再取出消息处理。
+    if(__GDD_Lock())
+    {
+        s_gVirKeyBoardMsgLink.MsgNum = sizeof(s_gVirKeyBoardMsgProcTable) / sizeof(struct MsgProcTable);
+        s_gVirKeyBoardMsgLink.myTable = (struct MsgProcTable *)&s_gVirKeyBoardMsgProcTable;
+        pGddWin=GDD_CreateWindow(Text,&s_gVirKeyBoardMsgLink, x,y,w,h,CN_WINBUF_PARENT,
+                                 WS_CAN_FOCUS|Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,WinId,pdata,hParent);
+        if(UserMsgTableLink != NULL)
+            GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __GDD_Unlock();
+        return pGddWin;
+    }
+    else
+        return NULL;
 }

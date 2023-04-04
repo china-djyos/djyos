@@ -225,10 +225,10 @@ static  bool_t __Widget_ProgressBarPaint(struct WindowMsg *pMsg)
 
         if(hwnd->Style&PBS_FLAT)
         {
-            GDD_SetFillColor(hdc,pPB->FGColor);
-            GDD_FillRect(hdc,&m_rc[0]);
-            GDD_SetFillColor(hdc,pPB->BGColor);
-            GDD_FillRect(hdc,&m_rc[1]);
+            GDD_SetBackGroundColor(hdc,pPB->FGColor);
+            GDD_FillRectEx(hdc,&m_rc[0],hdc->BGColor);
+            GDD_SetBackGroundColor(hdc,pPB->BGColor);
+            GDD_FillRectEx(hdc,&m_rc[1],hdc->BGColor);
         }
         else
         {
@@ -438,14 +438,23 @@ HWND Widget_CreateProgressBar(  const char *Text,u32 Style,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
-    s_gProgressBarMsgLink.MsgNum = sizeof(s_gProgressBarMsgProcTable) / sizeof(struct MsgProcTable);
-    s_gProgressBarMsgLink.myTable = (struct MsgProcTable *)&s_gProgressBarMsgProcTable;
-    pGddWin = GDD_CreateWindow(Text,Style,x,y,w,h,hParent,WinId,
-                                CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
-                                &s_gProgressBarMsgLink);
-    if(UserMsgTableLink != NULL)
-        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-    return pGddWin;
+    if(hParent == NULL)
+        hParent = GDD_GetDesktopWindow(NULL);
+    //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
+    //完成后，即消息处理函数表完整后再取出消息处理。
+    if(__GDD_Lock())
+    {
+        s_gProgressBarMsgLink.MsgNum = sizeof(s_gProgressBarMsgProcTable) / sizeof(struct MsgProcTable);
+        s_gProgressBarMsgLink.myTable = (struct MsgProcTable *)&s_gProgressBarMsgProcTable;
+        pGddWin=GDD_CreateWindow(Text,&s_gProgressBarMsgLink, x,y,w,h,CN_WINBUF_PARENT,
+                                 Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,WinId,pdata,hParent);
+        if(UserMsgTableLink != NULL)
+            GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __GDD_Unlock();
+        return pGddWin;
+    }
+    else
+        return NULL;
 }
 
 

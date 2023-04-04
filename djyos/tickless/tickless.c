@@ -46,6 +46,7 @@
 #include "stddef.h"
 #include "board-config.h"
 
+//实现tickless的方法改变，本文件实际没有使用
 static struct djytickless_register_param_t
 djytickless =
 {

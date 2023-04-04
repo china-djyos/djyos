@@ -615,7 +615,7 @@ static bool_t __Widget_ListViewPaint(struct WindowMsg *pMsg)
     ////
 
     GDD_SetTextColor(hdc,RGB(0,0,0));
-    GDD_SetFillColor(hdc,RGB(220,220,220));
+    GDD_SetBackGroundColor(hdc,RGB(220,220,220));
     GDD_SetDrawColor(hdc,RGB(160,160,200));
 
     //draw org hdr
@@ -662,7 +662,7 @@ static bool_t __Widget_ListViewPaint(struct WindowMsg *pMsg)
         //绘制行标签
         GDD_SetRect(&rc,x,y,pLV->row_width,row->Height);
         GDD_SetTextColor(hdc,RGB(0,0,0));
-        GDD_SetFillColor(hdc,RGB(160,160,160));
+        GDD_SetBackGroundColor(hdc,RGB(160,160,160));
         GDD_SetDrawColor(hdc,RGB(160,160,200));
 
         rc0 =rc;
@@ -695,7 +695,7 @@ static bool_t __Widget_ListViewPaint(struct WindowMsg *pMsg)
                 cell =&row->cell_item[i];
 
                 GDD_SetTextColor(hdc,cell->TextColor);
-                GDD_SetFillColor(hdc,cell->BackColor);
+                GDD_SetBackGroundColor(hdc,cell->BackColor);
                 GDD_SetDrawColor(hdc,RGB(160,160,200));
 
                 dt =DT_BKGND|DT_BORDER;
@@ -795,14 +795,23 @@ HWND Widget_CreateListView(  const char *Text,u32 Style,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
-    s_gListViewMsgLink.MsgNum = sizeof(s_gListViewMsgProcTable) / sizeof(struct MsgProcTable);
-    s_gListViewMsgLink.myTable = (struct MsgProcTable *)&s_gListViewMsgProcTable;
-    pGddWin=GDD_CreateWindow(Text, WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
-                            CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
-                            &s_gListViewMsgLink);
-    if(UserMsgTableLink != NULL)
-        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-    return pGddWin;
+    if(hParent == NULL)
+        hParent = GDD_GetDesktopWindow(NULL);
+    //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
+    //完成后，即消息处理函数表完整后再取出消息处理。
+    if(__GDD_Lock())
+    {
+        s_gListViewMsgLink.MsgNum = sizeof(s_gListViewMsgProcTable) / sizeof(struct MsgProcTable);
+        s_gListViewMsgLink.myTable = (struct MsgProcTable *)&s_gListViewMsgProcTable;
+        pGddWin=GDD_CreateWindow(Text,&s_gListViewMsgLink, x,y,w,h,CN_WINBUF_PARENT,
+                                 WS_CAN_FOCUS|Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,WinId,pdata,hParent);
+        if(UserMsgTableLink != NULL)
+            GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __GDD_Unlock();
+        return pGddWin;
+    }
+    else
+        return NULL;
 }
 
 

@@ -84,9 +84,9 @@ static  bool_t __Widget_CheckBoxPaint(struct WindowMsg *pMsg)
 
         GDD_SetTextColor(hdc,RGB(1,1,1));
         GDD_SetDrawColor(hdc,RGB(40,40,40));
-        GDD_SetFillColor(hdc,RGB(200,200,200));
+        GDD_SetBackGroundColor(hdc,RGB(200,200,200));
 
-        GDD_FillRect(hdc,&rc0);
+        GDD_FillRectEx(hdc,&rc0,hdc->BGColor);
 
         if(hwnd->Style&CBS_SELECTED)
         {
@@ -103,8 +103,8 @@ static  bool_t __Widget_CheckBoxPaint(struct WindowMsg *pMsg)
             GDD_DrawRect(hdc,&rc);
 
             GDD_InflateRect(&rc,-1,-1);
-            GDD_SetFillColor(hdc,RGB(240,240,240));
-            GDD_FillRect(hdc,&rc);
+            GDD_SetBackGroundColor(hdc,RGB(240,240,240));
+            GDD_FillRectEx(hdc,&rc,hdc->BGColor);
 
             GDD_InflateRect(&rc,-4,-4);
             GDD_SetDrawColor(hdc,RGB(150,150,240));
@@ -114,8 +114,8 @@ static  bool_t __Widget_CheckBoxPaint(struct WindowMsg *pMsg)
             GDD_DrawRect(hdc,&rc);
 
             GDD_InflateRect(&rc,-1,-1);
-            GDD_SetFillColor(hdc,RGB(50,50,200));
-            GDD_FillRect(hdc,&rc);
+            GDD_SetBackGroundColor(hdc,RGB(50,50,200));
+            GDD_FillRectEx(hdc,&rc,hdc->BGColor);
         }
         else
         {
@@ -132,8 +132,8 @@ static  bool_t __Widget_CheckBoxPaint(struct WindowMsg *pMsg)
             GDD_DrawRect(hdc,&rc);
 
             GDD_InflateRect(&rc,-1,-1);
-            GDD_SetFillColor(hdc,RGB(220,220,220));
-            GDD_FillRect(hdc,&rc);
+            GDD_SetBackGroundColor(hdc,RGB(220,220,220));
+            GDD_FillRectEx(hdc,&rc,hdc->BGColor);
 
         }
 
@@ -210,14 +210,23 @@ HWND Widget_CreateCheckBox(  const char *Text,u32 Style,
 {
     HWND pGddWin;
 
-    s_gCheckBoxMsgLink.MsgNum = sizeof(s_gCheckBoxMsgProcTable) / sizeof(struct MsgProcTable);
-    s_gCheckBoxMsgLink.myTable = (struct MsgProcTable *)&s_gCheckBoxMsgProcTable;
-    pGddWin=GDD_CreateWindow(Text, WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
-                            CN_WINBUF_PARENT,pdata, CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
-                            &s_gCheckBoxMsgLink);
-    if(UserMsgTableLink != NULL)
-        GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
-    return pGddWin;
+    if(hParent == NULL)
+        hParent = GDD_GetDesktopWindow(NULL);
+    //加锁后，GDD_GetMessage函数将不能立即取出消息，确保 GDD_AddProcFuncTable 函数
+    //完成后，即消息处理函数表完整后再取出消息处理。
+    if(__GDD_Lock())
+    {
+        s_gCheckBoxMsgLink.MsgNum = sizeof(s_gCheckBoxMsgProcTable) / sizeof(struct MsgProcTable);
+        s_gCheckBoxMsgLink.myTable = (struct MsgProcTable *)&s_gCheckBoxMsgProcTable;
+        pGddWin=GDD_CreateWindow(Text,&s_gCheckBoxMsgLink, x,y,w,h,CN_WINBUF_PARENT,
+                                 WS_CAN_FOCUS|Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,WinId,pdata,hParent);
+        if(UserMsgTableLink != NULL)
+            GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
+        __GDD_Unlock();
+        return pGddWin;
+    }
+    else
+        return NULL;
 }
 
 

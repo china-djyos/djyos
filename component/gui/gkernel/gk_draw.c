@@ -1774,7 +1774,7 @@ void __GK_DrawOline(struct GkWinObj *gkwin,s32 x1,s32 y1,
     //颜色格式为显卡自定义格式
     if(bitmap->PixelFormat & CN_CUSTOM_PF)
     {
-        for(i=1;i<=dx;i++)
+        for(i=0;i<=dx;i++)
         {
             gkwin->disp->draw.SetPixelToBitmap(bitmap,x,y,color,Rop2Code);
             //取离数学点较近的像素
@@ -1796,7 +1796,7 @@ void __GK_DrawOline(struct GkWinObj *gkwin,s32 x1,s32 y1,
     else
     {//颜色格式为其它格式
         pf_color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,color);
-        for(i=1;i<=dx;i++)
+        for(i=0;i<=dx;i++)
         {
             __GK_SetPixelRop2Bm(bitmap,x,y,pf_color,Rop2Code);
             //取离数学点较近的像素
@@ -1817,7 +1817,7 @@ void __GK_DrawOline(struct GkWinObj *gkwin,s32 x1,s32 y1,
     }
 }
 
-//----画垂直线(不含结束端点)-------------------------------------------------------
+//----画垂直线-------------------------------------------------------
 //功能: 在窗口内画一条垂直线，只画limit限定的部分
 //参数: gkwin，目标窗口指针
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
@@ -1866,13 +1866,13 @@ void __GK_VlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
     {
         if(flag==1)
         {
-            for(y = y1; y < y2;y++)
+            for(y = y1; y <= y2;y++)
             {
                 gkwin->disp->draw.SetPixelToBitmap(bitmap,x1,y,color,Rop2Code);
             }
         }else
         {
-            for(y = y1; y > y2;y--)
+            for(y = y1; y >= y2;y--)
             {
                 gkwin->disp->draw.SetPixelToBitmap(bitmap,x1,y,color,Rop2Code);
             }
@@ -1883,13 +1883,13 @@ void __GK_VlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
         pf_color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,color);
         if(flag==1)
         {
-            for(y = y1; y < y2;y++)
+            for(y = y1; y <= y2;y++)
             {
                 __GK_SetPixelRop2Bm(bitmap,x1,y,pf_color,Rop2Code);
             }
         }else
         {
-            for(y = y1; y > y2;y--)
+            for(y = y1; y >= y2;y--)
             {
                 __GK_SetPixelRop2Bm(bitmap,x1,y,pf_color,Rop2Code);
             }
@@ -1920,7 +1920,7 @@ void __GK_VlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
     }
 }
 
-//----画水平直线(不含结束端点)-------------------------------------------------------
+//----画水平直线-------------------------------------------------------
 //功能: 在窗口内画一条水平直线，只画limit限定的部分
 //参数: gkwin，目标窗口指针
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
@@ -1986,13 +1986,13 @@ void __GK_HlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
         pf_color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,color);
         if(flag==1)
         {
-            for(x = x1;x < x2;x++)
+            for(x = x1;x <= x2;x++)
             {//对1、2、4位色screen，这个循环很耗cpu，考虑改进--db
                 __GK_SetPixelRop2Bm(bitmap,x,y1,pf_color,Rop2Code);
             }
         }else
         {
-            for(x = x1;x > x2;x--)
+            for(x = x1;x >= x2;x--)
             {//对1、2、4位色screen，这个循环很耗cpu，考虑改进--db
                 __GK_SetPixelRop2Bm(bitmap,x,y1,pf_color,Rop2Code);
             }
@@ -2023,7 +2023,7 @@ void __GK_HlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,
     }
 }
 
-//----画斜线(不含结束端点)---------------------------------------------------------
+//----画斜线---------------------------------------------------------
 //功能: 在窗口内画一条斜线，只画limit限定的部分
 //参数: gkwin，目标窗口指针
 //      limit，绘制的限制区，只绘制直线在limit矩形内部的部分
@@ -2164,8 +2164,8 @@ void __GK_OlinetoWin(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
         }
     }
 }
-//----画直线(不含端点)---------------------------------------------------------
-//功能: 在窗口上画直线，端点不画，须处理changed_msk区。
+//----画线---------------------------------------------------------
+//功能: 在窗口上画直线，须处理changed_msk区。
 //参数: gkwin，目标窗口指针
 //      limit，允许绘图的限制区域，一个矩形的区域,超出此区域的直线不画
 //      x1、y1、x2、y2，起点和终点坐标
@@ -2211,8 +2211,8 @@ void __GK_SetPixelScreen(struct DisplayObj *display,s32 x,s32 y,
     }
 }
 
-//----画直线(不含端点)---------------------------------------------------------
-//功能: 在screen上直接画直线，端点不画。
+//----画直线---------------------------------------------------------
+//功能: 在screen上直接画直线。
 //参数: display，绘制的目标显示器
 //      limit，允许绘图的限制区域，一个矩形的区域，超出此区域的直线不画
 //      x1、y1、x2、y2，起点和终点坐标
@@ -2947,7 +2947,7 @@ void __GK_DrawCircleBm(struct GkWinObj *gkwin,struct Rectangle *limit,
     bitmap = gkwin->wm_bitmap;
     //要求给定的颜色的颜色格式为24位
     //绘制像素前需将24位调整为与显示屏一致的颜色格式
-    pf_color = GK_ConvertRGB24ToPF(gkwin->disp->pixel_format,color);
+    pf_color = GK_ConvertRGB24ToPF(bitmap->PixelFormat, color);
 
     //整个圆都在limit内
     if((x0-limit->left >= r)&&(limit->right-x0 > r)
@@ -3204,7 +3204,7 @@ void __GK_DrawCircleScreen(struct DisplayObj *display,struct Rectangle *limit,
 //-----------------------------------------------------------------------------
 void __GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
 {
-    struct Rectangle limit;
+    struct Rectangle limit,limitclip;
     struct ClipRect *clip;
     struct GkWinObj *fb_gkwin,*cirwin;
 //    struct DispDraw *my_draw_fun;
@@ -3214,15 +3214,22 @@ void __GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
     if(para->r <= 0)                                         //无须绘制
         return;
     cirwin = para->gkwin;
+    if(para->range.left == para->range.right)
+    {
+        limit = cirwin->limit;
+    }
+    else
+    {
+        __GK_GetRectInts(&para->range, &cirwin->limit, &limit);
+    }
 //    my_draw_fun = &cirwin->disp->draw;
     //说明有win buffer，且直接写屏属性为false
-//todo 修改by zhb 20160602
     if((cirwin->wm_bitmap!=NULL)&&(cirwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
     {   //处理方法:在win buffer中绘图，标志changed_msk
-        limit.left = 0;
-        limit.top = 0;
-        limit.right = cirwin->wm_bitmap->width;
-        limit.bottom = cirwin->wm_bitmap->height;
+//      limit.left = 0;
+//      limit.top = 0;
+//      limit.right = cirwin->wm_bitmap->width;
+//      limit.bottom = cirwin->wm_bitmap->height;
         //以硬件加速不支持圆的绘制考虑，用软件实现
         __GK_DrawCircleBm(cirwin,&limit,para->x0,para->y0,para->r,
                 para->color,para->Rop2Code);
@@ -3239,8 +3246,9 @@ void __GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
         if((fb_gkwin != NULL) && (cirwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
         {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
             do{
+                __GK_GetRectInts(&limit, &clip->rect, &limitclip);
                 //以硬件加速不支持圆的绘制考虑，用软件实现
-                __GK_DrawCircleBm(fb_gkwin,&clip->rect,
+                __GK_DrawCircleBm(fb_gkwin,&limitclip,
                                     para->x0+offsetx,para->y0+offsety,
                                     para->r,para->color,para->Rop2Code);
                 clip = clip->next;
@@ -3250,7 +3258,8 @@ void __GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
         //直接写屏属性为true，不管有无缓冲区，都直接画在screen上
         {
             do{
-                __GK_DrawCircleScreen(cirwin->disp,&clip->rect,
+                __GK_GetRectInts(&limit, &clip->rect, &limitclip);
+                __GK_DrawCircleScreen(cirwin->disp,&limitclip,
                             para->x0+offsetx,para->y0+offsety,para->r,
                             para->color,para->Rop2Code);
                 clip = clip->next;
@@ -3380,22 +3389,30 @@ void __GK_BezierScreen(struct DisplayObj *display,struct Rectangle *limit,
 void __GK_Bezier(struct GkscParaBezier *para)
 {
     s32 offsetx,offsety;
-    struct Rectangle limit;
+    struct Rectangle limit,limitclip;
     struct ClipRect *clip;
     struct GkWinObj *fb_gkwin,*bzrwin;
 //    struct DispDraw *my_draw_fun;
     if((para->Rop2Code == CN_R2_NOP) || (para->Rop2Code > CN_R2_LAST))
         return;                                         //不执行操作
     bzrwin = para->gkwin;
+    if(para->range.left == para->range.right)
+    {
+        limit = bzrwin->limit;
+    }
+    else
+    {
+        __GK_GetRectInts(&para->range, &bzrwin->limit, &limit);
+    }
 //    my_draw_fun = &bzrwin->disp->draw;
     //说明有win buffer，且直接写屏属性为false
     if((bzrwin->wm_bitmap != NULL)
         && (bzrwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
     {   //处理方法:在win buffer中绘图，标志changed_msk
-        limit.left = 0;
-        limit.top = 0;
-        limit.right = bzrwin->wm_bitmap->width;
-        limit.bottom = bzrwin->wm_bitmap->height;
+//      limit.left = 0;
+//      limit.top = 0;
+//      limit.right = bzrwin->wm_bitmap->width;
+//      limit.bottom = bzrwin->wm_bitmap->height;
         //以硬件加速不支持贝塞尔曲线的绘制考虑，用软件实现
         __GK_BezierBm(bzrwin,&limit,para->x1,para->y1,para->x2,para->y2,
                             para->x3,para->y3,para->x4,para->y4,
@@ -3412,8 +3429,9 @@ void __GK_Bezier(struct GkscParaBezier *para)
         if((fb_gkwin != NULL) && (bzrwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
         {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
             do{
+                __GK_GetRectInts(&limit, &clip->rect, &limitclip);
                 //以硬件加速不支持贝塞尔曲线的绘制考虑，用软件实现
-                __GK_BezierBm(fb_gkwin,&clip->rect,para->x1+offsetx,
+                __GK_BezierBm(fb_gkwin,&limitclip,para->x1+offsetx,
                             para->y1+offsety,para->x2+offsetx,para->y2+offsety,
                             para->x3+offsetx,para->y3+offsety,para->x4+offsetx,
                             para->y4+offsety,para->color,para->Rop2Code);
@@ -3424,6 +3442,7 @@ void __GK_Bezier(struct GkscParaBezier *para)
         //直接写屏属性为true，不管有无缓冲区，直接画在screen上
         {
             do{
+                __GK_GetRectInts(&limit, &limitclip, &limitclip);
                 __GK_BezierScreen(bzrwin->disp,&clip->rect,para->x1+offsetx,
                             para->y1+offsety,para->x2+offsetx,para->y2+offsety,
                             para->x3+offsetx,para->y3+offsety,para->x4+offsetx,
@@ -3445,7 +3464,7 @@ void __GK_Bezier(struct GkscParaBezier *para)
 //-----------------------------------------------------------------------------
 void __GK_Lineto(struct GkscParaLineto *para)
 {
-    struct Rectangle limit;
+    struct Rectangle limit,limitclip;
     struct ClipRect *clip;
     struct GkWinObj *fb_gkwin,*linetowin;
     struct DispDraw *my_draw_fun;
@@ -3455,19 +3474,19 @@ void __GK_Lineto(struct GkscParaLineto *para)
     if((para->x1==para->x2) && (para->y1==para->y2))    //无须绘制
         return;
     linetowin = para->gkwin;
+    if(para->range.left == para->range.right)
+    {
+        limit = linetowin->limit;
+    }
+    else
+    {
+        __GK_GetRectInts(&para->range, &linetowin->limit, &limit);
+    }
     my_draw_fun = &linetowin->disp->draw;
     //说明有win buffer，且直接写屏属性为false
     if((linetowin->wm_bitmap != NULL)
         && (linetowin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
     {   //处理方法:在win buffer中绘图，标志changed_msk
-        if(para->range.left == para->range.right)
-        {
-            limit = linetowin->limit;
-        }
-        else
-        {
-            __GK_GetRectInts(&para->range, &linetowin->limit, &limit);
-        }
 //      limit.left = 0;
 //      limit.top = 0;
 //      limit.right = linetowin->wm_bitmap->width;
@@ -3497,21 +3516,21 @@ void __GK_Lineto(struct GkscParaLineto *para)
         if((fb_gkwin != NULL) && (linetowin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
         {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
             do{
-                __GK_GetRectInts(&para->range, &clip->rect, &limit);
+                __GK_GetRectInts(&limit, &clip->rect, &limitclip);
                 if(!my_draw_fun->LineToBitmap(
-                            fb_gkwin->wm_bitmap,&limit,
+                            fb_gkwin->wm_bitmap,&limitclip,
                             para->x1+offsetx,para->y1+offsety,para->x2+offsetx,
                             para->y2+offsety,para->color,para->Rop2Code))
                 {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
                     //同时处理了changed_msk
-                    __GK_LinetoWin(fb_gkwin,&limit,
+                    __GK_LinetoWin(fb_gkwin,&limitclip,
                                     para->x1+offsetx,para->y1+offsety,
                                     para->x2+offsetx,para->y2+offsety,
                                     para->color,para->Rop2Code);
                 }
                 else    //硬件加速绘图时，未处理changed_msk，处理之
                 {
-                    __GK_ShadingLine(fb_gkwin,&limit,para->x1+offsetx,
+                    __GK_ShadingLine(fb_gkwin,&limitclip,para->x1+offsetx,
                                       para->y1+offsety,para->x2+offsetx,
                                       para->y2+offsety);
                 }
@@ -3523,12 +3542,12 @@ void __GK_Lineto(struct GkscParaLineto *para)
         //直接写屏属性为true，不管有无缓冲区，都直接画在screen上
         {
             do{//在screen上直接画直线，不画终点
-                __GK_GetRectInts(&para->range, &clip->rect, &limit);
-                if(!my_draw_fun->LineToScreen(&limit,para->x1+offsetx,
+                __GK_GetRectInts(&limit, &clip->rect, &limitclip);
+                if(!my_draw_fun->LineToScreen(&limitclip,para->x1+offsetx,
                              para->y1+offsety,para->x2+offsetx,para->y2+offsety,
                              para->color,para->Rop2Code))
                 {
-                    __GK_LinetoScreen(linetowin->disp,&limit,
+                    __GK_LinetoScreen(linetowin->disp,&limitclip,
                             para->x1+offsetx,para->y1+offsety,para->x2+offsetx,
                             para->y2+offsety,para->color,para->Rop2Code);
                 }
@@ -3548,267 +3567,267 @@ void __GK_Lineto(struct GkscParaLineto *para)
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_LinetoIe(struct GkscParaLineto *para)
-{
-    s32 dx,dy;
-    struct Rectangle limit;
-    struct ClipRect *clip;
-    struct GkWinObj *fb_gkwin,*lintoiewin;
-    struct DispDraw *my_draw_fun;
-    struct DisplayObj *display;
-    s32 offsetx,offsety;
-    if((para->Rop2Code == CN_R2_NOP) || (para->Rop2Code > CN_R2_LAST))
-        return;                                         //不执行操作
-    if((para->x1==para->x2) && (para->y1==para->y2))    //无须绘制
-        return;
-    lintoiewin = para->gkwin;
-    display = lintoiewin->disp;
-    my_draw_fun = &display->draw;
-    if(para->y1 == para->y2)    //绘制水平线
-    {
-        //说明有win buffer，且直接写屏属性为false
-        if((lintoiewin->wm_bitmap != NULL)
-            && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
-        {   //处理方法:在win buffer中绘图，标志changed_msk
-            limit.left = 0;
-            limit.top = 0;
-            limit.right = lintoiewin->wm_bitmap->width;
-            limit.bottom = lintoiewin->wm_bitmap->height;
-            if(!my_draw_fun->LineToBitmapIe(lintoiewin->wm_bitmap,&limit,para->x1,
-                        para->y1,para->x2,para->y2,para->color,para->Rop2Code))
-            {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
-                //同时处理了changed_msk
-                __GK_HlinetoWin(lintoiewin,&limit,para->x1,para->y1,
-                                para->x2+1,para->color,para->Rop2Code);
-            }
-            else
-            {   //硬件加速支持直线绘制，未处理changed_msk，处理之
-                __GK_ShadingLine(lintoiewin,&limit,
-                                para->x1,para->y1,para->x2+1,para->y2);
-            }
-
-        }
-        else       //无win buffer，或直接写屏属性为true
-        {
-            clip = lintoiewin->visible_clip;
-            if(clip == NULL)
-                return ;
-            fb_gkwin = display->frame_buffer;
-            offsetx = lintoiewin->ScreenX;
-            offsety = lintoiewin->ScreenY;
-            //有frame buffer，且直接写屏属性为false
-            if((fb_gkwin != NULL) && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
-            {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
-                do
-                {
-                    if(!my_draw_fun->LineToBitmapIe(
-                                fb_gkwin->wm_bitmap,&clip->rect,
-                                para->x1+offsetx,para->y1+offsety,
-                                para->x2+offsetx,para->y2+offsety,
-                                para->color,para->Rop2Code))
-                    {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
-                        //同时处理了changed_msk
-                        __GK_HlinetoWin(fb_gkwin,&clip->rect,
-                                    para->x1+offsetx,para->y1+offsety,
-                                    para->x2+offsetx+1,
-                                    para->color,para->Rop2Code);
-                    }
-                    else
-                    {   //硬件加速绘图时，未处理changed_msk，处理之
-                        __GK_ShadingLine(fb_gkwin,&clip->rect,
-                                        para->x1+offsetx,para->y1+offsety,
-                                        para->x2+offsetx+1,para->y2+offsety);
-                    }
-                    clip = clip->next;
-                }while(clip != lintoiewin->visible_clip);
-            }
-            else
-            //无win buffer，也无frame buffer，直接画在screen上
-            //直接写屏属性为true，不管有无缓冲区，都直接画在screen上
-            {
-                do{//在screen上直接画直线，画终点
-//                  if(!my_draw_fun->LineToScreenIe(&clip->rect,
+//void __GK_LinetoIe(struct GkscParaLineto *para)
+//{
+//    s32 dx,dy;
+//    struct Rectangle limit;
+//    struct ClipRect *clip;
+//    struct GkWinObj *fb_gkwin,*lintoiewin;
+//    struct DispDraw *my_draw_fun;
+//    struct DisplayObj *display;
+//    s32 offsetx,offsety;
+//    if((para->Rop2Code == CN_R2_NOP) || (para->Rop2Code > CN_R2_LAST))
+//        return;                                         //不执行操作
+//    if((para->x1==para->x2) && (para->y1==para->y2))    //无须绘制
+//        return;
+//    lintoiewin = para->gkwin;
+//    display = lintoiewin->disp;
+//    my_draw_fun = &display->draw;
+//    if(para->y1 == para->y2)    //绘制水平线
+//    {
+//        //说明有win buffer，且直接写屏属性为false
+//        if((lintoiewin->wm_bitmap != NULL)
+//            && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+//        {   //处理方法:在win buffer中绘图，标志changed_msk
+//            limit.left = 0;
+//            limit.top = 0;
+//            limit.right = lintoiewin->wm_bitmap->width;
+//            limit.bottom = lintoiewin->wm_bitmap->height;
+//            if(!my_draw_fun->LineToBitmapIe(lintoiewin->wm_bitmap,&limit,para->x1,
+//                        para->y1,para->x2,para->y2,para->color,para->Rop2Code))
+//            {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
+//                //同时处理了changed_msk
+//                __GK_HlinetoWin(lintoiewin,&limit,para->x1,para->y1,
+//                                para->x2+1,para->color,para->Rop2Code);
+//            }
+//            else
+//            {   //硬件加速支持直线绘制，未处理changed_msk，处理之
+//                __GK_ShadingLine(lintoiewin,&limit,
+//                                para->x1,para->y1,para->x2+1,para->y2);
+//            }
+//
+//        }
+//        else       //无win buffer，或直接写屏属性为true
+//        {
+//            clip = lintoiewin->visible_clip;
+//            if(clip == NULL)
+//                return ;
+//            fb_gkwin = display->frame_buffer;
+//            offsetx = lintoiewin->ScreenX;
+//            offsety = lintoiewin->ScreenY;
+//            //有frame buffer，且直接写屏属性为false
+//            if((fb_gkwin != NULL) && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+//            {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
+//                do
+//                {
+//                    if(!my_draw_fun->LineToBitmapIe(
+//                                fb_gkwin->wm_bitmap,&clip->rect,
 //                                para->x1+offsetx,para->y1+offsety,
 //                                para->x2+offsetx,para->y2+offsety,
-//                               para->color,para->Rop2Code))
-                    {
-                        __GK_LinetoScreen(display,&clip->rect,
-                                        para->x1+offsetx,para->y1+offsety,
-                                        para->x2+offsetx+1,para->y2+offsety,
-                                        para->color,para->Rop2Code);
-                    }
-                    clip = clip->next;
-                }while(clip != lintoiewin->visible_clip);
-            }
-        }
-    }
-    else if(para->x1 == para->x2)    //绘制垂直线
-    {
-        //说明有win buffer，且直接写屏属性为false
-        if((lintoiewin->wm_bitmap != NULL)
-            && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
-        {   //处理方法:在win buffer中绘图，标志changed_msk
-            limit.left = 0;
-            limit.top = 0;
-            limit.right = lintoiewin->wm_bitmap->width;
-            limit.bottom = lintoiewin->wm_bitmap->height;
-            if(!my_draw_fun->LineToBitmapIe(lintoiewin->wm_bitmap,&limit,para->x1,
-                        para->y1,para->x2,para->y2,para->color,para->Rop2Code))
-            {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
-                //同时处理了changed_msk
-                __GK_VlinetoWin(lintoiewin,&limit,para->x1,
-                            para->y1,para->y2+1,para->color,para->Rop2Code);
-            }
-            else
-            {   //硬件加速支持直线绘制，未处理changed_msk，处理之
-                __GK_ShadingLine(lintoiewin,&limit,
-                                para->x1,para->y1,para->x2,para->y2+1);
-            }
-        }
-        else       //无win buffer，或直接写屏属性为true
-        {
-            clip = lintoiewin->visible_clip;
-            if(clip == NULL)
-                return ;
-            fb_gkwin = display->frame_buffer;
-            offsetx = lintoiewin->ScreenX;
-            offsety = lintoiewin->ScreenY;
-            //有frame buffer，且直接写屏属性为false
-            if((fb_gkwin != NULL) && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
-            {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
-                do
-                {
-                    if(!my_draw_fun->LineToBitmapIe(
-                                fb_gkwin->wm_bitmap,&clip->rect,
-                                para->x1+offsetx,para->y1+offsety,
-                                para->x2+offsetx,para->y2+offsety,
-                                para->color,para->Rop2Code))
-                    {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
-                        //同时处理了changed_msk
-                        __GK_VlinetoWin(fb_gkwin,&clip->rect,
-                                    para->x1+offsetx,para->y1+offsety,
-                                    para->y2+offsety+1,
-                                    para->color,para->Rop2Code);
-                    }
-                    else
-                    {   //硬件加速绘图时，未处理changed_msk，处理之
-                        __GK_ShadingLine(fb_gkwin,&clip->rect,
-                                        para->x1+offsetx,para->y1+offsety,
-                                        para->x2+offsetx,para->y2+offsety+1);
-                    }
-                    clip = clip->next;
-                }while(clip != lintoiewin->visible_clip);
-            }
-            else
-            //无win buffer，也无frame buffer，直接画在screen上
-            //直接写屏属性为true，不管有无缓冲区，都直接画在screen上
-            {
-                do{//在screen上直接画直线，画终点
-//                  if(!my_draw_fun->LineToScreenIe(&clip->rect,
+//                                para->color,para->Rop2Code))
+//                    {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
+//                        //同时处理了changed_msk
+//                        __GK_HlinetoWin(fb_gkwin,&clip->rect,
+//                                    para->x1+offsetx,para->y1+offsety,
+//                                    para->x2+offsetx+1,
+//                                    para->color,para->Rop2Code);
+//                    }
+//                    else
+//                    {   //硬件加速绘图时，未处理changed_msk，处理之
+//                        __GK_ShadingLine(fb_gkwin,&clip->rect,
+//                                        para->x1+offsetx,para->y1+offsety,
+//                                        para->x2+offsetx+1,para->y2+offsety);
+//                    }
+//                    clip = clip->next;
+//                }while(clip != lintoiewin->visible_clip);
+//            }
+//            else
+//            //无win buffer，也无frame buffer，直接画在screen上
+//            //直接写屏属性为true，不管有无缓冲区，都直接画在screen上
+//            {
+//                do{//在screen上直接画直线，画终点
+////                  if(!my_draw_fun->LineToScreenIe(&clip->rect,
+////                                para->x1+offsetx,para->y1+offsety,
+////                                para->x2+offsetx,para->y2+offsety,
+////                               para->color,para->Rop2Code))
+//                    {
+//                        __GK_LinetoScreen(display,&clip->rect,
+//                                        para->x1+offsetx,para->y1+offsety,
+//                                        para->x2+offsetx+1,para->y2+offsety,
+//                                        para->color,para->Rop2Code);
+//                    }
+//                    clip = clip->next;
+//                }while(clip != lintoiewin->visible_clip);
+//            }
+//        }
+//    }
+//    else if(para->x1 == para->x2)    //绘制垂直线
+//    {
+//        //说明有win buffer，且直接写屏属性为false
+//        if((lintoiewin->wm_bitmap != NULL)
+//            && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+//        {   //处理方法:在win buffer中绘图，标志changed_msk
+//            limit.left = 0;
+//            limit.top = 0;
+//            limit.right = lintoiewin->wm_bitmap->width;
+//            limit.bottom = lintoiewin->wm_bitmap->height;
+//            if(!my_draw_fun->LineToBitmapIe(lintoiewin->wm_bitmap,&limit,para->x1,
+//                        para->y1,para->x2,para->y2,para->color,para->Rop2Code))
+//            {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
+//                //同时处理了changed_msk
+//                __GK_VlinetoWin(lintoiewin,&limit,para->x1,
+//                            para->y1,para->y2+1,para->color,para->Rop2Code);
+//            }
+//            else
+//            {   //硬件加速支持直线绘制，未处理changed_msk，处理之
+//                __GK_ShadingLine(lintoiewin,&limit,
+//                                para->x1,para->y1,para->x2,para->y2+1);
+//            }
+//        }
+//        else       //无win buffer，或直接写屏属性为true
+//        {
+//            clip = lintoiewin->visible_clip;
+//            if(clip == NULL)
+//                return ;
+//            fb_gkwin = display->frame_buffer;
+//            offsetx = lintoiewin->ScreenX;
+//            offsety = lintoiewin->ScreenY;
+//            //有frame buffer，且直接写屏属性为false
+//            if((fb_gkwin != NULL) && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+//            {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
+//                do
+//                {
+//                    if(!my_draw_fun->LineToBitmapIe(
+//                                fb_gkwin->wm_bitmap,&clip->rect,
 //                                para->x1+offsetx,para->y1+offsety,
 //                                para->x2+offsetx,para->y2+offsety,
-//                               para->color,para->Rop2Code))
-                    {
-                        __GK_LinetoScreen(display,&clip->rect,
-                                        para->x1+offsetx,para->y1+offsety,
-                                        para->x2+offsetx,para->y2+offsety+1,
-                                        para->color,para->Rop2Code);
-                    }
-                    clip = clip->next;
-                }while(clip != lintoiewin->visible_clip);
-            }
-        }
-    }
-    else    //绘制斜线
-    {
-        dx = abs(para->x2-para->x1);
-        dy = abs(para->y2-para->y1);
-        //说明有win buffer，且直接写屏属性为false
-        if((lintoiewin->wm_bitmap != NULL)
-            && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
-        {   //处理方法:在win buffer中绘图，标志changed_msk
-            limit.left = 0;
-            limit.top = 0;
-            limit.right = lintoiewin->wm_bitmap->width;
-            limit.bottom = lintoiewin->wm_bitmap->height;
-            if(!my_draw_fun->LineToBitmapIe(lintoiewin->wm_bitmap,&limit,para->x1,
-                        para->y1,para->x2,para->y2,para->color,para->Rop2Code))
-            {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
-                //同时处理了changed_msk
-                if(dy > dx)
-                {
-                    __GK_OlinetoWin(lintoiewin,&limit,para->x1,para->y1,
-                                    para->x2,para->y2+1,
-                                    para->color,para->Rop2Code);
-                }
-                else
-                {
-                    __GK_OlinetoWin(lintoiewin,&limit,para->x1,para->y1,
-                                    para->x2+1,para->y2,
-                                    para->color,para->Rop2Code);
-                }
-            }
-            else
-            {   //硬件加速支持直线绘制，未处理changed_msk，处理之
-                __GK_ShadingLine(lintoiewin,&limit,
-                                para->x1,para->y1,para->x2,para->y2);
-            }
-
-        }
-        else       //无win buffer，或直接写屏属性为true
-        {
-            clip = lintoiewin->visible_clip;
-            if(clip == NULL)
-                return ;
-            fb_gkwin = display->frame_buffer;
-            offsetx = lintoiewin->ScreenX;
-            offsety = lintoiewin->ScreenY;
-            //有frame buffer，且直接写屏属性为false
-            if((fb_gkwin != NULL) && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
-            {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
-                do
-                {
-                    if(!my_draw_fun->LineToBitmapIe(
-                                fb_gkwin->wm_bitmap,&clip->rect,
-                                para->x1+offsetx,para->y1+offsety,
-                                para->x2+offsetx,para->y2+offsety,
-                                para->color,para->Rop2Code))
-                    {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
-                        //同时处理了changed_msk
-                            __GK_OlinetoWin(fb_gkwin,&clip->rect,
-                                            para->x1+offsetx,para->y1+offsety,
-                                            para->x2+offsetx,para->y2+offsety,
-                                            para->color,para->Rop2Code);
-                    }
-                    else
-                    {   //硬件加速绘图时，未处理changed_msk，处理之
-                            __GK_ShadingLine(fb_gkwin,&clip->rect,
-                                            para->x1+offsetx,para->y1+offsety,
-                                            para->x2+offsetx,para->y2+offsety);
-                    }
-                    clip = clip->next;
-                }while(clip != lintoiewin->visible_clip);
-            }
-            else
-            //无win buffer，也无frame buffer，直接画在screen上
-            //直接写屏属性为true，不管有无缓冲区，都直接画在screen上
-            {
-                do{//在screen上直接画直线，画终点
-//                  if(!my_draw_fun->LineToScreenIe(&clip->rect,para->x1+offsetx,
-//                               para->y1+offsety,para->x2+offsetx,para->y2+offsety,
-//                               para->color,para->Rop2Code))
-                    {
-                            __GK_LinetoScreen(display,&clip->rect,
-                                            para->x1+offsetx,para->y1+offsety,
-                                            para->x2+offsetx,para->y2+offsety,
-                                            para->color,para->Rop2Code);
-                    }
-                    clip = clip->next;
-                }while(clip != lintoiewin->visible_clip);
-            }
-        }
-    }
-}
+//                                para->color,para->Rop2Code))
+//                    {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
+//                        //同时处理了changed_msk
+//                        __GK_VlinetoWin(fb_gkwin,&clip->rect,
+//                                    para->x1+offsetx,para->y1+offsety,
+//                                    para->y2+offsety+1,
+//                                    para->color,para->Rop2Code);
+//                    }
+//                    else
+//                    {   //硬件加速绘图时，未处理changed_msk，处理之
+//                        __GK_ShadingLine(fb_gkwin,&clip->rect,
+//                                        para->x1+offsetx,para->y1+offsety,
+//                                        para->x2+offsetx,para->y2+offsety+1);
+//                    }
+//                    clip = clip->next;
+//                }while(clip != lintoiewin->visible_clip);
+//            }
+//            else
+//            //无win buffer，也无frame buffer，直接画在screen上
+//            //直接写屏属性为true，不管有无缓冲区，都直接画在screen上
+//            {
+//                do{//在screen上直接画直线，画终点
+////                  if(!my_draw_fun->LineToScreenIe(&clip->rect,
+////                                para->x1+offsetx,para->y1+offsety,
+////                                para->x2+offsetx,para->y2+offsety,
+////                               para->color,para->Rop2Code))
+//                    {
+//                        __GK_LinetoScreen(display,&clip->rect,
+//                                        para->x1+offsetx,para->y1+offsety,
+//                                        para->x2+offsetx,para->y2+offsety+1,
+//                                        para->color,para->Rop2Code);
+//                    }
+//                    clip = clip->next;
+//                }while(clip != lintoiewin->visible_clip);
+//            }
+//        }
+//    }
+//    else    //绘制斜线
+//    {
+//        dx = abs(para->x2-para->x1);
+//        dy = abs(para->y2-para->y1);
+//        //说明有win buffer，且直接写屏属性为false
+//        if((lintoiewin->wm_bitmap != NULL)
+//            && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+//        {   //处理方法:在win buffer中绘图，标志changed_msk
+//            limit.left = 0;
+//            limit.top = 0;
+//            limit.right = lintoiewin->wm_bitmap->width;
+//            limit.bottom = lintoiewin->wm_bitmap->height;
+//            if(!my_draw_fun->LineToBitmapIe(lintoiewin->wm_bitmap,&limit,para->x1,
+//                        para->y1,para->x2,para->y2,para->color,para->Rop2Code))
+//            {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
+//                //同时处理了changed_msk
+//                if(dy > dx)
+//                {
+//                    __GK_OlinetoWin(lintoiewin,&limit,para->x1,para->y1,
+//                                    para->x2,para->y2+1,
+//                                    para->color,para->Rop2Code);
+//                }
+//                else
+//                {
+//                    __GK_OlinetoWin(lintoiewin,&limit,para->x1,para->y1,
+//                                    para->x2+1,para->y2,
+//                                    para->color,para->Rop2Code);
+//                }
+//            }
+//            else
+//            {   //硬件加速支持直线绘制，未处理changed_msk，处理之
+//                __GK_ShadingLine(lintoiewin,&limit,
+//                                para->x1,para->y1,para->x2,para->y2);
+//            }
+//
+//        }
+//        else       //无win buffer，或直接写屏属性为true
+//        {
+//            clip = lintoiewin->visible_clip;
+//            if(clip == NULL)
+//                return ;
+//            fb_gkwin = display->frame_buffer;
+//            offsetx = lintoiewin->ScreenX;
+//            offsety = lintoiewin->ScreenY;
+//            //有frame buffer，且直接写屏属性为false
+//            if((fb_gkwin != NULL) && (lintoiewin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+//            {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
+//                do
+//                {
+//                    if(!my_draw_fun->LineToBitmapIe(
+//                                fb_gkwin->wm_bitmap,&clip->rect,
+//                                para->x1+offsetx,para->y1+offsety,
+//                                para->x2+offsetx,para->y2+offsety,
+//                                para->color,para->Rop2Code))
+//                    {    //硬件加速不支持直线绘制，改用软件实现，软件画线算法中
+//                        //同时处理了changed_msk
+//                            __GK_OlinetoWin(fb_gkwin,&clip->rect,
+//                                            para->x1+offsetx,para->y1+offsety,
+//                                            para->x2+offsetx,para->y2+offsety,
+//                                            para->color,para->Rop2Code);
+//                    }
+//                    else
+//                    {   //硬件加速绘图时，未处理changed_msk，处理之
+//                            __GK_ShadingLine(fb_gkwin,&clip->rect,
+//                                            para->x1+offsetx,para->y1+offsety,
+//                                            para->x2+offsetx,para->y2+offsety);
+//                    }
+//                    clip = clip->next;
+//                }while(clip != lintoiewin->visible_clip);
+//            }
+//            else
+//            //无win buffer，也无frame buffer，直接画在screen上
+//            //直接写屏属性为true，不管有无缓冲区，都直接画在screen上
+//            {
+//                do{//在screen上直接画直线，画终点
+////                  if(!my_draw_fun->LineToScreenIe(&clip->rect,para->x1+offsetx,
+////                               para->y1+offsety,para->x2+offsetx,para->y2+offsety,
+////                               para->color,para->Rop2Code))
+//                    {
+//                            __GK_LinetoScreen(display,&clip->rect,
+//                                            para->x1+offsetx,para->y1+offsety,
+//                                            para->x2+offsetx,para->y2+offsety,
+//                                            para->color,para->Rop2Code);
+//                    }
+//                    clip = clip->next;
+//                }while(clip != lintoiewin->visible_clip);
+//            }
+//        }
+//    }
+//}
 
 //----显示文本-----------------------------------------------------------------
 //功能: 用默认字体和默认字符集显示一个文本串。
@@ -4565,31 +4584,26 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
 void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
 {
     struct RectBitmap *bitmap;
-    struct Rectangle target,ins_rect,rc;
+    struct Rectangle target,ins_rect;
     struct DispDraw *my_draw_fun;
     struct ClipRect *clip;
-    struct GkWinObj *fb_gkwin,*fpwwin;
+    struct GkWinObj *fb_gkwin,*DstGkwin;
     u32 Color0,Color1,Mode;
+    struct Rectangle limit;
 
-    fpwwin = para->gkwin;
-    bitmap = fpwwin->wm_bitmap;
+    DstGkwin = para->gkwin;
+    bitmap = DstGkwin->wm_bitmap;
 
-    if(bitmap!=NULL)
+    if(para->range.left == para->range.right)
     {
-        rc.left =0;
-        rc.top  =0;
-        rc.right =bitmap->width;
-        rc.bottom =bitmap->height;
+        limit = DstGkwin->limit;
     }
     else
     {
-        rc.left =fpwwin->area.left;
-        rc.top  =fpwwin->area.top;
-        rc.right =fpwwin->area.right;
-        rc.bottom =fpwwin->area.bottom;
+        __GK_GetRectInts(&para->range, &DstGkwin->limit, &limit);
     }
 
-    if(!__GK_GetRectInts(&para->rect,&rc,&target))
+    if(!__GK_GetRectInts(&para->rect,&limit,&target))
     {
         return;
     }
@@ -4597,37 +4611,37 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
     Mode = para->Mode;
     if(Mode== CN_FILLRECT_MODE_N)
     {
-        __GK_FillPartWin(fpwwin,&target,para->Color0);
+        __GK_FillPartWin(DstGkwin,&target,para->Color0);
         return;
     }
 
     Color0 = para->Color0;
     Color1 = para->Color1;
-    my_draw_fun = &fpwwin->disp->draw;
+    my_draw_fun = &DstGkwin->disp->draw;
     //说明有win buffer，且直接写屏属性为false
-    if((fpwwin->wm_bitmap != NULL)
-        && (fpwwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+    if((DstGkwin->wm_bitmap != NULL)
+        && (DstGkwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
     {
         //处理方法:在win buffer中绘图，着色changed_msk
-        if(!my_draw_fun->FillRectToBitmap(bitmap,&target,&target,Color0,Color1,Mode))
+        if(!my_draw_fun->FillRectToBitmap(bitmap,&para->rect,&target,Color0,Color1,Mode))
         {
             //硬件加速不支持填充位图，则用软件实现
-            __GK_GradientFillRectSoft(bitmap,&target,&target,Color0,Color1,Mode);
+            __GK_GradientFillRectSoft(bitmap,&para->rect,&target,Color0,Color1,Mode);
         }
-        __GK_ShadingRect(fpwwin,&para->rect);//着色填充区域的changed_msk
+        __GK_ShadingRect(DstGkwin,&para->rect);//着色填充区域的changed_msk
     }else       //无win buffer，或直接写屏属性为true
     {
-        clip = fpwwin->visible_clip;
+        clip = DstGkwin->visible_clip;
         if(clip == NULL)                //窗口可视域为空，直接返回
             return ;
-        fb_gkwin = fpwwin->disp->frame_buffer;
+        fb_gkwin = DstGkwin->disp->frame_buffer;
         //接下来的绘制，是在帧缓冲或者screen上绘制，使用绝对坐标，变换之
-        target.left += fpwwin->ScreenX;
-        target.right += fpwwin->ScreenX;
-        target.top += fpwwin->ScreenY;
-        target.bottom += fpwwin->ScreenY;
+        target.left += DstGkwin->ScreenX;
+        target.right += DstGkwin->ScreenX;
+        target.top += DstGkwin->ScreenY;
+        target.bottom += DstGkwin->ScreenY;
         //有frame buffer,且直接写屏属性为false
-        if((fb_gkwin != NULL) && (fpwwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+        if((fb_gkwin != NULL) && (DstGkwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
         {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
             do{
                 //只填充窗口可视域与要绘制的区域的交集
@@ -4635,17 +4649,17 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                 {
                     //帧缓冲的坐标即绝对坐标，故无须坐标变换
                     if(!my_draw_fun->FillRectToBitmap(fb_gkwin->wm_bitmap,
-                                         &target,&ins_rect,Color0,Color1,Mode))
+                                         &para->rect,&ins_rect,Color0,Color1,Mode))
                     {
                         //硬件加速不支持填充位图，则用软件实现
-                        __GK_GradientFillRectSoft(fb_gkwin->wm_bitmap,&target,
+                        __GK_GradientFillRectSoft(fb_gkwin->wm_bitmap,&para->rect,
                                                 &ins_rect,Color0,Color1,Mode);
                     }
                     //标志填充区域的changed_msk
                     __GK_ShadingRect(fb_gkwin,&ins_rect);
                 }
                 clip = clip->next;
-            }while(clip != fpwwin->visible_clip);
+            }while(clip != DstGkwin->visible_clip);
         }
         else
         //无win buffer，也无frame buffer，直接画在screen上
@@ -4658,28 +4672,28 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                 if(__GK_GetRectInts(&clip->rect,&target,&ins_rect))
                 {
                     //硬件加速不支持填充位图，则用软件实现
-                    if(!my_draw_fun->FillRectToScreen(&target,&ins_rect,
+                    if(!my_draw_fun->FillRectToScreen(&para->rect,&ins_rect,
                                                       Color0,Color1,Mode))
                     {
-                        __GK_GradientFillScreenRect(my_draw_fun,&target,
+                        __GK_GradientFillScreenRect(my_draw_fun,&para->rect,
                                                 &ins_rect,Color0,Color1,Mode);
                     }
-                    mirror = fpwwin->disp->HostObj;
+                    mirror = DstGkwin->disp->HostObj;
                     current = OBJ_GetChild(mirror);
                     while(current != NULL)
                     {
                         MirrorDisplay = (struct DisplayObj*)OBJ_GetPrivate(current);
-                        if(!MirrorDisplay->draw.FillRectToScreen(&target,&ins_rect,
+                        if(!MirrorDisplay->draw.FillRectToScreen(&para->rect,&ins_rect,
                                                        Color0,Color1,Mode) )
                         {
-                            __GK_GradientFillScreenRect(&MirrorDisplay->draw,&target,
+                            __GK_GradientFillScreenRect(&MirrorDisplay->draw,&para->rect,
                                                 &ins_rect,Color0,Color1,Mode);
                         }
                         current = OBJ_ForeachChild(mirror,current);
                     }
                 }
                 clip = clip->next;
-            }while(clip != fpwwin->visible_clip);
+            }while(clip != DstGkwin->visible_clip);
         }
     }
 }

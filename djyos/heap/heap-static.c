@@ -165,11 +165,11 @@ void __Heap_MemHeapScan(void)
     CessionNum = *(u32*)Offset;
     while(CessionNum != 0)     //扫描所有堆，建立堆控制块结构
     {
-        u32Offset = (u32*)Offset + 1;
-        AlignSize = *u32Offset++;
-        Property = *u32Offset++;
+        u32Offset = (u32*)Offset + 1;   //本heap cession 数
+        AlignSize = *u32Offset++;       //本heap 对齐尺寸
+        Property = *u32Offset++;        //通用 heap 还是专用 heap
         //以下计算公式，参看lds文件格式
-        Offset += sizeof(u32)*3*CessionNum + 3*sizeof(u32);
+        Offset += sizeof(u32)*3*CessionNum + 3*sizeof(u32);     //取 heap name 的偏移
 //      NameLen = __Heap_MemStrLen((char*)Offset);
         NameLen = strlen((char*)Offset);
         //计算heap控制块和session控制块所需要的内存尺寸。

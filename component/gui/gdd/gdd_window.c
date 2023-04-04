@@ -103,7 +103,7 @@ static struct MsgProcTable s_gDefWindowMsgProcTable[] =
 static struct MsgTableLink  s_gDefWindowMsgLink;
 
 //----取窗口句柄---------------------------------------------------------------
-//功能：根据gkwin指针，去所属的gdd窗口句柄
+//功能：根据gkwin指针，取所属的gdd窗口句柄
 //参数：gkwin，gkwin指针
 //返回：gdd窗口句柄
 //---------------------------------------------------------------------------
@@ -111,6 +111,11 @@ HWND GDD_GetHwnd(struct GkWinObj *gkwin)
 {
     return (HWND)GK_GetUserTag(gkwin);
 }
+
+//------------------------------------------------------------------------------
+//功能：连接消息处理函数表
+//参数：
+
 
 //----屏幕坐标转客户坐标---------------------------------------------------------
 //描述: 把一组屏幕坐标值，转换为窗口客户区左上角为原点的相对坐标
@@ -128,6 +133,8 @@ bool_t    GDD_ScreenToClient(HWND hwnd,POINT *pt,s32 count)
         if(__HWND_Lock(hwnd))
         {
             GK_GetScreenLocation(hwnd->pGkWin, &scrlc);
+            scrlc.y = scrlc.y + hwnd->CaptionSize + hwnd->BorderSize;
+            scrlc.x = scrlc.x + hwnd->BorderSize;
             for(i=0;i<count;i++)
             {
                 pt[i].x -= scrlc.x;
@@ -156,6 +163,8 @@ bool_t    GDD_ClientToScreen(HWND hwnd,POINT *pt,s32 count)
         if(__HWND_Lock(hwnd))
         {
             GK_GetScreenLocation(hwnd->pGkWin, &scrlc);
+            scrlc.y = scrlc.y + hwnd->CaptionSize + hwnd->BorderSize;
+            scrlc.x = scrlc.x + hwnd->BorderSize;
             for(i=0;i<count;i++)
             {
                 pt[i].x += scrlc.x;
@@ -215,8 +224,8 @@ bool_t    GDD_WindowToScreen(HWND hwnd,POINT *pt,s32 count)
             GK_GetScreenArea(hwnd->pGkWin, &rc);
             for(i=0;i<count;i++)
             {
-                pt->x += rc.left;
-                pt->y += rc.top;
+                pt[i].x += rc.left;
+                pt[i].y += rc.top;
             }
             __HWND_Unlock(hwnd);
             return TRUE;
@@ -580,6 +589,47 @@ HWND    GDD_GetWindowFromPoint(struct GkWinObj *desktop, POINT *pt)
     else
         return NULL;
 }
+static ptu32_t __GDD_DrawWinCaption(HWND hwnd)
+{
+    HDC hdc;
+    RECT rc;
+
+
+    hdc =GDD_GetWindowDC(hwnd);
+    if(NULL!=hdc)
+    {
+        GDD_GetWindowRect(hwnd,&rc);
+        GDD_ScreenToWindow(hwnd,(POINT*)&rc,2);
+
+        if(__HWND_Lock(hwnd))
+        {
+            if(hwnd->Style&WS_BORDER)
+            {
+                GDD_InflateRectEx(&rc,-1,-1,-1,-1);
+            }
+
+            if(hwnd->Style&WS_DLGFRAME)
+            {
+                GDD_InflateRectEx(&rc,-3,-3,-3,-3);
+            }
+
+            if(hwnd->Style&WS_CAPTION)
+            {
+                rc.bottom =rc.top+hwnd->CaptionSize;
+
+                GDD_GradientFillRect(hdc,&rc,RGB(0,100,200),RGB(0,30,100),CN_FILLRECT_MODE_UD);
+
+                GDD_SetTextColor(hdc,WINDOW_CAPTION_TEXT_COLOR);
+                GDD_SetDrawArea(hdc, &rc);
+                GDD_InflateRect(&rc,-1,-1);
+                GDD_DrawText(hdc, hwnd->Text, -1, &rc, DT_LEFT | DT_VCENTER);
+            }
+            __HWND_Unlock(hwnd);
+        }
+        GDD_ReleaseDC(hdc);
+    }
+    return 0;
+}
 
 //----设置窗口名字-------------------------------------------------------------
 //描述: 略.
@@ -590,6 +640,7 @@ HWND    GDD_GetWindowFromPoint(struct GkWinObj *desktop, POINT *pt)
 void GDD_SetWindowName(HWND hwnd, char *NewName)
 {
     GK_SetName(hwnd->pGkWin, NewName);
+    __GDD_DrawWinCaption(hwnd);
     return ;
 }
 
@@ -793,7 +844,7 @@ HWND    GDD_InitGddDesktop(struct GkWinObj *desktop)
         pGddWin->mutex_lock =Lock_MutexCreate(NULL);
         pGddWin->pMsgQ      =__GUI_CreateMsgQ(32);
         pGddWin->DrawColor = CN_DEF_DRAW_COLOR;
-        pGddWin->FillColor = CN_DEF_FILL_COLOR;
+        pGddWin->BGColor = CN_DEF_FILL_COLOR;
         pGddWin->TextColor = CN_DEF_TEXT_COLOR;
         if((pGddWin->mutex_lock==NULL)||(pGddWin->pMsgQ==NULL))
         {
@@ -814,7 +865,7 @@ HWND    GDD_InitGddDesktop(struct GkWinObj *desktop)
         HWND_Desktop = pGddWin;
 
         MyEvtt = DJY_EvttRegist(EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0, __GDD_MessageLoop,
-                                NULL, 1024, "desktop");
+                                NULL, CFG_DESKTOP_STACK_SIZE, "desktop");
         if(MyEvtt != CN_EVTT_ID_INVALID)
         {
             MyEventid=DJY_EventPop(MyEvtt, NULL, 0, (ptu32_t)pGddWin, 0, 0);
@@ -897,7 +948,7 @@ HWND __GDD_CreateWindow(struct GkWinObj *pGkWin,u32 Style,
                 pGddWin->mutex_lock =hParent->mutex_lock;  //组件窗口使用父窗口锁
                 pGddWin->pMsgQ      =hParent->pMsgQ;       //组件窗口使用父窗口消息队列
                 pGddWin->DrawColor = hParent->DrawColor;
-                pGddWin->FillColor = hParent->FillColor;
+                pGddWin->BGColor = hParent->BGColor;
                 pGddWin->TextColor = hParent->TextColor;
             }
             else
@@ -906,7 +957,7 @@ HWND __GDD_CreateWindow(struct GkWinObj *pGkWin,u32 Style,
                 pGddWin->mutex_lock =Lock_MutexCreate(NULL);
                 pGddWin->pMsgQ      =__GUI_CreateMsgQ(32);
                 pGddWin->DrawColor = CN_DEF_DRAW_COLOR;
-                pGddWin->FillColor = CN_DEF_FILL_COLOR;
+                pGddWin->BGColor = CN_DEF_FILL_COLOR;
                 pGddWin->TextColor = CN_DEF_TEXT_COLOR;
 
                 if((pGddWin->mutex_lock==NULL)||(pGddWin->pMsgQ==NULL))
@@ -962,53 +1013,6 @@ HWND __GDD_CreateWindow(struct GkWinObj *pGkWin,u32 Style,
     return pGddWin;
 }
 
-//----创建窗口-----------------------------------------------------------------
-//描述: 创建窗口，所创建的窗口为主窗口的附属窗口，使用父窗口的消息队列和消息循环。
-//参数：Text: 窗口名字，将copy到gkwin的name成员，长度限CN_GKWIN_NAME_LIMIT，
-//              （字节数），TODO：待改为字符数。
-//      Style: 窗口风格(参考 WS_VISIBLE 族常量)
-//      x,y,w,h: 窗口位置和大小,位置相对于父窗口
-//      hParent: 父窗口句柄.如果是NULL,则默认桌面为父窗口.
-//      WinId: 窗口Id.————即将废除，不要使用
-//      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT 等。若父窗口无缓冲，子窗口不能有缓冲。
-//      pdata: 用户自定义附加数据.//
-//      PixelFormat,像素格式，在gkernel.h中定义， CN_SYS_PF_DISPLAY 表示与显示器相同，推荐。
-//      BaseColor, 灰度图基色，(仅在PixelFormat == CN_SYS_PF_GRAY1 ~8时有用)
-//      pUserMsgTableLink:窗口响应的消息表
-//返回：窗口句柄.
-//-----------------------------------------------------------------------------
-HWND GDD_CreateWindow(const char *Text,u32 Style,
-                     s32 x,s32 y,s32 w,s32 h,
-                     HWND hParent,u16 WinId,
-                     u32 BufProperty,ptu32_t pdata,
-                     u16 PixelFormat,u32 BaseColor,
-                     struct MsgTableLink *pUserMsgTableLink)
-{
-    struct GkWinObj *pGkWin;
-    HWND pGddWin;
-    struct RopGroup RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
-    if(NULL==hParent)
-    {
-        hParent = HWND_Desktop;
-    }
-    pGkWin = GK_CreateWin(hParent->pGkWin,x,y,x+w,y+h,
-                        RGB(0,0,0), BufProperty, Text,
-                        PixelFormat, 0,BaseColor,RopCode);
-    if(NULL != pGkWin)
-    {
-        pGddWin = __GDD_CreateWindow(pGkWin, Style,hParent,WinId,false,pdata,pUserMsgTableLink);
-        if(pGddWin == NULL)
-        {
-            GK_DestroyWin(pGkWin);
-        }
-        return pGddWin;
-    }
-    else
-    {
-        return NULL;
-    }
-}
-
 //与 GDD_CreateWindow 函数相比，仅有一处不同，用于创建主窗口。
 HWND __GDD_CreateMainWindow(const char *Text,u32 Style,
                      s32 x,s32 y,s32 w,s32 h,
@@ -1055,6 +1059,7 @@ void __GDD_DeleteChildWindowData(HWND hwnd)
     dListRemove(&hwnd->node_msg_ncpaint);
     dListRemove(&hwnd->node_msg_paint);
     __GDD_RemoveWindowTimer(hwnd);
+    __GUI_DeleteMsg(hwnd);
 //  __GUI_DeleteMsgQ(hwnd->pMsgQ);      //子窗口共享主窗口消息队列
 //  Lock_MutexDelete(hwnd->mutex_lock); //子窗口没有私有的 mutex_lock,不用释放.
 
@@ -1094,6 +1099,9 @@ void    GDD_DestroyWindow(HWND hwnd)
 {
     HWND parent;
     parent = GDD_GetWindowParent(hwnd);
+    hwnd->Text = NULL;  //它指向GK的窗口名，下一行GK将被释放
+    GK_DestroyWin(hwnd->pGkWin);
+    hwnd->pGkWin = NULL;
     if(GDD_PostMessage(hwnd, MSG_CLOSE, 0, 0))
     {
         //执行 MSG_CLOSE 消息后，hwnd将被释放，此后将无法执行显示刷新操作，故需要给
@@ -1117,9 +1125,13 @@ void GDD_DestroyAllChild(HWND hwnd)
         while(Current != NULL)
         {
 //            GDD_SetWindowHide(Current);     //MSG_CLOSE消息是最后处理的，先隐藏窗口
-          GDD_PostMessage(Current, MSG_CLOSE, 0, 0);
+            Current->Text = NULL;  //它指向GK的窗口名，下一行GK将被释放
+            GK_DestroyWin(Current->pGkWin);
+            Current->pGkWin = NULL;
+            GDD_PostMessage(Current, MSG_CLOSE, 0, 0);
             Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
         }
+        GDD_SyncShow(hwnd);
         __GDD_Unlock();
     }
 //  GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY,0,0);
@@ -1165,7 +1177,7 @@ bool_t    GDD_MoveWindow(HWND hwnd,s32 x,s32 y)
     if(__GDD_Lock())
     {
 
-        GK_MoveWin(hwnd->pGkWin, hwnd->CliRect.left + x, hwnd->CliRect.top + y);
+        GK_MoveWin(hwnd->pGkWin, x, y);
         __GDD_Unlock();
         return TRUE;
     }
@@ -1199,7 +1211,7 @@ bool_t    GDD_InvalidateWindow(HWND hwnd,bool_t bErase)
 {
     if(GDD_IsWindowVisible(hwnd))
     {
-            GDD_PostMessage(hwnd,MSG_PAINT,bErase,0);
+        GDD_PostMessage(hwnd,MSG_PAINT,bErase,0);
     }
     return true;
 }
@@ -1215,7 +1227,7 @@ bool_t GDD_SetWindowShow(HWND hwnd)
     if(__HWND_Lock(hwnd))
     {
         hwnd->Style |= WS_VISIBLE;
-        GK_SetVisible(hwnd->pGkWin,CN_GKWIN_VISIBLE,0);
+        GK_SetVisible(hwnd->pGkWin,CN_GKWIN_VISIBLE,CN_TIMEOUT_FOREVER);
         __HWND_Unlock(hwnd);
         return TRUE;
     }
@@ -1231,7 +1243,7 @@ bool_t GDD_SetWindowHide(HWND hwnd)
     if(__HWND_Lock(hwnd))
     {
         hwnd->Style &= ~ WS_VISIBLE;
-        GK_SetVisible(hwnd->pGkWin,CN_GKWIN_HIDE,0);
+        GK_SetVisible(hwnd->pGkWin,CN_GKWIN_HIDE,CN_TIMEOUT_FOREVER);
         __HWND_Unlock(hwnd);
         return TRUE;
     }
@@ -1266,7 +1278,7 @@ bool_t GDD_SetWindowHyalineColor(HWND hwnd,u32 HyalineColor)
     return FALSE;
 }
 
-bool_t GDD_SetWindowFillColor(HWND hwnd,u32 FillColor)
+bool_t GDD_SetWindowBackGroundColor(HWND hwnd,u32 BGColor)//原函数名  GDD_SetWindowFillColor
 {
     HWND pGddWin=NULL;
     if(hwnd==NULL)
@@ -1274,14 +1286,14 @@ bool_t GDD_SetWindowFillColor(HWND hwnd,u32 FillColor)
     if(__HWND_Lock(hwnd))
     {
         pGddWin=hwnd;
-        pGddWin->FillColor=FillColor;
+        pGddWin->BGColor=BGColor;
         __HWND_Unlock(hwnd);
         return TRUE;
     }
     return FALSE;
 }
 
-bool_t GDD_GetWindowFillColor(HWND hwnd,u32 *pFillColor)
+bool_t GDD_GetWindowBackGroundColor(HWND hwnd,u32 *pBGColor)//原函数名   GDD_GetWindowFillColor
 {
     HWND pGddWin=NULL;
     if(hwnd==NULL)
@@ -1289,7 +1301,7 @@ bool_t GDD_GetWindowFillColor(HWND hwnd,u32 *pFillColor)
     if(__HWND_Lock(hwnd))
     {
         pGddWin=hwnd;
-        *pFillColor=pGddWin->FillColor;
+        *pBGColor =pGddWin->BGColor;
         __HWND_Unlock(hwnd);
         return TRUE;
     }
@@ -1386,13 +1398,32 @@ bool_t    GDD_ReleaseDC(HDC hdc)
 bool_t    __HWND_Lock(HWND hwnd)
 {
     bool_t result = false;
-    if(__GDD_Lock())    //不先锁住GDD，可能会死锁的
-    {
+//  if(__GDD_Lock())    //不先锁住GDD，可能会死锁的
+//  {
         result = Lock_MutexPend(hwnd->mutex_lock, CN_TIMEOUT_FOREVER);
-        __GDD_Unlock( );
-    }
+//      __GDD_Unlock( );
+//  }
     return result;
 }
+//----手动清除窗口-----------------------------------------------------------
+//描述：清除窗口，使窗口的绘图客户区变成背景颜色
+//参数:hdc 绘图句柄
+//返回：成功:TRUE; 失败:FLASE;
+//------------------------------------------------------------------------------
+bool_t GDD_CleanClient(HDC hdc)
+{
+    RECT rc;
+    HWND hwnd;
+    if(hdc!=NULL)
+    {
+        hwnd = hdc->hwnd;
+        GDD_GetClientRect(hwnd,&rc);
+        GDD_FillRectEx(hdc,&rc,hdc->BGColor);
+        return TRUE;
+    }
+    return FALSE;
+}
+
 
 //----解锁窗口------------------------------------------------------------------
 //描述: 当窗口锁定成功后,由该函数进行解锁操作.
@@ -1536,7 +1567,7 @@ static ptu32_t __GDD_DefWindowProcERASEBKGND(struct WindowMsg *pMsg)
     if(hdc!=NULL)
     {
         GDD_GetClientRect(pMsg->hwnd,&rc);
-        GDD_FillRect(hdc,&rc);
+        GDD_FillRectEx(hdc,&rc,hdc->BGColor);
         return 1;
     }
     return 0;
@@ -1619,7 +1650,9 @@ static ptu32_t __GDD_DefWindowProcCLOSE(struct WindowMsg *pMsg)
             __GDD_WinMsgProc(&SubMsg);
             Current = __GDD_GetWindowTwig(hwnd);
         }
-        GK_DestroyWin(hwnd->pGkWin);
+        //GK_DestroyWin必须在GDD的API中删除，否则消息延迟处理会导致销毁窗口后不能立即
+        //创建同名窗口。
+//      GK_DestroyWin(hwnd->pGkWin);
 //      __GDD_Unlock();
 //  }
     return 0;
@@ -1791,7 +1824,7 @@ void __GDD_ClearMainWindow(HWND hwnd)
 //-----------------------------------------------------------------------------
 HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
                       s32 x,s32 y,s32 w,s32 h,
-                      u32 MemSize, u32 BufProperty,u32 Style,u16 PixelFormat,u32 BaseColor)
+                      u32 BufProperty,u32 Style,u16 PixelFormat,u32 BaseColor,u32 MemSize)
 {
     HWND result = NULL;
     RECT rc;
@@ -1844,6 +1877,50 @@ HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
     }
     return result;
 }
+//----创建窗口-----------------------------------------------------------------
+//描述: 创建窗口，所创建的窗口为主窗口的附属窗口，使用父窗口的消息队列和消息循环。
+//参数：Text: 窗口名字，将copy到gkwin的name成员，长度限CN_GKWIN_NAME_LIMIT，
+//              （字节数），TODO：待改为字符数。
+//      Style: 窗口风格(参考 WS_VISIBLE 族常量)
+//      x,y,w,h: 窗口位置和大小,位置相对于父窗口
+//      hParent: 父窗口句柄.如果是NULL,则默认桌面为父窗口.
+//      WinId: 窗口Id.————即将废除，不要使用
+//      BufProperty，窗口的buf属性，取值为 CN_WINBUF_PARENT 等。若父窗口无缓冲，子窗口不能有缓冲。
+//      pdata: 用户自定义附加数据.//
+//      PixelFormat,像素格式，在gkernel.h中定义， CN_SYS_PF_DISPLAY 表示与显示器相同，推荐。
+//      BaseColor, 灰度图基色，(仅在PixelFormat == CN_SYS_PF_GRAY1 ~8时有用)
+//      pUserMsgTableLink:窗口响应的消息表
+//返回：窗口句柄.
+//-----------------------------------------------------------------------------
+HWND GDD_CreateWindow(const char *Text,struct MsgTableLink *pUserMsgTableLink,
+                     s32 x,s32 y,s32 w,s32 h,
+                     u32 BufProperty,u32 Style,u16 PixelFormat,u32 BaseColor,u16 WinId,ptu32_t pdata,HWND hParent)
+{
+    struct GkWinObj *pGkWin;
+    HWND pGddWin;
+    struct RopGroup RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
+    if(NULL==hParent)
+    {
+        hParent = HWND_Desktop;
+    }
+    pGkWin = GK_CreateWin(hParent->pGkWin,x,y,x+w,y+h,
+                        RGB(0,0,0), BufProperty, Text,
+                        PixelFormat, 0,BaseColor,RopCode);
+    if(NULL != pGkWin)
+    {
+        pGddWin = __GDD_CreateWindow(pGkWin, Style,hParent,WinId,false,pdata,pUserMsgTableLink);
+        if(pGddWin == NULL)
+        {
+            GK_DestroyWin(pGkWin);
+        }
+        return pGddWin;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
 
 //----等待GUI APP退出----------------------------------------------------------
 //功能：阻塞当前应用，等待名为name的APP退出，不可在当前APP中等待，将直接返回false
