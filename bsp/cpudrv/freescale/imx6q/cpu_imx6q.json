@@ -1,0 +1,22 @@
+{
+	"cpu_name":"imx6q",
+	"cores":[{
+		"memories":{
+			"memory1":{
+				"size":"512k",
+				"type":"FLASH",
+				"startAddr":"0x08000000"
+			},
+			"memory2":{
+				"size":"256k",
+				"type":"RAM",
+				"startAddr":"0x20000000"
+			},
+			"memory3":{
+				"size":"128k",
+				"type":"RAM",
+				"startAddr":"0x20040000"
+			}
+		}
+	}]
+}

@@ -1,0 +1,10 @@
+{
+	"compile-option": {
+
+	},
+	"name": "cortex-a8",
+	"mcpu": "cortex-a8",
+	"vendor-option": {
+
+	}
+}

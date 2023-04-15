@@ -415,7 +415,7 @@ bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
     u16 *dst;
     s32 height,width;
     u32 timeout;
-    bool_t flag;
+    bool_t flag=true;
 
     if((Mode != CN_FILLRECT_MODE_N)  \
         ||(dst_bitmap->PixelFormat != lcd.LcdPixelFormat))

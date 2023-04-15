@@ -1,0 +1,12 @@
+{
+	"cores":[{
+		"resetAddr":"0x00000000",
+		"name":"cortex-a9",
+		"arch":"armv7-a",
+		"type":"arm",
+		"family":"cortex-a9",
+		"coreClk":800
+	}],
+
+	"main_freq":"800"
+}

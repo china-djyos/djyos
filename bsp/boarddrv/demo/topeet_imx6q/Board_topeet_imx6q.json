@@ -1,0 +1,32 @@
+{
+	"board_name":"topeet_imx6q",
+	"cpus":{
+		"imx6q":{
+			"clocks":{
+				
+			},
+			"chips":[],
+			"peripherals":["cpu_peri_gpio",
+			"cpu_peri_lowpwer",
+			"cpu_peri_uart"],
+			"main_freq":800,
+			"memories":{
+				"memory1":{
+					"size":"0x100000",
+					"type":"RAM",
+					"start_addr":"0x20000000"
+				}
+
+
+
+
+
+
+				
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

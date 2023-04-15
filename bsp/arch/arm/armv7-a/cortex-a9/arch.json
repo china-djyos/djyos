@@ -1,0 +1,11 @@
+{
+	"compile-option": {
+
+	},
+	"fpu-type": "auto",
+	"name": "cortex-a9",
+	"mcpu": "cortex-a9",
+	"vendor-option": {
+
+	}
+}
