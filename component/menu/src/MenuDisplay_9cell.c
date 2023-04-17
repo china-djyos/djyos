@@ -85,7 +85,7 @@ void drawstatecontent_9cell_rightside(struct menu_displaypara  *dispara)
    state_area.top=0;
    state_area.bottom=dispara->CurWin->bottom-dispara->CurWin->top;
    GK_FillRect(dispara->CurWin, &state_area, color_back,
-                  0,CN_FILLRECT_MODE_N,0);
+                  0,CN_FILLRECT_MODE_N,0,0);
    //标志当前的可视区
    lengthT=state_area.bottom-state_area.top;
    //提高精度；
@@ -96,7 +96,7 @@ void drawstatecontent_9cell_rightside(struct menu_displaypara  *dispara)
    state_area.bottom=(numOp)*LengthE;
    state_area.bottom=(state_area.bottom)/1000;
    GK_FillRect(dispara->CurWin, &state_area, color_light,
-                  0,CN_FILLRECT_MODE_N,0);
+                  0,CN_FILLRECT_MODE_N,0,0);
    GDD_SyncShow(CN_TIMEOUT_FOREVER);
    return;
 }

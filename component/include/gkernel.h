@@ -369,7 +369,7 @@ struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
                          u32 BaseColor,struct RopGroup RopMode);
 void GK_FillWin(struct GkWinObj *gkwin,u32 color,u32 sync_time);
 void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *range,struct Rectangle *rect,
-                            u32 Color0,u32 Color1,u32 Mode,u32 sync_time);
+                            u32 Color0,u32 Color1,u32 Mode,s32 radius,u32 sync_time);
 void GK_SyncShow(u32 sync_time);
 void GK_RefreshDisplay(struct DisplayObj *Display);
 struct GkWinObj* GK_GetWinFromPt(struct GkWinObj *desktop, const struct PointCdn *pt);

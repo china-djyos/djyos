@@ -408,49 +408,178 @@ static bool_t __lcd_line_bm_ie(struct RectBitmap *bitmap,struct Rectangle *limit
 bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
                           struct Rectangle *Target,
                           struct Rectangle *Focus,
-                          u32 Color0,u32 Color1,u32 Mode)
+                          u32 Color0,u32 Color1,u32 Mode,s32 radius)
 {
     u16 pixel;
     u16 *dst;
     s32 height,width;
     u32 timeout;
-    bool_t flag=true;
+    bool_t flag = true;
 
     if((Mode != CN_FILLRECT_MODE_N)  \
         ||(dst_bitmap->PixelFormat != lcd.LcdPixelFormat))
       return false;
 
     pixel = GK_ConvertRGB24ToPF(lcd.LcdPixelFormat,Color0);
-
-    dst = (u16*)((u32)dst_bitmap->bm_bits+Focus->left*lcd.pixsize+\
-                     Focus->top * dst_bitmap->linebytes);
-
-    width=Focus->right - Focus->left;
-    height=Focus->bottom - Focus->top;
-    if(false==Lock_MutexPend(&Dma2dMutex,lcd.Dma2dTimeOut))
-      return false;
-    DMA2D->CR&=~(1<<0);             //先停止DMA2D
-    DMA2D->CR=3<<16;                //寄存器到存储器模式
-    DMA2D->OPFCCR=lcd.Dma2dPixelFormat;  //设置输出颜色格式
-    DMA2D->OOR  = dst_bitmap->width-width;  //设置行偏移
-    DMA2D->OMAR=(u32)dst;               //输出存储器地址
-    DMA2D->NLR  = height|(width<<16);   //设定行数寄存器
-    DMA2D->OCOLR=pixel;                //设定输出颜色寄存器
-    DMA2D->CR|=1<<0;                //启动DMA2D
-    timeout =0;
-    while((DMA2D->ISR&(1<<1))==0)   //等待传输完成
+    if (radius == 0)
     {
-      timeout+=10;
-      DJY_DelayUs(10);
-      if(timeout>lcd.Dma2dTimeOut)
-      {
-          flag=false;
-           break;  //超时退出
-      }
+        dst = (u16*)((u32)dst_bitmap->bm_bits + Focus->left*lcd.pixsize + \
+            Focus->top * dst_bitmap->linebytes);
+
+        width = Focus->right - Focus->left;
+        height = Focus->bottom - Focus->top;
+        if (false == Lock_MutexPend(&Dma2dMutex, lcd.Dma2dTimeOut))
+            return false;
+        DMA2D->CR &= ~(1 << 0);             //先停止DMA2D
+        DMA2D->CR = 3 << 16;                //寄存器到存储器模式
+        DMA2D->OPFCCR = lcd.Dma2dPixelFormat;  //设置输出颜色格式
+        DMA2D->OOR = dst_bitmap->width - width;  //设置行偏移
+        DMA2D->OMAR = (u32)dst;               //输出存储器地址
+        DMA2D->NLR = height | (width << 16);   //设定行数寄存器
+        DMA2D->OCOLR = pixel;                //设定输出颜色寄存器
+        DMA2D->CR |= 1 << 0;                //启动DMA2D
+        timeout = 0;
+        while ((DMA2D->ISR&(1 << 1)) == 0)   //等待传输完成
+        {
+            timeout += 10;
+            DJY_DelayUs(10);
+            if (timeout > lcd.Dma2dTimeOut)
+            {
+                flag = false;
+                break;  //超时退出
+            }
+        }
+        DMA2D->IFCR |= 1 << 1;              //清除传输完成标志
+        Lock_MutexPost(&Dma2dMutex);
+        return flag;
     }
-    DMA2D->IFCR|=1<<1;              //清除传输完成标志
-    Lock_MutexPost(&Dma2dMutex);
-    return flag;
+    else//圆角矩形
+    {
+        s32 OutConst, Sum, SumY;
+        s32 move_x, x, move_y, flag, flag_x,y;
+        s32 cx, cy, dy, dx, arc_ry, arc_rx, _max;
+        cx = ((Target->right - Target->left) / 2) + Target->left;//中心点坐标
+        cy = ((Target->bottom - Target->top) / 2) + Target->top;
+        if (false == Lock_MutexPend(&Dma2dMutex, lcd.Dma2dTimeOut))
+            return false;
+        if (radius * 2 <= (Target->bottom - Target->top))
+        {
+            arc_ry = radius;
+            dy = cy - Target->top - arc_ry;
+        }
+        else
+        {
+            arc_ry = (Target->bottom - Target->top) >> 1;
+            dy = 0;
+        }
+        if (radius * 2 <= (Target->right - Target->left))
+        {
+            arc_rx = radius;
+            dx = cx - Target->left - arc_rx;
+        }
+        else
+        {
+            arc_rx = (Target->right - Target->left) >> 1;
+            dx = 0;
+        }
+        u32 _rx = arc_rx;
+        u32 _ry = arc_ry;
+        flag = ((Target->bottom - Target->top) % 2 == 0 ? 1 : 0);
+        flag_x = ((Target->right - Target->left) % 2 == 0 ? 0 : 1);
+        OutConst = _rx * _rx*_ry*_ry
+            + (_rx*_rx*_ry >> 1);
+        move_x = arc_rx;
+        DMA2D->CR &= ~(1 << 0);             //先停止DMA2D
+        DMA2D->CR = 3 << 16;                //寄存器到存储器模式
+        DMA2D->OPFCCR = lcd.Dma2dPixelFormat;  //设置输出颜色格式
+        for (y = 0; y <= arc_ry; y++)
+        {
+
+            SumY = ((s32)(arc_rx*arc_rx))*((s32)(y*y));
+            while (Sum = SumY + ((s32)(arc_ry*arc_ry))*((s32)(move_x*move_x)),
+                (move_x > 0) && (Sum > OutConst)) {
+                move_x--;
+            }
+            if (y)
+            {
+                move_y = cy - y - dy;
+                if (move_y >= Focus->top&&move_y < Focus->bottom)//上边弧start
+                {
+                    x = cx - move_x - dx;
+                    if (x <= Focus->left) x = Focus->left;
+                    else if (x >= Focus->right) x = Focus->right;
+
+                    _max = cx + move_x + dx + flag_x;
+                    if (_max >= Focus->right) _max = Focus->right;
+                    else if (_max <= Focus->left) _max = Focus->left;
+
+                    dst = (u16*)((u32)dst_bitmap->bm_bits + x * lcd.pixsize + \
+                        move_y * dst_bitmap->linebytes);
+
+                    width = _max - x;
+                    DMA2D->OOR = dst_bitmap->width - width;  //设置行偏移
+                    DMA2D->OMAR = (u32)dst;               //输出存储器地址
+                    DMA2D->NLR = 1 | (width << 16);   //设定行数寄存器
+                    DMA2D->OCOLR = pixel;                //设定输出颜色寄存器
+                    DMA2D->CR |= 1 << 0;                //启动DMA2D
+                }//上边弧end
+                move_y = cy + y + dy - flag;
+                if (move_y < Focus->bottom&&move_y >= Focus->top)//下边弧start
+                {
+                    x = cx - move_x - dx;
+                    if (x <= Focus->left) x = Focus->left;
+                    else if (x >= Focus->right) x = Focus->right;
+
+                    _max = cx + move_x + dx + flag_x;
+                    if (_max >= Focus->right) _max = Focus->right;
+                    else if (_max <= Focus->left) _max = Focus->left;
+
+                    dst = (u16*)((u32)dst_bitmap->bm_bits + x * lcd.pixsize + \
+                        move_y * dst_bitmap->linebytes);
+
+                    width = _max - x;
+
+                    DMA2D->OOR = dst_bitmap->width - width;  //设置行偏移
+                    DMA2D->OMAR = (u32)dst;               //输出存储器地址
+                    DMA2D->NLR = 1 | (width << 16);   //设定行数寄存器
+                    DMA2D->OCOLR = pixel;                //设定输出颜色寄存器
+                    DMA2D->CR |= 1 << 0;                //启动DMA2D
+                }//下边弧end
+            }
+
+        }
+        //*********中间矩形部分start
+        if (cy - dy <= Focus->top) y = Focus->top;//矩形高度
+        else y = cy - dy;
+        if (cy + dy + 1 >= Focus->bottom) _max = Focus->bottom;
+        else _max = cy + dy + 1;
+
+        dst = (u16*)((u32)dst_bitmap->bm_bits + Focus->left*lcd.pixsize + \
+            y * dst_bitmap->linebytes);
+
+        width = Focus->right - Focus->left;
+        height = _max - y;
+        DMA2D->OOR = dst_bitmap->width - width;  //设置行偏移
+        DMA2D->OMAR = (u32)dst;               //输出存储器地址
+        DMA2D->NLR = height | (width << 16);   //设定行数寄存器
+        DMA2D->OCOLR = pixel;                //设定输出颜色寄存器
+        DMA2D->CR |= 1 << 0;                //启动DMA2D
+        timeout = 0;
+        while ((DMA2D->ISR&(1 << 1)) == 0)   //等待传输完成
+        {
+            timeout += 10;
+            DJY_DelayUs(10);
+            if (timeout > lcd.Dma2dTimeOut)
+            {
+                flag = false;
+                break;  //超时退出
+            }
+        }
+        DMA2D->IFCR |= 1 << 1;              //清除传输完成标志
+        Lock_MutexPost(&Dma2dMutex);
+        return flag;//*********中间矩形部分end
+    }//圆角矩形
+
 }
 //--------------bitmap中位块传送-----------------------------------------------
 //在两个矩形位图中位块传送,如果矩形尺寸不相等,则要实现拉伸或压缩

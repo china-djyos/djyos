@@ -2386,6 +2386,781 @@ void __GK_BltBmToScreen(struct DisplayObj *display,struct Rectangle *limit,
     }
 }
 
+void __GK_FillroundRect(struct RectBitmap *dst_bitmap,
+                     struct Rectangle *Target,struct Rectangle *Focus,u32 color,s32 radius)
+{
+    struct Rectangle dst_rect;
+    s32 x,y,x1,x2;
+    u8 bit_offset,i;
+    u8 color_bits;
+    s32 byte_offset,temp_bytes;
+    u32 pf,pf_color;
+    u8 bit_offset1,bit_offset2,LeftColor,LeftMsk,RightColor,RightMsk;
+    s32 byte_offset1,byte_offset2;
+    u8 FillColor = 0;
+    s32 OutConst, Sum, SumY;
+    s32 move_x,move_y,flag;
+    s32 cx,cy,dy,dx,arc_ry,arc_rx;
+    temp_bytes = dst_bitmap->linebytes;
+    //color的格式是CN_SYS_PF_ERGB8888，转换成dst_bitmap->pf_type匹配的格式
+    pf_color = GK_ConvertRGB24ToPF(dst_bitmap->PixelFormat,color);
+    //被填充的位图的每像素位宽
+    color_bits = (dst_bitmap->PixelFormat & CN_PF_BITWIDE_MSK)>>8;
+    LeftColor = 0;
+    RightColor = 0;
+
+    cx = ((Target->right-Target->left)/2) + Target->left;//中心点坐标
+    cy = ((Target->bottom-Target->top)/2) + Target->top;
+
+    if(radius * 2 <= (Target->bottom-Target->top))
+    {
+        arc_ry = radius;
+        dy = cy - Target->top - arc_ry;
+    }
+    else
+    {
+        arc_ry = (Target->bottom-Target->top)>>1;
+        dy = 0;
+    }
+    if(radius * 2 <= (Target->right-Target->left))
+    {
+        arc_rx = radius;
+        dx = cx - Target->left - arc_rx;
+    }
+    else
+    {
+        arc_rx = (Target->right-Target->left)>>1;
+        dx = 0;
+    }
+    u32 _rx = arc_rx;
+    u32 _ry = arc_ry;
+    //中间矩形
+    if(cy-dy<=Focus->top)
+        dst_rect.top = Focus->top;//矩形高度
+    else dst_rect.top = cy-dy;
+    if((cy+dy+1)>=Focus->bottom)
+        dst_rect.bottom = Focus->bottom;
+    else dst_rect.bottom = cy+dy+1;
+    dst_rect.left = Focus->left;
+    dst_rect.right = Focus->right;
+    __GK_FillRect(dst_bitmap,&dst_rect,color);//中间矩形end
+
+    flag = ((Target->bottom-Target->top)%2 == 0?1:0);
+    s32 flag_x = ((Target->right-Target->left)%2 == 0?0:1);
+    OutConst =   _rx*_rx*_ry*_ry
+               +(_rx*_rx*_ry>>1);
+    move_x = arc_rx;
+
+    switch(color_bits)
+    {
+        case 1:
+        {
+            pf = pf_color & 0x01;               //取给定的填充颜色
+            FillColor = ((pf == 1)?0xff:0);
+            for(y=0; y<=arc_ry; y++)
+            {
+                 SumY =((s32)(arc_rx*arc_rx))*((s32)(y*y));
+                 while (Sum = SumY + ((s32)(arc_ry*arc_ry))*((s32)(move_x*move_x)),
+                        (move_x>0) && (Sum>OutConst)) {move_x--;}
+                 if(y)
+                 {
+                     move_y = cy-y-dy;
+                     if(move_y>=Focus->top&&move_y<Focus->bottom)//上边弧start
+                     {
+                         x1 = cx-move_x-dx;
+                         if(x1<=Focus->left) x1 = Focus->left;
+                         else if(x1>=Focus->right) continue;
+
+                         x2 = cx + move_x + dx + flag_x;
+                         if(x2>=Focus->right) x2 = Focus->right;
+                         else if(x2<=Focus->left) x2 = Focus->left;
+
+                         byte_offset1 = move_y * temp_bytes + x1/8;  //Target首行左边界所在字节
+                         // -1是因为矩形右边界是不包含在绘制坐标内的。
+                         byte_offset2 = move_y*temp_bytes + x2/8;  //Target首行右边界所在字节
+                         bit_offset1 = x1%8;   //Target左边界在所在字节的位，x=0，bit=7
+                         bit_offset2 = x2%8;     //7减去Target右边界在所在字节的位，7-bit
+                         //Target的首字节与尾字节不在一个字节内
+                         if(byte_offset1 != byte_offset2)
+                         {
+                              //Target每行的首字节各位的颜色
+                              //首字节取颜色的位数与bit相同，右边是高位
+                              LeftColor = FillColor &(0xff >> bit_offset1);//左端像素在字节低位
+                              RightColor = FillColor << (8-bit_offset2);  //右端像素在字节高位
+                              LeftMsk = ~(0xff>>bit_offset1);     //左端须保留的位
+                              RightMsk = (0xff>>bit_offset2);     //右端须保留的位
+                              //填充Target每行中间字节的颜色
+                              for(x = byte_offset1+1; x < byte_offset2; x++)
+                              {
+                                  dst_bitmap->bm_bits[x] = FillColor;
+                              }
+                              dst_bitmap->bm_bits[byte_offset1] &= LeftMsk;
+                              dst_bitmap->bm_bits[byte_offset1] |= LeftColor;  //字节头赋值
+                              dst_bitmap->bm_bits[byte_offset2] &= RightMsk;
+                              dst_bitmap->bm_bits[byte_offset2] |= RightColor; //字节尾赋值
+                          }
+                         else if(x1+1<x2)//Target首字节与尾字节在一个字节内
+                        {   //bit1在左，bit2在右，右边为高位，此处的bit_offset2=7-bit2
+                             LeftColor = 0;
+                             RightColor = 0;
+                             for(i = bit_offset1;i < bit_offset2;i++)
+                             {
+                                 RightColor |= 1<<(7-i);
+                                 LeftColor |= pf<<(7-i);
+                             }
+
+                        //保留目标字节内不需要填充的位
+                             dst_bitmap->bm_bits[byte_offset1] &= ~LeftColor;
+                             dst_bitmap->bm_bits[byte_offset1] |= RightColor;//填充相应的位
+                        }
+                        else
+                        {
+                          //__GK_SetPixelRop2Bm(dst_bitmap,x1,move_y,pf_color,12);
+                            LeftColor = 1<<(7-bit_offset1);
+                            RightColor = pf<<(7-bit_offset1);
+                            dst_bitmap->bm_bits[byte_offset1] &= ~LeftColor;
+                            dst_bitmap->bm_bits[byte_offset1] |= RightColor;//填充相应的位
+                        }
+                      }//上边弧end
+                      move_y = cy+y+dy-flag;
+                      if(move_y<Focus->bottom&&move_y>=Focus->top)//下边弧start
+                      {
+                          x1 = cx-move_x-dx;
+                          if(x1<=Focus->left) x1 = Focus->left;
+                          else if(x1>=Focus->right) continue;
+
+                          x2 = cx + move_x + dx+ flag_x;
+                          if(x2>=Focus->right) x2 = Focus->right;
+                          else if(x2<=Focus->left) x2 = Focus->left;
+                          byte_offset1 = move_y * temp_bytes + x1/8;  //Target首行左边界所在字节
+                          // -1是因为矩形右边界是不包含在绘制坐标内的。
+                          byte_offset2 = move_y * temp_bytes + (x2)/8;  //Target首行右边界所在字节
+                          bit_offset1 = x1%8;   //Target左边界在所在字节的位，x=0，bit=7
+                          bit_offset2 = x2%8;     //7减去Target右边界在所在字节的位，7-bit
+                        //Target的首字节与尾字节不在一个字节内
+                          if(byte_offset1 != byte_offset2)
+                          {
+                                //Target每行的首字节各位的颜色
+                                //首字节取颜色的位数与bit相同，右边是高位
+                                LeftColor = FillColor &(0xff >> bit_offset1);//左端像素在字节低位
+                                RightColor = FillColor << (8-bit_offset2);  //右端像素在字节高位
+                                LeftMsk = ~(0xff>>bit_offset1);     //左端须保留的位
+                                RightMsk = (0xff>>bit_offset2);     //右端须保留的位
+                                //填充Target每行中间字节的颜色
+                                for(x = byte_offset1+1; x < byte_offset2; x++)
+                                {
+                                    dst_bitmap->bm_bits[x] = FillColor;
+                                }
+                                dst_bitmap->bm_bits[byte_offset1] &= LeftMsk;
+                                dst_bitmap->bm_bits[byte_offset1] |= LeftColor;  //字节头赋值
+                                dst_bitmap->bm_bits[byte_offset2] &= RightMsk;
+                                dst_bitmap->bm_bits[byte_offset2] |= RightColor; //字节尾赋值
+                          }
+                         else if(x1+1<x2)//Target首字节与尾字节在一个字节内
+                         {   //bit1在左，bit2在右，右边为高位，此处的bit_offset2=7-bit2
+                            LeftColor = 0;
+                            RightColor = 0;
+                            for(i = bit_offset1;i < bit_offset2;i++)
+                            {
+                                RightColor |= 1<<(7-i);
+                                LeftColor |= pf<<(7-i);
+                            }
+                           //保留目标字节内不需要填充的位
+                            dst_bitmap->bm_bits[byte_offset1] &= ~LeftColor;
+                            dst_bitmap->bm_bits[byte_offset1] |= RightColor;//填充相应的位
+                         }
+                         else
+                         {
+                             LeftColor = 1<<(7-bit_offset1);
+                             RightColor = pf<<(7-bit_offset1);
+                             dst_bitmap->bm_bits[byte_offset1] &= ~LeftColor;
+                             dst_bitmap->bm_bits[byte_offset1] |= RightColor;//填充相应的位
+                         }
+                    }//下弧
+                }//if结束
+            }//画弧结束
+      }break;
+      case 2:
+      {
+          pf = pf_color & 0x03;               //取给定的填充颜色
+          FillColor = (u8)((pf<<6)|(pf<<4)|(pf<<2)|pf);//每行中间字节的颜色
+          for(y=0; y<=arc_ry; y++)
+          {
+               SumY =((s32)(arc_rx*arc_rx))*((s32)(y*y));
+               while (Sum = SumY + ((s32)(arc_ry*arc_ry))*((s32)(move_x*move_x)),
+                      (move_x>0) && (Sum>OutConst)) {move_x--;}
+               if(y)
+               {
+                   move_y = cy-y-dy;
+                   if(move_y>=Focus->top&&move_y<Focus->bottom)//上边弧start
+                   {
+                       x1 = cx-move_x-dx;
+                       if(x1<=Focus->left) x1 = Focus->left;
+                       else if(x1>=Focus->right) //x1 = Focus->right;
+                           continue;
+
+                       x2 = cx + move_x + dx+ flag_x;
+                       if(x2>=Focus->right) x2 = Focus->right;
+                       else if(x2<Focus->left) continue;
+                      byte_offset1 = move_y * temp_bytes + x1/4;  //Target首行左边界所在字节
+                      // -1是因为矩形右边界是不包含在绘制坐标内的。
+                      byte_offset2 = move_y * temp_bytes + x2/4;  //Target首行右边界所在字节
+                      bit_offset1 = (x1%4)<<1;//Target左边界在所在字节的位，x=0，bit=7
+                      bit_offset2 = (x2%4)<<1;//7减去Target右边界在所在字节的位，7-bit
+
+                      //Target首行的首字节与尾字节不在一个字节内
+                      if(byte_offset1 != byte_offset2)
+                      {   //Target每行的首字节各位的颜色
+                          LeftColor = FillColor &(0xff >> bit_offset1);//左端像素在字节低位
+                          RightColor = FillColor << (8-bit_offset2);  //右端像素在字节高位
+                          LeftMsk = ~(0xff>>bit_offset1);     //左端须保留的位
+                          RightMsk = (0xff>>bit_offset2);     //右端须保留的位
+                          //填充颜色
+                          //填充Target每行中间字节的颜色
+                              for(x = byte_offset1+1; x < byte_offset2; x++)
+                              {
+                                  dst_bitmap->bm_bits[x] = FillColor;
+                              }
+                              dst_bitmap->bm_bits[byte_offset1] &= LeftMsk;
+                              dst_bitmap->bm_bits[byte_offset1] |= LeftColor;  //字节头赋值
+                              dst_bitmap->bm_bits[byte_offset2] &= RightMsk;
+                              dst_bitmap->bm_bits[byte_offset2] |= RightColor;    //字节尾赋值
+                      }
+                      else if(x1+1<x2)
+                      {
+
+                             LeftColor = ((u8)0xff << bit_offset1)>>bit_offset1;
+                             LeftColor = (LeftColor >> (8-bit_offset2))<<(8-bit_offset2);
+                             RightColor = LeftColor & FillColor;
+                               //保留目标字节内不需要填充的位
+                             dst_bitmap->bm_bits[byte_offset1] &= ~LeftColor;
+                             //填充相应的位
+                             dst_bitmap->bm_bits[byte_offset1] |= RightColor;
+                      }
+                      else
+                      {
+                          RightColor = 0x3<<(6-bit_offset1);
+                          LeftColor = pf<<(6-bit_offset1);
+                            //保留目标字节内不需要填充的位
+                          dst_bitmap->bm_bits[byte_offset1] &= ~LeftColor;
+                          //填充相应的位
+                          dst_bitmap->bm_bits[byte_offset1] |= RightColor;
+                      }
+                   }//上边弧end
+                       move_y = cy+y+dy-flag;
+                       if(move_y<Focus->bottom&&move_y>=Focus->top)//下边弧start
+                       {
+                           x1 = cx-move_x-dx;
+                           if(x1<=Focus->left) x1 = Focus->left;
+                           else if(x1>=Focus->right) continue;
+                           x2 = cx + move_x + dx + flag_x;
+                           if(x2>=Focus->right) x2 = Focus->right;
+                           else if(x2<Focus->left) continue;
+
+                           byte_offset1 = move_y * temp_bytes + x1/4;  //Target首行左边界所在字节
+                         // -1是因为矩形右边界是不包含在绘制坐标内的。
+                         byte_offset2 = move_y * temp_bytes + x2/4;  //Target首行右边界所在字节
+                         bit_offset1 = (x1%4)<<1;//Target左边界在所在字节的位，x=0，bit=7
+                         bit_offset2 = (x2%4)<<1;//7减去Target右边界在所在字节的位，7-bit
+
+                         //Target首行的首字节与尾字节不在一个字节内
+                         if(byte_offset1 != byte_offset2)
+                         {   //Target每行的首字节各位的颜色
+                             LeftColor = FillColor &(0xff >> bit_offset1);//左端像素在字节低位
+                             RightColor = FillColor << (8-bit_offset2);  //右端像素在字节高位
+                             LeftMsk = ~(0xff>>bit_offset1);     //左端须保留的位
+                             RightMsk = (0xff>>bit_offset2);     //右端须保留的位
+                             //填充颜色
+                             //填充Target每行中间字节的颜色
+                                 for(x = byte_offset1+1; x < byte_offset2; x++)
+                                 {
+                                     dst_bitmap->bm_bits[x] = FillColor;
+                                 }
+                                 dst_bitmap->bm_bits[byte_offset1] &= LeftMsk;
+                                 dst_bitmap->bm_bits[byte_offset1] |= LeftColor;  //字节头赋值
+                                 dst_bitmap->bm_bits[byte_offset2] &= RightMsk;
+                                 dst_bitmap->bm_bits[byte_offset2] |= RightColor;    //字节尾赋值
+                         }
+                         else if(x1+1<x2)//Target首行的首字节与尾字节在一个字节内
+                      {
+                             LeftColor = ((u8)0xff >> bit_offset1)<<bit_offset1;
+                             LeftColor = (LeftColor >> (8-bit_offset2))<<(8-bit_offset2);
+                             RightColor = LeftColor & FillColor;
+                               //保留目标字节内不需要填充的位
+                             dst_bitmap->bm_bits[byte_offset1] &= ~LeftColor;
+                             //填充相应的位
+                             dst_bitmap->bm_bits[byte_offset1] |= RightColor;
+                      }
+                      else
+                      {
+                          RightColor = 0x3<<(6-bit_offset1);
+                          LeftColor = pf<<(6-bit_offset1);
+                            //保留目标字节内不需要填充的位
+                          dst_bitmap->bm_bits[byte_offset1] &= ~LeftColor;
+                          //填充相应的位
+                          dst_bitmap->bm_bits[byte_offset1] |= RightColor;
+                      }
+                   }//下弧
+               }//if结束
+           }//画弧结束
+
+      }break;
+      case 4:
+      {
+          pf = pf_color & 0xf;                //取给定的填充颜色
+          FillColor = (u8)((pf<<4)|pf);     //每行中间字节的颜色
+          for(y=0; y<=arc_ry; y++)
+        {
+             SumY =((s32)(arc_rx*arc_rx))*((s32)(y*y));
+             while (Sum = SumY + ((s32)(arc_ry*arc_ry))*((s32)(move_x*move_x)),
+                    (move_x>0) && (Sum>OutConst)) {move_x--;}
+             if(y)
+             {
+                 move_y = cy-y-dy;
+                 if(move_y>=Focus->top&&move_y<Focus->bottom)//上边弧start
+                 {
+                     x1 = cx-move_x-dx;
+                     if(x1<=Focus->left) x1 = Focus->left;
+                     else if(x1>=Focus->right) continue;
+
+                     x2 = cx + move_x + dx + flag_x;
+                     if(x2>=Focus->right) x2 = Focus->right;
+                     else if(x2<Focus->left) continue;
+                     byte_offset1 = move_y * temp_bytes+x1/2;  //Target首行左边界所在字节
+                     // -1是因为矩形右边界是不包含在绘制坐标内的。
+                     byte_offset2 = move_y * temp_bytes+x2/2;  //Target首行右边界所在字节
+                     bit_offset1 = (x1%2)<<2;//Target左边界在所在字节的位，x=0，bit=7
+                     bit_offset2 = (x2%2)<<2;//7减去Target右边界在所在字节的位，7-bit
+
+                     //Target首行的首字节与尾字节不在一个字节内
+                     if(byte_offset1 != byte_offset2)
+                     {
+                         LeftColor = FillColor &(0xff >> bit_offset1);//左端像素在字节低位
+                         RightColor = FillColor << (8-bit_offset2);  //右端像素在字节高位
+                         LeftMsk = ~(0xff>>bit_offset1);     //左端须保留的位
+                         RightMsk = (0xff>>bit_offset2);     //右端须保留的位
+                         //填充颜色
+
+                           //填充Target每行中间字节的颜色
+                         for(x = byte_offset1+1; x < byte_offset2; x++)
+                         {
+                             dst_bitmap->bm_bits[x] = FillColor;
+                         }
+                         dst_bitmap->bm_bits[byte_offset1] &= LeftMsk;
+                         dst_bitmap->bm_bits[byte_offset1] |= LeftColor;  //字节头赋值
+                         dst_bitmap->bm_bits[byte_offset2] &= RightMsk;
+                         dst_bitmap->bm_bits[byte_offset2] |= RightColor;    //字节尾赋值
+                     }
+                     else//Target首行的首字节与尾字节在一个字节内
+                     {   //高位在左边
+                         LeftColor = 0;
+                         RightColor = 0;
+                         if(x1 & 1)
+                         {
+                             LeftMsk = 0xf0;
+                             LeftColor = FillColor >> 4;
+                         }
+                         else
+                             LeftColor = FillColor << 4;
+                         if((x2-flag_x) & 1)
+                             LeftColor |= FillColor >> 4;
+                         else
+                         {
+                             LeftMsk = 0x0f;
+                             LeftColor &= FillColor << 4;
+                         }
+                         //保留目标字节内不需要填充的位
+                         dst_bitmap->bm_bits[byte_offset1] &= LeftMsk;
+                         //填充相应的位
+                         dst_bitmap->bm_bits[byte_offset1] |= LeftColor;
+
+                     }
+
+                  }//上边弧end
+                    move_y = cy+y+dy-flag;
+                    if(move_y<Focus->bottom&&move_y>=Focus->top)//下边弧start
+                    {
+                        x1 = cx-move_x-dx;
+                        if(x1<=Focus->left) x1 = Focus->left;
+                        else if(x1>=Focus->right) continue;
+
+                        x2 = cx + move_x + dx + flag_x;
+                        if(x2>=Focus->right) x2 = Focus->right;
+                        else if(x2<=Focus->left) continue;
+                        byte_offset1 = move_y * temp_bytes+x1/2;  //Target首行左边界所在字节
+                        // -1是因为矩形右边界是不包含在绘制坐标内的。
+                        byte_offset2 = move_y * temp_bytes+(x2)/2;  //Target首行右边界所在字节
+                        bit_offset1 = (x1%2)<<2;//Target左边界在所在字节的位，x=0，bit=7
+                        bit_offset2 = (x2%2)<<2;//7减去Target右边界在所在字节的位，7-bit
+
+                        //Target首行的首字节与尾字节不在一个字节内
+                        //if(byte_offset1 != byte_offset2)
+                        if(byte_offset1 != byte_offset2)
+                        {
+                            LeftColor = FillColor &(0xff >> bit_offset1);//左端像素在字节低位
+                            RightColor = FillColor << (8-bit_offset2);  //右端像素在字节高位
+                            LeftMsk = ~(0xff>>bit_offset1);     //左端须保留的位
+                            RightMsk = (0xff>>bit_offset2);     //右端须保留的位
+                            //填充颜色
+                            //填充Target每行中间字节的颜色
+                              for(x = byte_offset1+1; x < byte_offset2; x++)
+                              {
+                                  dst_bitmap->bm_bits[x] = FillColor;
+                              }
+                              dst_bitmap->bm_bits[byte_offset1] &= LeftMsk;
+                              dst_bitmap->bm_bits[byte_offset1] |= LeftColor;  //字节头赋值
+                              dst_bitmap->bm_bits[byte_offset2] &= RightMsk;
+                              dst_bitmap->bm_bits[byte_offset2] |= RightColor;    //字节尾赋值
+                        }
+                        else//Target首行的首字节与尾字节在一个字节内
+                        {   //高位在左边
+                            LeftColor = 0;
+                            RightColor = 0;
+                            if(x1 & 1)
+                            {
+                                LeftMsk = 0xf0;
+                                LeftColor = FillColor >> 4;
+                            }
+                            else
+                                LeftColor = FillColor << 4;
+                            if((x2-flag_x) & 1)
+                                LeftColor |= FillColor >> 4;
+                            else
+                            {
+                                LeftMsk = 0x0f;
+                                LeftColor &= FillColor << 4;
+                            }
+                            //保留目标字节内不需要填充的位
+                            dst_bitmap->bm_bits[byte_offset1] &= LeftMsk;
+                            //填充相应的位
+                            dst_bitmap->bm_bits[byte_offset1] |= LeftColor;
+
+                         }
+
+                  }//下弧
+              }//if结束
+         }//画弧结束
+      }break;
+        case 8:
+        {
+            pf = pf_color;
+            for(y=0; y<=arc_ry; y++)
+            {
+                 SumY =((s32)(arc_rx*arc_rx))*((s32)(y*y));
+                 while (Sum = SumY + ((s32)(arc_ry*arc_ry))*((s32)(move_x*move_x)),
+                        (move_x>0) && (Sum>OutConst)) {move_x--;}
+                 if(y)
+                 {
+                     move_y = cy-y-dy;
+                     if(move_y>=Focus->top&&move_y<Focus->bottom)//上边弧start
+                     {
+                         x1 = cx-move_x-dx;
+                         if(x1<=Focus->left) x1 = Focus->left;
+                         else if(x1>=Focus->right) x1 = Focus->right;
+
+                         x2 = cx + move_x + dx + flag_x;
+                         if(x2>=Focus->right) x2 = Focus->right;
+                         else if(x2<=Focus->left) x2 = Focus->left;
+                         byte_offset1 = move_y*temp_bytes+x1;    //Target首行左边界所在字节
+                         byte_offset2 = move_y*temp_bytes+x2;    //Target首行右边界所在字节
+
+                         if(byte_offset1 != byte_offset2)
+                             //填充Target每行中间字节的颜色
+                             for(x = byte_offset1;x < byte_offset2;x++)
+                             {
+                                 dst_bitmap->bm_bits[x] = (u8)pf;
+                             }
+                         else
+                             dst_bitmap->bm_bits[byte_offset1] = (u8)pf;
+
+
+                    }//上边弧end
+                    move_y = cy+y+dy-flag;
+                    if(move_y<Focus->bottom&&move_y>=Focus->top)//下边弧start
+                    {
+                        x1 = cx-move_x-dx;
+                        if(x1<=Focus->left) x1 = Focus->left;
+                        else if(x1>=Focus->right) x1 = Focus->right;
+
+                        x2 = cx + move_x + dx + flag_x;
+                        if(x2>=Focus->right) x2 = Focus->right;
+                        else if(x2<=Focus->left) x2 = Focus->left;
+                        byte_offset1 = move_y*temp_bytes+x1;    //Target首行左边界所在字节
+                        byte_offset2 = move_y*temp_bytes+x2;    //Target首行右边界所在字节
+                        if(byte_offset1 != byte_offset2)
+                            //填充Target每行中间字节的颜色
+                            for(x = byte_offset1;x < byte_offset2;x++)
+                            {
+                                dst_bitmap->bm_bits[x] = (u8)pf;
+                            }
+                        else
+                            dst_bitmap->bm_bits[byte_offset1] = (u8)pf;
+                  }//下弧
+              }//if结束
+          }//画弧结束
+    }break;
+        case 12:
+        {
+            pf = pf_color;
+            for(y=0; y<=arc_ry; y++)
+            {
+                 SumY =((s32)(arc_rx*arc_rx))*((s32)(y*y));
+                 while (Sum = SumY + ((s32)(arc_ry*arc_ry))*((s32)(move_x*move_x)),
+                        (move_x>0) && (Sum>OutConst)) {move_x--;}
+                 if(y)
+                 {
+                     move_y = cy-y-dy;
+                     if(move_y>=Focus->top&&move_y<Focus->bottom)//上边弧start
+                     {
+                         x1 = cx-move_x-dx;
+                         if(x1<=Focus->left) x1 = Focus->left;
+                         else if(x1>=Focus->right) x1 = Focus->right;
+
+                         x2 = cx + move_x + dx;
+                         if(x2>=Focus->right) x2 = Focus->right;
+                         else if(x2<=Focus->left) x2 = Focus->left;
+                         temp_bytes = move_y*temp_bytes;              //y行的字节偏移量
+                         for(x = x1;x < x2;x++)
+                         {
+                             byte_offset = temp_bytes + x*3/2;   //目标像素所在字节
+                             bit_offset = (x*12)%8;              //目标像素的位偏移量
+                             if(bit_offset == 0)
+                             {
+                                 dst_bitmap->bm_bits[byte_offset] = (u8)(pf&0xff);
+                                 dst_bitmap->bm_bits[byte_offset+1] &= 0xf0;
+                                 dst_bitmap->bm_bits[byte_offset+1] |= (u8)(pf>>8);
+                             }else
+                             {
+                                 dst_bitmap->bm_bits[byte_offset] &= 0x0f;
+                                 dst_bitmap->bm_bits[byte_offset] |= (u8)pf<<4;
+                                 dst_bitmap->bm_bits[byte_offset+1] = (u8)(pf>>4);
+                             }
+                         }
+
+                    }//上边弧end
+                    move_y = cy+y+dy-flag;
+                    if(move_y<Focus->bottom&&move_y>=Focus->top)//下边弧start
+                    {
+                        x1 = cx-move_x-dx;
+                        if(x1<=Focus->left) x1 = Focus->left;
+                        else if(x1>=Focus->right) x1 = Focus->right;
+
+                        x2 = cx + move_x + dx;
+                        if(x2>=Focus->right) x2 = Focus->right;
+                        else if(x2<=Focus->left) x2 = Focus->left;
+                        temp_bytes = move_y*temp_bytes;              //y行的字节偏移量
+                        for(x = x1;x < x2;x++)
+                        {
+                            byte_offset = temp_bytes + x*3/2;   //目标像素所在字节
+                            bit_offset = (x*12)%8;              //目标像素的位偏移量
+                            if(bit_offset == 0)
+                            {
+                                dst_bitmap->bm_bits[byte_offset] = (u8)(pf&0xff);
+                                dst_bitmap->bm_bits[byte_offset+1] &= 0xf0;
+                                dst_bitmap->bm_bits[byte_offset+1] |= (u8)(pf>>8);
+                            }else
+                            {
+                                dst_bitmap->bm_bits[byte_offset] &= 0x0f;
+                                dst_bitmap->bm_bits[byte_offset] |= (u8)pf<<4;
+                                dst_bitmap->bm_bits[byte_offset+1] = (u8)(pf>>4);
+                            }
+                        }
+                    }//下弧
+                }//if结束
+            }//画弧结束
+      }break;
+      case 16:
+      {
+          pf = pf_color;
+          u16 *vm = NULL;
+          for(y=0; y<=arc_ry; y++)
+          {
+              SumY =((s32)(arc_rx*arc_rx))*((s32)(y*y));
+              while (Sum = SumY + ((s32)(arc_ry*arc_ry))*((s32)(move_x*move_x)),
+                    (move_x>0) && (Sum>OutConst)) {move_x--;}
+              if(y)
+              {
+                 move_y = cy-y-dy;
+                 if(move_y>=Focus->top&&move_y<Focus->bottom)//上边弧start
+                 {
+                     x1 = cx-move_x-dx;
+                     if(x1<=Focus->left) x1 = Focus->left;
+                     else if(x1>=Focus->right) x1 = Focus->right;
+
+                     x2 = cx + move_x + dx;
+                     if(x2>=Focus->right) x2 = Focus->right;
+                     else if(x2<=Focus->left) x2 = Focus->left;
+                     if((u32)dst_bitmap->bm_bits & 1 )      //非对齐地址
+                     {
+                         byte_offset1 = move_y*temp_bytes+x1*2;  //Target首行左边界所在字节
+                         byte_offset2 = move_y*temp_bytes+(x2-1)*2;  //Target首行右边界所在字节
+
+                         for(x = byte_offset1;x <= byte_offset2;x = x+2)
+                         {
+                               //注:因对齐问题，不可把目标地址强制转换成16位指针。
+                             dst_bitmap->bm_bits[x] = (u8)pf;
+                             dst_bitmap->bm_bits[x+1] = (u8)(pf>>8);
+                         }
+                     }
+                     else                        //对齐的地址
+                     {
+                         vm = (u16*)((u32)dst_bitmap->bm_bits+move_y*dst_bitmap->linebytes);
+                         for(x = x1;x < x2;x++)
+                         {
+                             vm[x] = pf;
+                         }
+                     }
+                  }//上边弧end
+                  move_y = cy+y+dy-flag;
+                  if(move_y<Focus->bottom&&move_y>=Focus->top)//下边弧start
+                  {
+                      x1 = cx-move_x-dx;
+                      if(x1<=Focus->left) x1 = Focus->left;
+                      else if(x1>=Focus->right) x1 = Focus->right;
+
+                      x2 = cx + move_x + dx;
+                      if(x2>=Focus->right) x2 = Focus->right;
+                      else if(x2<=Focus->left) x2 = Focus->left;
+                      if((u32)dst_bitmap->bm_bits & 1 )      //非对齐地址
+                      {
+                          byte_offset1 = move_y*temp_bytes+x1*2;  //Target首行左边界所在字节
+                          byte_offset2 = move_y*temp_bytes+(x2-1)*2;  //Target首行右边界所在字节
+
+                          for(x = byte_offset1;x <= byte_offset2;x = x+2)
+                          {
+                              //注:因对齐问题，不可把目标地址强制转换成16位指针。
+                              dst_bitmap->bm_bits[x] = (u8)pf;
+                              dst_bitmap->bm_bits[x+1] = (u8)(pf>>8);
+                          }
+                      }
+                      else                        //对齐的地址
+                      {
+                          vm = (u16*)((u32)dst_bitmap->bm_bits+move_y*dst_bitmap->linebytes);
+                          for(x = x1;x < x2;x++)
+                          {
+                              vm[x] = pf;
+                          }
+                      }
+                  }//下弧
+              }//if结束
+          }//画弧结束
+
+      }break;
+      case 24:
+      {
+          pf = pf_color;
+            for(y=0; y<=arc_ry; y++)
+            {
+                 SumY =((s32)(arc_rx*arc_rx))*((s32)(y*y));
+                 while (Sum = SumY + ((s32)(arc_ry*arc_ry))*((s32)(move_x*move_x)),
+                        (move_x>0) && (Sum>OutConst)) {move_x--;}
+                 if(y)
+                 {
+                     move_y = cy-y-dy;
+                     if(move_y>=Focus->top&&move_y<Focus->bottom)//上边弧start
+                     {
+                        x1 = cx-move_x-dx;
+                        if(x1<=Focus->left) x1 = Focus->left;
+                        else if(x1>=Focus->right) x1 = Focus->right;
+
+                        x2 = cx + move_x + dx;
+                        if(x2>=Focus->right) x2 = Focus->right;
+                        else if(x2<=Focus->left) x2 = Focus->left;
+
+                        byte_offset1 = move_y*temp_bytes+x1*3;  //Target首行左边界所在字节
+                        byte_offset2 = move_y*temp_bytes+(x2-1)*3;  //Target首行右边界所在字节
+
+                        for(x = byte_offset1;x <= byte_offset2;x = x+3)
+                        {
+                           dst_bitmap->bm_bits[x] = (u8)pf;
+                           dst_bitmap->bm_bits[x+1] = (u8)(pf >> 8);
+                           dst_bitmap->bm_bits[x+2] = (u8)(pf >> 16);
+                        }
+                      }//上边弧end
+                        move_y = cy+y+dy-flag;
+                        if(move_y<Focus->bottom&&move_y>=Focus->top)//下边弧start
+                        {
+                            x1 = cx-move_x-dx;
+                            if(x1<=Focus->left) x1 = Focus->left;
+                            else if(x1>=Focus->right) x1 = Focus->right;
+
+                            x2 = cx + move_x + dx;
+                            if(x2>=Focus->right) x2 = Focus->right;
+                            else if(x2<=Focus->left) x2 = Focus->left;
+                            byte_offset1 = move_y*temp_bytes+x1*3;  //Target首行左边界所在字节
+                            byte_offset2 = move_y*temp_bytes+(x2-1)*3;  //Target首行右边界所在字节
+
+                            for(x = byte_offset1;x <= byte_offset2;x = x+3)
+                            {
+                                dst_bitmap->bm_bits[x] = (u8)pf;
+                                dst_bitmap->bm_bits[x+1] = (u8)(pf >> 8);
+                                dst_bitmap->bm_bits[x+2] = (u8)(pf >> 16);
+                            }
+                        }//下弧
+                  }//if结束
+              }//画弧结束
+      }break;
+      case 32:
+      {
+          pf = pf_color;
+          for(y=0; y<=arc_ry; y++)
+            {
+                SumY =((s32)(arc_rx*arc_rx))*((s32)(y*y));
+                while (Sum = SumY + ((s32)(arc_ry*arc_ry))*((s32)(move_x*move_x)),
+                    (move_x>0) && (Sum>OutConst)) {move_x--;}
+                if(y)
+                {
+                    move_y = cy-y-dy;
+                    if(move_y>=Focus->top&&move_y<Focus->bottom)//上边弧start
+                    {
+                        x1 = cx-move_x-dx;
+                        if(x1<=Focus->left) x1 = Focus->left;
+                        else if(x1>=Focus->right) x1 = Focus->right;
+
+                        x2 = cx + move_x + dx;
+                        if(x2>=Focus->right) x2 = Focus->right;
+                        else if(x2<=Focus->left) x2 = Focus->left;
+                        byte_offset1 = move_y*temp_bytes+x1*4;  //Target首行左边界所在字节
+                        byte_offset2 = move_y*temp_bytes+(x2-1)*4;  //Target首行右边界所在字节
+                        for(x = byte_offset1;x <= byte_offset2;x = x+4)
+                        {
+                        pf = pf_color;
+                        //注:因对齐问题，不可把目标地址强制转换成32位指针。
+                        dst_bitmap->bm_bits[x] = (u8)pf;
+                        dst_bitmap->bm_bits[x+1] = (u8)(pf >> 8);
+                        dst_bitmap->bm_bits[x+2] = (u8)(pf >> 16);
+                        dst_bitmap->bm_bits[x+3] = (u8)(pf >> 24);
+                        }
+                    }//上边弧end
+                    move_y = cy+y+dy-flag;
+                    if(move_y<Focus->bottom&&move_y>=Focus->top)//下边弧start
+                    {
+                        x1 = cx-move_x-dx;
+                        if(x1<=Focus->left) x1 = Focus->left;
+                        else if(x1>=Focus->right) x1 = Focus->right;
+
+                        x2 = cx + move_x + dx;
+                        if(x2>=Focus->right) x2 = Focus->right;
+                        else if(x2<=Focus->left) x2 = Focus->left;
+                        byte_offset1 = move_y*temp_bytes+x1*4;  //Target首行左边界所在字节
+                        byte_offset2 = move_y*temp_bytes+(x2-1)*4;  //Target首行右边界所在字节
+                        for(x = byte_offset1;x <= byte_offset2;x = x+4)
+                        {
+                          pf = pf_color;
+                          //注:因对齐问题，不可把目标地址强制转换成32位指针。
+                          dst_bitmap->bm_bits[x] = (u8)pf;
+                          dst_bitmap->bm_bits[x+1] = (u8)(pf >> 8);
+                          dst_bitmap->bm_bits[x+2] = (u8)(pf >> 16);
+                          dst_bitmap->bm_bits[x+3] = (u8)(pf >> 24);
+                        }
+                    }//下弧
+                    }//if结束
+            }//画弧结束
+
+      }break;
+    }
+
+}
 //----填充矩形-----------------------------------------------------------------
 //功能: 在dst_bitmap中dst_rect所占据的位置上，用color颜色填充。color的格式是
 //      CN_SYS_PF_ERGB8888，要转换成dst_bitmap->pf_type匹配的颜色填充。
@@ -2423,7 +3198,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
             pf = pf_color & 0x01;               //取给定的填充颜色
             byte_offset1 = y1*temp_bytes+x1/8;  //dst_rect首行左边界所在字节
             // -1是因为矩形右边界是不包含在绘制坐标内的。
-            byte_offset2 = y1*temp_bytes+(x2-1)/8;  //dst_rect首行右边界所在字节
+            byte_offset2 = y1*temp_bytes+(x2)/8;  //dst_rect首行右边界所在字节
             bit_offset1 = x1%8;   //dst_rect左边界在所在字节的位，x=0，bit=7
             bit_offset2 = x2%8;     //7减去dst_rect右边界在所在字节的位，7-bit
             if(pf == 1)
@@ -2457,14 +3232,14 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
             }
             else//dst_rect首字节与尾字节在一个字节内
             {   //bit1在左，bit2在右，右边为高位，此处的bit_offset2=7-bit2
-                for(i = 7-bit_offset2;i <= bit_offset1;i++)
+                for(i = bit_offset1;i < bit_offset2;i++)
                 {
-                    RightColor |= 1<<i;
-                    LeftColor |= pf<<i;
+                    RightColor |= 1<<(7-i);
+                    LeftColor |= pf<<(7-i);
                 }
-                LeftColor = ((u8)0xff << bit_offset1)>>bit_offset1;
-                LeftColor = (LeftColor >> (8-bit_offset2))<<(8-bit_offset2);
-                RightColor = LeftColor & FillColor;
+//                LeftColor = ((u8)0xff << bit_offset1)>>bit_offset1;
+//                LeftColor = (LeftColor >> (8-bit_offset2))<<(8-bit_offset2);
+//                RightColor = LeftColor & FillColor;
                 for(y = y1;y < y2;y++)
                 {   //保留目标字节内不需要填充的位
                     dst_bitmap->bm_bits[byte_offset1] &= ~LeftColor;
@@ -2479,7 +3254,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
             pf = pf_color & 0x03;               //取给定的填充颜色
             byte_offset1 = y1*temp_bytes+x1/4;  //dst_rect首行左边界所在字节
             // -1是因为矩形右边界是不包含在绘制坐标内的。
-            byte_offset2 = y1*temp_bytes+(x2-1)/4;  //dst_rect首行右边界所在字节
+            byte_offset2 = y1*temp_bytes+(x2/4);  //dst_rect首行右边界所在字节
             bit_offset1 = (x1%4)<<1;//dst_rect左边界在所在字节的位，x=0，bit=7
             bit_offset2 = (x2%4)<<1;//7减去dst_rect右边界在所在字节的位，7-bit
             FillColor = (u8)((pf<<6)|(pf<<4)|(pf<<2)|pf);//每行中间字节的颜色
@@ -2531,7 +3306,7 @@ void __GK_FillRect(struct RectBitmap *dst_bitmap,
             pf = pf_color & 0xf;                //取给定的填充颜色
             byte_offset1 = y1*temp_bytes+x1/2;  //dst_rect首行左边界所在字节
             // -1是因为矩形右边界是不包含在绘制坐标内的。
-            byte_offset2 = y1*temp_bytes+(x2-1)/2;  //dst_rect首行右边界所在字节
+            byte_offset2 = y1*temp_bytes+(x2)/2;  //dst_rect首行右边界所在字节
             bit_offset1 = (x1%2)<<2;//dst_rect左边界在所在字节的位，x=0，bit=7
             bit_offset2 = (x2%2)<<2;//7减去dst_rect右边界在所在字节的位，7-bit
             FillColor = (u8)((pf<<4)|pf);     //每行中间字节的颜色
@@ -4224,9 +4999,9 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
 //    距离就涉及到开方运算。人眼对颜色变化是不敏感的，近似计算也没啥副作用。
 //-----------------------------------------------------------------------------
 void __GK_GradientFillRectSoft( struct RectBitmap *bitmap,
-                                struct Rectangle *Target,
-                                struct Rectangle *Focus,
-                                u32 Color0,u32 Color1,u32 Mode)
+                                struct Rectangle *Target,//原始矩形
+                                struct Rectangle *Focus,//交集矩形
+                                u32 Color0,u32 Color1,u32 Mode,s32 arc_r)
 {
     u32 a0,r0,g0,b0,a1,r1,g1,b1,Color;
     u32 ax,rx,gx,bx,ay,ry,gy,by;
@@ -4241,55 +5016,30 @@ void __GK_GradientFillRectSoft( struct RectBitmap *bitmap,
     b1 = Color1&0xff;
     CrossY = Target->bottom - Target->top;
     CrossX = Target->right - Target->left;
-    switch(Mode)
+    if(arc_r == 0)
     {
-        case CN_FILLRECT_MODE_LR:
+        switch(Mode)
         {
-            for(x = Focus->left; x<Focus->right; x++)
+            case CN_FILLRECT_MODE_LR:
             {
-                L0 = x-Target->left;
-                L1 = Target->right - x;
-                ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
-                rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
-                gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
-                bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
-                Color = ( ax << 24) +( rx << 16) +( gx << 8) +( bx << 0);
-                Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
-                for(y = Focus->top; y<Focus->bottom; y++)
-                {
-                    __GK_SetPixelRop2Bm(bitmap,x,y,Color,CN_R2_COPYPEN);
-                }
-            }
-        } break;
-        case CN_FILLRECT_MODE_UD:
-        {
-            for(y = Focus->top; y<Focus->bottom; y++)
-            {
-                L0 = y-Target->top;
-                L1 = Target->bottom- y;
-                ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
-                ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
-                gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
-                by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
-                Color = ( ay << 24) +( ry << 16) +( gy << 8) +( by << 0);
-                Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
                 for(x = Focus->left; x<Focus->right; x++)
                 {
-                    __GK_SetPixelRop2Bm(bitmap,x,y,Color,CN_R2_COPYPEN);
+                    L0 = x-Target->left;
+                    L1 = Target->right - x;
+                    ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                    rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                    gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                    bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                    Color = ( ax << 24) +( rx << 16) +( gx << 8) +( bx << 0);
+                    Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                    for(y = Focus->top; y<Focus->bottom; y++)
+                    {
+                        __GK_SetPixelRop2Bm(bitmap,x,y,Color,CN_R2_COPYPEN);
+                    }
                 }
-            }
-
-        } break;
-        case CN_FILLRECT_MODE_LU2RD:
-        {
-            for(x = Focus->left; x<Focus->right; x++)
+            } break;
+            case CN_FILLRECT_MODE_UD:
             {
-                L0 = x-Target->left;
-                L1 = Target->right - x;
-                ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
-                rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
-                gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
-                bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
                 for(y = Focus->top; y<Focus->bottom; y++)
                 {
                     L0 = y-Target->top;
@@ -4298,44 +5048,403 @@ void __GK_GradientFillRectSoft( struct RectBitmap *bitmap,
                     ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
                     gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
                     by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
-                    Color = ( ((ax+ay)>>1) << 24)
-                            +( ((rx+ry)>>1) << 16)
-                            +( ((gx+gy)>>1) << 8)
-                            +( ((bx+by)>>1) << 0);
+                    Color = ( ay << 24) +( ry << 16) +( gy << 8) +( by << 0);
                     Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
-                    __GK_SetPixelRop2Bm(bitmap,x,y,Color,CN_R2_COPYPEN);
+                    for(x = Focus->left; x<Focus->right; x++)
+                    {
+                        __GK_SetPixelRop2Bm(bitmap,x,y,Color,CN_R2_COPYPEN);
+                    }
                 }
-            }
-        } break;
-        case CN_FILLRECT_MODE_RU2LD:
-        {
-            for(x = Focus->left; x<Focus->right; x++)
+            } break;
+            case CN_FILLRECT_MODE_LU2RD:
             {
-                L1 = x-Target->left;
-                L0 = Target->right - x;
-                ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
-                rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
-                gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
-                bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
-                for(y = Focus->top; y<Focus->bottom; y++)
+                for(x = Focus->left; x<Focus->right; x++)
                 {
-                    L0 = y-Target->top;
-                    L1 = Target->bottom- y;
-                    ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
-                    ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
-                    gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
-                    by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
-                    Color = ( ((ax+ay)>>1) << 24)
-                            +( ((rx+ry)>>1) << 16)
-                            +( ((gx+gy)>>1) << 8)
-                            +( ((bx+by)>>1) << 0);
-                    Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
-                    __GK_SetPixelRop2Bm(bitmap,x,y,Color,CN_R2_COPYPEN);
+                    L0 = x-Target->left;
+                    L1 = Target->right - x;
+                    ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                    rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                    gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                    bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                    for(y = Focus->top; y<Focus->bottom; y++)
+                    {
+                        L0 = y-Target->top;
+                        L1 = Target->bottom- y;
+                        ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                        ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                        gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                        by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                        Color = ( ((ax+ay)>>1) << 24)
+                                +( ((rx+ry)>>1) << 16)
+                                +( ((gx+gy)>>1) << 8)
+                                +( ((bx+by)>>1) << 0);
+                        Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                        __GK_SetPixelRop2Bm(bitmap,x,y,Color,CN_R2_COPYPEN);
+                    }
                 }
-            }
+            } break;
+            case CN_FILLRECT_MODE_RU2LD:
+            {
+                for(x = Focus->left; x<Focus->right; x++)
+                {
+                    L1 = x-Target->left;
+                    L0 = Target->right - x;
+                    ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                    rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                    gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                    bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                    for(y = Focus->top; y<Focus->bottom; y++)
+                    {
+                        L0 = y-Target->top;
+                        L1 = Target->bottom- y;
+                        ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                        ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                        gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                        by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                        Color = ( ((ax+ay)>>1) << 24)
+                                +( ((rx+ry)>>1) << 16)
+                                +( ((gx+gy)>>1) << 8)
+                                +( ((bx+by)>>1) << 0);
+                        Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                        __GK_SetPixelRop2Bm(bitmap,x,y,Color,CN_R2_COPYPEN);
+                    }
+                }
 
-        } break;
+            } break;
+        }
     }
+
+    else//圆角矩形
+    {
+        s32 OutConst, Sum, SumY;
+        s32 move_x,move_y,flag,flag_x;
+        s32 cx,cy,dy,dx,arc_ry,arc_rx ,_max,min_y;
+        cx = ((Target->right-Target->left)/2) + Target->left;//中心点坐标
+        cy = ((Target->bottom-Target->top)/2) + Target->top;
+
+        if(arc_r * 2 <= (Target->bottom-Target->top))
+        {
+            arc_ry = arc_r;
+            dy = cy - Target->top - arc_ry;
+        }
+        else
+        {
+            arc_ry = (Target->bottom-Target->top)/2;
+            dy = 0;
+        }
+        if(arc_r * 2 <= (Target->right-Target->left))
+        {
+            arc_rx = arc_r;
+            dx = cx - Target->left - arc_rx;
+        }
+        else
+        {
+            arc_rx = (Target->right-Target->left)/2;
+            dx = 0;
+        }
+        u32 _rx = arc_rx;
+        u32 _ry = arc_ry;
+
+        flag = ((Target->bottom-Target->top)%2 == 0?1:0);
+        flag_x = ((Target->right-Target->left)%2 == 0?0:1);
+        OutConst =   _rx*_rx*_ry*_ry
+                   +(_rx*_rx*_ry>>1);
+        move_x = arc_rx;
+        for(y=0; y<=arc_ry; y++)
+        {
+            SumY =((s32)(arc_rx*arc_rx))*((s32)(y*y));
+            while (Sum = SumY + ((s32)(arc_ry*arc_ry))*((s32)(move_x*move_x)),
+                   (move_x>0) && (Sum>OutConst)) move_x--;
+
+            if(y)
+            {
+                move_y = cy-y-dy;
+                if(move_y>=Focus->top && move_y<Focus->bottom)
+                {
+                    x = cx-move_x-dx;
+                    if(x<=Focus->left) x = Focus->left;
+                   else if(x>=Focus->right) x = Focus->right;
+                    _max = cx + move_x + dx +flag_x;
+                   if(_max>=Focus->right) _max = Focus->right;
+                   else if(_max<=Focus->left) _max = Focus->left;
+                    if(Mode != CN_FILLRECT_MODE_LR)
+                    {
+                        L0 = move_y - Target->top;
+                        L1 = Target->bottom - move_y;
+                        ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                        ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                        gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                        by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                    }
+                    switch(Mode)
+                    {
+                        case CN_FILLRECT_MODE_LR:
+                        {
+                            for(; x<_max; x++)
+                            {
+                                L0 = x-Target->left;
+                                L1 = Target->right - x;
+                                ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                                rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                                gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                                bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                                Color = ( ax << 24) +( rx << 16) +( gx << 8) +( bx << 0);
+                                Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                                __GK_SetPixelRop2Bm(bitmap,x,move_y,Color,CN_R2_COPYPEN);
+
+                            }
+                        } break;
+                        case CN_FILLRECT_MODE_UD:
+                        {
+                                Color = ( ay << 24) +( ry << 16) +( gy << 8) +( by << 0);
+                                Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                                for(; x<_max; x++)
+                                {
+                                    __GK_SetPixelRop2Bm(bitmap,x,move_y,Color,CN_R2_COPYPEN);
+                                }
+                        } break;
+                        case CN_FILLRECT_MODE_LU2RD:
+                        {
+                            for(; x<_max; x++)
+                            {
+                                L0 = x-Target->left;
+                                L1 = Target->right - x;
+                                ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                                rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                                gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                                bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+
+                                Color = ( ((ax+ay)>>1) << 24)
+                                        +( ((rx+ry)>>1) << 16)
+                                        +( ((gx+gy)>>1) << 8)
+                                        +( ((bx+by)>>1) << 0);
+                                Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                                __GK_SetPixelRop2Bm(bitmap,x,move_y,Color,CN_R2_COPYPEN);
+
+                            }
+                        } break;
+                        case CN_FILLRECT_MODE_RU2LD:
+                        {
+                            for(; x<_max; x++)
+                            {
+                                L1 = x-Target->left;
+                                L0 = Target->right - x;
+                                ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                                rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                                gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                                bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+
+                                Color = ( ((ax+ay)>>1) << 24)
+                                        +( ((rx+ry)>>1) << 16)
+                                        +( ((gx+gy)>>1) << 8)
+                                        +( ((bx+by)>>1) << 0);
+                                Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                                __GK_SetPixelRop2Bm(bitmap,x,move_y,Color,CN_R2_COPYPEN);
+
+                            }
+
+                        } break;
+                    }
+
+                }//上半
+                move_y = cy+y+dy-flag;
+                if(move_y<Focus->bottom && move_y>=Focus->top)
+                {
+                    x = cx-move_x-dx;
+                    if(x<=Focus->left) x = Focus->left;
+                   else if(x>=Focus->right) x = Focus->right;
+                    _max = cx + move_x + dx +flag_x;
+                   if(_max>=Focus->right) _max = Focus->right;
+                   else if(_max<=Focus->left) _max = Focus->left;
+
+                    if(Mode != CN_FILLRECT_MODE_LR)
+                    {
+                        L0 = move_y - Target->top;
+                        L1 = Target->bottom- move_y;
+                        ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                        ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                        gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                        by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                    }
+                    switch(Mode)
+                    {
+                        case CN_FILLRECT_MODE_LR:
+                        {
+                            for(; x<_max; x++)
+                            {
+                                L0 = x-Target->left;
+                                L1 = Target->right - x;
+                                ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                                rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                                gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                                bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                                Color = ( ax << 24) +( rx << 16) +( gx << 8) +( bx << 0);
+                                Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                                __GK_SetPixelRop2Bm(bitmap,x,move_y,Color,CN_R2_COPYPEN);
+
+                            }
+                        } break;
+                        case CN_FILLRECT_MODE_UD:
+                        {
+                                Color = ( ay << 24) +( ry << 16) +( gy << 8) +( by << 0);
+                                Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                                for(; x<_max; x++)
+                                {
+                                    __GK_SetPixelRop2Bm(bitmap,x,move_y,Color,CN_R2_COPYPEN);
+                                }
+                        } break;
+                        case CN_FILLRECT_MODE_LU2RD:
+                        {
+                            for(; x<_max; x++)
+                            {
+                                L0 = x-Target->left;
+                                L1 = Target->right - x;
+                                ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                                rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                                gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                                bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+
+                                Color = ( ((ax+ay)>>1) << 24)
+                                        +( ((rx+ry)>>1) << 16)
+                                        +( ((gx+gy)>>1) << 8)
+                                        +( ((bx+by)>>1) << 0);
+                                Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                                __GK_SetPixelRop2Bm(bitmap,x,move_y,Color,CN_R2_COPYPEN);
+
+                            }
+                        } break;
+                        case CN_FILLRECT_MODE_RU2LD:
+                        {
+                            for(; x<_max; x++)
+                            {
+                                L1 = x-Target->left;
+                                L0 = Target->right - x;
+                                ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                                rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                                gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                                bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+
+                                Color = ( ((ax+ay)>>1) << 24)
+                                        +( ((rx+ry)>>1) << 16)
+                                        +( ((gx+gy)>>1) << 8)
+                                        +( ((bx+by)>>1) << 0);
+                                Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                                __GK_SetPixelRop2Bm(bitmap,x,move_y,Color,CN_R2_COPYPEN);
+
+                            }
+
+                        } break;
+                    }
+                }//下半
+
+            }
+
+        }
+        //中间部分
+        if(cy-dy<=Focus->top) min_y = Focus->top;//矩形高度
+        else min_y = cy-dy;
+        if(cy+dy+1>=Focus->bottom) _max = Focus->bottom;
+        else _max = cy+dy+1;
+
+        switch(Mode)
+        {
+            case CN_FILLRECT_MODE_LR:
+            {
+                for(x = Focus->left; x<Focus->right; x++)
+                {
+                    L0 = x-Target->left;
+                    L1 = Target->right - x;
+                    ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                    rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                    gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                    bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                    Color = ( ax << 24) +( rx << 16) +( gx << 8) +( bx << 0);
+                    Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+
+                    for(y = min_y; y<_max; y++)
+                    {
+                        __GK_SetPixelRop2Bm(bitmap,x,y,Color,CN_R2_COPYPEN);
+                    }
+                }
+            } break;
+            case CN_FILLRECT_MODE_UD:
+            {
+                for(y = min_y; y<_max; y++)
+                {
+                    L0 = y-Target->top;
+                    L1 = Target->bottom- y;
+                    ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                    ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                    gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                    by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                    Color = ( ay << 24) +( ry << 16) +( gy << 8) +( by << 0);
+                    Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                    for(x = Focus->left; x<Focus->right; x++)
+                    {
+                        __GK_SetPixelRop2Bm(bitmap,x,y,Color,CN_R2_COPYPEN);
+                    }
+                }
+            } break;
+            case CN_FILLRECT_MODE_LU2RD:
+            {
+                for(x = Focus->left; x<Focus->right; x++)
+                {
+                    L0 = x-Target->left;
+                    L1 = Target->right - x;
+                    ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                    rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                    gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                    bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                    for(y = min_y; y<_max; y++)
+                    {
+                        L0 = y-Target->top;
+                        L1 = Target->bottom- y;
+                        ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                        ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                        gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                        by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                        Color = ( ((ax+ay)>>1) << 24)
+                                +( ((rx+ry)>>1) << 16)
+                                +( ((gx+gy)>>1) << 8)
+                                +( ((bx+by)>>1) << 0);
+                        Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                        __GK_SetPixelRop2Bm(bitmap,x,y,Color,CN_R2_COPYPEN);
+                    }
+                }
+            } break;
+            case CN_FILLRECT_MODE_RU2LD:
+            {
+                for(x = Focus->left; x<Focus->right; x++)
+                {
+                    L1 = x-Target->left;
+                    L0 = Target->right - x;
+                    ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                    rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                    gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                    bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                    for(y = min_y; y<_max; y++)
+                    {
+                        L0 = y-Target->top;
+                        L1 = Target->bottom- y;
+                        ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                        ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                        gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                        by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                        Color = ( ((ax+ay)>>1) << 24)
+                                +( ((rx+ry)>>1) << 16)
+                                +( ((gx+gy)>>1) << 8)
+                                +( ((bx+by)>>1) << 0);
+                        Color = GK_ConvertRGB24ToPF(bitmap->PixelFormat,Color);
+                        __GK_SetPixelRop2Bm(bitmap,x,y,Color,CN_R2_COPYPEN);
+                    }
+                }
+
+            } break;
+        }
+        //中间矩形部分end
+
+    }//else arc_r>0 end
+
 }
 
 
@@ -4350,122 +5459,472 @@ void __GK_GradientFillRectSoft( struct RectBitmap *bitmap,
 void __GK_GradientFillScreenRect(struct DispDraw *Draw,
                                  struct Rectangle *Target,
                                  struct Rectangle *Focus,
-                                 u32 Color0,u32 Color1,u32 Mode)
+                                 u32 Color0,u32 Color1,u32 Mode,s32 arc_r)
 {
     u32 a0,r0,g0,b0,a1,r1,g1,b1,Color;
-    u32 ax,rx,gx,bx,ay,ry,gy,by;
-    s32 L0,L1,x,y,CrossX,CrossY;
-    a0 = Color0>>24;
-    r0 = (Color0>>16)&0xff;
-    g0 = (Color0>>8)&0xff;
-    b0 = Color0&0xff;
-    a1 = Color1>>24;
-    r1 = (Color1>>16)&0xff;
-    g1 = (Color1>>8)&0xff;
-    b1 = Color1&0xff;
-    CrossY = Target->bottom - Target->top;
-    CrossX = Target->right - Target->left;
-    switch(Mode)
-    {
-        case CN_FILLRECT_MODE_N:
-        {
-            for(x = Focus->left; x<Focus->right; x++)
-            {
-                for(y = Focus->top; y<Focus->bottom; y++)
-                {
-                    Draw->SetPixelToScreen(x,y,Color0,CN_R2_COPYPEN);
-                }
-            }
-        } break;
-        case CN_FILLRECT_MODE_LR:
-        {
-            for(x = Focus->left; x<Focus->right; x++)
-            {
-                L0 = x-Target->left;
-                L1 = Target->right - x;
-                ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
-                rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
-                gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
-                bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
-                Color = ( ax << 24) +( rx << 16) +( gx << 8) +( bx << 0);
-                for(y = Focus->top; y<Focus->bottom; y++)
-                {
-                    Draw->SetPixelToScreen(x,y,Color,CN_R2_COPYPEN);
-                }
-            }
-        } break;
-        case CN_FILLRECT_MODE_UD:
-        {
-            for(y = Focus->top; y<Focus->bottom; y++)
-            {
-                L0 = y-Target->top;
-                L1 = Target->bottom- y;
-                ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
-                ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
-                gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
-                by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
-                Color = ( ay << 24) +( ry << 16) +( gy << 8) +( by << 0);
-                for(x = Focus->left; x<Focus->right; x++)
-                {
-                    Draw->SetPixelToScreen(x,y,Color,CN_R2_COPYPEN);
-                }
-            }
+        u32 ax,rx,gx,bx,ay,ry,gy,by;
+        s32 L0,L1,x,y,CrossX,CrossY;
 
-        } break;
-        case CN_FILLRECT_MODE_LU2RD:
-        {
-            for(x = Focus->left; x<Focus->right; x++)
-            {
-                L0 = x-Target->left;
-                L1 = Target->right - x;
-                ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
-                rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
-                gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
-                bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
-                for(y = Focus->top; y<Focus->bottom; y++)
-                {
-                    L0 = y-Target->top;
-                    L1 = Target->bottom- y;
-                    ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
-                    ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
-                    gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
-                    by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
-                    Color = ( ((ax+ay)>>1) << 24)
-                            +( ((rx+ry)>>1) << 16)
-                            +( ((gx+gy)>>1) << 8)
-                            +( ((bx+by)>>1) << 0);
-                    Draw->SetPixelToScreen(x,y,Color,CN_R2_COPYPEN);
-                }
-            }
-        } break;
-        case CN_FILLRECT_MODE_RU2LD:
-        {
-            for(x = Focus->left; x<Focus->right; x++)
-            {
-                L1 = x-Target->left;
-                L0 = Target->right - x;
-                ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
-                rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
-                gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
-                bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
-                for(y = Focus->top; y<Focus->bottom; y++)
-                {
-                    L0 = y-Target->top;
-                    L1 = Target->bottom- y;
-                    ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
-                    ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
-                    gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
-                    by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
-                    Color = ( ((ax+ay)>>1) << 24)
-                            +( ((rx+ry)>>1) << 16)
-                            +( ((gx+gy)>>1) << 8)
-                            +( ((bx+by)>>1) << 0);
-                    Draw->SetPixelToScreen(x,y,Color,CN_R2_COPYPEN);
-                }
-            }
+        a0 = Color0>>24;
+        r0 = (Color0>>16)&0xff;
+        g0 = (Color0>>8)&0xff;
+        b0 = Color0&0xff;
+        a1 = Color1>>24;
+        r1 = (Color1>>16)&0xff;
+        g1 = (Color1>>8)&0xff;
+        b1 = Color1&0xff;
+        CrossY = Target->bottom - Target->top;
+        CrossX = Target->right - Target->left;
 
-        } break;
-    }
+        if(arc_r == 0)
+        {
+            switch(Mode)
+            {
+                case CN_FILLRECT_MODE_N:
+                {
+                    for(x = Focus->left; x<Focus->right; x++)
+                    {
+                        for(y = Focus->top; y<Focus->bottom; y++)
+                        {
+                            Draw->SetPixelToScreen(x,y,Color0,CN_R2_COPYPEN);
+                        }
+                    }
+                } break;
+                case CN_FILLRECT_MODE_LR:
+                {
+                    for(x = Focus->left; x<Focus->right; x++)
+                    {
+                        L0 = x-Target->left;
+                        L1 = Target->right - x;
+                        ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                        rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                        gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                        bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                        Color = ( ax << 24) +( rx << 16) +( gx << 8) +( bx << 0);
+                        for(y = Focus->top; y<Focus->bottom; y++)
+                        {
+                            Draw->SetPixelToScreen(x,y,Color,CN_R2_COPYPEN);
+                        }
+                    }
+                } break;
+                case CN_FILLRECT_MODE_UD:
+                {
+                    for(y = Focus->top; y<Focus->bottom; y++)
+                    {
+                        L0 = y-Target->top;
+                        L1 = Target->bottom- y;
+                        ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                        ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                        gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                        by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                        Color = ( ay << 24) +( ry << 16) +( gy << 8) +( by << 0);
+                        for(x = Focus->left; x<Focus->right; x++)
+                        {
+                            Draw->SetPixelToScreen(x,y,Color,CN_R2_COPYPEN);
+                        }
+                    }
+
+                } break;
+                case CN_FILLRECT_MODE_LU2RD:
+                {
+                    for(x = Focus->left; x<Focus->right; x++)
+                    {
+                        L0 = x-Target->left;
+                        L1 = Target->right - x;
+                        ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                        rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                        gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                        bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                        for(y = Focus->top; y<Focus->bottom; y++)
+                        {
+                            L0 = y-Target->top;
+                            L1 = Target->bottom- y;
+                            ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                            ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                            gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                            by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                            Color = ( ((ax+ay)>>1) << 24)
+                                    +( ((rx+ry)>>1) << 16)
+                                    +( ((gx+gy)>>1) << 8)
+                                    +( ((bx+by)>>1) << 0);
+                            Draw->SetPixelToScreen(x,y,Color,CN_R2_COPYPEN);
+                        }
+                    }
+                } break;
+                case CN_FILLRECT_MODE_RU2LD:
+                {
+                    for(x = Focus->left; x<Focus->right; x++)
+                    {
+                        L1 = x-Target->left;
+                        L0 = Target->right - x;
+                        ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                        rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                        gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                        bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                        for(y = Focus->top; y<Focus->bottom; y++)
+                        {
+                            L0 = y-Target->top;
+                            L1 = Target->bottom- y;
+                            ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                            ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                            gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                            by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                            Color = ( ((ax+ay)>>1) << 24)
+                                    +( ((rx+ry)>>1) << 16)
+                                    +( ((gx+gy)>>1) << 8)
+                                    +( ((bx+by)>>1) << 0);
+                            Draw->SetPixelToScreen(x,y,Color,CN_R2_COPYPEN);
+                        }
+                    }
+
+                } break;
+            }
+        }
+
+        else//圆角矩形
+        {
+            s32 OutConst, Sum, SumY;
+            s32 move_x,move_y,flag;
+            s32 cx,cy,dy,dx,arc_ry,arc_rx ,_max,min_y;
+            cx = ((Target->right-Target->left)/2) + Target->left;//中心点坐标
+            cy = ((Target->bottom-Target->top)/2) + Target->top;
+
+            if(arc_r * 2 <= (Target->bottom-Target->top))
+            {
+                arc_ry = arc_r;
+                dy = cy - Target->top - arc_ry;
+            }
+            else
+            {
+                arc_ry = (Target->bottom-Target->top)/2;
+                dy = 0;
+            }
+            if(arc_r * 2 <= (Target->right-Target->left))
+            {
+                arc_rx = arc_r;
+                dx = cx - Target->left - arc_rx;
+            }
+            else
+            {
+                arc_rx = (Target->right-Target->left)/2;
+                dx = 0;
+            }
+            u32 _rx = arc_rx;
+            u32 _ry = arc_ry;
+            flag = ((Target->bottom-Target->top)%2 == 0?1:0);
+            OutConst =   _rx*_rx*_ry*_ry
+                       +(_rx*_rx*_ry>>1);
+            move_x = arc_rx;
+            for(y=0; y<=arc_ry; y++)
+            {
+                SumY =((s32)(arc_rx*arc_rx))*((s32)(y*y));
+                while (Sum = SumY + ((s32)(arc_ry*arc_ry))*((s32)(move_x*move_x)),
+                       (move_x>0) && (Sum>OutConst)) move_x--;
+
+                if(y)
+                {
+                    move_y = cy-y-dy;
+                    if(move_y>=Focus->top && move_y<Focus->bottom)
+                    {
+                        x = cx-move_x-dx;
+                        if(x<=Focus->left) x = Focus->left;
+                       else if(x>=Focus->right) x = Focus->right;
+
+                        _max = cx + move_x + dx;
+                       if(_max>=Focus->right) _max = Focus->right;
+                       else if(_max<=Focus->left) _max = Focus->left;
+                        if(Mode != CN_FILLRECT_MODE_LR && Mode != CN_FILLRECT_MODE_N)
+                        {
+                            L0 = move_y - Target->top;
+                            L1 = Target->bottom - move_y;
+                            ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                            ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                            gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                            by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                        }
+                        switch(Mode)
+                        {
+                            case CN_FILLRECT_MODE_N:
+                            {
+                                for(; x<_max; x++)
+                                {
+                                    Draw->SetPixelToScreen(x,move_y,Color0,CN_R2_COPYPEN);
+                                }
+                            } break;
+                            case CN_FILLRECT_MODE_LR:
+                            {
+                                for(; x<_max; x++)
+                                {
+                                    L0 = x-Target->left;
+                                    L1 = Target->right - x;
+                                    ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                                    rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                                    gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                                    bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                                    Color = ( ax << 24) +( rx << 16) +( gx << 8) +( bx << 0);
+                                    Draw->SetPixelToScreen(x,move_y,Color,CN_R2_COPYPEN);
+
+                                }
+                            } break;
+                            case CN_FILLRECT_MODE_UD:
+                            {
+                                    Color = ( ay << 24) +( ry << 16) +( gy << 8) +( by << 0);
+
+                                    for(; x<_max; x++)
+                                    {
+                                        Draw->SetPixelToScreen(x,move_y,Color,CN_R2_COPYPEN);
+                                    }
+                            } break;
+                            case CN_FILLRECT_MODE_LU2RD:
+                            {
+                                for(; x<_max; x++)
+                                {
+                                    L0 = x-Target->left;
+                                    L1 = Target->right - x;
+                                    ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                                    rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                                    gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                                    bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+
+                                    Color = ( ((ax+ay)>>1) << 24)
+                                            +( ((rx+ry)>>1) << 16)
+                                            +( ((gx+gy)>>1) << 8)
+                                            +( ((bx+by)>>1) << 0);
+                                    Draw->SetPixelToScreen(x,move_y,Color,CN_R2_COPYPEN);
+
+                                }
+                            } break;
+                            case CN_FILLRECT_MODE_RU2LD:
+                            {
+                                for(; x<_max; x++)
+                                {
+                                    L1 = x-Target->left;
+                                    L0 = Target->right - x;
+                                    ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                                    rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                                    gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                                    bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+
+                                    Color = ( ((ax+ay)>>1) << 24)
+                                            +( ((rx+ry)>>1) << 16)
+                                            +( ((gx+gy)>>1) << 8)
+                                            +( ((bx+by)>>1) << 0);
+                                    Draw->SetPixelToScreen(x,move_y,Color,CN_R2_COPYPEN);
+
+                                }
+
+                            } break;
+                        }
+
+                    }//上半
+                    move_y = cy+y+dy-flag;
+                    if(move_y<Focus->bottom && move_y>=Focus->top)
+                    {
+                        x = cx-move_x-dx;
+                        if(x<=Focus->left) x = Focus->left;
+                       else if(x>=Focus->right) x = Focus->right;
+
+                        _max = cx + move_x + dx;
+                       if(_max>=Focus->right) _max = Focus->right;
+                       else if(_max<=Focus->left) _max = Focus->left;
+
+                        if(Mode != CN_FILLRECT_MODE_LR && Mode != CN_FILLRECT_MODE_N)
+                        {
+                            L0 = move_y - Target->top;
+                            L1 = Target->bottom - move_y;
+                            ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                            ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                            gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                            by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                        }
+                        switch(Mode)
+                        {
+                            case CN_FILLRECT_MODE_N:
+                            {
+                                for(; x<_max; x++)
+                                {
+                                    Draw->SetPixelToScreen(x,move_y,Color0,CN_R2_COPYPEN);
+                                }
+                            } break;
+                            case CN_FILLRECT_MODE_LR:
+                            {
+                                for(; x<_max; x++)
+                                {
+                                    L0 = x-Target->left;
+                                    L1 = Target->right - x;
+                                    ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                                    rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                                    gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                                    bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                                    Color = ( ax << 24) +( rx << 16) +( gx << 8) +( bx << 0);
+                                    Draw->SetPixelToScreen(x,move_y,Color,CN_R2_COPYPEN);
+
+                                }
+                            } break;
+                            case CN_FILLRECT_MODE_UD:
+                            {
+                                    Color = ( ay << 24) +( ry << 16) +( gy << 8) +( by << 0);
+                                    for(; x<_max; x++)
+                                    {
+                                        Draw->SetPixelToScreen(x,move_y,Color,CN_R2_COPYPEN);
+                                    }
+                            } break;
+                            case CN_FILLRECT_MODE_LU2RD:
+                            {
+                                for(; x<_max; x++)
+                                {
+                                    L0 = x-Target->left;
+                                    L1 = Target->right - x;
+                                    ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                                    rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                                    gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                                    bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+
+                                    Color = ( ((ax+ay)>>1) << 24)
+                                            +( ((rx+ry)>>1) << 16)
+                                            +( ((gx+gy)>>1) << 8)
+                                            +( ((bx+by)>>1) << 0);
+                                    Draw->SetPixelToScreen(x,move_y,Color,CN_R2_COPYPEN);
+
+                                }
+                            } break;
+                            case CN_FILLRECT_MODE_RU2LD:
+                            {
+                                for(; x<_max; x++)
+                                {
+                                    L1 = x-Target->left;
+                                    L0 = Target->right - x;
+                                    ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                                    rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                                    gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                                    bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+
+                                    Color = ( ((ax+ay)>>1) << 24)
+                                            +( ((rx+ry)>>1) << 16)
+                                            +( ((gx+gy)>>1) << 8)
+                                            +( ((bx+by)>>1) << 0);
+                                    Draw->SetPixelToScreen(x,move_y,Color,CN_R2_COPYPEN);
+                                }
+                            } break;
+                        }
+                    }//下半
+
+                }
+            }
+            //中间部分
+            if(cy-dy<=Focus->top) min_y = Focus->top;//矩形高度
+            else min_y = cy-dy;
+            if(cy+dy+1>=Focus->bottom) _max = Focus->bottom;
+            else _max = cy+dy+1;
+
+            switch(Mode)
+            {
+                case CN_FILLRECT_MODE_N:
+                {
+                    for(x = Focus->left; x<Focus->right; x++)
+                    {
+                        for(y = min_y; y<_max; y++)
+                        {
+                            Draw->SetPixelToScreen(x,y,Color0,CN_R2_COPYPEN);
+                        }
+                    }
+                } break;
+                case CN_FILLRECT_MODE_LR:
+                {
+
+                    for(x = Focus->left; x<Focus->right; x++)
+                    {
+                        L0 = x-Target->left;
+                        L1 = Target->right - x;
+                        ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                        rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                        gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                        bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                        Color = ( ax << 24) +( rx << 16) +( gx << 8) +( bx << 0);
+
+
+                        for(y = min_y; y<_max; y++)
+                        {
+                            Draw->SetPixelToScreen(x,y,Color,CN_R2_COPYPEN);
+                        }
+                    }
+                } break;
+                case CN_FILLRECT_MODE_UD:
+                {
+                    for(y = min_y; y<_max; y++)
+                    {
+                        L0 = y-Target->top;
+                        L1 = Target->bottom- y;
+                        ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                        ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                        gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                        by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                        Color = ( ay << 24) +( ry << 16) +( gy << 8) +( by << 0);
+
+                        for(x = Focus->left; x<Focus->right; x++)
+                        {
+                            Draw->SetPixelToScreen(x,y,Color,CN_R2_COPYPEN);
+                        }
+                    }
+                } break;
+                case CN_FILLRECT_MODE_LU2RD:
+                {
+                    for(x = Focus->left; x<Focus->right; x++)
+                    {
+                        L0 = x-Target->left;
+                        L1 = Target->right - x;
+                        ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                        rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                        gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                        bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                        for(y = min_y; y<_max; y++)
+                        {
+                            L0 = y-Target->top;
+                            L1 = Target->bottom- y;
+                            ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                            ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                            gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                            by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                            Color = ( ((ax+ay)>>1) << 24)
+                                    +( ((rx+ry)>>1) << 16)
+                                    +( ((gx+gy)>>1) << 8)
+                                    +( ((bx+by)>>1) << 0);
+                            Draw->SetPixelToScreen(x,y,Color,CN_R2_COPYPEN);
+                        }
+                    }
+                } break;
+                case CN_FILLRECT_MODE_RU2LD:
+                {
+                    for(x = Focus->left; x<Focus->right; x++)
+                    {
+                        L1 = x-Target->left;
+                        L0 = Target->right - x;
+                        ax = ( ( (L0*a1 + L1*a0)<<8) / CrossX>>8) & 0xff;
+                        rx = ( ( (L0*r1 + L1*r0)<<8) / CrossX>>8) & 0xff;
+                        gx = ( ( (L0*g1 + L1*g0)<<8) / CrossX>>8) & 0xff;
+                        bx = ( ( (L0*b1 + L1*b0)<<8) / CrossX>>8) & 0xff;
+                        for(y = min_y; y<_max; y++)
+                        {
+                            L0 = y-Target->top;
+                            L1 = Target->bottom- y;
+                            ay = ( ( (L0*a1 + L1*a0)<<8) / CrossY>>8) & 0xff;
+                            ry = ( ( (L0*r1 + L1*r0)<<8) / CrossY>>8) & 0xff;
+                            gy = ( ( (L0*g1 + L1*g0)<<8) / CrossY>>8) & 0xff;
+                            by = ( ( (L0*b1 + L1*b0)<<8) / CrossY>>8) & 0xff;
+                            Color = ( ((ax+ay)>>1) << 24)
+                                    +( ((rx+ry)>>1) << 16)
+                                    +( ((gx+gy)>>1) << 8)
+                                    +( ((bx+by)>>1) << 0);
+                            Draw->SetPixelToScreen(x,y,Color,CN_R2_COPYPEN);
+                        }
+                    }
+
+                } break;
+            }
+            //中间矩形部分end
+
+        }//else arc_r>0 end
+
 }
 
 
@@ -4478,7 +5937,7 @@ void __GK_GradientFillScreenRect(struct DispDraw *Draw,
 //返回: 无
 //特注: 本函数可能会修改Rect的成员，绝对不允许外部调用。
 //-----------------------------------------------------------------------------
-void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
+void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,struct Rectangle *target,u32 Color,s32 radius)
 {
     struct RectBitmap *bitmap;
     struct Rectangle ins_rect;
@@ -4494,14 +5953,20 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
     if((Gkwin->wm_bitmap != NULL)
         && (Gkwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
     {
-        //处理方法:在win buffer中绘图，着色changed_msk
-        if(!my_draw_fun->FillRectToBitmap(bitmap,Rect,Rect,Color,
-                                        0,CN_FILLRECT_MODE_N))
-        {
-            //硬件加速不支持填充位图，则用软件实现
-            __GK_FillRect(bitmap,Rect,Color);
-        }
-        __GK_ShadingRect(Gkwin,Rect);//着色填充区域的changed_msk
+
+            //处理方法:在win buffer中绘图，着色changed_msk
+            if(!my_draw_fun->FillRectToBitmap(bitmap,Rect,target,Color,
+                                            0,CN_FILLRECT_MODE_N,radius))
+            {
+                //硬件加速不支持填充位图，则用软件实现
+                if(radius == 0)
+                    __GK_FillRect(bitmap,target,Color);
+                else if(radius>0)
+                    __GK_FillroundRect(bitmap,Rect,
+                                    target,Color,radius);
+            }
+            __GK_ShadingRect(Gkwin,target);//着色填充区域的changed_msk
+
     }else       //无win buffer，或直接写屏属性为true
     {
         clip = Gkwin->visible_clip;
@@ -4523,11 +5988,15 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
                     //帧缓冲的坐标即绝对坐标，故无须坐标变换
                     if(!my_draw_fun->FillRectToBitmap(fb_gkwin->wm_bitmap,
                                                   Rect,&ins_rect,Color,
-                                                  0,CN_FILLRECT_MODE_N))
+                                                  0,CN_FILLRECT_MODE_N,radius))
                     {
                         //硬件加速不支持填充位图，则用软件实现
+                        if(radius == 0)
                         __GK_FillRect(fb_gkwin->wm_bitmap,
                                             &ins_rect,Color);
+                        else if(radius>0)
+                            __GK_FillroundRect(fb_gkwin->wm_bitmap,Rect,
+                                            &ins_rect,Color,radius);
                     }
                     //标志填充区域的changed_msk
                     __GK_ShadingRect(fb_gkwin,&ins_rect);
@@ -4550,7 +6019,7 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
                                              Color,0,CN_FILLRECT_MODE_N))
                     {
                         __GK_GradientFillScreenRect(my_draw_fun,Rect,
-                                    &ins_rect,Color,0,CN_FILLRECT_MODE_N);
+                                    &ins_rect,Color,0,CN_FILLRECT_MODE_N,0);
                     }
                     mirror = Gkwin->disp->HostObj;
                     current = OBJ_GetChild(mirror);
@@ -4562,7 +6031,7 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
                                               Color,0,CN_FILLRECT_MODE_N))
                         {
                             __GK_GradientFillScreenRect(&MirrorDisplay->draw,Rect,
-                                    &ins_rect,Color,0,CN_FILLRECT_MODE_N);
+                                    &ins_rect,Color,0,CN_FILLRECT_MODE_N,0);
                         }
                         current = OBJ_ForeachChild(mirror,current);
                     }
@@ -4611,7 +6080,7 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
     Mode = para->Mode;
     if(Mode== CN_FILLRECT_MODE_N)
     {
-        __GK_FillPartWin(DstGkwin,&target,para->Color0);
+        __GK_FillPartWin(DstGkwin,&para->rect,&target,para->Color0,para->radius);
         return;
     }
 
@@ -4623,10 +6092,10 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
         && (DstGkwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
     {
         //处理方法:在win buffer中绘图，着色changed_msk
-        if(!my_draw_fun->FillRectToBitmap(bitmap,&para->rect,&target,Color0,Color1,Mode))
+        if(!my_draw_fun->FillRectToBitmap(bitmap,&para->rect,&target,Color0,Color1,Mode,para->radius))
         {
             //硬件加速不支持填充位图，则用软件实现
-            __GK_GradientFillRectSoft(bitmap,&para->rect,&target,Color0,Color1,Mode);
+            __GK_GradientFillRectSoft(bitmap,&para->rect,&target,Color0,Color1,Mode,para->radius);
         }
         __GK_ShadingRect(DstGkwin,&para->rect);//着色填充区域的changed_msk
     }else       //无win buffer，或直接写屏属性为true
@@ -4649,11 +6118,11 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                 {
                     //帧缓冲的坐标即绝对坐标，故无须坐标变换
                     if(!my_draw_fun->FillRectToBitmap(fb_gkwin->wm_bitmap,
-                                         &para->rect,&ins_rect,Color0,Color1,Mode))
+                                         &para->rect,&ins_rect,Color0,Color1,Mode,para->radius))
                     {
                         //硬件加速不支持填充位图，则用软件实现
                         __GK_GradientFillRectSoft(fb_gkwin->wm_bitmap,&para->rect,
-                                                &ins_rect,Color0,Color1,Mode);
+                                                &ins_rect,Color0,Color1,Mode,para->radius);
                     }
                     //标志填充区域的changed_msk
                     __GK_ShadingRect(fb_gkwin,&ins_rect);
@@ -4676,7 +6145,7 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                                                       Color0,Color1,Mode))
                     {
                         __GK_GradientFillScreenRect(my_draw_fun,&para->rect,
-                                                &ins_rect,Color0,Color1,Mode);
+                                                &ins_rect,Color0,Color1,Mode,para->radius);
                     }
                     mirror = DstGkwin->disp->HostObj;
                     current = OBJ_GetChild(mirror);
@@ -4687,7 +6156,7 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                                                        Color0,Color1,Mode) )
                         {
                             __GK_GradientFillScreenRect(&MirrorDisplay->draw,&para->rect,
-                                                &ins_rect,Color0,Color1,Mode);
+                                                &ins_rect,Color0,Color1,Mode,para->radius);
                         }
                         current = OBJ_ForeachChild(mirror,current);
                     }
@@ -4725,7 +6194,7 @@ void __GK_FillWin(struct GkscParaFillWin *para)
         rect.bottom = bitmap->height;
         //处理方法:在win buffer中绘图，标志changed_msk
         if(!my_draw_fun->FillRectToBitmap(bitmap,&rect,&rect,para->color,
-                                        0,CN_FILLRECT_MODE_N))
+                                        0,CN_FILLRECT_MODE_N,0))
         {//硬件加速不支持填充位图，则用软件实现
             __GK_FillBm(bitmap,para->color);
         }
@@ -4748,7 +6217,7 @@ void __GK_FillWin(struct GkscParaFillWin *para)
             do{
                 //帧缓冲的坐标和clip中的坐标都是绝对坐标，无须变换
                 if(!my_draw_fun->FillRectToBitmap(bitmap,&rect,&clip->rect,
-                                              para->color,0,CN_FILLRECT_MODE_N))
+                                              para->color,0,CN_FILLRECT_MODE_N,0))
                 {//硬件加速不支持填充位图，则用软件实现
                     __GK_FillRect(bitmap,&clip->rect,para->color);
                 }
@@ -4768,7 +6237,7 @@ void __GK_FillWin(struct GkscParaFillWin *para)
                 {
                     //硬件加速不支持填充screen上的矩形域，则用软件实现
                     __GK_GradientFillScreenRect(my_draw_fun,&rect,&clip->rect,
-                                            para->color,0,CN_FILLRECT_MODE_N);
+                                            para->color,0,CN_FILLRECT_MODE_N,0);
                 }
                 mirror = fpwin->disp->HostObj;
                 current = OBJ_GetChild(mirror);
@@ -4782,7 +6251,7 @@ void __GK_FillWin(struct GkscParaFillWin *para)
                         __GK_GradientFillScreenRect(&MirrorDisplay->draw,&rect,
                                                     &clip->rect,
                                                     para->color,
-                                                    0,CN_FILLRECT_MODE_N);
+                                                    0,CN_FILLRECT_MODE_N,0);
                     }
                     current = OBJ_ForeachChild(mirror,current);
                 }

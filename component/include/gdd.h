@@ -338,6 +338,7 @@ bool_t  GDD_DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 flag
 void    GDD_FillTrangle(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,s32 x2,s32 y2);
 void    GDD_FillRoundRect(HDC hdc,RECT *rec, s32 arc_r);
 void    GDD_DrawRoundRect(HDC hdc,RECT *rec, s32 arc_r);
+void    GDD_GradientFillRoundRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2,u32 mode,s32 arc_r);
 void    GDD_DrawRect(HDC hdc,const RECT *prc);
 void    GDD_FillRect(HDC hdc,const RECT *prc);
 void    GDD_FillRectEx(HDC hdc,const RECT *prc,u32 color);

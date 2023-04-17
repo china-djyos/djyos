@@ -360,7 +360,7 @@ bool_t __lcd_line_bm_ie(struct RectBitmap *bitmap,struct Rectangle *limit,
 bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
                           struct Rectangle *Target,
                           struct Rectangle *Focus,
-                          u32 Color0,u32 Color1,u32 Mode)
+                          u32 Color0,u32 Color1,u32 Mode,s32 radius)
 {
     s32 x, y;
     u16 pixel;
@@ -373,21 +373,132 @@ bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
         return false;
 
     pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,Color0);
-
-    dst = (u16*)((u32)dst_bitmap->bm_bits
-                      + Focus->top * dst_bitmap->linebytes);
-    dst += Focus->left;
-
-    for(y = Focus->top; y < Focus->bottom; y++)
+    if (radius == 0)
     {
-        p =dst;
-        for(x=Focus->left; x<Focus->right;x++)
+        dst = (u16*)((u32)dst_bitmap->bm_bits
+            + Focus->top * dst_bitmap->linebytes);
+        dst += Focus->left;
+
+        for (y = Focus->top; y < Focus->bottom; y++)
         {
-            *p++ =pixel;
+            p = dst;
+            for (x = Focus->left; x < Focus->right; x++)
+            {
+                *p++ = pixel;
+            }
+            dst += dst_bitmap->linebytes >> 1;
         }
-        dst += dst_bitmap->linebytes >> 1;
+        return true;
     }
-    return true;
+    else//圆角矩形
+    {
+        s32 OutConst, Sum, SumY;
+        s32 move_x, move_y, flag, flag_x;
+        s32 cx, cy, dy, dx, arc_ry, arc_rx, _max;
+        cx = ((Target->right - Target->left) / 2) + Target->left;//中心点坐标
+        cy = ((Target->bottom - Target->top) / 2) + Target->top;
+
+        if (radius * 2 <= (Target->bottom - Target->top))
+        {
+            arc_ry = radius;
+            dy = cy - Target->top - arc_ry;
+        }
+        else
+        {
+            arc_ry = (Target->bottom - Target->top) >> 1;
+            dy = 0;
+        }
+        if (radius * 2 <= (Target->right - Target->left))
+        {
+            arc_rx = radius;
+            dx = cx - Target->left - arc_rx;
+        }
+        else
+        {
+            arc_rx = (Target->right - Target->left) >> 1;
+            dx = 0;
+        }
+        u32 _rx = arc_rx;
+        u32 _ry = arc_ry;
+        flag = ((Target->bottom - Target->top) % 2 == 0 ? 1 : 0);
+        flag_x = ((Target->right - Target->left) % 2 == 0 ? 0 : 1);
+        OutConst = _rx * _rx*_ry*_ry
+            + (_rx*_rx*_ry >> 1);
+        move_x = arc_rx;
+        for (y = 0; y <= arc_ry; y++)
+        {
+            SumY = ((s32)(arc_rx*arc_rx))*((s32)(y*y));
+            while (Sum = SumY + ((s32)(arc_ry*arc_ry))*((s32)(move_x*move_x)),
+                (move_x > 0) && (Sum > OutConst)) {move_x--;}
+            if (y)
+            {
+                move_y = cy - y - dy;
+                if (move_y >= Focus->top && move_y < Focus->bottom)//上边弧start
+                {
+                    dst = (u16*)((u32)dst_bitmap->bm_bits
+                        + move_y * dst_bitmap->linebytes);
+
+                    x = cx - move_x - dx;
+                    if (x <= Focus->left) x = Focus->left;
+                    else if (x >= Focus->right) x = Focus->right;
+
+                    _max = cx + move_x + dx + flag_x;
+                    if (_max >= Focus->right) _max = Focus->right;
+                    else if (_max <= Focus->left) _max = Focus->left;
+
+                    dst += x;
+                    p = dst;
+                    for (; x < _max; x++)
+                    {
+                        *p++ = pixel;
+                    }
+
+                }//上边弧end
+                move_y = cy + y + dy - flag;
+                if (move_y < Focus->bottom&&move_y >= Focus->top)//下边弧start
+                {
+                    dst = (u16*)((u32)dst_bitmap->bm_bits
+                        + move_y * dst_bitmap->linebytes);
+
+                    x = cx - move_x - dx;
+                    if (x <= Focus->left) x = Focus->left;
+                    else if (x >= Focus->right) x = Focus->right;
+
+                    _max = cx + move_x + dx + flag_x;
+                    if (_max >= Focus->right) _max = Focus->right;
+                    else if (_max <= Focus->left) _max = Focus->left;
+
+                    dst += x;
+                    p = dst;
+                    for (; x < _max; x++)
+                    {
+                        *p++ = pixel;
+                    }
+                }//下边弧end
+            }
+
+        }
+        //*********中间矩形部分start
+        if (cy - dy <= Focus->top) y = Focus->top;//矩形高度
+        else y = cy - dy;
+        if (cy + dy + 1 >= Focus->bottom) _max = Focus->bottom;
+        else _max = cy + dy + 1;
+        dst = (u16*)((u32)dst_bitmap->bm_bits
+            + y * dst_bitmap->linebytes);
+        dst += Focus->left;
+        for (; y < _max; y++)
+        {
+            p = dst;
+            for (x = Focus->left; x < Focus->right; x++)
+            {
+                *p++ = pixel;
+            }
+            dst += dst_bitmap->linebytes >> 1;
+
+        }//*********中间矩形部分end
+
+        return true;
+    }//圆角矩形
 }
 //----bitmap中位块传送---------------------------------------------------------
 //功能: 把一个位图中的一个矩形区域传送到另一个区域，两个位图的像素格式不必相同，
