@@ -143,7 +143,7 @@ struct GkscParaGradientFillWin
     u32 Color0;                     //颜色0
     u32 Color1;                     //颜色1
     u32 Mode;
-
+    s32 radius;
 };
 
 //字体中的显点用color，隐点不显示。

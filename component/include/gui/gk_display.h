@@ -151,9 +151,9 @@ struct DispDraw
     //              像素格式是CN_SYS_PF_ERGB8888
     //Mode: 填充模式,CN_FILLRECT_MODE_N族常数
     bool_t (*FillRectToBitmap)(    struct RectBitmap *DstBitmap,
-                               struct Rectangle *Target,
-                               struct Rectangle *Focus,
-                               u32 Color0,u32 Color1,u32 Mode);
+                                   struct Rectangle *Target,
+                                   struct Rectangle *Focus,
+                                   u32 Color0,u32 Color1,u32 Mode,s32 radius);
 
     //在两个矩形位图中位块传送,如果矩形尺寸不相等,则要实现拉伸或压缩
     //什么情况下应该实现本函数的功能,参见本结构前面的注释

@@ -2057,79 +2057,25 @@ void __Sector_area_get(s32 xCenter, s32 yCenter, u32 radius, s32 start_angle, s3
 //------------------------------------------------------------------------------
 void    GDD_FillRoundRect(HDC hdc,RECT *rec, s32 arc_r)
 {
-    s32 rx,ry;
-    s32 OutConst, Sum, SumY;
-    RECT prc;
-    prc = *rec;
-    s32 cx,dx,cy,dy;
-    s32 x,y;
-    s32 xOld;
-    if(hdc==NULL)
-        return;
-    if(arc_r<=0)
+    RECT rc;
+    if(hdc!=NULL)
     {
-        if(arc_r==0)
-            GDD_FillRect(hdc,&prc);
-        return;
-    }
-    if(prc.right<prc.left)
-        __gdd_swap(prc.right,prc.left);
-    if(prc.bottom<prc.top)
-        __gdd_swap(prc.bottom,prc.top);
-
-    cx = ((prc.right-prc.left)/2) + prc.left;//中心点坐标
-    cy = ((prc.bottom-prc.top)/2) + prc.top;
-
-    if(arc_r * 2 <= (prc.bottom-prc.top))
-    {
-        ry = arc_r;
-        dy = cy - prc.top - ry;
-    }
-    else
-    {
-        ry = (prc.bottom-prc.top)/2;
-        dy = 0;
-    }
-    if(arc_r * 2 <= (prc.right-prc.left))
-    {
-        rx = arc_r;
-        dx = cx - prc.left - rx;
-    }
-    else
-    {
-        rx = (prc.right-prc.left)/2;
-        dx = 0;
-    }
-    u32 _rx = rx;
-    u32 _ry = ry;
-    OutConst = _rx*_rx*_ry*_ry +(_rx*_rx*_ry>>1);
-    xOld = x = rx;
-
-    for(y=0; y<=ry; y++)
-    {
-        if(y==ry)
+        if(rec!=NULL)
         {
-            x=0;
+            rc = *rec;
+            if(__GDD_BeginDraw(hdc))
+            {
+                __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
+
+                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,& rc, hdc->DrawColor, hdc->DrawColor,
+                            CN_FILLRECT_MODE_N, arc_r,hdc->SyncTime);
+                __GDD_EndDraw(hdc);
+            }
         }
-        else
-        {
-            SumY =((s32)(rx*rx))*((s32)(y*y));
-            while (Sum = SumY + ((s32)(ry*ry))*((s32)(x*x)),
-                   (x>0) && (Sum>OutConst)) x--;
-        }
-        if(y)
-        {
-            GDD_DrawLine(hdc,cx-xOld-dx,cy-y-dy,cx+xOld+dx,cy-y-dy);
-            GDD_DrawLine(hdc,cx-xOld-dx,cy+y+dy,cx+xOld+dx,cy+y+dy);
-        }
-        xOld = x;
     }
-    if(dy!=0){
-        RECT rc = (RECT){prc.left,prc.top+rx,prc.right+1,prc.bottom-rx+1};
-        GDD_FillRect(hdc,&rc);}
-    GDD_DrawLine(hdc,prc.left,cy,prc.right,cy);
-    __GDD_EndDraw(hdc);
+
 }
+
 
 //----绘制圆角矩形-----------------------------------------------------------
 //描述: 使用DrawRounddRect绘制一个空心圆角矩形.
@@ -2284,8 +2230,8 @@ void    GDD_FillRect(HDC hdc,const RECT *prc)
             {
                 __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
 
-                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,& rc, hdc->DrawColor, hdc->DrawColor,
-                            CN_FILLRECT_MODE_N,hdc->SyncTime);
+                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,&rc, hdc->DrawColor, hdc->DrawColor,
+                            CN_FILLRECT_MODE_N, 0,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
         }
@@ -2313,14 +2259,77 @@ void    GDD_FillRectEx(HDC hdc,const RECT *prc,u32 color)
                 __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
 
                 GK_FillRect(hdc->pGkWin,&hdc->DrawArea ,&rc,color,color,
-                            CN_FILLRECT_MODE_N,hdc->SyncTime);
+                            CN_FILLRECT_MODE_N, 0,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
         }
     }
 
 }
+//----渐变填充圆角矩形------------------------------------------------------------------
+//描述: 使用Color1作为起始色,Color2作为结束色,渐变填充圆角矩形.
+//参数：hdc: 绘图上下文句柄.
+//      prc: 矩形参数.
+//      Color1: 超始颜色.
+//      Color2: 结束颜色.
+//      mode: 渐变递增模式,可以是以下值:
+//            CN_FILLRECT_MODE_LR:丛左到右填充
+//            CN_FILLRECT_MODE_UD:丛上到下
+//            CN_FILLRECT_MODE_LU2RD:丛左上到右下
+//            CN_FILLRECT_MODE_RU2LD:丛右上到左下
+//      arc_r：半径
+//返回：无.
+//------------------------------------------------------------------------------
+void GDD_GradientFillRoundRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2,u32 mode,s32 arc_r)
+{
+    struct Rectangle gk_rc;
+    RECT rc;
 
+    if(arc_r<0)
+        return;
+    if(hdc!=NULL)
+    {
+        if(prc!=NULL)
+        {
+            if(__GDD_BeginDraw(hdc))
+            {
+//              GDD_CopyRect(&rc,prc);
+                rc = *prc;
+
+                __GDD_Cdn_DC_toWin(hdc,(POINT*)&rc,2);
+
+                gk_rc.left = rc.left;
+                gk_rc.top = rc.top;
+                gk_rc.right = rc.right;
+                gk_rc.bottom = rc.bottom;
+
+                switch(mode)
+                {
+                    case CN_FILLRECT_MODE_LR:
+                            mode =CN_FILLRECT_MODE_LR;
+                            break;
+                    case CN_FILLRECT_MODE_UD:
+                            mode =CN_FILLRECT_MODE_UD;
+                            break;
+                    case CN_FILLRECT_MODE_LU2RD:
+                            mode =CN_FILLRECT_MODE_LU2RD;
+                            break;
+                    case CN_FILLRECT_MODE_RU2LD:
+                            mode =CN_FILLRECT_MODE_RU2LD;
+                            break;
+                    default:
+                            mode =CN_FILLRECT_MODE_N;
+                            break;
+
+                }
+                GK_FillRect(hdc->pGkWin,&hdc->DrawArea ,&gk_rc,Color1,Color2,
+                            mode, arc_r,hdc->SyncTime);
+                __GDD_EndDraw(hdc);
+            }
+        }
+    }
+
+}
 //----渐变填充矩形------------------------------------------------------------------
 //描述: 使用Color1作为起始色,Color2作为结束色,渐变填充矩形.
 //参数：hdc: 绘图上下文句柄.
@@ -2375,7 +2384,7 @@ void    GDD_GradientFillRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2,u32 m
 
                 }
                 GK_FillRect(hdc->pGkWin,&hdc->DrawArea ,&gk_rc,Color1,Color2,
-                            mode,hdc->SyncTime);
+                            mode, 0,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
         }
@@ -2427,7 +2436,7 @@ void    GDD_Fill3DRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2)
                 c = GDD_AlphaBlendColor(Color1,Color2,128);
 
                 GDD_InflateRect(&rc,-1,-1);
-                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,&rc, c, c, CN_FILLRECT_MODE_N,hdc->SyncTime);
+                GK_FillRect(hdc->pGkWin, &hdc->DrawArea ,&rc, c, c, CN_FILLRECT_MODE_N,0,hdc->SyncTime);
                 __GDD_EndDraw(hdc);
             }
         }

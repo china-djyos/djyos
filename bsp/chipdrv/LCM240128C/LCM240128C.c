@@ -229,7 +229,7 @@ bool_t __lcd_line_bm_ie(struct RectBitmap *bitmap,struct Rectangle *limit,
 bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
                           struct Rectangle *Target,
                           struct Rectangle *Focus,
-                          u32 Color0,u32 Color1,u32 Mode)
+                          u32 Color0,u32 Color1,u32 Mode, s32 radius)
 {
     return false;
 }

@@ -310,7 +310,7 @@ void GK_FillPartWin(struct GkWinRsc *gkwin,
 //·µ»Ø: ÎÞ
 //-----------------------------------------------------------------------------
 void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *range,struct Rectangle *rect,
-                            u32 Color0,u32 Color1,u32 Mode,u32 SyncTime)
+                            u32 Color0,u32 Color1,u32 Mode,s32 radius,u32 SyncTime)
 {
     struct GkscParaGradientFillWin para;
     s32 flag = 0;
@@ -377,6 +377,7 @@ void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *range,struct Rectangle
     para.Color0 = Color0;
     para.Color1 = Color1;
     para.Mode = Mode;
+    para.radius = radius;
     __GK_SyscallChunnel(CN_GKSC_FILL_RECT,SyncTime,&para,
                         sizeof(para),NULL,0);
     return;
