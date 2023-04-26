@@ -38,21 +38,29 @@ static s32 s_gCurrentTicks = 1;     // 当前tick运行周期。
 static s32 s_gCriticalCycle;        // CFG_REAL_CRITICAL 对应的定时器计数值
 static s32 s_gTicksLimit;           // 24bit定时器单次定时最大ticks数
 extern s64 g_s64OsTicks;
+u32 Exp_SystickTickHandler(ptu32_t timeline);
 
 __attribute__((weak)) void __DjyInitTick(void)
 {
-	/* interface to OS(djy) */
-	s_gTicksLimit = (s32)((s64)0xffffffff*CN_CFG_TICK_HZ/CN_CFG_FCLK);
-	s_gCriticalCycle =(u32)((u64)CN_CFG_FCLK * CFG_REAL_CRITICAL / 1000000);
+    u32 a=7;
+    //todo :在此添加定时器初始化代码
+    Int_Register(29);
+    Int_SettoAsynSignal(29);
+    Int_IsrConnect(29,Exp_SystickTickHandler);
+    Int_RestoreLine(29);
 
-	/* interface to HW */
-	// Enable Private Timer for periodic IRQ
-	setPriorityMask(0x1F);
-	enableIntID(29);
-	setIntPriority(29, 0);
-//	init_private_timer(0xF0000, 0);
-	init_private_timer(0x10000000, 0);	// 0 - Auto Reload
-	start_private_timer();
+    /* interface to OS(djy) */
+    s_gTicksLimit = (s32)((s64)0xffffffff*CN_CFG_TICK_HZ/CN_CFG_FCLK);
+    s_gCriticalCycle =(u32)((u64)CN_CFG_FCLK * CFG_REAL_CRITICAL / 1000000);
+
+    /* interface to HW */
+    // Enable Private Timer for periodic IRQ
+//  setPriorityMask(0x1F);
+    Int_ContactLine(29);
+    Int_SetPrio(29, a);
+//  init_private_timer(0xF0000, 0);
+    init_private_timer(0x10000000, 0);  // 0 - Auto Reload
+    start_private_timer();
 }
 
 //------------------------------------------------------------------------------
@@ -75,7 +83,7 @@ void CleanWakeupEvent(void)
 // 参数:无
 // 返回:无
 // =============================================================================
-void Exp_SystickTickHandler(void)
+u32 Exp_SystickTickHandler(ptu32_t timeline)
 {
     s32 inc;
     g_bScheduleEnable = false;

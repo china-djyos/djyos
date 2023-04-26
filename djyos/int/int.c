@@ -441,7 +441,7 @@ bool_t Int_SetClearType(ufast_t ufl_line,ufast_t clear_type)
 //----关联中断线与ISR----------------------------------------------------------
 //功能：指定中断线指定中断响应函数，该函数为普通函数，
 //参数：ufl_line,需要设置的中断线号
-//      isr，中断响应函数，由用户提供，原型：void isr(ptu32_t para)
+//      isr，中断响应函数，由用户提供，原型：u32 isr(ptu32_t para)
 //返回：无
 //-----------------------------------------------------------------------------
 void Int_IsrConnect(ufast_t ufl_line, u32 (*isr)(ptu32_t))

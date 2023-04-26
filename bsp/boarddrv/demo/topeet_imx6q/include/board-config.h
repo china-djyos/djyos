@@ -7,11 +7,11 @@ extern "C" {
 
 #include "cpu-optional.h"
 
-#define DJY_BOARD        "TQ2416"
+#define DJY_BOARD        "topeet_imx6q"
 
 /*____与硬件相关的配置____*/
 #define Mhz 1000000
-#define CN_CFG_MCLK (532*Mhz)  //主频，内核要用，必须定义
+#define CN_CFG_MCLK (800*Mhz)  //主频，内核要用，必须定义
 #define CN_CFG_HCLK (CN_CFG_MCLK/4)  //高速外设时钟
 #define CN_CFG_PCLK (CN_CFG_MCLK/8)  //低速外设时钟
 #define CN_CFG_TIMER_CLK CN_CFG_PCLK  //定时器时钟源

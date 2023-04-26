@@ -6,24 +6,79 @@
 #include "critical.h"
 #include "djyos.h"
 
-// extern void (* engine_irq)(ufast_t ufl_line);
+#include <string.h>
 
 
-void Board_Init(void)
-{
-}
+/* Distributor register map */
+#define ICDDCR 0x000
+#define ICDICTR 0x004
+#define ICDIIDR 0x008
+#define ICDISR 0x080
+#define ICDISER 0x100
+#define ICDICER 0x180
+#define ICDISPR 0x200
+#define ICDICPR 0x280
+#define ICDABR 0x300
+#define ICDIPR 0x400
+#define ICDIPTR 0x800
+#define ICDICFR 0xC00
+#define ICDSGIR 0xF00
 
-extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
+/* CPU interface register map */
+#define ICCICR 0x00
+#define ICCPMR 0x04
+#define ICCBPR 0x08
+#define ICCIAR 0x0C
+#define ICCEOIR 0x10
+#define ICCRPR 0x14
+#define ICCHPIR 0x18
+#define ICCABPR 0x1C
+#define ICCIIDR 0xFC
+
+extern struct IntLine *tg_pIntLineTable[CN_INT_LINE_LAST+1]; //中断线查找表
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
 extern void __DJY_ScheduleAsynSignal(void);
 void __DJY_EventReady(struct EventECB *event_ready);
 
-//定义中断向量表段，一般而言，异常向量表或异常向量跳转表会和该段一同放在首地址
-u32 u32g_vect_table[CN_INT_LINE_LAST+1] __attribute__((section(".table.vectors")));
+#define CN_PRIO_ASYN 31
+#define CN_PRIO_REAL 30
 
-/* interface to hardware, in this case,
-   it should be GIC.
-   */
+#define BITS_PER_LONG           32
+
+/* include/linux/bitops.h */
+#define BIT(nr)                 (1UL << (nr))
+#define BIT_ULL(nr)             (1ULL << (nr))
+#define BIT_MASK(nr)            (1UL << ((nr) % BITS_PER_LONG))
+#define BIT_WORD(nr)            ((nr) / BITS_PER_LONG)
+#define BIT_ULL_MASK(nr)        (1ULL << ((nr) % BITS_PER_LONG_LONG))
+#define BIT_ULL_WORD(nr)        ((nr) / BITS_PER_LONG_LONG)
+#define BITS_PER_BYTE           8
+#define BITS_TO_LONGS(nr)       DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
+
+/**
+ * __set_bit - Set a bit in memory
+ * @nr: the bit to set
+ * @addr: the address to start counting from
+ *
+ * Unlike set_bit(), this function is non-atomic and may be reordered.
+ * If it's called on the same region of memory simultaneously, the effect
+ * may be that only one operation succeeds.
+ */
+static inline void generic_set_bit(int nr, volatile unsigned long *addr)
+{
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+
+    *p  |= mask;
+}
+
+static inline void generic_clear_bit(int nr, volatile unsigned long *addr)
+{
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+
+    *p &= ~mask;
+}
 
 //----进入高级原子操作---------------------------------------------------------
 //功能：读当前总中断状态，然后禁止总中断。高级原子操作是指期间不容许任何原因
@@ -41,8 +96,8 @@ atom_high_t Int_HighAtomStart(void)
     volatile atom_high_t ret;
     __asm__ volatile(
         "mrs    %0, cpsr \n"
-        "cpsid  if\n"
-        "mov    r0, %0 \n"
+        "cpsid  i \n"
+//        "mov    r0, %0 \n"
         : "=r" (ret)
         :
         );
@@ -77,28 +132,11 @@ void Int_HighAtomEnd(atom_high_t high)
 //-----------------------------------------------------------------------------
 atom_low_t Int_LowAtomStart(void)
 {
-    volatile atom_high_t ret;
-    __asm__ volatile(
-        "mrs    %0, cpsr \n"
-        "cpsid  if\n"
-        "mov    r0, %0 \n"
-        : "=r" (ret)
-        :
-        );
+    volatile atom_low_t ret;
+//  ret = getPriorityMask();        todo
+    setPriorityMask(CN_PRIO_ASYN);
     return ret;
 
-#if 0
-    atom_low_t low;
-
-    register ucpu_t msk_lsb;
-
-    low = pg_int_reg->INTMSK1;
-    msk_lsb = (~tg_int_global.property_bitmap[0]) & CN_INT_MASK_ALL_LINE;
-    pg_int_reg->INTMSK1 |= msk_lsb;
-    pg_int_reg->INTMSK1 |= msk_lsb;
-
-    return low;
-#endif
 }
 
 //----离开低级原子操作---------------------------------------------------------
@@ -113,12 +151,7 @@ atom_low_t Int_LowAtomStart(void)
 //-----------------------------------------------------------------------------
 void Int_LowAtomEnd(atom_low_t low)
 {
-    __asm__(
-        "msr cpsr_c,%0 \n\t" : :"r"(low)
-    );
-#if 0
-    pg_int_reg->INTMSK1 &= ~((~tg_int_global.property_bitmap[0]) & (~low));
-#endif
+    setPriorityMask(low);
 }
 
 //----接通异步信号开关---------------------------------------------------------
@@ -135,28 +168,7 @@ void Int_LowAtomEnd(atom_low_t low)
 // Contact: enable
 void Int_ContactAsynSignal(void)
 {
-    ucpu_t *m;
-    int i;
-    volatile ucpu_t *p; /* set enable register. */
-
-    #define ICDISER (0x00a00000 + 0x1000 + 0x100);
-    p = (void *)ICDISER;    /* ARM IHI 0048A Page. 4-3 */
-
-    m = tg_int_global.property_bitmap;
-    for (i=0; i < CN_INT_BITS_WORDS; i++) {
-        /* 0 means "AsynSignal" */
-        p[i] = ~m[i];
-    }
-
-    return;
-
-
-
-#if 0
-    //INTMSK中异步信号且中断线被使能的位被清0
-    pg_int_reg->INTMSK1 &= ~((~tg_int_global.property_bitmap[0])
-             & tg_int_global.enable_bitmap[0]);
-#endif
+    setPriorityMask(CN_PRIO_ASYN);
 }
 
 //----断开异步信号开关---------------------------------------------------------
@@ -172,28 +184,7 @@ void Int_ContactAsynSignal(void)
 // Cut: disconnect or disable
 void Int_CutAsynSignal(void)
 {
-    ucpu_t *m;
-    int i;
-    volatile ucpu_t *p; /* set enable register. */
-
-    return;
-
-
-#if(CN_CFG_REG_ATOM == 0)
-    atom_high_t high;
-    high = Int_HighAtomStart();
-#endif /* CN_CFG_REG_ATOM */
-    #define ICDICER (0x00a00000 + 0x1000 + 0x180);
-    p = (void *)ICDICER;    /* ARM IHI 0048A Page. 4-3 */
-
-    m = tg_int_global.property_bitmap;
-    for (i=0; i < CN_INT_BITS_WORDS; i++) {
-        /* zero bits means "AsynSignal" */
-        p[i] = ~m[i];
-    }
-#if(CN_CFG_REG_ATOM == 0)
-    Int_HighAtomEnd(high);
-#endif
+    setPriorityMask(CN_PRIO_REAL);
 }
 
 //----接通总中断开关-----------------------------------------------------------
@@ -207,7 +198,7 @@ void Int_CutAsynSignal(void)
 // 实现，处理器启用中断
 void Int_ContactTrunk(void)
 {
-    __int_enable_irq();
+    asm volatile ("cpsie i\n\t");
 }
 
 //----断开总中断开关---------------------------------------------------------
@@ -218,7 +209,7 @@ void Int_ContactTrunk(void)
 //-----------------------------------------------------------------------------
 void Int_CutTrunk(void)
 {
-    __int_disable_irq();
+    asm volatile ("cpsid i\n\t");
 }
 
 //----接通单个中断线开关-------------------------------------------------------
@@ -229,18 +220,8 @@ void Int_CutTrunk(void)
 //-----------------------------------------------------------------------------
 bool_t Int_ContactLine(ufast_t ufl_line)
 {
-    if (ufl_line > CN_INT_LINE_LAST) return false;
-    if (tg_pIntLineTable[ufl_line] == NULL) return false;
-
-
-    if(tg_pIntLineTable[ufl_line]->int_type == CN_ASYN_SIGNAL) {//如果该中断线属于异步信号,且异步信号开关允许,允许该中断线
-    if(tg_int_global.en_asyn_signal_counter == 0)
-            enableIntID(ufl_line);
-    } else
-      //如果该中断属于实时中断,中断总有独立开关,直接允许该中断线
-      enableIntID(ufl_line);
-
-    return  true;
+    enableIntID(ufl_line);
+    return true;
 }
 
 //----断开单个中断线开关-------------------------------------------------------
@@ -256,9 +237,6 @@ bool_t Int_ContactLine(ufast_t ufl_line)
 */
 bool_t Int_CutLine(ufast_t ufl_line)
 {
-    if (ufl_line > CN_INT_LINE_LAST) return false;
-    if (tg_pIntLineTable[ufl_line] == NULL) return false;
-
     disableIntID(ufl_line);
     return true;
 }
@@ -274,13 +252,7 @@ bool_t Int_CutLine(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_ClearLine(ufast_t ufl_line)
 {
-    volatile unsigned long *p;
-    if (ufl_line > CN_INT_LINE_LAST) return false;
-    if (tg_pIntLineTable[ufl_line] == NULL) return false;
-
-    #define ICDICPR (0x00a00000 + 0x1000 + 0x280);
-    p = (void *)ICDICPR;    /* ARM IHI 0048A Page. 4-3 */
-    p[ufl_line / 32] |= 1 << (ufl_line%32);
+    writeEOI(ufl_line);
     return true;
 }
 
@@ -294,7 +266,16 @@ bool_t Int_ClearLine(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_TapLine(ufast_t ufl_line)
 {
-    return false;    //2440不支持软件触发硬件中断的能力.
+    unsigned long *addr;
+
+    /* ICDISPR */
+    asm volatile (
+        "MRC p15, 4, %0, c15, c0, 0\n\t"
+        "orr %0, %0, #0x1200\n\t"
+        : "=r" (addr)
+    );
+    generic_set_bit(ufl_line, addr);
+    return true;
 }
 
 //----应答全部中断，清除全部中断线的中断挂起状态-------------------------------
@@ -330,15 +311,15 @@ void __Int_ClearAllLine(void)
 //-----------------------------------------------------------------------------
 bool_t Int_QueryLine(ufast_t ufl_line)
 {
-    volatile unsigned long *p;
-    #define ICDICPR (0x00a00000 + 0x1000 + 0x280);
-    p = (void *)ICDICPR;    /* ARM IHI 0048A Page. 4-3 */
-    unsigned long sts;
+    unsigned long *addr;
 
-    sts = p[ufl_line/32];
-    sts &= 1 << (ufl_line%32);
-    p[ufl_line/32] = sts;
-    return !!sts;
+    /* ICDISPR */
+    asm volatile (
+        "MRC p15, 4, %0, c15, c0, 0\n\t"
+        "orr %0, %0, #0x1200\n\t"
+        : "=r" (addr)
+    );
+    return addr[ufl_line/32] & (1<<(ufl_line%32));
 }
 
 //----把指定中断线设置为异步信号--------－－－---------------------------------
@@ -349,14 +330,10 @@ bool_t Int_QueryLine(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_SettoAsynSignal(ufast_t ufl_line)
 {
-    ucpu_t m;
-    if (ufl_line > CN_INT_LINE_LAST) return false;
-    if (tg_pIntLineTable[ufl_line] == NULL)  return false;
+    tg_pIntLineTable[ufl_line]->int_type = CN_ASYN_SIGNAL;
+    generic_clear_bit(ufl_line, tg_int_global.property_bitmap);
 
-    tg_pIntLineTable[ufl_line]->int_type = CN_ASYN_SIGNAL;   //中断线类型
-
-    m = 1 << (ufl_line % CN_CPU_BITS);
-    tg_int_global.property_bitmap[ufl_line/CN_CPU_BITS] &= ~m;  //设置位图
+    setIntPriority(ufl_line, CN_PRIO_ASYN);
     return true;
 }
 
@@ -368,15 +345,11 @@ bool_t Int_SettoAsynSignal(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_SettoReal(ufast_t ufl_line)
 {
-    if( (ufl_line > CN_INT_LINE_LAST)
-            || (tg_pIntLineTable[ufl_line] == NULL) )
-        return false;
-    if(tg_pIntLineTable[ufl_line]->sync_event != NULL)
-        return false;     //有线程在等待这个中断，不能设为实时中断
-    tg_pIntLineTable[ufl_line]->int_type = CN_REAL;    //中断线类型
-    tg_pIntLineTable[ufl_line]->enable_nest = false;   //本实现不支持实时中断嵌套
-    tg_int_global.property_bitmap[ufl_line/CN_CPU_BITS]
-            |= 1<<(ufl_line % CN_CPU_BITS);   //设置位图
+    tg_pIntLineTable[ufl_line]->int_type = CN_REAL;
+    tg_pIntLineTable[ufl_line]->enable_nest = false;
+    generic_set_bit(ufl_line, tg_int_global.property_bitmap);
+
+    setIntPriority(ufl_line, CN_PRIO_REAL);
     return true;
 }
 
@@ -411,13 +384,7 @@ bool_t Int_SettoReal(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_EnableNest(ufast_t ufl_line)
 {
-    if( (ufl_line > CN_INT_LINE_LAST) || (tg_pIntLineTable[ufl_line] == NULL) )
     return false;
-    if(tg_int_global.property_bitmap[ufl_line/CN_CPU_BITS] & (1<<(ufl_line % CN_CPU_BITS)))
-    return false;       //本实现不支持实时中断嵌套
-
-    tg_pIntLineTable[ufl_line]->enable_nest = true;
-    return true;
 }
 
 //----禁止中断嵌套-------------------------------------------------------------
@@ -427,12 +394,6 @@ bool_t Int_EnableNest(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_DisableNest(ufast_t ufl_line)
 {
-    if (ufl_line > CN_INT_LINE_LAST)
-        return false;
-    if (tg_pIntLineTable[ufl_line] == NULL)
-        return false;
-
-    tg_pIntLineTable[ufl_line]->enable_nest = false;
     return true;
 }
 
@@ -444,7 +405,8 @@ bool_t Int_DisableNest(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_SetPrio(ufast_t ufl_line,u32 prio)
 {
-    return false;
+    setIntPriority(ufl_line, prio);
+    return true;
 }
 
 //----初始化中断硬件相关部分---------------------------------------------------
@@ -483,30 +445,16 @@ void __Int_InitHard(void)
 //-----------------------------------------------------------------------------
 void Int_Init(void)
 {
-    ufast_t ufl_line;
+    int i;
+    memset(tg_pIntLineTable, 0, sizeof(tg_pIntLineTable));
+    memset(&tg_int_global, 0, sizeof(struct IntMasterCtrl));
+    tg_int_global.en_asyn_signal_counter = 1;
 
-    __Int_InitHard();
-    __Int_ClearAllLine();
-    for(ufl_line=0;ufl_line <= CN_INT_LINE_LAST;ufl_line++)
-    {
-        tg_pIntLineTable[ufl_line] = NULL;
-    }
-
-    for(ufl_line=0; ufl_line < CN_INT_BITS_WORDS; ufl_line++)
-    {
-        //属性位图清零,全部置为异步信号方式
-        tg_int_global.property_bitmap[ufl_line] = 0;
-        //中断使能位图清0,全部处于禁止状态
-        tg_int_global.enable_bitmap[ufl_line] = 0;
-    }
-    tg_int_global.nest_asyn_signal = 0;
-    tg_int_global.nest_real = 0;
-//    tg_int_global.en_asyn_signal = false;
-    tg_int_global.en_asyn_signal_counter = 1;   //异步信号计数
+    enableGIC();
+    enableGICProcessorInterface();
+    setBinaryPoint(2);
     Int_CutAsynSignal();
-//    tg_int_global.en_trunk = true;
-    tg_int_global.en_trunk_counter = 0;   //总中断计数
-    Int_ContactTrunk();                //接通总中断开关
+    Int_ContactTrunk();
 }
 
 //----总中断引擎---------------------------------------------------------------

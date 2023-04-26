@@ -346,6 +346,11 @@ end:
     bx      lr
 
 
+    .global __asm_ExecuteCmd
+__asm_ExecuteCmd:
+#warning "TODO: __asm_ExecuteCmd()"
+    bx  lr
+
 .global __asm_bl_fun
 .type   __asm_bl_fun, %function
 __asm_bl_fun:
