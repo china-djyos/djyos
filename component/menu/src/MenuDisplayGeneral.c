@@ -380,13 +380,13 @@ bool_t display_menu_horizontal(struct menu_displaypara * dispara)//µ÷ÓÃÐ´²Ëµ¥ÄÚÈ
               //Õâ¸öÊ±ºò²»ÐèÒªÇÐ»»ÊÂ¼þ£¬ÏÂÃæµÄÐ´×Öº¯Êý»á×èÈûÊÂ¼þ£¬Ö±µ½Ð´Íê
               GK_FillRect(dispara->CurWin, &LightedRec,
                            dispara->DisplayColor.menu_lighted_color,
-                           0,CN_FILLRECT_MODE_N,0);
+                           0,CN_FILLRECT_MODE_N,0,0);
           }
           else
           {
               GK_FillRect(dispara->CurWin, &LightedRec,
                              dispara->DisplayColor.menu_color,
-                             0,CN_FILLRECT_MODE_N,0);
+                             0,CN_FILLRECT_MODE_N,0,0);
           }
 
           DrawMenuitemText(dispara, temp,x,y);
@@ -444,13 +444,13 @@ bool_t display_menu_vertical(struct menu_displaypara * dispara)//µ÷ÓÃÐ´²Ëµ¥ÄÚÈÝº
               //Õâ¸öÊ±ºò²»ÐèÒªÇÐ»»ÊÂ¼þ£¬ÏÂÃæµÄÐ´×Öº¯Êý»á×èÈûÊÂ¼þ£¬Ö±µ½Ð´Íê
               GK_FillRect(dispara->CurWin, &LightedRec,
                              dispara->DisplayColor.menu_lighted_color,
-                             0,CN_FILLRECT_MODE_N,0);
+                             0,CN_FILLRECT_MODE_N,0,0);
           }
           else
           {
               GK_FillRect(dispara->CurWin, &LightedRec,
                              dispara->DisplayColor.menu_color,
-                             0,CN_FILLRECT_MODE_N,0);
+                             0,CN_FILLRECT_MODE_N,0,0);
           }
           DrawMenuitemText(dispara, temp,x,y);
 
@@ -514,13 +514,13 @@ bool_t display_menu_3by3(struct menu_displaypara * dispara)//µ÷ÓÃÐ´²Ëµ¥ÄÚÈÝº¯Êýº
           //Õâ¸öÊ±ºò²»ÐèÒªÇÐ»»ÊÂ¼þ£¬ÏÂÃæµÄÐ´×Öº¯Êý»á×èÈûÊÂ¼þ£¬Ö±µ½Ð´Íê
           GK_FillRect(dispara->CurWin, &LightedRec,
                          dispara->DisplayColor.menu_lighted_color,
-                         0,CN_FILLRECT_MODE_N,0);
+                         0,CN_FILLRECT_MODE_N,0,0);
       }
       else
       {
           GK_FillRect(dispara->CurWin, &LightedRec,
                          dispara->DisplayColor.menu_color,
-                         0,CN_FILLRECT_MODE_N,0);
+                         0,CN_FILLRECT_MODE_N,0,0);
       }
       result= DrawMenuitemText(dispara, temp,x,y);
       k++;

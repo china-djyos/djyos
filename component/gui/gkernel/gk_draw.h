@@ -102,6 +102,8 @@ void __GK_LinetoScreen(struct DisplayObj *display,struct Rectangle *limit,
                     s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 rop2_code);
 void __GK_BltBmToScreen(struct DisplayObj *display,struct Rectangle *rect,
                         struct RectBitmap *bitmap,s32 x,s32 y);
+void __GK_FillroundRect(struct RectBitmap *dst_bitmap,
+                     struct Rectangle *Target,struct Rectangle *Focus,u32 color,s32 radius);
 void __GK_FillRect(struct RectBitmap *dst_bitmap,
                      struct Rectangle *dst_rect,u32 color);
 void __GK_FillBm(struct RectBitmap *dst_bitmap,u32 color);
