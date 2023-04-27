@@ -138,8 +138,8 @@ bool_t Int_RestoreLine(ufast_t ufl_line);
 
 #define Int_DisableAsynLine(x)    Int_DisableLine(x)
 #define Int_DisableRealLine(x)    Int_DisableLine(x)
-#define Int_EnableAsynLine(x)    Int_SaveLine(x)
-#define Int_EnableRealLine(x)    Int_SaveLine(x)
+#define Int_EnableAsynLine(x)    Int_EnableLine(x)
+#define Int_EnableRealLine(x)    Int_EnableLine(x)
 //bool_t Int_DisableAsynLine(ufast_t ufl_line);
 bool_t Int_DisableLine(ufast_t ufl_line);
 //bool_t Int_EnableAsynLine(ufast_t ufl_line);

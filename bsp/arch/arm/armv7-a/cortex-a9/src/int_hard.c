@@ -40,8 +40,11 @@ extern struct IntMasterCtrl  tg_int_global;          //¶¨Òå²¢³õÊ¼»¯×ÜÖĞ¶Ï¿ØÖÆ½á¹
 extern void __DJY_ScheduleAsynSignal(void);
 void __DJY_EventReady(struct EventECB *event_ready);
 
-#define CN_PRIO_ASYN 31
-#define CN_PRIO_REAL 30
+#define CN_PRIO_ASYN 30
+#define CN_PRIO_REAL 29
+#define CN_PRIO_DIS_ASYN 30
+#define CN_PRIO_ENA_ASYN 31
+
 
 #define BITS_PER_LONG           32
 
@@ -133,8 +136,8 @@ void Int_HighAtomEnd(atom_high_t high)
 atom_low_t Int_LowAtomStart(void)
 {
     volatile atom_low_t ret;
-//  ret = getPriorityMask();        todo
-    setPriorityMask(CN_PRIO_ASYN);
+    ret = getPriorityMask();
+    setPriorityMask(CN_PRIO_DIS_ASYN);
     return ret;
 
 }
@@ -168,7 +171,7 @@ void Int_LowAtomEnd(atom_low_t low)
 // Contact: enable
 void Int_ContactAsynSignal(void)
 {
-    setPriorityMask(CN_PRIO_ASYN);
+    setPriorityMask(CN_PRIO_ENA_ASYN);
 }
 
 //----¶Ï¿ªÒì²½ĞÅºÅ¿ª¹Ø---------------------------------------------------------
@@ -184,7 +187,7 @@ void Int_ContactAsynSignal(void)
 // Cut: disconnect or disable
 void Int_CutAsynSignal(void)
 {
-    setPriorityMask(CN_PRIO_REAL);
+    setPriorityMask(CN_PRIO_DIS_ASYN);
 }
 
 //----½ÓÍ¨×ÜÖĞ¶Ï¿ª¹Ø-----------------------------------------------------------
@@ -512,6 +515,17 @@ void __Int_EngineReal(ufast_t ufl_line)
     tg_int_global.nest_real--;
 
 }
+void ____Int_EngineAll(ufast_t ufl_line)
+{
+//    Int_CutAsynSignal();            //1
+//    Int_ClearLine(ufl_line);        //2
+//    Int_ContactTrunk();             //2
+//    Int_CutAsynSignal();            //3
+//    Int_EnableLine(ufl_line);       //3
+//    Int_CutTrunk();                 //1
+//    Int_ContactAsynSignal();        //1
+    return;
+}
 
 //----Òì²½ÊÂ¼şÖĞ¶ÏÒıÇæ---------------------------------------------------------
 //¹¦ÄÜ£ºÏìÓ¦Òì²½ĞÅºÅ£¬¸ù¾İÖĞ¶ÏºÅµ÷ÓÃÓÃ»§ISR£¬Ëæºóµ¯³öÖĞ¶ÏÏß¿ØÖÆ¿éµÄmy_evtt_id
@@ -548,10 +562,11 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
         if(ptIntLine->clear_type == CN_INT_CLEAR_USER)
             Int_ClearLine(ufl_line);        //ÖĞ¶ÏÓ¦´ğ,
     }
-//    if(ptIntLine->clear_type == CN_INT_CLEAR_POST)
-//        Int_ClearLine(ufl_line);        //ÖĞ¶ÏÓ¦´ğ,
-    Int_CutAsynSignal();
-    Int_EnableAsynLine(ufl_line);
+    if(ptIntLine->enable_nest == true)  //ÔÊĞíÇ¶Ì×µÄÇé¿ö
+    {
+        Int_CutAsynSignal();
+        Int_EnableLine(ufl_line);
+    }
 
     event = ptIntLine->sync_event;
     if(event != NULL)   //¿´Í¬²½Ö¸ÕëÖĞÓĞÃ»ÓĞÊÂ¼ş(×¢£ºµ¥¸öÊÂ¼ş£¬²»ÊÇ¶ÓÁĞ)

@@ -4,7 +4,7 @@
 //
 // Copyright (c) 2011-2018 Arm Limited (or its affiliates). All rights reserved.
 // Use, modification and redistribution of this file is subject to your possession of a
-// valid End User License Agreement for the Arm Product of which these examples are part of 
+// valid End User License Agreement for the Arm Product of which these examples are part of
 // and your compliance with all applicable terms and conditions of such licence agreement.
 // ------------------------------------------------------------
 
@@ -58,6 +58,8 @@ void disableGICProcessorInterface(void);
 //
 // NOTE: Bits 2:0 of this register are SBZ, the function does perform any shifting!
 void setPriorityMask(unsigned int priority);
+// NOTE: Bits 2:0 of this register are SBZ, the function does perform any shifting!
+unsigned int getPriorityMask(void);
 
 // Sets the Binary Point Register for the core run on
 void setBinaryPoint(unsigned int priority);

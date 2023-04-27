@@ -41,7 +41,7 @@ djy_abort_handler:
 djy_reserved_handler:
     b   .
 djy_irq_handler:
-    cpsid   i
+@    cpsid   i
 @   +----------+
 @   | pc       | <-- __irq_stack_base
 @   | lr       |
@@ -50,73 +50,84 @@ djy_irq_handler:
 @   +----------+
 @   +----------+
     sub lr, lr, #4
-    stmfd   sp!,{r0-r12,lr}          /* 保护寄存器,以及返回地址 */
+    push    {lr}        /* pc */
+    stmfd   sp, {lr}^   /* lr */
+    sub sp, #4
+    push   {r0-r12}          /* 保护寄存器,以及返回地址 */
+
     readIntAck r0
 
     mrs     r1,spsr
-    stmfd   sp!,{r1}                 /* 保护SPSR_irq，以支持中断嵌套 */
+    push   {r1}                 /* 保护SPSR_irq，以支持中断嵌套 */
     msr     cpsr_c,#SF_SVCMODE|SF_IRQ_BIT   /* 进入SVCMODE,以便允许中断嵌套 */
-    stmfd   sp!,{r0,lr}             /* 保存lr_svc,r0是保持栈8字节对齐的填充物 */
+    push   {r0,lr}             /* 保存lr_svc,r0是保持栈8字节对齐的填充物 */
 
-    /*ldr     r2,=irq_bottom                     取异步信号地址 */
     ldr         r2, =__Int_EngineAll         /* 取异步信号地址 */
 
     mov     lr,pc               /* 这执行4G空间内的函数调用 */
     mov     pc,r2             /* 参数intn已经在r0中 */
 
-    ldmfd   sp!,{r0,lr}     /* 恢复lr_svc, */
+    pop     {r0,lr}     /* 恢复lr_svc, */
     msr     cpsr_c,#SF_IRQMODE|SF_IRQ_BIT|SF_FIQ_BIT   /* 更新cpsr,进入IRQ模式并禁止中断,由于lr寄存
-                                        器的问题,进入irq或者fiq模式，均要禁止中断以防嵌套，
+                                       器的问题,进入irq或者fiq模式，均要禁止中断以防嵌套，
                                         只有在进入svc状态才允许嵌套 */
-    ldmfd   sp!,{r0}        /* spsr->r0 */
     mrc p15, 4, r1, c15, c0, 0 /* Get base address of private perpherial space */
     str r0, [r1, #0x0110] /* Write ID to the End of Interrupt register (ICCEOIR) */
 
+    pop     {r0}        /* spsr->r0 */
     msr     spsr_cxsf,r0    /* 恢复spsr */
-    ldmfd   sp!,{r0-r12,lr}
+    pop     {r0-r12}
+    ldmfd   sp, {lr}^
+    add     sp, #4
+    pop     {lr}
     movs    pc,lr           /* 此后，中断被重新打开 */
 
+djy_irq_handler1:
+    sub lr, lr, #4
+    push    {lr}        /* pc */
+    stmfd   sp, {lr}^   /* lr */
+    sub sp, #4
+    push    {r0-r12}    /* r0-r12 */
+    mrs r0, spsr
+    push    {r0}        /* cpsr */
 
-//    sub lr, lr, #4
-//    push    {lr}        /* pc */
-//    stmfd   sp, {lr}^   /* lr */
-//    sub sp, #4
-//    push    {r0-r12}    /* r0-r12 */
-//    mrs r0, spsr
-//    push    {r0}        /* cpsr */
-//
-//    mov r0, sp
-//    stmfd   r0, {sp}^   /* sp_sys */
-//    sub sp, r0, #4
-//
-//    readIntAck r0
-//    push {r0}
-//
-//
-//    cmp r0, #29
+    mov r0, sp
+    stmfd   r0, {sp}^   /* sp_sys */
+    sub sp, r0, #4
+
+    readIntAck r0
+    push {r0}
+
+
+    cmp r0, #29
 //    ldreq lr, =Exp_SystickTickHandler
 //    ldrne lr, =__Int_EngineReal /* 这里应该调用实时/异步信号总入口。 */
 //    blx lr
-//    mrc p15, 4, r0, c15, c0, 0
-//
-//    pop {r0} /* restore Interrupt ID */
-//    mrc p15, 4, r1, c15, c0, 0 /* Get base address of private perpherial space */
-//    str r0, [r1, #0x0110] /* Write ID to the End of Interrupt register (ICCEOIR) */
-//
-//
-//    ldmfd   sp, {sp}^
-//    add sp, #4
-//
-//    pop {r0}
-//    msr spsr, r0
-//    pop {r0-r12}
-//    ldmfd sp, {lr}^
-//    add sp, #4
-//    pop {lr}
-//    add lr, #4
-//    /* retrun from irq. */
-//    cpsie   i
-//    subs    pc, r14, #4
+/* Private Timer */
+    mrc p15, 4, r0, c15, c0, 0
+/* Clear the interrupt by writing 0x1 to the Timer's Interrupt Status register */
+    mov r1, #1
+    str r1, [r0, #0x60C]
+    dsb
+
+    pop {r0} /* restore Interrupt ID */
+    mrc p15, 4, r1, c15, c0, 0 /* Get base address of private perpherial space */
+    str r0, [r1, #0x0110] /* Write ID to the End of Interrupt register (ICCEOIR) */
+
+
+    ldmfd   sp, {sp}^
+    add sp, #4
+
+    pop {r0}
+    msr spsr, r0
+    pop {r0-r12}
+    ldmfd sp, {lr}^
+    add sp, #4
+    pop {lr}
+    add lr, #4
+    /* retrun from irq. */
+    cpsie   i
+    subs    pc, r14, #4
 
 djy_fiq_handler:
     sub lr, lr, #4      // return address adjustment

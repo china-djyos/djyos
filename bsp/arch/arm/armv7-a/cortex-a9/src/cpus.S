@@ -276,8 +276,8 @@ __asm_switch_context_int:
     push    {r4-r7}
 
     ldr r3, =__irq_stack_limit
-    sub r2, r3, #68
-    ldr r2, [r2]
+//    sub r2, r3, #68
+    ldr r2, [r1]
 
     ldmdb   r3!, {r4-r7}
     stmdb   r2!, {r4-r7}

@@ -42,12 +42,13 @@ u32 Exp_SystickTickHandler(ptu32_t timeline);
 
 __attribute__((weak)) void __DjyInitTick(void)
 {
-    u32 a=7;
+    u32 a=30;
     //todo :在此添加定时器初始化代码
     Int_Register(29);
     Int_SettoAsynSignal(29);
     Int_IsrConnect(29,Exp_SystickTickHandler);
     Int_RestoreLine(29);
+    Int_SetClearType(29,CN_INT_CLEAR_USER);
 
     /* interface to OS(djy) */
     s_gTicksLimit = (s32)((s64)0xffffffff*CN_CFG_TICK_HZ/CN_CFG_FCLK);
@@ -56,10 +57,10 @@ __attribute__((weak)) void __DjyInitTick(void)
     /* interface to HW */
     // Enable Private Timer for periodic IRQ
 //  setPriorityMask(0x1F);
-    Int_ContactLine(29);
-    Int_SetPrio(29, a);
-//  init_private_timer(0xF0000, 0);
-    init_private_timer(0x10000000, 0);  // 0 - Auto Reload
+//    Int_ContactLine(29);
+//    Int_SetPrio(29, a);
+  init_private_timer(0x40000, 1);
+//    init_private_timer(0x1000000, 0);  // 0 - Auto Reload
     start_private_timer();
 }
 
@@ -86,23 +87,24 @@ void CleanWakeupEvent(void)
 u32 Exp_SystickTickHandler(ptu32_t timeline)
 {
     s32 inc;
-    g_bScheduleEnable = false;
+//    g_bScheduleEnable = false;
 //  tg_int_global.en_asyn_signal_counter++;
-    tg_int_global.nest_asyn_signal++;
+//    tg_int_global.nest_asyn_signal++;
 //  if(!DjyGetUpdateTickFlag())
 //      DjyUpdateTicks(1);
 //  else
 //      DjySetUpdateTickFlag(false);
 //  g_s64OsTicks += s_gCurrentTicks;
+    clear_private_timer_irq();  //清除定时器中断标志
     inc = s_gCurrentTicks;
     s_gCurrentTicks = 1;
-    pg_systick_reg->ctrl;   //清零，与 __DjyGetSysTime 函数配合使用
+//    pg_systick_reg->ctrl;   //清零，与 __DjyGetSysTime 函数配合使用
     DJY_ScheduleIsr(inc);
-    tg_int_global.nest_asyn_signal--;
+//    tg_int_global.nest_asyn_signal--;
 //  tg_int_global.en_asyn_signal_counter--;
-    if(g_ptEventReady != g_ptEventRunning)
-        __DJY_ScheduleAsynSignal();       //执行中断内调度
-    g_bScheduleEnable = true;
+//    if(g_ptEventReady != g_ptEventRunning)
+//        __DJY_ScheduleAsynSignal();       //执行中断内调度
+//    g_bScheduleEnable = true;
 }
 
 // =============================================================================
@@ -171,29 +173,7 @@ __attribute__((weak))   u64 __DjyGetSysTime(void)
 __attribute__((weak)) u32 Tick_SetNextTimeTick(s32 Ticks)
 {
 #if CFG_TICKMODE_DYNAMIC == true
-    s32 temp;
-    atom_high_t atom_high;
-    if(Ticks > s_gTicksLimit)
-        Ticks = s_gTicksLimit;
-    if(s_gCurrentTicks == Ticks)
-        return Ticks;
-    temp = pg_systick_reg->current;
-    //tick中断快到了，为避工作在临界区导致的问题，不允许改变tick时间
-    //由于调用本函数时没有关闭实时中断，故实时中断的ISR执行不能大于CFG_REAL_CRITICAL微秒
-    if(temp >= s_gCriticalCycle)
-    {
-        temp = (s32)(s_gCurrentTicks - Ticks )* (s64)CN_CFG_FCLK / CN_CFG_TICK_HZ;
-
-        atom_high = Int_HighAtomStart();
-        temp = pg_systick_reg->current - temp;
-        pg_systick_reg->reload = temp;
-        pg_systick_reg->current = temp;
-        Int_HighAtomEnd(atom_high);
-        pg_systick_reg->reload = CN_CFG_FCLK/CN_CFG_TICK_HZ;
-//        pg_systick_reg->reload = 0xffffff;
-        s_gCurrentTicks = Ticks;
-    }
-    return s_gCurrentTicks;
+    return 1;
 
 #else       // for CFG_TICKMODE_DYNAMIC == true
     return 1;

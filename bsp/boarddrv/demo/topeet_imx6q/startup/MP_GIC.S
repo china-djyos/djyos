@@ -306,7 +306,29 @@ disableGICProcessorInterface:
 setPriorityMask:
   MRC     p15, 4, r1, c15, c0, 0  // Read periph base address
 
+// Make sure that priority value is only 5 bits, and convert to expected format
+  AND     r0, r0, #0x1F
+  MOV     r0, r0, LSL #3
   STR     r0, [r1, #0x0104]       // Write the Priority Mask register
+
+  BX      lr
+  .cfi_endproc
+
+// ------------------------------------------------------------
+
+  .global getPriorityMask
+  // void setPriorityMask(uint32_t priority)
+  // Sets the Priority mask register for the CPU run on
+  // The reset value masks ALL interrupts!
+  .type getPriorityMask, "function"
+  .cfi_startproc
+getPriorityMask:
+  MRC     p15, 4, r1, c15, c0, 0  // Read periph base address
+
+  LDR     r0, [r1, #0x0104]       // Write the Priority Mask register
+// Make sure that priority value is only 5 bits, and convert to expected format
+  AND     r0, r0, #0xF8
+  MOV     r0, r0, LSR #3
 
   BX      lr
   .cfi_endproc
