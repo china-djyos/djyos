@@ -96,7 +96,15 @@ __asm_reset_thread:
     ldr     r2,[r1,#4]          @取虚拟机栈顶指针
     ldr     r3,=__DJY_VmEngine     @取虚拟机引擎指针
     stmfd   r2!,{r3}            @存pc，
-    sub     r2,r2,#13*4         @后退13个寄存器,初始状态r1-r12随意，__vm_engine
+    stmfd   r2!,{r3}            @给LR一个可访问的地址，复位状态下，LR值并无意义
+    mov     r3,#0
+    mov     r4,#0
+    mov     r5,#0
+    mov     r6,#0
+    stmfd   r2!,{r3-r6}    @清零 r9~r12
+    stmfd   r2!,{r3-r6}    @清零 r5~r8
+    stmfd   r2!,{r3-r6}    @清零 r1~r4
+@    sub     r2,r2,#13*4         @后退13个寄存器,初始状态r1-r12随意，__vm_engine
                                                         @函数不返回，lr也无意义
     @__vm_engine的参数，切换上下文时，service_routine将恢复到r0中，根据调用约
     @定，r0的值就是__vm_engine函数的参数。这只在创建并初始化线程上下文时需要这
@@ -157,9 +165,17 @@ __asm_start_thread:
 __asm_reset_switch:
     .global __asm_reset_switch
     ldr     sp,[r2,#4]          @取老虚拟机栈顶指针
-    ldr     r12,=__DJY_VmEngine    @取虚拟机引擎指针
-    stmfd   sp!,{r12}           @存pc
-    sub     sp,sp,#13*4         @后退13个寄存器,初始状态r1-r12随意.__DJY_VmEngine
+    ldr     r3,=__DJY_VmEngine    @取虚拟机引擎指针
+    stmfd   sp!,{r3}           @存pc
+    stmfd   sp!,{r3}            @给LR一个可访问的地址，复位状态下，LR值并无意义
+    mov     r3,#0
+    mov     r4,#0
+    mov     r5,#0
+    mov     r6,#0
+    stmfd   sp!,{r3-r6}    @清零 r9~r12
+    stmfd   sp!,{r3-r6}    @清零 r5~r8
+    stmfd   sp!,{r3-r6}    @清零 r1~r4
+//    sub     sp,sp,#13*4         @后退13个寄存器,初始状态r1-r12随意.__DJY_VmEngine
                                                         @函数不返回，lr也无意义
                                 @至此，完成老虚拟机复位
     stmfd   sp!,{r0}            @保存 thread_routine指针.
