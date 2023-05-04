@@ -55,10 +55,15 @@ djy_irq_handler:
     sub sp, #4
     push   {r0-r12}          /* 保护寄存器,以及返回地址 */
 
-    readIntAck r0
-
     mrs     r1,spsr
     push   {r1}                 /* 保护SPSR_irq，以支持中断嵌套 */
+
+    mov r0, sp
+    stmfd   r0, {r0,sp}^   /* sp_sys,r0 用于填充至8字节对齐 */
+    sub sp, r0, #8
+
+    readIntAck r0
+
     msr     cpsr_c,#SF_SVCMODE|SF_IRQ_BIT   /* 进入SVCMODE,以便允许中断嵌套 */
     push   {r0,lr}             /* 保存lr_svc,r0是保持栈8字节对齐的填充物 */
 
@@ -74,8 +79,11 @@ djy_irq_handler:
     mrc p15, 4, r1, c15, c0, 0 /* Get base address of private perpherial space */
     str r0, [r1, #0x0110] /* Write ID to the End of Interrupt register (ICCEOIR) */
 
-    pop     {r0}        /* spsr->r0 */
-    msr     spsr_cxsf,r0    /* 恢复spsr */
+    ldmfd   sp, {r0,sp}^        //r0是填充物
+    add     sp,#8
+    pop     {r2}
+    msr     spsr_cxsf,r2        /* 恢复spsr */
+
     pop     {r0-r12}
     ldmfd   sp, {lr}^
     add     sp, #4

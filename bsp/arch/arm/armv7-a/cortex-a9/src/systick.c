@@ -59,7 +59,7 @@ __attribute__((weak)) void __DjyInitTick(void)
 //  setPriorityMask(0x1F);
 //    Int_ContactLine(29);
 //    Int_SetPrio(29, a);
-  init_private_timer(0x40000, 0);
+  init_private_timer(0x10000, 0);
 //    init_private_timer(0x1000000, 0);  // 0 - Auto Reload
     start_private_timer();
 }

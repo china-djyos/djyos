@@ -165,7 +165,12 @@ ptu32_t ModuleInstall_UART(ptu32_t serial_no)
 {
 	struct UartParam *Param;
 	struct imxUartPort *up;
-	up->UartGeneralCB = UART_InstallGeneral(Param);
+
+	serial_no = 0;
+	Param = &imxUartParam[serial_no];
+	up = &imxUartPort[serial_no];
+
+//	up->UartGeneralCB = UART_InstallGeneral(Param);
 }
 
 s32 imxPutStrDirect(const char *buf,u32 len)
