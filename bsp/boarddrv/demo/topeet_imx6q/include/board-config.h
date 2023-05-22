@@ -12,9 +12,10 @@ extern "C" {
 /*____与硬件相关的配置____*/
 #define Mhz 1000000
 #define CN_CFG_MCLK (800*Mhz)  //主频，内核要用，必须定义
-#define CN_CFG_HCLK (CN_CFG_MCLK/4)  //高速外设时钟
-#define CN_CFG_PCLK (CN_CFG_MCLK/8)  //低速外设时钟
+#define CN_CFG_PCLK (CN_CFG_MCLK/3)  //低速外设时钟
 #define CN_CFG_TIMER_CLK CN_CFG_PCLK  //定时器时钟源
+
+// #define CN_CFG_HCLK (CN_CFG_MCLK/4)  //高速外设时钟
 
 /*____以下定义tick参数____*/
 #define CN_CFG_TICK_US 1000  //tick间隔，以us为单位。
