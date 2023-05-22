@@ -1,3 +1,5 @@
+#define CONFIG_MX6Q
+#define CONFIG_MX6
 /*
  * Copyright (C) 2013 Boundary Devices Inc.
  * Copyright (C) 2015-2016 Freescale Semiconductor, Inc.
@@ -7,7 +9,8 @@
 #ifndef __ASM_ARCH_MX6_PINS_H__
 #define __ASM_ARCH_MX6_PINS_H__
 
-#include <asm/imx-common/iomux-v3.h>
+#include "iomux-v3.h"
+
 
 #define MX6_PAD_DECLARE(prefix, name, pco, mc, mm, sio, si, pc) \
 	prefix##name = IOMUX_PAD(pco, mc, mm, sio, si, pc)

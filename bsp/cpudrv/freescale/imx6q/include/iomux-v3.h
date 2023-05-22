@@ -1,3 +1,5 @@
+#define CONFIG_MX6Q
+#define CONFIG_MX6
 /*
  * Based on Linux i.MX iomux-v3.h file:
  * Copyright (C) 2009 by Jan Weitzel Phytec Messtechnik GmbH,
@@ -11,7 +13,18 @@
 #ifndef __MACH_IOMUX_V3_H__
 #define __MACH_IOMUX_V3_H__
 
-#include <common.h>
+// #include <common.h>
+typedef signed char s8;
+typedef unsigned char u8;
+
+typedef signed short s16;
+typedef unsigned short u16;
+
+typedef signed int s32;
+typedef unsigned int u32;
+
+typedef signed long long s64;
+typedef unsigned long long u64;
 
 /*
  *	build IOMUX_PAD structure
