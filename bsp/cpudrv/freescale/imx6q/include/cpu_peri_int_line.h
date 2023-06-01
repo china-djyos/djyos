@@ -45,19 +45,19 @@
 #define CN_INT_LINE_IPU                  37             /* IPU error interrupt request */
 #define CN_INT_LINE_IPU1                 38             /* IPU1 sync interrupt request */
 #define CN_INT_LINE_IPU2                 39             /* IPU2 error interrupt request */
-#define CN_INT_LINE_IPU2                 40             /* IPU2 sync interrupt request */
+#define CN_INT_LINE_IPU2_xx              40             /* IPU2 sync interrupt request */
 #define CN_INT_LINE_GPU3D                41             /* GPU3D interrupt request */
 #define CN_INT_LINE_R2D                  42             /* GPU2D R2D GPU2D general interrupt request */
 #define CN_INT_LINE_V2D                  43             /* GPU2D V2D GPU2D(OpenVG) general interrupt request */
-#define CN_INT_LINE_VPU                  44             /* VPU interrupt request */
+#define CN_INT_LINE_VPU_x                44             /* VPU interrupt request */
 #define CN_INT_LINE_APBH_Bridge_DMA      45             /* Logical OR of APBH-Bridge-DMA channels 0-3 completion and error interrupts */
 #define CN_INT_LINE_EIM                  46             /* EIM interrupt request */
 #define CN_INT_LINE_BCH                  47             /* BCH operation complete interrupt */
 #define CN_INT_LINE_GPMI                 48             /* GPMI operation timeout error interrupt */
 #define CN_INT_LINE_DTCP                 49             /* DTCP interrupt request */
 #define CN_INT_LINE_VDOA                 50             /* Logical OR of VDOA interrupt requests */
-#define CN_INT_LINE_SNVS                 51             /* SRTC consolidated interrupt */
-#define CN_INT_LINE_SNVS                 52             /* SRTC security interrupt */
+#define CN_INT_LINE_SNVS_x51             51             /* SRTC consolidated interrupt */
+#define CN_INT_LINE_SNVS_x52             52             /* SRTC security interrupt */
 #define CN_INT_LINE_CSU                  53             /* CSU interrupt request 1. Indicates to the processor that one or more alarm inputs were asserted */
 #define CN_INT_LINE_uSDHC1               54             /* uSDHC1 (Enhanced SDHC) interrupt request */
 #define CN_INT_LINE_uSDHC2               55             /* uSDHC2 (Enhanced SDHC) interrupt request */
@@ -82,7 +82,7 @@
 #define CN_INT_LINE_USB_3                74             /* USB Host 3 interrupt request */
 #define CN_INT_LINE_USB_OTG              75             /* USB OTG interrupt request */
 #define CN_INT_LINE_USB_PHY              76             /* UTMI0 interrupt request */
-#define CN_INT_LINE_USB_PHY              77             /* UTMI1 interrupt request */
+#define CN_INT_LINE_USB_PHY_x77          77             /* UTMI1 interrupt request */
 #define CN_INT_LINE_SSI1                 78             /* SSI1 interrupt request */
 #define CN_INT_LINE_SSI2                 79             /* SSI2 interrupt request */
 #define CN_INT_LINE_SSI3                 80             /* SSI3 interrupt request */
@@ -125,15 +125,15 @@
 #define CN_INT_LINE_PWM3                 117            /* Cumulative interrupt line for PWM3. Logical OR of rollover, compare, and FIFO waterlevel crossing interrupts." */
 #define CN_INT_LINE_PWM4                 118            /* Cumulative interrupt line for PWM4. Logical OR of rollover, compare, and FIFO waterlevel crossing interrupts." */
 #define CN_INT_LINE_CCM                  119            /* CCM interrupt request 1 */
-#define CN_INT_LINE_CCM                  120            /* CCM interrupt request 2 */
+#define CN_INT_LINE_CCM_x120             120            /* CCM interrupt request 2 */
 #define CN_INT_LINE_GPC                  121            /* GPC interrupt request 1 */
 #define CN_INT_LINE_122                  122            /* Reserved Reserved */
 #define CN_INT_LINE_SRC                  123            /* SRC interrupt request */
 #define CN_INT_LINE_CPU                  124            /* L2 interrupt request */
-#define CN_INT_LINE_CPU                  125            /* Parity Check error interrupt request */
-#define CN_INT_LINE_CPU                  126            /* Performance Unit interrupt */
-#define CN_INT_LINE_CPU                  127            /* CTI trigger outputs interrupt */
-#define CN_INT_LINE_SRC                  128            /* Combined CPU WDOG interrupts (4x) out of SRC */
+#define CN_INT_LINE_CPU_x125             125            /* Parity Check error interrupt request */
+#define CN_INT_LINE_CPU_x126             126            /* Performance Unit interrupt */
+#define CN_INT_LINE_CPU_x127             127            /* CTI trigger outputs interrupt */
+#define CN_INT_LINE_SRC_x128             128            /* Combined CPU WDOG interrupts (4x) out of SRC */
 #define CN_INT_LINE_129                  129            /* Reserved Reserved */
 #define CN_INT_LINE_130                  130            /* Reserved Reserved */
 #define CN_INT_LINE_131                  131            /* Reserved Reserved */
@@ -152,9 +152,9 @@
 #define CN_INT_LINE_144                  144            /* Reserved Reserved */
 #define CN_INT_LINE_145                  145            /* Reserved Reserved */
 #define CN_INT_LINE_146                  146            /* Reserved Reserved */
-#define CN_INT_LINE_HDMI_x               147            /* HDMI video and CEC control interrupt request. */
-#define CN_INT_LINE_HDMI_xx              148            /* HDMI CEC dedicated wake-up interrupt. */
-#define CN_INT_LINE_MLB150               149            /* Channels [31:0] interrupt requests. Channels [63:32] interrupt requests are available on IRQ #158, unless the MLB150_ACTL[SMX] bit is set, in which case those channels are muxed into this IRQ. */
+#define CN_INT_LINE_HDMI_x147            147            /* HDMI video and CEC control interrupt request. */
+#define CN_INT_LINE_HDMI_x148            148            /* HDMI CEC dedicated wake-up interrupt. */
+#define CN_INT_LINE_MLB150_x149          149            /* Channels [31:0] interrupt requests. Channels [63:32] interrupt requests are available on IRQ #158, unless the MLB150_ACTL[SMX] bit is set, in which case those channels are muxed into this IRQ. */
 #define CN_INT_LINE_ENET                 150            /* 150 */
 #define CN_INT_LINE_ENET_TIMER           151            /* MAC 0 1588 Timer interrupt [synchronous] request */
 #define CN_INT_LINE_PCIe_req1            152            /* PCIe interrupt request 1 (intd/msi_ctrl_int) */
@@ -164,7 +164,7 @@
 #define CN_INT_LINE_DCIC1                156            /* Logical OR of DCIC1 interrupt requests */
 #define CN_INT_LINE_DCIC2                157            /* Logical OR of DCIC2 interrupt requests */
 #define CN_INT_LINE_MLB150_xx            158            /* Logical OR of channel[63:32] interrupt requests */
-#define CN_INT_LINE_PMU                  159            /* Brownout of the core, GPU, and chip digital regulators occurred. */
+#define CN_INT_LINE_PMU_x159             159            /* Brownout of the core, GPU, and chip digital regulators occurred. */
 
 #define CN_INT_LINE_LAST	159
 
