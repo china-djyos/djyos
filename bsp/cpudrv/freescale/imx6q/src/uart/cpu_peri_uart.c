@@ -315,6 +315,12 @@ struct imxUartPort {
     struct mxc_uart *mxc_base;
     ufast_t ufl_line;  /* irq number. */
 
+        unsigned int    old_status;
+        unsigned int    have_rtscts:1;
+        unsigned int    have_rtsgpio:1;
+        unsigned int    dte_mode:1;
+        unsigned int    inverted_tx:1;
+        unsigned int    inverted_rx:1;
 };
 
 static struct imxUartPort imxUartPort[1] = {
@@ -338,14 +344,29 @@ static void mxc_serial_setbrg(void)
     volatile struct mxc_uart *mxc_base = (void *)0x02020000;
     int baudrate = 115200; // CONFIG_BAUDRATE;
 
-    mxc_base->fcr = 4 << 7; /* divide input clock by 2 */
+    mxc_base->fcr = 4 << 7 | 2 << 10 | 1; /* divide input clock by 2 */
     mxc_base->bir = 0xf;
     mxc_base->bmr = clk / (2 * baudrate);
 
 }
 
-imx_uart_stop_tx(struct imxUartPort *up)
+void imx_uart_stop_tx(struct imxUartPort *up)
 {
+    u32 ucr1, ucr4, usr2;
+
+    ucr1 = up->mxc_base->cr1;
+    ucr1 &= ~UCR1_TRDYEN;
+    up->mxc_base->cr1 = ucr1;
+
+    usr2 = up->mxc_base->sr2;
+    if(!(usr2 & USR2_TXDC)){
+        return;
+    }
+
+    ucr4 = up->mxc_base->cr4;
+    ucr4 &= ~UCR4_TCEN;
+    up->mxc_base->cr4 = ucr4;
+
     return;
 }
 
@@ -356,10 +377,15 @@ static inline void imx_uart_transmit_buffer(struct imxUartPort *up)
     int count, flag;
     int c;
     char buf[1];
+#define BUFSZ 1
 
     do {
         if (flag = up->mxc_base->ts & UTS_TXFULL) break;
-        if (count = UART_PortRead(up->UartGeneralCB, buf, 1)) break;
+        count = UART_PortRead(up->UartGeneralCB, buf, BUFSZ);
+        if(count < BUFSZ) {
+            imx_uart_stop_tx(up);
+            break;
+        }
 
         c = buf[0];
         up->mxc_base->txd = c;
@@ -367,21 +393,20 @@ static inline void imx_uart_transmit_buffer(struct imxUartPort *up)
     return;
 }
 
-static irqreturn_t imx_uart_txint(ptu32_t port)
-{
-    struct imxUartPort *up;
-
-    up = (void *)imxUartParam[port].UartPortTag;
-
-//    spin_lock(&sport->port.lock);
-    imx_uart_transmit_buffer(up);
-//    spin_unlock(&sport->port.lock);
-    return IRQ_HANDLED;
-}
-
 static irqreturn_t __imx_uart_rxint(struct imxUartPort *up)
 {
-    return IRQ_HANDLED;
+        volatile struct mxc_uart *mxc_base = up->mxc_base;
+        unsigned int rx;
+        u32 usr2;
+
+        while (mxc_base->sr2 & USR2_RDR) {
+                unsigned char buf[1];
+                rx = mxc_base->rxd;
+                buf[0] = rx;
+                UART_PortWrite(up->UartGeneralCB, buf, 1);
+        }
+
+        return IRQ_HANDLED;
 }
 
 /*
@@ -419,7 +444,7 @@ u32 imx_uart_int(ptu32_t port)
         /* 串口没有初始化？ */
         return IRQ_HANDLED;
     }
-    
+
     mxc_base = up->mxc_base;
 
     /* spin_lock() */
@@ -493,17 +518,33 @@ u32 imx_uart_int(ptu32_t port)
     }
 
     /* spin_unlock() */
-
+//    while (1);
     return ret;
 }
 
+#define TXTL_DEFAULT 2 /* reset default */
+#define RXTL_DEFAULT 1 /* reset default */
+#define TXTL_DMA 8 /* DMA burst setting */
+#define RXTL_DMA 9 /* DMA burst setting */
 
+static void imx_uart_setup_ufcr(struct imxUartPort *up, unsigned char txwl, unsigned char rxwl)
+{
+    unsigned int val;
+
+    /* set receiver / transmitter trigger level */
+        val = up->mxc_base->fcr & (UFCR_RFDIV | UFCR_DCEDTE);
+    val |= txwl << UFCR_TXTL_SHF | rxwl;
+        up->mxc_base->fcr = val;
+}
 
 static u32 imxStartSend(ptu32_t PrivateTag)
 {
-    struct imxUartPort *up;
-    up = (void *)PrivateTag;
-    imx_uart_transmit_buffer(up);
+    struct imxUartPort *up = (void *)PrivateTag;
+    u32 ucr1;
+
+    ucr1 = up->mxc_base->cr1;
+    ucr1 |= UCR1_TRDYEN;
+    up->mxc_base->cr1 = ucr1;
 
     return 0;
 }
@@ -513,14 +554,18 @@ static ptu32_t imxUartCtrl(ptu32_t PrivateTag, u32 cmd, va_list *arg0)
     return 0;
 }
 
+/* half the RX buffer size */
+#define CTSTL 16
+
 ptu32_t ModuleInstall_UART(ptu32_t serial_no)
 {
     struct UartParam *Param;
     struct imxUartPort *up;
 
     volatile struct mxc_uart *mxc_base;
-    ufast_t ufl_line;
-    int ret;
+        u32 ucr1, ucr2, ucr3, ucr4;
+        ufast_t ufl_line;
+        int i, ret;
 
     serial_no = 0;
     /* check serial_no */
@@ -535,30 +580,43 @@ ptu32_t ModuleInstall_UART(ptu32_t serial_no)
     mxc_base->cr1 = 0;
     mxc_base->cr2 = 0;
     while (mxc_base->cr2 & UCR2_SRST == 0);
+
     mxc_base->cr3 = 0x0704 | UCR3_ADNIMP;
     mxc_base->cr4 = 0x8000;
     mxc_base->esc = 0x002b;
     mxc_base->tim = 0;
     mxc_base->ts = 0;
     /* serial_setbrg */
-    mxc_serial_setbrg();
+    mxc_base->fcr = 4 << 7 | 2 << 10 | 1; /* divide input clock by 2 */
+    mxc_base->bir = 0xf;
+    mxc_base->bmr = 80000000 / (2 * 115200);
 
     mxc_base->cr2 = UCR2_WS | UCR2_IRTS | UCR2_RXEN | UCR2_TXEN | UCR2_SRST;
-    mxc_base->cr1 = UCR1_UARTEN;
 
-    /* 把中断和响应函数关联起来。 */
-    Int_Register(ufl_line);
-    Int_SetClearType(ufl_line, CN_INT_CLEAR_AUTO);
-    Int_IsrConnect(ufl_line, imx_uart_int);
-    Int_SettoAsynSignal(ufl_line);
-    Int_ClearLine(ufl_line);
-    Int_RestoreAsynLine(ufl_line);
-    Int_SetIsrPara(ufl_line, serial_no);
+    /* 清除中断标志，并启用中断 */
+    mxc_base->sr1 = USR1_RTSD | USR1_DTRD;
+    mxc_base->sr2 = USR2_ORE;
 
-    up->UartGeneralCB = UART_InstallGeneral(Param);
-    ret = (up->UartGeneralCB != NULL);
+    mxc_base->cr1 = UCR1_UARTEN | UCR1_RRDYEN | UCR1_TRDYEN;
 
-    return ret;
+
+
+        /* 把中断和响应函数关联起来。 */
+        Int_Register(ufl_line);
+        Int_SetClearType(ufl_line, CN_INT_CLEAR_AUTO);
+        Int_IsrConnect(ufl_line, imx_uart_int);
+        Int_SettoAsynSignal(ufl_line);
+        Int_ClearLine(ufl_line);
+        Int_RestoreAsynLine(ufl_line);
+        Int_SetIsrPara(ufl_line, serial_no);
+
+        setIntTarget(58, 1);
+
+        /* 安装到系统里去。 */
+        up->UartGeneralCB = UART_InstallGeneral(Param);
+        ret = (up->UartGeneralCB != NULL);
+
+        return ret;
 }
 
 s32 imxPutStrDirect(const char *buf, u32 len)
