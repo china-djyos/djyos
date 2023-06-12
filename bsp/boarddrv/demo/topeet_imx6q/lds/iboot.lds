@@ -9,7 +9,7 @@ SECTIONS
     Rom_Start :
     {
         restore = .;
-        }>RAM1
+    }>InnerFlash
 
     /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/
     /*的pg_IapVar变量从该段内分配，且该段在iboot.lds和debug/release.lds保持一致*/
@@ -37,7 +37,7 @@ SECTIONS
         KEEP(*libos_Iboot.a:sysinit.o (.text .text.* .rodata .rodata.*))
         KEEP(*libos_Iboot.a:pre_loader.o (.text .text.* .rodata .rodata.*))
         KEEP(*libos_Iboot.a:IAP_pLoad.o (.text .text.* .rodata .rodata.*))
-    }>RAM1
+    }>InnerFlash
 
     text_preload_rIbootRom_lIbootRom :
     {
@@ -52,7 +52,7 @@ SECTIONS
         *src/iboot/critical/*.o (.text .text.* .rodata .rodata.*)
         *libos_Iboot.a:heap-static.o (.text .text.* .rodata .rodata.*)
         *libos_Iboot.a:list.o (.text .text.* .rodata .rodata.*)
-    }>RAM1
+    }>InnerFlash
 
     text_sysload_rIbootRom_lIbootRom :
     {
@@ -60,7 +60,7 @@ SECTIONS
         * (.text .text.* .rodata .rodata.*)
         g_pAppCodeEndRamAddr = .;
     PROVIDE(etext = .);
-    }>RAM1
+    }>InnerFlash
 
 
     rw_preload_rRAM1_lIbootRom :
@@ -75,7 +75,7 @@ SECTIONS
         *src/iboot/critical/*.o (.data .data.*)
         *libos_Iboot.a:heap-static.o (.data .data.*)
         *libos_Iboot.a:list.o (.data .data.*)
-    }>RAM1
+    }>RAM1 AT>InnerFlash
 
     /*Cortex-M 系列的向量表可重定位，对起始地址的要求是：若有N个向量（包含异常），*/
     /*先增大到2的整数次幂，若为M，则Addr = ALIGN(4 * M) */
@@ -100,7 +100,7 @@ SECTIONS
     {
        . = ALIGN(0x08);
         * (.data .data.*)
-    }>RAM1
+    }>RAM1 AT>InnerFlash
 
     zi_sysload_rRAM1_lRAM1 (NOLOAD) :
     {
@@ -111,12 +111,12 @@ SECTIONS
      routine_shell_data_section :
         {
                  KEEP(* (.ro_shell_data))
-         }>RAM1
+         }>RAM1 AT>InnerFlash
 
     expand_shell_data_section :
         {
              KEEP(* (.ex_shell_data))
-         }>RAM1
+         }>RAM1 AT>InnerFlash
 
     preload_cp_table :
     {
@@ -139,7 +139,7 @@ SECTIONS
         LONG(ADDR(zi_preload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_preload_rRAM1_lRAM1))
         LONG(0)
-    }>RAM1
+    }>InnerFlash
 
     sysload_cp_table :
     {
@@ -173,7 +173,7 @@ SECTIONS
         LONG(SIZEOF(expand_shell_data_section))
         LONG(1)
 
-    }>RAM1
+    }>InnerFlash
 
     heap_cp_table :
     {
@@ -193,14 +193,14 @@ SECTIONS
         BYTE(0)                     /*串结束，"sys"是堆的名字*/
         . = ALIGN(0x04);
         LONG(0)                     /*结束标志*/
-    }>RAM1
+    }>InnerFlash
 
     Iboot_Info :
     {
         . = ALIGN(0x08);
         gc_ptIbootSize = .;
         LONG(IbootSize)
-    }>RAM1
+    }>InnerFlash
 
     App_Info :
     {
@@ -210,7 +210,7 @@ SECTIONS
         gc_pAppRange = .;                       /* APP空间范围 */
         LONG(InnerRam1Start - IbootSize)
 
-    }>RAM1
+    }>InnerFlash
 
   Iboot_AppInfo :
     {
@@ -225,26 +225,26 @@ SECTIONS
         LONG( restore + IbootSize + 256 + 256)
         __AppStart = .;           /*函数指针变量，指向APP的Preload函数*/
         LONG( restore + IbootSize + 256 + 256)
-    }>RAM1
+    }>InnerFlash
 
 
     shell_config_section :
         {
                 KEEP(*(.shellconfig))
-        }>RAM1
+        }>InnerFlash
 
     routine_shell_section :
         {
                  KEEP(* (.ro_shell_cmd))
                  KEEP(* (.ro_shell_data))
-        }>RAM1
+        }>InnerFlash
 
     expand_shell_section :
         {
              KEEP(* (.ex_shell_cmd))
              KEEP(* (.ex_shell_data))
               . = ALIGN(0x08);
-        }>RAM1
+        }>InnerFlash
 
         Shell_Info :
     {
@@ -252,10 +252,7 @@ SECTIONS
         LONG(restore) /* 该bin文件的起始地址*/
         LONG(IbootSize) /* 该bin文件允许大小*/
     __eiboot = .;
-    }>RAM1
-
-
-
+    }>InnerFlash
 
     heap_rRAM1_lRAM1 (NOLOAD) :
     {
