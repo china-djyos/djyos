@@ -304,13 +304,15 @@ disableGICProcessorInterface:
   .type setPriorityMask, "function"
   .cfi_startproc
 setPriorityMask:
+  cpsid   i
   MRC     p15, 4, r1, c15, c0, 0  // Read periph base address
 
 // Make sure that priority value is only 5 bits, and convert to expected format
   AND     r0, r0, #0x1F
   MOV     r0, r0, LSL #3
   STR     r0, [r1, #0x0104]       // Write the Priority Mask register
-
+  cpsie   i
+  
   BX      lr
   .cfi_endproc
 

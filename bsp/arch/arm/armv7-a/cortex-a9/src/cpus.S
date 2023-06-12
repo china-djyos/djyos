@@ -71,8 +71,8 @@
 .equ    NOFIQ, 0x40
 .equ    NOINT, 0xC0
 //移植敏感，使用FIQ做实时中断的系统，应改为0x0000001f
-.equ    CPSR_sys, 0x0000001f
-.equ    CPSR_svc, 0x00000013
+.equ    CPSR_sys, 0x0000005f
+.equ    CPSR_svc, 0x00000053
 
 //因异步信号使能才允许调度，故上下文切换中恢复异步信号寄存器等同于使能异步信号
 .macro restore_asyn_signal_reg
@@ -136,7 +136,7 @@ __asm_start_thread:
     LDMFD   SP!, {R4}               @; pop new task cpsr
     MOV     R5,SP
     ADD     SP, SP, #60
-    AND     R4,  R4, #0Xffffff3f
+    AND     R4,  R4, #0Xffffff7f
 @切换到svc的目标，是为了使得恢复中断使能和恢复pc能在一条指令中执行
     mrs     r0,cpsr
     bic     r0,#MODEMASK
