@@ -20,6 +20,7 @@ void Cache_InvalidAll(void)
 //-----------------------------------------------------------------------------
 void Cache_InvalidInst(void)
 {
+	invalidateCaches();
 }
 
 //----作废数据cache------------------------------------------------------------
@@ -29,6 +30,7 @@ void Cache_InvalidInst(void)
 //-----------------------------------------------------------------------------
 void Cache_InvalidData(void)
 {
+	cleanInvalidateDCache();
 }
 
 //----使能cache----------------------------------------------------------------
@@ -38,6 +40,7 @@ void Cache_InvalidData(void)
 //-----------------------------------------------------------------------------
 void Cache_EnableAll(void)
 {
+	enableCaches();
 }
 
 //----使能指令cache------------------------------------------------------------
@@ -65,6 +68,7 @@ void Cache_EnableData(void)
 //-----------------------------------------------------------------------------
 void Cache_DisableAll(void)
 {
+	disableCaches();
 }
 
 //----禁止指令cache------------------------------------------------------------
@@ -111,6 +115,7 @@ void Cache_DisableWriteBuf(void)
 //-----------------------------------------------------------------------------
 void Cache_CleanData(void)
 {
+	cleanDCache();
 }
 
 void Cache_config(void)
