@@ -44,7 +44,28 @@
 //-----------------------------------------------------------------------------
 
 
+#include <mx6-pins.h>
+#include <iomux-v3.h>
+
+#define UART_PAD_CTRL  (PAD_CTL_PUS_100K_UP |                   \
+        PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm |                 \
+        PAD_CTL_SRE_FAST  | PAD_CTL_HYS)
+
+static iomux_v3_cfg_t const uart1_pads[] = {
+	MX6_PAD_CSI0_DAT10__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
+	MX6_PAD_CSI0_DAT11__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
+};
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
+static void setup_iomux_uart(void)
+{
+	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
+}
+
+
 void Board_Init(void)
 {
+    setup_iomux_uart();
 }
 
