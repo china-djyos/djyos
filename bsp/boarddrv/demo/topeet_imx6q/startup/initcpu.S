@@ -181,6 +181,15 @@ djy_reset:
     ldr r0, =__djy_vectors
     mcr p15, 0, r0, c12, c0, 0
 
+	@ Invalidate caches
+	bl      invalidateCaches
+
+	@ Clear Branch Prediction Array
+	mov     r0, #0x0
+	mcr     p15, 0, r0, c7, c5, 6     @ BPIALL - Invalidate entire branch predictor array
+
+	BL	enableCaches
+
     ldr r0, __djy_iboot
     bx  r0
     b   .   /* stop */
