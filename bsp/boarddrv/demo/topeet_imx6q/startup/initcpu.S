@@ -141,7 +141,10 @@ __djy_fiq_handler:
     b   .
 
 djy_reset:
-    cpsid   if
+    mov r4, r0           @ save r0 for cores 1-3, r0 arg field passed by ROM
+                         @ r0 is a function pointer for secondary cpus
+    mrc p15,0,r2,c0,c0,5 @ read multiprocessor affinity register
+    and r2, r2, #3       @ mask off, leaving CPU ID field
 
    //// ≥ı ºªØ’ª÷∏’Î
     mov     r1,#SF_UNDEFMODE|SF_IRQ_BIT|SF_FIQ_BIT
@@ -190,6 +193,29 @@ djy_reset:
 
 	BL	enableCaches
 
+    MRC   p15, 0, r0, c0 ,c0, 5 // Read Multiprocessor ID register (MPIDR)
+    and   r0, #3
+    cmp   r0, #0
+    bne   123f
+
+start_secondary_cpus:
+    ldr   r3, =0x20D8000
+    ldr   r1, =0x40000       // iboot text size, see memory.lds
+    ldr   r2, =0x10200000    //  =_start core 0
+
+    add   r2, r2, r1         // entry for core 1
+    str   r2, [r3, #0x28]    // Holds entry function for core1
+
+    add   r2, r2, r1         // =_start of core 2
+    str   r2, [r3, #0x30]    // Holds entry function for core2
+
+    add   r2, r2, r1
+    str   r2, [r3, #0x38]    // core 3
+
+    ldr   r2, =29360128      // start cores 1-3
+    str   r2, [r3, #0]
+
+123:
     ldr r0, __djy_iboot
     bx  r0
     b   .   /* stop */
