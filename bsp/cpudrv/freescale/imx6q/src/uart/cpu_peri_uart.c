@@ -296,7 +296,7 @@ struct mxc_uart {
 static u32 imxStartSend(ptu32_t PrivateTag);
 static ptu32_t imxUartCtrl(ptu32_t PrivateTag, u32 cmd, va_list *arg0);
 
-static struct UartParam imxUartParam[1] = {
+static struct UartParam imxUartParam[4] = {
     [0] = {
         .Name = "UART1",
         .TxRingBufLen = 256,
@@ -307,6 +307,40 @@ static struct UartParam imxUartParam[1] = {
         .StartSend = imxStartSend,
         .UartCtrl = imxUartCtrl,
     },
+
+    [1] = {
+        .Name = "UART2",
+        .TxRingBufLen = 256,
+        .RxRingBufLen = 256,
+        .Baud = 115200,
+        .mode = CN_UART_GENERAL,
+        .UartPortTag = 0,
+        .StartSend = imxStartSend,
+        .UartCtrl = imxUartCtrl,
+    },
+
+    [2] = {
+        .Name = "UART3",
+        .TxRingBufLen = 256,
+        .RxRingBufLen = 256,
+        .Baud = 115200,
+        .mode = CN_UART_GENERAL,
+        .UartPortTag = 0,
+        .StartSend = imxStartSend,
+        .UartCtrl = imxUartCtrl,
+    },
+
+    [3] = {
+        .Name = "UART4",
+        .TxRingBufLen = 256,
+        .RxRingBufLen = 256,
+        .Baud = 115200,
+        .mode = CN_UART_GENERAL,
+        .UartPortTag = 0,
+        .StartSend = imxStartSend,
+        .UartCtrl = imxUartCtrl,
+    },
+
 };
 
 struct imxUartPort {
@@ -323,12 +357,30 @@ struct imxUartPort {
         unsigned int    inverted_rx:1;
 };
 
-static struct imxUartPort imxUartPort[1] = {
+static struct imxUartPort imxUartPort[4] = {
     [0] = {
         .port = 0,
         .UartGeneralCB = NULL,
         .mxc_base = (void *)0x02020000,
         .ufl_line = CN_INT_LINE_UART1,
+    },
+    [1] = {
+        .port = 1,
+        .UartGeneralCB = NULL,
+        .mxc_base = (void *)0x021E8000,
+        .ufl_line = CN_INT_LINE_UART2,
+    },
+    [2] = {
+        .port = 2,
+        .UartGeneralCB = NULL,
+        .mxc_base = (void *)0x021EC000,
+        .ufl_line = CN_INT_LINE_UART3,
+    },
+    [3] = {
+        .port = 3,
+        .UartGeneralCB = NULL,
+        .mxc_base = (void *)0x021F0000,
+        .ufl_line = CN_INT_LINE_UART4,
     },
 };
 
@@ -436,7 +488,8 @@ u32 imx_uart_int(ptu32_t port)
     u32 ret;
 
     /* ensure port is valid. */
-    port = 0;
+//FIXME: 临时方案，目前是各个核各用各的串口
+    port = getMPIDR() & 3;
 
     Param = &imxUartParam[port];
     up = (void *)Param->UartPortTag;
@@ -561,13 +614,18 @@ ptu32_t ModuleInstall_UART(ptu32_t serial_no)
 {
     struct UartParam *Param;
     struct imxUartPort *up;
-
     volatile struct mxc_uart *mxc_base;
         u32 ucr1, ucr2, ucr3, ucr4;
         ufast_t ufl_line;
         int i, ret;
 
-    serial_no = 0;
+//FIXME: 临时方案，为各个处理器分配如下串口
+        serial_no = getMPIDR() & 3;
+        // core 0: "UART1"
+        // core 1: "UART2"
+        // core 2: "UART3"
+        // core 3: "UART4"
+
     /* check serial_no */
     Param = &imxUartParam[serial_no];
     Param->UartPortTag = &imxUartPort[serial_no];
@@ -610,7 +668,8 @@ ptu32_t ModuleInstall_UART(ptu32_t serial_no)
         Int_RestoreAsynLine(ufl_line);
         Int_SetIsrPara(ufl_line, serial_no);
 
-        setIntTarget(58, 1);
+//FIXME: 需要多核程序改造。
+        setIntTarget(ufl_line, 1<<serial_no);
 
         /* 安装到系统里去。 */
         up->UartGeneralCB = UART_InstallGeneral(Param);
@@ -624,7 +683,7 @@ s32 imxPutStrDirect(const char *buf, u32 len)
     int c;
     volatile struct mxc_uart *mxc_base;
     int i;
-
+//FIXME: 初始化时打印串口
     mxc_base = (void *)0x02020000;
 
     for (i = 0; i < len; i++) {
@@ -639,7 +698,9 @@ s32 imxPutStrDirect(const char *buf, u32 len)
 char imxGetCharDirect(void)
 {
     int c;
-    volatile struct mxc_uart *mxc_base = (void *)0x02020000;
+    volatile struct mxc_uart *mxc_base;
+//FIXME: 初始化时打印串口
+    mxc_base = (void *)0x02020000;
 
     while (mxc_base->ts & UTS_RXEMPTY);
     c = mxc_base->rxd & URXD_RX_DATA;
