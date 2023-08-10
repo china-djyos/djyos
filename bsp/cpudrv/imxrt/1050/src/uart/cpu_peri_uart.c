@@ -198,7 +198,7 @@ static lpuart_config_t tg_UART_Config[CN_UART_NUM];
 #define CN_UART_TX_COMPLETE     3U
 
 static struct UartGeneralCB *pUartCB[CN_UART_NUM];
-static u8 sUartInited = 0;
+
 __attribute__((weak))  void Board_UartHalfDuplexSend(u8 port)
 {
     return;
@@ -762,7 +762,6 @@ ptu32_t ModuleInstall_UART(u8 port)
      __UART_IntInit(port);
      __UART_Enable(port);
      __UART_RxIntEnable(CN_DMA_UNUSED,port);
-     sUartInited |= (0x01 << port);
      pUartCB[port] = UART_InstallGeneral(&UART_Param);
      if( pUartCB[port] == NULL)
          return 0;

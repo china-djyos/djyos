@@ -11,8 +11,8 @@ SECTIONS
         restore = .;
     }>InnerFlash
 
-    /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/
-    /*的pg_IapVar变量从该段内分配，且该段在iboot.lds和debug/release.lds保持一致*/
+    /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有Iboot_Info.c*/
+    /*的Iboot_App_Info变量从该段内分配，且该段在iboot.lds和app.lds保持一致*/
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
@@ -354,9 +354,9 @@ SECTIONS
         p_shell_info = .;
         LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
         LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-    }>InnerFlash 
-	
-	
-    
+    }>InnerFlash
+
+
+
 }
 /**** The End ****/

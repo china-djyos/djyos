@@ -135,7 +135,6 @@ __attribute__((weak))   uint64_t __DjyGetSysTime(void)
 extern void Iboot_LoadPreload(void);
 #include <blackbox.h>
 #include <Iboot_info.h>
-//extern tagIapVar pg_IapVar;
 
 // =============================================================================
 // 功能：运行到选择系统运行方式前，对于M3/M4的CPU，即PC跳转到Init_CPU()

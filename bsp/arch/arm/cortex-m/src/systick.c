@@ -91,6 +91,19 @@ __attribute__((weak)) void __DjyInitTick(void)
                             |(1<<bo_systick_ctrl_clksource);//用使用外部时钟
 }
 
+//__attribute__((always_inline)) __STATIC_INLINE void __WFE(void)
+//{
+//  __ASM volatile ("wfe");
+//}
+#define __WFE()                             __asm volatile ("wfe")       /* This implementation generates debug information */
+
+
+//__attribute__((always_inline)) __STATIC_INLINE void __SEV(void)
+//{
+//  __ASM volatile ("sev");
+//}
+#define __SEV()                             __asm volatile ("sev")       /* This implementation generates debug information */
+
 //------------------------------------------------------------------------------
 //功能：清理CPU的休眠唤醒事件状态，使CPU在关中断后，确实能被发生在关中断期间的唤醒事件
 //     （中断或多处理机信号）唤醒，无论唤醒事件发生在 WFE（ARM的指令，其他CPU可能不同）

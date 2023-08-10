@@ -33,6 +33,10 @@
   .type enableGIC, "function"
   .cfi_startproc
 enableGIC:
+  MRC   p15, 0, r0, c0 ,c0, 5 // Read Multiprocessor ID register (MPIDR)
+  and   r0, #3
+  cmp   r0, #0                // only allow core 0.
+  bxne  lr
 
   // Get base address of private peripheral space
   MRC     p15, 4, r0, c15, c0, 0  // Read periph base address

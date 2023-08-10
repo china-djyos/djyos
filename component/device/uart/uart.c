@@ -156,7 +156,6 @@ s32 UART_Poll_Open(struct objhandle *hdl, u32 Mode,u32 timeout);
 s32 UART_PollAppWrite(struct objhandle *hdl,u8* src_buf,u32 len,u32 offset, u32 timeout);
 s32 UART_PollAppRead(struct objhandle *hdl,u8* dst_buf,u32 len,u32 offset, u32 timeout);
 s32 UART_PollCtrl(struct objhandle* hdl,u32 cmd,va_list *arg0);
-struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"

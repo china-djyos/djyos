@@ -1,0 +1,28 @@
+{
+	"board_name":"pt32z192_demo",
+	"cpus":{
+		"pt32z192":{
+			"clocks":{
+				
+			},
+			"chips":["W25QXX FAT"],
+			"peripherals":[],
+			"mian_freq":"160",
+			"memories":{
+				"memory1":{
+					"size":"0x80000",
+					"type":"FLASH",
+					"start_addr":"0"
+				},
+				"memory2":{
+					"size":"0x20000",
+					"type":"RAM",
+					"start_addr":"0x20000000"
+				}
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

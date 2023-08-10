@@ -226,10 +226,6 @@ struct DivPollCB
 static u8 UART_Mode[CN_UART_NUM];
 static struct UartGeneralCB *pUartCB[CN_UART_NUM];
 
-//用于标识串口是否初始化标记，第0位表示UART0，第一位表UART1....
-//依此类推，1表示初始化，0表示未初始化
-static u8 sUartInited = 0;
-
 // =============================================================================
 static ptu32_t UART_ISR(ptu32_t port);
 static uint32_t UART_DmaRx_ISR(ptu32_t port);
@@ -1471,7 +1467,6 @@ ptu32_t ModuleInstall_UART(u32 serial_no,u32 SendBufLen, u32 RecvBufLen,u8 mode)
 
     __UART_IntInit(serial_no);  //中断初始化，将UART_ISR设置成实时中断，UART_ISR中有发送、接收、IDLE、帧错误
 
-    sUartInited |= (0x01 << serial_no);
     if(CN_UART_POLL == mode)
         pUartCB[serial_no] = UART_InstallPoll(&UART_Param);
     else if(CN_UART_GENERAL == mode)

@@ -196,9 +196,7 @@ __attribute__((weak))  void Board_UartHalfDuplexRecv(u8 SerialNo)
 {
     return ;
 }
-//用于标识串口是否初始化标记，第0位表示UART0，第一位表UART1....
-//依此类推，1表示初始化，0表示未初始化
-static u8 sUartInited = 0;
+
 //----使能接收中断-------------------------------------------------------------
 //功能: 使能uart的接收中断,DMA中断使用的是endrx
 //参数: reg,被操作的寄存器组指针
@@ -884,7 +882,6 @@ ptu32_t ModuleInstall_UART(ptu32_t SerialNo)
     __UART_HardInit(SerialNo);
     __UART_IntInit(SerialNo);
 
-    sUartInited |= (0x01 << SerialNo);
     pUartCB[SerialNo] = UART_InstallGeneral(&UART_Param);
     if( pUartCB[SerialNo] == NULL)
         return 0;

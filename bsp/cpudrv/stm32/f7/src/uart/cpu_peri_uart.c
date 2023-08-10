@@ -255,9 +255,7 @@ static u8 *sp_DmaRecvBuf[CN_UART_NUM];
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-//用于标识串口是否初始化标记，第0位表示UART0，第一位表UART1....
-//依此类推，1表示初始化，0表示未初始化
-static u8 sUartInited = 0;
+
 __attribute__((weak))  void Board_UartHalfDuplexSend(u8 SerialNo)
 {
     return;
@@ -1350,7 +1348,6 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         pUART_DmaRecvBuf[serial_no][0]=NULL;
         pUART_DmaRecvBuf[serial_no][1]=NULL;
     }
-    sUartInited |= (0x01 << serial_no);
     pUartCB[serial_no] = UART_InstallGeneral(&UART_Param);
     if( pUartCB[serial_no] == NULL)
         return 0;

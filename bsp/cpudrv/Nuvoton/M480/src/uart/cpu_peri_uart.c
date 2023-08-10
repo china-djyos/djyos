@@ -252,10 +252,6 @@ static u8 *pUART_DmaRecvBuf[CN_UART_NUM];
 
 static struct UartCB *pUartCB[CN_UART_NUM];
 
-//用于标识串口是否初始化标记，第0位表示UART0，第一位表UART1....
-//依此类推，1表示初始化，0表示未初始化
-static uint8_t sUartInited = 0;
-
 // =============================================================================
 static ptu32_t UART_ISR(ptu32_t port);
 static uint32_t PDMA_ISR(ptu32_t port);
@@ -1060,7 +1056,6 @@ ptu32_t ModuleInstall_UART(uint32_t serial_no)
     __UART_HardInit(serial_no);
     __UART_IntInit(serial_no);
 
-    sUartInited |= (0x01 << serial_no);
     pUartCB[serial_no] = UART_InstallGeneral(&UART_Param);
     if( pUartCB[serial_no] == NULL)
         return 0;

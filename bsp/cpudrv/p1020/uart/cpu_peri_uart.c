@@ -132,9 +132,6 @@
 //#define UART1_RecvBufLen  2048
 
 static struct Object *pUartCB[CN_UART_NUM];
-//用于标识串口是否初始化标记，第0位表示UART0，第一位表UART1....
-//依此类推，1表示初始化，0表示未初始化
-static u8 sUartInited = 0;
 
 //----使能接收中断-------------------------------------------------------------
 //功能: 使能uart的接收中断。
@@ -467,7 +464,6 @@ ptu32_t ModuleInstall_UART(ptu32_t serial_no)
     __UART_DefaultSet((tagUartReg *)UART_Param.UartPortTag);
     __UART_IntInit(serial_no);
 
-    sUartInited |= (0x01 << serial_no);
     pUartCB[serial_no] = UART_InstallPort(&UART_Param);
     if( pUartCB[serial_no] == NULL)
         return 0;
