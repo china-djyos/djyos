@@ -271,6 +271,8 @@ struct SemaphoreLCB *Lock_SempCreate_s( struct SemaphoreLCB *semp,
 {
     if(semp == NULL)
         return NULL;
+    if(init_lamp > lamps_limit)
+        return NULL;
     semp->sync_order = sync_order;
     semp->lamps_limit = lamps_limit;
     semp->lamp_counter = init_lamp;
@@ -577,7 +579,7 @@ void Lock_SempSetSyncSort(struct SemaphoreLCB *semp,u32 order)
 }
 //-----------------------下面是互斥量------------------------------------------
 
-//----创建一个信号量-----------------------------------------------------------
+//----创建一个互斥量-----------------------------------------------------------
 //功能：建立一个互斥量。
 //参数：name，互斥量的名字，所指向的字符串内存区不能是局部变量，可以是空
 //返回：新建立的互斥量指针

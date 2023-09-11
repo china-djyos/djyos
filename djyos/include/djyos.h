@@ -82,6 +82,9 @@ struct EventType;
 #define CN_RUNMODE_SMP          3       //对称多处理器模式
 #define CN_RUNMODE_AMP          4       //非对称多处理器模式
 
+#define CN_STACK_CHECK_DEFAULT  10      //默认的栈检查报警水平
+#define CN_STACK_CHECK_MAX      50      //最大的栈检查报警水平
+
 #if 0
 // todo:这里命名为ContainerOf就报错
 #define Container(Ptr, Type, Member)  ((Type *)((char *)(Ptr)-(unsigned long)(&((Type *)0)->Member)))/* 引自Linux */
@@ -288,9 +291,10 @@ struct EvttStatus
                         //故事件队列中只允许存在一条该事件
     u16 registered:1;   //0=该事件类型还没有注册,系统将拒绝pop该类型录
                         //1=该事件类型已经注册,可以pop该类型事件
-    u16 inuse:1;        //0=所有队列中都没有该类型的事件
-                        //1=队列中(包括等待中)至少有一条该类型的事件
+    // u16 inuse:1;        //0=所有队列中都没有该类型的事件
+    //                     //1=队列中(包括等待中)至少有一条该类型的事件
     u16 deleting:1;     //0=正常状态，1=等待注销状态。
+    u16 stack:1;        //0=动态分配栈，1=用户提供的栈空间。
 };
 
 enum enEventRelation
@@ -335,7 +339,7 @@ struct EventType
     u16    correlativeID;   //独立型:无效
                             //关联型:已经弹出的事件ID
     u16    events;          //分配的事件总数
-    u16    vpus_res;        //系统为本类型事件保留的空闲线程上限，关联型无效
+    u16    vpus_res;        //系统为本类型事件保留的空闲线程上限
     u16    vpus_limit;      //独立型:本类型事件允许同时建立的线程个数
                             //关联型:无效
     u16    vpus;            //独立型:本类型事件已经拥有的线程个数
@@ -352,6 +356,7 @@ struct EventType
 
     //这两队列都是以剩余次数排队的双向循环链表
     struct EventECB *done_sync,*pop_sync;//弹出同步和完成同步队列头指针,
+    struct EventECB *run_sync;          //事件运行同步队列，事件线程数量达到最大值后，本类型的其它事件控制块在这里排队，等待之前的事件运行完
 };
 
 //就绪队列(优先级队列),始终执行队列头部的事件,若有多个优先级相同,轮流执行
@@ -391,7 +396,7 @@ u16 DJY_EventPop(  u16  hybrid_id,
                     ptu32_t PopPrarm1,
                     ptu32_t PopPrarm2,
                     ufast_t prio);
-u32 DJY_GetEvttPopTimes(u16 evtt_id);
+bool_t DJY_GetEvttPopTimes(u16 evtt_id, u32 *pop_times);
 ptu32_t DJY_GetEventResult(void);
 void DJY_GetEventPara(ptu32_t *Param1,ptu32_t *Param2);
 void __SetEventPara(ptu32_t *Param1,ptu32_t *Param2);
@@ -402,6 +407,8 @@ void DJY_EventComplete(ptu32_t result);
 u32 DJY_WakeUpFrom(void);
 u16 DJY_GetMyEvttId(void);
 u16 DJY_GetMyEventId(void);
+u8 DJY_GetEventPrio(void);
+void DJY_SetStackCheckLevel(u32 Level);
 u16 Djy_MyEventId(void); //修改成DJY_GetMyEventId函数后和C库有冲突，copy了一份，改了C库之后删掉
 #if CFG_OS_TINY == false
 u8 DJY_GetCpuIdleRate(void);

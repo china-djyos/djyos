@@ -617,7 +617,7 @@ static ptu32_t __Timer_Alloc(fnTimerIsr timerisr)
     timerno = Timer_GetFirstZeroBit(gs_dwTimerBitmap);
     if(timerno < EN_TIMER_MAX)//还有空闲的，则设置标志位
     {
-        gs_dwTimerBitmap = gs_dwTimerBitmap | (CN_TIMER_BITMAP_MSK<< timerno);
+        gs_dwTimerBitmap = gs_dwTimerBitmap | (CN_TIMER_BITMAP_MSK>> timerno);
         Int_LowAtomEnd(timeratom);  //原子操作完毕
     }
     else//没有的话直接返回就可以了，用不着再啰嗦了

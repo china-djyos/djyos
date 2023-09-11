@@ -39,13 +39,13 @@
 //%$#@enum,true,false
 #define CFG_STATIC_IP       true            //"使用静态IP?",
 //%$#@string,1,32
-#define CFG_SELECT_NETCARD  "STM32F4_ETH"   //"网卡名称",必须与选中的网卡驱动中配置的名称相同
+#define CFG_SELECT_NETCARD  "AT32F437_ETH"   //"网卡名称",必须与选中的网卡驱动中配置的名称相同
 //%$#@string,7,15
-#define CFG_MY_IPV4         "192.168.0.179" //"静态IP",
+#define CFG_MY_IPV4         "192.168.8.100" //"静态IP",
 #define CFG_MY_SUBMASK      "255.255.255.0" //"子网掩码",
-#define CFG_MY_GATWAY       "192.168.0.1"   //"网关",
-#define CFG_MY_DNS          "192.168.0.1"   //"首选DNS",
-#define CFG_MY_DNSBAK       "192.168.0.1"   //"备用DNS",
+#define CFG_MY_GATWAY       "192.168.8.1"   //"网关",
+#define CFG_MY_DNS          "192.168.8.1"   //"首选DNS",
+#define CFG_MY_DNSBAK       "192.168.8.1"   //"备用DNS",
 //%$#@select
 //%$#@free
 #endif
@@ -139,16 +139,16 @@ void ModuleInstall_InitNet(void)   //static ip example
     }
 
 #else
-    //如果重新启动系统后，希望快速连接，或者使用重启前的IP，可每次启动把申请到的IP
-    //保存在文件中，利用第二个参数。
-    if(DHCP_AddClientTask(CFG_SELECT_NETCARD,0))
-    {
-       printk("Add %s success\r\n",CFG_SELECT_NETCARD);
-    }
-    else
-    {
-        printk("Add %s failed\r\n",CFG_SELECT_NETCARD);
-    }
+   //如果重新启动系统后，希望快速连接，或者使用重启前的IP，可每次启动把申请到的IP
+   //保存在文件中，利用第二个参数。
+   if(DHCP_AddClientTask(CFG_SELECT_NETCARD,0))
+   {
+      printk("Add %s success\r\n",CFG_SELECT_NETCARD);
+   }
+   else
+   {
+       printk("Add %s failed\r\n",CFG_SELECT_NETCARD);
+   }
 
 #endif
 

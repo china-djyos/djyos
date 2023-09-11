@@ -73,10 +73,20 @@
 //#warning  " myname 组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_APP_UPDATE    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+//%$#@num,1,1073741824,
+#define CFG_APP_UPDATE_MAX_FILE_SIZE    786432      //"app最大文件大小，单位字节"
 //%$#@string,1,100,
 //%$#@select
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
+
+//%$#@API include path         ****API头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，应用本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
+//./;
+//%$#@end API include path
+
+//%$#@self include path         ****编译自身需要的头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，编译本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
+//%$#@end self include path
+
 //@#$%component end configure
 

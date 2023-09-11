@@ -441,7 +441,7 @@ bool_t Int_SetClearType(ufast_t ufl_line,ufast_t clear_type)
 //----关联中断线与ISR----------------------------------------------------------
 //功能：指定中断线指定中断响应函数，该函数为普通函数，
 //参数：ufl_line,需要设置的中断线号
-//      isr，中断响应函数，由用户提供，原型：u32 isr(ptu32_t para)
+//      isr，中断响应函数，由用户提供，原型：void isr(ptu32_t para)
 //返回：无
 //-----------------------------------------------------------------------------
 void Int_IsrConnect(ufast_t ufl_line, u32 (*isr)(ptu32_t))
@@ -496,6 +496,9 @@ bool_t Int_EvttConnect(ufast_t ufl_line,uint16_t my_evtt_id)
 //功能：断开指定中断线指定中断响应函数的关联，代之以空函数
 //参数：ufl_line,需要设置的中断线号
 //返回：无
+//说明：调用此函数需要谨慎，要搞清楚不调用ISR会不会影响中断的运行
+// 比如定时器中断，在定时器的ISR中会清除定时器中断的响应标志。如果不执行ISR定时器中断的标志
+// 就一直存在，就会一直响应定时器中断。导致程序无法正常运行
 //-----------------------------------------------------------------------------
 void Int_IsrDisConnect(ufast_t ufl_line)
 {
@@ -595,7 +598,7 @@ bool_t Int_Register(ufast_t ufl_line)
     if (tg_pIntLineTable[ufl_line] != NULL) //说明已经注册
      return true;
 
-    pIntLine = (struct IntLine*)malloc(sizeof(struct IntLine));
+    pIntLine = (struct IntLine*)M_Malloc(sizeof(struct IntLine), CN_TIMEOUT_FOREVER);
     if(NULL == pIntLine)
     {
         return false;
@@ -625,6 +628,7 @@ bool_t Int_UnRegister(ufast_t ufl_line)
      return false;
 
     pIntLine = tg_pIntLineTable[ufl_line];
+	tg_pIntLineTable[ufl_line] = NULL;
     free(pIntLine);
     return true;
 }

@@ -30,7 +30,7 @@ void *psram_malloc (u32 size);
 enum UpdateResult CheckUpdate(void);	//此函数由用户实现
 
 //s32 set_upgrade_data(struct update_app_info *info);
-int to_update_app(u32 app_max_size);
+int to_update_app();
 
 #ifdef __cplusplus
 }

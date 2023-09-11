@@ -12,7 +12,9 @@
 #include <dbug.h>
 #include <filesystems.h>
 #include <xip.h>
-#include <cpu_peri_flash.h>
+#include <djyos.h>
+#include <shell.h>
+#include "project_config.h"
 
 //----------------------------------------------------------------------------
 //功能: 准备好升级，根据传来的参数，校验固件的正确性，设置好APP和iboot之间的共享RAM，
@@ -105,6 +107,9 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+
+static u16 UpdateAppEvtt = CN_EVTT_ID_INVALID;
+
 //------------------------------------------------------------------------------
 //功能：须用户提供的ota更新APP的函数，用户从ota获取代码后，常见的是存在可寻址内存中，
 //      或者文件系统中，这两种情况，库里面已经提供了解决方案，除此两种之外，须用户
@@ -123,10 +128,10 @@ __attribute__((weak)) bool_t UserUpdateApp(u32 updsrc,u8 *pdcttime,u8 *pdctnum)
 
 //----------------------------------------------------------------------------
 //功能: 去执行升级app，本函数在iboot中调用
-//参数: app_max_size：app文件的尺寸限制
+//参数: 无
 //返回: true: 成功； false ： 失败.
 //-----------------------------------------------------------------------------
-s32 to_update_app(u32 app_max_size)
+s32 to_update_app(void)
 {
     struct AppHead *p_apphead;
     struct ProductInfo *p_productinfo;
@@ -135,14 +140,19 @@ s32 to_update_app(u32 app_max_size)
     u32 updsrc;
     s8 *start_addr = 0;
     u32 file_size = 0;
-    char production_num[sizeof(p_productinfo->ProductionNumber)];
-    char production_week[sizeof(p_productinfo->ProductionTime)];
+    s8 production_num[sizeof(p_productinfo->ProductionNumber)];
+    s8 production_week[sizeof(p_productinfo->ProductionTime)];
     u8 finger[sizeof(p_productinfo->ProductionNumber) + \
                   sizeof(p_productinfo->ProductionTime) + sizeof(p_productinfo->TypeCode)];
 
-    read_finger_from_iboot(finger, sizeof(finger));
+    if (false == Iboot_GetUpdateApp())
+    {
+        return false;   //不需要升级app
+    }
+
+    read_finger_from_iboot((s8 *)finger, sizeof(finger));
     finger[sizeof(p_productinfo->TypeCode)] = 0;
-    if((finger[0] != 0xff) && (strcmp(finger, PRODUCT_PRODUCT_MODEL_CODE) != 0))
+    if((finger[0] != 0xff) && (strcmp((char *)finger, PRODUCT_PRODUCT_MODEL_CODE) != 0))
     {
         printk("p_productinfo type code error \r\n");
         return false;
@@ -156,8 +166,8 @@ s32 to_update_app(u32 app_max_size)
     else        //使用本地文件的生产时间和生产序号
     {
         //获取还没升级前的文件头里的产品信息
-        Iboot_GetProductInfo(APP_HEAD_PRODUCTION_WEEK,production_week,sizeof(production_week));
-        Iboot_GetProductInfo(APP_HEAD_PRODUCTION_NUM,production_num,sizeof(production_num));
+        Iboot_GetProductInfo(APP_HEAD_PRODUCTION_WEEK,(char *)production_week,sizeof(production_week));
+        Iboot_GetProductInfo(APP_HEAD_PRODUCTION_NUM,(char *)production_num,sizeof(production_num));
     }
     //如果指纹已经存在，则不会覆盖。
     if(write_finger_to_iboot(production_week,production_num) == false)
@@ -165,7 +175,7 @@ s32 to_update_app(u32 app_max_size)
 
     if(updsrc == CN_STORE_IN_FILE)
     {
-        if(WriteAppFromFile(production_week, production_num))
+        if(WriteAppFromFile((u8 *)production_week, (u8 *)production_num))
             ret = true;
         else
             DJY_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
@@ -175,7 +185,7 @@ s32 to_update_app(u32 app_max_size)
         Iboot_GetOtaAddr(&start_addr,&file_size);
         printk("psram_update_addr   = %x,\r\n", start_addr);
         printk("file_size   = %d,\r\n",file_size);
-        if(file_size <= app_max_size)
+        if(file_size <= CFG_APP_UPDATE_MAX_FILE_SIZE)
         {
             if(XIP_CheckAppInMemory(start_addr))
             {
@@ -189,7 +199,7 @@ s32 to_update_app(u32 app_max_size)
                     p_productinfo = (struct ProductInfo *)(p_apphead+1);
                     memcpy(p_productinfo->ProductionNumber, production_num, sizeof(p_productinfo->ProductionNumber));
                     memcpy(p_productinfo->ProductionTime, production_week, sizeof(p_productinfo->ProductionTime));
-                    if(WriteAppFromRam(start_addr, file_size, p_apphead->app_name))
+                    if(WriteAppFromRam(start_addr, file_size, (s8 *)p_apphead->app_name))
                         ret = true;
                     else
                         DJY_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
@@ -207,9 +217,52 @@ s32 to_update_app(u32 app_max_size)
     else        //APP用其他存储方式，用weak函数，有APP提供实际函数替换
     {
          //updsrc的值为SOURCE_OTHER1或SOURCE_OTHER2
-        ret = UserUpdateApp(updsrc,production_week, production_num);
+        ret = UserUpdateApp(updsrc, (u8 *)production_week, (u8 *)production_num);
     }
 
     return ret;
 }
+
+
+static ptu32_t update_app(void)
+{
+    if (false == to_update_app())
+    {
+        error_printf("modbus", "update app failed\n\r");
+    }
+    else
+    {
+        error_printf("modbus", "update app success.\n\r");
+        error_printf("modbus", "Run the app in 3 seconds\n\r");
+        DJY_EventDelay(3000*1000);
+        runapp("1");
+    }
+
+    return 0;
+}
+
+static bool_t update_app_shell(char *Param)
+{
+    if (CN_EVTT_ID_INVALID == UpdateAppEvtt)
+    {
+        UpdateAppEvtt = DJY_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
+                                update_app,NULL,0x1000, "update app");
+        if (CN_EVTT_ID_INVALID == UpdateAppEvtt)
+        {
+            printk("update app evtt regsit fail\r\n");
+            return false;
+        }
+    }
+
+    if (CN_EVENT_ID_INVALID == DJY_EventPop(UpdateAppEvtt,NULL,0,0,0,0))
+    {
+        printk("update app event pop fail\r\n");
+        return false;
+    }
+
+
+    return (TRUE);
+}
+
+ADD_TO_ROUTINE_SHELL(update_app,update_app_shell,"升级app.");
 

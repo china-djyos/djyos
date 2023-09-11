@@ -83,7 +83,7 @@ struct djytickless_debug_t djytickless_debug={
 // 参数：无
 // 返回：最小cnt数
 // =============================================================================
-uint32_t Djytickless_GetPrecision(void)
+uint32_t DjyTickless_GetPrecision(void)
 {
     return djytickless.min_reload_value;
 }
@@ -94,7 +94,7 @@ uint32_t Djytickless_GetPrecision(void)
 // 返回：当前累计的cnt值
 // =============================================================================
 
-uint64_t Djytickless_GetTotalCntIsr(uint32_t cnt)
+uint64_t DjyTickless_GetTotalCntIsr(uint32_t cnt)
 {
     if(djytickless.op != NULL)
     {
@@ -108,7 +108,7 @@ uint64_t Djytickless_GetTotalCntIsr(uint32_t cnt)
 // 参数：无
 // 返回：当前累计的cnt值
 // =============================================================================
-uint64_t Djytickless_GetTotalCnt(void)
+uint64_t DjyTickless_GetTotalCnt(void)
 {
     if(djytickless.op != NULL)
     {

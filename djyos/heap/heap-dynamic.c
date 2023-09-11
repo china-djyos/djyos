@@ -2150,9 +2150,10 @@ bool_t __Heap_FreeHeap(void * pl_mem,struct HeapCB *Heap, u32 timeout)
                 if(event->multi_next == event)
                 {//是最后一个事件
                     *MemSyncHead  = NULL;
+                    __DJY_EventReady(event);
                     break;
-                }else
-
+                }
+                else
                 {
                     *MemSyncHead = event->multi_next;
                     event->multi_next->multi_previous = event->multi_previous;

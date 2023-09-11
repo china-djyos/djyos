@@ -48,7 +48,7 @@ void Init_Cpu(void)
     switch(startup_scb_reg->CPUID)
     {
     }
-
+    SystemInit();
     extern void SysClockInit(void);
     SysClockInit();
 

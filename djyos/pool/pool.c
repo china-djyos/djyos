@@ -125,7 +125,7 @@ static struct dListNode s_tPoolHead;        // 把所有内存池控制块串起来
 //static struct Object *s_ptPoolObject;
 //static FILE *s_ptPoolFp;
 static struct MemCellPool *s_ptPoolCtrl;    // 管理内存池控制块本身的内存池
-static struct MutexLCB s_tPoolMutex;                  // 当内存池需要增量时，保护内存池控制块
+// static struct MutexLCB s_tPoolMutex;                  // 当内存池需要增量时，保护内存池控制块
 
 s32 Mb_PoolObjOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
@@ -161,7 +161,8 @@ ptu32_t __InitMB(void)
 
     Lock_SempCreate_s(&CtrlPool.memb_semp,CFG_MEMPOOL_LIMIT,
                       CFG_MEMPOOL_LIMIT,CN_BLOCK_FIFO,"固定块分配池");
-    Lock_MutexCreate_s(&s_tPoolMutex,"内存池增量锁");
+    Lock_MutexCreate_s(&CtrlPool.memb_mutex,"固定块分配池");
+    // Lock_MutexCreate_s(&s_tPoolMutex,"内存池增量锁");
     return (0);
 }
 
@@ -294,6 +295,7 @@ struct MemCellPool *Mb_CreatePool(void *pool_original,u32 init_capacital,
     //init_capacital有可能是0
     Lock_SempCreate_s(&pool->memb_semp,init_capacital,init_capacital,
                         CN_BLOCK_FIFO,name);
+    Lock_MutexCreate_s(&pool->memb_mutex,name);
     return pool;
 }
 
@@ -320,6 +322,16 @@ struct MemCellPool *Mb_CreatePool_s(struct MemCellPool *pool,
                                 u32 cell_size,u32 increment,
                                 u32 limit,const char *name)
 {
+    if(pool == NULL)
+        return NULL;    //内存池控制块为空
+    if(( pool_original == NULL) && (init_capacital != 0))
+        return NULL;
+    if(cell_size < 2*sizeof(void*))
+        return NULL;
+    if((cell_size % sizeof(void*) != 0)
+            || (((ptu32_t)pool_original) % sizeof(void*) != 0))
+        return NULL;
+
     pool->continue_pool = (void*)pool_original;     //连续池首地址
     pool->free_list = NULL;                 //开始时空闲链表是空的
     //设置连续池偏移地址
@@ -336,6 +348,7 @@ struct MemCellPool *Mb_CreatePool_s(struct MemCellPool *pool,
 //              RSC_MEMPOOL,name);
     Lock_SempCreate_s(&pool->memb_semp,init_capacital,init_capacital,
                             CN_BLOCK_FIFO,name);
+    Lock_MutexCreate_s(&pool->memb_mutex,name);
     return pool;
 }
 
@@ -348,7 +361,13 @@ struct MemCellPool *Mb_CreatePool_s(struct MemCellPool *pool,
 bool_t Mb_DeletePool(struct MemCellPool *pool)
 {
     void *inc_memory,*temp;
+    if (NULL == pool)
+    {
+        return false;
+    }
     if(!Lock_SempDelete_s(&pool->memb_semp))
+        return false;
+    if(!Lock_MutexDelete_s(&pool->memb_mutex))
         return false;
     inc_memory = pool->next_inc_pool;
     //如果内存池在使用过程中做了动态扩容操作，这里释放增加的内存
@@ -373,7 +392,13 @@ bool_t Mb_DeletePool(struct MemCellPool *pool)
 bool_t Mb_DeletePool_s(struct MemCellPool *pool)
 {
     void *inc_memory,*temp;
+    if (NULL == pool)
+    {
+        return false;
+    }
     if(!Lock_SempDelete_s(&pool->memb_semp))
+        return false;
+    if(!Lock_MutexDelete_s(&pool->memb_mutex))
         return false;
     inc_memory = pool->next_inc_pool;
     //如果内存池在使用过程中做了动态扩容操作，这里释放增加的内存
@@ -413,9 +438,9 @@ void *Mb_Malloc(struct MemCellPool *pool,u32 timeout)
     //不超过内存池的容量
     //Lock_SempPend的超时参数应该是 0，不是timeout，因为此处不是等待空闲内存，而是判断
     //是否需要增量。
-    if(Lock_SempPend(&pool->memb_semp,0) == false)  //无信号量，表明内存块已经用完
+    if(Lock_MutexPend(&pool->memb_mutex, timeout))
     {
-        if(Lock_MutexPend(&s_tPoolMutex, timeout))
+        if(Lock_SempPend(&pool->memb_semp,0) == false)  //无信号量，表明内存块已经用完
         {
             //内存池容量未达到上限，可以继续增加
             if(Lock_SempQueryCapacital(&pool->memb_semp) < pool->cell_limit)
@@ -432,31 +457,33 @@ void *Mb_Malloc(struct MemCellPool *pool,u32 timeout)
                     //检查实际分配到的内存量
                     inc_size = M_CheckSize(inc) - align_up_sys(1);
                     inc_cell = inc_size/pool->cell_size;
-                    Lock_SempExpand(&pool->memb_semp, inc_cell);
-                    Lock_SempPend(&pool->memb_semp,0); // 去掉当前需申请的一个
                     pool->continue_pool = (void*)((ptu32_t)inc + align_up_sys(1));
                     pool->pool_offset = (ptu32_t)pool->continue_pool + inc_cell*pool->cell_size;
-
                     //以下初始化增量表，该表用于标记动态增加的内存块，利于删除内存池
                     //时释放内存，以免内存丢失。
                     *(void **)inc = pool->next_inc_pool;
                     pool->next_inc_pool = inc;
-                    Lock_MutexPost(&s_tPoolMutex);
+                    Lock_SempExpand(&pool->memb_semp, inc_cell);
+                    Lock_SempPend(&pool->memb_semp,0); // 去掉当前需申请的一个
+                    // Lock_MutexPost(&s_tPoolMutex);
                 }
                 else
                 {
-                    Lock_MutexPost(&s_tPoolMutex);
+                    Lock_MutexPost(&pool->memb_mutex);
                     return NULL;
                 }
             }
             else
             {
-                Lock_MutexPost(&s_tPoolMutex);
+                Lock_MutexPost(&pool->memb_mutex);
                 return NULL;
             }
         }
-        else
-            return NULL;
+        Lock_MutexPost(&pool->memb_mutex);
+    }
+    else
+    {
+        return NULL;
     }
 
     //注:从semp_pend到int_low_atom_start之间发生抢占是允许的，因为信号量已经

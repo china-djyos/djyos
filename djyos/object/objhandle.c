@@ -744,7 +744,7 @@ struct objhandle *__open(char *path, u32 flags, u32 mode)
 {
     struct objhandle *hdl = NULL;
     struct Object *ob;
-    char *uncached;
+    char *uncached = NULL;
     s32 run;
     u64 OpenMode;
 //  struct stat statbuf;
@@ -753,7 +753,7 @@ struct objhandle *__open(char *path, u32 flags, u32 mode)
     if(Lock_MutexPend(&s_tHandleMutex, CN_TIMEOUT_FOREVER))
     {
         ob = OBJ_MatchPath(path, &uncached);
-        if(ob == NULL)
+        if(uncached != NULL)
         {
             Lock_MutexPost(&s_tHandleMutex);
             return NULL;

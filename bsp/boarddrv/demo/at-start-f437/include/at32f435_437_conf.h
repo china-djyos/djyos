@@ -32,6 +32,7 @@
 extern "C" {
 #endif
 
+#include "board-config.h"
 
 /** @addtogroup AT32F435_periph_template
   * @{
@@ -50,7 +51,7 @@ extern "C" {
   *
   */
 #if !defined  HEXT_VALUE
-#define HEXT_VALUE                       ((uint32_t)8000000) /*!< value of the high speed exernal crystal in hz */
+#define HEXT_VALUE                       ((uint32_t)CN_CFG_EXTCLK) /*!< value of the high speed exernal crystal in hz */
 #endif
 
 /**
@@ -61,7 +62,7 @@ extern "C" {
 #define HICK_VALUE                       ((uint32_t)8000000) /*!< value of the high speed internal clock in hz */
 
 /* module define -------------------------------------------------------------*/
-#define CRM_MODULE_ENABLED
+#define CRM_MODULE_ENABLED                    1
 #define TMR_MODULE_ENABLED
 #define ERTC_MODULE_ENABLED
 #define GPIO_MODULE_ENABLED

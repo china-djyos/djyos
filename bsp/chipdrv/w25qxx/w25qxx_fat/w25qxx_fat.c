@@ -12,6 +12,7 @@
 #include <dbug.h>
 #include <djyfs/filesystems.h>
 #include <string.h>
+#include <unit_media.h>
 #include "cpu_peri.h"
 #include "../w25qxx.h"
 
@@ -48,9 +49,9 @@
 //%$#@string,1,10,
 #define CFG_W25_FAT_MOUNT_NAME            "fat"      //"文件系统mount点名字",需要挂载的efs文件系统mount点名字
 //%$#@num,-1,512,
-#define CFG_W25_FAT_PART_END                   -1        //分区结束，-1表示最后一块,起始分区固定从0开始。如果不是-1的话，不会包括当前块。例如start=0,end=6,那使用的范围为0~5
+#define CFG_W25_FAT_PART_END                   -1        //"分区结束"，-1表示最后一块,起始分区固定从0开始。如果不是-1的话，不会包括当前块。例如start=0,end=6,那使用的范围为0~5
 //%$#@enum,true,false,
-#define CFG_W25_FAT_PART_FORMAT               false      //分区选项,是否需要格式化该分区。
+#define CFG_W25_FAT_PART_FORMAT               false      //"分区选项,是否需要格式化该分区"
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -59,7 +60,7 @@
 
 
 u32 sector_num = 0;
-#define     SECTOR_SIZE     512         //文件系统配置的是512,这里对flash的操作也得按512来，不能按256来，（其实就是把页大小换成512）
+#define     SECTOR_SIZE     _MAX_SS         //文件系统操作的扇区大小
 
 int w25qxx_status(void);
 int w25qxx_initialize(void);
@@ -190,7 +191,7 @@ s32 w25qxx_ioctl( u8 cmd, void *buff)
 
         /* Get erase block size in unit of sector (DWORD) */
         case GET_BLOCK_SIZE:
-            *(u32*)buff = 8;    //相当于一个扇区里的页数
+            *(u32*)buff = 1;    //能擦除的最小单位大小（以SECTOR_SIZE为单位），w25q能擦除的最小单位是扇区，把扇区大小除以SECTOR_SIZE就可以了
             res =  0; // RES_OK;
             break;
 
@@ -221,7 +222,7 @@ bool_t ModuleInstall_W25qxxInstallFat(const char *TargetFs,s32 bend, u32 doforma
         {
             if(bend == -1)
                 __W25qxx_Req(totalblocks, &bend);
-            sector_num = bend * 65536 / 512;
+            sector_num = bend * 65536 / SECTOR_SIZE;    //块的数量乘块的大小，除以扇区大小就是扇区数量
 
             if(doformat)
             {

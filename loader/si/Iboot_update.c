@@ -390,7 +390,7 @@ bool_t WriteAppFromFile(u8 *production_time,u8* production_num)
                         if(srcsize == 0)
                         {
                             info_printf("IAP","App update success.  waiting to restart.\r\n");
-//                            Iboot_ClearRunIbootAndUpdateApp();
+                            Iboot_ClearRunIbootAndUpdateApp();
                             ret = true;
                             break;
                         }

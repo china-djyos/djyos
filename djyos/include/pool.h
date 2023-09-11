@@ -68,6 +68,7 @@ struct MemCellPool
     void  *continue_pool;    //连续内存池首地址，使用它可以增加实时性。
     struct MemCellFree  *free_list;     //空闲块链表,双向，直接建立在内存块内部
     struct SemaphoreLCB memb_semp;
+    struct MutexLCB memb_mutex;
     ptu32_t pool_offset;    //连续池中的偏移量(当前地址)
     u32 cell_size;          //块大小,初始化时将按系统要求调整尺寸。
     u32 cell_increment;     //当内存池耗尽时，将自动从堆中增加内存池尺寸，单位为

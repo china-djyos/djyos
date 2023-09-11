@@ -2666,7 +2666,7 @@ bool_t OBJ_Show(char *param)
 {
     struct Object *Obj;
     s32 res;
-    Obj = OBJ_SearchPath(OBJ_GetCurrent(), param);
+    Obj = OBJ_SearchPath(OBJ_GetRoot(), param);
     if(Obj)
     {
         res = Obj->ObjOps((void *)Obj, CN_OBJ_CMD_SHOW, 0,0,0);

@@ -8,8 +8,11 @@ extern "C" {
 #include <stdint.h>
 
 #include <cpu_peri_gpio.h>
+#include <cpu_peri_spi.h>
 #include <cpu_peri_int_line.h>
 #include <cpu_peri_uart.h>
+#include <cpu_peri_dma.h>
+#include <cpu_peri_timer.h>
 #include <get_cpuid.h>
 
 #include "at32f435_437.h"
