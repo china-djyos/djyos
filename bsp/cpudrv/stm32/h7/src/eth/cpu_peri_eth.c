@@ -73,7 +73,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"int","tcpip","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"tcpip","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -181,25 +181,25 @@ static u8 gTxBuffer[EthTxBufSize]__attribute__((section(".nocacheram.TxBuffer"))
 static ETH_TxPacketConfig TxConfig;
 
 //设置网络所使用的0X30040000的ram内存保护
-void NETMPU_Config(void)
-{
-    MPU_Region_InitTypeDef MPU_InitStruct;
-
-    HAL_MPU_Disable();
-    MPU_InitStruct.Enable=MPU_REGION_ENABLE;
-    MPU_InitStruct.BaseAddress=0x30040000;
-    MPU_InitStruct.Size=MPU_REGION_SIZE_256B;
-    MPU_InitStruct.AccessPermission=MPU_REGION_FULL_ACCESS;
-    MPU_InitStruct.IsBufferable=MPU_ACCESS_BUFFERABLE;
-    MPU_InitStruct.IsCacheable=MPU_ACCESS_NOT_CACHEABLE;
-    MPU_InitStruct.IsShareable=MPU_ACCESS_SHAREABLE;
-    MPU_InitStruct.Number=MPU_REGION_NUMBER5;
-    MPU_InitStruct.TypeExtField=MPU_TEX_LEVEL0;
-    MPU_InitStruct.SubRegionDisable=0x00;
-    MPU_InitStruct.DisableExec=MPU_INSTRUCTION_ACCESS_ENABLE;
-    HAL_MPU_ConfigRegion(&MPU_InitStruct);
-    HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
-}
+//void NETMPU_Config(void)
+//{
+//    MPU_Region_InitTypeDef MPU_InitStruct;
+//
+//    HAL_MPU_Disable();
+//    MPU_InitStruct.Enable=MPU_REGION_ENABLE;
+//    MPU_InitStruct.BaseAddress=0x30040000;
+//    MPU_InitStruct.Size=MPU_REGION_SIZE_256B;
+//    MPU_InitStruct.AccessPermission=MPU_REGION_FULL_ACCESS;
+//    MPU_InitStruct.IsBufferable=MPU_ACCESS_BUFFERABLE;
+//    MPU_InitStruct.IsCacheable=MPU_ACCESS_NOT_CACHEABLE;
+//    MPU_InitStruct.IsShareable=MPU_ACCESS_SHAREABLE;
+//    MPU_InitStruct.Number=MPU_REGION_NUMBER5;
+//    MPU_InitStruct.TypeExtField=MPU_TEX_LEVEL0;
+//    MPU_InitStruct.SubRegionDisable=0x00;
+//    MPU_InitStruct.DisableExec=MPU_INSTRUCTION_ACCESS_ENABLE;
+//    HAL_MPU_ConfigRegion(&MPU_InitStruct);
+//    HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+//}
 
 // HAL库中调用了该函数
 void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
@@ -1117,7 +1117,7 @@ bool_t ModuleInstall_ETH(void)
     pDrive->EthHandle->Init.RxDesc=DMARxDscrTab;                 //发送描述符
     pDrive->EthHandle->Init.TxDesc=DMATxDscrTab;                 //接收描述如
     pDrive->EthHandle->Init.RxBuffLen=EthRxBufSize;       //接收长度
-    NETMPU_Config();
+//  NETMPU_Config();
     ETH_HardDrvInit(pDrive);
 
     //all the configuration has set in the pDrive now,we need some sys assistant

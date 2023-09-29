@@ -1,0 +1,2 @@
+https://github.com/STMicroelectronics/STM32CubeH7.git
+°æ±¾£ºaf967c5899d8f5c11eff4a12d647d11b823986a4

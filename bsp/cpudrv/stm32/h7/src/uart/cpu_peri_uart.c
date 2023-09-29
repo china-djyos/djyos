@@ -844,9 +844,9 @@ ptu32_t ModuleInstall_UART(u32 port)
         pUartRcvBuf[port] = pUartSndBuf[port] + CFG_UART_SENDBUF_LEN;
         __UART_HardInit(port);              //Ó²¼þ³õÊ¼»¯
         __UART_IntInit(port);
-        return false;
+        return true;
     }
-    return true;
+    return false;
 }
 
 // =============================================================================

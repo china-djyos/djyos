@@ -2,54 +2,54 @@
 #include <get_cpuid.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include "project_config.h"     //æœ¬æ–‡ä»¶ç”±IDEä¸­é…ç½®ç•Œé¢ç”Ÿæˆï¼Œå­˜æ”¾åœ¨APPçš„å·¥ç¨‹ç›®å½•ä¸­ã€‚
-                                //å…è®¸æ˜¯ä¸ªç©ºæ–‡ä»¶ï¼Œæ‰€æœ‰é…ç½®å°†æŒ‰é»˜è®¤å€¼é…ç½®ã€‚
+#include "project_config.h"     //±¾ÎÄ¼şÓÉIDEÖĞÅäÖÃ½çÃæÉú³É£¬´æ·ÅÔÚAPPµÄ¹¤³ÌÄ¿Â¼ÖĞ¡£
+                                //ÔÊĞíÊÇ¸ö¿ÕÎÄ¼ş£¬ËùÓĞÅäÖÃ½«°´Ä¬ÈÏÖµÅäÖÃ¡£
 
-//@#$%component configure   ****ç»„ä»¶é…ç½®å¼€å§‹ï¼Œç”¨äº DIDE ä¸­å›¾å½¢åŒ–é…ç½®ç•Œé¢
-//****é…ç½®å—çš„è¯­æ³•å’Œä½¿ç”¨æ–¹æ³•ï¼Œå‚è§æºç æ ¹ç›®å½•ä¸‹çš„æ–‡ä»¶ï¼šcomponent_config_readme.txt****
-//%$#@initcode      ****åˆå§‹åŒ–ä»£ç å¼€å§‹ï¼Œç”± DIDE åˆ é™¤â€œ//â€åcopyåˆ°åˆå§‹åŒ–æ–‡ä»¶ä¸­
+//@#$%component configure   ****×é¼şÅäÖÃ¿ªÊ¼£¬ÓÃÓÚ DIDE ÖĞÍ¼ĞÎ»¯ÅäÖÃ½çÃæ
+//****ÅäÖÃ¿éµÄÓï·¨ºÍÊ¹ÓÃ·½·¨£¬²Î¼ûÔ´Âë¸ùÄ¿Â¼ÏÂµÄÎÄ¼ş£ºcomponent_config_readme.txt****
+//%$#@initcode      ****³õÊ¼»¯´úÂë¿ªÊ¼£¬ÓÉ DIDE É¾³ı¡°//¡±ºócopyµ½³õÊ¼»¯ÎÄ¼şÖĞ
 //  extern void ModuleInstall_InitNet( );
 //    ModuleInstall_InitNet( );
-//%$#@end initcode  ****åˆå§‹åŒ–ä»£ç ç»“æŸ
+//%$#@end initcode  ****³õÊ¼»¯´úÂë½áÊø
 
-//%$#@describe      ****ç»„ä»¶æè¿°å¼€å§‹
-//component name:"network config"//ç½‘ç»œé…ç½®
-//parent:"tcpip"     //å¡«å†™è¯¥ç»„ä»¶çš„çˆ¶ç»„ä»¶åå­—ï¼Œnoneè¡¨ç¤ºæ²¡æœ‰çˆ¶ç»„ä»¶
-//attribute:bsp                 //é€‰å¡«â€œthirdã€systemã€bspã€userâ€ï¼Œæœ¬å±æ€§ç”¨äºåœ¨IDEä¸­åˆ†ç»„
-//select:choosable              //é€‰å¡«â€œrequiredã€choosableã€noneâ€ï¼Œè‹¥å¡«å¿…é€‰ä¸”éœ€è¦é…ç½®å‚æ•°ï¼Œåˆ™IDEè£å‰ªç•Œé¢ä¸­é»˜è®¤å‹¾å–ï¼Œ
-                                //ä¸å¯å–æ¶ˆï¼Œå¿…é€‰ä¸”ä¸éœ€è¦é…ç½®å‚æ•°çš„ï¼Œæˆ–æ˜¯ä¸å¯é€‰çš„ï¼ŒIDEè£å‰ªç•Œé¢ä¸­ä¸æ˜¾ç¤ºï¼Œ
-//init time:later               //åˆå§‹åŒ–æ—¶æœºï¼Œå¯é€‰å€¼ï¼šearlyï¼Œmediumï¼Œlater, pre-mainã€‚
-                                //è¡¨ç¤ºåˆå§‹åŒ–æ—¶é—´ï¼Œåˆ†åˆ«æ˜¯æ—©æœŸã€ä¸­æœŸã€åæœŸ
-//dependence:"tcpip","cpu onchip ETH" //è¯¥ç»„ä»¶çš„ä¾èµ–ç»„ä»¶åï¼ˆå¯ä»¥æ˜¯noneï¼Œè¡¨ç¤ºæ— ä¾èµ–ç»„ä»¶ï¼‰ï¼Œ
-                                //é€‰ä¸­è¯¥ç»„ä»¶æ—¶ï¼Œè¢«ä¾èµ–ç»„ä»¶å°†å¼ºåˆ¶é€‰ä¸­ï¼Œ
-                                //å¦‚æœä¾èµ–å¤šä¸ªç»„ä»¶ï¼Œåˆ™ä¾æ¬¡åˆ—å‡º
-//weakdependence:"none"         //è¯¥ç»„ä»¶çš„å¼±ä¾èµ–ç»„ä»¶åï¼ˆå¯ä»¥æ˜¯noneï¼Œè¡¨ç¤ºæ— ä¾èµ–ç»„ä»¶ï¼‰ï¼Œ
-                                //é€‰ä¸­è¯¥ç»„ä»¶æ—¶ï¼Œè¢«ä¾èµ–ç»„ä»¶ä¸ä¼šè¢«å¼ºåˆ¶é€‰ä¸­ï¼Œ
-                                //å¦‚æœä¾èµ–å¤šä¸ªç»„ä»¶ï¼Œåˆ™ä¾æ¬¡åˆ—å‡ºï¼Œç”¨â€œ,â€åˆ†éš”
-//mutex:"none"                  //è¯¥ç»„ä»¶çš„äº’æ–¥ç»„ä»¶åï¼ˆå¯ä»¥æ˜¯noneï¼Œè¡¨ç¤ºæ— äº’æ–¥ç»„ä»¶ï¼‰ï¼Œ
-                                //å¦‚æœä¸å¤šä¸ªç»„ä»¶äº’æ–¥ï¼Œåˆ™ä¾æ¬¡åˆ—å‡º
-//%$#@end describe  ****ç»„ä»¶æè¿°ç»“æŸ
+//%$#@describe      ****×é¼şÃèÊö¿ªÊ¼
+//component name:"network config"//ÍøÂçÅäÖÃ
+//parent:"tcpip"     //ÌîĞ´¸Ã×é¼şµÄ¸¸×é¼şÃû×Ö£¬none±íÊ¾Ã»ÓĞ¸¸×é¼ş
+//attribute:bsp                 //Ñ¡Ìî¡°third¡¢system¡¢bsp¡¢user¡±£¬±¾ÊôĞÔÓÃÓÚÔÚIDEÖĞ·Ö×é
+//select:choosable              //Ñ¡Ìî¡°required¡¢choosable¡¢none¡±£¬ÈôÌî±ØÑ¡ÇÒĞèÒªÅäÖÃ²ÎÊı£¬ÔòIDE²Ã¼ô½çÃæÖĞÄ¬ÈÏ¹´È¡£¬
+                                //²»¿ÉÈ¡Ïû£¬±ØÑ¡ÇÒ²»ĞèÒªÅäÖÃ²ÎÊıµÄ£¬»òÊÇ²»¿ÉÑ¡µÄ£¬IDE²Ã¼ô½çÃæÖĞ²»ÏÔÊ¾£¬
+//init time:later               //³õÊ¼»¯Ê±»ú£¬¿ÉÑ¡Öµ£ºearly£¬medium£¬later, pre-main¡£
+                                //±íÊ¾³õÊ¼»¯Ê±¼ä£¬·Ö±ğÊÇÔçÆÚ¡¢ÖĞÆÚ¡¢ºóÆÚ
+//dependence:"tcpip","cpu onchip ETH" //¸Ã×é¼şµÄÒÀÀµ×é¼şÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎŞÒÀÀµ×é¼ş£©£¬
+                                //Ñ¡ÖĞ¸Ã×é¼şÊ±£¬±»ÒÀÀµ×é¼ş½«Ç¿ÖÆÑ¡ÖĞ£¬
+                                //Èç¹ûÒÀÀµ¶à¸ö×é¼ş£¬ÔòÒÀ´ÎÁĞ³ö
+//weakdependence:"none"         //¸Ã×é¼şµÄÈõÒÀÀµ×é¼şÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎŞÒÀÀµ×é¼ş£©£¬
+                                //Ñ¡ÖĞ¸Ã×é¼şÊ±£¬±»ÒÀÀµ×é¼ş²»»á±»Ç¿ÖÆÑ¡ÖĞ£¬
+                                //Èç¹ûÒÀÀµ¶à¸ö×é¼ş£¬ÔòÒÀ´ÎÁĞ³ö£¬ÓÃ¡°,¡±·Ö¸ô
+//mutex:"none"                  //¸Ã×é¼şµÄ»¥³â×é¼şÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎŞ»¥³â×é¼ş£©£¬
+                                //Èç¹ûÓë¶à¸ö×é¼ş»¥³â£¬ÔòÒÀ´ÎÁĞ³ö
+//%$#@end describe  ****×é¼şÃèÊö½áÊø
 
-//%$#@configue      ****å‚æ•°é…ç½®å¼€å§‹
+//%$#@configue      ****²ÎÊıÅäÖÃ¿ªÊ¼
 #if ( CFG_MODULE_ENABLE_NETWORK_CONFIG == false )
-//#warning  " network_config  ç»„ä»¶å‚æ•°æœªé…ç½®ï¼Œä½¿ç”¨é»˜è®¤é…ç½®"
-//%$#@target = header           //header = ç”Ÿæˆå¤´æ–‡ä»¶,cmdline = å‘½ä»¤è¡Œå˜é‡ï¼ŒDJYOSè‡ªæœ‰æ¨¡å—ç¦ç”¨
-#define CFG_MODULE_ENABLE_NETWORK_CONFIG    false //å¦‚æœå‹¾é€‰äº†æœ¬ç»„ä»¶ï¼Œå°†ç”±DIDEåœ¨project_config.hæˆ–å‘½ä»¤è¡Œä¸­å®šä¹‰ä¸ºtrue
+//#warning  " network_config  ×é¼ş²ÎÊıÎ´ÅäÖÃ£¬Ê¹ÓÃÄ¬ÈÏÅäÖÃ"
+//%$#@target = header           //header = Éú³ÉÍ·ÎÄ¼ş,cmdline = ÃüÁîĞĞ±äÁ¿£¬DJYOS×ÔÓĞÄ£¿é½ûÓÃ
+#define CFG_MODULE_ENABLE_NETWORK_CONFIG    false //Èç¹û¹´Ñ¡ÁË±¾×é¼ş£¬½«ÓÉDIDEÔÚproject_config.h»òÃüÁîĞĞÖĞ¶¨ÒåÎªtrue
 //%$#@num,0,100
 //%$#@enum,true,false
-#define CFG_STATIC_IP       true            //"ä½¿ç”¨é™æ€IP?",
+#define CFG_STATIC_IP       true            //"Ê¹ÓÃ¾²Ì¬IP?",
 //%$#@string,1,32
-#define CFG_SELECT_NETCARD  "STM32F4_ETH"   //"ç½‘å¡åç§°",å¿…é¡»ä¸é€‰ä¸­çš„ç½‘å¡é©±åŠ¨ä¸­é…ç½®çš„åç§°ç›¸åŒ
+#define CFG_SELECT_NETCARD  "STM32F4_ETH"   //"Íø¿¨Ãû³Æ",±ØĞëÓëÑ¡ÖĞµÄÍø¿¨Çı¶¯ÖĞÅäÖÃµÄÃû³ÆÏàÍ¬
 //%$#@string,7,15
-#define CFG_MY_IPV4         "192.168.0.179" //"é™æ€IP",
-#define CFG_MY_SUBMASK      "255.255.255.0" //"å­ç½‘æ©ç ",
-#define CFG_MY_GATWAY       "192.168.0.1"   //"ç½‘å…³",
-#define CFG_MY_DNS          "192.168.0.1"   //"é¦–é€‰DNS",
-#define CFG_MY_DNSBAK       "192.168.0.1"   //"å¤‡ç”¨DNS",
+#define CFG_MY_IPV4         "192.168.0.179" //"¾²Ì¬IP",
+#define CFG_MY_SUBMASK      "255.255.255.0" //"×ÓÍøÑÚÂë",
+#define CFG_MY_GATWAY       "192.168.0.1"   //"Íø¹Ø",
+#define CFG_MY_DNS          "192.168.0.1"   //"Ê×Ñ¡DNS",
+#define CFG_MY_DNSBAK       "192.168.0.1"   //"±¸ÓÃDNS",
 //%$#@select
 //%$#@free
 #endif
-//%$#@end configue  ****å‚æ•°é…ç½®ç»“æŸ
+//%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //@#$%component end configure
 
 //please refers the following function in the module-trim in proper place.
@@ -64,7 +64,7 @@ void ModuleInstall_InitNet(void)   //static ip example
     struct NetDev *NetDev;
 
     NetDev = NetDev_GetHandle(CFG_SELECT_NETCARD);
-    if(NetDev == NULL)          //ç½‘å¡æœªå®‰è£…
+    if(NetDev == NULL)          //Íø¿¨Î´°²×°
     {
         printk("%s netcard not install\r\n",CFG_SELECT_NETCARD);
         return;
@@ -101,7 +101,7 @@ void ModuleInstall_InitNet(void)   //static ip example
         printk("%s CreateRout:%s failed\r\n",CFG_SELECT_NETCARD,CFG_MY_IPV4);
     }
 
-    //ä¸‹ä¸€ä¸ªè·¯ç”±ï¼Œç”¨äºç”Ÿäº§æµ‹è¯•ç”¨ï¼Œåˆ©ç”¨CPU ID éšæœºç”Ÿæˆä¸»æœºåœ°å€ï¼Œç½‘ç»œåœ°å€ç”¨ 192.168.1
+    //ÏÂÒ»¸öÂ·ÓÉ£¬ÓÃÓÚÉú²ú²âÊÔÓÃ£¬ÀûÓÃCPU ID Ëæ»úÉú³ÉÖ÷»úµØÖ·£¬ÍøÂçµØÖ·ÓÃ 192.168.1
     //WE WILL ADD A ROUT DIFFERENT FOR EACH DEVICE USE THE CPU SIGNATURE
     //USE THE NET:192.168.1.xx
     u8 value8 = 0;
@@ -139,8 +139,8 @@ void ModuleInstall_InitNet(void)   //static ip example
     }
 
 #else
-    //å¦‚æœé‡æ–°å¯åŠ¨ç³»ç»Ÿåï¼Œå¸Œæœ›å¿«é€Ÿè¿æ¥ï¼Œæˆ–è€…ä½¿ç”¨é‡å¯å‰çš„IPï¼Œå¯æ¯æ¬¡å¯åŠ¨æŠŠç”³è¯·åˆ°çš„IP
-    //ä¿å­˜åœ¨æ–‡ä»¶ä¸­ï¼Œåˆ©ç”¨ç¬¬äºŒä¸ªå‚æ•°ã€‚
+    //Èç¹ûÖØĞÂÆô¶¯ÏµÍ³ºó£¬Ï£Íû¿ìËÙÁ¬½Ó£¬»òÕßÊ¹ÓÃÖØÆôÇ°µÄIP£¬¿ÉÃ¿´ÎÆô¶¯°ÑÉêÇëµ½µÄIP
+    //±£´æÔÚÎÄ¼şÖĞ£¬ÀûÓÃµÚ¶ş¸ö²ÎÊı¡£
     if(DHCP_AddClientTask(CFG_SELECT_NETCARD,0))
     {
        printk("Add %s success\r\n",CFG_SELECT_NETCARD);
@@ -154,4 +154,5 @@ void ModuleInstall_InitNet(void)   //static ip example
 
     return ;
 }
+
 

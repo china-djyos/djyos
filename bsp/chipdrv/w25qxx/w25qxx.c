@@ -52,8 +52,10 @@
 #include <cpu_peri.h>
 #include <djyos.h>
 #include <device.h>
+#include <filesystems.h>
 #include <device/djy_flash.h>
 #include <spibus.h>
+#include <unit_media.h>
 #include <dbug.h>
 #include "w25qxx.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -77,7 +79,7 @@
 //dependence:"none",//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"cpu onchip spi","cpu onchip qspi"        //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"cpu onchip spi"       //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -90,7 +92,16 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_NORFLASH_W25QXX    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,true,false,
-#define CFG_W25QXX_PART_ERASE               false      //分区选项,是否需要擦除该芯片。
+#define CFG_W25QXX_PART_ERASE               false      //"分区选项,是否需要擦除该芯片。"
+#define CFG_W25QXX_QSPI_ENABLE              false      //"是否使用QSPI模式"
+//%$#@num,0,65535,
+#define CFG_W25QXX_BYTES_PAGE               256        //"每页的字节数"
+#define CFG_W25QXX_PAGES_SECTOR             16         //"每个扇区有多少页"
+#define CFG_W25QXX_SECTORS_BLOCK            16         //"每个块有多少扇区"
+#define CFG_W25QXX_SECTORS_NUM              2048       //"总的扇区数"
+#define CFG_W25QXX_CHIP_ID                  0xEF18     //"芯片ID"
+//%$#@string,1,10,
+#define CFG_W25_SPI_NAME                    "SPI1"      //"用的SPI设备名字，spi模式下有效"
 //%$#@string,1,20,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -98,51 +109,70 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-
-u8 W25QXX_QPI_MODE=0;       //QSPI模式标志:0,SPI模式;1,QSPI模式.
+#if CFG_W25QXX_QSPI_ENABLE == FALSE
+static struct SPI_Device *s_ptSpiPort; // 器件使用的SPI端口
+#endif
 struct MutexLCB *W25qxx_Lock;           //芯片互斥访问保护
 struct NorDescr *W25qxx_description = NULL;
 bool_t W25qxx_InitFlag = false;
-
+const char *W25qFlashName = "w25qxx";      //该flash在obj在的名字
+struct umedia *w25q_flash_um;
+extern struct Object *s_ptDeviceRoot;
 //-----------------------------------------------------------------------------
 //功能: 读状态寄存器
 //参数: regno：状态寄存器序号
 //返回: true -- 成功; false -- 失败;
 //备注:
 //-----------------------------------------------------------------------------
-u8 W25QXX_ReadSR(u8 regno, u8 *sta)
+bool_t W25QXX_ReadSR(u8 regno, u8 *sta)
 {
-    u8 command = 0;
-    bool_t ret = true;
+    u8 Command[1];
+    bool_t ret = false;
     switch(regno)
     {
         case 1:
-            command=W25X_ReadStatusReg1;    //读状态寄存器1
+            Command[0] = W25X_ReadStatusReg1;    //读状态寄存器1
             break;
         case 2:
-            command=W25X_ReadStatusReg2;    //读状态寄存器2
+            Command[0] = W25X_ReadStatusReg2;    //读状态寄存器2
             break;
         case 3:
-            command=W25X_ReadStatusReg3;    //读状态寄存器3
+            Command[0] = W25X_ReadStatusReg3;    //读状态寄存器3
             break;
         default:
-            command=W25X_ReadStatusReg1;
+            Command[0] = W25X_ReadStatusReg1;
             break;
     }
-    if(W25QXX_QPI_MODE)
+#if CFG_W25QXX_QSPI_ENABLE == TRUE
+    //QSPI，地址位0，4线传数据，8位地址，无地址，4线传输指令，无空周期，1字节数据
+    ret = QSPI_Send_CMD(Command[0],0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_4_LINES);
+    if (ret)
     {
-        //QSPI，地址位0，4线传数据，8位地址，无地址，4线传输指令，无空周期，1字节数据
-        if(QSPI_Send_CMD(command,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_4_LINES) == false)
-            ret = false;
+        ret = QSPI_Receive(sta, 1);
     }
-    else
+#else
+    //SPI
+    struct SPI_DataFrame CommandFrame;
+    CommandFrame.RecvBuf = sta;
+    CommandFrame.RecvLen = 1;
+    CommandFrame.RecvOff = 1;
+    CommandFrame.SendBuf = Command;
+    CommandFrame.SendLen = 1;
+
+    if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
     {
-        //SPI，地址位0，单线传数据，8位地址，无地址，单线传输指令，无空周期，1字节数据
-        if(QSPI_Send_CMD(command,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_1_LINE) == false)
-            ret = false;
+        if(CN_SPI_EXIT_NOERR ==
+                SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+        {
+            ret = true;
+        }
+
+        if (false == SPI_CsInactive(s_ptSpiPort))
+        {
+            error_printf("W25q","spi cs inactive failed.\r\n");
+        }
     }
-    if(QSPI_Receive(sta, 1) == false)
-        ret = false;
+#endif
 
     return ret;
 }
@@ -160,7 +190,9 @@ bool_t W25QXX_WaitBusy(u32 timeout)
     u32 time = 0;
     u8 sta = 0;
     if(W25QXX_ReadSR(1, &sta) == false)
+    {
         return false;
+    }
     while((sta & 0x01) == 0x01)   //等待空闲
     {
         if(W25QXX_ReadSR(1, &sta) == false)
@@ -183,22 +215,23 @@ bool_t W25QXX_WaitBusy(u32 timeout)
 //返回: true -- 成功; false -- 失败;
 //备注:
 //-----------------------------------------------------------------------------
-u8 W25QXX_WriteSR(u8 regno, u8 data)
+bool_t W25QXX_WriteSR(u8 regno, u8 data)
 {
-    u8 command=0;
+    bool_t ret = false;
+    u8 Command[2];
     switch(regno)
     {
         case 1:
-            command=W25X_WriteStatusReg1;    //写状态寄存器1
+            Command[0] = W25X_WriteStatusReg1;    //写状态寄存器1
             break;
         case 2:
-            command=W25X_WriteStatusReg2;    //写状态寄存器2
+            Command[0] = W25X_WriteStatusReg2;    //写状态寄存器2
             break;
         case 3:
-            command=W25X_WriteStatusReg3;    //写状态寄存器3
+            Command[0] = W25X_WriteStatusReg3;    //写状态寄存器3
             break;
         default:
-            command=W25X_WriteStatusReg1;
+            Command[0] = W25X_WriteStatusReg1;
             break;
     }
 
@@ -207,17 +240,38 @@ u8 W25QXX_WriteSR(u8 regno, u8 data)
         return false;
     }
 
-    if(W25QXX_QPI_MODE)
+#if CFG_W25QXX_QSPI_ENABLE == TRUE
+    //QSPI，地址位0，4线传数据，8位地址，无地址，4线传输指令，无空周期，1字节数据
+    ret = QSPI_Send_CMD(Command[0],0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_4_LINES);
+    if (ret)
     {
-        //QSPI，地址位0，4线传数据，8位地址，无地址，4线传输指令，无空周期，1字节数据
-        QSPI_Send_CMD(command,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_4_LINES);
+        ret = QSPI_Transmit(&data, 1);
     }
-    else
+#else
+    //SPI
+    struct SPI_DataFrame CommandFrame;
+    Command[1] = data;
+    CommandFrame.RecvBuf = NULL;
+    CommandFrame.RecvLen = 0;
+    CommandFrame.RecvOff = 0;
+    CommandFrame.SendBuf = Command;
+    CommandFrame.SendLen = 2;
+
+    if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
     {
-        //SPI，地址位0，单线传数据，8位地址，无地址，单线传输指令，无空周期，1字节数据
-        QSPI_Send_CMD(command,0,0, QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_1_LINE);
+        if(CN_SPI_EXIT_NOERR ==
+                SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+        {
+            ret = true;
+        }
+
+        if (false == SPI_CsInactive(s_ptSpiPort))
+        {
+            error_printf("W25q","spi cs inactive failed.\r\n");
+        }
     }
-    return QSPI_Transmit(&data, 1);
+#endif
+    return ret;
 }
 
 //-----------------------------------------------------------------------------
@@ -253,25 +307,50 @@ bool_t W25QXX_WriteEnableWait(void)
 //-----------------------------------------------------------------------------
 bool_t W25QXX_WriteEnable(void)
 {
+    
     if(W25QXX_WaitBusy(5000) == false)
     {
         return false;
     }
 
-    if(W25QXX_QPI_MODE)
+#if CFG_W25QXX_QSPI_ENABLE == TRUE
+    //QSPI，地址位0，无数据，8位地址，无地址，4线传输指令，无空周期，0字节数据
+    if(QSPI_Send_CMD(W25X_WriteEnable,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE) == false)
     {
-        //QSPI，地址位0，无数据，8位地址，无地址，4线传输指令，无空周期，0字节数据
-         if(QSPI_Send_CMD(W25X_WriteEnable,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE) == false)
-             return false;
+        return false;
     }
-    else
+#else
+    //SPI，
+    struct SPI_DataFrame CommandFrame;
+    bool_t Ret = false;
+    u8 Command[1] = {W25X_WriteEnable};
+
+    CommandFrame.RecvBuf = NULL;
+    CommandFrame.RecvLen = 0;
+    CommandFrame.RecvOff = 0;
+    CommandFrame.SendBuf = Command;
+    CommandFrame.SendLen = 1;
+
+    if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
     {
-        //SPI，地址位0，无数据，8位地址，无地址，单线传输指令，无空周期，0字节数据
-        if(QSPI_Send_CMD(W25X_WriteEnable,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE) == false)
-            return false;
+        if(CN_SPI_EXIT_NOERR ==
+                SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+        {
+            Ret = true;
+        }
+
+        if (false == SPI_CsInactive(s_ptSpiPort))
+        {
+            error_printf("W25q","spi cs inactive failed.\r\n");
+        }
     }
+
+    if (false == Ret)
+    {
+        return false;
+    }
+#endif
     return W25QXX_WriteEnableWait();
-//    return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -289,16 +368,34 @@ bool_t W25QXX_WriteDisable(void)
         return false;
     }
 
-    if(W25QXX_QPI_MODE)
+#if CFG_W25QXX_QSPI_ENABLE == TRUE
+    //QSPI，地址位0，无数据，8位地址，无地址，4线传输指令，无空周期，0字节数据
+    ret = QSPI_Send_CMD(W25X_WriteDisable,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE);
+#else
+    //SPI
+    struct SPI_DataFrame CommandFrame;
+    u8 Command[1] = {W25X_WriteDisable};
+
+    CommandFrame.RecvBuf = NULL;
+    CommandFrame.RecvLen = 0;
+    CommandFrame.RecvOff = 0;
+    CommandFrame.SendBuf = Command;
+    CommandFrame.SendLen = 1;
+
+    if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
     {
-        //QSPI，地址位0，无数据，8位地址，无地址，4线传输指令，无空周期，0字节数据
-        ret = QSPI_Send_CMD(W25X_WriteDisable,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE);
+        if(CN_SPI_EXIT_NOERR ==
+                SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+        {
+            ret = true;
+        }
+
+        if (false == SPI_CsInactive(s_ptSpiPort))
+        {
+            error_printf("W25q","spi cs inactive failed.\r\n");
+        }
     }
-    else
-    {
-        //SPI，地址位0，无数据，8位地址，无地址，单线传输指令，无空周期，0字节数据
-        ret = QSPI_Send_CMD(W25X_WriteDisable,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE);
-    }
+#endif
     return ret;
 }
 
@@ -319,23 +416,49 @@ u16 W25QXX_ReadID(void)
         return false;
     }
 
-    if(W25QXX_QPI_MODE)
-    {
-        //QSPI，地址位0，4线传输数据，24位地址，4线传输地址，4线传输指令，无空周期，2字节数据
-        ret = QSPI_Send_CMD(W25X_ManufactDeviceID,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_24_BITS,QSPI_DATA_4_LINES);
-    }
-    else
-    {
-        //SPI，地址位0，单线传输数据，24位地址，单线传输地址，单线传输指令，无空周期，2字节数据
-        ret = QSPI_Send_CMD(W25X_ManufactDeviceID,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_1_LINE,QSPI_ADDRESS_24_BITS,QSPI_DATA_1_LINE);
-    }
+#if CFG_W25QXX_QSPI_ENABLE == TRUE
+    //QSPI，地址位0，4线传输数据，24位地址，4线传输地址，4线传输指令，无空周期，2字节数据
+    ret = QSPI_Send_CMD(W25X_ManufactDeviceID,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_24_BITS,QSPI_DATA_4_LINES);
+
     if(ret)
     {
         QSPI_Receive(temp,2);
         deviceid=(temp[0] << 8) | temp[1];
     }
     else
+    {
         deviceid = 0;
+    }
+#else
+    //SPI
+    struct SPI_DataFrame CommandFrame;
+    u8 Command[4];
+
+    Command[0] = W25X_ManufactDeviceID;
+    Command[1] = 0x0;
+    Command[2] = 0x0;
+    Command[3] = 0x0;
+
+    CommandFrame.RecvBuf = temp;
+    CommandFrame.RecvLen = 2;
+    CommandFrame.RecvOff = 4;
+    CommandFrame.SendBuf = Command;
+    CommandFrame.SendLen = 4;
+
+    if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
+    {
+        if(CN_SPI_EXIT_NOERR ==
+                SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+        {
+            deviceid=(temp[0] << 8) | temp[1];
+        }
+
+        if (false == SPI_CsInactive(s_ptSpiPort))
+        {
+            error_printf("W25q","spi cs inactive failed.\r\n");
+        }
+    }
+#endif
     return deviceid;
 }
 //-----------------------------------------------------------------------------
@@ -346,26 +469,51 @@ u16 W25QXX_ReadID(void)
 //-----------------------------------------------------------------------------
 bool_t W25QXX_EraseChip(void)
 {
+    bool_t res = false;
     if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
     {
         if(W25QXX_WriteEnable())
         {
             if(W25QXX_WaitBusy(5000))
             {
+#if CFG_W25QXX_QSPI_ENABLE == TRUE
                 //QSPI，地址为0，无数据，8位地址，无地址，4线传输指令，无空周期
-                if(QSPI_Send_CMD(W25X_ChipErase,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE))
+                res = QSPI_Send_CMD(W25X_ChipErase,0,0,QSPI_INSTRUCTION_4_LINES,
+                                    QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE);
+#else
+                // SPI
+                struct SPI_DataFrame CommandFrame;
+                u8 Command[1] = {W25X_ChipErase};
+
+                CommandFrame.RecvBuf = NULL;
+                CommandFrame.RecvLen = 0;
+                CommandFrame.RecvOff = 0;
+                CommandFrame.SendBuf = Command;
+                CommandFrame.SendLen = 1;
+
+                if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
                 {
-                    if(W25QXX_WaitBusy(5000))
+                    if(CN_SPI_EXIT_NOERR ==
+                            SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
                     {
-                        Lock_MutexPost(W25qxx_Lock);
-                        return true;
+                        res = true;
                     }
+
+                    if (false == SPI_CsInactive(s_ptSpiPort))
+                    {
+                        error_printf("W25q","spi cs inactive failed.\r\n");
+                    }
+                }
+#endif
+                if ((res) && (W25QXX_WaitBusy(500000)))
+                {
+                    res = true;
                 }
             }
         }
         Lock_MutexPost(W25qxx_Lock);
     }
-    return false;
+    return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -376,27 +524,50 @@ bool_t W25QXX_EraseChip(void)
 //-----------------------------------------------------------------------------
 bool_t W25QXX_EraseSector(u32 addr)
 {
+    bool_t res = false;
     addr *= 4096;
     if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
     {
         if(W25QXX_WriteEnable())
         {
-    //        if(W25QXX_WaitBusy(5000))
-    //        {
-                //QSPI，地址为addr，无数据，32位地址，4线传输地址，4线传输指令，无空周期
-                if(QSPI_Send_CMD(W25X_SectorErase,addr,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_NONE))
+#if CFG_W25QXX_QSPI_ENABLE == TRUE
+            //QSPI，地址为addr，无数据，32位地址，4线传输地址，4线传输指令，无空周期
+            res = QSPI_Send_CMD(W25X_SectorErase,addr,0,QSPI_INSTRUCTION_4_LINES,
+                                    QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_NONE);
+#else
+            // SPI
+            struct SPI_DataFrame CommandFrame;
+            u8 Command[4];
+
+            Command[0] = W25X_SectorErase;
+            Command[1] = ((addr >> 16) & 0xFF);
+            Command[2] = ((addr >> 8) & 0xFF);
+            Command[3] = (addr & 0xFF);
+
+            CommandFrame.RecvBuf = NULL;
+            CommandFrame.RecvLen = 0;
+            CommandFrame.RecvOff = 0;
+            CommandFrame.SendBuf = Command;
+            CommandFrame.SendLen = 4;
+
+            if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
+            {
+                if(CN_SPI_EXIT_NOERR ==
+                        SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
                 {
-    //                if(W25QXX_WaitBusy(5000))
-    //                {
-                        Lock_MutexPost(W25qxx_Lock);
-                        return true;
-    //                }
+                    res = true;
                 }
-    //        }
+
+                if (false == SPI_CsInactive(s_ptSpiPort))
+                {
+                    error_printf("W25q","spi cs inactive failed.\r\n");
+                }
+            }
+#endif
         }
         Lock_MutexPost(W25qxx_Lock);
     }
-    return false;
+    return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -407,27 +578,50 @@ bool_t W25QXX_EraseSector(u32 addr)
 //-----------------------------------------------------------------------------
 bool_t W25QXX_EraseBlock(u32 addr)
 {
+    bool_t res = false;
     addr *= 65536;
     if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
     {
         if(W25QXX_WriteEnable())
         {
-    //        if(W25QXX_WaitBusy(5000))
-    //        {
-                //QSPI，地址为addr，无数据，32位地址，4线传输地址，4线传输指令，无空周期
-                if(QSPI_Send_CMD(W25X_BlockErase,addr,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_NONE))
+#if CFG_W25QXX_QSPI_ENABLE == TRUE
+            //QSPI，地址为addr，无数据，32位地址，4线传输地址，4线传输指令，无空周期
+            res = QSPI_Send_CMD(W25X_BlockErase,addr,0,QSPI_INSTRUCTION_4_LINES,
+                                QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_NONE);
+#else
+            // SPI
+            struct SPI_DataFrame CommandFrame;
+            u8 Command[4];
+
+            Command[0] = W25X_BlockErase;
+            Command[1] = ((addr >> 16) & 0xFF);
+            Command[2] = ((addr >> 8) & 0xFF);
+            Command[3] = (addr & 0xFF);
+
+            CommandFrame.RecvBuf = NULL;
+            CommandFrame.RecvLen = 0;
+            CommandFrame.RecvOff = 0;
+            CommandFrame.SendBuf = Command;
+            CommandFrame.SendLen = 4;
+
+            if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
+            {
+                if(CN_SPI_EXIT_NOERR ==
+                        SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
                 {
-    //                if(W25QXX_WaitBusy(5000))
-    //                {
-                        Lock_MutexPost(W25qxx_Lock);
-                        return true;
-    //                }
+                    res = true;
                 }
-    //        }
+
+                if (false == SPI_CsInactive(s_ptSpiPort))
+                {
+                    error_printf("W25q","spi cs inactive failed.\r\n");
+                }
+            }
+#endif
         }
         Lock_MutexPost(W25qxx_Lock);
     }
-    return false;
+    return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -445,6 +639,7 @@ bool_t W25QXX_Read(u8* buf,u32 addr,u32 len)
         {
             ret = false;
         }
+#if CFG_W25QXX_QSPI_ENABLE == TRUE
         //QSPI，快速读数据，地址为addr，4线传输数据，32位地址，4线传输地址，4线传输指令，2个空周期，
         if(QSPI_Send_CMD(W25X_FastReadData,addr,2,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_4_LINES))
         {
@@ -457,6 +652,40 @@ bool_t W25QXX_Read(u8* buf,u32 addr,u32 len)
                 ret = false;
             }
         }
+#else
+        struct SPI_DataFrame CommandFrame;
+        u8 Command[4];
+
+        // Command[0] = W25X_ReadData;
+        // Command[1] = ((addr >> 8) & 0xFF);
+        // Command[2] = (addr & 0xFF);
+        // Command[3] = 0;
+        Command[0] = W25X_ReadData;
+        Command[1] = ((addr >> 16) & 0xFF);
+        Command[2] = ((addr >> 8) & 0xFF);
+        Command[3] = (addr & 0xFF);
+
+        CommandFrame.RecvBuf = buf;
+        CommandFrame.RecvLen = len;
+        CommandFrame.RecvOff = 4;
+        CommandFrame.SendBuf = Command;
+        CommandFrame.SendLen = 4;
+
+        if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
+        {
+            if(CN_SPI_EXIT_NOERR ==
+                    SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+            {
+                ret = true;
+            }
+
+            if (false == SPI_CsInactive(s_ptSpiPort))
+            {
+                error_printf("W25q","spi cs inactive failed.\r\n");
+            }
+        }
+
+#endif
         Lock_MutexPost(W25qxx_Lock);
     }
     return ret;
@@ -470,31 +699,61 @@ bool_t W25QXX_Read(u8* buf,u32 addr,u32 len)
 //-----------------------------------------------------------------------------
 bool_t W25QXX_WritePage(u8* buf,u32 addr,u32 len)
 {
+    bool_t res = false;
     if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
     {
         if(W25QXX_WriteEnable())
         {
+#if CFG_W25QXX_QSPI_ENABLE == TRUE
             //QSPI，页写，地址为addr，4线传输数据，32位地址，4线传输地址，4线传输指令，0个空周期，
             if(QSPI_Send_CMD(W25X_PageProgram,addr,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_4_LINES))
             {
-                if(QSPI_Transmit(buf, len))
+                res = QSPI_Transmit(buf, len);
+            }
+#else
+            struct SPI_DataFrame CommandFrame;
+            u8 Command[4];
+
+            // Command[0] = W25X_PageProgram;
+            // Command[1] = ((addr >> 8) & 0xFF);
+            // Command[2] = (addr & 0xFF);
+            // Command[3] = 0;
+
+            Command[0] = W25X_PageProgram;
+            Command[1] = ((addr >> 16) & 0xFF);
+            Command[2] = ((addr >> 8) & 0xFF);
+            Command[3] = (addr & 0xFF);
+
+            CommandFrame.RecvBuf = NULL;
+            CommandFrame.RecvLen = 0;
+            CommandFrame.RecvOff = 0;
+            CommandFrame.SendBuf = Command;
+            CommandFrame.SendLen = 4;
+
+            if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
+            {
+                if(CN_SPI_EXIT_NOERR == SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
                 {
-    //                if(W25QXX_WaitBusy(5000))
-    //                {
-                        Lock_MutexPost(W25qxx_Lock);
-                        return true;
-    //                }
-    //                else
-    //                {
-    //                    Lock_MutexPost(W25qxx_Lock);
-    //                    return false;
-    //                }
+                    CommandFrame.RecvBuf = NULL;
+                    CommandFrame.RecvLen = 0;
+                    CommandFrame.RecvOff = 0;
+                    CommandFrame.SendBuf = buf;
+                    CommandFrame.SendLen = len;
+                    if(CN_SPI_EXIT_NOERR == SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+                    {
+                        res = true;
+                    }
+                }
+                if (false == SPI_CsInactive(s_ptSpiPort))
+                {
+                    error_printf("W25q","spi cs inactive failed.\r\n");
                 }
             }
+#endif
         }
         Lock_MutexPost(W25qxx_Lock);
     }
-    return false;
+    return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -510,7 +769,7 @@ bool_t W25QXX_WriteNoErase(u8* buf,u32 addr,u32 len)
 
     if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
     {
-        remain = 256 - addr % 256;  //单页还剩余的字节数
+        remain = CFG_W25QXX_BYTES_PAGE - addr % CFG_W25QXX_BYTES_PAGE;  //单页还剩余的字节数
         if(len <= remain)
             remain = len;
         while(1)
@@ -527,8 +786,8 @@ bool_t W25QXX_WriteNoErase(u8* buf,u32 addr,u32 len)
                     buf += remain;
                     addr += remain;
                     len -= remain;
-                    if(len > 256)
-                        remain = 256;
+                    if(len > CFG_W25QXX_BYTES_PAGE)
+                        remain = CFG_W25QXX_BYTES_PAGE;
                     else
                         remain = len;
                 }
@@ -576,33 +835,33 @@ bool_t W25QXX_Write(u8* buf,u32 addr,u16 len)
                 }
                 if(i < sec_remain)    //需要擦除
                 {
-                    if(W25QXX_EraseSector(sec))
+                    if(!W25QXX_EraseSector(sec))
                     {
-                        for(i=0; i<sec_remain; i++)
-                        {
-                            W25QXX_BUFFER[i + sec_off] = buf[i];
-                        }
-                        if(W25QXX_WriteNoErase(W25QXX_BUFFER, sec*4096, 4096) == false)
-                        {
-                            ret = false;
-                            break;
-                        }
-                    }
-                    else
-                    {
+//                        for(i=0; i<sec_remain; i++)
+//                        {
+//                            W25QXX_BUFFER[i + sec_off] = buf[i];
+//                        }
+//                        if(W25QXX_WriteNoErase(W25QXX_BUFFER, sec*4096, 4096) == false)
+//                        {
+//                            ret = false;
+//                            break;
+//                        }
                         ret = false;
                         break;
                     }
+//                    else
+//                    {
+//                    }
 
                 }
-                else
-                {
+//                else
+//                {
                     if(W25QXX_WriteNoErase(buf, addr, sec_remain) == false)
                     {
                         ret = false;
                         break;
                     }
-                }
+//                }
                 if(len == sec_remain)
                     break;  //写完了
                 else
@@ -630,6 +889,7 @@ bool_t W25QXX_Write(u8* buf,u32 addr,u16 len)
     return ret;
 }
 
+#if CFG_W25QXX_QSPI_ENABLE == TRUE
 //-----------------------------------------------------------------------------
 //功能: W25QXX_Qspi使能
 //参数: 无
@@ -654,7 +914,6 @@ bool_t W25QXX_QspiEnable(void)
 //        QSPI_Send_CMD(W25X_ExitQPIMode,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE);
         if(QSPI_Send_CMD(W25X_EnterQPIMode,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE))
         {
-            W25QXX_QPI_MODE=1;              //标记QSPI模式
             if(W25QXX_ReadSR(2, &sta2))       //读状态寄存器2的值
             {
                 if((sta2 & 0X02)==0)           //QE位未使能
@@ -668,10 +927,7 @@ bool_t W25QXX_QspiEnable(void)
     }
     else
     {
-        if(QSPI_Send_CMD(W25X_EnterQPIMode,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE))
-            W25QXX_QPI_MODE=1;              //标记QSPI模式
-        else
-            ret = false;
+        ret = QSPI_Send_CMD(W25X_EnterQPIMode,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE);
     }
     return ret;
 }
@@ -687,13 +943,13 @@ bool_t W25QXX_QspiDisable(void)
     //写失能QSPI指令，地址为0，无数据，8位地址，无地址，4线传输指令，无空周期，0个字节数据
     if(QSPI_Send_CMD(W25X_ExitQPIMode,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE))
     {
-        W25QXX_QPI_MODE=0;              //标记SPI模式
         return true;
     }
     else
         return false;
 }
 
+#endif
 //-----------------------------------------------------------------------------
 //功能: W25QXX初始化
 //参数: 无
@@ -702,41 +958,64 @@ bool_t W25QXX_QspiDisable(void)
 //-----------------------------------------------------------------------------
 bool_t W25QXX_Init(void)
 {
-    u8 temp;
     u16 chip_id;
     bool_t ret = false;
-    if(W25QXX_QspiEnable())
+
+#if CFG_W25QXX_QSPI_ENABLE == TRUE
+    u8 temp;
+    if (false == W25QXX_QspiEnable())
     {
-        chip_id = W25QXX_ReadID();
-        if(chip_id == 0XEF18)
+        return false;
+    }
+#else
+    s_ptSpiPort = SPI_DevAdd(CFG_W25_SPI_NAME,"w25qxx",0,8,SPI_MODE_0,SPI_SHIFT_MSB,1000*1000,false);
+    if(s_ptSpiPort)
+    {
+        SPI_BusCtrl(s_ptSpiPort,CN_SPI_SET_POLL,0,0);
+        SPI_BusCtrl(s_ptSpiPort,CN_SPI_SET_CLK, 30 * 1000 * 1000, 0);
+    }
+    else
+    {
+        error_printf("W25q","Add spi dev failed.\n\r");
+        return false;
+    }
+#endif
+
+    chip_id = W25QXX_ReadID();
+    if(chip_id == CFG_W25QXX_CHIP_ID)
+    {
+ #if CFG_W25QXX_QSPI_ENABLE == TRUE       
+        if(W25QXX_ReadSR(3, &temp))      //读状态寄存器3
         {
-            if(W25QXX_ReadSR(3, &temp))      //读状态寄存器3
+            if((temp & 0X01) == 0)          //判断当前是否为4地址模式，0是3地址模式，1是4地址模式
             {
-                if((temp & 0X01) == 0)          //判断当前是否为4地址模式，0是3地址模式，1是4地址模式
+                if(W25QXX_WriteEnable())  //写使能
                 {
-                    if(W25QXX_WriteEnable())  //写使能
-                    {
-                        //写使能4字节地址指令，地址为0，无数据，8位地址，无地址，4线传输指令，无空周期，0个字节数据
-                        if(QSPI_Send_CMD(W25X_Enable4ByteAddr,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE) == false)
-                            return ret;
-                    }
-                    else
+                    //写使能4字节地址指令，地址为0，无数据，8位地址，无地址，4线传输指令，无空周期，0个字节数据
+                    if(QSPI_Send_CMD(W25X_Enable4ByteAddr,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE) == false)
                         return ret;
                 }
-                if(W25QXX_WriteEnable())
+                else
+                    return ret;
+            }
+            if(W25QXX_WriteEnable())
+            {
+                //写设置读参数指令，地址为0，4线传输数据，8位地址，无地址，4线传输指令，无空周期，0个字节数据
+                if(QSPI_Send_CMD(W25X_SetReadParam,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_4_LINES))
                 {
-                    //写设置读参数指令，地址为0，4线传输数据，8位地址，无地址，4线传输指令，无空周期，0个字节数据
-                    if(QSPI_Send_CMD(W25X_SetReadParam,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_4_LINES))
-                    {
-                        temp = 0<<4;                  //设置P4&P5=00,2个dummy clocks,44M
-                        if(QSPI_Transmit(&temp,1))
-                            ret = true;
-                    }
+                    temp = 0<<4;                  //设置P4&P5=00,2个dummy clocks,44M
+                    if(QSPI_Transmit(&temp,1))
+                        ret = true;
                 }
             }
         }
-        else
-            error_printf("W25q","chip ID error.\r\n");
+#else
+        ret = true;
+#endif
+    }
+    else
+    {
+        error_printf("W25q","chip ID error.\r\n");
     }
     return ret;
 }
@@ -774,6 +1053,12 @@ s32 __W25qxx_Req(enum ucmd cmd, ptu32_t args, ...)
             *((u32*)args) =  W25qxx_description->BlockNum;
             break;
         }
+        case totalSectors:
+        {
+            *((u32*)args) =  W25qxx_description->SectorNum;
+            break;
+        }
+
 
         case blockunits:
         {
@@ -835,7 +1120,7 @@ s32 ModuleInstall_W25qxx(void)
     W25qxx_Lock = Lock_MutexCreate("gd25q16c Lock");
     if(!W25qxx_Lock)
     {
-        printf("\r\nMODULE INSTALL : error : cannot create w25qxx flash lock.");
+        error_printf("W25q","MODULE INSTALL : error : cannot create w25qxx flash lock.");
         return false;
     }
 
@@ -850,19 +1135,19 @@ s32 ModuleInstall_W25qxx(void)
         W25qxx_description = malloc(sizeof(struct NorDescr));
         if(!W25qxx_description)
         {
-            printf("\r\n: erro : device : memory out.\r\n");
+            error_printf("W25q","erro : device : memory out.\r\n");
             return false;
         }
         memset(W25qxx_description, 0x0, (sizeof(struct NorDescr)));
         W25qxx_description->PortType = NOR_SPI;
         W25qxx_description->Port = NULL;
-        W25qxx_description->BytesPerPage = 256;
-        W25qxx_description->SectorNum = 8192;
-        W25qxx_description->BlockNum = 512;
+        W25qxx_description->BytesPerPage = CFG_W25QXX_BYTES_PAGE;
+        W25qxx_description->SectorNum = CFG_W25QXX_SECTORS_NUM;
+        W25qxx_description->BlockNum = CFG_W25QXX_SECTORS_NUM / CFG_W25QXX_SECTORS_BLOCK;
         W25qxx_description->BlocksPerSector = 0;
-        W25qxx_description->PagesPerSector = 16;
-        W25qxx_description->SectorsPerBlock = 16;
-        W25qxx_description->PagesPerBlock = 256;
+        W25qxx_description->PagesPerSector = CFG_W25QXX_PAGES_SECTOR;
+        W25qxx_description->SectorsPerBlock = CFG_W25QXX_SECTORS_BLOCK;
+        W25qxx_description->PagesPerBlock = CFG_W25QXX_PAGES_SECTOR * CFG_W25QXX_SECTORS_BLOCK;
         W25qxx_description->ReservedBlks = 0;
     }
 
@@ -875,6 +1160,22 @@ s32 ModuleInstall_W25qxx(void)
         {
             warning_printf("W25q"," Format failure.\r\n");
         }
+    }
+
+    w25q_flash_um = malloc(sizeof(struct umedia));
+    if(!w25q_flash_um)
+    {
+        return (-1);
+    }
+    w25q_flash_um->mreq = __W25qxx_Req;
+    w25q_flash_um->type = nor;
+    w25q_flash_um->ubuf = NULL;
+
+    if(!Device_Create((const char*)W25qFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)w25q_flash_um)))
+    {
+        printf("\r\n: erro : device : %s addition failed.", W25qFlashName);
+        free(w25q_flash_um);
+        return (-1);
     }
 
     W25qxx_InitFlag = true;
@@ -894,7 +1195,71 @@ bool_t W25qxx_is_install(void)
     return W25qxx_InitFlag;
 }
 
+// ============================================================================
+// 功能：初始化片内flash
+// 参数：fs -- 需要挂载的文件系统，mediadrv -- 媒体驱动，
+//       bstart -- 起始块，bend -- 结束块（不包括该块，只到该块的上一块）
+// 返回：0 -- 成功， -1 -- 失败
+// 备注：
+// ============================================================================
+s32 __w25qxx_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
+{
+     u32 units, total = 0,endblock = bend;
+    char *FullPath,*notfind;
+    struct Object *targetobj;
+    struct FsCore *super;
+    s32 res;
+    targetobj = OBJ_MatchPath(fs, &notfind);
+    if(notfind)
+    {
+        error_printf("embed"," not found need to install file system.\r\n");
+        return -1;
+    }
+    super = (struct FsCore *)OBJ_GetPrivate(targetobj);
+    super->MediaInfo = w25q_flash_um;
+    super->MediaDrv = mediadrv;
 
+     if(-1 == (s32)endblock)
+     {
+         endblock = bend = W25qxx_description->BlockNum; // 最大块号
+     }
+
+     do
+     {
+         if(__W25qxx_Req(blockunits, (ptu32_t)&units, --endblock))
+         {
+             return (-1);
+         }
+
+         total += units;
+     }
+     while(endblock!=bstart);
+
+    super->AreaSize = W25qxx_description->BytesPerPage * total;
+    // endblock = 0;
+    // total = 0;
+    // while(endblock<bstart)
+    // {
+    //     if(__embed_req(blockunits, (ptu32_t)&units, endblock++))
+    //     {
+    //         return (-1);
+    //     }
+    //     total += units;
+    // }
+
+    super->MediaStart = bstart * W25qxx_description->PagesPerBlock; // 起始unit号
+
+    res = strlen(W25qFlashName) + strlen(s_ptDeviceRoot->name) + 1;
+    FullPath = malloc(res);
+    memset(FullPath, 0, res);
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,W25qFlashName);   //获取该设备的全路径
+    File_BeMedia(FullPath,fs); //往该设备挂载文件系统
+    free(FullPath);
+
+    printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);
+    return (0);
+
+}
 
 
 
@@ -1355,6 +1720,7 @@ s32 ModuleInstall_W25qxx(void)
     return (0);
 
 }
+#endif
 //-----------------------------------------------------------------------------
 //功能: 驱动测试
 //参数:
@@ -1364,71 +1730,471 @@ s32 ModuleInstall_W25qxx(void)
 void W25qxx_LocalTest(void)
 {
     u32 i, j, k;
-    u8 Test[256];
-    s32 Ret;
     u16 temp;
-    temp = __ID();
+    u8 WriteBuf[CFG_W25QXX_BYTES_PAGE];
+    u8 ReadBuf[CFG_W25QXX_BYTES_PAGE];
+    temp = W25QXX_ReadID();
+    debug_printf("W25q"," chip id is 0x%4x.\r\n", temp);
 
-#if (1)
-    for(i=0; i<s_pChip->Descr.Nor.BytesPerPage; i++)
-        Test[i] = i;
-
-    for(k=0; k<s_pChip->Descr.Nor.Blks; k++)
+    for(i=0; i<W25qxx_description->BytesPerPage; i++)
     {
-        Ret = s_pChip->Ops.ErsBlk(k);
-        if(Ret)
-            while(1);
-
-        for(i=0; i<(s_pChip->Descr.Nor.PagesPerSector*s_pChip->Descr.Nor.SectorsPerBlk); ++i)
+        WriteBuf[i] = i;
+    }
+    // 测读写块擦除
+    if(false == W25QXX_EraseChip())
+    {
+        error_printf("W25q"," erase chip failed.\r\n");
+    }
+    else
+    {
+        for(k=0; k<W25qxx_description->BlockNum; k++)
         {
-            Ret = s_pChip->Ops.RdPage((i+(k*(s_pChip->Descr.Nor.PagesPerSector*s_pChip->Descr.Nor.SectorsPerBlk))),
-                                       s_pChip->Buf, 0);
-            if(s_pChip->Descr.Nor.BytesPerPage != Ret)
-                while(1);
+            for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+            {
+                memset(ReadBuf, 0, sizeof(ReadBuf));
+                if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerBlock)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+                {
+                    for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                    {
+                        if(ReadBuf[j] != 0xFF)
+                        {
+                            error_printf("W25q"," page erase %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                }
+            }
 
-            for(j=0; j<s_pChip->Descr.Nor.BytesPerPage; j++)
-                if(s_pChip->Buf[j] != 0xFF)
-                    while(1);
-        }
 
+            for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+            {
+                if (false == W25QXX_WritePage(WriteBuf, 
+                        (i+(k*(W25qxx_description->PagesPerBlock)))*W25qxx_description->BytesPerPage, sizeof(WriteBuf)))
+                {
+                    error_printf("W25q"," write block %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                }
+            }
 
-        for(i=0; i<(s_pChip->Descr.Nor.PagesPerSector*s_pChip->Descr.Nor.SectorsPerBlk); ++i)
-        {
-            Ret = s_pChip->Ops.WrPage((i+(k*(s_pChip->Descr.Nor.PagesPerSector*s_pChip->Descr.Nor.SectorsPerBlk))), Test, 0);
-            if(s_pChip->Descr.Nor.BytesPerPage != Ret)
-                while(1);
-        }
+            for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+            {
+                memset(ReadBuf, 0, sizeof(ReadBuf));
+                if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerBlock)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+                {
+                    for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                    {
+                        if(ReadBuf[j] != WriteBuf[j])
+                        {
+                            error_printf("W25q"," page %d data error.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                }
+            }
+            if (false == W25QXX_EraseBlock(k))
+            {
+                error_printf("W25q"," erase block %d failed.\r\n", k);
+            }
 
-        for(i=0; i<(s_pChip->Descr.Nor.PagesPerSector*s_pChip->Descr.Nor.SectorsPerBlk); ++i)
-        {
-            Ret = s_pChip->Ops.RdPage((i+(k*(s_pChip->Descr.Nor.PagesPerSector*s_pChip->Descr.Nor.SectorsPerBlk))),
-                                      s_pChip->Buf, 0);
-            if(s_pChip->Descr.Nor.BytesPerPage != Ret)
-                while(1);
-
-            for(j=0; j<s_pChip->Descr.Nor.BytesPerPage; j++)
-                if(s_pChip->Buf[j] != j)
-                    while(1);
+            for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+            {
+                memset(ReadBuf, 0, sizeof(ReadBuf));
+                if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerBlock)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+                {
+                    for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                    {
+                        if(ReadBuf[j] != 0xFF)
+                        {
+                            error_printf("W25q"," page erase %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                }
+            }
         }
     }
-#endif
-    if(EarseWholeChip(s_pChip))
-        while(1);
-    k = (s_pChip->Descr.Nor.PagesPerSector * s_pChip->Descr.Nor.SectorsPerBlk * s_pChip->Descr.Nor.Blks);
-    for(i=0; i<k; i++)
-    {
-        Ret = s_pChip->Ops.RdPage(i, s_pChip->Buf, 0);
-        if(s_pChip->Descr.Nor.BytesPerPage != Ret)
-            while(1);
 
-        for(j=0; j<s_pChip->Descr.Nor.BytesPerPage; j++)
-            if(s_pChip->Buf[j] != 0xFF)
-                while(1);
+    // 先写满flash
+    for(k=0; k<W25qxx_description->BlockNum; k++)
+    {
+        for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+        {
+            memset(ReadBuf, 0, sizeof(ReadBuf));
+            if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerBlock)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+            {
+                for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                {
+                    if(ReadBuf[j] != 0xFF)
+                    {
+                        error_printf("W25q"," page erase %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+            }
+        }
+
+
+        for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+        {
+            if (false == W25QXX_WritePage(WriteBuf, 
+                    (i+(k*(W25qxx_description->PagesPerBlock)))*W25qxx_description->BytesPerPage, sizeof(WriteBuf)))
+            {
+                error_printf("W25q"," write block %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+            }
+        }
+
+        for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+        {
+            memset(ReadBuf, 0, sizeof(ReadBuf));
+            if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerBlock)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+            {
+                for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                {
+                    if(ReadBuf[j] != WriteBuf[j])
+                    {
+                        error_printf("W25q"," page %d data error.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+            }
+        }
     }
 
-    while(1);
+    // 测整片擦除
+    if(false == W25QXX_EraseChip())
+    {
+        error_printf("W25q"," erase chip failed.\r\n");
+    }
+    else
+    {
+        for(k=0; k<W25qxx_description->BlockNum; k++)
+        {
+            for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+            {
+                memset(ReadBuf, 0, sizeof(ReadBuf));
+                if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerBlock)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+                {
+                    for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                    {
+                        if(ReadBuf[j] != 0xFF)
+                        {
+                            error_printf("W25q"," page erase %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                }
+            }
+
+        }
+    }
+
+    // 测扇区擦除
+    for(k=0; k<W25qxx_description->SectorNum; k++)
+    {
+        for(i=0; i<(W25qxx_description->PagesPerSector); ++i)
+        {
+            memset(ReadBuf, 0, sizeof(ReadBuf));
+            if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerSector)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+            {
+                for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                {
+                    if(ReadBuf[j] != 0xFF)
+                    {
+                        error_printf("W25q"," page erase %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerSector))));
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerSector))));
+            }
+        }
+
+
+        for(i=0; i<(W25qxx_description->PagesPerSector); ++i)
+        {
+            if (false == W25QXX_WritePage(WriteBuf, 
+                    (i+(k*(W25qxx_description->PagesPerSector)))*W25qxx_description->BytesPerPage, sizeof(WriteBuf)))
+            {
+                error_printf("W25q"," write sector %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerSector))));
+            }
+        }
+
+        for(i=0; i<(W25qxx_description->PagesPerSector); ++i)
+        {
+            memset(ReadBuf, 0, sizeof(ReadBuf));
+            if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerSector)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+            {
+                for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                {
+                    if(ReadBuf[j] != WriteBuf[j])
+                    {
+                        error_printf("W25q"," page %d data error.\r\n", (i+(k*(W25qxx_description->PagesPerSector))));
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerSector))));
+            }
+        }
+        if (false == W25QXX_EraseSector(k))
+        {
+            error_printf("W25q"," erase block %d failed.\r\n", k);
+        }
+
+        for(i=0; i<(W25qxx_description->PagesPerSector); ++i)
+        {
+            memset(ReadBuf, 0, sizeof(ReadBuf));
+            if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerSector)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+            {
+                for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                {
+                    if(ReadBuf[j] != 0xFF)
+                    {
+                        error_printf("W25q"," page erase %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerSector))));
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerSector))));
+            }
+        }
+    }
+
+    // 擦除芯片后写满2个块
+    if(false == W25QXX_EraseChip())
+    {
+        error_printf("W25q"," erase chip failed.\r\n");
+    }
+    else
+    {
+        for(k=0; k<2; k++)
+        {
+            for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+            {
+                memset(ReadBuf, 0, sizeof(ReadBuf));
+                if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerBlock)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+                {
+                    for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                    {
+                        if(ReadBuf[j] != 0xFF)
+                        {
+                            error_printf("W25q"," page erase %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                }
+            }
+
+
+            for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+            {
+                if (false == W25QXX_WritePage(WriteBuf, 
+                        (i+(k*(W25qxx_description->PagesPerBlock)))*W25qxx_description->BytesPerPage, sizeof(WriteBuf)))
+                {
+                    error_printf("W25q"," write block %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                }
+            }
+
+            for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+            {
+                memset(ReadBuf, 0, sizeof(ReadBuf));
+                if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerBlock)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+                {
+                    for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                    {
+                        if(ReadBuf[j] != WriteBuf[j])
+                        {
+                            error_printf("W25q"," page %d data error.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerBlock))));
+                }
+            }
+        }
+        // 擦除第一个块
+        if (false == W25QXX_EraseBlock(0))
+        {
+            error_printf("W25q"," erase block %d failed.\r\n", 0);
+        }
+        // 第一个块是全ff
+        for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+        {
+            memset(ReadBuf, 0, sizeof(ReadBuf));
+            if (W25QXX_Read(ReadBuf, i*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+            {
+                for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                {
+                    if(ReadBuf[j] != 0xFF)
+                    {
+                        error_printf("W25q"," page erase %d failed.\r\n", i);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                error_printf("W25q"," read page %d failed.\r\n", i);
+            }
+        }
+        // 第二个块还有数据
+        for(i=0; i<(W25qxx_description->PagesPerBlock); ++i)
+        {
+            memset(ReadBuf, 0, sizeof(ReadBuf));
+            if (W25QXX_Read(ReadBuf, (i+W25qxx_description->PagesPerBlock)*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+            {
+                for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                {
+                    if(ReadBuf[j] != WriteBuf[j])
+                    {
+                        error_printf("W25q"," page %d data error.\r\n", (i+W25qxx_description->PagesPerBlock));
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                error_printf("W25q"," read page %d failed.\r\n", (i+W25qxx_description->PagesPerBlock));
+            }
+        }
+    }
+
+    // 测写2个扇区擦一个扇区
+    for(k=0; k<2; k++)
+    {
+        for(i=0; i<(W25qxx_description->PagesPerSector); ++i)
+        {
+            memset(ReadBuf, 0, sizeof(ReadBuf));
+            if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerSector)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+            {
+                for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                {
+                    if(ReadBuf[j] != 0xFF)
+                    {
+                        error_printf("W25q"," page erase %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerSector))));
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerSector))));
+            }
+        }
+
+
+        for(i=0; i<(W25qxx_description->PagesPerSector); ++i)
+        {
+            if (false == W25QXX_WritePage(WriteBuf, 
+                    (i+(k*(W25qxx_description->PagesPerSector)))*W25qxx_description->BytesPerPage, sizeof(WriteBuf)))
+            {
+                error_printf("W25q"," write block %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerSector))));
+            }
+        }
+
+        for(i=0; i<(W25qxx_description->PagesPerSector); ++i)
+        {
+            memset(ReadBuf, 0, sizeof(ReadBuf));
+            if (W25QXX_Read(ReadBuf, (i+(k*(W25qxx_description->PagesPerSector)))*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+            {
+                for(j=0; j<W25qxx_description->BytesPerPage; j++)
+                {
+                    if(ReadBuf[j] != WriteBuf[j])
+                    {
+                        error_printf("W25q"," page %d data error.\r\n", (i+(k*(W25qxx_description->PagesPerSector))));
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                error_printf("W25q"," read page %d failed.\r\n", (i+(k*(W25qxx_description->PagesPerSector))));
+            }
+        }
+    }
+    // 擦除第一个块
+    if (false == W25QXX_EraseSector(0))
+    {
+        error_printf("W25q"," erase block %d failed.\r\n", 0);
+    }
+    // 第一个块是全ff
+    for(i=0; i<(W25qxx_description->PagesPerSector); ++i)
+    {
+        memset(ReadBuf, 0, sizeof(ReadBuf));
+        if (W25QXX_Read(ReadBuf, i*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+        {
+            for(j=0; j<W25qxx_description->BytesPerPage; j++)
+            {
+                if(ReadBuf[j] != 0xFF)
+                {
+                    error_printf("W25q"," page erase %d failed.\r\n", i);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            error_printf("W25q"," read page %d failed.\r\n", i);
+        }
+    }
+    // 第二个扇区还有数据
+    for(i=0; i<(W25qxx_description->PagesPerSector); ++i)
+    {
+        memset(ReadBuf, 0, sizeof(ReadBuf));
+        if (W25QXX_Read(ReadBuf, (i+W25qxx_description->PagesPerSector)*W25qxx_description->BytesPerPage, sizeof(ReadBuf)))
+        {
+            for(j=0; j<W25qxx_description->BytesPerPage; j++)
+            {
+                if(ReadBuf[j] != WriteBuf[j])
+                {
+                    error_printf("W25q"," page %d data error.\r\n", (i+W25qxx_description->PagesPerSector));
+                    break;
+                }
+            }
+        }
+        else
+        {
+            error_printf("W25q"," read page %d failed.\r\n", (i+W25qxx_description->PagesPerSector));
+        }
+    }
+
 }
-#endif
 
 
 

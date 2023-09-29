@@ -158,7 +158,7 @@ void Init_Cpu(void)
 //  else
 //      Iboot_LoadPreload( );
 
-#if (CFG_RUNMODE_BAREAPP == 1)
+#if (CFG_RUNMODE == CN_RUNMODE_BOOTSELF)
     Iboot_LoadPreload();
 #else
     Iboot_IAP_SelectLoadProgam();

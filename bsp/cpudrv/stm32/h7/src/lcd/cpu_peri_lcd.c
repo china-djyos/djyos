@@ -887,8 +887,8 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,\
     lcd_display.frame_buffer =&frame_win;
     lcd_display.framebuf_direct = true;
 
-    tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
-    tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
+    lcd_display.width_um = CFG_LCD_XSIZE_UM;
+    lcd_display.height_um = CFG_LCD_YSIZE_UM;
     lcd_display.width = CFG_LCD_XSIZE;
     lcd_display.height = CFG_LCD_YSIZE;
     lcd_display.pixel_format = lcd.LcdPixelFormat;

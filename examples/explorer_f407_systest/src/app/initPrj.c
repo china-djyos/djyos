@@ -47,7 +47,7 @@ void Sys_ModuleInit(void)
     extern bool_t ModuleInstall_Multiplex(void);
     ModuleInstall_Multiplex ();
 
-    #if !defined (CFG_RUNMODE_BAREAPP)
+    #if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
     extern ptu32_t ModuleInstall_IAP(void);
     ModuleInstall_IAP( );
     #endif

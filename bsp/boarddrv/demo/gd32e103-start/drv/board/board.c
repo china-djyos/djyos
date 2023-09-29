@@ -10,91 +10,91 @@
 #include "uartctrl.h"
 #include "pcf8574.h"
 
-#include "project_config.h"     //æœ¬æ–‡ä»¶ç”±IDEä¸­é…ç½®ç•Œé¢ç”Ÿæˆï¼Œå­˜æ”¾åœ¨APPçš„å·¥ç¨‹ç›®å½•ä¸­ã€‚
-                                //å…è®¸æ˜¯ä¸ªç©ºæ–‡ä»¶ï¼Œæ‰€æœ‰é…ç½®å°†æŒ‰é»˜è®¤å€¼é…ç½®ã€‚
+#include "project_config.h"     //±¾ÎÄ¼þÓÉIDEÖÐÅäÖÃ½çÃæÉú³É£¬´æ·ÅÔÚAPPµÄ¹¤³ÌÄ¿Â¼ÖÐ¡£
+                                //ÔÊÐíÊÇ¸ö¿ÕÎÄ¼þ£¬ËùÓÐÅäÖÃ½«°´Ä¬ÈÏÖµÅäÖÃ¡£
 
-//@#$%component configure   ****ç»„ä»¶é…ç½®å¼€å§‹ï¼Œç”¨äºŽ DIDE ä¸­å›¾å½¢åŒ–é…ç½®ç•Œé¢
-//****é…ç½®å—çš„è¯­æ³•å’Œä½¿ç”¨æ–¹æ³•ï¼Œå‚è§æºç æ ¹ç›®å½•ä¸‹çš„æ–‡ä»¶ï¼šcomponent_config_readme.txt****
-//%$#@initcode      ****åˆå§‹åŒ–ä»£ç å¼€å§‹ï¼Œç”± DIDE åˆ é™¤â€œ//â€åŽcopyåˆ°åˆå§‹åŒ–æ–‡ä»¶ä¸­
-//%$#@end initcode  ****åˆå§‹åŒ–ä»£ç ç»“æŸ
+//@#$%component configure   ****×é¼þÅäÖÃ¿ªÊ¼£¬ÓÃÓÚ DIDE ÖÐÍ¼ÐÎ»¯ÅäÖÃ½çÃæ
+//****ÅäÖÃ¿éµÄÓï·¨ºÍÊ¹ÓÃ·½·¨£¬²Î¼ûÔ´Âë¸ùÄ¿Â¼ÏÂµÄÎÄ¼þ£ºcomponent_config_readme.txt****
+//%$#@initcode      ****³õÊ¼»¯´úÂë¿ªÊ¼£¬ÓÉ DIDE É¾³ý¡°//¡±ºócopyµ½³õÊ¼»¯ÎÄ¼þÖÐ
+//%$#@end initcode  ****³õÊ¼»¯´úÂë½áÊø
 
-//%$#@describe      ****ç»„ä»¶æè¿°å¼€å§‹
+//%$#@describe      ****×é¼þÃèÊö¿ªÊ¼
 //component name:"board config"//board featrue and drivers
-//parent:"none"                 //å¡«å†™è¯¥ç»„ä»¶çš„çˆ¶ç»„ä»¶åå­—ï¼Œnoneè¡¨ç¤ºæ²¡æœ‰çˆ¶ç»„ä»¶
-//attribute:bsp                       //é€‰å¡«â€œthirdã€systemã€bspã€userâ€ï¼Œæœ¬å±žæ€§ç”¨äºŽåœ¨IDEä¸­åˆ†ç»„
-//select:required                     //é€‰å¡«â€œrequiredã€choosableã€noneâ€ï¼Œè‹¥å¡«å¿…é€‰ä¸”éœ€è¦é…ç½®å‚æ•°ï¼Œåˆ™IDEè£å‰ªç•Œé¢ä¸­é»˜è®¤å‹¾å–ï¼Œ
-                                      //ä¸å¯å–æ¶ˆï¼Œå¿…é€‰ä¸”ä¸éœ€è¦é…ç½®å‚æ•°çš„ï¼Œæˆ–æ˜¯ä¸å¯é€‰çš„ï¼ŒIDEè£å‰ªç•Œé¢ä¸­ä¸æ˜¾ç¤ºï¼Œ
-//init time:early                     //åˆå§‹åŒ–æ—¶æœºï¼Œå¯é€‰å€¼ï¼šearlyï¼Œmediumï¼Œlater, pre-mainã€‚
-                                      //è¡¨ç¤ºåˆå§‹åŒ–æ—¶é—´ï¼Œåˆ†åˆ«æ˜¯æ—©æœŸã€ä¸­æœŸã€åŽæœŸ
-//dependence:"kernel","gd32e10x","cpu onchip gpio"//è¯¥ç»„ä»¶çš„ä¾èµ–ç»„ä»¶åï¼ˆå¯ä»¥æ˜¯noneï¼Œè¡¨ç¤ºæ— ä¾èµ–ç»„ä»¶ï¼‰ï¼Œ
-                                      //é€‰ä¸­è¯¥ç»„ä»¶æ—¶ï¼Œè¢«ä¾èµ–ç»„ä»¶å°†å¼ºåˆ¶é€‰ä¸­ï¼Œ
-                                      //å¦‚æžœä¾èµ–å¤šä¸ªç»„ä»¶ï¼Œåˆ™ä¾æ¬¡åˆ—å‡ºï¼Œç”¨â€œ,â€åˆ†éš”
-//weakdependence:"none"               //è¯¥ç»„ä»¶çš„å¼±ä¾èµ–ç»„ä»¶åï¼ˆå¯ä»¥æ˜¯noneï¼Œè¡¨ç¤ºæ— ä¾èµ–ç»„ä»¶ï¼‰ï¼Œ
-                                      //é€‰ä¸­è¯¥ç»„ä»¶æ—¶ï¼Œè¢«ä¾èµ–ç»„ä»¶ä¸ä¼šè¢«å¼ºåˆ¶é€‰ä¸­ï¼Œ
-                                      //å¦‚æžœä¾èµ–å¤šä¸ªç»„ä»¶ï¼Œåˆ™ä¾æ¬¡åˆ—å‡ºï¼Œç”¨â€œ,â€åˆ†éš”
-//mutex:"none"                  //è¯¥ç»„ä»¶çš„äº’æ–¥ç»„ä»¶åï¼ˆå¯ä»¥æ˜¯noneï¼Œè¡¨ç¤ºæ— äº’æ–¥ç»„ä»¶ï¼‰ï¼Œ
-                                      //å¦‚æžœä¸Žå¤šä¸ªç»„ä»¶äº’æ–¥ï¼Œåˆ™ä¾æ¬¡åˆ—å‡ºï¼Œç”¨â€œ,â€åˆ†éš”
-//%$#@end describe  ****ç»„ä»¶æè¿°ç»“æŸ
+//parent:"none"                 //ÌîÐ´¸Ã×é¼þµÄ¸¸×é¼þÃû×Ö£¬none±íÊ¾Ã»ÓÐ¸¸×é¼þ
+//attribute:bsp                       //Ñ¡Ìî¡°third¡¢system¡¢bsp¡¢user¡±£¬±¾ÊôÐÔÓÃÓÚÔÚIDEÖÐ·Ö×é
+//select:required                     //Ñ¡Ìî¡°required¡¢choosable¡¢none¡±£¬ÈôÌî±ØÑ¡ÇÒÐèÒªÅäÖÃ²ÎÊý£¬ÔòIDE²Ã¼ô½çÃæÖÐÄ¬ÈÏ¹´È¡£¬
+                                      //²»¿ÉÈ¡Ïû£¬±ØÑ¡ÇÒ²»ÐèÒªÅäÖÃ²ÎÊýµÄ£¬»òÊÇ²»¿ÉÑ¡µÄ£¬IDE²Ã¼ô½çÃæÖÐ²»ÏÔÊ¾£¬
+//init time:early                     //³õÊ¼»¯Ê±»ú£¬¿ÉÑ¡Öµ£ºearly£¬medium£¬later, pre-main¡£
+                                      //±íÊ¾³õÊ¼»¯Ê±¼ä£¬·Ö±ðÊÇÔçÆÚ¡¢ÖÐÆÚ¡¢ºóÆÚ
+//dependence:"kernel","gd32e10x","cpu onchip gpio"//¸Ã×é¼þµÄÒÀÀµ×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞÒÀÀµ×é¼þ£©£¬
+                                      //Ñ¡ÖÐ¸Ã×é¼þÊ±£¬±»ÒÀÀµ×é¼þ½«Ç¿ÖÆÑ¡ÖÐ£¬
+                                      //Èç¹ûÒÀÀµ¶à¸ö×é¼þ£¬ÔòÒÀ´ÎÁÐ³ö£¬ÓÃ¡°,¡±·Ö¸ô
+//weakdependence:"none"               //¸Ã×é¼þµÄÈõÒÀÀµ×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞÒÀÀµ×é¼þ£©£¬
+                                      //Ñ¡ÖÐ¸Ã×é¼þÊ±£¬±»ÒÀÀµ×é¼þ²»»á±»Ç¿ÖÆÑ¡ÖÐ£¬
+                                      //Èç¹ûÒÀÀµ¶à¸ö×é¼þ£¬ÔòÒÀ´ÎÁÐ³ö£¬ÓÃ¡°,¡±·Ö¸ô
+//mutex:"none"                  //¸Ã×é¼þµÄ»¥³â×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞ»¥³â×é¼þ£©£¬
+                                      //Èç¹ûÓë¶à¸ö×é¼þ»¥³â£¬ÔòÒÀ´ÎÁÐ³ö£¬ÓÃ¡°,¡±·Ö¸ô
+//%$#@end describe  ****×é¼þÃèÊö½áÊø
 
-//%$#@configue      ****å‚æ•°é…ç½®å¼€å§‹
+//%$#@configue      ****²ÎÊýÅäÖÃ¿ªÊ¼
 #if ( CFG_MODULE_ENABLE_BOARD_CONFIG == false )
-//#warning  " board_config  ç»„ä»¶å‚æ•°æœªé…ç½®ï¼Œä½¿ç”¨é»˜è®¤é…ç½®"
-//%$#@target = header           //header = ç”Ÿæˆå¤´æ–‡ä»¶,cmdline = å‘½ä»¤è¡Œå˜é‡ï¼ŒDJYOSè‡ªæœ‰æ¨¡å—ç¦ç”¨
-#define CFG_MODULE_ENABLE_BOARD_CONFIG    false //å¦‚æžœå‹¾é€‰äº†æœ¬ç»„ä»¶ï¼Œå°†ç”±DIDEåœ¨project_config.hæˆ–å‘½ä»¤è¡Œä¸­å®šä¹‰ä¸ºtrue
+//#warning  " board_config  ×é¼þ²ÎÊýÎ´ÅäÖÃ£¬Ê¹ÓÃÄ¬ÈÏÅäÖÃ"
+//%$#@target = header           //header = Éú³ÉÍ·ÎÄ¼þ,cmdline = ÃüÁîÐÐ±äÁ¿£¬DJYOS×ÔÓÐÄ£¿é½ûÓÃ
+#define CFG_MODULE_ENABLE_BOARD_CONFIG    false //Èç¹û¹´Ñ¡ÁË±¾×é¼þ£¬½«ÓÉDIDEÔÚproject_config.h»òÃüÁîÐÐÖÐ¶¨ÒåÎªtrue
 //%$#@num,0,100,
 //%$#@enum,true,flase,
 //%$#@string,1,10,
-//%$#select,        ***ä»Žåˆ—å‡ºçš„é€‰é¡¹ä¸­é€‰æ‹©è‹¥å¹²ä¸ªå®šä¹‰æˆå®
+//%$#select,        ***´ÓÁÐ³öµÄÑ¡ÏîÖÐÑ¡ÔñÈô¸É¸ö¶¨Òå³Éºê
 //%$#@free,
 #endif
-//%$#@end configue  ****å‚æ•°é…ç½®ç»“æŸ
+//%$#@end configue  ****²ÎÊýÅäÖÃ½áÊø
 //@#$%component end configure
 
 // =============================================================================
-// åŠŸèƒ½ï¼šæ ¹æ®å…·ä½“çš„æ¿ä»¶é…ç½®ä¸²å£çš„GPIOçš„å¼•è„šåŠŸèƒ½ï¼Œè¿™æ˜¯ä¸Žæ¿ä»¶ç›¸å…³ï¼Œæ‰€ä»¥è¯¥å‡½æ•°æ”¾åœ¨è¯¥æ–‡ä»¶ï¼ŒCPU
-//      ä¸²å£é©±åŠ¨ç›´æŽ¥è°ƒç”¨è¯¥å‡½æ•°æ¥åˆå§‹åŒ–ä¸²å£çš„GPIOå¼•è„š
-//      ä¸»è¦åŒ…æ‹¬GPIOç«¯å£å’Œä¸²å£æ—¶é’Ÿä½¿èƒ½ã€GPIOé…ç½®ã€é‡æ˜ å°„ã€æ—¶é’Ÿç­‰
-// å‚æ•°ï¼šæ— 
-// è¿”å›žï¼štrue
+// ¹¦ÄÜ£º¸ù¾Ý¾ßÌåµÄ°å¼þÅäÖÃ´®¿ÚµÄGPIOµÄÒý½Å¹¦ÄÜ£¬ÕâÊÇÓë°å¼þÏà¹Ø£¬ËùÒÔ¸Ãº¯Êý·ÅÔÚ¸ÃÎÄ¼þ£¬CPU
+//      ´®¿ÚÇý¶¯Ö±½Óµ÷ÓÃ¸Ãº¯ÊýÀ´³õÊ¼»¯´®¿ÚµÄGPIOÒý½Å
+//      Ö÷Òª°üÀ¨GPIO¶Ë¿ÚºÍ´®¿ÚÊ±ÖÓÊ¹ÄÜ¡¢GPIOÅäÖÃ¡¢ÖØÓ³Éä¡¢Ê±ÖÓµÈ
+// ²ÎÊý£ºÎÞ
+// ·µ»Ø£ºtrue
 // =============================================================================
 bool_t Board_UartGpioInit(u8 SerialNo)
 {
-	rcu_periph_enum periph;
-	uint32_t gpio_periph;
-	uint32_t mode;
-	uint32_t speed;
-	uint32_t pin;
+    rcu_periph_enum periph;
+    uint32_t gpio_periph;
+    uint32_t mode;
+    uint32_t speed;
+    uint32_t pin;
 
-	uint32_t com = 0;
+    uint32_t com = 0;
 
-	com = SerialNo;
-	if (com > CN_UART4) return false;
-	
-	/* debug: use usart3 for debug
-		PC10 - White wire
-		PC11 - Green wire */
-	
-	com = UART3;
-	gpio_periph = GPIOC;
+    com = SerialNo;
+    if (com > CN_UART4) return false;
 
-	/* enable GPIO clock */
-	rcu_periph_clock_enable(RCU_GPIOC);
+    /* debug: use usart3 for debug
+        PC10 - White wire
+        PC11 - Green wire */
 
-	/* enable USART clock */
-	rcu_periph_clock_enable(RCU_UART3);
+    com = UART3;
+    gpio_periph = GPIOC;
 
-	/* connect port to USARTx_Tx */
-	gpio_init(gpio_periph, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10);
+    /* enable GPIO clock */
+    rcu_periph_clock_enable(RCU_GPIOC);
 
-	/* connect port to USARTx_Rx */
-	gpio_init(gpio_periph, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, GPIO_PIN_11);
+    /* enable USART clock */
+    rcu_periph_clock_enable(RCU_UART3);
 
-	/* USART configure */
-	usart_deinit(com);
-	usart_baudrate_set(com, 115200U);
-	usart_receive_config(com, USART_RECEIVE_ENABLE);
-	usart_transmit_config(com, USART_TRANSMIT_ENABLE);
-	usart_enable(com);
+    /* connect port to USARTx_Tx */
+    gpio_init(gpio_periph, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10);
+
+    /* connect port to USARTx_Rx */
+    gpio_init(gpio_periph, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, GPIO_PIN_11);
+
+    /* USART configure */
+    usart_deinit(com);
+    usart_baudrate_set(com, 115200U);
+    usart_receive_config(com, USART_RECEIVE_ENABLE);
+    usart_transmit_config(com, USART_TRANSMIT_ENABLE);
+    usart_enable(com);
 
         while (1) {
 
@@ -111,20 +111,20 @@ bool_t Board_UartGpioInit(u8 SerialNo)
                         ch = usart_data_receive(usart_periph);
                         data = ch;
                 }
-                /* æµ‹è¯•ä¸²å£æ”¶å‘ */
+                /* ²âÊÔ´®¿ÚÊÕ·¢ */
                 break;
         };
 
 
-	return true;
+    return true;
 }
 
 // =============================================================================
-// åŠŸèƒ½ï¼šæ ¹æ®å…·ä½“çš„æ¿ä»¶é…ç½®IICçš„GPIOçš„å¼•è„šåŠŸèƒ½ï¼Œè¿™æ˜¯ä¸Žæ¿ä»¶ç›¸å…³ï¼Œæ‰€ä»¥è¯¥å‡½æ•°æ”¾åœ¨è¯¥æ–‡ä»¶ï¼ŒCPU
-//      IICé©±åŠ¨ç›´æŽ¥è°ƒç”¨è¯¥å‡½æ•°æ¥åˆå§‹åŒ–ä¸²å£çš„GPIOå¼•è„š
-//      ä¸»è¦åŒ…æ‹¬GPIOç«¯å£å’Œå¤–è®¾æ—¶é’Ÿä½¿èƒ½ã€GPIOé…ç½®ã€é‡æ˜ å°„ã€æ—¶é’Ÿç­‰
-// å‚æ•°ï¼šæ— 
-// è¿”å›žï¼štrue
+// ¹¦ÄÜ£º¸ù¾Ý¾ßÌåµÄ°å¼þÅäÖÃIICµÄGPIOµÄÒý½Å¹¦ÄÜ£¬ÕâÊÇÓë°å¼þÏà¹Ø£¬ËùÒÔ¸Ãº¯Êý·ÅÔÚ¸ÃÎÄ¼þ£¬CPU
+//      IICÇý¶¯Ö±½Óµ÷ÓÃ¸Ãº¯ÊýÀ´³õÊ¼»¯´®¿ÚµÄGPIOÒý½Å
+//      Ö÷Òª°üÀ¨GPIO¶Ë¿ÚºÍÍâÉèÊ±ÖÓÊ¹ÄÜ¡¢GPIOÅäÖÃ¡¢ÖØÓ³Éä¡¢Ê±ÖÓµÈ
+// ²ÎÊý£ºÎÞ
+// ·µ»Ø£ºtrue
 // =============================================================================
 bool_t Board_IicGpioInit(u8 I2Cx)
 {
@@ -132,9 +132,9 @@ bool_t Board_IicGpioInit(u8 I2Cx)
     return true;
 }
 // =============================================================================
-// åŠŸèƒ½ï¼šç½‘ç»œç›¸å…³çš„gpioé…ç½®
-// å‚æ•°ï¼šæ— 
-// è¿”å›žï¼štrue
+// ¹¦ÄÜ£ºÍøÂçÏà¹ØµÄgpioÅäÖÃ
+// ²ÎÊý£ºÎÞ
+// ·µ»Ø£ºtrue
 // =============================================================================
 
 bool_t Board_EthGpioInit(void)
@@ -143,8 +143,8 @@ bool_t Board_EthGpioInit(void)
 //    GPIO_PowerOn(GPIO_C);
 //    GPIO_PowerOn(GPIO_D);
 //    GPIO_PowerOn(GPIO_G);
-//    RCC->APB2ENR|=1<<14;    //ä½¿èƒ½SYSCFGæ—¶é’Ÿ
-//    SYSCFG->PMC|=1<<23;     //ä½¿ç”¨RMIIæŽ¥å£
+//    RCC->APB2ENR|=1<<14;    //Ê¹ÄÜSYSCFGÊ±ÖÓ
+//    SYSCFG->PMC|=1<<23;     //Ê¹ÓÃRMII½Ó¿Ú
 
 
 #if 0
@@ -177,39 +177,39 @@ bool_t Board_EthGpioInit(void)
     return true;
 }
 // =============================================================================
-// åŠŸèƒ½ï¼šæ ¹æ®å…·ä½“çš„æ¿ä»¶é…ç½®SPIçš„GPIOçš„å¼•è„šåŠŸèƒ½ï¼Œè¿™æ˜¯ä¸Žæ¿ä»¶ç›¸å…³ï¼Œæ‰€ä»¥è¯¥å‡½æ•°æ”¾åœ¨è¯¥æ–‡ä»¶ï¼ŒCPU
-//      SPIé©±åŠ¨ç›´æŽ¥è°ƒç”¨è¯¥å‡½æ•°æ¥åˆå§‹åŒ–ä¸²å£çš„GPIOå¼•è„š
-//      ä¸»è¦åŒ…æ‹¬GPIOç«¯å£å’Œå¤–è®¾æ—¶é’Ÿä½¿èƒ½ã€GPIOé…ç½®ã€é‡æ˜ å°„ã€æ—¶é’Ÿç­‰
-// å‚æ•°ï¼šæ— 
-// è¿”å›žï¼štrue
+// ¹¦ÄÜ£º¸ù¾Ý¾ßÌåµÄ°å¼þÅäÖÃSPIµÄGPIOµÄÒý½Å¹¦ÄÜ£¬ÕâÊÇÓë°å¼þÏà¹Ø£¬ËùÒÔ¸Ãº¯Êý·ÅÔÚ¸ÃÎÄ¼þ£¬CPU
+//      SPIÇý¶¯Ö±½Óµ÷ÓÃ¸Ãº¯ÊýÀ´³õÊ¼»¯´®¿ÚµÄGPIOÒý½Å
+//      Ö÷Òª°üÀ¨GPIO¶Ë¿ÚºÍÍâÉèÊ±ÖÓÊ¹ÄÜ¡¢GPIOÅäÖÃ¡¢ÖØÓ³Éä¡¢Ê±ÖÓµÈ
+// ²ÎÊý£ºÎÞ
+// ·µ»Ø£ºtrue
 // =============================================================================
 bool_t Board_SpiGpioInit(u8 SPIx)
 {
     if(SPIx == CN_SPI1)
     {
-//        RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // ä½¿èƒ½PORTBæ—¶é’Ÿ
-//        RCC->APB2ENR |= RCC_APB2ENR_SPI1EN; // ä½¿èƒ½SPI1æ—¶é’Ÿ
+//        RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // Ê¹ÄÜPORTBÊ±ÖÓ
+//        RCC->APB2ENR |= RCC_APB2ENR_SPI1EN; // Ê¹ÄÜSPI1Ê±ÖÓ
 //
-//        RCC->AHB1ENR |= 1<<6; // ä½¿èƒ½PORTGæ—¶é’Ÿ
+//        RCC->AHB1ENR |= 1<<6; // Ê¹ÄÜPORTGÊ±ÖÓ
 
-//##WIP##        RCC->APB2RSTR |= RCC_APB2RSTR_SPI1; // å¤ä½SPI1
-//##WIP##        RCC->APB2RSTR &= ~RCC_APB2RSTR_SPI1; // åœæ­¢å¤ä½SPI1
+//##WIP##        RCC->APB2RSTR |= RCC_APB2RSTR_SPI1; // ¸´Î»SPI1
+//##WIP##        RCC->APB2RSTR &= ~RCC_APB2RSTR_SPI1; // Í£Ö¹¸´Î»SPI1
 
 #if 0
         GPIO_CfgPinFunc(GPIO_B,PIN4|PIN5|PIN3,GPIO_MODE_AF,GPIO_OTYPE_PP,
-                GPIO_SPEED_50M,GPIO_PUPD_PU); // GPB3ã€4å’Œ5ä¸ºSCKã€MISOå’ŒMOSI
+                GPIO_SPEED_50M,GPIO_PUPD_PU); // GPB3¡¢4ºÍ5ÎªSCK¡¢MISOºÍMOSI
         GPIO_AFSet(GPIO_B,3,5);
         GPIO_AFSet(GPIO_B,4,5);
         GPIO_AFSet(GPIO_B,5,5);
-// CSç”±è®¾å¤‡ç¡®å®š
+// CSÓÉÉè±¸È·¶¨
         GPIO_CfgPinFunc(GPIO_B,PIN14,GPIO_MODE_OUT,GPIO_OTYPE_PP,
-                GPIO_SPEED_50M,GPIO_PUPD_PU); // GPB14ä¸ºCSç”¨äºŽNOR
+                GPIO_SPEED_50M,GPIO_PUPD_PU); // GPB14ÎªCSÓÃÓÚNOR
 
         GPIO_CfgPinFunc(GPIOG,PIN7,GPIO_MODE_OUT,GPIO_OTYPE_PP,
-                GPIO_SPEED_100M,GPIO_PUPD_PU); // GPG7ä¸ºCSç”¨äºŽæ— çº¿æ¨¡å¼
+                GPIO_SPEED_100M,GPIO_PUPD_PU); // GPG7ÎªCSÓÃÓÚÎÞÏßÄ£Ê½
         GPIOG->ODR|=1<<7;
 
-        GPIO_SettoHigh(GPIO_B,PIN14);// CSä¸ºé«˜
+        GPIO_SettoHigh(GPIO_B,PIN14);// CSÎª¸ß
 #endif
     }
     else
@@ -220,9 +220,9 @@ bool_t Board_SpiGpioInit(u8 SPIx)
 }
 
 // =============================================================================
-// åŠŸèƒ½ï¼šæ ¹æ®å…·ä½“çš„æ¿ä»¶485æ‰€éœ€çš„æŽ§åˆ¶ç®¡è„šï¼ŒæŽ§åˆ¶485ä¸ºå‘é€çŠ¶æ€è¯¥æ¿ä»¶ç”±ç¡¬ä»¶ç”µè·¯å®žçŽ°æ— éœ€æŽ§åˆ¶
-// å‚æ•°ï¼šä¸²å£å·å¦‚ï¼šCN_UART1
-// è¿”å›žï¼šæ— 
+// ¹¦ÄÜ£º¸ù¾Ý¾ßÌåµÄ°å¼þ485ËùÐèµÄ¿ØÖÆ¹Ü½Å£¬¿ØÖÆ485Îª·¢ËÍ×´Ì¬¸Ã°å¼þÓÉÓ²¼þµçÂ·ÊµÏÖÎÞÐè¿ØÖÆ
+// ²ÎÊý£º´®¿ÚºÅÈç£ºCN_UART1
+// ·µ»Ø£ºÎÞ
 // =============================================================================
 
 void Board_UartHalfDuplexSend(u8 SerialNo)
@@ -236,9 +236,9 @@ void Board_UartHalfDuplexSend(u8 SerialNo)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šèŽ·å–ç«¯å£çš„ç±»åž‹RS_485/RS_232 RS485 è¿”å›žfalse
-// å‚æ•°ï¼šSerialNo,ä¸²å£å·
-// è¿”å›žï¼štrue/false
+// ¹¦ÄÜ£º»ñÈ¡¶Ë¿ÚµÄÀàÐÍRS_485/RS_232 RS485 ·µ»Øfalse
+// ²ÎÊý£ºSerialNo,´®¿ÚºÅ
+// ·µ»Ø£ºtrue/false
 // ============================================================================
 u8   Board_CheckPortIsRS232(u8 SerialNo)
 {
@@ -249,9 +249,9 @@ u8   Board_CheckPortIsRS232(u8 SerialNo)
 }
 
  // =============================================================================
- // åŠŸèƒ½ï¼šæ ¹æ®å…·ä½“çš„æ¿ä»¶485æ‰€éœ€çš„æŽ§åˆ¶ç®¡è„šï¼ŒæŽ§åˆ¶485ä¸ºæŽ¥å—æ”¶çŠ¶æ€
- // å‚æ•°ï¼šä¸²å£å·å¦‚ï¼šCN_UART1
- // è¿”å›žï¼šæ— 
+ // ¹¦ÄÜ£º¸ù¾Ý¾ßÌåµÄ°å¼þ485ËùÐèµÄ¿ØÖÆ¹Ü½Å£¬¿ØÖÆ485Îª½ÓÊÜÊÕ×´Ì¬
+ // ²ÎÊý£º´®¿ÚºÅÈç£ºCN_UART1
+ // ·µ»Ø£ºÎÞ
  // =============================================================================
 
 void Board_UartHalfDuplexRecv(u8 SerialNo)
@@ -266,16 +266,16 @@ void Board_UartHalfDuplexRecv(u8 SerialNo)
 }
 
 // =============================================================================
-// åŠŸèƒ½ï¼šæ ¹æ®ç«¯å£å·æŽ§åˆ¶ç‰‡é€‰
-// å‚æ•°ï¼šSPIPortç«¯å£å·  level==0ä½¿èƒ½ä½¿èƒ½æˆ–  1å¤±èƒ½
-// è¿”å›žï¼štrue
+// ¹¦ÄÜ£º¸ù¾Ý¶Ë¿ÚºÅ¿ØÖÆÆ¬Ñ¡
+// ²ÎÊý£ºSPIPort¶Ë¿ÚºÅ  level==0Ê¹ÄÜÊ¹ÄÜ»ò  1Ê§ÄÜ
+// ·µ»Ø£ºtrue
 // =============================================================================
 #define BITBAND(addr, bitnum)       ((addr & 0xF0000000)+0x2000000+((addr &0xFFFFF)<<5)+(bitnum<<2))
 #define MEM_ADDR(addr)              *((volatile unsigned long  *)(addr))
 #define BIT_ADDR(addr, bitnum)      MEM_ADDR(BITBAND(addr, bitnum))
 #define GPIOB_ODR_Addr                (GPIOB+20) //0x40020414
-#define PAout(n)                       BIT_ADDR(GPIOA_ODR_Addr,n)  //è¾“å‡º
-#define PBout(n)                       BIT_ADDR(GPIOB_ODR_Addr,n)  //è¾“å‡º
+#define PAout(n)                       BIT_ADDR(GPIOA_ODR_Addr,n)  //Êä³ö
+#define PBout(n)                       BIT_ADDR(GPIOB_ODR_Addr,n)  //Êä³ö
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -301,14 +301,14 @@ static void Board_NORGpioInit (void )
 #if 0
     Board_SpiGpioInit(CN_SPI1);
     GPIO_CfgPinFunc(GPIO_B, PIN14, GPIO_MODE_OUT, GPIO_OTYPE_PP, GPIO_SPEED_50M,
-                    GPIO_PUPD_PU); // GPB14ä¸ºCSç”¨äºŽNOR
+                    GPIO_PUPD_PU); // GPB14ÎªCSÓÃÓÚNOR
 
-    // RCC->AHB1ENR |= 1<<6; // ä½¿èƒ½PORTGæ—¶é’Ÿ
+    // RCC->AHB1ENR |= 1<<6; // Ê¹ÄÜPORTGÊ±ÖÓ
     GPIO_CfgPinFunc(GPIOG,PIN7, GPIO_MODE_OUT, GPIO_OTYPE_PP, GPIO_SPEED_100M,
-                    GPIO_PUPD_PU); // GPG7ä¸ºCSç”¨äºŽæ— çº¿æ¨¡å¼
+                    GPIO_PUPD_PU); // GPG7ÎªCSÓÃÓÚÎÞÏßÄ£Ê½
     // GPIOG->ODR |= 1<<7;
 
-    GPIO_SettoHigh(GPIO_B,PIN14);// CSä¸ºé«˜
+    GPIO_SettoHigh(GPIO_B,PIN14);// CSÎª¸ß
 #endif
 }
 
@@ -326,28 +326,29 @@ void Board_Rest_Init (void) __attribute__ ((weak, alias ("board_rest_init")));
 
 
 // =============================================================================
-// åŠŸèƒ½ï¼šBoard_GpioInitæ¿ä¸Šæ‰€æœ‰ç”¨åˆ°çš„GPIOåˆå§‹åŒ–
-//  åœ¨è¿™é‡Œå°†æ‰€æœ‰å¯èƒ½ç”¨åˆ°çš„å¤ç”¨æ¨¡å¼çš„gpioå®šä¹‰åœ¨è¿™é‡Œéœ€è¦ç”¨å–æ¶ˆæ³¨é‡Šå³å¯
-// å‚æ•°ï¼šæ— 
-// è¿”å›žï¼šæ— 
+// ¹¦ÄÜ£ºBoard_GpioInit°åÉÏËùÓÐÓÃµ½µÄGPIO³õÊ¼»¯
+//  ÔÚÕâÀï½«ËùÓÐ¿ÉÄÜÓÃµ½µÄ¸´ÓÃÄ£Ê½µÄgpio¶¨ÒåÔÚÕâÀïÐèÒªÓÃÈ¡Ïû×¢ÊÍ¼´¿É
+// ²ÎÊý£ºÎÞ
+// ·µ»Ø£ºÎÞ
 // =============================================================================
 
 void Board_Init(void)
 {
-    Board_EthGpioInit();//ç½‘ç»œ
+    Board_EthGpioInit();//ÍøÂç
     Board_UartGpioInit(CN_UART3);
     Board_NORGpioInit();
     Board_RestInit();
 }
 
-////ç½‘å£çš„ PHY èŠ¯ç‰‡ï¼šLAN8720å¤ä½
+////Íø¿ÚµÄ PHY Ð¾Æ¬£ºLAN8720¸´Î»
 bool_t LAN8720_RESET(void)
 {
 //  PCF8574_WriteBit(ETH_RESET_IO,1);
 //  DJY_DelayUs(100*mS);
 //  PCF8574_WriteBit(ETH_RESET_IO,0);
 //  DJY_DelayUs(100*mS);
-    //PD3ä¸Šè¾“å‡ºä¸€ä¸ª100mSçš„é«˜ç”µå¹³è„‰å†²
+    //PD3ÉÏÊä³öÒ»¸ö100mSµÄ¸ßµçÆ½Âö³å
     return true;
 }
+
 

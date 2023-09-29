@@ -71,7 +71,7 @@ extern void __asm_bl_fun(void * fun_addr);
 #define APP_HEAD_VERSION        2
 
 
-#if (CFG_RUNMODE_BAREAPP == 0)
+#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
 const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
 {
         .djy_flag[0]    = 'd',
@@ -116,7 +116,7 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff},
 };
 
-#endif      //for (CFG_RUNMODE_BAREAPP == 0)
+#endif      //for (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
 struct IbootAppInfo Iboot_App_Info __attribute__ ((section(".IbootAppInfo"))) ;
 
 //-----------------------------------------------------------------------------
@@ -221,7 +221,7 @@ static const u32 crc32_tab[] = {     // CRC polynomial 0xedb88320
 0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
-#if (CFG_RUNMODE_BAREAPP == 0)
+#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
 // ============================================================================
 // 功能：CRC32分步计算初始化
 // 参数：crc -- CRC值
@@ -569,7 +569,7 @@ static void MD5_Transform (u32_t *buf, u32_t *in)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-#if (CFG_RUNMODE_BAREAPP == 0)
+#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
 
 //-----------------------------------------------------------------------------
 //功能：APP文件分步校验之：完成校验码计算，参见 Iboot_CheckAppHead 函数的注释
@@ -1430,7 +1430,7 @@ bool_t Iboot_SiIbootAppInfoInit()
             PowerUp = true;
             break;
     }
-#if (CFG_RUNMODE_BAREAPP == 0)
+#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
     Iboot_GetIbootBulidTime(&Iboot_App_Info.iboot_build_year,&Iboot_App_Info.iboot_build_mon,
             &Iboot_App_Info.iboot_build_day,&Iboot_App_Info.iboot_build_hour,
             &Iboot_App_Info.iboot_build_min,&Iboot_App_Info.iboot_build_sec);
@@ -1836,7 +1836,7 @@ bool_t Iboot_GetHeadWdtReset(void)
         return false;
 }
 
-#if (CFG_RUNMODE_BAREAPP == 0)
+#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
 //==============================================================================
 //功能：填待升级文件路径到交互信息
 //参数：AppPath -- 待升级的app路径；
@@ -1936,6 +1936,8 @@ static bool_t __RunApp(void * apphead)
     }
     Iboot_App_Info.runflag.runmode_iboot        = 0;
     Iboot_App_Info.runflag.runmode_app     = 1;
+    printf("run app\r\n");
+    DJY_EventDelay(300*1000);
     __asm_bl_fun((void*)((u32)p_apphead+sizeof(struct AppHead)+sizeof(struct ProductInfo)));
     return true;
 }
@@ -2317,7 +2319,7 @@ bool_t Iboot_GetPowerOnResentFlag(void)
 
 static bool_t Iboot_IAP_Mode( )
 {
-#if (CFG_RUNMODE_BAREAPP == 0)
+#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
     if(Iboot_App_Info.runflag.hard_set_run_iboot)
         printf( "硬件件设置运行iboot\n\r");
     if(Iboot_App_Info.runflag.restart_run_iboot)
@@ -2373,10 +2375,10 @@ static bool_t Iboot_IAP_Mode( )
 
     return true;
 }
-#if (CFG_RUNMODE_BAREAPP == 0)
+#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
 ADD_TO_ROUTINE_SHELL(ibootinfo,ibootinfo,NULL);
 ADD_TO_ROUTINE_SHELL(appinfo,appinfo,NULL);
 //ADD_TO_ROUTINE_SHELL(filesource,Iboot_SetUpdateSource,NULL);
-#endif      //for (CFG_RUNMODE_BAREAPP == 0)
+#endif      //for (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
 ADD_TO_ROUTINE_SHELL(iapmode,Iboot_IAP_Mode,NULL);
 

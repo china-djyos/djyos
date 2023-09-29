@@ -52,7 +52,7 @@ void Sys_ModuleInit(void)
     extern void ModuleInstall_BlackBox(void);
     ModuleInstall_BlackBox( );
 
-    #if !defined (CFG_RUNMODE_BAREAPP)
+    #if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
     extern ptu32_t ModuleInstall_IAP(void);
     ModuleInstall_IAP( );
     #endif
