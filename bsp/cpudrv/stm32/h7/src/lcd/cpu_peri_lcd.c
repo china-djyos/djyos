@@ -623,6 +623,7 @@ bool_t __lcd_blt_bm_to_bm(struct RectBitmap *dst_bitmap,
              ||((DstRect->right-DstRect->left) != width)\
              ||(memcmp(&RopCode, &Rop ,sizeof(struct RopGroup))!=0)
              ||((ptu32_t)src_bitmap->bm_bits & 1))
+//             ||(width & 1))     //730似乎不支持奇数宽度
         return false;
 
     src_offset = (u16*)((ptu32_t)(src_bitmap->bm_bits+\

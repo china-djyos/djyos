@@ -76,9 +76,9 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:pre-main              //初始化时机，可选值：early，medium，later, pre-main。
+//init time:pre-main            //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"cpu onchip iic","touch"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"touch"            //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -221,7 +221,8 @@ static bool_t GT911_Init( )
 //    u8 test_buf[512];
     u8 count = 0, Val_1 = 0, Val_2 = 0;
     s8 ret = 0;
-    //以下RST和INT引脚时序配合，设置GT911的IIC地址为0x5d
+    // TP INT引脚控制，RST和INT引脚时序配合，设置GT911的IIC地址为0x5d
+    //  注意，最后必须把INT设为高阻态
     LcdTp_Reset_OnOff(0);         //RST 0
     DJY_EventDelay(1000);
     LcdTp_Int_OnOff(0);         //INT 0
@@ -230,7 +231,7 @@ static bool_t GT911_Init( )
     DJY_EventDelay(6000);
     LcdTp_Int_OnOff(1);         //INT 1
     DJY_EventDelay(50000);
-
+    LcdTp_Int_Input();
     ret = GT911_RD_Reg(GT911_PRODUCT_ID, temp, 6);
     if (ret == 6)
     {
