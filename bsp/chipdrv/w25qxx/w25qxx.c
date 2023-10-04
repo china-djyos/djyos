@@ -830,38 +830,38 @@ bool_t W25QXX_Write(u8* buf,u32 addr,u16 len)
             {
                 for(i=0; i < sec_remain; i++)//
                 {
-                    if(W25QXX_BUFFER[sec_off + i] != 0XFF)
+                    if ((W25QXX_BUFFER[sec_off + i] != 0XFF) && (W25QXX_BUFFER[sec_off + i] != buf[i]))
                         break;
                 }
                 if(i < sec_remain)    //需要擦除
                 {
-                    if(!W25QXX_EraseSector(sec))
+                    if(W25QXX_EraseSector(sec))
                     {
-//                        for(i=0; i<sec_remain; i++)
-//                        {
-//                            W25QXX_BUFFER[i + sec_off] = buf[i];
-//                        }
-//                        if(W25QXX_WriteNoErase(W25QXX_BUFFER, sec*4096, 4096) == false)
-//                        {
-//                            ret = false;
-//                            break;
-//                        }
+                        for(i=0; i<sec_remain; i++)
+                        {
+                            W25QXX_BUFFER[i + sec_off] = buf[i];
+                        }
+                        if(W25QXX_WriteNoErase(W25QXX_BUFFER, sec*4096, 4096) == false)
+                        {
+                            ret = false;
+                            break;
+                        }
+                    }
+                    else
+                    {
                         ret = false;
                         break;
                     }
-//                    else
-//                    {
-//                    }
 
                 }
-//                else
-//                {
+                else
+                {
                     if(W25QXX_WriteNoErase(buf, addr, sec_remain) == false)
                     {
                         ret = false;
                         break;
                     }
-//                }
+                }
                 if(len == sec_remain)
                     break;  //写完了
                 else
