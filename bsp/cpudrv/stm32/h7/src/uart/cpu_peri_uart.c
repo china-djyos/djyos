@@ -260,7 +260,7 @@ static u32 RxDirectPort;                  //用于直接接收的串口号
 static struct UartGeneralCB *pUartCB[CN_UART_NUM];
 static u8* pUartSndBuf[CN_UART_NUM] = {NULL};
 static u8* pUartRcvBuf[CN_UART_NUM] = {NULL};
-static bool_t sUartDmaUsed[] = {false,false,false,false,false,false};
+static bool_t sUartDmaUsed[] = {true,true,true,true,true,true};
 static bool_t sUartSending[] = {false,false,false,false,false,false};
 static u8 sDmaRcvOff[CN_UART_NUM] = {0};
 
