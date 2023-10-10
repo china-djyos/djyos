@@ -1937,7 +1937,7 @@ static bool_t __RunApp(void * apphead)
     Iboot_App_Info.runflag.runmode_iboot        = 0;
     Iboot_App_Info.runflag.runmode_app     = 1;
     printf("run app\r\n");
-    DJY_EventDelay(300*1000);
+    DJY_DelayUs(300 * 1000);
     __asm_bl_fun((void*)((u32)p_apphead+sizeof(struct AppHead)+sizeof(struct ProductInfo)));
     return true;
 }

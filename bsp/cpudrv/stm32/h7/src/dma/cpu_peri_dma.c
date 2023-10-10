@@ -132,11 +132,11 @@ u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,bool_t MultiBuffer
     if((u32)DMA_Streamx>(u32)DMA2)//得到当前stream是属于DMA2还是DMA1
     {
         DMAx=DMA2;
-        RCC->AHB1ENR|=1<<22;//DMA2时钟使能
+        RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;//DMA2时钟使能
     }else
     {
         DMAx=DMA1;
-        RCC->AHB1ENR|=1<<21;//DMA1时钟使能
+        RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;//DMA1时钟使能
     }
 
     while(DMA_Streamx->CR&0X01)                             //等待DMA可配置
@@ -149,14 +149,14 @@ u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,bool_t MultiBuffer
         else
         {
             if(DMAx == DMA2)
-                RCC->AHB1ENR &= ~(1<<22);                   //DMA2时钟使能
+                RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;//DMA2时钟使能
             else
-                RCC->AHB1ENR &= ~(1<<21);
+                RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;//DMA1时钟使能
             return false;
         }
     }
-
-    streamx=(((u32)DMA_Streamx-(u32)DMAx)-0X10)/0X18;       //得到stream通道号
+    streamx = DMA_Streamx - DMA2_Stream0;
+//  streamx=(((u32)DMA_Streamx-(u32)DMAx)-0X10)/0X18;       //得到stream通道号
     if(streamx>=6)
         DMAx->HIFCR|=0X3D<<(6*(streamx-6)+16);              //清空之前该stream上的所有中断标志
     else if(streamx>=4)
@@ -173,8 +173,8 @@ u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,bool_t MultiBuffer
     DMA_Streamx->CR=0;              //先全部复位CR寄存器值
     if(MultiBuffer)
     {
-        DMA_Streamx->CR|=1<<18;
-        DMA_Streamx->CR|=(1<<4);//传输完成中断
+        DMA_Streamx->CR |= DMA_SxCR_DBM;
+        DMA_Streamx->CR |= DMA_SxCR_TCIE;//传输完成中断
     }
     else
         DMA_Streamx->CR|=(dir == DMA_DIR_P2M)?(1<<3):(1<<4);//半传输中断
@@ -213,11 +213,11 @@ void DMA_Enable(DMA_Stream_TypeDef *DMA_Streamx,u32 mar,u16 ndtr)
     if((u32)DMA_Streamx>(u32)DMA2)//得到当前stream是属于DMA2还是DMA1
     {
         DMAx=DMA2;
-        RCC->AHB1ENR|=1<<22;//DMA2时钟使能
+        RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;//DMA2时钟使能
     }else
     {
         DMAx=DMA1;
-        RCC->AHB1ENR|=1<<21;//DMA1时钟使能
+        RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;//DMA1时钟使能
     }
 
     streamx=(((u32)DMA_Streamx-(u32)DMAx)-0X10)/0X18;       //得到stream通道号
@@ -264,11 +264,11 @@ void DMA_ClearIntFlag(DMA_Stream_TypeDef *DMA_Streamx)
     if((u32)DMA_Streamx>(u32)DMA2)//得到当前stream是属于DMA2还是DMA1
     {
         DMAx=DMA2;
-        RCC->AHB1ENR|=1<<22;//DMA2时钟使能
+        RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;//DMA2时钟使能
     }else
     {
         DMAx=DMA1;
-        RCC->AHB1ENR|=1<<21;//DMA1时钟使能
+        RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;//DMA2时钟使能
     }
 
     streamx=(((u32)DMA_Streamx-(u32)DMAx)-0X10)/0X18;       //得到stream通道号

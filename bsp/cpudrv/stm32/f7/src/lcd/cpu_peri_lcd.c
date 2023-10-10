@@ -627,7 +627,7 @@ bool_t __lcd_blt_bm_to_bm(struct RectBitmap *dst_bitmap,
     dst_offset = (u16*)((ptu32_t)(dst_bitmap->bm_bits+\
              DstRect->top * dst_bitmap->linebytes)+\
              DstRect->left*lcd.pixsize);
-//    dst_offset -= 0x22;   显示全屏图片的时候，会有点偏差，加上这个就没有偏差了。
+
     if(false==Lock_MutexPend(&Dma2dMutex,lcd.Dma2dTimeOut))
         return false;
     DMA2D->CR=0<<16;                //存储器到存储器模式

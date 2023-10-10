@@ -71,25 +71,25 @@
 
 
 struct art43x_spi {
-	spi_type *spi_x;
-	struct SPI_CB spi_cb;
-	union {
-		ptu32_t IntLine;
-		int irqno;
-	};
-	int port;
+    spi_type *spi_x;
+    struct SPI_CB spi_cb;
+    union {
+        ptu32_t IntLine;
+        int irqno;
+    };
+    int port;
 };
 
 struct art43x_spi art43x_spi[3] = {
-	.[CN_SPI1] = { .spi_x = SPI1,
-		       .irqno = CN_INT_LINE_SPI1,
-		       .port = CN_SPI1 },
-	.[CN_SPI2] = { .spi_x = SPI2,
-		       .irqno = CN_INT_LINE_SPI2_I2S2EXT,
-		       .port = CN_SPI2 },
-	.[CN_SPI3] = { .spi_x = SPI3,
-		       .irqno = CN_INT_LINE_SPI3_I2S3EXT,
-		       .port = CN_SPI3 }
+    .[CN_SPI1] = { .spi_x = SPI1,
+               .irqno = CN_INT_LINE_SPI1,
+               .port = CN_SPI1 },
+    .[CN_SPI2] = { .spi_x = SPI2,
+               .irqno = CN_INT_LINE_SPI2_I2S2EXT,
+               .port = CN_SPI2 },
+    .[CN_SPI3] = { .spi_x = SPI3,
+               .irqno = CN_INT_LINE_SPI3_I2S3EXT,
+               .port = CN_SPI3 }
 };
 
 
@@ -211,22 +211,22 @@ static s32 __SPI_Read( tagSpiReg * Reg )
 
 static s32 __SPI_Write( tagSpiReg * Reg,uint16_t wData )
 {
-	uint16_t tx_data;
-	spi_type *spi_x;
-	flag_status status;
-	int retry = CN_TIMEOUT;
+    uint16_t tx_data;
+    spi_type *spi_x;
+    flag_status status;
+    int retry = CN_TIMEOUT;
 
         spi_x = SPI1;
-	tx_data = wData;
+    tx_data = wData;
 
         do {
-		if (spi_i2s_flag_get(spi_x, SPI_I2S_TDBE_FLAG)) {
-			spi_i2s_data_transmit(spi_x, tx_data);
-			return 0;
-		}
-	} while (retry--);
+        if (spi_i2s_flag_get(spi_x, SPI_I2S_TDBE_FLAG)) {
+            spi_i2s_data_transmit(spi_x, tx_data);
+            return 0;
+        }
+    } while (retry--);
 
-        return -1;       
+        return -1;
 }
 
 static bool_t __SPI_TxRxPoll(tagSpiReg *Reg,u8 *srcAddr,u32 wrSize, u8 *destAddr, u32 rdSize,u32 recvoff,u8 cs)

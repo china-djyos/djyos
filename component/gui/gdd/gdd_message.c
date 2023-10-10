@@ -202,7 +202,7 @@ ErrorExit:
 }
 
 //从消息队列中删除指定句柄的所有消息。
-void    __GUI_DeleteMsg(HWND hwnd)
+void __GUI_DeleteMsg(HWND hwnd)
 {
     struct MsgList *currentmsg;
     struct MsgList *premsg,*freemsg;
