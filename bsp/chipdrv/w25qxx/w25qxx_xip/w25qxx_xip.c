@@ -292,7 +292,7 @@ s32 xip_w25q_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 // ============================================================================
 s32 xip_w25q_erase(struct __icore *core, u32 bytes, u32 pos)
 {
-    u32 addr = pos + (core->MStart * CFG_W25QXX_BYTES_PAGE);
+    u32 addr = pos + (core->MStart / CFG_W25QXX_PAGES_SECTOR);
     s32 res = 0;
     s32 len = (s32)bytes;
 
