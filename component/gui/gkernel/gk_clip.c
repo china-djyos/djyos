@@ -69,9 +69,9 @@
 #include "gk_win.h"
 #include "gk_clip.h"
 #include "gk_draw.h"
+#include "pool.h"
 #include "dbug.h"
 struct MemCellPool *g_ptClipRectPool;   //剪切域内存池
-
 void __GK_GetWinOutline(struct GkWinObj *gkwin, struct Rectangle *target)
 {
     if(gkwin->WinProperty.VisibleExec == CN_GKWIN_VISIBLE)
@@ -118,9 +118,12 @@ struct ClipRect *__GK_FreeClipQueue(struct ClipRect *clip)
         do
         {
             temp1 = temp->next;
+             
             Mb_Free(g_ptClipRectPool,temp);
+             
             temp = temp1;
         }while(temp != clip);
+                     
     }
     return NULL;
 }
@@ -139,6 +142,7 @@ struct ClipRect * __GK_CombineClip_s(struct ClipRect *clipq)
     //合并剪切域
     clip = clipq;
     clip1 = clipq->next;
+                 
     //执行水平合并,由于clip是按照先横后纵的方式划分的，因此水平合并只需要查
     //看相邻矩形是否可以合并即可
     while(clip1 != clipq)
@@ -150,8 +154,10 @@ struct ClipRect * __GK_CombineClip_s(struct ClipRect *clipq)
             clip->rect.right = clip1->rect.right;
             clip->next = clip1->next;
             clip1->next->previous = clip;
+             
             Mb_Free(g_ptClipRectPool,clip1);
             clip1 = clip->next;
+             
         }
         else if((clip1->rect.top == clip->rect.top) //存在剪切域相同的情况
             &&(clip1->rect.bottom == clip->rect.bottom)
@@ -160,18 +166,21 @@ struct ClipRect * __GK_CombineClip_s(struct ClipRect *clipq)
         {
             clip->next = clip1->next;
             clip1->next->previous = clip;
+             
             Mb_Free(g_ptClipRectPool,clip1);
             clip1 = clip->next;
         }else
         {
             clip = clip1;
             clip1 = clip1->next;
+             
         }
     }
     //执行垂直合并，可合并的矩形可能不相邻，故需两重循环才能完成。
     clip = clipq;
     do{
         clip1 = clip->next;
+         
         while(clip1 != clip)
         {
             if((clip1->rect.left == clip->rect.left)
@@ -183,13 +192,16 @@ struct ClipRect * __GK_CombineClip_s(struct ClipRect *clipq)
                 clip1->next->previous = clip1->previous;
                 tempclip = clip1;
                 clip1 = clip1->next;
+                 
                 Mb_Free(g_ptClipRectPool,tempclip);
             }else
                 clip1 = clip1->next;
         }
         clip = clip->next;
+         
     }while(clip != clipq);
     return clipq;
+                 
 }
 
 
@@ -278,7 +290,7 @@ struct ClipRect * __GK_CombineClip(struct ClipRect *clipq)
         endclip = endclip->previous;
         //debug_printf("gkclip","used times =%d\n",firstTime);
     }while(startclip!= endclip);
-
+             
     return  __GK_CombineClip_s(startclip);
 }
 
@@ -309,6 +321,7 @@ struct ClipRect * __gk_combine_clip_old(struct ClipRect *clipq)
         top = min->rect.top;
         left = min->rect.left;
         work = min->next;
+         
         do{
             if((work->rect.top < top)
                 || ((work->rect.top == top) && (work->rect.left <= left)))
@@ -332,10 +345,13 @@ struct ClipRect * __gk_combine_clip_old(struct ClipRect *clipq)
                 min->previous->next = now;
                 min->next->previous = now;
                 temp_next = min->next;
+                 
                 temp_previous = min->previous;
                 min->previous = now->previous;
                 min->next = now->next;
+                 
                 now->next = temp_next;
+                 
                 now->previous = temp_previous;
             }
             else                    //要交换的min与temp相邻
@@ -345,10 +361,13 @@ struct ClipRect * __gk_combine_clip_old(struct ClipRect *clipq)
                     start = min;
                 now->previous->next = min;
                 min->next->previous = now;
+                 
                 min->previous = now->previous;
                 now->next = min->next;
+                 
                 now->previous = min;
                 min->next = now;
+                 
             }
             temp = min;
         }
@@ -414,6 +433,7 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display,struct Rectangle *rang
     tempwin = display->z_topmost;
 //    rect_left = 0;
 //    rect_top = 0;
+     
     while(1)
     {
         //要求窗口可视，且被祖先窗口限制后，仍然有可视范围
@@ -444,6 +464,7 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display,struct Rectangle *rang
         else
             break;
     }
+     
     //处理桌面下的窗口，这些窗口肯定没有可视域
     while(1)
     {
@@ -465,6 +486,7 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display,struct Rectangle *rang
     //串成双向链表，由clip_head做链表头
     rect_top = 0;
     temp = 0;
+     
     for(rect_bottom =1;rect_bottom <= display->height; rect_bottom++)
     {
         if(sort_array_y[rect_bottom] == 0)
@@ -498,6 +520,7 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display,struct Rectangle *rang
 
     //下面判断小clip的归属，并把他们加入到所属win的new_clip队列中
     tempwin = display->z_topmost;
+     
     while(1)
     {
         clip = clip_head;
@@ -550,6 +573,7 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display,struct Rectangle *rang
         else
             break;
     }
+     
     return true;
 }
 
@@ -792,6 +816,7 @@ error_exit:
     do
     {
         clip2 = clip1->next;
+         
         Mb_Free(g_ptClipRectPool,clip1);
         clip1 = clip2;
     }while(clip2 != NULL);
@@ -861,7 +886,7 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
     s16 loopx,loopy;
     bool_t start;
     s32 width,height;
-
+     
     msk = gkwin->changed_msk.bm_bits;
     msk_line_words = gkwin->changed_msk.linebytes;
     width = gkwin->wm_bitmap->width;
@@ -879,7 +904,9 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
             clip->previous = clip;
             gkwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_NONE;
             memset(msk,0,msk_line_words * gkwin->changed_msk.height);
+             
             return clip;            //把整个窗口的可显示区域当作一个剪切域返回
+
         }
         else
             return NULL;
@@ -950,6 +977,7 @@ struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
                         clip1->next->previous = clip1->previous;
                         tempclip = clip1;
                         clip1 = clip1->next;
+                         
                         Mb_Free(g_ptClipRectPool,tempclip);
                     }else
                         clip1 = clip1->next;
@@ -1041,6 +1069,7 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
                     {   //首个矩形，覆盖原结点
                         workloop->rect.bottom = subloop->rect.top;
                         workloop = workloop->next;
+                         
                         uftemp++;
                     }
                     if(subloop->rect.left > src_rect.left)      //左部矩形
@@ -1053,6 +1082,7 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
                             else
                                 workloop->rect.bottom = subloop->rect.bottom;
                             workloop = workloop->next;
+                             
                         }else
                         {
                             temp1 = __GK_AllocClip(0);
@@ -1077,6 +1107,7 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
                             else
                                 workloop->rect.bottom = subloop->rect.bottom;
                             workloop = workloop->next;
+                             
                         }else
                         {
                             temp1 = __GK_AllocClip(0);
@@ -1100,6 +1131,7 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
                         {
                             workloop->rect.top = subloop->rect.bottom;
                             workloop = workloop->next;
+                             
                         }else
                         {
                             temp1 = __GK_AllocClip(0);
@@ -1115,6 +1147,7 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
                    {
                         if(worksrc->next == worksrc)    //源队列只有一个矩形
                         {
+                             
                             Mb_Free(g_ptClipRectPool,worksrc);
                             worksrc = NULL;
 //                            workloop = NULL;
@@ -1129,6 +1162,7 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
                                 worksrc = workloop;
                             if(EndLoop == temp1)
                                 EndSub = true;
+                                 
                             Mb_Free(g_ptClipRectPool,temp1);
                         }
                     }

@@ -51,6 +51,8 @@ extern "C" {
 
 #include "stm32f7xx.h"
 #define tagUartReg USART_TypeDef
+//同步/异步串口位域，bo_为位偏移，1位的用位带地址，bb_前缀，多位用掩码，bm_前缀
+//uart1 sr寄存器位定义
 //usart:1,2,3,6//uart4,5,7,8
 #define CN_UART1    0
 #define CN_UART2    1

@@ -20,6 +20,9 @@
 #ifndef _SQLITE_OS_H_
 #define _SQLITE_OS_H_
 
+
+#include <sqlite3.h>
+#include <sqliteInt.h>
 /*
 ** Figure out if we are dealing with Unix, Windows, or some other
 ** operating system.  After the following block of preprocess macros,

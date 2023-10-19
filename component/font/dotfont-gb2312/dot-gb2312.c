@@ -447,7 +447,7 @@ bool_t __Font_Gb2312_16GetCharBitMapSong(u32 charcode, u32 size,u32 resv,
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
         bitmap->width = FONT_HZ16_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_W+7)/8;

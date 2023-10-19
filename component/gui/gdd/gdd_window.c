@@ -643,6 +643,12 @@ void GDD_SetWindowName(HWND hwnd, char *NewName)
     __GDD_DrawWinCaption(hwnd);
     return ;
 }
+//取窗口名字
+char *GDD_GetWindowName(HWND hwnd)
+{
+    char* name=GK_GetName(hwnd->pGkWin);
+    return name;
+}
 
 //----初始化窗口数据结构---------------------------------------------------------
 //描述: 该函数为内部调用.
@@ -726,7 +732,8 @@ bool_t GDD_DesktopPaint(struct WindowMsg *pMsg)
         return false;
     GDD_GetClientRect(hwnd,&rc);
 
-    GDD_GradientFillRect(hdc,&rc,RGB(120,120,255),RGB(20,20,80),CN_FILLRECT_MODE_UD);
+    GDD_FillRectEx(hdc,&rc,RGB(1,1,1));
+    //GDD_GradientFillRect(hdc,&rc,RGB(120,120,255),RGB(20,20,80),CN_FILLRECT_MODE_N);
 
     GDD_EndPaint(hwnd,hdc);
     return true;
@@ -1089,27 +1096,56 @@ void __GDD_DeleteMainWindowData(HWND hwnd)
 
 }
 
-//----销毁一个窗口--------------------------------------------------------------
-//描述: 可以是主窗口和子窗口,通过给窗口发送close消息来实现。close处理时，将同时
-//      销毁后代窗口。
-//参数：hwnd:需要销毁的窗口句柄
-//返回：无.
-//------------------------------------------------------------------------------
-void    GDD_DestroyWindow(HWND hwnd)
+////----销毁一个窗口--------------------------------------------------------------
+////描述: 可以是主窗口和子窗口,通过给窗口发送close消息来实现。close处理时，将同时
+////      销毁后代窗口。
+////参数：hwnd:需要销毁的窗口句柄
+////返回：无.
+////------------------------------------------------------------------------------
+//void    GDD_DestroyWindow(HWND hwnd)
+//{
+//    HWND parent;
+//    parent = GDD_GetWindowParent(hwnd);
+//    hwnd->Text = NULL;  //它指向GK的窗口名，下一行GK将被释放
+//    GK_DestroyWin(hwnd->pGkWin);
+//    if(GDD_PostMessage(hwnd, MSG_CLOSE, 0, 0))
+//    {
+//        hwnd->pGkWin = NULL;
+//        //执行 MSG_CLOSE 消息后，hwnd将被释放，此后将无法执行显示刷新操作，故需要给
+//        //父窗口发一个刷新消息。
+//        GDD_SyncShow(parent);
+//    }
+//}
+void GDD_DestroyWindow(HWND hwnd)
 {
+    HWND Current = hwnd;
     HWND parent;
     parent = GDD_GetWindowParent(hwnd);
-    hwnd->Text = NULL;  //它指向GK的窗口名，下一行GK将被释放
-    GK_DestroyWin(hwnd->pGkWin);
-    hwnd->pGkWin = NULL;
-    if(GDD_PostMessage(hwnd, MSG_CLOSE, 0, 0))
-    {
-        //执行 MSG_CLOSE 消息后，hwnd将被释放，此后将无法执行显示刷新操作，故需要给
-        //父窗口发一个刷新消息。
-        GDD_SyncShow(parent);
-    }
-}
 
+    if(__GDD_Lock())
+    {
+        Current = (HWND)GK_GetUserTag(GK_GetTwig(hwnd->pGkWin));
+        while(Current != NULL)
+        {
+//            GDD_SetWindowHide(Current);     //MSG_CLOSE消息是最后处理的，先隐藏窗口
+//          temphwnd = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
+            Current->Text = NULL;  //它指向GK的窗口名，下一行GK将被释放
+            GK_DestroyWin(Current->pGkWin);
+            Current->pGkWin = NULL;
+            GDD_PostMessage(Current, MSG_CLOSE, 0, 0);
+            Current = (HWND)GK_GetUserTag(GK_GetTwig(hwnd->pGkWin));
+        }
+        hwnd->Text = NULL;  //它指向GK的窗口名，下一行GK将被释放
+        GK_DestroyWin(hwnd->pGkWin);
+        hwnd->pGkWin = NULL;
+        GDD_PostMessage(hwnd, MSG_CLOSE, 0, 0);
+
+        GDD_SyncShow(parent);
+        __GDD_Unlock();
+    }
+//  GDD_PostMessage(hwnd, MSG_SYNC_DISPLAY,0,0);
+    return ;
+}
 //----销毁全部子窗口-----------------------------------------------------------
 //描述: 除hwnd窗口本身不销毁外，其余同DestroyWindow
 //参数：hwnd:需要销毁的窗口句柄
@@ -1129,7 +1165,12 @@ void GDD_DestroyAllChild(HWND hwnd)
             GK_DestroyWin(Current->pGkWin);
             Current->pGkWin = NULL;
             GDD_PostMessage(Current, MSG_CLOSE, 0, 0);
-            Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
+            Current = (HWND)GK_GetUserTag(GK_GetTwig(hwnd->pGkWin));
+            // Current->Text = NULL;  //它指向GK的窗口名，下一行GK将被释放
+            // GK_DestroyWin(Current->pGkWin);
+            // Current->pGkWin = NULL;
+            // GDD_PostMessage(Current, MSG_CLOSE, 0, 0);
+            // Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
         }
         GDD_SyncShow(hwnd);
         __GDD_Unlock();
@@ -1200,7 +1241,14 @@ bool_t    GDD_IsWindowVisible(HWND hwnd)
 //    }
     return res;
 }
-
+bool_t   GDD_IsWindowExist(HWND hwnd)
+{
+    if(hwnd->pGkWin==NULL)
+    {
+        return false;
+    }
+    return true;
+}
 //----设置窗口为无效-------------------------------------------------------------
 //描述: 略
 //参数：hwnd:窗口句柄.
@@ -1610,46 +1658,47 @@ static ptu32_t __GDD_DefWindowProcCLOSE(struct WindowMsg *pMsg)
 //  if(__GDD_Lock())
 //  {
         hwnd = pMsg->hwnd;
+        GDD_SetFocusWindow( GDD_GetDesktopWindow(NULL));
         //查找被删除窗口是否focus窗口的祖先窗口，如是，则需要转移focus窗口
         //从被删窗口的兄弟窗口中找到一个允许focus的窗口，设为新的focus窗口。
         //若还是没有找到，则看父窗口是否允许focus，允许则设为focus窗口。
         //否则以 desktop 为 focus 窗口
-        if(GDD_IsFocusAncestor(hwnd))
-        {
-            next = GDD_GetWindowNext(hwnd);
-            while(next != hwnd)
-            {
-                if( GDD_IsFocusEnable(next) )
-                {
-                    GDD_SetFocusWindow(next);
-                    break;
-                }
-                else
-                    next = GDD_GetWindowNext(hwnd);
-            }
-            if(next == hwnd)
-            {
-                if(GDD_IsFocusEnable(GDD_GetWindowParent(next)))
-                {
-                    GDD_SetFocusWindow(GDD_GetWindowParent(next));
-                }
-                else
-                {
-                    GDD_SetFocusWindow(GDD_GetDesktopWindow(NULL ));
-                }
-            }
-        }
-        Current = __GDD_GetWindowTwig(hwnd);
-        while(Current != NULL)
-        {
-            //末梢窗口直接调用消息处理函数，必须调用WinMsgProc函数方式实现，这样
-            //才能正确调用用户定义的消息处理函数，并且正确处理消息处理函数的继承
-            //关系。
-            //这里将引起递归，但递归深度只有1级，因为 twig 不会再有子窗口了。
-            __GDD_InitMsg(&SubMsg, Current, MSG_CLOSE, 0, (ptu32_t)Current->PrivateData);
-            __GDD_WinMsgProc(&SubMsg);
-            Current = __GDD_GetWindowTwig(hwnd);
-        }
+//        if(GDD_IsFocusAncestor(hwnd))
+//        {
+//            next = GDD_GetWindowNext(hwnd);
+//            while(next != hwnd)
+//            {
+//                if( GDD_IsFocusEnable(next) )
+//                {
+//                    GDD_SetFocusWindow(next);
+//                    break;
+//                }
+//                else
+//                    next = GDD_GetWindowNext(hwnd);
+//            }
+//            if(next == hwnd)
+//            {
+//                if(GDD_IsFocusEnable(GDD_GetWindowParent(next)))
+//                {
+//                    GDD_SetFocusWindow(GDD_GetWindowParent(next));
+//                }
+//                else
+//                {
+//                    GDD_SetFocusWindow(GDD_GetDesktopWindow(NULL ));
+//                }
+//            }
+//        }
+        //      Current = __GDD_GetWindowTwig(hwnd);
+        //      while(Current != NULL)
+        //      {
+                    //末梢窗口直接调用消息处理函数，必须调用WinMsgProc函数方式实现，这样
+                    //才能正确调用用户定义的消息处理函数，并且正确处理消息处理函数的继承
+                    //关系。
+                    //这里将引起递归，但递归深度只有1级，因为 twig 不会再有子窗口了。
+                   // __GDD_InitMsg(&SubMsg, hwnd, MSG_CLOSE, 0, (ptu32_t)hwnd->PrivateData);
+                   // __GDD_WinMsgProc(&SubMsg);
+        //          Current = __GDD_GetWindowTwig(hwnd);
+        //      }
         //GK_DestroyWin必须在GDD的API中删除，否则消息延迟处理会导致销毁窗口后不能立即
         //创建同名窗口。
 //      GK_DestroyWin(hwnd->pGkWin);
@@ -1723,11 +1772,11 @@ ptu32_t __GDD_WinMsgProc(struct WindowMsg *pMsg)
     if(__GDD_Lock())
     {
         hwnd = pMsg->hwnd;
-        if(hwnd->pGkWin == NULL)        //无gkwin的句柄，一定是无效的。
-        {
-            __GDD_Unlock();
-            return 0;
-        }
+//        if(hwnd->pGkWin == NULL)        //无gkwin的句柄，一定是无效的。
+//        {
+//            __GDD_Unlock();
+//            return 0;
+//        }
         //逐级消息处理继承机制，先从最后添加的消息表开始查找，直到找到一个不需要继承上级
         //消息的消息处理函数.
         //这有点像C++的继承机制。相当于用户继承控件，控件继承窗口系统。
@@ -1779,6 +1828,7 @@ ptu32_t __GDD_WinMsgProc(struct WindowMsg *pMsg)
             else
                 __GDD_DeleteChildWindowData(hwnd);
         }
+
         __GDD_Unlock();
     }
     return result;

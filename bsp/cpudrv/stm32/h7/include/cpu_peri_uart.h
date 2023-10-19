@@ -49,23 +49,17 @@
 extern "C" {
 #endif
 
-#include "stm32h7xx.h"
-#define tagUartReg USART_TypeDef
-//usart:1,2,3,6//uart4,5,7,8
-#define CN_UART1    0
-#define CN_UART2    1
-#define CN_UART3    2
-#define CN_UART4    3
-#define CN_UART5    4
-#define CN_UART6    5
-#define CN_UART7    6
-#define CN_UART8    7
-#define CN_UART_NUM 8
+#define CN_UART1     0
+#define CN_UART2     1
+#define CN_UART3     2
+#define CN_UART4     3
+#define CN_UART5     4
+#define CN_UART6     5
+#define CN_UART7     6
+#define CN_UART8     7
+#define CN_UART_NUM  8
 
-bool_t UART_LowPowerConfig(u8 port,u8 flag);
 ptu32_t ModuleInstall_UART(ptu32_t para);
-
-void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut);
 
 #ifdef __cplusplus
 }
