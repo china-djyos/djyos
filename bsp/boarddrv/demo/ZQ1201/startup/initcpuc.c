@@ -168,7 +168,7 @@ void Init_Cpu(void)
 
     SDRAM_Init();
 
-#if (CFG_RUNMODE_BAREAPP == 1)
+#if (CFG_RUNMODE == CN_RUNMODE_BOOTSELF)
     Iboot_LoadPreload();
 #else
     Iboot_IAP_SelectLoadProgam();
@@ -238,7 +238,7 @@ void Init_Cpuc(void)
 //  csi_cache_set_range(1, 0x22000000, CACHE_CRCR_8M, 1);
 //  csi_dcache_enable();
 
-#if (CFG_RUNMODE_BAREAPP == 1)
+#if (CFG_RUNMODE == CN_RUNMODE_BOOTSELF)
     Iboot_LoadPreload();
 #else
     Iboot_IAP_SelectLoadProgam();

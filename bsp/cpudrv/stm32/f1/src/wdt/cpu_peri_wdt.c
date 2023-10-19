@@ -63,13 +63,13 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    #if CFG_IWDG_ENABLE==1
-//    extern bool_t IWDG_Stm32Initial(u32 setcycle);
-//    IWDG_Stm32Initial(CFG_WDT_WDTCYCLE);
+//    extern bool_t IWDG_Stm32Initial(void);
+//    IWDG_Stm32Initial();
 //    #endif
 //
 //    #if CFG_WWDG_ENABLE==1
-//    extern bool_t WWDG_STM32Init(u32 setcycle);
-//    WWDG_STM32Init(CFG_WWDG_WDTCYCLE);
+//    extern bool_t WWDG_STM32Init(void);
+//    WWDG_STM32Init();
 //    #endif
 //%$#@end initcode  ****初始化代码结束
 

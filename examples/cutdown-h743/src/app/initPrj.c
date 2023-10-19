@@ -24,7 +24,7 @@ void Sys_ModuleInit(void)
     Board_Init();
 
     //-------------------early-------------------------//
-    #if !defined (CFG_RUNMODE_BAREAPP)
+    #if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
         extern ptu32_t ModuleInstall_IAP(void);
         ModuleInstall_IAP( );
     #endif

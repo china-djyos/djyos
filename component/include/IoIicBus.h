@@ -67,7 +67,8 @@ typedef u32 (*IIC_IoCtrl)(enum IIc_Io IO,u32 tag);
 struct IO_IIC_Init
 {
     char           *BusName;      //总线名称，如IIC1
-    u32            tag;           //用户自己的标记
+    u32            tag;           //用户自己的标记,调用 IIC_IoCtrl 函数的参数tag。
+                                  //用于有多条模拟IIC时，区分之
     IIC_IoCtrl     IIC_IoCtrl ;   //控制函数
 };
 //模块接口

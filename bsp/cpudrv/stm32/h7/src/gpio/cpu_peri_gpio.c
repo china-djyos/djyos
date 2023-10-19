@@ -96,8 +96,9 @@
 
 #define tagGpioReg GPIO_TypeDef
 
+//h7xx没有定义GPIOI，但占了位
 static tagGpioReg volatile * const tg_GPIO_Reg[] = {GPIOA,GPIOB,GPIOC,GPIOD,
-                                                GPIOE,GPIOF,GPIOG,GPIOH,GPIOI,GPIOJ,GPIOK};
+                                                GPIOE,GPIOF,GPIOG,GPIOH,(GPIO_TypeDef *)0,GPIOJ,GPIOK};
 
 // =============================================================================
 // 功能: GPIO引脚配置，包括引脚的模式、输入类型、速度、上下拉类型等
@@ -196,7 +197,7 @@ void GPIO_SettoHigh(u32 port,u32 msk)
 {
     if(port >GPIO_K)
         return;
-    tg_GPIO_Reg[port]->BSRRL = (u16)msk & 0xffff;
+    tg_GPIO_Reg[port]->BSRR = msk & 0xffff;
 }
 
 // =============================================================================
@@ -209,7 +210,7 @@ void GPIO_SettoLow(u32 port,u32 msk)
 {
     if(port > GPIO_K)
         return;
-    tg_GPIO_Reg[port]->BSRRH =(u16)msk & 0xffff;
+    tg_GPIO_Reg[port]->BSRR = msk << 16;
 }
 
 // =============================================================================

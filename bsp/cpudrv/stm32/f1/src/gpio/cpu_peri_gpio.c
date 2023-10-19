@@ -109,7 +109,7 @@
 //-----------------------------------------------------------------------------
 void GPIO_CfgPinFunc(u32 port,u32 pinnum,u32 func_no)
 {
-    if(port >6)
+    if ((port > CN_GPIO_G) || (pinnum > PIN15))
         return;
 
     if(pinnum < 8 )
@@ -143,9 +143,21 @@ void GPIO_CfgPinFunc(u32 port,u32 pinnum,u32 func_no)
 //-----------------------------------------------------------------------------
 u32 GPIO_GetData(u32 port)
 {
-    if(port >6)
+    if(port > CN_GPIO_G)
         return 0;
     return pg_gpio_reg[port]->IDR;
+}
+
+//----从gpio读取数据-----------------------------------------------------------
+//功能: 读取某gpio 的指定引脚
+//参数: port，被操作的port编号，比如要操作P1,则port=1.msk：pin脚掩码
+//返回: 读得的数据
+//-----------------------------------------------------------------------------
+u32 GPIO_GetPinData(u32 port, u32 msk)
+{
+    if ((port > CN_GPIO_G) || (msk > PIN15))
+        return 0;
+    return (1 << msk) == (pg_gpio_reg[port]->IDR & (1 << msk));
 }
 
 //----输出数据到某port---------------------------------------------------------
@@ -158,7 +170,7 @@ u32 GPIO_GetData(u32 port)
 //-----------------------------------------------------------------------------
 void GPIO_OutData(u32 port,u32 data)
 {
-    if(port >6)
+    if(port > CN_GPIO_G)
         return;
     pg_gpio_reg[port]->ODR = data;
 }
@@ -173,9 +185,9 @@ void GPIO_OutData(u32 port,u32 data)
 //-----------------------------------------------------------------------------
 void GPIO_SettoHigh(u32 port,u32 msk)
 {
-    if(port >6)
+    if ((port > CN_GPIO_G) || (msk > PIN15))
         return;
-    pg_gpio_reg[port]->BSRR = msk & 0xffff;
+    pg_gpio_reg[port]->BSRR = (1 << msk) & 0xffff;
 }
 
 //----IO口输出低电平-----------------------------------------------------------
@@ -188,9 +200,9 @@ void GPIO_SettoHigh(u32 port,u32 msk)
 //-----------------------------------------------------------------------------
 void GPIO_SettoLow(u32 port,u32 msk)
 {
-    if(port >6)
+    if ((port > CN_GPIO_G) || (msk > PIN15))
         return;
-    pg_gpio_reg[port]->BRR = msk;
+    pg_gpio_reg[port]->BRR = (1 << msk);
 }
 
 //----使能gpio模块-------------------------------------------------------------

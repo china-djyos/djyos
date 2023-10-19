@@ -116,9 +116,13 @@ struct IIC_Io_CB
 static void IO_IIC_Start(struct IIC_Io_CB * ICB)
 {
     ICB->IOCtrl(sda_set_out,ICB->tag);//sda线输出
+    ICB->IOCtrl(scl_set_Low,ICB->tag);//时钟设置高电平
+    ICB->IOCtrl(sda_set_High,ICB->tag);//时钟设置高电平
     ICB->IOCtrl(scl_set_High,ICB->tag);//时钟设置高电平
     DJY_DelayUs(ICB->delay_us);
-    ICB->IOCtrl(sda_set_Low,ICB->tag);//START:when CLK is high,DATA change form high to low
+    ICB->IOCtrl(sda_set_Low,ICB->tag);
+    DJY_DelayUs(ICB->delay_us);
+    ICB->IOCtrl(scl_set_Low,ICB->tag);//START:when CLK is high,DATA change form high to low
     DJY_DelayUs(ICB->delay_us);
 }
 
@@ -312,7 +316,6 @@ static s32 IO_IIC_ReadPoll(struct IIC_Io_CB * ICB,u8 devaddr,u32 memaddr,
       if(false ==IO_IIC_WaitAck( ICB))
           return (-1);
     }
-    IO_IIC_Stop( ICB); //发送起始位
     IO_IIC_Start( ICB); //发送起始位
     IO_IIC_SendByte(ICB, ((devaddr<<1)|0x01));//发送器件地址读
     if(false ==IO_IIC_WaitAck( ICB))

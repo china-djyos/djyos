@@ -110,25 +110,25 @@
 //%$#@describe      ****组件描述开始
 //component name:"cpu onchip uart"//CPU的uart外设驱动
 //parent:"uart device file"      //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp                    //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable                 //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                   //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                  //初始化时机，可选值：early，medium，later, pre-main。
-                                   //表示初始化时间，分别是早期、中期、后期
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
+                                //表示初始化时间，分别是早期、中期、后期
 //dependence:"uart device file","cpu onchip dma"//该组件的依赖组件名（可以是none，表示无依赖组件），
-                                   //选中该组件时，被依赖组件将强制选中，
-                                   //如果依赖多个组件，则依次列出
-//weakdependence:"none"            //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                   //选中该组件时，被依赖组件不会被强制选中，
-                                   //如果依赖多个组件，则依次列出，用“,”分隔
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
-                                   //如果与多个组件互斥，则依次列出
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
 #if ( CFG_MODULE_ENABLE_CPU_ONCHIP_UART == false )
 //#warning  " cpu_onchip_uart  组件参数未配置，使用默认配置"
-//%$#@target = header    //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_UART    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,512,
 #define CFG_UART1_SENDBUF_LEN       64      //"UART1发送环形缓冲区大小",
@@ -294,14 +294,14 @@ bool_t UART_LowPowerConfig(u8 port,u8 flag)
     {
         switch(port)
         {
-             case CN_UART1: RCC->APB2ENR &=~(1<<4); break;
-             case CN_UART2: RCC->APB1ENR &=~(1<<17);break;
-             case CN_UART3: RCC->APB1ENR &=~(1<<18);break;
-             case CN_UART4: RCC->APB1ENR &=~(1<<19);break;
-             case CN_UART5: RCC->APB1ENR &=~(1<<20);break;
-             case CN_UART6: RCC->APB2ENR &=~(1<<5); break;
-             case CN_UART7: RCC->APB1ENR &=~(1<<30);break;
-             case CN_UART8: RCC->APB1ENR &=~(1<<31);break;
+             case CN_UART1: RCC->APB2ENR &=~RCC_APB2ENR_USART1EN; break;
+             case CN_UART2: RCC->APB1ENR &=~RCC_APB1ENR_USART2EN;break;
+             case CN_UART3: RCC->APB1ENR &=~RCC_APB1ENR_USART3EN;break;
+             case CN_UART4: RCC->APB1ENR &=~RCC_APB1ENR_UART4EN;break;
+             case CN_UART5: RCC->APB1ENR &=~RCC_APB1ENR_UART5EN;break;
+             case CN_UART6: RCC->APB2ENR &=~RCC_APB2ENR_USART6EN; break;
+             case CN_UART7: RCC->APB1ENR &=~RCC_APB1ENR_UART7EN;break;
+             case CN_UART8: RCC->APB1ENR &=~RCC_APB1ENR_UART8EN;break;
             default: break;
         }
         tg_UART_Reg[port]->CR1 &=~ (0x1);
@@ -312,14 +312,14 @@ bool_t UART_LowPowerConfig(u8 port,u8 flag)
     {
         switch(port)
             {
-            case CN_UART1: RCC->APB2ENR |=(1<<4); break;
-            case CN_UART2: RCC->APB1ENR |=(1<<17);break;
-            case CN_UART3: RCC->APB1ENR |=(1<<18);break;
-            case CN_UART4: RCC->APB1ENR |=(1<<19);break;
-            case CN_UART5: RCC->APB1ENR |=(1<<20);break;
-            case CN_UART6: RCC->APB2ENR |=(1<<5); break;
-            case CN_UART7: RCC->APB1ENR |=(1<<30);break;
-            case CN_UART8: RCC->APB1ENR |=(1<<31);break;
+            case CN_UART1: RCC->APB2ENR |=RCC_APB2ENR_USART1EN; break;
+            case CN_UART2: RCC->APB1ENR |=RCC_APB1ENR_USART2EN;break;
+            case CN_UART3: RCC->APB1ENR |=RCC_APB1ENR_USART3EN;break;
+            case CN_UART4: RCC->APB1ENR |=RCC_APB1ENR_UART4EN;break;
+            case CN_UART5: RCC->APB1ENR |=RCC_APB1ENR_UART5EN;break;
+            case CN_UART6: RCC->APB2ENR |=RCC_APB2ENR_USART6EN; break;
+            case CN_UART7: RCC->APB1ENR |=RCC_APB1ENR_UART7EN;break;
+            case CN_UART8: RCC->APB1ENR |=RCC_APB1ENR_UART8EN;break;
             default: break;
         }
         tg_UART_Reg[port]->CR1 |= (0x1);
@@ -354,7 +354,7 @@ void __UART_RxIntDisable(u8 flag, u8 port)
     if(flag == CN_DMA_USED)
         Int_SaveAsynLine(UartDmaRxInt[port]);
     else
-        tg_UART_Reg[port]->CR1 &= ~(1<<5);
+        tg_UART_Reg[port]->CR1 &= ~USART_CR1_RXNEIE_RXFNEIE;
 }
 
 // =============================================================================
@@ -444,7 +444,7 @@ static void __UART_BaudSet(tagUartReg volatile *Reg,u32 port,u32 baud)
         fraction = (temp - mantissa)*16;
     }
 
-    Reg->BRR =  ((u16)mantissa<<4)+(u16)fraction;
+    Reg->BRR =  ((u16)mantissa<<USART_BRR_DIV_MANTISSA_Pos)+(u16)fraction;
 
     if(TxDirectPort == port)
     {
@@ -464,29 +464,29 @@ static void __UART_ClkConfig(u8 SerialNo)
     switch(SerialNo)
     {
     case CN_UART1:
-        RCC->APB2ENR |=(1<<4);//串口时钟使能
+        RCC->APB2ENR |=RCC_APB2ENR_USART1EN;//串口时钟使能
         break;
     case CN_UART2:
-        RCC->APB1ENR |=(1<<17);
+        RCC->APB1ENR |=RCC_APB1ENR_USART2EN;
         break;
     case CN_UART3:
-        RCC->APB1ENR |=(1<<18);
+        RCC->APB1ENR |=RCC_APB1ENR_USART3EN;
 
         break;
     case CN_UART4:
-        RCC->APB1ENR |=(1<<19);
+        RCC->APB1ENR |=RCC_APB1ENR_UART4EN;
         break;
     case CN_UART5:
-        RCC->APB1ENR |=(1<<20);
+        RCC->APB1ENR |=RCC_APB1ENR_UART5EN;
         break;
     case CN_UART6:
-        RCC->APB2ENR |=(1<<5);
+        RCC->APB2ENR |=RCC_APB2ENR_USART6EN;
         break;
     case CN_UART7:
-        RCC->APB1ENR |=(1<<30);
+        RCC->APB1ENR |=RCC_APB1ENR_UART7EN;
         break;
     case CN_UART8:
-        RCC->APB1ENR |=(1<<31);
+        RCC->APB1ENR |=RCC_APB1ENR_UART8EN;
         break;
     default: break;
 
@@ -603,21 +603,21 @@ void __UART_Enable(u32 port)
     switch(port)
     {//使能串口1时钟
         case CN_UART1:
-            RCC->APB2ENR |=(1<<4);break;
+            RCC->APB2ENR |=RCC_APB2ENR_USART1EN;break;
         case CN_UART2:
-            RCC->APB1ENR |=(1<<17);break;
+            RCC->APB1ENR |= RCC_APB1ENR_USART2EN;break;
         case CN_UART3:
-            RCC->APB1ENR |=(1<<18);break;
+            RCC->APB1ENR |= RCC_APB1ENR_USART3EN;break;
         case CN_UART4:
-            RCC->APB1ENR |=(1<<19);break;
+            RCC->APB1ENR |= RCC_APB1ENR_UART4EN;break;
         case CN_UART5:
-            RCC->APB1ENR |=(1<<20);break;
+            RCC->APB1ENR |= RCC_APB1ENR_UART5EN;break;
         case CN_UART6:
-            RCC->APB2ENR |=(1<<5);break;
+            RCC->APB2ENR |=RCC_APB2ENR_USART6EN;break;
         case CN_UART7:
-            RCC->APB1ENR |=(1<<30);break;
+            RCC->APB1ENR |=RCC_APB1ENR_UART7EN;break;
         case CN_UART8:
-            RCC->APB1ENR |=(1<<31);break;
+            RCC->APB1ENR |=RCC_APB1ENR_UART8EN;break;
         default:
             break;
     }
@@ -633,14 +633,14 @@ void __UART_Disable(u32 port)
 {
     switch(port)
     {
-        case CN_UART1:  RCC->APB2ENR &=~(1<<4);  break;
-        case CN_UART2:  RCC->APB1ENR &=~(1<<17); break;
-        case CN_UART3:  RCC->APB1ENR &=~(1<<18); break;
-        case CN_UART4:  RCC->APB1ENR &=~(1<<19); break;
-        case CN_UART5:  RCC->APB1ENR &=~(1<<20); break;
-        case CN_UART6:  RCC->APB2ENR &=~(1<<5);  break;
-        case CN_UART7:  RCC->APB1ENR &=~(1<<30); break;
-        case CN_UART8:  RCC->APB1ENR &=~(1<<31); break;
+        case CN_UART1:  RCC->APB2ENR &=~RCC_APB2ENR_USART1EN;  break;
+        case CN_UART2:  RCC->APB1ENR &=~RCC_APB1ENR_USART2EN; break;
+        case CN_UART3:  RCC->APB1ENR &=~RCC_APB1ENR_USART3EN; break;
+        case CN_UART4:  RCC->APB1ENR &=~RCC_APB1ENR_UART4EN; break;
+        case CN_UART5:  RCC->APB1ENR &=~RCC_APB1ENR_UART5EN; break;
+        case CN_UART6:  RCC->APB2ENR &=~RCC_APB2ENR_USART6EN;  break;
+        case CN_UART7:  RCC->APB1ENR &=~RCC_APB1ENR_UART7EN; break;
+        case CN_UART8:  RCC->APB1ENR &=~RCC_APB1ENR_UART8EN; break;
         default:break;
     }
     tg_UART_Reg[port]->CR1 &= ~(1);
@@ -1138,7 +1138,7 @@ uint32_t UART_DmaRx_ISR(ptu32_t port)
         DmaRecvBufNow=pUART_DmaRecvBuf[port][0];
     }
 
-    if(UartDmaRxStream[port]->CR & (1<<19))
+    if(UartDmaRxStream[port]->CR & DMA_SxCR_CT) //double buffer mode,current target
         DmaRecvBufNow =  pUART_DmaRecvBuf[port][1];
     else
         DmaRecvBufNow =  pUART_DmaRecvBuf[port][0];

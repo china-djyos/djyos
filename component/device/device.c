@@ -493,8 +493,13 @@ static s32 Device_DevObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 //          arg1 = (ptu32_t)va_arg(list, u32);
 //          va_end(list);
 
-            *(s32*)OpsArgs1 = __Device_cntl((struct objhandle*)opsTarget, OpsArgs2,
-                                                (va_list *)OpsArgs3);
+//            *(s32*)OpsArgs1 = __Device_cntl((struct objhandle*)opsTarget, OpsArgs2,
+//                                                (va_list *)OpsArgs3);
+            if (0 == __Device_cntl((struct objhandle*)opsTarget, OpsArgs2,
+                                                (va_list *)OpsArgs3))
+            {
+                result = CN_OBJ_CMD_TRUE;
+            }
             break;
         }
 

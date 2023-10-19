@@ -120,7 +120,7 @@ void Init_Cpu(void)
     void System_ClkInit(void);
     System_ClkInit();
 
-#if (CFG_RUNMODE_BAREAPP == 1)
+#if (CFG_RUNMODE == CN_RUNMODE_BOOTSELF)
     Iboot_LoadPreload();
 #else
     Iboot_IAP_SelectLoadProgam();

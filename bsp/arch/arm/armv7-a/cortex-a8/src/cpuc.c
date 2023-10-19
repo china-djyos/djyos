@@ -60,7 +60,7 @@ extern void Iboot_LoadPreload(void);
 void CPU_Reset(u32 key)
 {
     Iboot_SetSoftResetFlag();
-#if (CFG_RUNMODE_BAREAPP == 0)
+#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
     Iboot_SetPreviouResetFlag();
 #endif
     void (*fn_start)();

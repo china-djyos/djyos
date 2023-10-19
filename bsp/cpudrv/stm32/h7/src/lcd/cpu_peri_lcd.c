@@ -92,7 +92,7 @@
 #define CFG_LCD_YSIZE_UM   48600            //"LCD高度-微米数",
 //%$#@enum,true,false,
 //%$#@string,1,32,
-#define CFG_DISPLAY_NAME        "LCD_F7"    //"显示器LCD名称",
+#define CFG_DISPLAY_NAME        "LCD_H7"    //"显示器LCD名称",
 #define CFG_LCD_HEAP_NAME       "extram"    //"LCD使用堆名称",
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -303,7 +303,7 @@ static bool_t LTDC_Color_Fill(u16 sx,u16 sy,u16 ex,u16 ey,u32 color)
 //-----------------------------------------------------------------------------
 static void LTDC_Init(u8 *pFrameBufferFG)
 {
-    LTDC_Clk_Set(5,160,18);//设置像素时钟  50Mhz
+//    LTDC_Clk_Set(5,160,18);//设置像素时钟  50Mhz
     LTDC_Handler.Instance=LTDC;
     LTDC_Handler.Init.HSPolarity=lcd.LtdcHSPolarity;     //水平同步极性
     LTDC_Handler.Init.VSPolarity=lcd.LtdcVSPolarity;     //垂直同步极性
@@ -523,8 +523,7 @@ bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
                     DMA2D->OMAR = (u32)dst;               //输出存储器地址
                     DMA2D->NLR = 1 | (width << 16);   //设定行数寄存器
                     DMA2D->OCOLR = pixel;                //设定输出颜色寄存器
-
-
+                    DMA2D->CR |= 1 << 0;                //启动DMA2D
                 }//上边弧end
                 move_y = cy + y + dy - flag;
                 if (move_y < Focus->bottom&&move_y >= Focus->top)//下边弧start
@@ -546,8 +545,7 @@ bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
                     DMA2D->OMAR = (u32)dst;               //输出存储器地址
                     DMA2D->NLR = 1 | (width << 16);   //设定行数寄存器
                     DMA2D->OCOLR = pixel;                //设定输出颜色寄存器
-
-
+                    DMA2D->CR |= 1 << 0;                //启动DMA2D
                 }//下边弧end
             }
 
@@ -609,7 +607,7 @@ bool_t __lcd_blt_bm_to_bm(struct RectBitmap *dst_bitmap,
 {
 
     u16 *src_offset,*dst_offset;    //源位图点阵缓冲区可能不对齐!!!
-    u32 width,height;
+    s32 width,height,y;
     u32 timeout=0;
     bool_t flag=true;
     struct RopGroup Rop = { 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
@@ -623,6 +621,7 @@ bool_t __lcd_blt_bm_to_bm(struct RectBitmap *dst_bitmap,
              ||((DstRect->right-DstRect->left) != width)\
              ||(memcmp(&RopCode, &Rop ,sizeof(struct RopGroup))!=0)
              ||((ptu32_t)src_bitmap->bm_bits & 1))
+//             ||(width & 1))     //730似乎不支持奇数宽度
         return false;
 
     src_offset = (u16*)((ptu32_t)(src_bitmap->bm_bits+\
@@ -639,21 +638,50 @@ bool_t __lcd_blt_bm_to_bm(struct RectBitmap *dst_bitmap,
     DMA2D->FGPFCCR=lcd.Dma2dPixelFormat;   //设置颜色格式
     DMA2D->FGOR=(u32)(src_bitmap->width - width); //前景层行偏移为0
     DMA2D->OOR= (u32)(dst_bitmap->width - width); //设置行偏移
-    DMA2D->CR&=~(1<<0);             //先停止DMA2D
-    DMA2D->FGMAR=(u32)src_offset;        //源地址
-    DMA2D->OMAR=(u32)dst_offset;        //输出存储器地址
-    DMA2D->NLR=(height)|((width)<<16);   //设定行数寄存器
-    DMA2D->CR|=1<<0;                //启动DMA2D
-    while((DMA2D->ISR&(1<<1))==0)   //等待传输完成
+    DMA2D->CR&=~(1<<0);                 //先停止DMA2D
+    if(src_bitmap->reversal == false)
     {
-        timeout++;
-        if(timeout>0X1FFFFF)
+        DMA2D->FGMAR=(u32)src_offset;       //源地址
+        DMA2D->OMAR=(u32)dst_offset;        //输出存储器地址
+        DMA2D->NLR=(height)|((width)<<16);   //设定行数寄存器
+        DMA2D->CR|=1<<0;                //启动DMA2D
+        while((DMA2D->ISR&(1<<1))==0)   //等待传输完成
         {
-            flag=false;
-            break;  //超时退出
+            timeout++;
+            if(timeout>0X1FFFFF)
+            {
+                flag=false;
+                break;  //超时退出
+            }
         }
+        DMA2D->IFCR|=1<<1;              //清除传输完成标志
     }
-    DMA2D->IFCR|=1<<1;              //清除传输完成标志
+    else
+    {
+        src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
+            +(src_bitmap->height - SrcRect->top-1) * src_bitmap->linebytes);
+        src_offset += SrcRect->left;
+        for(y = DstRect->top; y < DstRect->bottom; y++)
+        {
+            DMA2D->FGMAR=(u32)src_offset;       //源地址
+            DMA2D->OMAR=(u32)dst_offset;        //输出存储器地址
+            DMA2D->NLR=(1)|((width)<<16);   //设定行数寄存器
+            DMA2D->CR|=1<<0;                //启动DMA2D
+            while((DMA2D->ISR&(1<<1))==0)   //等待传输完成
+            {
+                timeout++;
+                if(timeout>0X1FFFFF)
+                {
+                    flag=false;
+                    break;  //超时退出
+                }
+            }
+            DMA2D->IFCR|=1<<1;              //清除传输完成标志
+            dst_offset += dst_bitmap->linebytes >> 1;
+            src_offset -= src_bitmap->linebytes >> 1;
+        }
+
+    }
     Lock_MutexPost(&Dma2dMutex);
     return flag;
 }
@@ -807,7 +835,53 @@ bool_t __lcd_fill_rect_screen(struct Rectangle *Target,
 static bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
         struct RectBitmap *src_bitmap,s32 x,s32 y)
 {
-    return false;
+
+    u32 width,height;
+    u32 pixel,use=0,linelen;
+    u32 j,timeout=0;;
+    u16 *line;
+    u8 x0,x1;
+    bool_t flag=true;
+    u32 addr;
+
+    width = dst_rect->right-dst_rect->left;
+    height = dst_rect->bottom-dst_rect->top;
+//    LTDC_Layer_Window_Config(0,x,y,width,height);
+
+    addr=((u32)lcd.pFrameBuffe+lcd.pixsize*(CFG_LCD_XSIZE*y+x));
+
+    if(false==Lock_MutexPend(&Dma2dMutex,lcd.Dma2dTimeOut))
+        return false;
+    DMA2D->CR=0<<16;                //存储器到存储器模式
+    DMA2D->FGPFCCR=lcd.Dma2dPixelFormat;   //设置颜色格式
+    DMA2D->FGOR=(u32)(src_bitmap->width - width); //前景层行偏移为0
+    DMA2D->OOR= (u32)(src_bitmap->height - height); //设置行偏移
+    DMA2D->CR&=~(1<<0);             //先停止DMA2D
+    DMA2D->FGMAR=(u32)src_bitmap->bm_bits;        //源地址
+    DMA2D->OMAR=(u32)addr;        //输出存储器地址
+    DMA2D->NLR=(height)|((width)<<16);   //设定行数寄存器
+    DMA2D->CR|=1<<0;                //启动DMA2D
+    while((DMA2D->ISR&(1<<1))==0)   //等待传输完成
+    {
+        timeout++;
+        if(timeout>0X1FFFFF)
+        {
+            flag=false;
+            break;  //超时退出
+        }
+    }
+    DMA2D->IFCR|=1<<1;              //清除传输完成标志
+    Lock_MutexPost(&Dma2dMutex);
+
+
+//    linelen = src_bitmap->linebytes;
+//    line = (u16*)(src_bitmap->bm_bits + ysrc*linelen + xsrc*2);
+//    for(y = 0;y < height;y++)
+//    {
+//        WriteDataBytes(line,width*2);
+//        line += linelen/2;
+//    }
+    return flag;
 }
 //----从screen中取像素---------------------------------------------------------
 //功能: 从screen中取一像素，并转换成CN_SYS_PF_ERGB8888或cn_sys_pf_a8r8g8b8格式。
@@ -887,8 +961,8 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,\
     lcd_display.frame_buffer =&frame_win;
     lcd_display.framebuf_direct = true;
 
-    tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
-    tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
+    lcd_display.width_um = CFG_LCD_XSIZE_UM;
+    lcd_display.height_um = CFG_LCD_YSIZE_UM;
     lcd_display.width = CFG_LCD_XSIZE;
     lcd_display.height = CFG_LCD_YSIZE;
     lcd_display.pixel_format = lcd.LcdPixelFormat;
@@ -921,7 +995,19 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,\
 
 
 
+void DispMainInterface(unsigned char *pic)
+{
+    struct Rectangle dst_rect = {0,0,CFG_LCD_XSIZE,CFG_LCD_YSIZE};
+    struct RectBitmap src_bitmap;
 
+    src_bitmap.bm_bits = pic;
+    src_bitmap.width = CFG_LCD_XSIZE;
+    src_bitmap.height = CFG_LCD_YSIZE;
+    src_bitmap.linebytes = CFG_LCD_XSIZE*2;
+    src_bitmap.reversal = 0;
+    src_bitmap.PixelFormat = CN_SYS_PF_RGB565;
+    __lcd_bm_to_screen(&dst_rect,  &src_bitmap, 0, 0);
+}
 
 
 

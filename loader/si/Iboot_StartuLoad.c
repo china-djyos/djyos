@@ -104,7 +104,7 @@ __attribute__((weak))  bool_t Iboot_IAP_IsForceIboot()
 //----------------------------------------------------------------------------
 void Iboot_IAP_SelectLoadProgam(void)
 {
-#if (CFG_RUNMODE_BAREAPP == 1)
+#if (CFG_RUNMODE == CN_RUNMODE_BOOTSELF)
         Iboot_LoadPreload();   //直接加载运行APP
 #else
     Iboot_SiIbootAppInfoInit();
@@ -126,7 +126,7 @@ void Iboot_IAP_SelectLoadProgam(void)
     #error "error ： 没有定义APP加载方式！！";
 #endif
         Run_Iboot(CHACK_ERROR);
-#endif      //for (CFG_RUNMODE_BAREAPP == 1)
+#endif      //for (CFG_RUNMODE == CN_RUNMODE_BOOTSELF)
 
 }
 
@@ -167,7 +167,6 @@ void Iboot_LoadPreload(void)
 #if CN_CPU_OPTIONAL_CACHE == 1
     Cache_CleanData();
     Cache_InvalidInst();
-    Cache_config();
 #endif
 
     Iboot_PreStart();

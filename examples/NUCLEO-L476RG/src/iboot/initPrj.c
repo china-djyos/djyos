@@ -51,7 +51,7 @@ void Sys_ModuleInit(void)
     //end device file system
 
     //loader
-    #if !defined (CFG_RUNMODE_BAREAPP)
+    #if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
     extern bool_t ModuleInstall_UpdateIboot(void);
     ModuleInstall_UpdateIboot( );
     #endif

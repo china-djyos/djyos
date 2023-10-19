@@ -106,7 +106,7 @@
 #define     CFG_YMODEM_BUF_NUM      32              //"缓存ymodem包数量",每包1024字节
 //%$#@num,5000,300000000,
 #define     CFG_YMODEM_PKG_TIMEOUT  (15*1000*1000)  //"包间隔超时时间",微秒
-#define     CFG_YMODEM_TIMEOUT      (300*1000*1000) //"ymodem传输总超时时间",微秒
+#define     CFG_YMODEM_TIMEOUT      (300) //"ymodem传输总超时时间",秒
 //%$#@enum,true,false,
 //%$#@string,1,128,
 #define     CFG_YMODEM_DEVNAME      "std"           //"ymodem传输设备，std表示使用标准输入输出设备"
@@ -707,6 +707,117 @@ YMODEM_RECVEXIT:
     __Ymodem_FileOps(ym,YMODEM_FILE_CLOSE);                 //close file
     return Ret;
 }
+
+// 用secureCRT使用ymodem时，用这个函数接收数据。
+// 暂时只能接收一个文件
+static YMRESULT __Ymodem_ReceiveProcess_CRT(tagYmodem *ym)
+{
+    YMRESULT Ret = YMODEM_OK;
+    s64 CurrentTime;
+
+    while(1)
+    {
+        Ret = __Ymodem_GetPkg(ym);
+        if(Ret != YMODEM_OK)
+        {
+            __Ymodem_CancelTrans();
+            break;
+        }
+        CurrentTime = DJY_GetSysTime();                  //总超时处理
+        if(CurrentTime - ym->StartTime >= ym->TimeOut)
+        {
+            Ret = YMODEM_TIMEOUT;
+            __Ymodem_CancelTrans();
+            break;
+        }
+        //数据包处理
+        switch(ym->PkgBuf[0])
+        {
+        case CN_YMODEM_SOH:
+            if(!__Ymodem_PackCheck(ym->PkgBuf,ym->PkgSize)) //need retry load
+                break;
+            if(ym->Status == ENUM_YMODEM_STA_INFO)          //info pkg
+            {
+                __Ymodem_InfoPkg(ym);
+                Ret = __Ymodem_FileOps(ym, YMODEM_FILE_OPENW);
+            }
+            else if(ym->Status == CN_YMODEM_EOT)
+            {
+                // 传输完一个文件后，就结束，因为secureCRT发送结束时，数据包里不是全零，
+                // 而是有空格和数字0，赞没仔细研究，先就只支持传输一个文件。
+                // if(__Ymodem_IsZeroPkg(ym))
+                // {
+                    write_char(CN_YMODEM_ACK, s_s32gYmodemDevOut);
+                    goto YMODEM_RECVEXIT;
+                // }
+                // else
+                // {
+                //     __Ymodem_InfoPkg(ym);       //继续传下一个文件
+                //     Ret = __Ymodem_FileOps(ym, YMODEM_FILE_OPENW);
+                // }
+            }
+            else                            //收到128字节大小的数据包
+            {
+                if(ym->PkgBuf[1] == (ym->PkgNo & 0xff))
+                {
+                    ym->PkgNo ++;
+                    Ret = __Ymodem_FileOps(ym,YMODEM_FILE_WRITE);
+                }
+                else
+                {
+                    write_char(CN_YMODEM_NAK, s_s32gYmodemDevOut);    //包号错误，需重传
+                }
+                ym->Status = CN_YMODEM_SOH;
+            }
+            break;
+        case CN_YMODEM_STX:
+            if(!__Ymodem_PackCheck(ym->PkgBuf,ym->PkgSize)) //need retry load
+                break;
+            if(ym->PkgBuf[1] == (ym->PkgNo & 0xff))
+            {
+                ym->PkgNo ++;
+                Ret = __Ymodem_FileOps(ym,YMODEM_FILE_WRITE);
+            }
+            else
+            {
+                write_char(CN_YMODEM_NAK, s_s32gYmodemDevOut);//包号错误，需重传
+            }
+            ym->Status = CN_YMODEM_STX;
+            break;
+        case CN_YMODEM_EOT:
+            if( (ym->Status == CN_YMODEM_SOH) || (ym->Status == CN_YMODEM_STX)) //  第一个EOT
+            {
+                write_char(CN_YMODEM_NAK, s_s32gYmodemDevOut); //接收到结束符，回复ACK
+                ym->Status = CN_YMODEM_EOT;
+            }
+            else if(ym->Status == CN_YMODEM_EOT)
+            {
+                write_char(CN_YMODEM_ACK, s_s32gYmodemDevOut);                         //接收到结束符，回复ACK
+                write_char(CN_YMODEM_C, s_s32gYmodemDevOut);                           //接收到结束符，回复C
+            }
+            break;
+        case CN_YMODEM_CAN:
+            Ret = YMODEM_CAN_TRANS;
+            goto YMODEM_RECVEXIT;
+            break;
+        default:
+            Ret = YMODEM_UNKNOW_ERR;
+            break;
+        }
+        ym->PkgBufCnt = 0;
+
+        if(Ret != YMODEM_OK)            //可能情况 1.case 2.file ops
+        {
+            __Ymodem_CancelTrans();
+            break;
+        }
+    }
+YMODEM_RECVEXIT:
+    __Ymodem_FileOps(ym,YMODEM_FILE_CLOSE);                 //close file
+    return Ret;
+}
+
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
@@ -736,7 +847,7 @@ bool_t downloadym(char *Param)
     pYmodem->FileCnt  = 0;
     pYmodem->PkgNo    = 0;
     pYmodem->PkgSize  = CN_YMODEM_SOH_SIZE;
-    pYmodem->TimeOut  = CFG_YMODEM_TIMEOUT;
+    pYmodem->TimeOut  = CFG_YMODEM_TIMEOUT * 1000 * 1000;
     pYmodem->PkgBufCnt = 0;
     pYmodem->FileBufCnt = 0;
     pYmodem->Status   = ENUM_YMODEM_STA_INFO;
@@ -774,7 +885,14 @@ bool_t downloadym(char *Param)
     pYmodem->PkgBufCnt = 1;
     pYmodem->StartTime = DJY_GetSysTime();
     fcntl(s_s32gYmodemDevIn, F_SETTIMEOUT, CFG_YMODEM_PKG_TIMEOUT);
-    Ret = __Ymodem_ReceiveProcess(pYmodem);
+    if (strcmp(Param, "CRT") == 0)
+    {
+        Ret = __Ymodem_ReceiveProcess_CRT(pYmodem);
+    }
+    else
+    {
+        Ret = __Ymodem_ReceiveProcess(pYmodem);
+    }
 
 YMODEM_EXIT:
     if( NULL != pYmodem->FileBuf)
@@ -975,8 +1093,8 @@ bool_t uploadym(char *Param)
     }
     if(!Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER))
         return false;
-
-    FileName = (char *)shell_inputs(Param, &NextParam);
+//    TODO:h730没有用shell因为flash不够。所以shell_inputs注释
+//    FileName = (char *)shell_inputs(Param, &NextParam);
     if(NULL == FileName)
     {
         Ret = YMODEM_PARAM_ERR;
@@ -989,7 +1107,7 @@ bool_t uploadym(char *Param)
     pYmodem->FileCnt  = 0;
     pYmodem->PkgNo    = 0;
     pYmodem->PkgSize  = CN_YMODEM_SOH_SIZE;
-    pYmodem->TimeOut  = CFG_YMODEM_TIMEOUT;
+    pYmodem->TimeOut  = CFG_YMODEM_TIMEOUT * 1000 * 1000;
     pYmodem->PkgBufCnt = 0;
     pYmodem->FileBufCnt = 0;
     pYmodem->Status   = ENUM_YMODEM_STA_INFO;

@@ -73,6 +73,8 @@ extern "C" {
 #include "cpu_peri_int_line.h"
 #include "cpu_peri_uart.h"
 #include "cpu_peri_rcc.h"
+#include "cpu_peri_spi.h"
+#include "cpu_peri_adc.h"
 #include "cpu_peri_rtc.h"
 #include "cpu_peri_wdt.h"
 #include "cpu_peri_timer.h"

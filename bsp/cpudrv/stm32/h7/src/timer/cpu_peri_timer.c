@@ -79,7 +79,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"Software Timers","int"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"Software Timers"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -788,9 +788,8 @@ bool_t __STM32Timer_Ctrl(ptu32_t timerhandle, \
 // =============================================================================
 u32  __STM32Timer_GetFreq(ptu32_t timerhandle)
 {
-    //定时器TIM25 时钟源为低速外设时钟APB1，速度为100M
-    //定时器分频配置为200，
-    return CN_CFG_APB1_CLK*2;//200MHz
+    //定时器时钟源为低速外设时钟APB2，速度为200MHz
+    return CN_CFG_APB2_CLK;    //200MHz
 }
 // =============================================================================
 // 函数功能:module_init_timer

@@ -67,7 +67,7 @@
 //    ModuleInstall_SPI(CN_SPI1);
 //    #endif
 //    #if CFG_SPI2_ENABLE==1
-//    ModuleInstall_SPI(CN_SPI2)
+//    ModuleInstall_SPI(CN_SPI2);
 //    #endif
 //    #if CFG_SPI3_ENABLE==1
 //    ModuleInstall_SPI(CN_SPI3);

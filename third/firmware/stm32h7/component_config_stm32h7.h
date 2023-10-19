@@ -36,21 +36,48 @@
 //%$#@select,1
 #define     USE_HAL_DRIVER          //是否使用hal库
 //%$#@select,1
-//#define STM32H743xx         //只能选中其中一个
+//#define STM32H743xx          //只能选中其中一个
 //#define STM32H753xx
+//#define STM32H750xx
+//#define STM32H742xx
+//#define STM32H745xx
+//#define STM32H745xG
+//#define STM32H755xx
+//#define STM32H747xx
+//#define STM32H747xG
+//#define STM32H757xx
+//#define STM32H7A3xx
+//#define STM32H7A3xxQ
+//#define STM32H7B3xx
+//#define STM32H7B3xxQ
+//#define STM32H7B0xx
+//#define STM32H7B0xxQ
+//#define STM32H735xx
+//#define STM32H733xx
+//#define STM32H730xx
+//#define STM32H730xxQ
+//#define STM32H725xx
+//#define STM32H723xx
 //%$#@free
 #endif
 //%$#@end configue  ****参数配置结束
 //%$#@exclude
+//.\BSP;.\CMSIS;
+//.\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_msp_template.c;
+//.\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_timebase_rtc_alarm_template.c;
+//.\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_timebase_rtc_wakeup_template.c;
+//.\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_timebase_tim_template.c;
 //%$#@end exclude
 
 //%$#@API include path         ****API头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，应用本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
-//.;.\inc;
-//..\CMSIS\Include;
+//.\STM32H7xx_HAL_Driver\Inc;
+//.\CMSIS\Include;
+//.\CMSIS\Device\ST\STM32H7xx\Include;
 //%$#@end API include path
 
 //%$#@self include path         ****编译自身需要的头文件路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符，编译本库时，DIDE将自动把本列表中的头文件加到 -I 搜索路径中
+//.\STM32H7xx_HAL_Driver\Inc;
+//.\CMSIS\Include;
 //%$#@end self include path
 
 //@#$%component end configure
-

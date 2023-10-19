@@ -63,7 +63,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include <sys/time.h>
-#include "component_config_time.h"
+#include "project_config.h"
 
 extern s64 __Rtc_Time(s64 *rtctime);
 extern s64 __Rtc_TimeUs(s64 *rtctime);

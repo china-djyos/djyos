@@ -853,7 +853,7 @@ bool_t ModuleInstall_Timer(void)
             goto EXIT_TIMERFAILED;
         }
         sgHardTimerDefault = HardTimer_Alloc(Timer_ISR);
-        if(-1 == sgHardTimerDefault)
+        if((ptu32_t)-1 == sgHardTimerDefault)
         {
             Lock_MutexDelete(ptTimerQSync);
             goto EXIT_TIMERFAILED;

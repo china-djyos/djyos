@@ -209,9 +209,9 @@ s32 w25qxx_ioctl( u8 cmd, void *buff)
 // 返回：成功（true）；失败（false）；
 // 备注：
 // =============================================================================
-bool_t ModuleInstall_W25qxxInstallFat(const char *TargetFs,s32 bend, u32 doformat)
+bool_t ModuleInstall_W25qxxInstallFat(const char *TargetFs, s32 bend, u32 doformat)
 {
-    static char *name = "w25qxx";
+    // static char *name = "w25qxx";
     char *FullPath,*notfind;
     struct Object *targetobj;
     struct FsCore *super;
@@ -236,34 +236,36 @@ bool_t ModuleInstall_W25qxxInstallFat(const char *TargetFs,s32 bend, u32 doforma
                 }
             }
 
-            if(!Device_Create((const char*)name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)name))
-            {
-                error_printf("w25q"," register device(w25q) failed.\r\n");
-                return false; // register failure
-            }
+            __w25qxx_FsInstallInit(TargetFs,0,bend,&W25QXX_Drv);
 
-            targetobj = OBJ_MatchPath(TargetFs, &notfind);
-            if(notfind)
-            {
-                error_printf("w25q"," not found need to install file system.\r\n");
-                return false;
-            }
-            super = (struct FsCore *)OBJ_GetPrivate(targetobj);
-            super->MediaInfo = name;
-            if(strcmp(super->pFsType->pType, "FAT") == 0)      //这里的"FAT"为文件系统的类型名，在文件系统的filesystem结构中
-            {
-                super->MediaDrv = &W25QXX_Drv;
-            }
-            else
-            {
-                super->MediaDrv = 0;
-                error_printf("w25q","  install file system type not FAT.\r\n");
-                return false;
-            }
-            FullPath = malloc(strlen(name)+strlen(s_ptDeviceRoot->name) + 1);  //获取msc的完整路径
-            sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name, name);
-            File_BeMedia(FullPath, TargetFs);     //在w25q上挂载文件系统
-            free(FullPath);
+            // if(!Device_Create((const char*)name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)name))
+            // {
+            //     error_printf("w25q"," register device(w25q) failed.\r\n");
+            //     return false; // register failure
+            // }
+
+            // targetobj = OBJ_MatchPath(TargetFs, &notfind);
+            // if(notfind)
+            // {
+            //     error_printf("w25q"," not found need to install file system.\r\n");
+            //     return false;
+            // }
+            // super = (struct FsCore *)OBJ_GetPrivate(targetobj);
+            // super->MediaInfo = name;
+            // if(strcmp(super->pFsType->pType, "FAT") == 0)      //这里的"FAT"为文件系统的类型名，在文件系统的filesystem结构中
+            // {
+            //     super->MediaDrv = &W25QXX_Drv;
+            // }
+            // else
+            // {
+            //     super->MediaDrv = 0;
+            //     error_printf("w25q","  install file system type not FAT.\r\n");
+            //     return false;
+            // }
+            // FullPath = malloc(strlen(name)+strlen(s_ptDeviceRoot->name) + 1);  //获取msc的完整路径
+            // sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name, name);
+            // File_BeMedia(FullPath, TargetFs);     //在w25q上挂载文件系统
+            // free(FullPath);
         }
     }
     return true;

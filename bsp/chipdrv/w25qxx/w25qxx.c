@@ -52,6 +52,7 @@
 #include <cpu_peri.h>
 #include <djyos.h>
 #include <device.h>
+#include <filesystems.h>
 #include <device/djy_flash.h>
 #include <spibus.h>
 #include <unit_media.h>
@@ -99,6 +100,8 @@
 #define CFG_W25QXX_SECTORS_BLOCK            16         //"每个块有多少扇区"
 #define CFG_W25QXX_SECTORS_NUM              2048       //"总的扇区数"
 #define CFG_W25QXX_CHIP_ID                  0xEF18     //"芯片ID"
+//%$#@string,1,10,
+#define CFG_W25_SPI_NAME                    "SPI1"      //"用的SPI设备名字，spi模式下有效"
 //%$#@string,1,20,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -112,7 +115,9 @@ static struct SPI_Device *s_ptSpiPort; // 器件使用的SPI端口
 struct MutexLCB *W25qxx_Lock;           //芯片互斥访问保护
 struct NorDescr *W25qxx_description = NULL;
 bool_t W25qxx_InitFlag = false;
-
+const char *W25qFlashName = "w25qxx";      //该flash在obj在的名字
+struct umedia *w25q_flash_um;
+extern struct Object *s_ptDeviceRoot;
 //-----------------------------------------------------------------------------
 //功能: 读状态寄存器
 //参数: regno：状态寄存器序号
@@ -825,7 +830,7 @@ bool_t W25QXX_Write(u8* buf,u32 addr,u16 len)
             {
                 for(i=0; i < sec_remain; i++)//
                 {
-                    if(W25QXX_BUFFER[sec_off + i] != 0XFF)
+                    if ((W25QXX_BUFFER[sec_off + i] != 0XFF) && (W25QXX_BUFFER[sec_off + i] != buf[i]))
                         break;
                 }
                 if(i < sec_remain)    //需要擦除
@@ -963,7 +968,7 @@ bool_t W25QXX_Init(void)
         return false;
     }
 #else
-    s_ptSpiPort = SPI_DevAdd("SPI1","w25qxx",0,8,SPI_MODE_0,SPI_SHIFT_MSB,1000*1000,false);
+    s_ptSpiPort = SPI_DevAdd(CFG_W25_SPI_NAME,"w25qxx",0,8,SPI_MODE_0,SPI_SHIFT_MSB,1000*1000,false);
     if(s_ptSpiPort)
     {
         SPI_BusCtrl(s_ptSpiPort,CN_SPI_SET_POLL,0,0);
@@ -1157,6 +1162,22 @@ s32 ModuleInstall_W25qxx(void)
         }
     }
 
+    w25q_flash_um = malloc(sizeof(struct umedia));
+    if(!w25q_flash_um)
+    {
+        return (-1);
+    }
+    w25q_flash_um->mreq = __W25qxx_Req;
+    w25q_flash_um->type = nor;
+    w25q_flash_um->ubuf = NULL;
+
+    if(!Device_Create((const char*)W25qFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)w25q_flash_um)))
+    {
+        printf("\r\n: erro : device : %s addition failed.", W25qFlashName);
+        free(w25q_flash_um);
+        return (-1);
+    }
+
     W25qxx_InitFlag = true;
 
     return true;
@@ -1174,7 +1195,71 @@ bool_t W25qxx_is_install(void)
     return W25qxx_InitFlag;
 }
 
+// ============================================================================
+// 功能：初始化片内flash
+// 参数：fs -- 需要挂载的文件系统，mediadrv -- 媒体驱动，
+//       bstart -- 起始块，bend -- 结束块（不包括该块，只到该块的上一块）
+// 返回：0 -- 成功， -1 -- 失败
+// 备注：
+// ============================================================================
+s32 __w25qxx_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
+{
+     u32 units, total = 0,endblock = bend;
+    char *FullPath,*notfind;
+    struct Object *targetobj;
+    struct FsCore *super;
+    s32 res;
+    targetobj = OBJ_MatchPath(fs, &notfind);
+    if(notfind)
+    {
+        error_printf("embed"," not found need to install file system.\r\n");
+        return -1;
+    }
+    super = (struct FsCore *)OBJ_GetPrivate(targetobj);
+    super->MediaInfo = w25q_flash_um;
+    super->MediaDrv = mediadrv;
 
+     if(-1 == (s32)endblock)
+     {
+         endblock = bend = W25qxx_description->BlockNum; // 最大块号
+     }
+
+     do
+     {
+         if(__W25qxx_Req(blockunits, (ptu32_t)&units, --endblock))
+         {
+             return (-1);
+         }
+
+         total += units;
+     }
+     while(endblock!=bstart);
+
+    super->AreaSize = W25qxx_description->BytesPerPage * total;
+    // endblock = 0;
+    // total = 0;
+    // while(endblock<bstart)
+    // {
+    //     if(__embed_req(blockunits, (ptu32_t)&units, endblock++))
+    //     {
+    //         return (-1);
+    //     }
+    //     total += units;
+    // }
+
+    super->MediaStart = bstart * W25qxx_description->PagesPerBlock; // 起始unit号
+
+    res = strlen(W25qFlashName) + strlen(s_ptDeviceRoot->name) + 1;
+    FullPath = malloc(res);
+    memset(FullPath, 0, res);
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,W25qFlashName);   //获取该设备的全路径
+    File_BeMedia(FullPath,fs); //往该设备挂载文件系统
+    free(FullPath);
+
+    printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);
+    return (0);
+
+}
 
 
 

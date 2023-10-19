@@ -284,7 +284,7 @@ bool_t Iboot_GetRestartAppFlag();
 bool_t Iboot_GetHeadResetFlag();
 bool_t Iboot_GetLowPowerWakeup();
 
-#if (CFG_RUNMODE_BAREAPP == 0)
+#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
 bool_t Iboot_GetProductInfo(enum productinfo type, char *date_buf, u32 buf_len);
 bool_t write_finger_to_iboot(s8 *time, s8 *num);
 bool_t read_finger_from_iboot(s8 *finger, u32 buf_len);

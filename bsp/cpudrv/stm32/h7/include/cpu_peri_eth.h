@@ -47,7 +47,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#include "stm32h7xx_hal_eth.h"
 //#define GMAC_IN_LOWPOWER         0//进入低功耗
 //#define GMAC_OUT_LOWPOWER        1//退出低功耗
 bool_t GMAC_LowPowerConfig(u8 flag);
