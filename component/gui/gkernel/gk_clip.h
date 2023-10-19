@@ -85,7 +85,6 @@ void __GK_GetNewClip(struct GkWinObj *gkwin);
 struct ClipRect *__GK_GetClipLinkInts(struct ClipRect **srcclip,
                                              struct ClipRect *desclip);
 bool_t __GK_GetRedrawClipAll(struct DisplayObj *display);
-struct MemCellPool* jiashangqude2();
 #ifdef __cplusplus
 }
 #endif

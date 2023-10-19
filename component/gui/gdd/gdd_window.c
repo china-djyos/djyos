@@ -643,12 +643,12 @@ void GDD_SetWindowName(HWND hwnd, char *NewName)
     __GDD_DrawWinCaption(hwnd);
     return ;
 }
-//取窗口名字
-char *GDD_GetWindowName(HWND hwnd)
-{
-    char* name=GK_GetName(hwnd->pGkWin);
-    return name;
-}
+// //取窗口名字
+// char *GDD_GetWindowName(HWND hwnd)
+// {
+//     char* name=GK_GetName(hwnd->pGkWin);
+//     return name;
+// }
 
 //----初始化窗口数据结构---------------------------------------------------------
 //描述: 该函数为内部调用.
