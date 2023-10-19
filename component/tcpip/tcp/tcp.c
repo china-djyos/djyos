@@ -1811,12 +1811,23 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
                         timeout = CN_TIMEOUT_FOREVER;
                     else
                         timeout = endtime - (u32)DJY_GetSysTime();
+
+                    if ((s32)timeout < 0)
+                    {
+                        timeout = 0;
+                    }
+                    
                     if(Lock_SempPend(ccb->rbuf.bufsync,timeout))
                     {
                         if(endtime == CN_TIMEOUT_FOREVER)
                             timeout = CN_TIMEOUT_FOREVER;
                         else
                             timeout = endtime - (u32)DJY_GetSysTime();
+
+                        if ((s32)timeout < 0)
+                        {
+                            timeout = 0;
+                        }
                         if(Lock_MutexPend(sock->SockSync, timeout)) //¼ÌÐøËø×¡socket
                         {
                             prebuflen = ccb->rbuf.buflen;

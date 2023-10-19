@@ -202,7 +202,7 @@ ErrorExit:
 }
 
 //从消息队列中删除指定句柄的所有消息。
-void __GUI_DeleteMsg(HWND hwnd)
+void    __GUI_DeleteMsg(HWND hwnd)
 {
     struct MsgList *currentmsg;
     struct MsgList *premsg,*freemsg;
@@ -211,6 +211,8 @@ void __GUI_DeleteMsg(HWND hwnd)
     {
         premsg = pMsgQ->post_first;
         currentmsg = premsg;
+        if(currentmsg == NULL)
+            currentmsg = NULL;
         while(currentmsg != NULL)
         {
             if(currentmsg->Msg.hwnd != hwnd)        //不释放消息
@@ -656,11 +658,11 @@ bool_t    GDD_PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 
     if(__GDD_Lock())
     {
-        if(hwnd->pGkWin == NULL)        //无gkwin的句柄，一定是无效的。
+/*        if(hwnd->pGkWin == NULL)        //无gkwin的句柄，一定是无效的。
         {
             __GDD_Unlock();
             return false;
-        }
+        }*/
         pMsgQ =__GDD_GetWindowMsgQ(hwnd);
         if(NULL!=pMsgQ)
         {
@@ -934,7 +936,6 @@ bool_t    GDD_GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
                     //等待，直到有消息进入队列
                     Lock_SempPend(pMsgQ->sem_msg,CN_TIMEOUT_FOREVER);
                 }
-
             }
         }
     }

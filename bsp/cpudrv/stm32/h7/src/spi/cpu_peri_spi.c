@@ -68,7 +68,7 @@
 //    ModuleInstall_SPI(CN_SPI1);
 //    #endif
 //    #if CFG_SPI2_ENABLE==1
-//    ModuleInstall_SPI(CN_SPI2);
+//    ModuleInstall_SPI(CN_SPI2)
 //    #endif
 //    #if CFG_SPI3_ENABLE==1
 //    ModuleInstall_SPI(CN_SPI3);
@@ -233,11 +233,9 @@ static void __SPI_SetClk(volatile tagSpiReg *Reg,u32 Fre)
 {
     u8 br;
     br = (u8)__SPI_BrCal(Fre);
-//    Reg->CR1 &= ~SPI_CR1_SPE;
     Reg->CFG1 &= ~SPI_CR1_SPE;
     Reg->CFG1 &= ~SPI_CFG1_MBR;
-    Reg->CFG1 |= br<<SPI_CFG1_MBR_Pos;
-//    Reg->CR1 |= SPI_CR1_SPE;
+    Reg->CFG1 |= br<<28;
 }
 
 // =============================================================================
@@ -318,7 +316,6 @@ static void __SPI_GpioInit(u32 BaseAddr)
 static void __SPI_Config(volatile tagSpiReg *Reg,tagSpiConfig *ptr)
 {
     __SPI_SetClk(Reg,ptr->Freq);
-//    Reg->CR1 &= ~SPI_CR1_SPE;
 
     //set the PHA
     if(ptr->Mode & SPI_CPHA)
@@ -355,7 +352,6 @@ static void __SPI_Config(volatile tagSpiReg *Reg,tagSpiConfig *ptr)
     {
         Reg->CFG2 &= ~SPI_CFG2_LSBFRST;
     }
-//    Reg->CR1 |= SPI_CR1_SPE;
 }
 
 // =============================================================================
@@ -375,7 +371,7 @@ static void __SPI_HardConfig(u32 BaseAddr)
     Reg->CR1 = SPI_CR1_SSI;////SSM
 
    //主波特率：主时钟/16，16位数据，
-   Reg->CFG1 =  (7<<28)|(15<<16)|(7<<0);
+   Reg->CFG1 =  (3<<28)|(15<<16)|(7<<0);
 
     //SSM置位，sck空闲低，第一次时钟沿开始采样，先发MSB，master主模式，全双工
     Reg->CFG2 = (1<<26)|(0<<25)|(0<<24)|(0<<23)|(1<<22)|(0<<17);

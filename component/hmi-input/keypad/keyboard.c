@@ -223,6 +223,8 @@ ptu32_t KeyBoard_Scan(void)
                         key_msg.time = DJY_GetSysTime();
                         key_msg.key_value[1] = 0;
                         key_msg.key_value[0] = key;
+                        //int value3 = (keyboard_pr->key_now >> 8) & 0xFF;
+                        //key_msg.key_value[0] = (keyboard_pr->key_now >> 8) & 0xFF;
                         HmiIn_InputMsg(KeyboardObj->device_id,(u8*)&key_msg);
                     }
                 }

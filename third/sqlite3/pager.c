@@ -1437,7 +1437,7 @@ static int writeJournalHdr(Pager *pPager){
   */
   for(nWrite=0; rc==SQLITE_OK&&nWrite<JOURNAL_HDR_SZ(pPager); nWrite+=nHeader){
     IOTRACE(("JHDR %p %lld %d\n", pPager, pPager->journalHdr, nHeader))
-    rc = sqlite3OsWrite(pPager->jfd, zHeader, nHeader, pPager->journalOff);
+    rc = sqlite3OsWrite(pPager->fd, zHeader, nHeader, pPager->journalOff);
     assert( pPager->journalHdr <= pPager->journalOff );
     pPager->journalOff += nHeader;
   }
@@ -5227,7 +5227,9 @@ static int pager_open_journal(Pager *pPager){
             pVfs, pPager->zJournal, pPager->jfd, flags, jrnlBufferSize(pPager)
         );
   #else
-        rc = sqlite3OsOpen(pVfs, pPager->zJournal, pPager->jfd, flags, 0);
+        //修改
+        //重复打开文件系统
+        //rc = sqlite3OsOpen(pVfs, pPager->zJournal, pPager->jfd, flags, 0);
   #endif
       }
       assert( rc!=SQLITE_OK || isOpen(pPager->jfd) );

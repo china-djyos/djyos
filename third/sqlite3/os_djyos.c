@@ -434,7 +434,9 @@ static int djyClose(sqlite3_file *id){
 }
 static int seekAndRead(FILE *fp, sqlite3_int64 offset, void *pBuf, int cnt){
     fseek(fp,offset,SEEK_SET);
-    return fread(pBuf,cnt,1,fp);
+    //修改
+    return fread(pBuf,1,cnt,fp);
+    //return fread(pBuf,cnt,1,fp);
 }
 /*
 ** Read data from a file into a buffer.  Return SQLITE_OK if all
@@ -462,7 +464,9 @@ static int djyRead(
 }
 static int seekAndWrite(FILE *fp, sqlite3_int64 offset, void *pBuf, int cnt){
     fseek(fp,offset,SEEK_SET);
-    return fwrite(pBuf,cnt,1,fp);
+    //修改
+    return fwrite(pBuf,1,cnt,fp);
+    //return fwrite(pBuf,cnt,1,fp);
 }
 
 /*
@@ -598,7 +602,8 @@ static int djyFileSize(sqlite3_file *id, sqlite3_int64 *pSize){
   assert( id!=0 );
   SimulateIOError(return SQLITE_IOERR_FSTAT);
 
-  if(fstat(pFile->djyFp,&info))
+  //修改
+  if(fstat(fileno(pFile->djyFp),&info)==0)
   {
     *pSize = info.st_size;
     return SQLITE_OK;
@@ -608,7 +613,16 @@ static int djyFileSize(sqlite3_file *id, sqlite3_int64 *pSize){
     *pSize = 0;
     return SQLITE_ERROR;
   }
-
+//  if(fstat(pFile->djyFp,&info)==0)
+//  {
+//    *pSize = info.st_size;
+//    return SQLITE_OK;
+//  }
+//  else
+//  {
+//    *pSize = 0;
+//    return SQLITE_ERROR;
+//  }
 }
 
 /*
@@ -933,7 +947,8 @@ static int djyIsDir(const char *zConverted){
   struct stat fp_info;
   bool_t result;
   result = stat(zConverted,&fp_info);
-  if(result != -1)
+  //修改文件存在才判断是不是目录
+  if(result ==0)
   {
     if( fp_info.st_mode & S_IFDIR)
         return true;
@@ -942,6 +957,15 @@ static int djyIsDir(const char *zConverted){
   }
   else
     return false;
+//  if(result != -1)
+//  {
+//    if( fp_info.st_mode & S_IFDIR)
+//        return true;
+//    else
+//        return false;
+//  }
+//  else
+//    return false;
 }
 
 /*
@@ -981,10 +1005,16 @@ static int djyOpen(
     open_mode = "r";
   else
   {
-    if(stat(zFileName,NULL) != -1)
+      //修改
+     struct stat fp_info;
+    if(stat(zFileName,&fp_info) == 0)
       open_mode = "r+";
     else
       open_mode = "w+";
+//   if(stat(zFileName,NULL) == 0)
+//     open_mode = "r+";
+//   else
+//     open_mode = "w+";
   }
   memset(pFile, 0, sizeof(*pFile));
   pFile->djyFp = 0;
@@ -1016,7 +1046,6 @@ static int djyOpen(
         *pOutFlags = 0;
       }
   }
-
   pFile->pMethod = &djyIoMethod;
   pFile->lastErrno = 0;
   pFile->pVfs = pVfs;

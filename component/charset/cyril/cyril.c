@@ -217,13 +217,13 @@ void module_init_encode_cyril(ptu32_t para)
 }
 
 //----点阵提取-----------------------------------------------------------------
-//功能: 提取cyril n*16点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
+//功能: 提取cyril n*16点阵，如果charcode超出0~0xff的范围，显示编码为0x00的字
 //      符，ascii包含扩展的ascii码
 //参数: charcode，待显示的cyril码得ucs4编码
 //      size，无效
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
-//返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
+//返回: true=正常，false=charcode不是该所支持的字符集范围，但此时仍然返回
 //      默认字符的点阵
 //-----------------------------------------------------------------------------
 bool_t __cyril16_get_char_bitmap(u32 charcode, u32 size,u32 resv,
