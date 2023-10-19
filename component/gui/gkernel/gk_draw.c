@@ -1451,7 +1451,6 @@ void __GK_SetPixel(struct GkscParaSetPixel *para)
                     break;      //像素已经绘制，退出循环
                 }else//像素对应的坐标不在可视域内，指向下一个可视域
                     clip = clip->next;
-                  
             }while(clip != pixelwin->visible_clip);
         }
         else
@@ -1468,7 +1467,6 @@ void __GK_SetPixel(struct GkscParaSetPixel *para)
                     break;      //像素已经绘制，退出循环
                 }else//像素对应的坐标不在可视域内，指向下一个可视域
                     clip = clip->next;
-                 
             }while(clip != pixelwin->visible_clip);
         }
     }
@@ -4029,7 +4027,6 @@ void __GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
                                     para->x0+offsetx,para->y0+offsety,
                                     para->r,para->color,para->Rop2Code);
                 clip = clip->next;
-                 
             }while(clip != cirwin->visible_clip);
         }else
         //无win buffer，也无frame buffer，直接画在screen上
@@ -4041,7 +4038,6 @@ void __GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
                             para->x0+offsetx,para->y0+offsety,para->r,
                             para->color,para->Rop2Code);
                 clip = clip->next;
-                 
             }while(clip != cirwin->visible_clip);
         }
     }
@@ -4215,7 +4211,6 @@ void __GK_Bezier(struct GkscParaBezier *para)
                             para->x3+offsetx,para->y3+offsety,para->x4+offsetx,
                             para->y4+offsety,para->color,para->Rop2Code);
                 clip = clip->next;
-                  
             }while(clip != bzrwin->visible_clip);
         }else
         //无win buffer，也无frame buffer，直接画在screen上
@@ -4228,7 +4223,6 @@ void __GK_Bezier(struct GkscParaBezier *para)
                             para->x3+offsetx,para->y3+offsety,para->x4+offsetx,
                             para->y4+offsety,para->color,para->Rop2Code);
                 clip = clip->next;
-                  
             }while(clip != bzrwin->visible_clip);
         }
     }
@@ -4316,7 +4310,6 @@ void __GK_Lineto(struct GkscParaLineto *para)
                                       para->y2+offsety);
                 }
                 clip = clip->next;
-                  
             }while(clip != linetowin->visible_clip);
         }
         else
@@ -4334,7 +4327,6 @@ void __GK_Lineto(struct GkscParaLineto *para)
                             para->y2+offsety,para->color,para->Rop2Code);
                 }
                 clip = clip->next;
-                  
             }while(clip != linetowin->visible_clip);
         }
     }
@@ -4966,7 +4958,6 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                     __GK_ShadingRect(fb_gkwin,&DstRect);
                 }
                 clip = clip->next;
-
             }while(clip != DstGkwin->visible_clip);
         }
         else
@@ -4990,7 +4981,6 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                                         InsRect.top-DstRect.top);
                 }
                 clip = clip->next;
-
             }while(clip != DstGkwin->visible_clip);
         }
     }
@@ -6012,7 +6002,6 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,struct Recta
                     __GK_ShadingRect(fb_gkwin,&ins_rect);
                 }
                 clip = clip->next;
-
             }while(clip != Gkwin->visible_clip);
         }
         else
@@ -6048,7 +6037,6 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,struct Recta
                     }
                 }
                 clip = clip->next;
-                 
             }while(clip != Gkwin->visible_clip);
         }
     }
@@ -6140,7 +6128,6 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                     __GK_ShadingRect(fb_gkwin,&ins_rect);
                 }
                 clip = clip->next;
-
             }while(clip != DstGkwin->visible_clip);
         }
         else
@@ -6175,7 +6162,6 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                     }
                 }
                 clip = clip->next;
-                 
             }while(clip != DstGkwin->visible_clip);
         }
     }
@@ -6238,8 +6224,6 @@ void __GK_FillWin(struct GkscParaFillWin *para)
                 //标志填充区域的changed_msk
                 __GK_ShadingRect(fb_gkwin,&clip->rect);
                 clip = clip->next;
-
-
             }while(clip != fpwin->visible_clip);
         }else
         //无win buffer，也无frame buffer，直接画在screen上
