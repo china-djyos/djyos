@@ -104,7 +104,7 @@
 #define CFG_MODULE_ENABLE_YMODEM    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 #define     CFG_YMODEM_BUF_NUM      32              //"缓存ymodem包数量",每包1024字节
-//%$#@num,5000,300000000,
+//%$#@num,0,300000000,
 #define     CFG_YMODEM_PKG_TIMEOUT  (15*1000*1000)  //"包间隔超时时间",微秒
 #define     CFG_YMODEM_TIMEOUT      (300) //"ymodem传输总超时时间",秒
 //%$#@enum,true,false,
