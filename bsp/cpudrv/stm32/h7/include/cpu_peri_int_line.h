@@ -114,6 +114,7 @@ extern "C" {
 #define  CN_INT_LINE_USART3                   39      /*!< USART3 global Interrupt                                           */
 #define  CN_INT_LINE_EXTI15_10                40      /*!< External Line[15:10] Interrupts                                   */
 #define  CN_INT_LINE_RTC_Alarm                41      /*!< RTC Alarm (A and B) through EXTI Line Interrupt                   */
+
 #define  CN_INT_LINE_TIM8_BRK_TIM12           43      /*!< TIM8 Break Interrupt and TIM12 global interrupt                   */
 #define  CN_INT_LINE_TIM8_UP_TIM13            44      /*!< TIM8 Update Interrupt and TIM13 global interrupt                  */
 #define  CN_INT_LINE_TIM8_TRG_COM_TIM14       45      /*!< TIM8 Trigger and Commutation Interrupt and TIM14 global interrupt */
@@ -135,6 +136,10 @@ extern "C" {
 #define  CN_INT_LINE_ETH                      61      /*!< Ethernet global Interrupt                                         */
 #define  CN_INT_LINE_ETH_WKUP                 62      /*!< Ethernet Wakeup through EXTI line Interrupt                       */
 #define  CN_INT_LINE_FDCAN_CAL                63      /*!< FDCAN Calibration unit Interrupt                                  */
+
+
+
+
 #define  CN_INT_LINE_DMA2_Stream5             68      /*!< DMA2 Stream 5 global interrupt                                    */
 #define  CN_INT_LINE_DMA2_Stream6             69      /*!< DMA2 Stream 6 global interrupt                                    */
 #define  CN_INT_LINE_DMA2_Stream7             70      /*!< DMA2 Stream 7 global interrupt                                    */
@@ -158,40 +163,42 @@ extern "C" {
 #define  CN_INT_LINE_LTDC                     88      /*!< LTDC global Interrupt                                             */
 #define  CN_INT_LINE_LTDC_ER                  89      /*!< LTDC Error global Interrupt                                       */
 #define  CN_INT_LINE_DMA2D                    90      /*!< DMA2D global Interrupt                                            */
-#define  CN_INT_LINE_SAI2                     91      /*!< SAI2 global Interrupt                                             */
-#define  CN_INT_LINE_QUADSPI                  92      /*!< Quad SPI global interrupt                                         */
+
+#define  CN_INT_LINE_OCTOSPI1                 92      /*!< Quad SPI global interrupt                                         */
 #define  CN_INT_LINE_LPTIM1                   93      /*!< LP TIM1 interrupt                                                 */
 #define  CN_INT_LINE_CEC                      94      /*!< HDMI-CEC global Interrupt                                         */
 #define  CN_INT_LINE_I2C4_EV                  95      /*!< I2C4 Event Interrupt                                              */
 #define  CN_INT_LINE_I2C4_ER                  96      /*!< I2C4 Error Interrupt                                              */
 #define  CN_INT_LINE_SPDIF_RX                 97      /*!< SPDIF-RX global Interrupt                                         */
-#define  CN_INT_LINE_OTG_FS_EP1_OUT           98      /*!< USB OTG HS2 global interrupt                                      */
-#define  CN_INT_LINE_OTG_FS_EP1_IN            99      /*!< USB OTG HS2 End Point 1 Out global interrupt                      */
-#define  CN_INT_LINE_OTG_FS_WKUP              100     /*!< USB OTG HS2 End Point 1 In global interrupt                       */
-#define  CN_INT_LINE_OTG_FS                   101     /*!< USB OTG HS2 Wakeup through EXTI interrupt                         */
+
+
+
+
 #define  CN_INT_LINE_DMAMUX1_OVR              102     /*!<DMAMUX1 Overrun interrupt                                          */
-#define  CN_INT_LINE_HRTIM1_Master            103     /*!< HRTIM Master Timer global Interrupts                              */
-#define  CN_INT_LINE_HRTIM1_TIMA              104     /*!< HRTIM Timer A global Interrupt                                    */
-#define  CN_INT_LINE_HRTIM1_TIMB              105     /*!< HRTIM Timer B global Interrupt                                    */
-#define  CN_INT_LINE_HRTIM1_TIMC              106     /*!< HRTIM Timer C global Interrupt                                    */
-#define  CN_INT_LINE_HRTIM1_TIMD              107     /*!< HRTIM Timer D global Interrupt                                    */
-#define  CN_INT_LINE_HRTIM1_TIME              108     /*!< HRTIM Timer E global Interrupt                                    */
-#define  CN_INT_LINE_HRTIM1_FLT               109     /*!< HRTIM Fault global Interrupt                                      */
+
+
+
+
+
+
+
 #define  CN_INT_LINE_DFSDM1_FLT0              110     /*!<DFSDM Filter1 Interrupt                                            */
 #define  CN_INT_LINE_DFSDM1_FLT1              111     /*!<DFSDM Filter2 Interrupt                                            */
 #define  CN_INT_LINE_DFSDM1_FLT2              112     /*!<DFSDM Filter3 Interrupt                                            */
 #define  CN_INT_LINE_DFSDM1_FLT3              113     /*!<DFSDM Filter4 Interrupt                                            */
-#define  CN_INT_LINE_SAI3                     114     /*!< SAI3 global Interrupt                                             */
+
 #define  CN_INT_LINE_SWPMI1                   115     /*!< Serial Wire Interface 1 global interrupt                          */
 #define  CN_INT_LINE_TIM15                    116     /*!< TIM15 global Interrupt                                            */
 #define  CN_INT_LINE_TIM16                    117     /*!< TIM16 global Interrupt                                            */
 #define  CN_INT_LINE_TIM17                    118     /*!< TIM17 global Interrupt                                            */
 #define  CN_INT_LINE_MDIOS_WKUP               119     /*!< MDIOS Wakeup  Interrupt                                           */
 #define  CN_INT_LINE_MDIOS                    120     /*!< MDIOS global Interrupt                                            */
-#define  CN_INT_LINE_JPEG                     121     /*!< JPEG global Interrupt                                             */
+
 #define  CN_INT_LINE_MDMA                     122     /*!< MDMA global Interrupt                                             */
+
 #define  CN_INT_LINE_SDMMC2                   124     /*!< SDMMC2 global Interrupt                                           */
 #define  CN_INT_LINE_HSEM1                    125     /*!< HSEM1 global Interrupt                                            */
+
 #define  CN_INT_LINE_ADC3                     127     /*!< ADC3 global Interrupt                                             */
 #define  CN_INT_LINE_DMAMUX2_OVR              128     /*!<DMAMUX2 Overrun interrupt                                          */
 #define  CN_INT_LINE_BDMA_Channel0            129     /*!< BDMA Channel 0 global Interrupt                                   */
@@ -208,11 +215,29 @@ extern "C" {
 #define  CN_INT_LINE_LPTIM4                   140     /*!< LP TIM4 global interrupt                                          */
 #define  CN_INT_LINE_LPTIM5                   141     /*!< LP TIM5 global interrupt                                          */
 #define  CN_INT_LINE_LPUART1                  142     /*!< LP UART1 interrupt                                                */
-#define  CN_INT_LINE_CRS                      144     /*!< Clock Recovery Global Interrupt                                   */
-#define  CN_INT_LINE_SAI4                     146     /*!< SAI4 global interrupt                                             */
-#define  CN_INT_LINE_WAKEUP_PIN               149     /*!< Interrupt for all 6 wake-up pins                                  */
 
-#define CN_INT_LINE_LAST                     (150)
+#define  CN_INT_LINE_CRS                      144     /*!< Clock Recovery Global Interrupt                                   */
+#define  CN_INT_LINE_ECC                      145     /*!< ecc Global Interrupt                                   */
+#define  CN_INT_LINE_SAI4                     146     /*!< SAI4 global interrupt                                             */
+#define  CN_INT_LINE_TEMP                     147     /*!< temperature sensor global interrupt                                             */
+
+#define  CN_INT_LINE_WAKEUP_PIN               149     /*!< Interrupt for all 6 wake-up pins                                  */
+#define  CN_INT_LINE_OCTOSPI2                 150
+#define  CN_INT_LINE_OTFDEC1                  151
+#define  CN_INT_LINE_OTFDEC2                  152
+#define  CN_INT_LINE_FMAC                     153
+#define  CN_INT_LINE_CORDIC                   154
+#define  CN_INT_LINE_UART9                    155
+#define  CN_INT_LINE_USART10                  156
+#define  CN_INT_LINE_I2C5_EV                  157
+#define  CN_INT_LINE_I2C5_ER                  158
+#define  CN_INT_LINE_FDCAN3_IT0               159
+#define  CN_INT_LINE_FDCAN3_IT1               160
+#define  CN_INT_LINE_TIM23                    161
+#define  CN_INT_LINE_TIM24                    162
+
+
+#define CN_INT_LINE_LAST                     (162)
 #ifdef __cplusplus
 }
 #endif

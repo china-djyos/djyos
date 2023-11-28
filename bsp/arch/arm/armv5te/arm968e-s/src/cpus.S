@@ -31,7 +31,15 @@ __asm_reset_thread:
     LDR     R2,[R1,#4]          @取虚拟机栈顶指针
     LDR     R3,=__DJY_VmEngine  @取虚拟机引擎指针
     STMFD   R2!,{R3}            @存pc，
-    SUB     R2,R2,#13*4         @后退13个寄存器,初始状态r1-r12随意，__vm_engine
+    stmfd   r2!,{r3}            @给LR一个可访问的地址，复位状态下，LR值并无意义
+    mov     r3,#0
+    mov     r4,#0
+    mov     r5,#0
+    mov     r6,#0
+    stmfd   r2!,{r3,r4,r5,r6}    @清零 r9~r12
+    stmfd   r2!,{r3,r4,r5,r6}    @清零 r5~r8
+    stmfd   r2!,{r3,r4,r5,r6}    @清零 r1~r4
+@    SUB     R2,R2,#13*4         @后退13个寄存器,初始状态r1-r12随意，__vm_engine
                                 @函数不返回，lr也无意义
                                 @__vm_engine的参数，切换上下文时，service_routine将恢复到r0中，根据调用约
                                 @定，r0的值就是__vm_engine函数的参数。这只在创建并初始化线程上下文时需要这
@@ -151,7 +159,7 @@ _ARM_MODE:
 @参数:  new_vm，切入线程的控制块指针
 @参数:  old_vm，被中断线程的控制块指针
 @返回:  无
-@函数原型: void __asm_switch_context_int(struct tagThreadVm *new_vm,struct tagThreadVm *old_vm)@
+@函数原型: void __asm_switch_context_int(struct tagThreadVm *new_vm,struct tagThreadVm *old_vm);
 @-----------------------------------------------------------------------------
 */
 .align 2

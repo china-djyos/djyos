@@ -64,10 +64,6 @@ extern "C" {
 #endif
 #include "arm32_feature.h"
 
-#define CN_CPU_OPTIONAL_BITBAND     1       //是否支持位带
-#define CN_CPU_OPTIONAL_CACHE       0       //是否支持cache
-#define CN_CPU_OPTIONAL_FPU         1       //是否支持fpu
-
 #ifdef __cplusplus
 }
 #endif

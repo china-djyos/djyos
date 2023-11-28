@@ -57,7 +57,6 @@
 #include "stdint.h"
 #include "component_config_core.h"
 
-extern void __InitTimeBase(void);
 extern void __DJY_InitSys(void);
 extern ptu32_t __InitMB(void);
 extern void __DJY_StartOs(void);

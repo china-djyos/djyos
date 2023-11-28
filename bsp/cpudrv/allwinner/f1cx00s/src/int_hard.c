@@ -62,7 +62,9 @@
 #include "critical.h"
 #include "djyos.h"
 
-extern void (* engine_irq)(ufast_t ufl_line);
+#define CN_INT_MASK_ALL_LINE  (0xFFFFFFFF)
+struct INTC_REG volatile * const pg_int_reg
+                        = (struct INTC_REG *)0x01c20400;
 
 extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
@@ -70,7 +72,7 @@ extern void __DJY_ScheduleAsynSignal(void);
 void __DJY_EventReady(struct EventECB *event_ready);
 
 //定义中断向量表段，一般而言，异常向量表或异常向量跳转表会和该段一同放在首地址
-u32 u32g_vect_table[CN_INT_LINE_LAST+1] __attribute__((section(".table.vectors")));
+//u32 u32g_vect_table[CN_INT_LINE_LAST+1];
 
 //----进入高级原子操作---------------------------------------------------------
 //功能：读当前总中断状态，然后禁止总中断。高级原子操作是指期间不容许任何原因
@@ -126,13 +128,14 @@ void Int_HighAtomEnd(atom_high_t high)
 //-----------------------------------------------------------------------------
 atom_low_t Int_LowAtomStart(void)
 {
-    register ucpu_t msk_lsb;
+    register ucpu_t msk_lsb,msk_msb;
     atom_low_t low;
 
-    low = pg_int_reg->INTMSK1;
+    low = pg_int_reg->INTEN1 + ((u64)pg_int_reg->INTEN2<<32);
     msk_lsb = (~tg_int_global.property_bitmap[0]) & CN_INT_MASK_ALL_LINE;
-    pg_int_reg->INTMSK1 |= msk_lsb;
-    pg_int_reg->INTMSK1 |= msk_lsb;
+    msk_msb = (~tg_int_global.property_bitmap[1]) & CN_INT_MASK_ALL_LINE;
+    pg_int_reg->INTEN1 &= ~msk_lsb;
+    pg_int_reg->INTEN2 &= ~msk_msb;
 
     return low;
 }
@@ -149,44 +152,50 @@ atom_low_t Int_LowAtomStart(void)
 //-----------------------------------------------------------------------------
 void Int_LowAtomEnd(atom_low_t low)
 {
-    pg_int_reg->INTMSK1 &= ~((~tg_int_global.property_bitmap[0]) & (~low));
+    //注INTEN1.0不能==1，详见结构定义
+    pg_int_reg->INTEN1 |= ((~tg_int_global.property_bitmap[0]) & (u32)low) & ~1;
+    pg_int_reg->INTEN2 |= (~tg_int_global.property_bitmap[1]) & (u32)(low>>32);
 }
 
 //----接通异步信号开关---------------------------------------------------------
 //功能：接通异步信号开关,如果总开关接通且中断线开关接通,该中断将被允许
 //      1.当有独立的硬件开关时,把该开关接通即可
 //      2.如果没有独立硬件开关,则接通所有被允许的异步信号的线开关.
-//      3.2440属于第二种情况,把符合条件的中断线在rINTMSK相应位清0.
+//      3.2440属于第二种情况,把符合条件的中断线在rINTEN相应位清0.
 //参数：无
 //返回：无
 //备注：移植敏感
 //-----------------------------------------------------------------------------
 void Int_ContactAsynSignal(void)
 {
-    //INTMSK中异步信号且中断线被使能的位被清0
-    pg_int_reg->INTMSK1 &= ~((~tg_int_global.property_bitmap[0])
-                         & tg_int_global.enable_bitmap[0]);
+    //INTEN中异步信号且中断线被使能的位被置1
+    //注INTEN1.0不能==1，详见结构定义
+    pg_int_reg->INTEN1 |= ((~tg_int_global.property_bitmap[0])
+                         & tg_int_global.enable_bitmap[0]) & ~1;
+    pg_int_reg->INTEN2 |= (~tg_int_global.property_bitmap[1])
+                         & tg_int_global.enable_bitmap[1];
 }
 
 //----断开异步信号开关---------------------------------------------------------
 //功能：断开异步信号开关,所有的异步信号将被禁止
 //      1.当有独立的硬件开关时,把该开关断开即可
 //      2.如果没有独立硬件开关,则断开所有异步信号的线开关.
-//      3.2440属于第二种情况,把所有异步信号线在rINTMSK相应位置1.
+//      3.2440属于第二种情况,把所有异步信号线在rINTEN相应位置1.
 //参数：无
 //返回：无
 //备注：移植敏感
 //-----------------------------------------------------------------------------
 void Int_CutAsynSignal(void)
 {
-    register ucpu_t msk;
+    register ucpu_t msk_lsb,msk_msb;
 #if(CN_CFG_REG_ATOM == 0)
     atom_high_t high;
     high = Int_HighAtomStart();
 #endif      //for #if(CN_CFG_REG_ATOM == 0)
-    msk = (~tg_int_global.property_bitmap[0]) & CN_INT_MASK_ALL_LINE;
-    pg_int_reg->INTMSK1 |= msk;
-    pg_int_reg->INTMSK1 |= msk;
+    msk_lsb = (~tg_int_global.property_bitmap[0]) & CN_INT_MASK_ALL_LINE;
+    msk_msb = (~tg_int_global.property_bitmap[1]) & CN_INT_MASK_ALL_LINE;
+    pg_int_reg->INTEN1 &= ~msk_lsb;
+    pg_int_reg->INTEN2 &= ~msk_msb;
 
 #if(CN_CFG_REG_ATOM == 0)
     Int_HighAtomEnd(high);
@@ -230,13 +239,27 @@ bool_t Int_ContactLine(ufast_t ufl_line)
     {//如果该中断线属于异步信号,且异步信号开关允许,允许该中断线
         if(tg_int_global.en_asyn_signal_counter == 0)
         {
-            pg_int_reg->INTMSK1 &= ~(1<<ufl_line);
-            pg_int_reg->INTMSK1 &= ~(1<<ufl_line);
+            if(ufl_line < 32)
+            {
+                //注INTEN1.0不能==1，详见结构定义
+                pg_int_reg->INTEN1 |= (1<<ufl_line) & ~1;
+            }
+            else
+            {
+                pg_int_reg->INTEN2 |= 1<<(ufl_line-32);
+            }
         }
     }else  //如果该中断属于实时中断,中断总有独立开关,直接允许该中断线
     {
-        pg_int_reg->INTMSK1 &= ~(1<<ufl_line);
-        pg_int_reg->INTMSK1 &= ~(1<<ufl_line);
+        if(ufl_line < 32)
+        {
+            //注INTEN1.0不能==1，详见结构定义
+            pg_int_reg->INTEN1 |= (1<<ufl_line) & ~1;
+        }
+        else
+        {
+            pg_int_reg->INTEN2 |= 1<<(ufl_line-32);
+        }
     }
     return  true;
 }
@@ -249,14 +272,18 @@ bool_t Int_ContactLine(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_CutLine(ufast_t ufl_line)
 {
-    volatile int i;
-
     if( (ufl_line > CN_INT_LINE_LAST)
             || (tg_pIntLineTable[ufl_line] == NULL) )
         return false;
 
-    pg_int_reg->INTMSK1 |=1<<ufl_line;
-    pg_int_reg->INTMSK1 |=1<<ufl_line;
+    if(ufl_line < 32)
+    {
+        pg_int_reg->INTEN1 &= ~(1<<ufl_line);
+    }
+    else
+    {
+        pg_int_reg->INTEN2 &= ~(1<<(ufl_line-32));
+    }
 
     return true;
 }
@@ -272,11 +299,18 @@ bool_t Int_CutLine(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_ClearLine(ufast_t ufl_line)
 {
-    if( (ufl_line > CN_INT_LINE_LAST)
-            || (tg_pIntLineTable[ufl_line] == NULL) )
-        return false;
-    pg_int_reg->SRCPND1 = 1<<ufl_line;
-    pg_int_reg->INTPND1 = 1<<ufl_line;
+    //f1cx00的中断似乎是自动清的，待确认。
+//  if( (ufl_line > CN_INT_LINE_LAST)
+//          || (tg_pIntLineTable[ufl_line] == NULL) )
+//      return false;
+//  if(ufl_line < 32)
+//  {
+//      pg_int_reg->INTRESPONSE1 |= 1 << ufl_line;
+//  }
+//  else
+//  {
+//      pg_int_reg->INTRESPONSE2 |= 1<<(ufl_line-32);
+//  }
     return true;
 }
 
@@ -290,7 +324,15 @@ bool_t Int_ClearLine(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_TapLine(ufast_t ufl_line)
 {
-    return false;    //2440不支持软件触发硬件中断的能力.
+    if(ufl_line < 32)
+    {
+        pg_int_reg->INTFORCE1 |= 1 << ufl_line;
+    }
+    else
+    {
+        pg_int_reg->INTFORCE2 |= 1<<(ufl_line-32);
+    }
+    return true;
 }
 
 //----应答全部中断，清除全部中断线的中断挂起状态-------------------------------
@@ -302,8 +344,7 @@ bool_t Int_TapLine(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 void __Int_ClearAllLine(void)
 {
-    pg_int_reg->SRCPND1 = CN_INT_MASK_ALL_LINE;
-    pg_int_reg->INTPND1 = CN_INT_MASK_ALL_LINE;;
+    return;     //f1c100似乎没有手动清中断的功能
 }
 
 //----查询中断线请求状态-------------------------------------------------------
@@ -319,14 +360,8 @@ bool_t Int_QueryLine(ufast_t ufl_line)
     if( (ufl_line > CN_INT_LINE_LAST)
             || (tg_pIntLineTable[ufl_line] == NULL) )
         return false;
-    ucl_msk=1<<ufl_line;
-    if(pg_int_reg->SRCPND1 & ucl_msk)
-    {
-        pg_int_reg->SRCPND1 = ucl_msk;
-        pg_int_reg->INTPND1 = ucl_msk;
-        return true;
-    }else
-        return false;
+    //先确认f1c100是否有手动清中断功能再说
+    return true;
 }
 
 //----把指定中断线设置为异步信号--------－－－---------------------------------
@@ -394,25 +429,20 @@ bool_t Int_SettoReal(ufast_t ufl_line)
 //         了线程切换，把fiq服务的栈，当作pg_event_running的栈。因此，djyos for
 //         2416版本不支持实时中断嵌套。
 //参数: ufl_line，被操作的中断线
-//返回: 无
+//返回: true = 设置成功，false = 参数错误，或具体实现不支持该中断被嵌套
 //-----------------------------------------------------------------------------
 bool_t Int_EnableNest(ufast_t ufl_line)
 {
     if( (ufl_line > CN_INT_LINE_LAST)
             || (tg_pIntLineTable[ufl_line] == NULL) )
         return false;
-    if(tg_int_global.property_bitmap[ufl_line/CN_CPU_BITS]
-                & (1<<(ufl_line % CN_CPU_BITS)))
-        return false;       //本实现不支持实时中断嵌套
-    else
-        tg_pIntLineTable[ufl_line]->enable_nest = true;
-    return true;
+    return true;        //本实现不支持中断嵌套
 }
 
 //----禁止中断嵌套-------------------------------------------------------------
 //功能: 清除某中断号的中断嵌套使能。
 //参数: ufl_line，被操作的中断线
-//返回: 无
+//返回: true = 设置成功，false = 参数错误，或具体实现不支持该中断被嵌套
 //-----------------------------------------------------------------------------
 bool_t Int_DisableNest(ufast_t ufl_line)
 {
@@ -442,15 +472,20 @@ bool_t Int_SetPrio(ufast_t ufl_line,u32 prio)
 //-----------------------------------------------------------------------------
 void __Int_InitHard(void)
 {
-    int_disable_arm_int();     //禁止中断
-
-    pg_int_reg->INTMSK1 = CN_INT_MASK_ALL_LINE;
-    //中断管理器的F位总是禁止,2440的中断管理器有缺陷，除非只允许一
-    //个中断配置为fiq，否则fiq检出中断线的过程使得fiq实际比irq慢，故不使用fiq，
-    //不管异步信号还是实施中断，均使用irq实现。
-    pg_int_reg->INTMOD1=0;    //设置所有中断线为IRQ中断
-    engine_irq = __Int_EngineAll;
-    // irq_bottom = __Int_EngineAll;
+    u32 n;
+//  //当n号中断被响应时，u32g_vect_table[n]中高30位的值将出现在pg_int_reg->VECTOR中，
+//  //通过分析该寄存器的值，即可得到被响应的中断号。
+//  for(n = 0; n <= CN_INT_LINE_LAST; n++)
+//  {
+//      u32g_vect_table[n] = n<<2;
+//  }
+    pg_int_reg->BASE_ADDR = 0;
+    pg_int_reg->INTMSK1 = 0;    //不知道这个寄存器是干嘛的
+    pg_int_reg->INTMSK2 = 0;
+    pg_int_reg->PRIORITY1 = 0;  //先全部设为最低优先级
+    pg_int_reg->PRIORITY2 = 0;
+    pg_int_reg->PRIORITY3 = 0;
+    pg_int_reg->PRIORITY4 = 0;
 }
 //----初始化中断---------------------------------------------------------------
 //功能：初始化中断硬件,初始化中断线数据结构
@@ -469,6 +504,7 @@ void Int_Init(void)
 {
     ufast_t ufl_line;
 
+    Int_CutTrunk();                //断开总中断开关
     __Int_InitHard();
     __Int_ClearAllLine();
     for(ufl_line=0;ufl_line <= CN_INT_LINE_LAST;ufl_line++)
@@ -502,13 +538,57 @@ void Int_Init(void)
 //参数：ufast ufl_line，响应的中断线号
 //返回：无
 //-----------------------------------------------------------------------------
-
 void __Int_EngineAll(ufast_t ufl_line)
 {
     if(tg_pIntLineTable[ufl_line]->int_type == CN_REAL)
         __Int_EngineReal(ufl_line);                //是实时中断
     else
         __Int_EngineAsynSignal(ufl_line);         //是异步信号
+}
+//----总中断引擎---------------------------------------------------------------
+//功能：有些系统，在中断向量表部分难于区分实时中断还是异步信号的，或者不希望在汇
+//      编阶段使用过于复杂的代码的，比如2416、2440等，则在汇编阶段获取中断号后，
+//      直接调用本函数，由本函数再区别调用异步信号引擎或实时中断引擎。
+//      像cortex-m3、omapl138这样，在中断向量表部分就可以区别实时中断还是异步信
+//      号，则无须提供本函数，而是在汇编部分直接调用相应的引擎。
+//参数：ufast ufl_line，响应的中断线号
+//返回：无
+//-----------------------------------------------------------------------------
+#define CN_CPU_MODE_USR    0x10
+#define CN_CPU_MODE_SVC    0x13
+#define CN_CPU_MODE_SYS    0x1F
+void __irq_Int_Engine(void)
+{
+    ufast_t ufl_line = 0;
+    u32 CpuStatus;
+    ufl_line = pg_int_reg->VECTOR >> 2;
+    if(tg_pIntLineTable[ufl_line] != NULL)
+    {
+        if(tg_pIntLineTable[ufl_line]->int_type == CN_REAL)
+          __Int_EngineReal(ufl_line);                //是实时中断
+        else
+        {
+          __Int_EngineAsynSignal(ufl_line);         //是异步信号
+        }
+    }
+    else
+    {
+        CpuStatus=0;
+    }
+//    if(g_ptEventReady != g_ptEventRunning)
+//    {
+//        CpuStatus = Int_GetPreStatus();
+//        if((CpuStatus == CN_CPU_MODE_USR) || (CpuStatus == CN_CPU_MODE_SYS)
+//                                          || (CpuStatus == CN_CPU_MODE_SVC))
+//            __DJY_ScheduleAsynSignal();       //执行中断内调度
+//    }
+}
+
+void __fiq_Int_Engine(void)
+{
+    u32 a;
+    a = 0;
+//  tg_pIntLineTable[0]->ISR(0);    //f1c100,200,600的fiq固定节NMI中断
 }
 
 //----实时中断引擎-------------------------------------------------------------
@@ -562,21 +642,12 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
     struct IntLine *ptIntLine;
     u32 isr_result;
 
-    tg_int_global.en_asyn_signal_counter = 1;    //无独立异步信号开关的，需这句
     g_bScheduleEnable = false;
-    ptIntLine = tg_pIntLineTable[ufl_line];
-//    tg_int_global.en_asyn_signal = false;
-    tg_int_global.nest_asyn_signal++;
-    if(ptIntLine->enable_nest == true)  //允许嵌套的情况
-    {
-        Int_DisableAsynLine(ufl_line);  //不禁止，可能会形成无限循环
-        Int_ContactAsynSignal();
-    }
-    else
-        Int_CutAsynSignal();
+    ptIntLine =tg_pIntLineTable[ufl_line];//todo----是否应该进行检查为NULL
+
+    tg_int_global.nest_asyn_signal=1;
     if(ptIntLine->clear_type == CN_INT_CLEAR_AUTO)
         Int_ClearLine(ufl_line);        //中断应答,
-    Int_ContactTrunk();
     if(ptIntLine->ISR != NULL)
         isr_result = ptIntLine->ISR(ptIntLine->para);
     else
@@ -586,9 +657,6 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
     }
 //    if(ptIntLine->clear_type == CN_INT_CLEAR_POST)
 //        Int_ClearLine(ufl_line);        //中断应答,
-    Int_CutAsynSignal();
-    Int_EnableAsynLine(ufl_line);
-
     event = ptIntLine->sync_event;
     if(event != NULL)   //看同步指针中有没有事件(注：单个事件，不是队列)
     {
@@ -601,16 +669,11 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
         DJY_EventPop(ptIntLine->my_evtt_id,
                         NULL,0,(ptu32_t)isr_result, (ptu32_t)ufl_line,0);
     }
-    tg_int_global.nest_asyn_signal--;
-    if(tg_int_global.nest_asyn_signal == 0)
-    {
-//        tg_int_global.en_asyn_signal = true;
-        tg_int_global.en_asyn_signal_counter = 0; //无独立异步信号开关的，需这句
-        if(g_ptEventReady != g_ptEventRunning)
-            __DJY_ScheduleAsynSignal();       //执行中断内调度
-        g_bScheduleEnable = true;
-    }
-    Int_CutTrunk();
-    Int_ContactAsynSignal();
+    tg_int_global.nest_asyn_signal = 0;
+
+    if((g_ptEventReady != g_ptEventRunning) && (tg_int_global.nest_asyn_signal==0))
+        __DJY_ScheduleAsynSignal();       //执行中断内调度
+    g_bScheduleEnable = true;
+    return;
 }
 

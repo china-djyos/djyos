@@ -612,7 +612,7 @@ bool_t Int_SettoReal(ufast_t ufl_line)
 //          设置指定的中断为嵌套模式
 // 输入参数：ufl_line,指定中断号
 // 输出参数：无
-// 返回值     ：true设置成功， false 设置失败
+//返回: true = 设置成功，false = 参数错误，或具体实现不支持该中断被嵌套
 // 说明          ：只处理实时信号--P1020
 // =============================================================================
 bool_t Int_EnableNest(ufast_t ufl_line)
@@ -633,7 +633,7 @@ bool_t Int_EnableNest(ufast_t ufl_line)
 //          设置指定的中断为非嵌套模式
 // 输入参数：ufl_line,指定中断号
 // 输出参数：无
-// 返回值     ：true设置成功， false 设置失败
+//返回: true = 设置成功，false = 参数错误，或具体实现不支持该中断被嵌套
 // 说明          ：只处理实时信号--P1020
 // =============================================================================
 bool_t Int_DisableNest(ufast_t ufl_line)
@@ -646,7 +646,6 @@ bool_t Int_DisableNest(ufast_t ufl_line)
             tg_pIntLineTable[ufl_line]->enable_nest = false;
             result = true;
         }
-
     }
 
     return result;

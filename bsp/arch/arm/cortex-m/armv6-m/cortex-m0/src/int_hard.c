@@ -409,7 +409,7 @@ bool_t Int_SettoReal(ufast_t ufl_line)
 //         cortex-m0中，异步信号全部设置为最低优先级，根据cm3的中断嵌套机制，这
 //         样是不能实现嵌套的。
 //参数: ufl_line，被操作的中断线
-//返回: 无
+//返回: true = 设置成功，false = 参数错误，或具体实现不支持该中断被嵌套
 //-----------------------------------------------------------------------------
 bool_t Int_EnableNest(ufast_t ufl_line)
 {
@@ -417,13 +417,13 @@ bool_t Int_EnableNest(ufast_t ufl_line)
 //            || (tg_pIntLineTable[ufl_line] == NULL) )
 //        return false;
 //    tg_pIntLineTable[ufl_line]->enable_nest = true;
-    return false;       //不打算支持实时中断嵌套
+    return false;       //不打算支持中断嵌套
 }
 
 //----禁止中断嵌套-------------------------------------------------------------
 //功能: 清除某中断号的中断嵌套使能。
 //参数: ufl_line，被操作的中断线
-//返回: 无
+//返回: true = 设置成功，false = 参数错误，或具体实现不支持该中断被嵌套
 //-----------------------------------------------------------------------------
 bool_t Int_DisableNest(ufast_t ufl_line)
 {
@@ -431,7 +431,7 @@ bool_t Int_DisableNest(ufast_t ufl_line)
 //            || (tg_pIntLineTable[ufl_line] == NULL) )
 //        return ;
 //    tg_pIntLineTable[ufl_line]->enable_nest = false;
-    return;
+    return false;
 }
 
 //----设定优先级-----------------------------------------------------------

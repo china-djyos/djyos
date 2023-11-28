@@ -42,44 +42,58 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: BSP模块
-//作者:  罗侍田.
-//版本：V1.0.0
-//文件描述:影响C库代码的CPU特性定义,本文件应该放在arch目录中非常底层的位置。
-//       由于许多cpu是按照树状划分系列的,同系列中包含许多相同的特性,相同的
-//       部分宜放在上一级目录的头文件中,include即可.例如本文件就include
-//       了arm-feature.h
-//       为了在所有平台下C库顺利编译,BSP必须提供本文件,而且文件名不能修改。
-//其他说明:
-//修订历史:
-//2. ...
-//1. 日期: 2009-10-31
-//   作者:  罗侍田.
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
-//------------------------------------------------------
-#ifndef __ARCH_FEATURE_H__
-#define __ARCH_FEATURE_H__
+
+#ifndef __BOARD__H__
+#define __BOARD__H__
+
+//#include "./include/ctiic.h"
+#include "cpu_peri.h"
+#include "IoIicBus.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "arm32_feature.h"
-#include "board-config.h"
+/**********************************ft5x26********************************************/
+//IO方向设置
+//#define CT_SCL_OUT() djy_gpio_mode(GPIO4,PIN_MODE_OUTPUT)  //输出模式
+#define CT_SCL_OUT() gpio_config(GPIO4, GMODE_OUTPUT);
+//#define CT_SDA_IN()  djy_gpio_mode(GPIO2,PIN_MODE_INPUT_PULLUP)  //输入模式
+#define CT_SDA_IN()  gpio_config(GPIO2, GMODE_INPUT_PULLUP)  //输入模式
+//#define CT_SDA_OUT() djy_gpio_mode(GPIO2,PIN_MODE_OUTPUT)  //输出模式
+#define CT_SDA_OUT() gpio_config(GPIO2, GMODE_OUTPUT)  //输出模式
 
-#define arm926ej_s
+//IO操作函数
+//#define CT_IIC_SCL(n) djy_gpio_write(GPIO4,n)//SCL
+#define CT_IIC_SCL(n) gpio_output(GPIO4,n)//SCL
+//#define CT_IIC_SDA(n) djy_gpio_write(GPIO2,n)//SDA
+#define CT_IIC_SDA(n) gpio_output(GPIO2,n)//SDA
+//#define CT_READ_SDA   djy_gpio_read(GPIO2)//输入SDA
+#define CT_READ_SDA   gpio_input(GPIO2)//输入SDA
 
-//虽然cache.h中有定义cache尺寸的地方,但926ej_s的cache尺寸由厂商决定，直接与CPU
-//实现相关,故需要在这里定义.
-#define CN_CACHE_SIZE           0x4000
+/*触摸屏芯片接口IO*/
+//#define FT_RST(n)  djy_gpio_write(GPIO7,n)
+#define FT_RST(n)  gpio_output(GPIO7,n)
+//#define FT_INT     djy_gpio_read(GPIO6)
+#define FT_INT     gpio_input(GPIO6)
+/*************************************************************************************/
 
-//保存上下文所需的栈空间最大值
-//16=通用寄存器，+cpsr-SP
-#define CN_CONTEXT_LIMIT        (16)*4
-
+void Board_Init(void);
+void FT6236_Pin_Init(void);
+u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
+void OpenScreen();
+void CloseScreen();
+void ClosePower();
+void CloseSpeaker();
+void OpenSpeaker();
+enum SpeakerState GetSpeakerState();
 #ifdef __cplusplus
 }
 #endif
-#endif // __ARCH_FEATURE_H__
+#endif
+
+
+
+
+
 

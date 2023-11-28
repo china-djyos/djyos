@@ -71,7 +71,6 @@
 //就会没有定义，因此需此处定义和赋值
 //例如ETH网络驱动中，stm32f7xx_hal_eth.c中会调用
 //uint32_t SystemCoreClock = CN_CFG_MCLK;         //HAL_RCC会用到此量
-
 #if(CFG_STM32_HAL_TIMER == 1)
     TIM_TypeDef* const STM32_HAL_TIMER = TIM1;
 #elif(CFG_STM32_HAL_TIMER == 2)

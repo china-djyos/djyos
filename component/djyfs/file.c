@@ -487,9 +487,9 @@ s32 ungetc(s32 c, FILE *stream)
 // ============================================================================
 size_t fread(void *buf, size_t size, size_t count, FILE *stream)
 {
-    s32 buffered = 0, i = 0, result = 0;
+    s32 buffered = 0, result = 0;
     s32 res, read_size, reads, round;
-    char ch;
+//    char ch;
 
     read_size = size * count;
     if((NULL == buf) || (NULL == stream) || (0 == read_size))
@@ -508,8 +508,6 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         {
             return (1/size);
         }
-
-        i = 1;
     }
 
 //    if(!File_IsValid(stream)) // 文件流是未初始化的STDIO

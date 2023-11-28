@@ -65,6 +65,7 @@ extern "C" {
 
 #define CN_CPU_OPTIONAL_BITBAND     1       //是否支持位带
 #define CN_CPU_OPTIONAL_CACHE       0       //是否支持cache
+#define CN_CPU_OPTIONAL_MPU         1       //是否支持mpu
 
 #ifdef __cplusplus
 }

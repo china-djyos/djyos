@@ -1348,7 +1348,7 @@ s32 fcntl(s32 fd, s32 cmd, ...)
         return (-1);
 
     va_start(args, cmd);
-    res = __Handle_Cntl(hdl, cmd, args);
+    res = __Handle_Cntl(hdl, cmd, args);    //处理系统默认支持的命令
     if(CN_OBJ_CMD_UNSUPPORT == res)
     {
         if((cmd == F_DUPFD)||(cmd == F_GETFD)||(cmd == F_GETFL)||(cmd == F_GETOWN))

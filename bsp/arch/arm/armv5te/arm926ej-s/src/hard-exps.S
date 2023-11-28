@@ -56,13 +56,20 @@
 .fpu    softvfp
 .file   "hard-exps.S"
 
+.global Init_Cpu
+.global HardExp_UndefHandler
+.global HardExp_SwiHandler
+.global HardExp_PrefetchHandler
+.global HardExp_DataAbortHandler
+.global HardExp_IrqHandler
+.global HardExp_FiqHandler
 
 /* 异常向量表 */
-.section    .isr_vector, "ax", %progbits
+.section    .start_vectors, "ax", %progbits
 .align  3
 .global isr_vector
 isr_vector:
-    b   _start
+    ldr pc, ResetAddr
     ldr pc, HardExp_UndefJump
     ldr pc, HardExp_SwiJump
     ldr pc, HardExp_PrefetchJump
@@ -73,32 +80,30 @@ isr_vector:
 
 
 
-ResetAddr:
-        .word _start
-HardExp_UndefJump:
-        .word HardExp_UndefHandler
-HardExp_SwiJump:
-        .word HardExp_SwiHandler
-HardExp_PrefetchJump:
-        .word HardExp_PrefetchHandler
-HardExp_DataAbortJump:
-        .word HardExp_DataAbortHandler
-Nouse:
-        .word 0
-HardExp_IrqJump:
-        .word HardExp_IrqHandler
-HardExp_FiqJump:
-        .word HardExp_FiqHandler
+ResetAddr:              .word Init_Cpu
+HardExp_UndefJump:      .word HardExp_UndefHandler
+HardExp_SwiJump:        .word HardExp_SwiHandler
+HardExp_PrefetchJump:   .word HardExp_PrefetchHandler
+HardExp_DataAbortJump:  .word HardExp_DataAbortHandler
+Nouse:                  .word 0
+HardExp_IrqJump:        .word HardExp_IrqHandler
+HardExp_FiqJump:        .word HardExp_FiqHandler
 
 .global isr_vector_end
 isr_vector_end:
-                .word 0x00000000
+.word 0x00000000
 
 
 HardExp_UndefHandler:
     b   .
+    nop
+    nop
+    subs        pc,lr,#0
 HardExp_SwiHandler:
     b   .
+    nop
+    nop
+    subs        pc,lr,#0
 HardExp_PrefetchHandler:
     b   .
     nop

@@ -11,7 +11,7 @@
 #include "board-config.h"
 
 #define CN_CFG_TIME_BASE_HZ 250
-#define CN_INT_LINE_TIMER3	CN_INT_LINE_29
+#define CN_INT_LINE_TIMER3  CN_INT_LINE_29
 
 #if (!CN_CFG_USE_USERTIMER)
 #define CN_TIME_ROUNDING    (32768U)//四舍五入的值
@@ -60,25 +60,6 @@ u32 __Djy_GetDelayMaxCnt(void)
 u32 __Djy_GetTimeBaseGap(void)
 {
     return TIME_BASE_MIN_GAP;
-}
-
-//----重新设置tick中断时间---------------------------------------------------------------
-//功能: 重新设置定时器reload值.
-//参数: time:单位us
-//返回: 无
-//备注: 本函数是移植敏感函数.
-//这个是内部调用函数，这里不对time的值做判断，由调用者确保正确性
-//-----------------------------------------------------------------------------
-void __Djy_SetTimeBaseCnt(u32 cnt)
-{
-    if(cnt>CN_LIMIT_UINT16)
-    {
-        //理论上不可能出现此事件
-        return;
-    }
-    g_time_base_tick += pg_timer_reg->TCNTB3 - pg_timer_reg->TCNTO3;
-    pg_timer_reg->TCNTB3 = cnt;
-    pg_timer_reg->TCNTO3 = pg_timer_reg->TCNTB3;
 }
 
 //----获取tick中断时间---------------------------------------------------------------

@@ -22,52 +22,55 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¨ï¿½É¶ï¿½ï¿½ï¿½ï¿½ß²ï¿½ï¿½ï¿½ÏµÍ³ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½È¨ï¿½Ë±ï¿½ï¿½ï¿½Ò»ï¿½ï¿½È¨ï¿½ï¿½ï¿½ï¿½
+// Copyright (c) 2018£¬Öø×÷È¨ÓÉ¶¼½­Ñß²Ù×÷ÏµÍ³¿ªÔ´¿ª·¢ÍÅ¶ÓËùÓÐ¡£Öø×÷È¨ÈË±£ÁôÒ»ÇÐÈ¨Àû¡£
 //
-// ï¿½ï¿½ï¿½ï¿½ï¿½È¨ï¿½ï¿½ï¿½î£¬ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ß·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½Ã¼ï¿½ï¿½ï¿½É¢ï¿½ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½ï¿½×°Ô­Ê¼ï¿½ë¼°ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½È¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Û´Ë°ï¿½×°ï¿½Ç·ñ¾­¸ï¿½ï¿½ï¿½ï¿½ï¿½È»ï¿½ï¿½
+// Õâ·ÝÊÚÈ¨Ìõ¿î£¬ÔÚÊ¹ÓÃÕß·ûºÏÏÂÁÐÌõ¼þµÄÇéÐÎÏÂ£¬ÊÚÓèÊ¹ÓÃÕßÊ¹ÓÃ¼°ÔÙÉ¢²¥±¾
+// Èí¼þ°ü×°Ô­Ê¼Âë¼°¶þ½øÎ»¿ÉÖ´ÐÐÐÎÊ½µÄÈ¨Àû£¬ÎÞÂÛ´Ë°ü×°ÊÇ·ñ¾­¸Ä×÷½ÔÈ»£º
 //
-// 1. ï¿½ï¿½ï¿½Ú±ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë±£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä°ï¿½È¨ï¿½ï¿½ï¿½æ¡¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½
-//    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-// 2. ï¿½ï¿½ï¿½Ú±ï¿½ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½É¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-//    ï¿½ï¿½É¢ï¿½ï¿½ï¿½ï¿½×°ï¿½Ðµï¿½Ã½ï¿½é·½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½È¨ï¿½ï¿½ï¿½æ¡¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½
-//    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+// 1. ¶ÔÓÚ±¾Èí¼þÔ´´úÂëµÄÔÙÉ¢²¥£¬±ØÐë±£ÁôÉÏÊöµÄ°æÈ¨Ðû¸æ¡¢±¾Ìõ¼þÁÐ±í£¬ÒÔ
+//    ¼°ÏÂÊöµÄÃâÔðÉùÃ÷¡£
+// 2. ¶ÔÓÚ±¾Ì×¼þ¶þ½øÎ»¿ÉÖ´ÐÐÐÎÊ½µÄÔÙÉ¢²¥£¬±ØÐëÁ¬´øÒÔÎÄ¼þÒÔ¼°£¯»òÕßÆäËû¸½
+//    ÓÚÉ¢²¥°ü×°ÖÐµÄÃ½½é·½Ê½£¬ÖØÖÆÉÏÊöÖ®°æÈ¨Ðû¸æ¡¢±¾Ìõ¼þÁÐ±í£¬ÒÔ¼°ÏÂÊö
+//    µÄÃâÔðÉùÃ÷¡£
 
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´ï¿½ï¿½"as is"ï¿½ï¿½ï¿½á¹©ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½Ê¾ï¿½ï¿½Ä¬Ê¾Ö®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½Ø¶ï¿½Ä¿
-// ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªÄ¬Ê¾ï¿½Ôµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¨ï¿½ï¿½ï¿½ï¿½ï¿½Ë¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½Û³ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½å¡¢ï¿½ï¿½ï¿½Û´ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½Ô¼ï¿½ï¿½Ïµï¿½ï¿½ï¿½Þ¹ï¿½Ê§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¥
-// Ô¼Ö®ï¿½ï¿½È¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½È£ï¿½ï¿½ï¿½ï¿½ð£¬¶ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½Ê¹ï¿½Ã±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-// ï¿½Îºï¿½Ö±ï¿½ï¿½ï¿½Ô¡ï¿½ï¿½ï¿½ï¿½ï¿½Ô¡ï¿½Å¼ï¿½ï¿½ï¿½Ô¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¡ï¿½ï¿½Í·ï¿½ï¿½Ô»ï¿½ï¿½ÎºÎ½ï¿½ï¿½ï¿½ï¿½ï¿½ðº¦£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½ï¿½Ã¡ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½Òµï¿½ï¿½ï¿½Ð¶ÏµÈµÈ£ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ï¿½Î£ï¿½ï¿½ï¿½ï¿½Ú¸ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½Ñ»ï¿½ï¿½ï¿½Ç°ï¿½ï¿½Öªï¿½ï¿½ï¿½Ü»ï¿½ï¿½ï¿½É´ï¿½ï¿½ï¿½ï¿½ðº¦µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È»ï¿½ï¿½
+// ÃâÔðÉùÃ÷£º±¾Èí¼þÊÇ±¾Èí¼þ°æÈ¨³ÖÓÐÈËÒÔ¼°¹±Ï×ÕßÒÔÏÖ×´£¨"as is"£©Ìá¹©£¬
+// ±¾Èí¼þ°ü×°²»¸ºÈÎºÎÃ÷Ê¾»òÄ¬Ê¾Ö®µ£±£ÔðÈÎ£¬°üÀ¨µ«²»ÏÞÓÚ¾ÍÊÊÊÛÐÔÒÔ¼°ÌØ¶¨Ä¿
+// µÄµÄÊÊÓÃÐÔÎªÄ¬Ê¾ÐÔµ£±£¡£°æÈ¨³ÖÓÐÈË¼°±¾Èí¼þÖ®¹±Ï×Õß£¬ÎÞÂÛÈÎºÎÌõ¼þ¡¢
+// ÎÞÂÛ³ÉÒò»òÈÎºÎÔðÈÎÖ÷Ìå¡¢ÎÞÂÛ´ËÔðÈÎÎªÒòºÏÔ¼¹ØÏµ¡¢ÎÞ¹ýÊ§ÔðÈÎÖ÷Ìå»òÒò·ÇÎ¥
+// Ô¼Ö®ÇÖÈ¨£¨°üÀ¨¹ýÊ§»òÆäËûÔ­ÒòµÈ£©¶øÆð£¬¶ÔÓÚÈÎºÎÒòÊ¹ÓÃ±¾Èí¼þ°ü×°Ëù²úÉúµÄ
+// ÈÎºÎÖ±½ÓÐÔ¡¢¼ä½ÓÐÔ¡¢Å¼·¢ÐÔ¡¢ÌØÊâÐÔ¡¢³Í·£ÐÔ»òÈÎºÎ½á¹ûµÄËðº¦£¨°üÀ¨µ«²»ÏÞ
+// ÓÚÌæ´úÉÌÆ·»òÀÍÎñÖ®¹ºÓÃ¡¢Ê¹ÓÃËðÊ§¡¢×ÊÁÏËðÊ§¡¢ÀûÒæËðÊ§¡¢ÒµÎñÖÐ¶ÏµÈµÈ£©£¬
+// ²»¸ºÈÎºÎÔðÈÎ£¬¼´ÔÚ¸ÃÖÖÊ¹ÓÃÒÑ»ñÊÂÇ°¸æÖª¿ÉÄÜ»áÔì³É´ËÀàËðº¦µÄÇéÐÎÏÂÒàÈ»¡£
 //-----------------------------------------------------------------------------
 // =============================================================================
 
-// ï¿½Ä¼ï¿½ï¿½ï¿½     ï¿½ï¿½cpu_peri_uart.c
-// Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: DJYOSï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½Äµ×²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö£ï¿½ï¿½ï¿½ÒªÊµï¿½Ö¼Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶Ïµï¿½
-// Ä£ï¿½ï¿½æ±¾: V1.10
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±:
-// ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½:
+// ÎÄ¼þÃû     £ºcpu_peri_uart.c
+// Ä£¿éÃèÊö: DJYOS´®¿ÚÄ£¿éµÄµ×²ãÇý¶¯²¿·Ö£¬Ö÷ÒªÊµÏÖ¼Ä´æÆ÷¼¶±ðµÄ²Ù×÷£¬ÈçÖÐ¶ÏµÈ
+// Ä£¿é°æ±¾: V1.10
+// ´´½¨ÈËÔ±:
+// ´´½¨Ê±¼ä:
 // =============================================================================
-#include "stdint.h"
-#include "stdio.h"
-#include <stdlib.h>
-#include "string.h"
-#include "errno.h"
-#include "systime.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <systime.h>
 #include "cpu_peri.h"
 #include <device/djy_uart.h>
 #include "int.h"
 #include "djyos.h"
 #include "cpu_peri_uart.h"
 #include "cpu_peri_int_line.h"
-#include "project_config.h"     //ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½IDEï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½APPï¿½Ä¹ï¿½ï¿½ï¿½Ä¿Â¼ï¿½Ð¡ï¿½
-                                //ï¿½ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½Öµï¿½ï¿½ï¿½Ã¡ï¿½
+#include "stdlib.h"
 
-//@#$%component configure   ****ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIDE ï¿½ï¿½Í¼ï¿½Î»ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ï¿½ï¿½
-//****ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï·¨ï¿½ï¿½Ê¹ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¼ï¿½Ô´ï¿½ï¿½ï¿½Ä¿Â¼ï¿½Âµï¿½ï¿½Ä¼ï¿½ï¿½ï¿½component_config_readme.txt****
-//%$#@initcode      ****ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ë¿ªÊ¼ï¿½ï¿½ï¿½ï¿½ DIDE É¾ï¿½ï¿½ï¿½ï¿½//ï¿½ï¿½ï¿½ï¿½copyï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+//#include "cpu_peri_dma.h"
+// =============================================================================
+#include "project_config.h"     //±¾ÎÄ¼þÓÉIDEÖÐÅäÖÃ½çÃæÉú³É£¬´æ·ÅÔÚAPPµÄ¹¤³ÌÄ¿Â¼ÖÐ¡£
+                                //ÔÊÐíÊÇ¸ö¿ÕÎÄ¼þ£¬ËùÓÐÅäÖÃ½«°´Ä¬ÈÏÖµÅäÖÃ¡£
+
+//@#$%component configure   ****×é¼þÅäÖÃ¿ªÊ¼£¬ÓÃÓÚ DIDE ÖÐÍ¼ÐÎ»¯ÅäÖÃ½çÃæ
+//****ÅäÖÃ¿éµÄÓï·¨ºÍÊ¹ÓÃ·½·¨£¬²Î¼ûÔ´Âë¸ùÄ¿Â¼ÏÂµÄÎÄ¼þ£ºcomponent_config_readme.txt****
+//%$#@initcode      ****³õÊ¼»¯´úÂë¿ªÊ¼£¬ÓÉ DIDE É¾³ý¡°//¡±ºócopyµ½³õÊ¼»¯ÎÄ¼þÖÐ
 //    extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
 //
 //    #if CFG_UART1_ENABLE ==1
@@ -101,886 +104,1515 @@
 //    #if CFG_UART8_ENABLE ==1
 //    ModuleInstall_UART(CN_UART8);
 //    #endif
-//%$#@end initcode  ****ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//
+//    #if CFG_UART9_ENABLE ==1
+//    ModuleInstall_UART(CN_UART9);
+//    #endif
+//
+//    #if CFG_UART10_ENABLE ==1
+//    ModuleInstall_UART(CN_UART10);
+//    #endif
 
-//%$#@describe      ****ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼
-//component name:"cpu onchip uart"//CPUï¿½ï¿½uartï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-//parent:"uart device file"      //ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö£ï¿½noneï¿½ï¿½Ê¾Ã»ï¿½Ð¸ï¿½ï¿½ï¿½ï¿½
-//attribute:bsp                 //Ñ¡ï¿½î¡°thirdï¿½ï¿½systemï¿½ï¿½bspï¿½ï¿½userï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IDEï¿½Ð·ï¿½ï¿½ï¿½
-//select:choosable              //Ñ¡ï¿½î¡°requiredï¿½ï¿½choosableï¿½ï¿½noneï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Ã²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IDEï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½Ï¹ï¿½È¡ï¿½ï¿½
-                                //ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½Ò²ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Ã²ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½Ç²ï¿½ï¿½ï¿½Ñ¡ï¿½Ä£ï¿½IDEï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð²ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½
-//init time:early               //ï¿½ï¿½Ê¼ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡Öµï¿½ï¿½earlyï¿½ï¿½mediumï¿½ï¿½later, pre-mainï¿½ï¿½
-                                //ï¿½ï¿½Ê¾ï¿½ï¿½Ê¼ï¿½ï¿½Ê±ï¿½ä£¬ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¡ï¿½ï¿½ï¿½ï¿½Ú¡ï¿½ï¿½ï¿½ï¿½ï¿½
-//dependence:"device file system","lock","uart device file","heap"//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½noneï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-                                //Ñ¡ï¿½Ð¸ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¿ï¿½ï¿½Ñ¡ï¿½Ð£ï¿½
-                                //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð³ï¿½ï¿½ï¿½ï¿½Ã¡ï¿½,ï¿½ï¿½ï¿½Ö¸ï¿½
-//weakdependence:"none"         //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½noneï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-                                //Ñ¡ï¿½Ð¸ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á±»Ç¿ï¿½ï¿½Ñ¡ï¿½Ð£ï¿½
-                                //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð³ï¿½ï¿½ï¿½ï¿½Ã¡ï¿½,ï¿½ï¿½ï¿½Ö¸ï¿½
-//mutex:"none"                  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½noneï¿½ï¿½ï¿½ï¿½Ê¾ï¿½Þ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-                                //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð³ï¿½ï¿½ï¿½ï¿½Ã¡ï¿½,ï¿½ï¿½ï¿½Ö¸ï¿½
-//%$#@end describe  ****ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//%$#@end initcode  ****³õÊ¼»¯´úÂë½áÊø
 
-//%$#@configue      ****ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½Ê¼
+//%$#@describe      ****×é¼þÃèÊö¿ªÊ¼
+//component name:"cpu onchip uart"//CPUµÄuartÍâÉèÇý¶¯
+//parent:"uart device file"      //ÌîÐ´¸Ã×é¼þµÄ¸¸×é¼þÃû×Ö£¬none±íÊ¾Ã»ÓÐ¸¸×é¼þ
+//attribute:bsp                    //Ñ¡Ìî¡°third¡¢system¡¢bsp¡¢user¡±£¬±¾ÊôÐÔÓÃÓÚÔÚIDEÖÐ·Ö×é
+//select:choosable                 //Ñ¡Ìî¡°required¡¢choosable¡¢none¡±£¬ÈôÌî±ØÑ¡ÇÒÐèÒªÅäÖÃ²ÎÊý£¬ÔòIDE²Ã¼ô½çÃæÖÐÄ¬ÈÏ¹´È¡£¬
+                                   //²»¿ÉÈ¡Ïû£¬±ØÑ¡ÇÒ²»ÐèÒªÅäÖÃ²ÎÊýµÄ£¬»òÊÇ²»¿ÉÑ¡µÄ£¬IDE²Ã¼ô½çÃæÖÐ²»ÏÔÊ¾£¬
+//init time:early                  //³õÊ¼»¯Ê±»ú£¬¿ÉÑ¡Öµ£ºearly£¬medium£¬later, pre-main¡£
+                                   //±íÊ¾³õÊ¼»¯Ê±¼ä£¬·Ö±ðÊÇÔçÆÚ¡¢ÖÐÆÚ¡¢ºóÆÚ
+//dependence:"uart device file","cpu onchip dma"//¸Ã×é¼þµÄÒÀÀµ×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞÒÀÀµ×é¼þ£©£¬
+                                   //Ñ¡ÖÐ¸Ã×é¼þÊ±£¬±»ÒÀÀµ×é¼þ½«Ç¿ÖÆÑ¡ÖÐ£¬
+                                   //Èç¹ûÒÀÀµ¶à¸ö×é¼þ£¬ÔòÒÀ´ÎÁÐ³ö
+//weakdependence:"none"            //¸Ã×é¼þµÄÈõÒÀÀµ×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞÒÀÀµ×é¼þ£©£¬
+                                   //Ñ¡ÖÐ¸Ã×é¼þÊ±£¬±»ÒÀÀµ×é¼þ²»»á±»Ç¿ÖÆÑ¡ÖÐ£¬
+                                   //Èç¹ûÒÀÀµ¶à¸ö×é¼þ£¬ÔòÒÀ´ÎÁÐ³ö£¬ÓÃ¡°,¡±·Ö¸ô
+//mutex:"none"                  //¸Ã×é¼þµÄ»¥³â×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞ»¥³â×é¼þ£©£¬
+                                   //Èç¹ûÓë¶à¸ö×é¼þ»¥³â£¬ÔòÒÀ´ÎÁÐ³ö
+//%$#@end describe  ****×é¼þÃèÊö½áÊø
+
+//%$#@configue      ****²ÎÊýÅäÖÃ¿ªÊ¼
 #if ( CFG_MODULE_ENABLE_CPU_ONCHIP_UART == false )
-//#warning  " cpu_onchip_uart  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î´ï¿½ï¿½ï¿½Ã£ï¿½Ê¹ï¿½ï¿½Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"
-//%$#@target = header           //header = ï¿½ï¿½ï¿½ï¿½Í·ï¿½Ä¼ï¿½,cmdline = ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½DJYOSï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½
-#define CFG_MODULE_ENABLE_CPU_ONCHIP_UART    false //ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½Ë±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½DIDEï¿½ï¿½project_config.hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½Îªtrue
-//%$#@num,32,512,
-#define CFG_UART_SENDBUF_LEN            32                  //"ï¿½ï¿½ï¿½Ú·ï¿½ï¿½Í»ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡",
-#define CFG_UART_RECVBUF_LEN            32                  //"ï¿½ï¿½ï¿½Ú½ï¿½ï¿½Õ»ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡",
+//#warning  " cpu_onchip_uart  ×é¼þ²ÎÊýÎ´ÅäÖÃ£¬Ê¹ÓÃÄ¬ÈÏÅäÖÃ"
+//%$#@target = header    //header = Éú³ÉÍ·ÎÄ¼þ,cmdline = ÃüÁîÐÐ±äÁ¿£¬DJYOS×ÔÓÐÄ£¿é½ûÓÃ
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_UART    false //Èç¹û¹´Ñ¡ÁË±¾×é¼þ£¬½«ÓÉDIDEÔÚproject_config.h»òÃüÁîÐÐÖÐ¶¨ÒåÎªtrue
+//%$#@num,0,512,
+#define CFG_UART1_SENDBUF_LEN       64      //"UART1·¢ËÍ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART1_RECVBUF_LEN       64      //"UART1½ÓÊÕ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART1_DMABUF_LEN        64      //"UART1 DMA»·ÐÎ»º³åÇø´óÐ¡",
 
-//%$#@enum,,false,true
-#define CFG_UART1_ENABLE                true                //"ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ê¹ï¿½ï¿½UART1",
-#define CFG_UART2_ENABLE                false               //"ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ê¹ï¿½ï¿½UART2",
-#define CFG_UART3_ENABLE                false               //"ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ê¹ï¿½ï¿½UART3",
-#define CFG_UART4_ENABLE                false               //"ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ê¹ï¿½ï¿½UART4",
-#define CFG_UART5_ENABLE                false               //"ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ê¹ï¿½ï¿½UART5",
-#define CFG_UART6_ENABLE                false               //"ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ê¹ï¿½ï¿½UART6",
-#define CFG_UART7_ENABLE                false               //"ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ê¹ï¿½ï¿½UART7",
-#define CFG_UART8_ENABLE                false               //"ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ê¹ï¿½ï¿½UART8",
+#define CFG_UART2_SENDBUF_LEN       64      //"UART2·¢ËÍ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART2_RECVBUF_LEN       64      //"UART2½ÓÊÕ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART2_DMABUF_LEN        64      //"UART2 DMA»·ÐÎ»º³åÇø´óÐ¡",
+
+#define CFG_UART3_SENDBUF_LEN       64      //"UART3·¢ËÍ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART3_RECVBUF_LEN       64      //"UART3½ÓÊÕ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART3_DMABUF_LEN        64      //"UART3 DMA»·ÐÎ»º³åÇø´óÐ¡",
+
+#define CFG_UART4_SENDBUF_LEN       64      //"UART4·¢ËÍ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART4_RECVBUF_LEN       64      //"UART4½ÓÊÕ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART4_DMABUF_LEN        64      //"UART4 DMA»·ÐÎ»º³åÇø´óÐ¡",
+
+#define CFG_UART5_SENDBUF_LEN       64      //"UART5·¢ËÍ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART5_RECVBUF_LEN       64      //"UART5½ÓÊÕ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART5_DMABUF_LEN        64      //"UART5 DMA»·ÐÎ»º³åÇø´óÐ¡",
+
+#define CFG_UART6_SENDBUF_LEN       64      //"UART6·¢ËÍ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART6_RECVBUF_LEN       64      //"UART6½ÓÊÕ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART6_DMABUF_LEN        64      //"UART6 DMA»·ÐÎ»º³åÇø´óÐ¡",
+
+#define CFG_UART7_SENDBUF_LEN       64      //"UART7·¢ËÍ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART7_RECVBUF_LEN       64      //"UART7½ÓÊÕ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART7_DMABUF_LEN        64      //"UART7 DMA»·ÐÎ»º³åÇø´óÐ¡",
+
+#define CFG_UART8_SENDBUF_LEN       64      //"UART8·¢ËÍ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART8_RECVBUF_LEN       64      //"UART8½ÓÊÕ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART8_DMABUF_LEN        64      //"UART8 DMA»·ÐÎ»º³åÇø´óÐ¡",
+
+#define CFG_UART9_SENDBUF_LEN       64      //"UART9·¢ËÍ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART9_RECVBUF_LEN       64      //"UART9½ÓÊÕ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART9_DMABUF_LEN        64      //"UART9 DMA»·ÐÎ»º³åÇø´óÐ¡",
+
+#define CFG_UART10_SENDBUF_LEN      64      //"UART10·¢ËÍ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART10_RECVBUF_LEN      64      //"UART10½ÓÊÕ»·ÐÎ»º³åÇø´óÐ¡",
+#define CFG_UART10_DMABUF_LEN       64      //"UART10 DMA»·ÐÎ»º³åÇø´óÐ¡",
+
+//%$#@enum,true,false
+#define CFG_UART1_ENABLE           false        //"ÊÇ·ñÊ¹ÓÃUART1",
+#define CFG_UART1_ENABLE_DMA       false        //"UART1Ê¹ÄÜDMA",
+#define CFG_UART2_ENABLE           false       //"ÊÇ·ñÊ¹ÓÃUART2",
+#define CFG_UART2_ENABLE_DMA       false       //"UART2Ê¹ÄÜDMA",
+#define CFG_UART3_ENABLE           false       //"ÊÇ·ñÊ¹ÓÃUART3",
+#define CFG_UART3_ENABLE_DMA       false       //"UART3Ê¹ÄÜDMA",
+#define CFG_UART4_ENABLE           false        //"ÊÇ·ñÊ¹ÓÃUART4",
+#define CFG_UART4_ENABLE_DMA       false       //"UART4Ê¹ÄÜDMA",
+#define CFG_UART5_ENABLE           false       //"ÊÇ·ñÊ¹ÓÃUART5",
+#define CFG_UART5_ENABLE_DMA       false       //"UART5Ê¹ÄÜDMA",
+#define CFG_UART6_ENABLE           false       //"ÊÇ·ñÊ¹ÓÃUART6",
+#define CFG_UART6_ENABLE_DMA       false       //"UART6Ê¹ÄÜDMA",
+#define CFG_UART7_ENABLE           false       //"ÊÇ·ñÊ¹ÓÃUART7",
+#define CFG_UART7_ENABLE_DMA       false       //"UART7Ê¹ÄÜDMA",
+#define CFG_UART8_ENABLE           false       //"ÊÇ·ñÊ¹ÓÃUART8",
+#define CFG_UART8_ENABLE_DMA       false       //"UART8Ê¹ÄÜDMA",
+#define CFG_UART9_ENABLE           false       //"ÊÇ·ñÊ¹ÓÃUART9",
+#define CFG_UART9_ENABLE_DMA       false       //"UART9Ê¹ÄÜDMA",
+#define CFG_UART10_ENABLE          false       //"ÊÇ·ñÊ¹ÓÃUART10",
+#define CFG_UART10_ENABLE_DMA      false       //"UART10Ê¹ÄÜDMA",
 //%$#@string,1,10,
-//%$#select,        ***ï¿½ï¿½ï¿½Ð³ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½É¸ï¿½ï¿½ï¿½ï¿½ï¿½Éºï¿½
+//%$#select,        ***´ÓÁÐ³öµÄÑ¡ÏîÖÐÑ¡ÔñÈô¸É¸ö¶¨Òå³Éºê
 //%$#@free,
 #endif
-//%$#@end configue  ****ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ï¿½ï¿½
+//%$#@end configue  ****²ÎÊýÅäÖÃ½áÊø
+//%$#@exclude       ****±àÒëÅÅ³ýÎÄ¼þÁÐ±í
+//%$#@end exclude   ****×é¼þÃèÊö½áÊø
 //@#$%component end configure
 // =============================================================================
 
-#define tagUartReg USART_TypeDef
+#define CN_UART1_BASE USART1_BASE//0x40013800
+#define CN_UART2_BASE USART2_BASE
+#define CN_UART3_BASE USART3_BASE
+#define CN_UART4_BASE UART4_BASE
+#define CN_UART5_BASE UART5_BASE
+#define CN_UART6_BASE USART6_BASE
+#define CN_UART7_BASE UART7_BASE
+#define CN_UART8_BASE UART8_BASE
+#define CN_UART9_BASE UART9_BASE
+#define CN_UART10_BASE USART10_BASE
 
+static u32 TxByteTime;                    //Õý³£·¢ËÍÒ»¸ö×Ö½ÚËùÐèÒªµÄÊ±¼ä
+static tagUartReg *PutStrDirectReg;     //ÓÃÓÚprintk·¢ËÍµÄ´®¿Ú¼Ä´æÆ÷
+static tagUartReg *GetCharDirectReg;     //ÓÃÓÚÖ±½Ó½ÓÊÕµÄ´®¿Ú¼Ä´æÆ÷
+static u32 TxDirectPort;                  //ÓÃÓÚprintk·¢ËÍµÄ´®¿ÚºÅ
+static u32 RxDirectPort;                  //ÓÃÓÚÖ±½Ó½ÓÊÕµÄ´®¿ÚºÅ
 // =============================================================================
-typedef struct
-{
-    char* Name;
-    tagUartReg volatile *Reg;
-    u8 TxRxIntLine;
-    u8 DmaRxIntLine;
-    u8 DmaTxIntLine;
-    uint32_t DmaRxReq;
-    uint32_t DmaTxReq;
-    DMA_Stream_TypeDef * DmaRxCh;
-    DMA_Stream_TypeDef * DmaTxCh;
-}tagUartCfg;
+static tagUartReg volatile * const tg_UART_Reg[] = {(tagUartReg *)CN_UART1_BASE,
+                                                    (tagUartReg *)CN_UART2_BASE,
+                                                    (tagUartReg *)CN_UART3_BASE,
+                                                    (tagUartReg *)CN_UART4_BASE,
+                                                    (tagUartReg *)CN_UART5_BASE,
+                                                    (tagUartReg *)CN_UART6_BASE,
+                                                    (tagUartReg *)CN_UART7_BASE,
+                                                    (tagUartReg *)CN_UART8_BASE,
+                                                    (tagUartReg *)CN_UART9_BASE,
+                                                    (tagUartReg *)CN_UART10_BASE,};
+#define CN_DMA_UNUSED   0
+#define CN_DMA_USED     1
 
-static const tagUartCfg sUartCfg[CN_UART_NUM] = {
-        {   .Name         =  "UART1",
-            .Reg          =  (tagUartReg volatile *)USART1_BASE,
-            .TxRxIntLine  =  CN_INT_LINE_USART1,
-            .DmaRxIntLine =  CN_INT_LINE_DMA1_Stream5,
-            .DmaTxIntLine =  CN_INT_LINE_DMA1_Stream7,
-            .DmaRxReq     =  DMA_REQUEST_USART1_RX,
-            .DmaTxReq     =  DMA_REQUEST_USART1_TX,
-            .DmaRxCh      =  DMA1_Stream5,
-            .DmaTxCh      =  DMA1_Stream7
-        },
-        {   .Name         =  "UART2",
-            .Reg          =  (tagUartReg volatile *)USART2_BASE,
-            .TxRxIntLine  =  CN_INT_LINE_USART2,
-            .DmaRxIntLine =  CN_INT_LINE_DMA1_Stream5,
-            .DmaTxIntLine =  CN_INT_LINE_DMA1_Stream7,
-            .DmaRxReq     =  DMA_REQUEST_USART2_RX,
-            .DmaTxReq     =  DMA_REQUEST_USART2_TX,
-            .DmaRxCh      =  DMA1_Stream5,
-            .DmaTxCh      =  DMA1_Stream7
-        },
-        {   .Name         =  "UART3",
-            .Reg          =  (tagUartReg volatile *)USART3_BASE,
-            .TxRxIntLine  =  CN_INT_LINE_USART3,
-            .DmaRxIntLine =  CN_INT_LINE_DMA1_Stream5,
-            .DmaTxIntLine =  CN_INT_LINE_DMA1_Stream7,
-            .DmaRxReq     =  DMA_REQUEST_USART3_RX,
-            .DmaTxReq     =  DMA_REQUEST_USART3_TX,
-            .DmaRxCh      =  DMA1_Stream5,
-            .DmaTxCh      =  DMA1_Stream7
-        },
-        {   .Name         =  "UART4",
-            .Reg          =  (tagUartReg volatile *)UART4_BASE,
-            .TxRxIntLine  =  CN_INT_LINE_UART4,
-            .DmaRxIntLine =  CN_INT_LINE_DMA1_Stream5,
-            .DmaTxIntLine =  CN_INT_LINE_DMA1_Stream7,
-            .DmaRxReq     =  DMA_REQUEST_UART4_RX,
-            .DmaTxReq     =  DMA_REQUEST_UART4_TX,
-            .DmaRxCh      =  DMA1_Stream5,
-            .DmaTxCh      =  DMA1_Stream7
-        },
-        {   .Name         =  "UART5",
-            .Reg          =  (tagUartReg volatile *)UART5_BASE,
-            .TxRxIntLine  =  CN_INT_LINE_UART5,
-            .DmaRxIntLine =  CN_INT_LINE_DMA1_Stream5,
-            .DmaTxIntLine =  CN_INT_LINE_DMA1_Stream7,
-            .DmaRxReq     =  DMA_REQUEST_UART5_RX,
-            .DmaTxReq     =  DMA_REQUEST_UART5_TX,
-            .DmaRxCh      =  DMA1_Stream5,
-            .DmaTxCh      =  DMA1_Stream7
-        },
-        {   .Name         =  "UART6",
-            .Reg          =  (tagUartReg volatile *)USART6_BASE,
-            .TxRxIntLine  =  CN_INT_LINE_USART6,
-            .DmaRxIntLine =  CN_INT_LINE_DMA1_Stream5,
-            .DmaTxIntLine =  CN_INT_LINE_DMA1_Stream7,
-            .DmaRxReq     =  DMA_REQUEST_USART6_RX,
-            .DmaTxReq     =  DMA_REQUEST_USART6_TX,
-            .DmaRxCh      =  DMA1_Stream5,
-            .DmaTxCh      =  DMA1_Stream7
-        },
-        {   .Name         =  "UART7",
-            .Reg          =  (tagUartReg volatile *)UART7_BASE,
-            .TxRxIntLine  =  CN_INT_LINE_UART7,
-            .DmaRxIntLine =  CN_INT_LINE_DMA1_Stream5,
-            .DmaTxIntLine =  CN_INT_LINE_DMA1_Stream7,
-            .DmaRxReq     =  DMA_REQUEST_UART7_RX,
-            .DmaTxReq     =  DMA_REQUEST_UART7_TX,
-            .DmaRxCh      =  DMA1_Stream5,
-            .DmaTxCh      =  DMA1_Stream7
-        },
-        {   .Name         =  "UART8",
-            .Reg          =  (tagUartReg volatile *)UART8_BASE,
-            .TxRxIntLine  =  CN_INT_LINE_UART8,
-            .DmaRxIntLine =  CN_INT_LINE_DMA1_Stream5,
-            .DmaTxIntLine =  CN_INT_LINE_DMA1_Stream7,
-            .DmaRxReq     =  DMA_REQUEST_UART8_RX,
-            .DmaTxReq     =  DMA_REQUEST_UART8_TX,
-            .DmaRxCh      =  DMA1_Stream5,
-            .DmaTxCh      =  DMA1_Stream7
-        },
-};
-// =============================================================================
+// UART¶ÔÓ¦µÄDMA StreamÖÐ¶ÏºÅ
+static u8 const UartDmaRxInt[] = {CN_INT_LINE_DMA2_Stream5,CN_INT_LINE_DMA1_Stream5,
+                                  CN_INT_LINE_DMA1_Stream1,CN_INT_LINE_DMA1_Stream2,
+                                  CN_INT_LINE_DMA1_Stream0,CN_INT_LINE_DMA2_Stream2,
+                                  CN_INT_LINE_DMA1_Stream3,CN_INT_LINE_DMA1_Stream6};
 
-//#define CFG_UART_SENDBUF_LEN    32
-//#define CFG_UART_RECVBUF_LEN     32
+static u8 const UartDmaTxInt[] = {CN_INT_LINE_DMA2_Stream7,CN_INT_LINE_DMA1_Stream6,
+                                  CN_INT_LINE_DMA1_Stream3,CN_INT_LINE_DMA1_Stream4,
+                                  CN_INT_LINE_DMA1_Stream7,CN_INT_LINE_DMA2_Stream6,
+                                  CN_INT_LINE_DMA1_Stream1,CN_INT_LINE_DMA1_Stream0};
 
-static u32 TxByteTime;                    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ê±ï¿½ï¿½
-static UART_HandleTypeDef *PutStrDirectH;       //ï¿½ï¿½ï¿½ï¿½printkï¿½ï¿½ï¿½ÍµÄ´ï¿½ï¿½ï¿½
-static UART_HandleTypeDef *GetCharDirectH;      //ï¿½ï¿½ï¿½ï¿½Ö±ï¿½Ó½ï¿½ï¿½ÕµÄ´ï¿½ï¿½ï¿½
-static u32 TxDirectPort;                  //ï¿½ï¿½ï¿½ï¿½printkï¿½ï¿½ï¿½ÍµÄ´ï¿½ï¿½Úºï¿½
-static u32 RxDirectPort;                  //ï¿½ï¿½ï¿½ï¿½Ö±ï¿½Ó½ï¿½ï¿½ÕµÄ´ï¿½ï¿½Úºï¿½
-// =============================================================================
+static DMA_Stream_TypeDef * const UartDmaRxStream[] =
+                                 {DMA2_Stream5,DMA1_Stream5,
+                                  DMA1_Stream1,DMA1_Stream2,
+                                  DMA1_Stream0,DMA2_Stream2,
+                                  DMA1_Stream3,DMA1_Stream6};
+
+static DMA_Stream_TypeDef * const UartDmaTxStream[] =
+                                 {DMA2_Stream7,DMA1_Stream6,
+                                  DMA1_Stream3,DMA1_Stream4,
+                                  DMA1_Stream7,DMA2_Stream6,
+                                  DMA1_Stream1,DMA1_Stream0};
+static u8 const DMA_Tx_ch[] = {4,4,4,4,4,5,5,5};
+static u8 const DMA_Rx_ch[] = {4,4,4,4,4,5,5,5};
+// DMAÕýÔÚÊ¹ÓÃ±ê¼Ç£¬ÊÇ·ñÊ¹ÓÃDMA±ê¼Ç
+static bool_t s_UART_DmaSending[] = {false,false,false,false,false,false,false,false,false,false};
+static bool_t s_UART_DmaUsed[]    = {false,false,false,false,false,false,false,false,false,false};
+//static bool_t s_UART_DmaRcvIdle[] = {false,false,false,false,false,false,false,false};
+
+
+
+static u8 *pUART_DmaSendBuf[CN_UART_NUM];
+static u8 *pUART_DmaRecvBuf[CN_UART_NUM][2];
 
 static struct UartGeneralCB *pUartCB[CN_UART_NUM];
-static u8* pUartSndBuf[CN_UART_NUM] = {NULL};
-static u8* pUartRcvBuf[CN_UART_NUM] = {NULL};
-static bool_t sUartDmaUsed[] = {false,false,false,false,false,false};
-static bool_t sUartSending[] = {false,false,false,false,false,false};
-static u8 sDmaRcvOff[CN_UART_NUM] = {0};
+static u8 *sp_DmaRecvBuf[CN_UART_NUM];
 
-static UART_HandleTypeDef sHuart[CN_UART_NUM];
-//static UART_HandleTypeDef *phuart[CN_UART_NUM] = {
-//        &sHuart[0],&sHuart[1],&sHuart[2],&sHuart[3],&sHuart[4],&sHuart[5]};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+__attribute__((weak))  void Board_UartHalfDuplexSend(u8 SerialNo)
+{
+    return;
+}
+__attribute__((weak))  void Board_UartHalfDuplexRecv(u8 SerialNo)
+{
+    return ;
+}
+__attribute__((weak))  void UART_InLowPowerPinCfg(u8 SerialNo)
+{
+    return;
+}
+__attribute__((weak))  void UART_OutLowPowerPinCfg(u8 SerialNo)
+{
+    return ;
+}
+#pragma GCC diagnostic pop
 
 // =============================================================================
-static ptu32_t UART_ISR(ptu32_t IniLine);
-__weak void Board_UartHalfDuplexSend(u8 port)
+static ptu32_t UART_ISR(ptu32_t port);
+static uint32_t UART_DmaRx_ISR(ptu32_t port);
+static uint32_t UART_DmaTx_ISR(ptu32_t port);
+
+// =============================================================================
+// ¹¦ÄÜ£º ½øÈë»òÍË³öµÍ¹¦ºÄÄ£Ê½
+//     Ê±ÖÓÊ¹ÄÜ ¿ØÖÆÆ÷Ê¹ÄÜ GPIOÉèÖÃÏàÓ¦µÄ×´Ì¬
+// ²ÎÊý£º port ´®¿ÚºÅ£ºÈç CN_UART1
+//     flag ½øÈëµÍ¹¦ºÄ »òÍË³öµÍ¹¦ºÄ±êÖ¾£ºÈç UART_IN_LOWPOWER
+// ·µ»Ø£ºtrue/false
+// =============================================================================
+//bool_t UART_LowPowerConfig(u8 port,u8 flag)
+//{
+//    if(port>=CN_UART_NUM)
+//        return false;
+//    if(flag == InLowPower)
+//    {
+//        switch(port)
+//        {
+//             case CN_UART1: RCC->APB2ENR &=~(1<<4); break;
+//             case CN_UART2: RCC->APB1ENR &=~(1<<17);break;
+//             case CN_UART3: RCC->APB1ENR &=~(1<<18);break;
+//             case CN_UART4: RCC->APB1ENR &=~(1<<19);break;
+//             case CN_UART5: RCC->APB1ENR &=~(1<<20);break;
+//             case CN_UART6: RCC->APB2ENR &=~(1<<5); break;
+//             case CN_UART7: RCC->APB1ENR &=~(1<<30);break;
+//             case CN_UART8: RCC->APB1ENR &=~(1<<31);break;
+//            default: break;
+//        }
+//        tg_UART_Reg[port]->CR1 &=~ (0x1);
+//        UART_InLowPowerPinCfg(port);
+//        return true;
+//    }
+//    else if (flag == OutLowPower)
+//    {
+//        switch(port)
+//            {
+//            case CN_UART1: __HAL_RCC_USART1_CLK_ENABLE(); break;
+//            case CN_UART2: __HAL_RCC_USART2_CLK_ENABLE();break;
+//            case CN_UART3: __HAL_RCC_USART3_CLK_ENABLE();break;
+//            case CN_UART4: __HAL_RCC_UART4_CLK_ENABLE();break;
+//            case CN_UART5: __HAL_RCC_UART5_CLK_ENABLE();break;
+//            case CN_UART6: __HAL_RCC_USART6_CLK_ENABLE(); break;
+//            case CN_UART7: __HAL_RCC_UART7_CLK_ENABLE();break;
+//            case CN_UART8: __HAL_RCC_UART8_CLK_ENABLE();break;
+//            default: break;
+//        }
+//        tg_UART_Reg[port]->CR1 |= (0x1);
+//        UART_OutLowPowerPinCfg(port);
+//        return true;
+//    }
+//   return false;
+//}
+
+// =============================================================================
+// ¹¦ÄÜ: ½ûÖ¹uartµÄ½ÓÊÕÖÐ¶Ï¡£
+// ²ÎÊý: flag,ÊÇ·ñÊ¹ÓÃdma´«Êä
+//       port,´®¿ÚºÅ£¬1~8
+// ·µ»Ø: ÎÞ
+// =============================================================================
+void __UART_RxIntEnable(u8 flag,u8 port)
 {
-    //user added if need out of the file
-}
-__weak void Board_UartHalfDuplexRecv(u8 port)
-{
-    //user added if need out of the file
+    if(flag == CN_DMA_USED)
+        Int_RestoreAsynLine(UartDmaRxInt[port]);
+    else
+        tg_UART_Reg[port]->CR1 |= (1<<5);//ÖÐ¶ÏÊ¹ÄÜ
 }
 
-static void __UART_StartRecv(u8 port)
+// =============================================================================
+// ¹¦ÄÜ: ½ûÖ¹uartµÄ½ÓÊÕÖÐ¶Ï
+// ²ÎÊý: reg,±»²Ù×÷µÄ¼Ä´æÆ÷×éÖ¸Õë
+//       port,´®¿ÚºÅ
+// ·µ»Ø: ÎÞ
+// =============================================================================
+void __UART_RxIntDisable(u8 flag, u8 port)
 {
-    if(sUartDmaUsed[port])
+    if(flag == CN_DMA_USED)
+        Int_SaveAsynLine(UartDmaRxInt[port]);
+    else
+        tg_UART_Reg[port]->CR1 &= ~(1<<5);
+}
+
+// =============================================================================
+// ¹¦ÄÜ: Ê¹ÄÜuartµÄ·¢ËÍÖÐ¶Ï
+// ²ÎÊý: reg,±»²Ù×÷µÄ¼Ä´æÆ÷×éÖ¸Õë
+//       port,´®¿ÚºÅ
+// ·µ»Ø: ÎÞ
+// =============================================================================
+static void __UART_TxIntEnable(u8 flag,u8 port)
+{
+    if(flag == CN_DMA_USED)
+        Int_RestoreAsynLine(UartDmaTxInt[port]);
+    else
+        tg_UART_Reg[port]->CR1 |= USART_CR1_TXEIE_TXFNFIE;
+}
+
+// =============================================================================
+// ¹¦ÄÜ: ½ûÖ¹UARTµÄ·¢ËÍÖÐ¶Ï
+// ²ÎÊý: Reg,±»²Ù×÷µÄ¼Ä´æÆ÷×éÖ¸Õë
+//       port,´®¿ÚºÅ
+// ·µ»Ø: ÎÞ
+// =============================================================================
+static void __UART_TxIntDisable(u8 flag, u8 port)
+{
+    if(flag == CN_DMA_USED)
+        Int_SaveAsynLine(UartDmaTxInt[port]);
+    else
+        tg_UART_Reg[port]->CR1 &= ~USART_CR1_TXEIE_TXFNFIE;//½ûÖ¹·¢ËÍ¿ÕÖÐ¶Ï
+}
+
+// =============================================================================
+// ¹¦ÄÜ: ¼ì²é·¢ËÍ¼Ä´æÆ÷µÄ×´Ì¬£¬
+// ²ÎÊý£ºreg,±»²Ù×÷µÄ¼Ä´æÆ÷×éÖ¸Õë
+// ·µ»Ø: true = »º³åÇø¿Õ£¬false = ·Ç¿Õ
+// =============================================================================
+static bool_t __UART_TxTranEmpty(tagUartReg volatile *reg)
+{
+    return ((reg->ISR & USART_ISR_TXE_TXFNF) !=0);
+}
+
+bool_t UART_WaitTxEnd(u8 port)
+{
+    s32 timeout = 10000;
+    volatile tagUartReg *Reg;
+    Reg = (tagUartReg *)tg_UART_Reg[port];
+    while((false == __UART_TxTranEmpty(Reg))&& (timeout > 10))
     {
-        sDmaRcvOff[port] = 0;
-        HAL_UART_Receive_DMA(&sHuart[port],pUartRcvBuf[port],CFG_UART_RECVBUF_LEN);
+        timeout -=10;
+        DJY_DelayUs(10);
+    }
+    return true;
+}
+
+
+// =============================================================================
+// ¹¦ÄÜ: ¼ì²é½ÓÊÕ¼Ä´æÆ÷µÄ×´Ì¬£¬ÓÐÊý¾Ý¾Í·µ»Øtrue£¬·ñÔò·µ»Øfalse
+// ²ÎÊý£ºreg,±»²Ù×÷µÄ¼Ä´æÆ÷×éÖ¸Õë
+// ·µ»Ø: true = ÓÐÊý¾Ý£¬false = ÎÞÊý¾Ý
+// =============================================================================
+static bool_t __UART_RxHadChar(tagUartReg volatile *reg)
+{
+    return ((reg->ISR & (1<<5)) !=0);
+}
+
+// =============================================================================
+// ¹¦ÄÜ: ÉèÖÃ´®¿Úbaud,PCLKÎª25M£¬CPUÖ÷ÆµÎª216M¼ÆËã,¸ÃÇý¶¯Ö»Ìá¹©9600¡¢19200¡¢57600¡¢
+//       115200ËÄÖÖ²¨ÌØÂÊÉèÖÃ
+// ²ÎÊý: Reg,±»²Ù×÷µÄ¼Ä´æÆ÷×éÖ¸Õë
+//       port,´®¿ÚºÅ
+//       baud,²¨ÌØÂÊ
+// ·µ»Ø: ÎÞ
+// =============================================================================
+static void __UART_BaudSet(tagUartReg volatile *Reg,u32 port,u32 baud)
+{
+    u32 mantissa,fraction;
+    float temp;
+    if((port == CN_UART1) || (port == CN_UART6))
+    {
+        temp = (float)CN_CFG_PCLK2/(16*baud);
+        mantissa = temp;
+        fraction = (temp - mantissa)*16;
     }
     else
     {
-        HAL_UART_Receive_IT(&sHuart[port],pUartRcvBuf[port],1);
+        temp = (float)CN_CFG_PCLK1/(16*baud);
+        mantissa = temp;
+        fraction = (temp - mantissa)*16;
     }
-}
 
+    Reg->BRR =  ((u16)mantissa<<4)+(u16)fraction;
 
-static void __UART_RCC_Enable(u8 port,u8 en)
-{
-    if(en)
-    {
-        switch(port)
-        {//Ê¹ï¿½Ü´ï¿½ï¿½ï¿½1Ê±ï¿½ï¿½
-        case CN_UART1:      __HAL_RCC_USART1_CLK_ENABLE();        break; //Ê¹ï¿½Ü´ï¿½ï¿½ï¿½1Ê±ï¿½ï¿½
-        case CN_UART2:      __HAL_RCC_USART2_CLK_ENABLE();        break;
-        case CN_UART3:      __HAL_RCC_USART3_CLK_ENABLE();        break;
-        case CN_UART4:      __HAL_RCC_UART4_CLK_ENABLE();         break;
-        case CN_UART5:      __HAL_RCC_UART5_CLK_ENABLE();         break;
-        case CN_UART6:      __HAL_RCC_USART6_CLK_ENABLE();        break;
-        case CN_UART7:      __HAL_RCC_UART7_CLK_ENABLE();         break;
-        case CN_UART8:      __HAL_RCC_UART8_CLK_ENABLE();         break;
-        default:
-            break;
-        }
-    }
-    else
-    {
-        switch(port)
-        {
-        case CN_UART1:      __HAL_RCC_USART1_CLK_DISABLE();        break;
-        case CN_UART2:      __HAL_RCC_USART2_CLK_DISABLE();        break;
-        case CN_UART3:      __HAL_RCC_USART3_CLK_DISABLE();        break;
-        case CN_UART4:      __HAL_RCC_UART4_CLK_DISABLE();        break;
-        case CN_UART5:      __HAL_RCC_UART5_CLK_DISABLE();        break;
-        case CN_UART6:      __HAL_RCC_USART6_CLK_DISABLE();        break;
-        case CN_UART7:      __HAL_RCC_UART7_CLK_DISABLE();        break;
-        case CN_UART8:      __HAL_RCC_UART8_CLK_DISABLE();        break;
-            break;
-        default:
-            break;
-        }
-    }
-}
-// =============================================================================
-// ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½baud,PCLKÎª25Mï¿½ï¿½CPUï¿½ï¿½ÆµÎª216Mï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½á¹©9600ï¿½ï¿½19200ï¿½ï¿½57600ï¿½ï¿½
-//       115200ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½: Reg,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼Ä´ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
-//       port,ï¿½ï¿½ï¿½Úºï¿½
-//       baud,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
-// =============================================================================
-static void __UART_BaudSet(u32 port,u32 baud)
-{
-    if(port < CN_UART_NUM)
-    {
-        sHuart[port].Init.BaudRate = baud;
-        HAL_UART_Abort(&sHuart[port]);
-        UART_SetConfig(&sHuart[port]);
-        __UART_StartRecv(port);
-    }
     if(TxDirectPort == port)
     {
-        TxByteTime = 11000000/baud;     //1ï¿½ï¿½ï¿½Ö½Ú´ï¿½ï¿½ï¿½Ê±ï¿½ä£¬ï¿½ï¿½10bitï¿½ï¿½+10%ï¿½ï¿½ï¿½ï¿½
+        TxByteTime = 11000000/baud;     //1¸ö×Ö½Ú´«ÊäÊ±¼ä£¬°´10bit£¬+10%¼ÆËã
     }
 }
 
-static void __UART_Start(u8 port)
+// =============================================================================
+// ¹¦ÄÜ: ÉèÖÃ¶ÔÓ¦UARTµÄIO¿Ú£¬°üÀ¨Ê±ÖÓºÍIOÅäÖÃ
+// ²ÎÊý: SerialNo,´®¿ÚºÅ
+// ×¢ :Òò´®¿Ú¸´ÓÃÒý½Å²»È·¶¨ÐÔÔÚÐèÒª³õÊ¼»¯ÐèÒªµÄÒý½Å
+// ·µ»Ø: ÎÞ
+// =============================================================================
+static void __UART_ClkConfig(u8 SerialNo)
 {
-    __UART_RCC_Enable(port,1);
-    HAL_UART_Abort(&sHuart[port]);
-    __UART_StartRecv(port);
-}
-static void __UART_Stop(u8 port)
-{
-    HAL_UART_Abort(&sHuart[port]);
-    __UART_RCC_Enable(port,0);
-}
 
-// =============================================================================
-// ï¿½ï¿½ï¿½ï¿½: ï¿½Ð¹Ø´ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½Ä³ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê£ï¿½Í£Ö¹Î»ï¿½ï¿½ï¿½ï¿½Å¼Ð£ï¿½ï¿½Î»
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½port,ï¿½ï¿½ï¿½Úºï¿½
-//      dataï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
-// =============================================================================
-static void __UART_ComConfig(u32 port, struct COMParam *COM)
-{
-    if(port < CN_UART_NUM)
+    switch(SerialNo)
     {
-        sHuart[port].Init.BaudRate = COM->BaudRate;
-        switch(COM->DataBits)               // data bits
-        {
-        case CN_UART_DATABITS_8: sHuart[port].Init.WordLength = UART_WORDLENGTH_8B;break;
-        case CN_UART_DATABITS_9: sHuart[port].Init.WordLength = UART_WORDLENGTH_9B;break;
-        default:break;
-        }
+    case CN_UART1:
+        __HAL_RCC_USART1_CLK_ENABLE();//´®¿ÚÊ±ÖÓÊ¹ÄÜ
+        break;
+    case CN_UART2:
+        __HAL_RCC_USART2_CLK_ENABLE();
+        break;
+    case CN_UART3:
+        __HAL_RCC_USART3_CLK_ENABLE();
 
-        switch(COM->Parity)                 // parity
-        {
-        case CN_UART_PARITY_NONE:sHuart[port].Init.Parity = UART_PARITY_NONE;break;
-        case CN_UART_PARITY_ODD: sHuart[port].Init.Parity = UART_PARITY_ODD;break;
-        case CN_UART_PARITY_EVEN:sHuart[port].Init.Parity = UART_PARITY_EVEN;break;
-        default:break;
-        }
+        break;
+    case CN_UART4:
+        __HAL_RCC_UART4_CLK_ENABLE();
+        break;
+    case CN_UART5:
+        __HAL_RCC_UART5_CLK_ENABLE();
+        break;
+    case CN_UART6:
+        __HAL_RCC_USART6_CLK_ENABLE();
+        break;
+    case CN_UART7:
+        __HAL_RCC_UART7_CLK_ENABLE();
+        break;
+    case CN_UART8:
+        __HAL_RCC_UART8_CLK_ENABLE();
+        break;
+    default: break;
 
-        switch(COM->StopBits)               // stop bits
-        {
-        case CN_UART_STOPBITS_1:  sHuart[port].Init.StopBits = UART_STOPBITS_1;break;
-        case CN_UART_STOPBITS_1_5:sHuart[port].Init.StopBits = UART_STOPBITS_1_5;break;
-        case CN_UART_STOPBITS_2:  sHuart[port].Init.StopBits = UART_STOPBITS_2;break;
-        default:break;
-        }
-        HAL_UART_Abort(&sHuart[port]);
-        UART_SetConfig(&sHuart[port]);
-        __UART_StartRecv(port);
     }
+
 }
 
+// =============================================================================
+// ¹¦ÄÜ: ¶Ô´®¿Ú´«Êä²ÎÊýÅäÖÃ£¬°üÀ¨²¨ÌØÂÊ¡¢ÆæÅ¼Ð£Ñé¡¢Êý¾ÝÎ»¡¢Í£Ö¹Î»
+// ²ÎÊý:  Reg,±»²Ù×÷µÄ¼Ä´æÆ÷×éÖ¸Õë
+//        port,´®¿ÚºÅ
+//        data,½á¹¹ÌåtagCOMParamÀàÐÍµÄÖ¸ÕëÊýÖµ
+// ·µ»Ø: ÎÞ
+// =============================================================================
+static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
+{
+    if((COM == NULL) || (Reg == NULL))
+        return;
+    __UART_BaudSet(Reg,port,COM->BaudRate);
+
+    Reg->CR1 &= ~(1);//½ûÖ¹´®¿Ú
+    switch(COM->DataBits)               // data bits
+    {
+        case CN_UART_DATABITS_7:
+            switch(COM->Parity)
+            {
+                case CN_UART_PARITY_NONE:
+                    Reg->CR1 |= (1<<28);//Êý¾ÝÐ§Ñé¹²7Î»½ûÖ¹ÆæÅ¼Ð§Ñé
+                    Reg->CR1 &= ~(1<<12);
+
+                    Reg->CR1 &= ~(1<<10);
+                    break;//ÆæÐ§Ñé
+
+                case CN_UART_PARITY_ODD:
+                    Reg->CR1 &= ~(1<<28);//Êý¾ÝÐ§Ñé¹²8Î»ÆæÅ¼Ð§Ñé
+                    Reg->CR1 &= ~(1<<12);
+
+                    Reg->CR1 |= (1<<9);
+                    Reg->CR1 |= (1<<10);break;//ÆæÐ§Ñé
+
+                case CN_UART_PARITY_EVEN:
+                    Reg->CR1 &= ~(1<<28);//Êý¾ÝÐ§Ñé¹²8Î»ÆæÅ¼Ð§Ñé
+                    Reg->CR1 &= ~(1<<12);
+
+                    Reg->CR1 &=~(1<<9);
+                    Reg->CR1 |= (1<<10);break;
+                default:break;
+            }
+            break;
+
+        case CN_UART_DATABITS_8:
+            switch(COM->Parity)        //
+            {
+                case CN_UART_PARITY_NONE:
+                    Reg->CR1 &= ~(1<<28);//Êý¾ÝÐ§Ñé¹²8Î»½ûÖ¹ÆæÅ¼Ð§Ñé
+                    Reg->CR1 &= ~(1<<12);
+                    Reg->CR1 &= ~(1<<10);
+                    break;
+
+                case CN_UART_PARITY_ODD:
+                    Reg->CR1 &= ~(1<<28);//Êý¾ÝÐ§Ñé¹²9Î»ÆæÅ¼Ð§Ñé
+                    Reg->CR1 |= (1<<12);
+
+                    Reg->CR1 |= (1<<9);
+                    Reg->CR1 |= (1<<10);
+                    break;//ÆæÐ§Ñé
+                case CN_UART_PARITY_EVEN:
+                    Reg->CR1 &= ~(1<<28);//Êý¾ÝÐ§Ñé¹²9Î»ÆæÅ¼Ð§Ñé
+                    Reg->CR1 |= (1<<12);
+
+                    Reg->CR1 &=~(1<<9);
+                    Reg->CR1 |= (1<<10);break;
+                default:break;
+            }
+        break;
+
+        case CN_UART_DATABITS_9:
+            Reg->CR1 &= ~(1<<28);
+            Reg->CR1 |= (1<<12);
+            switch(COM->Parity)        //
+            {
+                case CN_UART_PARITY_NONE:
+                    Reg->CR1 &= ~(1<<28);//Êý¾ÝÐ§Ñé¹²9Î»½ûÖ¹ÆæÅ¼Ð§Ñé
+                    Reg->CR1 |= (1<<12);
+                    Reg->CR1 &= ~(1<<10);
+                    break;
+                case CN_UART_PARITY_ODD:break;//²»Ö§³ÖÕâÖÖÇëÇé¿ö
+                case CN_UART_PARITY_EVEN:break;
+                default:break;
+            }
+            break;
+        default:break;
+    }
+
+    switch(COM->StopBits)  //todu:F7µÄ 0.5¸öÍ£Ö¹Î»Ã»ÓÐÐ´½øÀ´
+    {
+//        Reg->CR2 &= ~(3<<12);
+//      case CN_UART_STOPBITS_0_5;  Reg->CR2 |= (1<<12);break;
+        case CN_UART_STOPBITS_1:    Reg->CR2 |= (0<<12);break;
+        case CN_UART_STOPBITS_1_5:  Reg->CR2 |= (3<<12);break;
+        case CN_UART_STOPBITS_2:    Reg->CR2 |= (2<<12);break;
+        default:break;
+    }
+    Reg->CR1 |= (1);//Ê¹ÄÜ´®¿Ú
+}
 
 // =============================================================================
-// ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½Ê¼ï¿½ï¿½UARTï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ß£ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½Úºï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½SerialNo,ï¿½ï¿½ï¿½Úºï¿½
-// ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
+// ¹¦ÄÜ: Ê¹´®¿Ú¿ªÊ¼¹¤×÷£¬Ê±ÖÓºÍuartÄ£¿é
+// ²ÎÊý: port,´®¿ÚºÅ
+// ·µ»Ø: ÎÞ
 // =============================================================================
-static void __UART_IntInit(u32 port)
+void __UART_Enable(u32 port)
+{
+    switch(port)
+    {//Ê¹ÄÜ´®¿Ú1Ê±ÖÓ
+        case CN_UART1:
+            __HAL_RCC_USART1_CLK_ENABLE();break;
+        case CN_UART2:
+            __HAL_RCC_USART2_CLK_ENABLE();break;
+        case CN_UART3:
+            __HAL_RCC_USART3_CLK_ENABLE();break;
+        case CN_UART4:
+            __HAL_RCC_UART4_CLK_ENABLE();break;
+        case CN_UART5:
+            __HAL_RCC_UART5_CLK_ENABLE();break;
+        case CN_UART6:
+            __HAL_RCC_USART6_CLK_ENABLE();break;
+        case CN_UART7:
+            __HAL_RCC_UART7_CLK_ENABLE();break;
+        case CN_UART8:
+            __HAL_RCC_UART8_CLK_ENABLE();break;
+        default:
+            break;
+    }
+    tg_UART_Reg[port]->CR1 |= (1<<13);
+}
+
+// =============================================================================
+// ¹¦ÄÜ: Ê¹´®¿ÚÍ£Ö¹¹¤×÷£¬°üÀ¨Ê±ÖÓºÍuartÄ£¿é
+// ²ÎÊý: port,´®¿ÚºÅ
+// ·µ»Ø: ÎÞ
+// =============================================================================
+void __UART_Disable(u32 port)
+{
+    switch(port)
+    {
+        case CN_UART1:  __HAL_RCC_USART1_CLK_DISABLE();  break;
+        case CN_UART2:  __HAL_RCC_USART2_CLK_DISABLE(); break;
+        case CN_UART3:  __HAL_RCC_USART3_CLK_DISABLE(); break;
+        case CN_UART4:  __HAL_RCC_UART4_CLK_DISABLE(); break;
+        case CN_UART5:  __HAL_RCC_UART5_CLK_DISABLE(); break;
+        case CN_UART6:  __HAL_RCC_USART6_CLK_DISABLE();  break;
+        case CN_UART7:  __HAL_RCC_UART7_CLK_DISABLE(); break;
+        case CN_UART8:  __HAL_RCC_UART8_CLK_DISABLE(); break;
+        default:break;
+    }
+    tg_UART_Reg[port]->CR1 &= ~(1);
+}
+
+// =============================================================================
+// ¹¦ÄÜ: ³õÊ¼»¯UART¶ÔÓ¦µÄÖÐ¶ÏÏß£¬²¢³õÊ¼»¯ÖÐ¶ÏÈë¿Úº¯Êý
+// ²ÎÊý£ºSerialNo,´®¿ÚºÅ
+// ·µ»Ø: ÎÞ
+// =============================================================================
+static void __UART_IntInit(u32 SerialNo)
 {
     u8 IntLine;
-
-    IntLine = sUartCfg[port].TxRxIntLine;
+    switch (SerialNo)
+    {
+        case CN_UART1:
+                    IntLine = CN_INT_LINE_USART1;break;
+        case CN_UART2:
+                    IntLine = CN_INT_LINE_USART2;break;
+        case CN_UART3:
+                    IntLine = CN_INT_LINE_USART3;break;
+        case CN_UART4:
+                    IntLine = CN_INT_LINE_UART4; break;
+        case CN_UART5:
+                    IntLine = CN_INT_LINE_UART5; break;
+        case CN_UART6:
+                    IntLine = CN_INT_LINE_USART6;break;
+        case CN_UART7:
+                    IntLine = CN_INT_LINE_UART7; break;
+        case CN_UART8:
+                    IntLine = CN_INT_LINE_UART8; break;
+                default:
+                    return;
+    }
     Int_Register(IntLine);
     Int_SetClearType(IntLine,CN_INT_CLEAR_AUTO);
     Int_IsrConnect(IntLine,UART_ISR);
-    Int_SetIsrPara(IntLine,port);
     Int_SettoAsynSignal(IntLine);
     Int_ClearLine(IntLine);
     Int_RestoreAsynLine(IntLine);
+    Int_SetIsrPara(IntLine,SerialNo);
 }
 
-// HAL needed
-void HAL_UART_MspInit(UART_HandleTypeDef *huart)
+
+
+// =============================================================================
+// ¹¦ÄÜ: Ó²¼þ²ÎÊýÅäÖÃºÍ¼Ä´æÆ÷µÄ³õÊ¼»¯£¬°üÀ¨²¨ÌØÂÊ¡¢Í£Ö¹Î»¡¢Ð£ÑéÎ»¡¢Êý¾ÝÎ»£¬Ä¬ÈÏÇé¿öÏÂ:
+//       ²¨ÌØÂÊ:115200  £» Í£Ö¹Î»:1 ; Ð£Ñé:ÎÞ ; Êý¾ÝÎ»:8bit
+// ²ÎÊý: SerialNo,´®¿ÚºÅ£¬0~3
+// ·µ»Ø: ÎÞ
+// =============================================================================
+static void __UART_HardInit(u8 SerialNo)
 {
+    if(SerialNo > CN_UART_NUM)
+        return;
+    __UART_ClkConfig(SerialNo);
+    //ÏµÍ³³õÊ¼»¯Ê±ÒÑ¾­Ê¹ÖÐ¶Ï´¦ÓÚ½ûÖ¹×´Ì¬£¬ÎÞÐèÔÙ½ûÖ¹ºÍÇå³ýÖÐ¶Ï¡£
+   //³õÊ¼»¯uartÓ²¼þ¿ØÖÆÊý¾Ý½á¹¹
+    tg_UART_Reg[SerialNo]->CR1 = 0;
+    tg_UART_Reg[SerialNo]->CR3 = USART_CR3_ONEBIT | UART_TXFIFO_THRESHOLD_7_8
+                                | UART_RXFIFO_THRESHOLD_1_2     // | USART_CR3_TXFTIE
+                                | USART_CR3_RXFTIE;
+    tg_UART_Reg[SerialNo]->CR2 = 0x0;
+    //  tg_UART_Reg[SerialNo]->CR1 = 0x202d;
+    tg_UART_Reg[SerialNo]->CR1 = USART_CR1_UE | USART_CR1_RE | USART_CR1_TE
+                                | USART_CR1_MME    //| USART_CR1_RXNEIE_RXFNEIE
+                                | USART_CR1_IDLEIE | USART_CR1_FIFOEN
+                                | USART_CR1_TXFEIE | USART_CR1_RXFFIE
+                                | USART_CR1_TCIE;
+    __UART_BaudSet(tg_UART_Reg[SerialNo],SerialNo,115200);
+    tg_UART_Reg[SerialNo]->ICR |= 0x40;
+}
+
+// =============================================================================
+// ¹¦ÄÜ: ²éÑ¯µÈ´ý´®¿Ú·¢ËÍÍê±Ï£¬³¬Ê±·µ»Ø
+// ²ÎÊý: sending£¬dma·¢ËÍ·½Ê½£¬´®¿ÚÊÇ·ñÒÑ¾­·¢ËÍÍê³É
+// ·µ»Ø: ÎÞ
+// =============================================================================
+bool_t __uart_dma_timeout(bool_t sending)
+{
+    s32 timeout = 1000;
+    while((sending == true)&& (timeout > 0))//³¬Ê±
+    {
+        timeout--;
+        DJY_DelayUs(1);
+    }
+    if(timeout == 0)
+        return true;
+    else
+        return false;
+}
+// =============================================================================
+// ¹¦ÄÜ: Æô¶¯´®¿ÚDMA·¢ËÍ£¬Ê¹ÓÃDMAÆô¶¯£¬ÔÚ·¢ËÍÇ°ÐèÅÐ¶ÏÉÏ´ÎDMAÊÇ·ñÒÑ¾­·¢ËÍÍê³É£¬Í¨¹ý
+//       ²é¿´±êÖ¾UARTx_DMA_SENDINGÀ´ÅÐ¶ÏUARTxÊÇ·ñÒÑ¾­·¢ËÍÍê³É
+// ²ÎÊý: PORT,´®¿ÚºÅ.
+// ·µ»Ø: ·¢ËÍµÄ¸öÊý
+// =============================================================================
+u32 __UART_DMA_SendStart(u32 port)
+{
+    u32 num,addr;
+    u8 *DmaSendBuf;
+    u32 DmaSendBufLen;
+
+    switch(port)
+    {
+        case CN_UART1:
+            DmaSendBufLen = CFG_UART1_DMABUF_LEN;  break;
+        case CN_UART2:
+            DmaSendBufLen = CFG_UART2_DMABUF_LEN;  break;
+        case CN_UART3:
+            DmaSendBufLen = CFG_UART3_DMABUF_LEN;  break;
+        case CN_UART4:
+            DmaSendBufLen = CFG_UART4_DMABUF_LEN;  break;
+        case CN_UART5:
+            DmaSendBufLen = CFG_UART5_DMABUF_LEN;  break;
+        case CN_UART6:
+            DmaSendBufLen = CFG_UART6_DMABUF_LEN;  break;
+        case CN_UART7:
+            DmaSendBufLen = CFG_UART7_DMABUF_LEN;  break;
+        case CN_UART8:
+            DmaSendBufLen = CFG_UART8_DMABUF_LEN;  break;
+         default:   break;
+    }
+    DmaSendBuf = pUART_DmaSendBuf[port];
+//    if(true == __uart_dma_timeout(s_UART_DmaSending[port]))
+    if(true == s_UART_DmaSending[port])
+        return 0;
+    num = UART_PortRead(pUartCB[port],DmaSendBuf,DmaSendBufLen);
+    addr = (u32)DmaSendBuf;
+
+    if(num > 0)
+    {
+//        DMA_Enable(UartDmaTxStream[port],addr,num); //Æô¶¯DMA
+        s_UART_DmaSending[port] = true;
+    }
+    else
+        tg_UART_Reg[port]->CR1 |= USART_CR1_TCIE;
+    return 0;
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+// =============================================================================
+// ¹¦ÄÜ: Æô¶¯´®¿Ú·¢ËÍ£¬ÆäÄ¿µÄÊÇ´¥·¢ÖÐ¶Ï£¬ÓÃÖÐ¶Ï·½Ê½·¢ËÍÊý¾Ý¡£
+// ²ÎÊý: Reg,±»²Ù×÷µÄ´®¿Ú¼Ä´æÆ÷Ö¸Õë.
+// ·µ»Ø: ·¢ËÍµÄ¸öÊý
+// =============================================================================
+static u32 __UART_SendStart (ptu32_t MyReg)
+{
+    tagUartReg *Reg = (tagUartReg *)MyReg;
     u8 port;
-    for(port = CN_UART1;port < CN_UART_NUM; port ++)
+
+    switch((u32)Reg)
     {
-        if(huart == &sHuart[port])
-            break;
-    }
-    __UART_RCC_Enable(port,1);
-}
-
-// =============================================================================
-// ï¿½ï¿½ï¿½ï¿½: Ó²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÃºÍ¼Ä´ï¿½ï¿½ï¿½ï¿½Ä³ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¡ï¿½Í£Ö¹Î»ï¿½ï¿½Ð£ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:
-//       ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:115200  ï¿½ï¿½ Í£Ö¹Î»:1 ; Ð£ï¿½ï¿½:ï¿½ï¿½ ; ï¿½ï¿½ï¿½ï¿½Î»:8bit
-// ï¿½ï¿½ï¿½ï¿½: SerialNo,ï¿½ï¿½ï¿½ÚºÅ£ï¿½0~3
-// ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
-// =============================================================================
-static void __UART_HardInit(u8 port)
-{
-    if(port < CN_UART_NUM)
-    {
-        __UART_RCC_Enable(port,1);
-        sHuart[port].Instance                    = sUartCfg[port].Reg;
-        sHuart[port].Init.BaudRate               = 115200;
-        sHuart[port].Init.WordLength             = UART_WORDLENGTH_8B;
-        sHuart[port].Init.Parity                 = UART_PARITY_NONE;
-        sHuart[port].Init.StopBits               = UART_STOPBITS_1;
-        sHuart[port].Init.Mode                   = UART_MODE_TX_RX;
-        sHuart[port].Init.HwFlowCtl              = UART_HWCONTROL_NONE;
-        sHuart[port].Init.OneBitSampling         = UART_ONE_BIT_SAMPLE_ENABLE;
-        sHuart[port].Init.OverSampling           = UART_OVERSAMPLING_16;
-        sHuart[port].AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-
-        HAL_UART_DeInit(&sHuart[port]);
-        HAL_UART_Init(&sHuart[port]);
-        __UART_StartRecv(port);
-    }
-}
-
-// =============================================================================
-// ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú·ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½DMAï¿½ï¿½Ê¹ï¿½ï¿½DMA
-// ï¿½ï¿½ï¿½ï¿½: Reg,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½Ú¼Ä´ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½.
-// ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ÍµÄ¸ï¿½ï¿½ï¿½
-// =============================================================================
-static u32 __UART_SendStart (u16 port)
-{
-    u16 len=0;
-    HAL_StatusTypeDef Ret;
-
-    Board_UartHalfDuplexSend(port);
-    if(port < CN_UART_NUM)
-    {
-        if(!sUartSending[port])
-        {
-            len = UART_PortRead(pUartCB[port],pUartSndBuf[port],CFG_UART_SENDBUF_LEN);
-            if(len > 0)
-            {
-                sUartSending[port] = true;
-                if(sUartDmaUsed[port])
-                {
-                    Ret = HAL_UART_Transmit_DMA(&sHuart[port],pUartSndBuf[port],len);
-                }
-                else
-                {
-                    Ret = HAL_UART_Transmit_IT(&sHuart[port],pUartSndBuf[port],len);
-                }
-                if(Ret != HAL_OK)
-                {
-                    sUartSending[port] = false;
-                    Board_UartHalfDuplexRecv(port);
-                }
-            }
-        }
+    case CN_UART1_BASE:        port = CN_UART1;    break;
+    case CN_UART2_BASE:        port = CN_UART2;    break;
+    case CN_UART3_BASE:        port = CN_UART3;    break;
+    case CN_UART4_BASE:        port = CN_UART4;    break;
+    case CN_UART5_BASE:        port = CN_UART5;    break;
+    case CN_UART6_BASE:        port = CN_UART6;    break;
+    case CN_UART7_BASE:        port = CN_UART7;    break;
+    case CN_UART8_BASE:        port = CN_UART8;    break;
+    default:return 0;
     }
 
-    return len;
-}
-
-// =============================================================================
-// ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ê¹ï¿½ï¿½DMAï¿½ï¿½ï¿½ä£¬
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½portï¿½ï¿½Ê¹ï¿½ÃµÄ´ï¿½ï¿½Úºï¿½
-//      enable,1 or 0,Ê¹ï¿½Ü»ï¿½ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½Ø£ï¿½ï¿½ï¿½
-// =============================================================================
-void __UART_SetDmaUsed(u8 port,u8 enable)
-{
-    u8 IntLine;
-    if( (false == sUartDmaUsed[port]) && (enable) )
+    Reg->CR1 &= ~USART_CR1_TCIE;    //¹ØTCÖÐ¶Ï
+    Board_UartHalfDuplexSend(port);//ÇÐ»»µ½·¢ËÍ
+//  __UART_TxIntDisable(s_UART_DmaUsed[port],port);
+    if(s_UART_DmaUsed[port])
     {
-        __HAL_RCC_DMA1_CLK_ENABLE();
-        __HAL_RCC_DMA2_CLK_ENABLE();
-        HAL_UART_Abort(&sHuart[port]);
-
-        if(sHuart[port].hdmarx == NULL)
-        {
-            sHuart[port].hdmarx = (DMA_HandleTypeDef*)malloc(2*sizeof(DMA_HandleTypeDef));
-            if(NULL == sHuart[port].hdmarx)
-                return;
-            sHuart[port].hdmatx = sHuart[port].hdmarx + 1;
-        }
-
-        sHuart[port].hdmarx->Instance = sUartCfg[port].DmaRxCh;
-        sHuart[port].hdmarx->Init.Direction = DMA_PERIPH_TO_MEMORY;
-        sHuart[port].hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-        sHuart[port].hdmarx->Init.MemInc = DMA_MINC_ENABLE;
-        sHuart[port].hdmarx->Init.Mode = DMA_CIRCULAR;
-        sHuart[port].hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-        sHuart[port].hdmarx->Init.PeriphInc = DMA_PINC_DISABLE;
-        sHuart[port].hdmarx->Init.Priority = DMA_PRIORITY_HIGH;
-        sHuart[port].hdmarx->Init.Request = sUartCfg[port].DmaRxReq;
-        sHuart[port].hdmarx->XferCpltCallback = 0;
-        sHuart[port].hdmarx->XferHalfCpltCallback = 0;
-        sHuart[port].hdmarx->XferErrorCallback = 0;
-        sHuart[port].hdmarx->Parent = (void*)&sHuart[port];
-
-        sHuart[port].hdmatx->Instance = sUartCfg[port].DmaTxCh;
-        sHuart[port].hdmatx->Init.Direction = DMA_MEMORY_TO_PERIPH;
-        sHuart[port].hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-        sHuart[port].hdmatx->Init.MemInc = DMA_MINC_ENABLE;
-        sHuart[port].hdmatx->Init.Mode = DMA_NORMAL;
-        sHuart[port].hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-        sHuart[port].hdmatx->Init.PeriphInc = DMA_PINC_DISABLE;
-        sHuart[port].hdmatx->Init.Priority = DMA_PRIORITY_LOW;
-        sHuart[port].hdmatx->Init.Request = sUartCfg[port].DmaTxReq;
-        sHuart[port].hdmatx->XferCpltCallback = 0;
-        sHuart[port].hdmatx->XferErrorCallback = 0;
-        sHuart[port].hdmatx->XferHalfCpltCallback = 0;
-        sHuart[port].hdmatx->Parent = (void*)&sHuart[port];
-        HAL_DMA_Init(sHuart[port].hdmatx);
-        HAL_DMA_Init(sHuart[port].hdmarx);
-
-        sUartCfg[port].Reg->CR1 |= USART_CR1_IDLEIE;//enable idle int
-        sUartDmaUsed[port] = true;
-
-        IntLine = sUartCfg[port].DmaRxIntLine;
-        Int_Register(IntLine);
-        Int_SetClearType(IntLine,CN_INT_CLEAR_AUTO);
-        Int_IsrConnect(IntLine,(u32(*)(ptu32_t))HAL_DMA_IRQHandler);
-        Int_SetIsrPara(IntLine,(ptu32_t)(sHuart[port].hdmarx));
-        Int_SettoAsynSignal(IntLine);
-        Int_ClearLine(IntLine);
-        Int_RestoreAsynLine(IntLine);
-
-        IntLine = sUartCfg[port].DmaTxIntLine;
-        Int_Register(IntLine);
-        Int_SetClearType(IntLine,CN_INT_CLEAR_AUTO);
-        Int_IsrConnect(IntLine,(u32(*)(ptu32_t))HAL_DMA_IRQHandler);
-        Int_SetIsrPara(IntLine,(ptu32_t)(sHuart[port].hdmatx));
-        Int_SettoAsynSignal(IntLine);
-        Int_ClearLine(IntLine);
-        Int_RestoreAsynLine(IntLine);
-    }
-    else if( (sUartDmaUsed[port]) && (!enable) )
-    {
-        HAL_UART_Abort(&sHuart[port]);
-        free(sHuart[port].hdmarx);
-        sHuart[port].hdmarx = NULL;
-        sHuart[port].hdmatx = NULL;
-
-        sUartCfg[port].Reg->ICR = USART_ICR_IDLECF;
-        sUartCfg[port].Reg->CR1 &= ~USART_CR1_IDLEIE;
-        sUartDmaUsed[port] = false;
-
-        IntLine = sUartCfg[port].DmaRxIntLine;
-        Int_IsrDisConnect(IntLine);
-        Int_ClearLine(IntLine);
-        Int_UnRegister(IntLine);
-
-        IntLine = sUartCfg[port].DmaTxIntLine;
-        Int_IsrDisConnect(IntLine);
-        Int_ClearLine(IntLine);
-        Int_UnRegister(IntLine);
+        __UART_DMA_SendStart(port);
     }
     else
     {
-
+        //·ÇDMA·½Ê½£¬Ö»ÒªÊ¹ÄÜ·¢ËÍ¿ÕÖÐ¶Ï£¬Ôò´¥·¢ÖÐ¶Ï
     }
-    __UART_StartRecv(port);
+    Reg->CR1 |=USART_CR1_TXFEIE;    //¹Ø tx fifo ¿ÕÖÐ¶Ï
+
+//  __UART_TxIntEnable(s_UART_DmaUsed[port],port);
+    return 1;
+}
+#pragma GCC diagnostic pop
+
+// =============================================================================
+// ¹¦ÄÜ: ÉèÖÃuartÊ¹ÓÃdmaÊÕ·¢£¬¸ù¾Ýstm32¸÷´®¿ÚµÄÊÕ·¢dmaÍ¨µÀÅäÖÃ¼Ä´æÆ÷¡£½«ÖØÐÂ³õ
+//       Ê¼»¯ËùÓÐdma¼Ä´æÆ÷£¬ÒòÎª:
+//       1¡¢²»Ê¹ÓÃdmaÆÚ¼ä¿ÉÄÜÓÐÆäËûÉè±¸Ê¹ÓÃdma£¬´Ó¶ø¸ü¸ÄÁËÉèÖÃ¡£
+//       2¡¢¼´Ê¹uartÊ¹ÓÃdmaÆÚ¼ä£¬Ò²¿ÉÄÜÈí¼þÄ£¿éÅäºÏµÄÎÊÌâµ¼ÖÂÆäËûÉè±¸Ê¹ÓÃdma.
+// ²ÎÊý: port,¶Ë¿ÚºÅ£¬¼´´®¿ÚºÅ£¬´Ó1~3
+// ·µ»Ø: ÎÞ
+// =============================================================================
+void __UART_SetDmaUsed(u32 port)
+{
+    struct HeapCB *heap;
+    u32 DmaBufLen;
+
+    if(s_UART_DmaUsed[port] == CN_DMA_USED)
+        return ;
+    heap =Heap_FindHeap("nocache");
+    if(heap==NULL)
+        return;
+
+    switch(port)
+    {
+    case CN_UART1:
+        DmaBufLen = CFG_UART1_DMABUF_LEN;  break;
+    case CN_UART2:
+        DmaBufLen = CFG_UART2_DMABUF_LEN;  break;
+    case CN_UART3:
+        DmaBufLen = CFG_UART3_DMABUF_LEN;  break;
+    case CN_UART4:
+        DmaBufLen = CFG_UART4_DMABUF_LEN;  break;
+    case CN_UART5:
+        DmaBufLen = CFG_UART5_DMABUF_LEN;  break;
+    case CN_UART6:
+        DmaBufLen = CFG_UART6_DMABUF_LEN;  break;
+    case CN_UART7:
+        DmaBufLen = CFG_UART7_DMABUF_LEN;  break;
+    case CN_UART8:
+        DmaBufLen = CFG_UART8_DMABUF_LEN;  break;
+    default :        return;
+    }
+
+    if((pUART_DmaRecvBuf[port][0]==NULL)||(pUART_DmaRecvBuf[port][1]==NULL) )
+    {
+        pUART_DmaRecvBuf[port][0] = M_MallocHeap(DmaBufLen,heap,0);
+
+        if(pUART_DmaRecvBuf[port] != NULL)
+            pUART_DmaRecvBuf[port][1] = &pUART_DmaRecvBuf[port][0][DmaBufLen/2];
+        else
+            return;
+    }
+
+    if(pUART_DmaSendBuf[port]==NULL)
+        pUART_DmaSendBuf[port] = M_MallocHeap(DmaBufLen,heap,0);
+
+    if(pUART_DmaSendBuf[port] == NULL)
+    {
+        free(pUART_DmaRecvBuf[port]);
+        pUART_DmaRecvBuf[port][0]=NULL;
+        pUART_DmaRecvBuf[port][1]=NULL;
+        return;
+    }
+
+    sp_DmaRecvBuf[port] = pUART_DmaRecvBuf[port][0];
+    __UART_RxIntDisable(CN_DMA_UNUSED,port);//´®¿ÚÖÐ¶ÏÊ§ÄÜ
+    __UART_TxIntDisable(CN_DMA_UNUSED,port);
+
+//    DMA_Config(UartDmaRxStream[port],DMA_Rx_ch[port],(u32)&(tg_UART_Reg[port]->RDR),true,
+//            (u32)pUART_DmaRecvBuf[port][0],(u32)pUART_DmaRecvBuf[port][1],DMA_DIR_P2M,\
+//            DMA_DATABITS_8,DMA_DATABITS_8,DmaBufLen/2);
+
+//    DMA_Config(UartDmaTxStream[port],DMA_Tx_ch[port],(u32)&(tg_UART_Reg[port]->TDR),false,
+//            (u32)pUART_DmaSendBuf[port],0,DMA_DIR_M2P,DMA_DATABITS_8,DMA_DATABITS_8,DmaBufLen);
+
+    s_UART_DmaUsed[port] = CN_DMA_USED;
+//    DMA_Enable(UartDmaRxStream[port],(u32)pUART_DmaRecvBuf[port][0],DmaBufLen/2);//Æô¶¯dmaÍ¨µÀ
+    sp_DmaRecvBuf[port] = (u8 *)pUART_DmaRecvBuf[port][0];
+
+    Int_Register(UartDmaTxInt[port]);//×¢²á·¢ËÍDMAÖÐ¶Ï
+    Int_Register(UartDmaRxInt[port]);//×¢²á½ÓÊÕDMAÖÐ¶Ï
+
+    Int_SetClearType(UartDmaRxInt[port],CN_INT_CLEAR_AUTO);//¹ØÁªÖÐ¶Ï
+    Int_IsrConnect(UartDmaRxInt[port],UART_DmaRx_ISR);
+    Int_SetClearType(UartDmaTxInt[port],CN_INT_CLEAR_AUTO);
+    Int_IsrConnect(UartDmaTxInt[port],UART_DmaTx_ISR);
+
+    Int_SetIsrPara(UartDmaTxInt[port],port);
+    Int_SetIsrPara(UartDmaRxInt[port],port);
+
+    Int_SettoAsynSignal(UartDmaRxInt[port]);
+    Int_SettoAsynSignal(UartDmaTxInt[port]);
+    Int_RestoreAsynLine(UartDmaRxInt[port]);
+    Int_RestoreAsynLine(UartDmaTxInt[port]);
+
+    tg_UART_Reg[port]->ICR |= USART_ICR_IDLECF;//clear  idle int
+    tg_UART_Reg[port]->CR1 |= USART_CR1_IDLEIE;//enable idle int
+    tg_UART_Reg[port]->CR3 |= 0x00c0;  //ÉèÖÃ´®¿ÚÊ¹ÓÃdmaÊÕ·¢
+}
+
+//=============================================================================
+// ¹¦ÄÜ: ÉèÖÃ²»Ê¹ÓÃDMA£¬UART²»Ê¹ÓÃDMAÊÕ·¢£¬Ã¿ÊÕ·¢Ò»¸ö×Ö½Ú¾Í±ØÐëÖÐ¶ÏÒ»´Î£¬²»½¨ÒéÔÚ¸ßËÙ
+//      Á¬ÐøÍ¨ÐÅÖÐÊ¹ÓÃ¡£
+// ²ÎÊý: port,¶Ë¿ÚºÅ£¬¼´´®¿ÚºÅ£¬Îª1~3
+// ·µ»Ø: ÎÞ
+// =============================================================================
+void __UART_SetDmaUnUsed(u32 port)
+{
+    u8 IntLine;
+    if(port == CN_UART1)             IntLine = CN_INT_LINE_USART1;
+    else if(port == CN_UART2)        IntLine = CN_INT_LINE_USART2;
+    else if(port == CN_UART3)        IntLine = CN_INT_LINE_USART3;
+    else if(port == CN_UART4)        IntLine = CN_INT_LINE_UART4;
+    else if(port == CN_UART5)        IntLine = CN_INT_LINE_UART5;
+    else if(port == CN_UART6)        IntLine = CN_INT_LINE_USART6;
+    else if(port == CN_UART7)        IntLine = CN_INT_LINE_UART7;
+    else if(port == CN_UART8)        IntLine = CN_INT_LINE_UART8;
+    else    return;
+
+    free(pUART_DmaSendBuf[port]);
+    pUART_DmaSendBuf[port]=NULL;
+    free(pUART_DmaRecvBuf[port]);
+    pUART_DmaRecvBuf[port][0]=NULL;
+    pUART_DmaRecvBuf[port][1]=NULL;
+    s_UART_DmaSending[port]=false;
+    tg_UART_Reg[port]->CR3 &= ~0x00c0;     //ÉèÖÃ²»Ê¹ÓÃdma´«Êä
+    Int_RestoreAsynLine(IntLine);
+    if(s_UART_DmaUsed[port] == CN_DMA_USED)
+    {
+        Int_SaveAsynLine(UartDmaRxInt[port]);
+        Int_SaveAsynLine(UartDmaTxInt[port]);
+        s_UART_DmaUsed[port] = CN_DMA_UNUSED;
+    }
+    __UART_RxIntEnable(CN_DMA_UNUSED,port);
+    __UART_TxIntEnable(CN_DMA_UNUSED,port);
+    tg_UART_Reg[port]->CR1 &= ~USART_CR1_IDLEIE;//disable idle int
 }
 // =============================================================================
-// ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½Ä¿ï¿½ï¿½Æºï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½: Reg,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½Ú¼Ä´ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½.
-//       cmd,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-//       data1,data2,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½cmdï¿½ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+// ¹¦ÄÜ: ´®¿ÚÉè±¸µÄ¿ØÖÆº¯Êý,Óë¾ßÌåµÄÓ²¼þ¼Ä´æÆ÷ÉèÖÃÏà¹Ø
+// ²ÎÊý: Reg,±»²Ù×÷µÄ´®¿Ú¼Ä´æÆ÷Ö¸Õë.
+//       cmd,²Ù×÷ÀàÐÍ
+//       data1,data2,º¬ÒåÒÀcmd¶ø¶¨
+// ·µ»Ø: ÎÞÒâÒå.
 // =============================================================================
-static ptu32_t __UART_Ctrl(u32 port,u32 cmd, va_list *arg0)
+static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 {
     ptu32_t result = 0;
-    u32 timeout = 100000;
+    u32 port;
 
-    if(port < CN_UART_NUM)
+    if(Reg == NULL)
+        return 0;
+
+    switch((u32)Reg)
     {
-        switch(cmd)
-        {
+    case CN_UART1_BASE: port = CN_UART1;break;
+    case CN_UART2_BASE: port = CN_UART2;break;
+    case CN_UART3_BASE: port = CN_UART3;break;
+    case CN_UART4_BASE: port = CN_UART4;break;
+    case CN_UART5_BASE: port = CN_UART5;break;
+    case CN_UART6_BASE: port = CN_UART6;break;
+    case CN_UART7_BASE: port = CN_UART7;break;
+    case CN_UART8_BASE: port = CN_UART8;break;
+    default:return 0;
+    }
+
+    switch(cmd)
+    {
         case CN_DEV_CTRL_START:
-            __UART_Start(port);
+            __UART_Enable(port);
             break;
         case CN_DEV_CTRL_STOP:
-            __UART_Stop(port);
+            __UART_Disable(port);
             break;
-        case CN_UART_SET_BAUD:
+
+        case CN_DEV_CTRL_SHUTDOWN:
+            break;
+        case CN_DEV_CTRL_SLEEP:
+            break;
+        case CN_DEV_CTRL_RESUME:
+            break;
+        case CN_UART_SET_BAUD:  //ÉèÖÃBaud
         {
-            u32 data;
-            data = va_arg(*arg0, u32);
-            __UART_BaudSet(port, data);
+            u32 baud = va_arg(*arg0, u32);
+             __UART_BaudSet(Reg,port, baud);
+            break;
         }
+        case CN_UART_EN_RTS:
+            Reg->CR3 |= 0x100;
+            break;
+        case CN_UART_DIS_RTS:
+            Reg->CR3 &= ~0x100;
+            break;
+        case CN_UART_EN_CTS:
+            Reg->CR3 |= 0x200;
+            break;
+        case CN_UART_DIS_CTS:
+            Reg->CR3 &= ~0x200;
+            break;
+        case CN_UART_DMA_USED:
+            __UART_SetDmaUsed(port);
+            break;
+        case CN_UART_DMA_UNUSED:
+            __UART_SetDmaUnUsed(port);
             break;
         case CN_UART_COM_SET:
         {
-            struct COMParam *COM;
-            COM = va_arg(*arg0, void *);
-            __UART_ComConfig(port,COM);
-        }
-            break;
-
-        case CN_UART_DMA_USED:
-            __UART_SetDmaUsed(port,1);
-            break;
-        case CN_UART_DMA_UNUSED:
-            __UART_SetDmaUsed(port,0);
-            break;
-        default:
+            struct COMParam *COM = va_arg(*arg0, struct COMParam *);
+            __UART_ComConfig(Reg,port,COM);
             break;
         }
+        default: break;
     }
     return result;
 }
 
 // =============================================================================
-// ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É»Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½HALï¿½Ð¶Ïºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½DMAï¿½Ð¶Ïµï¿½ï¿½Ã´Ëºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É±ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½ÃµÄ´ï¿½ï¿½Í³ï¿½ï¿½ï¿½
-//      ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½INGï¿½ï¿½ï¿½Îªfalse
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½huartï¿½ï¿½HALï¿½á¹©ï¿½ï¿½UARTHandler
-// ï¿½ï¿½ï¿½Ø£ï¿½ï¿½ï¿½
+// ¹¦ÄÜ: µ±uart2ÅäÖÃ³Édma·½Ê½ÊÇ£¬dma1 ch7¸ºÔð·¢ËÍ£¬ch6¸ºÔð½ÓÊÕ
+// ²ÎÊý: ÖÐ¶Ïº¯ÊýÃ»ÓÐ²ÎÊý.
+// ·µ»Ø: ÖÐ¶Ïº¯ÊýÃ»ÓÐ·µ»ØÖµ.
 // =============================================================================
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+uint32_t UART_DmaTx_ISR(ptu32_t port)
 {
-    u16 port,len;
-    for(port = CN_UART1;port < CN_UART_NUM; port ++)
-    {
-        if(huart == &sHuart[port])
-            break;
-    }
-    if(port < CN_UART_NUM)
-    {
-        len = UART_PortRead(pUartCB[port],pUartSndBuf[port],CFG_UART_SENDBUF_LEN);
-        if(len > 0)
-        {
-            if(sUartDmaUsed[port])
-                HAL_UART_Transmit_DMA(&sHuart[port],pUartSndBuf[port],len);
-            else
-                HAL_UART_Transmit_IT(&sHuart[port],pUartSndBuf[port],len);
-        }
-        else
-        {
-            Board_UartHalfDuplexRecv(port);
-            sUartSending[port] = false;
-        }
-    }
-}
+    uint16_t num;
+    u8 *DmaSendBuf;
+    u32 DmaSendBufLen;
 
-// =============================================================================
-// ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É»Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½DMAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½HALï¿½Ð¶Ïºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½DMAï¿½Ð¶Ïµï¿½ï¿½Ã´Ëºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É±ï¿½È»
-//      ï¿½ï¿½ï¿½ï¿½ï¿½ÃµÄ´ï¿½ï¿½Í³ï¿½ï¿½ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½num == UART_RxBufLen
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½huartï¿½ï¿½HALï¿½á¹©ï¿½ï¿½UARTHandler
-// ï¿½ï¿½ï¿½Ø£ï¿½ï¿½ï¿½
-// =============================================================================
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    u8 port,num;
-    u8 *src;
-    for(port = CN_UART1;port < CN_UART_NUM; port ++)
+    switch(port)
     {
-        if(huart == &sHuart[port])
-            break;
+    case CN_UART1:
+        DmaSendBufLen = CFG_UART1_DMABUF_LEN;        break;
+    case CN_UART2:
+        DmaSendBufLen = CFG_UART2_DMABUF_LEN;        break;
+    case CN_UART3:
+        DmaSendBufLen = CFG_UART3_DMABUF_LEN;        break;
+    case CN_UART4:
+        DmaSendBufLen = CFG_UART4_DMABUF_LEN;        break;
+    case CN_UART5:
+        DmaSendBufLen = CFG_UART5_DMABUF_LEN;        break;
+    case CN_UART6:
+        DmaSendBufLen = CFG_UART6_DMABUF_LEN;        break;
+    case CN_UART7:
+        DmaSendBufLen = CFG_UART7_DMABUF_LEN;        break;
+    case CN_UART8:
+        DmaSendBufLen = CFG_UART8_DMABUF_LEN;        break;
+    default:        break;
     }
-    if(port < CN_UART_NUM)
-    {
-        if(sUartDmaUsed[port])
-        {
-            num = CFG_UART_RECVBUF_LEN - sDmaRcvOff[port];
-            src = pUartRcvBuf[port] + sDmaRcvOff[port];
-            if(num != UART_PortWrite(pUartCB[port],src,num))
-            {
-                UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
-            }
-            sDmaRcvOff[port] = 0;
-        }
-        else
-        {
-            num = UART_PortWrite(pUartCB[port],pUartRcvBuf[port],1);
-            if(num != 1)
-            {
-                UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
-            }
-            HAL_UART_Receive_IT(&sHuart[port],pUartRcvBuf[port],1);
-        }
-    }
-}
 
-void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)//ï¿½ë´«ï¿½ï¿½ï¿½Ð¶ï¿½
-{
-    u8 port,num;
-    u8 *src;
-    for(port = CN_UART1;port < CN_UART_NUM; port ++)
+    DmaSendBuf = pUART_DmaSendBuf[port];
+//    DMA_ClearIntFlag(UartDmaTxStream[port]);
+    num = UART_PortRead(pUartCB[port],DmaSendBuf,DmaSendBufLen);
+    if(num == 0)
     {
-        if(huart == &sHuart[port])
-            break;
-    }
-    if(port < CN_UART_NUM)
-    {
-        if(sUartDmaUsed[port])
-        {
-            num = CFG_UART_RECVBUF_LEN/2 - sDmaRcvOff[port];
-            src = pUartRcvBuf[port] + sDmaRcvOff[port];
-            if(num != UART_PortWrite(pUartCB[port],src,num))
-            {
-                UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
-            }
-            sDmaRcvOff[port] = CFG_UART_RECVBUF_LEN/2;
-        }
-        else
-        {
-            num = UART_PortWrite(pUartCB[port],pUartRcvBuf[port],1);
-            if(num != 1)
-            {
-                UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
-            }
-            HAL_UART_Receive_IT(&sHuart[port],pUartRcvBuf[port],1);
-        }
-    }
-}
-// =============================================================================
-// ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç·¢ï¿½ï¿½ï¿½ï¿½Å¼Ð£ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½HALï¿½ï¿½ï¿½ï¿½Ã´Ëºï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½huartï¿½ï¿½HALï¿½á¹©ï¿½ï¿½UARTHandler
-// ï¿½ï¿½ï¿½Ø£ï¿½ï¿½ï¿½
-// =============================================================================
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
-{
-    u8 port;
-    for(port = CN_UART1;port < CN_UART_NUM; port ++)
-    {
-        if(huart == &sHuart[port])
-            break;
-    }
-    if(port < CN_UART_NUM)
-    {
-        UART_ErrHandle(pUartCB[port],CN_UART_HARD_COMM_ERR);
-        printk("Uart hard error!\r\n");
-    }
-}
-// =============================================================================
-// ï¿½ï¿½ï¿½Ü£ï¿½UARTï¿½Ð¶ï¿½,ï¿½ï¿½Îªidleï¿½Ð¶Ï£ï¿½ï¿½ï¿½ï¿½DMAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½DMAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½HALï¿½Ð¶ï¿½
-//       ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ»ï¿½ï¿½ï¿½Ãµï¿½HAL_UART_XXXXCallbackï¿½ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úºï¿½
-// ï¿½ï¿½ï¿½Ø£ï¿½1=ï¿½É¹ï¿½ï¿½ï¿½0=Ê§ï¿½ï¿½
-// =============================================================================
-u32 UART_ISR(ptu32_t port)
-{
-    u32 num;
-    tagUartReg volatile *Reg;
-    u8 *src,temp;
-
-    if(port >= CN_UART_NUM)
-        return 0;
-
-    Reg = sUartCfg[port].Reg;
-    if( (Reg->ISR & USART_ISR_IDLE) && (sUartDmaUsed[port]) )
-    {
-        Reg->ICR = USART_ICR_IDLECF;    //clear the status flag
-
-        temp = CFG_UART_RECVBUF_LEN - ((BDMA_Channel_TypeDef *)(sHuart[port].hdmarx->Instance))->CNDTR;
-        num =  temp -sDmaRcvOff[port];
-        src = pUartRcvBuf[port] + sDmaRcvOff[port];
-        if(num != UART_PortWrite(pUartCB[port],src,num))
-        {
-            UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
-        }
-        sDmaRcvOff[port] = temp;
+        s_UART_DmaSending[port] = false;
+        tg_UART_Reg[port]->CR1 |= USART_CR1_TCIE;
     }
     else
     {
-        HAL_UART_IRQHandler(&sHuart[port]);
+//        DMA_Enable(UartDmaTxStream[port],(u32)DmaSendBuf,num);
     }
-
-    return 1;
+    return 0;
 }
 
 // =============================================================================
-// ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½uart1Ä£ï¿½ï¿½,ï¿½ï¿½×°ï¿½Ø´ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½uart.cï¿½ï¿½APIï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãºï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ÉµÄ¹ï¿½ï¿½ï¿½
-//       ï¿½ï¿½ï¿½Â£ï¿½
-//       1.ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½Ó²ï¿½ï¿½ï¿½ï¿½ï¿½Ö£ï¿½ï¿½ï¿½GPIOï¿½ï¿½ï¿½Ð¶Ï¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½COMï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½baud = 115200
-//         stop bits = 1,ï¿½ï¿½ï¿½ï¿½Å¼Ð£ï¿½ï¿½, data bits = 8
-//       2.ï¿½ï¿½ï¿½ï¿½uart.cï¿½ï¿½APIï¿½ï¿½ï¿½ï¿½UART_InstallPortï¿½ï¿½×°ï¿½ë´®ï¿½ï¿½ï¿½è±¸
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÚºÅ£ï¿½0~3
-// ï¿½ï¿½ï¿½Ø£ï¿½1=ï¿½É¹ï¿½ï¿½ï¿½0=Ê§ï¿½ï¿½
+// ¹¦ÄÜ: µ±uart1ÅäÖÃ³Édma·½Ê½ÊÇ£¬dma2 ch2¸ºÔð·¢ËÍ£¬ch7¸ºÔð½ÓÊÕ
+// ²ÎÊý: ÖÐ¶Ïº¯ÊýÃ»ÓÐ²ÎÊý.
+// ·µ»Ø: ÖÐ¶Ïº¯ÊýÃ»ÓÐ·µ»ØÖµ.
 // =============================================================================
-ptu32_t ModuleInstall_UART(u32 port)
+uint32_t UART_DmaRx_ISR(ptu32_t port)
+{
+    u32 recvs,num,DmaRecvBufLen,newrcvlen;
+    u8 *DmaRecvBufNow,*DmaRecvBufold;
+
+    switch(port)
+    {
+    case CN_UART1:
+        DmaRecvBufLen = CFG_UART1_DMABUF_LEN/2;        break;
+    case CN_UART2:
+        DmaRecvBufLen = CFG_UART2_DMABUF_LEN/2;        break;
+    case CN_UART3:
+        DmaRecvBufLen = CFG_UART3_DMABUF_LEN/2;        break;
+    case CN_UART4:
+        DmaRecvBufLen = CFG_UART4_DMABUF_LEN/2;        break;
+    case CN_UART5:
+        DmaRecvBufLen = CFG_UART5_DMABUF_LEN/2;        break;
+    case CN_UART6:
+        DmaRecvBufLen = CFG_UART6_DMABUF_LEN/2;        break;
+    case CN_UART7:
+        DmaRecvBufLen = CFG_UART7_DMABUF_LEN/2;        break;
+    case CN_UART8:
+        DmaRecvBufLen = CFG_UART8_DMABUF_LEN/2;        break;
+    default:        return 0;
+    }
+
+//    DMA_ClearIntFlag(UartDmaRxStream[port]);
+
+    if(((u32)&pUART_DmaRecvBuf[port][0] <= (u32)sp_DmaRecvBuf[port]) && \
+      ((u32)sp_DmaRecvBuf[port] < (u32)&pUART_DmaRecvBuf[port][0][DmaRecvBufLen]))
+    {
+        DmaRecvBufold=pUART_DmaRecvBuf[port][0];
+    }
+    else if(((u32)&pUART_DmaRecvBuf[port][1] <= (u32)sp_DmaRecvBuf[port]) && \
+           ((u32)sp_DmaRecvBuf[port] < (u32)&pUART_DmaRecvBuf[port][1][DmaRecvBufLen]))
+    {
+        DmaRecvBufold=pUART_DmaRecvBuf[port][1];
+    }
+    else
+    {
+        UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
+//        DMA_Enable(UartDmaRxStream[port],(u32)pUART_DmaRecvBuf[port][0],DmaRecvBufLen);//Æô¶¯dmaÍ¨µÀ
+        DmaRecvBufNow=pUART_DmaRecvBuf[port][0];
+    }
+
+    if(UartDmaRxStream[port]->CR & (1<<19))
+        DmaRecvBufNow =  pUART_DmaRecvBuf[port][1];
+    else
+        DmaRecvBufNow =  pUART_DmaRecvBuf[port][0];
+
+
+    if(DmaRecvBufNow >= DmaRecvBufold)//Î´·¢Éú»º³åÇø»·ÈÆ
+    {
+        recvs = DmaRecvBufLen - UartDmaRxStream[port]->NDTR;
+        newrcvlen = &DmaRecvBufNow[recvs] - sp_DmaRecvBuf[port];
+        num = UART_PortWrite(pUartCB[port],sp_DmaRecvBuf[port],newrcvlen);
+
+        if(num != newrcvlen)
+            UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
+    }
+    else//Çø·¢Éú»º³åÇø»·ÈÆ
+    {
+        recvs = &DmaRecvBufold[DmaRecvBufLen]-sp_DmaRecvBuf[port];
+        num = UART_PortWrite(pUartCB[port],sp_DmaRecvBuf[port],recvs);
+        if(num != recvs)
+            UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
+
+        recvs = DmaRecvBufLen - UartDmaRxStream[port]->NDTR;
+
+        num = UART_PortWrite(pUartCB[port],DmaRecvBufNow,recvs);
+        if(num != recvs)
+            UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
+    }
+    sp_DmaRecvBuf[port] = &DmaRecvBufNow[recvs];
+
+    return 0;
+}
+
+// =============================================================================
+// ¹¦ÄÜ: UARTµÄÖÐ¶Ï·þÎñº¯Êý£¬°üÀ¨·¢ËÍ¿Õ¡¢½ÓÊÕ¡¢´íÎóÈýÖÖÖÐ¶Ï¡£
+//      1.½ÓÊÕÖÐ¶Ï£¬´Ó½ÓÊÕFIFOÖÐ¶ÁÊý¾Ý£¬²¢µ÷ÓÃUART_PortWriteÐ´Èë½ÓÊÕ»º³åÇøÖÐ£»
+//      2.·¢ËÍÖÐ¶Ï£¬µ÷ÓÃUART_PortRead¶Á·¢ËÍ»º³åÇøÖÐÊý¾Ý£¬²¢Ð´Èë·¢ËÍFIFO£»
+//      3.´íÎóÖÐ¶Ï£¬µ¯³ö´íÎóÊÂ¼þ
+// ²ÎÊý: ÖÐ¶ÏºÅ.
+// ·µ»Ø: 0.
+// =============================================================================
+u32 UART_ISR(ptu32_t port)
+{
+    struct UartGeneralCB *UCB;
+    tagUartReg *Reg;
+    u32 num,loop;
+    u8 ch;
+    u8 fifobuf[20];
+
+    UCB = pUartCB[port];
+    Reg = (tagUartReg *)tg_UART_Reg[port];
+
+
+    if(((Reg->ISR & USART_ISR_RXFF) && (Reg->CR1 & USART_CR1_RXFFIE))   // rx fifo full
+        || ((Reg->ISR & USART_ISR_RXFT) && (Reg->CR3 & USART_CR3_RXFTIE))  //rx fifo threshold
+        || ((Reg->ISR & USART_ISR_IDLE) && (Reg->CR1 & USART_CR1_IDLEIE))) //idle
+    {
+        num = 0;
+        while ((Reg->ISR & USART_ISR_RXNE_RXFNE) && (num < 20))
+        {
+            fifobuf[num] = (u8)Reg->RDR;
+            num++;
+        }
+        Reg->ICR = USART_ICR_IDLECF;  //Çå USART_ISR_IDLE
+        if(num != 0)
+        {
+            num = UART_PortWrite(UCB,fifobuf,num);
+            if(num != 1)
+            {
+                UART_ErrHandle(UCB,CN_UART_BUF_OVER_ERR);
+            }
+        }
+    }
+
+    if(//((Reg->ISR & USART_ISR_TXFT) && (Reg->CR3 & USART_CR3_TXFTIE))   //tx fifo threshold
+        ((Reg->ISR & USART_ISR_TXFE) && (Reg->CR1 & USART_CR1_TXFEIE)))  //tx fifo empty
+    {
+        num = UART_PortRead(UCB,fifobuf,14);    //fifo size is 16,threshold be set to 2
+        Reg->ICR = USART_ICR_TXFECF;    //Õâ¾ä»°Çå²»ÁË·¢ËÍfifo¿ÕÖÐ¶Ï£¬²»ÖªÎªºÎ
+        if(num == 0)
+        {
+            Reg->CR1 &= ~USART_CR1_TXFEIE;  //ÒòÇå²»ÁË£¬¹Ê·¢Íêºó½ûÖ¹µôËü£¬
+            Reg->CR1 |= USART_CR1_TCIE;     //Ê¹ÄÜ·¢ËÍÍê³ÉÖÐ¶Ï
+        }
+        else
+        {
+            for(loop = 0; loop < num; loop++)
+            {
+                Reg->TDR = fifobuf[loop];
+            }
+        }
+    }
+
+//  if( (Reg->ISR & USART_ISR_RXNE_RXFNE) &&(Reg->CR1 & USART_CR1_RXNEIE_RXFNEIE))           //½ÓÊÕÖÐ¶Ï
+//  {
+//      ch = (u8)Reg->RDR;
+//      num = UART_PortWrite(UCB,&ch,1);
+//      if(num != 1)
+//      {
+//          UART_ErrHandle(UCB,CN_UART_BUF_OVER_ERR);
+//      }
+//  }
+    if((Reg->ISR & USART_ISR_TC)&&(Reg->CR1 & USART_CR1_TCIE))//TC
+    {
+        Reg->CR1 &=~USART_CR1_TCIE;    //¹ØTCÖÐ¶Ï
+        Board_UartHalfDuplexRecv(port);     //²»¹ÜÊÇDMA»¹ÊÇÖÐ¶Ï´«Êä£¬·¢ËÍÍêÁËÊý¾Ýºó¶¼×ßÕâÀï£¬½øÈë½ÓÊÕ×´Ì¬
+    }
+
+    if((Reg->ISR & USART_ISR_TXE_TXFNF)&&(Reg->CR1 & USART_CR1_TXEIE_TXFNFIE)  )    //·¢ËÍÖÐ¶Ï
+    {
+        num = UART_PortRead(UCB,&ch,1);
+        if(num != 0)
+            Reg->TDR = ch;
+        else
+        {
+            Reg->CR1 &= ~USART_CR1_TXEIE_TXFNFIE;        //txeie
+            Reg->CR1 |= USART_CR1_TCIE;
+        }
+    }
+    if(Reg->ISR & USART_ISR_ORE)        //ORE¹ýÔØ´íÎó
+    {
+        ch = (u8)Reg->RDR;
+        num = Reg->ISR;     //¶ÁÒ»ÏÂsr¼Ä´æÆ÷
+        UART_ErrHandle(UCB,CN_UART_FIFO_OVER_ERR);
+        Reg->ICR |=USART_ICR_ORECF;//Çå¹ýÔØ±êÖ¾Î»
+    }
+//  if((Reg->ISR & USART_ISR_IDLE) && (Reg->CR1 & USART_CR1_IDLEIE))
+//  {
+//      Reg->ICR |=USART_ICR_IDLECF;
+//      UART_DmaRx_ISR(port);
+//  }
+    if(Reg->ISR & USART_ISR_FE)//Ö¡´íÎóÖ±½ÓÇå³ýÔÝÊ±²»×ö´¦Àí
+    {
+        Reg->ICR |= USART_ICR_FECF;
+    }
+    return 0;
+}
+
+// =============================================================================
+// ¹¦ÄÜ£º³õÊ¼»¯uart1Ä£¿é,²¢×°ÔØ´®¿ÚÉè±¸£¬»áµ÷ÓÃuart.cµÄAPIº¯Êý¡£¸Ãº¯ÊýÖ÷ÒªÍê³ÉµÄ¹¦ÄÜ
+//       ÈçÏÂ£º
+//       1.³õÊ¼»¯´®¿ÚµÄÓ²¼þ²¿·Ö£¬ÈçGPIO¡¢ÖÐ¶Ï¡¢ÅäÖÃÅäÖÃµÄCOM²ÎÊý£¬ÅäÖÃbaud = 115200
+//         stop bits = 1,ÎÞÆæÅ¼Ð£Ñé, data bits = 8
+//       2.µ÷ÓÃuart.cµÄAPIº¯ÊýUART_InstallPort£¬×°Èë´®¿ÚÉè±¸
+// ²ÎÊý£º´®¿ÚºÅ£¬0~3
+// ·µ»Ø£º1=³É¹¦£¬0=Ê§°Ü
+// =============================================================================
+ptu32_t ModuleInstall_UART(u32 serial_no)
 {
     struct UartParam UART_Param;
-
-    if(port >= CN_UART_NUM)
-        return false;
-    UART_Param.Name         = sUartCfg[port].Name;
-    UART_Param.UartPortTag  = (ptu32_t)port;
-    UART_Param.Baud         = 115200;
-    UART_Param.TxRingBufLen = CFG_UART_SENDBUF_LEN;
-    UART_Param.RxRingBufLen = CFG_UART_RECVBUF_LEN;
-    UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
-    UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
-    UART_Param.mode         = CN_UART_GENERAL;
-
-    pUartSndBuf[port] = (u8*)malloc(CFG_UART_SENDBUF_LEN + CFG_UART_RECVBUF_LEN);
-    pUartCB[port] = UART_InstallGeneral(&UART_Param);
-
-    if( ( pUartCB[port] != NULL) && (pUartSndBuf[port] != NULL) )
+    bool_t dmause;
+    switch(serial_no)
     {
-        pUartRcvBuf[port] = pUartSndBuf[port] + CFG_UART_SENDBUF_LEN;
-        __UART_HardInit(port);              //Ó²ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
-        __UART_IntInit(port);
-        return true;
+    case CN_UART1://´®¿Ú1
+        UART_Param.Name         = "UART1";
+        UART_Param.Baud         = 115200;
+        UART_Param.UartPortTag  = CN_UART1_BASE;
+        UART_Param.TxRingBufLen = CFG_UART1_SENDBUF_LEN;
+        UART_Param.RxRingBufLen = CFG_UART1_RECVBUF_LEN;
+        UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
+        UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART1_ENABLE_DMA;
+        break;
+    case CN_UART2://´®¿Ú2
+        UART_Param.Name         = "UART2";
+        UART_Param.Baud         = 115200;
+        UART_Param.UartPortTag  = CN_UART2_BASE;
+        UART_Param.TxRingBufLen = CFG_UART2_SENDBUF_LEN;
+        UART_Param.RxRingBufLen = CFG_UART2_RECVBUF_LEN;
+        UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
+        UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART2_ENABLE_DMA;
+        break;
+
+    case CN_UART3://´®¿Ú3
+        UART_Param.Name         = "UART3";
+        UART_Param.Baud         = 115200;
+        UART_Param.UartPortTag  = CN_UART3_BASE;
+        UART_Param.TxRingBufLen = CFG_UART3_SENDBUF_LEN;
+        UART_Param.RxRingBufLen = CFG_UART3_RECVBUF_LEN;
+        UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
+        UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART3_ENABLE_DMA;
+        break;
+
+    case CN_UART4://´®¿Ú4
+        UART_Param.Name         = "UART4";
+        UART_Param.Baud         = 115200;
+        UART_Param.UartPortTag  = CN_UART4_BASE;
+        UART_Param.TxRingBufLen = CFG_UART4_SENDBUF_LEN;
+        UART_Param.RxRingBufLen = CFG_UART4_RECVBUF_LEN;
+        UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
+        UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART4_ENABLE_DMA;
+        break;
+    case CN_UART5://´®¿Ú5
+        UART_Param.Name         = "UART5";
+        UART_Param.Baud         = 115200;
+        UART_Param.UartPortTag  = CN_UART5_BASE;
+        UART_Param.TxRingBufLen = CFG_UART5_SENDBUF_LEN;
+        UART_Param.RxRingBufLen = CFG_UART5_RECVBUF_LEN;
+        UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
+        UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART5_ENABLE_DMA;
+        break;
+    case CN_UART6://´®¿Ú6
+        UART_Param.Name         = "UART6";
+        UART_Param.Baud         = 115200;
+        UART_Param.UartPortTag  = CN_UART6_BASE;
+        UART_Param.TxRingBufLen = CFG_UART6_SENDBUF_LEN;
+        UART_Param.RxRingBufLen = CFG_UART6_RECVBUF_LEN;
+        UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
+        UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART6_ENABLE_DMA;
+        break;
+    case CN_UART7://´®¿Ú7
+        UART_Param.Name         = "UART7";
+        UART_Param.Baud         = 115200;
+        UART_Param.UartPortTag  = CN_UART7_BASE;
+        UART_Param.TxRingBufLen = CFG_UART7_SENDBUF_LEN;
+        UART_Param.RxRingBufLen = CFG_UART7_RECVBUF_LEN;
+        UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
+        UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART7_ENABLE_DMA;
+        break;
+    case CN_UART8://´®¿Ú8
+        UART_Param.Name         = "UART8";
+        UART_Param.Baud         = 115200;
+        UART_Param.UartPortTag  = CN_UART8_BASE;
+        UART_Param.TxRingBufLen = CFG_UART8_SENDBUF_LEN;
+        UART_Param.RxRingBufLen = CFG_UART8_RECVBUF_LEN;
+        UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
+        UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART8_ENABLE_DMA;
+        break;
+    case CN_UART9://´®¿Ú9
+        UART_Param.Name         = "UART9";
+        UART_Param.Baud         = 115200;
+        UART_Param.UartPortTag  = CN_UART9_BASE;
+        UART_Param.TxRingBufLen = CFG_UART9_SENDBUF_LEN;
+        UART_Param.RxRingBufLen = CFG_UART9_RECVBUF_LEN;
+        UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
+        UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART9_ENABLE_DMA;
+        break;
+    case CN_UART10://´®¿Ú10
+        UART_Param.Name         = "UART10";
+        UART_Param.Baud         = 115200;
+        UART_Param.UartPortTag  = CN_UART10_BASE;
+        UART_Param.TxRingBufLen = CFG_UART10_SENDBUF_LEN;
+        UART_Param.RxRingBufLen = CFG_UART10_RECVBUF_LEN;
+        UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
+        UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART10_ENABLE_DMA;
+        break;
+    default:
+        return 0;
     }
-    return false;
+    UART_Param.mode = CN_UART_GENERAL;
+    Board_UartHalfDuplexRecv(serial_no);
+    //Ó²¼þ³õÊ¼»¯
+    __UART_HardInit(serial_no);
+    __UART_IntInit(serial_no);
+    if(dmause)
+    {
+        __UART_SetDmaUsed(serial_no);
+    }
+    else
+    {
+        pUART_DmaSendBuf[serial_no]=NULL;
+        pUART_DmaRecvBuf[serial_no][0]=NULL;
+        pUART_DmaRecvBuf[serial_no][1]=NULL;
+    }
+    pUartCB[serial_no] = UART_InstallGeneral(&UART_Param);
+    if( pUartCB[serial_no] == NULL)
+        return 0;
+    else
+        return 1;
 }
 
 // =============================================================================
-// ï¿½ï¿½ï¿½Ü£ï¿½ï¿½Ö·ï¿½ï¿½Õ¶ï¿½Ö±ï¿½Ó·ï¿½ï¿½Íºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½Ê½ï¿½ï¿½Ö±ï¿½ï¿½Ð´ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½printkï¿½ï¿½ï¿½ï¿½ï¿½ï¿½stdout
-//       Ã»ï¿½Ð³ï¿½Ê¼ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½strï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
-//      lenï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½ï¿½Ö½ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½Ø£ï¿½0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½result,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý³ï¿½ï¿½È£ï¿½ï¿½Ö½Úµï¿½Î»
+// ¹¦ÄÜ£º×Ö·ûÖÕ¶ËÖ±½Ó·¢ËÍº¯Êý£¬²ÉÓÃÂÖÑ¯·½Ê½£¬Ö±½ÓÐ´¼Ä´æÆ÷£¬ÓÃÓÚprintk£¬»òÕßstdout
+//       Ã»ÓÐ³õÊ¼»¯
+// ²ÎÊý£ºstr£¬·¢ËÍ×Ö·û´®Ö¸Õë
+//      len£¬·¢ËÍµÄ×Ö½ÚÊý
+// ·µ»Ø£º0£¬·¢Éú´íÎó£»result,·¢ËÍÊý¾Ý³¤¶È£¬×Ö½Úµ¥Î»
 // =============================================================================
 s32 Uart_PutStrDirect(const char *str,u32 len)
 {
-    u32 timeout;
-    TxByteTime = 11000000/115200;
-
-    timeout= TxByteTime * len;
-    if(HAL_OK != HAL_UART_Transmit(PutStrDirectH,(u8*)str,len,timeout))
+    u32 result = 0;
+    s32 timeout = TxByteTime * len;
+    u16 CR_Bak;
+    u8 port;
+    for(port=0;port<CN_UART_NUM;port++)
     {
-        return 0;
+        if(PutStrDirectReg ==tg_UART_Reg[port])
+            break;
     }
-    return len;
-}
-
-// =============================================================================
-// ï¿½ï¿½ï¿½Ü£ï¿½ï¿½Ö·ï¿½ï¿½Õ¶ï¿½Ö±ï¿½Ó½ï¿½ï¿½Õºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½Ê½ï¿½ï¿½Ö±ï¿½Ó¶ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½stdinï¿½ï¿½Ê¼ï¿½ï¿½Ç°
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½strï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
-//      lenï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½ï¿½Ö½ï¿½ï¿½ï¿½
-// ï¿½ï¿½ï¿½Ø£ï¿½0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½result,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý³ï¿½ï¿½È£ï¿½ï¿½Ö½Úµï¿½Î»
-// =============================================================================
-char Uart_GetCharDirect(void)
-{
-    u8 result;
-    while(HAL_OK != HAL_UART_Receive(GetCharDirectH,&result,1,0))
+    Board_UartHalfDuplexSend(port);
+    CR_Bak = PutStrDirectReg->CR1;                          //Save INT
+    PutStrDirectReg->CR1 &= ~USART_CR1_TXEIE_TXFNFIE;                        //disable send INT
+    for(result=0; result < len+1; result ++)
     {
-        DJY_EventDelay(500);
+        // ³¬Ê±»òÕß·¢ËÍ»º³åÎª¿ÕÊ±ÍË³ö
+        while((false == __UART_TxTranEmpty(PutStrDirectReg))&& (timeout > 10))
+        {
+            timeout -=10;
+            DJY_DelayUs(10);
+        }
+        if( (timeout <= 10) || (result == len))
+            break;
+        PutStrDirectReg->TDR = str[result];
     }
+    PutStrDirectReg->CR1 = CR_Bak;                         //restore send INT
+    while((PutStrDirectReg->ISR &USART_ISR_TC)!=USART_ISR_TC)
+    {
+        timeout -=10;
+        DJY_DelayUs(10);
+        if(timeout < 10)
+           break;
+    }
+    Board_UartHalfDuplexRecv(port);
     return result;
 }
 
-//----ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ÚºË¼ï¿½IO-----------------------------------------------------------
-//ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ÚºË¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½runtimeï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ë¡£
-//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-//ï¿½ï¿½ï¿½Ø£ï¿½ï¿½ï¿½
+// =============================================================================
+// ¹¦ÄÜ£º×Ö·ûÖÕ¶ËÖ±½Ó½ÓÊÕº¯Êý£¬²ÉÓÃÂÖÑ¯·½Ê½£¬Ö±½Ó¶Á¼Ä´æÆ÷£¬ÓÃÓÚstdin³õÊ¼»¯Ç°
+// ²ÎÊý£ºstr£¬·¢ËÍ×Ö·û´®Ö¸Õë
+//      len£¬·¢ËÍµÄ×Ö½ÚÊý
+// ·µ»Ø£º0£¬·¢Éú´íÎó£»result,·¢ËÍÊý¾Ý³¤¶È£¬×Ö½Úµ¥Î»
+// =============================================================================
+char Uart_GetCharDirect(void)
+{
+    u16 CR_Bak;
+    char result;
+
+    CR_Bak = GetCharDirectReg->CR1;     //Save INT
+    GetCharDirectReg->CR1 &= ~(USART_CR1_TXEIE_TXFNFIE); //disable send INT
+    GetCharDirectReg->ICR |= USART_ICR_ORECF;    //ÇåÒç³ö´íÎó±êÖ¾£ºÂÖÑ¯½ÓÊÕÓÐ¿ÉÄÜ½ÓÊÕ²»¼°Ê±²úÉúÒç³ö´íÎó
+    while(__UART_RxHadChar(GetCharDirectReg) == false)
+        DJY_EventDelay(1000);
+
+    result = GetCharDirectReg->RDR;
+    PutStrDirectReg->CR1 = CR_Bak;                         //restore send INT
+    return result;
+}
+
+//----³õÊ¼»¯ÄÚºË¼¶IO-----------------------------------------------------------
+//¹¦ÄÜ£º³õÊ¼»¯ÄÚºË¼¶ÊäÈëºÍÊä³öËùÐèµÄruntimeº¯ÊýÖ¸Õë¡£
+//²ÎÊý£ºÎÞ
+//·µ»Ø£ºÎÞ
 //-----------------------------------------------------------------------------
 void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
 {
     if(!strcmp(StdioOut,"/dev/UART1"))
     {
+        PutStrDirectReg = (tagUartReg*)CN_UART1_BASE;
         TxDirectPort = CN_UART1;
-        PutStrDirectH = &sHuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART2"))
     {
+        PutStrDirectReg = (tagUartReg*)CN_UART2_BASE;
         TxDirectPort = CN_UART2;
-        PutStrDirectH = &sHuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART3"))
     {
+        PutStrDirectReg = (tagUartReg*)CN_UART3_BASE;
         TxDirectPort = CN_UART3;
-        PutStrDirectH = &sHuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART4"))
     {
+        PutStrDirectReg = (tagUartReg*)CN_UART4_BASE;
         TxDirectPort = CN_UART4;
-        PutStrDirectH = &sHuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART5"))
     {
+        PutStrDirectReg = (tagUartReg*)CN_UART5_BASE;
         TxDirectPort = CN_UART5;
-        PutStrDirectH = &sHuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART6"))
     {
+        PutStrDirectReg = (tagUartReg*)CN_UART6_BASE;
         TxDirectPort = CN_UART6;
-        PutStrDirectH = &sHuart[TxDirectPort];
+    }
+    else if(!strcmp(StdioOut,"/dev/UART7"))
+    {
+        PutStrDirectReg = (tagUartReg*)CN_UART7_BASE;
+        TxDirectPort = CN_UART7;
+    }
+    else if(!strcmp(StdioOut,"/dev/UART8"))
+    {
+        PutStrDirectReg = (tagUartReg*)CN_UART8_BASE;
+        TxDirectPort = CN_UART8;
     }
     else
     {
-//        PutStrDirect = NULL ;
-        PutStrDirectH = NULL;
+        PutStrDirectReg = NULL ;
     }
 
-    if(PutStrDirectH != NULL)
+    if(PutStrDirectReg != NULL)
     {
-//        PutStrDirectH = &sHuart[TxDirectPort];
         __UART_HardInit(TxDirectPort);
-        TxByteTime = 95;      //ï¿½ï¿½Ê¼ï¿½ï¿½Ä¬ï¿½ï¿½115200ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½byteï¿½ï¿½87uS,+10%ï¿½ï¿½ï¿½ï¿½
+        TxByteTime = 95;      //³õÊ¼»¯Ä¬ÈÏ115200£¬·¢ËÍÒ»¸öbyteÊÇ87uS,+10%ÈÝÏÞ
         PutStrDirect = Uart_PutStrDirect;
     }
 
     if(!strcmp(StdioIn,"/dev/UART1"))
     {
+        GetCharDirectReg = (tagUartReg*)CN_UART1_BASE;
         RxDirectPort = CN_UART1;
-        GetCharDirectH = &sHuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART2"))
     {
+        GetCharDirectReg = (tagUartReg*)CN_UART2_BASE;
         RxDirectPort = CN_UART2;
-        GetCharDirectH = &sHuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART3"))
     {
+        GetCharDirectReg = (tagUartReg*)CN_UART3_BASE;
         RxDirectPort = CN_UART3;
-        GetCharDirectH = &sHuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART4"))
     {
+        GetCharDirectReg = (tagUartReg*)CN_UART4_BASE;
         RxDirectPort = CN_UART4;
-        GetCharDirectH = &sHuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART5"))
     {
+        GetCharDirectReg = (tagUartReg*)CN_UART5_BASE;
         RxDirectPort = CN_UART5;
-        GetCharDirectH = &sHuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART6"))
     {
+        GetCharDirectReg = (tagUartReg*)CN_UART6_BASE;
         RxDirectPort = CN_UART6;
-        GetCharDirectH = &sHuart[RxDirectPort];
+    }
+    else if(!strcmp(StdioIn,"/dev/UART7"))
+    {
+        GetCharDirectReg = (tagUartReg*)CN_UART7_BASE;
+        RxDirectPort = CN_UART7;
+    }
+    else if(!strcmp(StdioIn,"/dev/UART8"))
+    {
+        GetCharDirectReg = (tagUartReg*)CN_UART8_BASE;
+        RxDirectPort = CN_UART8;
     }
     else
     {
-//        GetCharDirect = NULL ;
-        GetCharDirectH = NULL;
+        GetCharDirectReg = NULL ;
     }
-
-    if(GetCharDirectH != NULL)
+    if(GetCharDirectReg != NULL)
     {
-//        GetCharDirectH = &sHuart[RxDirectPort];
         if(TxDirectPort != RxDirectPort)
             __UART_HardInit(RxDirectPort);
         GetCharDirect = Uart_GetCharDirect;
     }
     return;
 }
-
-
 

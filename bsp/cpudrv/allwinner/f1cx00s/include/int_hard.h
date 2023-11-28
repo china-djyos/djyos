@@ -64,7 +64,7 @@ extern "C" {
 #include "stdint.h"
 
 typedef ucpu_t atom_high_t;
-typedef ucpu_t atom_low_t;
+typedef u64 atom_low_t;
 
 //以下配置中断模块的常量，不但跟硬件有关，也跟软件策略有关。本实现异步信号和
 //实时中断均使用irq，irq作为总中断开关，而异步信号则没有独立的使能开关，禁止异步
@@ -74,7 +74,7 @@ typedef ucpu_t atom_low_t;
 #define CN_CFG_ASYN_TURNKEY    0   //是否支持独立的异步信号使能开关
 #define CN_CFG_TRUNK_TURNKEY   1   //是否支持独立的总中断使能开关
 
-#define CN_CFG_REG_ATOM   1   //操作异步信号开关寄存器的原子性，即读或者写
+#define CN_CFG_REG_ATOM   0     //操作异步信号开关寄存器的原子性，即读或者写
                                 //异步信号开关时，是否可以一条指令操作完。
                                 //举例:arm9的s3c2410,INTMSK是一个32位寄存器，
                                 //      在32位cpu上，一条指令可执行读或写，
@@ -84,63 +84,50 @@ typedef ucpu_t atom_low_t;
                                 //      故不具原子性，本常量设为0
                                 //     在cortex-m3上，直接读写BASEPRI寄存器，
                                 //      也是一套指令操作完，具备原子性，设为1
-#if 0
-struct IntReg
+
+struct INTC_REG                 //0x01c20400
 {
-    vu32 SRCPND   ;    //0x4a000000 有中断产生就置1
-    vu32 INTMOD   ;    //0x4a000004 Interrupt mode control
-    vu32 INTMSK   ;    //0x4a000008 Interrupt mask control
-    vu32 PRIORITY ;    //0x4a00000c IRQ priority control
-    vu32 INTPND   ;    //0x4a000010 SRCPND=1的位，若允许则置1
-    vu32 INTOFFSET;    //0x4a000014 Interruot request source offset
-    vu32 SUBSRCPND;    //0x4a000018 Sub source pending
-    vu32 INTSUBMSK;    //0x4a00001c Interrupt sub mask
-};
-#endif
 
-
-struct INTC_REG{
-
-    vu32 SRCPND1;                   // interrupt request status reg
-    vu32 INTMOD1;                   // interrupt mode reg
-    vu32 INTMSK1;                   // interrupt mask reg
+    vu32 VECTOR;                // 00 当前响应的中断向量，DJYOS中用来存中断号
+    vu32 BASE_ADDR;             // 04 中断向量表基址寄存器
     vu32 PAD0;
+    vu32 NMICTRL;               // 0c NMI 控制寄存器
 
-    vu32 INTPND1;                   // interrupt pending reg
-    vu32 INTOFFSET1;                // interrupt offset reg
-    vu32 SUBSRCPND;                 // SUB source pending reg
-    vu32 INTSUBMSK;                 // interrupt SUB mask reg
+    vu32 INTPND1;               // 10 interrupt pending reg
+    vu32 INTPND2;               // 14 interrupt pending reg
+    vu32 PAD1;
+    vu32 PAD2;
 
-
-    vu32 PAD1[4];
-
-    vu32 PRIORITY_MODE1;            // priority reg
-    vu32 PRIORITY_UPDATE1;          // priority reg
-    vu32 PAD2[2];
-
-
-    vu32 SRCPND2;           // interrupt request status reg
-    vu32 INTMOD2;           // interrupt mode reg
-    vu32 INTMSK2;           // interrupt mask re
+    //特别注意，INTEN1.0任何时候都不能置1
+    //当INTEN1.0=1，产生x号中断，将响应IRQ+x中断一次，然后持续响应FIQ+x中断，即使撤掉
+    //x中断，依然会持续响应FIQ+x中断。若x中断信号不撤除，修改INTEN1.0的值为0，将用IRQ
+    //响应x中断，否则在FIQ
+    vu32 INTEN1;                // 20 interrupt enable reg
+    vu32 INTEN2;                // 24 interrupt enable reg
     vu32 PAD3;
+    vu32 PAD4;
 
+    vu32 INTMSK1;               // 30 interrupt mask reg
+    vu32 INTMSK2;               // 34 interrupt mask reg
+    vu32 PAD5;
+    vu32 PAD6;
 
-    vu32 INTPND2;           // interrupt pending reg
-    vu32 INTOFFSET2;        // interrupt offset reg
-    vu32 PAD4[2];
+    vu32 INTRESPONSE1;          // 40 interrupt response reg
+    vu32 INTRESPONSE2;          // 44 interrupt response reg
+    vu32 PAD7;
+    vu32 PAD8;
 
-    vu32 PAD5[4];
+    vu32 INTFORCE1;             // 50 interrupt trig reg
+    vu32 INTFORCE2;             // 54 interrupt trig reg
+    vu32 PAD9;
+    vu32 PAD10;
 
-
-    vu32 PRIORITY_MODE2;    // priority reg
-    vu32 PRIORITY_UPDATE2;  // priority reg
-    vu32 PAD6[2];
-
+    vu32 PRIORITY1;             // 60 priority reg
+    vu32 PRIORITY2;             // 64 priority reg
+    vu32 PRIORITY3;             // 68 priority reg
+    vu32 PRIORITY4;             // 6c priority reg
 
 };
-
-#define INTC_REG_BASE   ((struct INTC_REG*)0x4A000000)
-
 
 #define cn_noirq    0x80
 #define cn_nofiq    0x40

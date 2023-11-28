@@ -60,7 +60,9 @@ extern "C" {
 #define CN_UART6    5
 #define CN_UART7    6
 #define CN_UART8    7
-#define CN_UART_NUM 8
+#define CN_UART9    8
+#define CN_UART10   9
+#define CN_UART_NUM 9
 
 bool_t UART_LowPowerConfig(u8 port,u8 flag);
 ptu32_t ModuleInstall_UART(ptu32_t para);

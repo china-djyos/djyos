@@ -1,0 +1,14 @@
+{
+    "cpu_name":"f1cx00s",
+    "cores":[{
+        "resetAddr":"0x0",
+        "memories":{
+            "memory1":{
+                "size":"0x2000000",
+                "type":"RAM",
+                "startAddr":"0x80000000"
+            }
+        },
+        "coreClk":408
+    }]
+}

@@ -171,18 +171,19 @@ __attribute__((weak))   u64 __DjyGetSysTime(void)
     Int_LowAtomEnd(atom_low);
     if(cyclen > cyclep)     //减计数，说明在读寄存器过程中发生了定时器重载
     {
-        cyclen = reload - cyclen;
+        cyclen = reload - cyclen;   //重载值 - 当前值
         current += interval;
     }
     else                    //在读寄存器过程中未发生定时器重载，但不能排除之前发生过
     {
         if(ctrl & 0x10000)      //说明读寄存器前定时器已经重载了，但中断还没有响应。
         {
-            cyclen = reload - cyclen;
+            cyclen = reload - cyclen;   //重载值 - 当前值
             current += interval;
         }
         else
         {
+            //未发生重载，当前间隔换算成计数周期数，减去当前剩余周期数
             cyclen =(s32)((s64)interval*CN_CFG_FCLK/CN_CFG_TICK_HZ - cyclen);
         }
     }
@@ -212,7 +213,7 @@ __attribute__((weak))   u64 __DjyGetSysTime(void)
 __attribute__((weak)) u32 Tick_SetNextTimeTick(s32 Ticks)
 {
 #if CFG_TICKMODE_DYNAMIC == true
-    s32 temp;
+    s32 temp;       //systick是24位的，可用有符号数，如果是32位定时器，则要用无符号数
     atom_high_t atom_high;
     if(Ticks > s_gTicksLimit)
         Ticks = s_gTicksLimit;
@@ -226,9 +227,13 @@ __attribute__((weak)) u32 Tick_SetNextTimeTick(s32 Ticks)
         temp = (s32)(s_gCurrentTicks - Ticks )* (s64)CN_CFG_FCLK / CN_CFG_TICK_HZ;
 
         atom_high = Int_HighAtomStart();
+        //减计数定时器有个固定的缺陷，读——调整——写回计数值的过程时间差，将会产生计时误差
+        //虽然误差很小，但总是误差。
+        //加计数的就不存在问题。
         temp = pg_systick_reg->current - temp;
+        //只需要改变current寄存器，加上或减去新ticks和原ticks的差值即可
         pg_systick_reg->reload = temp;
-        pg_systick_reg->current = temp;
+        pg_systick_reg->current = temp; //本句并不会赋值，而是重载和清COUNTFLAG标记
         Int_HighAtomEnd(atom_high);
         pg_systick_reg->reload = CN_CFG_FCLK/CN_CFG_TICK_HZ;
 //        pg_systick_reg->reload = 0xffffff;

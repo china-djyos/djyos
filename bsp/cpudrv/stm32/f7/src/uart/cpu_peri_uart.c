@@ -395,7 +395,7 @@ static bool_t __UART_TxTranEmpty(tagUartReg volatile *reg)
     return ((reg->ISR & (1<<7)) !=0);
 }
 
-bool_t UART_TxEnd(u8 port)
+bool_t UART_WaitTxEnd(u8 port)
 {
     s32 timeout = 10000;
     volatile tagUartReg *Reg;

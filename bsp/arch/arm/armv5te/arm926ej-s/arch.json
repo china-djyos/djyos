@@ -1,0 +1,11 @@
+{
+    "compile-option":{
+
+    },
+    "fpu-type":"fpv4-sp-d16",
+    "name":"arm926ej-s",
+    "mcpu":"arm926ej-s",
+    "vendor-option":{
+
+    }
+}
