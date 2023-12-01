@@ -586,8 +586,22 @@ void __irq_Int_Engine(void)
 
 void __fiq_Int_Engine(void)
 {
-    u32 a;
-    a = 0;
+    ufast_t ufl_line = 0;
+    u32 CpuStatus;
+    ufl_line = pg_int_reg->VECTOR >> 2;
+    if(tg_pIntLineTable[ufl_line] != NULL)
+    {
+        if(tg_pIntLineTable[ufl_line]->int_type == CN_REAL)
+          __Int_EngineReal(ufl_line);                //是实时中断
+        else
+        {
+          __Int_EngineAsynSignal(ufl_line);         //是异步信号
+        }
+    }
+    else
+    {
+        CpuStatus=0;
+    }
 //  tg_pIntLineTable[0]->ISR(0);    //f1c100,200,600的fiq固定节NMI中断
 }
 

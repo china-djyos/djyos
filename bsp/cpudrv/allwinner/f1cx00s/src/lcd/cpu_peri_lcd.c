@@ -12,8 +12,6 @@
 #include "cpu_peri_tcon.h"
 #include <stdlib.h>
 //-----------------------
-#include "sys_lcd_conf.h"
-//-----------------------
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 #if (defined LCD_TYPE_TV_PAL_720_576)||(defined LCD_TYPE_TV_NTSC_720_480)
@@ -1134,7 +1132,6 @@ bool_t __lcd_set_pixel_screen(s32 x,s32 y,u32 color,u32 r2_code)
         dest = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,color);
     }else
     {
-        printf("__ST7789V_get_pixel\r\n");
         pixel = GK_ConvertColorToRGB24(CN_SYS_PF_RGB565,
                                         u16g_FrameBuffer[x + y * CFG_LCD_XSIZE],0);
         pixel = GK_BlendRop2(color, pixel, r2_code);

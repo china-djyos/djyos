@@ -1,19 +1,20 @@
 {
-    "board_name":"xtq-f1cx00s",
-    "cpus":{
-        "f1cx00s":{
-            "clocks":{
-
-            },
-            "chips":["nor flash gd25q128c"],
-            "peripherals":[],
-            "main_freq":"408",
-            "memories":{
-
-            }
-        }
-    },
-    "shared_memories":{
-
-    }
+	"board_name":"xtq-f1cx00s",
+	"cpus":{
+		"f1cx00s":{
+			"clocks":{
+				
+			},
+			"chips":["nor flash gd25q128c",
+			"touchscreen GT911"],
+			"peripherals":[],
+			"mian_freq":null,
+			"memories":{
+				
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
 }

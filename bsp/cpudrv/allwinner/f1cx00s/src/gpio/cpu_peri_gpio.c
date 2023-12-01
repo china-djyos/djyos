@@ -77,7 +77,7 @@ void GPIO_SettoHigh(GPIO_TypeDef * GPIOx,unsigned int GPIO_Pin )
 /*
 GPIOÊä³ö0
 */
-void GPIO_RESET(GPIO_TypeDef * GPIOx,unsigned int GPIO_Pin )
+void GPIO_SettoLow(GPIO_TypeDef * GPIOx,unsigned int GPIO_Pin )
 {
     GPIOx->DAT &= ~ (0x1<<GPIO_Pin);
 }

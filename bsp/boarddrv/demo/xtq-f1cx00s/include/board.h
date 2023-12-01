@@ -55,27 +55,27 @@ extern "C" {
 #endif
 
 /**********************************ft5x26********************************************/
-//IO方向设置
-//#define CT_SCL_OUT() djy_gpio_mode(GPIO4,PIN_MODE_OUTPUT)  //输出模式
-#define CT_SCL_OUT() gpio_config(GPIO4, GMODE_OUTPUT);
-//#define CT_SDA_IN()  djy_gpio_mode(GPIO2,PIN_MODE_INPUT_PULLUP)  //输入模式
-#define CT_SDA_IN()  gpio_config(GPIO2, GMODE_INPUT_PULLUP)  //输入模式
-//#define CT_SDA_OUT() djy_gpio_mode(GPIO2,PIN_MODE_OUTPUT)  //输出模式
-#define CT_SDA_OUT() gpio_config(GPIO2, GMODE_OUTPUT)  //输出模式
+////IO方向设置
+//#define CT_SCL_OUT() {GPIOC->MODER&=~(3<<(9*2));GPIOC->MODER|=1<<9*2;}  //PH6输出模式
+//#define CT_SDA_IN()  {GPIOA->MODER&=~(3<<(8*2));GPIOA->MODER|=0<<8*2;}  //PI3输入模式
+//#define CT_SDA_OUT() {GPIOA->MODER&=~(3<<(8*2));GPIOA->MODER|=1<<8*2;}  //PI3输出模式
+////IO操作函数
+//#define CT_IIC_SCL(n) (n?GPIO_SettoHigh(GPIO_C,PIN9):GPIO_SettoLow(GPIO_C,PIN9))//SCL
+//#define CT_IIC_SDA(n) (n?GPIO_SettoHigh(GPIO_A,PIN8):GPIO_SettoLow(GPIO_A,PIN8))//SDA
+//#define CT_READ_SDA   (GPIO_GetData(GPIO_A)&PIN8)//输入SDA
 
+//IO方向设置
+#define CT_SCL_OUT() GPIO_Congif(GPIOA, GPIO_Pin_0, GPIO_Mode_OUT, GPIO_PuPd_UP)  //PA0输出模式
+#define CT_SDA_IN()  GPIO_Congif(GPIOA, GPIO_Pin_2, GPIO_Mode_IN,  GPIO_PuPd_UP)  //PA1输入模式
+#define CT_SDA_OUT() GPIO_Congif(GPIOA, GPIO_Pin_2, GPIO_Mode_OUT, GPIO_PuPd_UP)  //PA1输出模式
 //IO操作函数
-//#define CT_IIC_SCL(n) djy_gpio_write(GPIO4,n)//SCL
-#define CT_IIC_SCL(n) gpio_output(GPIO4,n)//SCL
-//#define CT_IIC_SDA(n) djy_gpio_write(GPIO2,n)//SDA
-#define CT_IIC_SDA(n) gpio_output(GPIO2,n)//SDA
-//#define CT_READ_SDA   djy_gpio_read(GPIO2)//输入SDA
-#define CT_READ_SDA   gpio_input(GPIO2)//输入SDA
+#define CT_IIC_SCL(n) (n?GPIO_SettoHigh(GPIOA,GPIO_Pin_0):GPIO_SettoLow(GPIOA,GPIO_Pin_0))//SCL
+#define CT_IIC_SDA(n) (n?GPIO_SettoHigh(GPIOA,GPIO_Pin_2):GPIO_SettoLow(GPIOA,GPIO_Pin_2))//SDA
+#define CT_READ_SDA   (GPIO_READ(GPIOA,GPIO_Pin_2))//输入SDA
 
 /*触摸屏芯片接口IO*/
-//#define FT_RST(n)  djy_gpio_write(GPIO7,n)
-#define FT_RST(n)  gpio_output(GPIO7,n)
-//#define FT_INT     djy_gpio_read(GPIO6)
-#define FT_INT     gpio_input(GPIO6)
+#define FT_RST(n)  (n?GPIO_SettoHigh(GPIOA,GPIO_Pin_3):GPIO_SettoLow(GPIOA,GPIO_Pin_3))
+#define FT_INT      (GPIO_READ(GPIOA,GPIO_Pin_1))
 /*************************************************************************************/
 
 void Board_Init(void);

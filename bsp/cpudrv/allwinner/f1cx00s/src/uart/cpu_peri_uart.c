@@ -656,6 +656,10 @@ u32 UART_ISR(ptu32_t port)
         case UART_INT_NIP :         // 0x01 no interrupt pending
             break;
         case UART_INT_THRE:         // 0x02 THR empty
+//            Reg->UART_RBR_THR_DLL =0x31;
+//            for(num = 0;num<10000000;num++)
+//                if(Reg->UART_IIR_FCR & 0x0f == UART_INT_THRE)
+//                    break;
             num = 32 - Reg->UART_TFL;    //»°fifoø’Œª
             num = UART_PortRead(UCB,fifobuf,num);
             if(num == 0)

@@ -115,14 +115,86 @@ void OpenSpeaker()
 {
 }
 
+//===============================================================
+// TP复位引脚控制，RST和INT引脚时序配合，设置GT911的IIC地址为0x5d
+//  0=设置RESET为低电平，1=高电平
+//==============================================================
+void LcdTp_Reset_OnOff(u8 onoff)
+{
+  if(onoff)
+  {
+      GPIO_SettoHigh(GPIOA,GPIO_Pin_3 );
+  }
+  else
+  {
+      GPIO_SettoLow(GPIOA,GPIO_Pin_3);
+  }
+
+}
+
+//===============================================================
+// TP INT引脚控制，RST和INT引脚时序配合，设置GT911的IIC地址为0x5d
+//  0=设置 INT为低电平；1=高阻（CPU的INT引脚被设定为OD）
+//==============================================================
+void LcdTp_Int_OnOff(u8 onoff)
+{
+  if(onoff)
+  {
+      GPIO_SettoHigh(GPIOA,GPIO_Pin_1 );
+  }
+  else
+  {
+      GPIO_SettoLow(GPIOA,GPIO_Pin_1);
+  }
+
+}
+
+//===============================================================
+// TP INT引脚设为高阻态
+//==============================================================
+void LcdTp_Int_Input(void)
+{
+    GPIO_Congif(GPIOA, GPIO_Pin_1, GPIO_Mode_IN,  GPIO_PuPd_NOPULL);   //int
+}
+
+u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
+{
+    switch(tag)
+    {
+        case 1 :
+            switch(IO)
+            {
+            case scl_set_High : CT_IIC_SCL(1); break;
+            case scl_set_Low  : CT_IIC_SCL(0); break;
+            case scl_set_out  : CT_SCL_OUT();  break;
+            case sda_set_High : CT_IIC_SDA(1); break;
+            case sda_get      : return CT_READ_SDA;
+            case sda_set_Low  : CT_IIC_SDA(0); break;
+            case sda_set_out  : CT_SDA_OUT();  break;
+            case sda_set_in   : CT_SDA_IN();   break;
+            default:
+                break;
+            }
+        break;
+    }
+    return 0;
+}
+
 void Board_Init(void)
 {
+    //uart PIN初始化
     GPIO_Congif(GPIOE,GPIO_Pin_0,GPIO_Mode_101,GPIO_PuPd_NOPULL);//RX0
     GPIO_Congif(GPIOE,GPIO_Pin_1,GPIO_Mode_101,GPIO_PuPd_NOPULL);//TX0
     GPIO_Congif(GPIOA,GPIO_Pin_2,GPIO_Mode_101,GPIO_PuPd_NOPULL);//RX1
     GPIO_Congif(GPIOA,GPIO_Pin_3,GPIO_Mode_101,GPIO_PuPd_NOPULL);//TX1
     GPIO_Congif(GPIOE,GPIO_Pin_7,GPIO_Mode_011,GPIO_PuPd_NOPULL);//TX2
     GPIO_Congif(GPIOE,GPIO_Pin_8,GPIO_Mode_011,GPIO_PuPd_NOPULL);//RX2
+
+    //iic0 PIN初始化
+    GPIO_Congif(GPIOA, GPIO_Pin_0, GPIO_Mode_OUT, GPIO_PuPd_UP);   //scl
+    GPIO_Congif(GPIOA, GPIO_Pin_1, GPIO_Mode_OUT,  GPIO_PuPd_NOPULL);   //int
+    GPIO_Congif(GPIOA, GPIO_Pin_2, GPIO_Mode_OUT, GPIO_PuPd_UP);   //sda
+    GPIO_Congif(GPIOA, GPIO_Pin_3, GPIO_Mode_OUT, GPIO_PuPd_UP);   //rst
 }
 
 void Init_Cpu(void);
