@@ -82,7 +82,7 @@ extern void __set_CONTROL(uint32_t control);
 
 extern bool_t SysClockInit(void);
 extern void Iboot_LoadPreload(void);
-
+uint32_t SystemCoreClock = CN_CFG_MCLK;
 struct ScbReg volatile * const startup_scb_reg
                         = (struct ScbReg *)0xe000ed00;
 
@@ -131,6 +131,7 @@ void Init_Cpu(void)
 #if (CN_CPU_OPTIONAL_CACHE == 1)
     SCB_EnableICache();         //指令、数据cache使能
     SCB_EnableDCache();
+    Cache_config();
 #endif
 
 #if (CFG_RUNMODE == CN_RUNMODE_BOOTSELF)

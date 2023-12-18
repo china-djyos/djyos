@@ -22,11 +22,15 @@ extern "C" {
 #define W25X_WriteStatusReg2    0x31
 #define W25X_WriteStatusReg3    0x11
 #define W25X_ReadData           0x03
+#define W25X_ReadData_4B_Addr   0x13
 #define W25X_FastReadData       0x0B
 #define W25X_FastReadDual       0x3B
 #define W25X_PageProgram        0x02
+#define W25X_PageProgram_4B_Addr 0x12
 #define W25X_BlockErase         0xD8
+#define W25X_BlockErase_4B_Addr 0xDC
 #define W25X_SectorErase        0x20
+#define W25X_SectorErase_4B_Addr 0x21
 #define W25X_ChipErase          0xC7
 #define W25X_PowerDown          0xB9
 #define W25X_ReleasePowerDown   0xAB
@@ -40,7 +44,7 @@ extern "C" {
 #define W25X_ExitQPIMode        0xFF
 
 bool_t W25qxx_is_install(void);
-bool_t W25QXX_Write(u8* buf,u32 addr,u16 len);
+bool_t W25QXX_Write(u8* buf,u32 addr,u32 len);
 bool_t W25QXX_Read(u8* buf,u32 addr,u32 len);
 bool_t W25QXX_EraseChip(void);
 bool_t W25QXX_EraseSector(u32 addr);

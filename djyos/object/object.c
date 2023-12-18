@@ -183,9 +183,9 @@ inline static s32 __OBJ_DefaultOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl = NULL;
-            if(OpsArgs3 != 0)
-                hdl = __OBJ_Open((struct Object *)opsTarget,
-                                (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            // if(OpsArgs3 != 0)
+            hdl = __OBJ_Open((struct Object *)opsTarget,
+                            (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -1105,7 +1105,7 @@ struct Object *OBJ_MatchPath(const char *match, char **left)
                         path++;
                         continue;
                     }
-                    else if('\0' != path[2])        //完成path路径匹配
+                    else if('\0' == path[2])        //完成path路径匹配
                     {
                         *left = NULL;
                         return current;

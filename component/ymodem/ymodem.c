@@ -104,9 +104,9 @@
 #define CFG_MODULE_ENABLE_YMODEM    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 #define     CFG_YMODEM_BUF_NUM      32              //"缓存ymodem包数量",每包1024字节
-//%$#@num,5000,300000000,
+//%$#@num,1,100000000,
 #define     CFG_YMODEM_PKG_TIMEOUT  (15*1000*1000)  //"包间隔超时时间",微秒
-#define     CFG_YMODEM_TIMEOUT      (300*1000*1000) //"ymodem传输总超时时间",微秒
+#define     CFG_YMODEM_TIMEOUT      (300) //"ymodem传输总超时时间",秒
 //%$#@enum,true,false,
 //%$#@string,1,128,
 #define     CFG_YMODEM_DEVNAME      "std"           //"ymodem传输设备，std表示使用标准输入输出设备"
@@ -847,7 +847,7 @@ bool_t downloadym(char *Param)
     pYmodem->FileCnt  = 0;
     pYmodem->PkgNo    = 0;
     pYmodem->PkgSize  = CN_YMODEM_SOH_SIZE;
-    pYmodem->TimeOut  = CFG_YMODEM_TIMEOUT;
+    pYmodem->TimeOut  = CFG_YMODEM_TIMEOUT * 1000 *1000;
     pYmodem->PkgBufCnt = 0;
     pYmodem->FileBufCnt = 0;
     pYmodem->Status   = ENUM_YMODEM_STA_INFO;
@@ -1107,7 +1107,7 @@ bool_t uploadym(char *Param)
     pYmodem->FileCnt  = 0;
     pYmodem->PkgNo    = 0;
     pYmodem->PkgSize  = CN_YMODEM_SOH_SIZE;
-    pYmodem->TimeOut  = CFG_YMODEM_TIMEOUT;
+    pYmodem->TimeOut  = CFG_YMODEM_TIMEOUT * 1000 *1000;;
     pYmodem->PkgBufCnt = 0;
     pYmodem->FileBufCnt = 0;
     pYmodem->Status   = ENUM_YMODEM_STA_INFO;

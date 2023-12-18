@@ -118,6 +118,7 @@ bool_t W25qxx_InitFlag = false;
 const char *W25qFlashName = "w25qxx";      //¸ÃflashÔÚobjÔÚµÄÃû×Ö
 struct umedia *w25q_flash_um;
 extern struct Object *s_ptDeviceRoot;
+static bool_t Enable4B_AddrOpt = false;
 //-----------------------------------------------------------------------------
 //¹¦ÄÜ: ¶Á×´Ì¬¼Ä´æÆ÷
 //²ÎÊı: regno£º×´Ì¬¼Ä´æÆ÷ĞòºÅ
@@ -537,18 +538,30 @@ bool_t W25QXX_EraseSector(u32 addr)
 #else
             // SPI
             struct SPI_DataFrame CommandFrame;
-            u8 Command[4];
+            u8 Command[5];
 
-            Command[0] = W25X_SectorErase;
-            Command[1] = ((addr >> 16) & 0xFF);
-            Command[2] = ((addr >> 8) & 0xFF);
-            Command[3] = (addr & 0xFF);
+            if (Enable4B_AddrOpt)
+            {
+                Command[0] = W25X_SectorErase_4B_Addr;
+                Command[1] = ((addr >> 24) & 0xFF);
+                Command[2] = ((addr >> 16) & 0xFF);
+                Command[3] = ((addr >> 8) & 0xFF);
+                Command[4] = (addr & 0xFF);
+                CommandFrame.SendLen = 5;
+            }
+            else
+            {
+                Command[0] = W25X_SectorErase;
+                Command[1] = ((addr >> 16) & 0xFF);
+                Command[2] = ((addr >> 8) & 0xFF);
+                Command[3] = (addr & 0xFF);
+                CommandFrame.SendLen = 4;
+            }
 
             CommandFrame.RecvBuf = NULL;
             CommandFrame.RecvLen = 0;
             CommandFrame.RecvOff = 0;
             CommandFrame.SendBuf = Command;
-            CommandFrame.SendLen = 4;
 
             if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
             {
@@ -591,18 +604,30 @@ bool_t W25QXX_EraseBlock(u32 addr)
 #else
             // SPI
             struct SPI_DataFrame CommandFrame;
-            u8 Command[4];
+            u8 Command[5];
 
-            Command[0] = W25X_BlockErase;
-            Command[1] = ((addr >> 16) & 0xFF);
-            Command[2] = ((addr >> 8) & 0xFF);
-            Command[3] = (addr & 0xFF);
+            if (Enable4B_AddrOpt)
+            {
+                Command[0] = W25X_BlockErase_4B_Addr;
+                Command[1] = ((addr >> 24) & 0xFF);
+                Command[2] = ((addr >> 16) & 0xFF);
+                Command[3] = ((addr >> 8) & 0xFF);
+                Command[4] = (addr & 0xFF);
+                CommandFrame.SendLen = 5;
+            }
+            else
+            {
+                Command[0] = W25X_BlockErase;
+                Command[1] = ((addr >> 16) & 0xFF);
+                Command[2] = ((addr >> 8) & 0xFF);
+                Command[3] = (addr & 0xFF);
+                CommandFrame.SendLen = 4;
+            }
 
             CommandFrame.RecvBuf = NULL;
             CommandFrame.RecvLen = 0;
             CommandFrame.RecvOff = 0;
             CommandFrame.SendBuf = Command;
-            CommandFrame.SendLen = 4;
 
             if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
             {
@@ -654,22 +679,31 @@ bool_t W25QXX_Read(u8* buf,u32 addr,u32 len)
         }
 #else
         struct SPI_DataFrame CommandFrame;
-        u8 Command[4];
+        u8 Command[5];
 
-        // Command[0] = W25X_ReadData;
-        // Command[1] = ((addr >> 8) & 0xFF);
-        // Command[2] = (addr & 0xFF);
-        // Command[3] = 0;
-        Command[0] = W25X_ReadData;
-        Command[1] = ((addr >> 16) & 0xFF);
-        Command[2] = ((addr >> 8) & 0xFF);
-        Command[3] = (addr & 0xFF);
+        if (Enable4B_AddrOpt)
+        {
+            Command[0] = W25X_ReadData_4B_Addr;
+            Command[1] = ((addr >> 24) & 0xFF);
+            Command[2] = ((addr >> 16) & 0xFF);
+            Command[3] = ((addr >> 8) & 0xFF);
+            Command[4] = (addr & 0xFF);
+            CommandFrame.RecvOff = 5;
+            CommandFrame.SendLen = 5;
+        }
+        else
+        {
+            Command[0] = W25X_ReadData;
+            Command[1] = ((addr >> 16) & 0xFF);
+            Command[2] = ((addr >> 8) & 0xFF);
+            Command[3] = (addr & 0xFF);
+            CommandFrame.RecvOff = 4;
+            CommandFrame.SendLen = 4;
+        }
 
         CommandFrame.RecvBuf = buf;
         CommandFrame.RecvLen = len;
-        CommandFrame.RecvOff = 4;
         CommandFrame.SendBuf = Command;
-        CommandFrame.SendLen = 4;
 
         if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
         {
@@ -712,23 +746,30 @@ bool_t W25QXX_WritePage(u8* buf,u32 addr,u32 len)
             }
 #else
             struct SPI_DataFrame CommandFrame;
-            u8 Command[4];
+            u8 Command[5];
 
-            // Command[0] = W25X_PageProgram;
-            // Command[1] = ((addr >> 8) & 0xFF);
-            // Command[2] = (addr & 0xFF);
-            // Command[3] = 0;
-
-            Command[0] = W25X_PageProgram;
-            Command[1] = ((addr >> 16) & 0xFF);
-            Command[2] = ((addr >> 8) & 0xFF);
-            Command[3] = (addr & 0xFF);
+            if (Enable4B_AddrOpt)
+            {
+                Command[0] = W25X_PageProgram_4B_Addr;
+                Command[1] = ((addr >> 24) & 0xFF);
+                Command[2] = ((addr >> 16) & 0xFF);
+                Command[3] = ((addr >> 8) & 0xFF);
+                Command[4] = (addr & 0xFF);
+                CommandFrame.SendLen = 5;
+            }
+            else
+            {
+                Command[0] = W25X_PageProgram;
+                Command[1] = ((addr >> 16) & 0xFF);
+                Command[2] = ((addr >> 8) & 0xFF);
+                Command[3] = (addr & 0xFF);
+                CommandFrame.SendLen = 4;
+            }
 
             CommandFrame.RecvBuf = NULL;
             CommandFrame.RecvLen = 0;
             CommandFrame.RecvOff = 0;
             CommandFrame.SendBuf = Command;
-            CommandFrame.SendLen = 4;
 
             if (SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER))
             {
@@ -808,12 +849,12 @@ bool_t W25QXX_WriteNoErase(u8* buf,u32 addr,u32 len)
 //±¸×¢:
 //-----------------------------------------------------------------------------
 u8 W25QXX_BUFFER[4096];
-bool_t W25QXX_Write(u8* buf,u32 addr,u16 len)
+bool_t W25QXX_Write(u8* buf,u32 addr,u32 len)
 {
     u32 sec;
-    u16 sec_off;
-    u16 sec_remain;
-    u16 i;
+    u32 sec_off;
+    u32 sec_remain;
+    u32 i;
     bool_t ret = true;
 
     if(Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER))
@@ -984,6 +1025,11 @@ bool_t W25QXX_Init(void)
     chip_id = W25QXX_ReadID();
     if(chip_id == CFG_W25QXX_CHIP_ID)
     {
+        if (chip_id == 0xEF18)
+        {
+            Enable4B_AddrOpt = true;
+        }
+
  #if CFG_W25QXX_QSPI_ENABLE == TRUE       
         if(W25QXX_ReadSR(3, &temp))      //¶Á×´Ì¬¼Ä´æÆ÷3
         {
@@ -1088,8 +1134,8 @@ s32 __W25qxx_Req(enum ucmd cmd, ptu32_t args, ...)
 
             if(-1 == (s32)end)
                 end = W25qxx_description->SectorNum;
-            else if (start)
-                end += start;
+// else if (start)
+//     end += start;
 
             do
             {
