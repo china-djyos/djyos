@@ -19,8 +19,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_W25qxxInstallFat(const char *TargetFs, s32 bend, u32 doformat);
-//    ModuleInstall_W25qxxInstallFat(CFG_W25_FAT_MOUNT_NAME,CFG_W25_FAT_PART_END,CFG_W25_FAT_PART_FORMAT);
+//    extern bool_t ModuleInstall_W25qxxInstallFat(const char *TargetFs, s32 bstart, s32 bend, u32 doformat);
+//    ModuleInstall_W25qxxInstallFat(CFG_W25_FAT_MOUNT_NAME,CFG_W25_FAT_PART_START,CFG_W25_FAT_PART_END,CFG_W25_FAT_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -49,6 +49,7 @@
 //%$#@string,1,10,
 #define CFG_W25_FAT_MOUNT_NAME            "fat"      //"文件系统mount点名字",需要挂载的efs文件系统mount点名字
 //%$#@num,-1,512,
+#define CFG_W25_FAT_PART_START                 0        //"分区起始"
 #define CFG_W25_FAT_PART_END                   -1        //"分区结束"，-1表示最后一块,起始分区固定从0开始。如果不是-1的话，不会包括当前块。例如start=0,end=6,那使用的范围为0~5
 //%$#@enum,true,false,
 #define CFG_W25_FAT_PART_FORMAT               false      //"分区选项,是否需要格式化该分区"
@@ -59,7 +60,8 @@
 //@#$%component end configure
 
 
-u32 sector_num = 0;
+static u32 sector_num = 0;
+static u32 start_sector = 0;
 #define     SECTOR_SIZE     _MAX_SS         //文件系统操作的扇区大小
 
 int w25qxx_status(void);
@@ -124,7 +126,7 @@ s32 fat_w25qxx_read(u8 *buff, DWORD sector, u32 count)
 {
     s32 res = 1; // RES_ERROR;
 
-    if(W25QXX_Read(buff, ((u32)sector) * SECTOR_SIZE, count * SECTOR_SIZE))
+    if(W25QXX_Read(buff, ((u32)sector + start_sector) * SECTOR_SIZE, count * SECTOR_SIZE))
         res = 0;
     else
     {
@@ -148,7 +150,7 @@ s32 fat_w25qxx_write(u8 *buff, DWORD sector, u32 count)
 {
     s32 res = 1; // RES_ERROR;
 
-    if(W25QXX_Write(buff, ((u32)sector) * SECTOR_SIZE, count * SECTOR_SIZE))
+    if(W25QXX_Write(buff, ((u32)sector + start_sector) * SECTOR_SIZE, count * SECTOR_SIZE))
         res = 0;
     else
     {
@@ -209,34 +211,37 @@ s32 w25qxx_ioctl( u8 cmd, void *buff)
 // 返回：成功（true）；失败（false）；
 // 备注：
 // =============================================================================
-bool_t ModuleInstall_W25qxxInstallFat(const char *TargetFs, s32 bend, u32 doformat)
+bool_t ModuleInstall_W25qxxInstallFat(const char *TargetFs, s32 bstart, s32 bend, u32 doformat)
 {
     // static char *name = "w25qxx";
     char *FullPath,*notfind;
     struct Object *targetobj;
     struct FsCore *super;
 
-    if((TargetFs != NULL) && (0 != bend))
+    if((TargetFs != NULL) && (bstart < bend))
     {
         if(W25qxx_is_install())
         {
             if(bend == -1)
                 __W25qxx_Req(totalblocks, &bend);
-            sector_num = bend * 65536 / SECTOR_SIZE;    //块的数量乘块的大小，除以扇区大小就是扇区数量
-
+            sector_num = (bend - bstart) * 65536 / SECTOR_SIZE;    //块的数量乘块的大小，除以扇区大小就是扇区数量
+            start_sector = bstart * 65536 / SECTOR_SIZE;
             if(doformat)
             {
                 struct uesz sz;
                 sz.unit = 0;
                 sz.block = 1;
-                if(-1 == __W25qxx_Req(format, 0 , bend, &sz))
+                if(-1 == __W25qxx_Req(format, bstart , bend, &sz))
                 {
                     warning_printf("w25q"," Format failure.\r\n");
                     return false;
                 }
             }
 
-            __w25qxx_FsInstallInit(TargetFs,0,bend,&W25QXX_Drv);
+            if (__w25qxx_FsInstallInit(TargetFs,bstart,bend,&W25QXX_Drv) != 0)
+            {
+                return false;
+            }
 
             // if(!Device_Create((const char*)name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)name))
             // {
