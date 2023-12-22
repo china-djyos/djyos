@@ -5,7 +5,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"libjpeg-stm32"      //组件名
+//component name:"libjpeg"      //组件名
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:third               //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -23,10 +23,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
-#if ( CFG_MODULE_ENABLE_LIBJPEGSTM32 == false )
+#if ( CFG_MODULE_ENABLE_LIBJPEG == false )
 //#warning  " libjpeg 组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#define CFG_MODULE_ENABLE_LIBJPEGSTM32    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+#define CFG_MODULE_ENABLE_LIBJPEG    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
