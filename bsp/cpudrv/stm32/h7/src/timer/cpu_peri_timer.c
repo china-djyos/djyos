@@ -392,7 +392,7 @@ ptu32_t __STM32Timer_Alloc(fnTimerIsr timerisr)
     timerno = __STM32Timer_GetFirstZeroBit(gs_dwSTM32TimerBitmap);
     if(timerno < CN_STM32TIMER_NUM)//还有空闲的，则设置标志位
     {
-        gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap | (CN_STM32TIMER_BITMAP_MSK<< timerno);
+        gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap | (CN_STM32TIMER_BITMAP_MSK >> timerno);
         Int_LowAtomEnd(timeratom);  //原子操作完毕
     }
     else//没有的话直接返回就可以了，用不着再啰嗦了
@@ -452,7 +452,7 @@ bool_t  __STM32Timer_Free(ptu32_t timerhandle)
         if(timerno < CN_STM32TIMER_NUM)//还有空闲的，则设置标志位
         {       //修改全局标志一定是原子性的
             timeratom = Int_LowAtomStart();
-            gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap &(~(CN_STM32TIMER_BITMAP_MSK<< timerno));
+            gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap &(~(CN_STM32TIMER_BITMAP_MSK >> timerno));
             //解除掉中断所关联的内容
             timer->timerstate = 0;
             Int_DisableLine(irqline);

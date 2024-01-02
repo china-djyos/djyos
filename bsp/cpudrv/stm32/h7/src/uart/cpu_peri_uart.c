@@ -512,6 +512,12 @@ static void __UART_ClkConfig(u8 SerialNo)
     case CN_UART8:
         __HAL_RCC_UART8_CLK_ENABLE();
         break;
+    case CN_UART9:
+        __HAL_RCC_UART9_CLK_ENABLE();
+        break;
+    case CN_UART10:
+        __HAL_RCC_USART10_CLK_ENABLE();
+        break;
     default: break;
 
     }
@@ -641,7 +647,11 @@ void __UART_Enable(u32 port)
         case CN_UART7:
             __HAL_RCC_UART7_CLK_ENABLE();break;
         case CN_UART8:
-            __HAL_RCC_UART8_CLK_ENABLE();break;
+            __HAL_RCC_UART8_CLK_ENABLE();break;    
+        case CN_UART9:
+            __HAL_RCC_UART9_CLK_ENABLE();break;   
+        case CN_UART10:
+            __HAL_RCC_USART10_CLK_ENABLE();break;   
         default:
             break;
     }
@@ -665,6 +675,8 @@ void __UART_Disable(u32 port)
         case CN_UART6:  __HAL_RCC_USART6_CLK_DISABLE();  break;
         case CN_UART7:  __HAL_RCC_UART7_CLK_DISABLE(); break;
         case CN_UART8:  __HAL_RCC_UART8_CLK_DISABLE(); break;
+        case CN_UART9:  __HAL_RCC_UART9_CLK_DISABLE(); break;
+        case CN_UART10:  __HAL_RCC_USART10_CLK_DISABLE(); break;
         default:break;
     }
     tg_UART_Reg[port]->CR1 &= ~(1);
@@ -696,6 +708,10 @@ static void __UART_IntInit(u32 SerialNo)
                     IntLine = CN_INT_LINE_UART7; break;
         case CN_UART8:
                     IntLine = CN_INT_LINE_UART8; break;
+        case CN_UART9:
+                    IntLine = CN_INT_LINE_UART9; break;
+        case CN_UART10:
+                    IntLine = CN_INT_LINE_USART10; break;
                 default:
                     return;
     }
@@ -786,6 +802,10 @@ u32 __UART_DMA_SendStart(u32 port)
             DmaSendBufLen = CFG_UART7_DMABUF_LEN;  break;
         case CN_UART8:
             DmaSendBufLen = CFG_UART8_DMABUF_LEN;  break;
+        case CN_UART9:
+            DmaSendBufLen = CFG_UART9_DMABUF_LEN;  break;
+        case CN_UART10:
+            DmaSendBufLen = CFG_UART10_DMABUF_LEN;  break;
          default:   break;
     }
     DmaSendBuf = pUART_DmaSendBuf[port];
@@ -827,6 +847,8 @@ static u32 __UART_SendStart (ptu32_t MyReg)
     case CN_UART6_BASE:        port = CN_UART6;    break;
     case CN_UART7_BASE:        port = CN_UART7;    break;
     case CN_UART8_BASE:        port = CN_UART8;    break;
+    case CN_UART9_BASE:        port = CN_UART9;    break;
+    case CN_UART10_BASE:        port = CN_UART10;    break;
     default:return 0;
     }
 
@@ -885,6 +907,10 @@ void __UART_SetDmaUsed(u32 port)
         DmaBufLen = CFG_UART7_DMABUF_LEN;  break;
     case CN_UART8:
         DmaBufLen = CFG_UART8_DMABUF_LEN;  break;
+    case CN_UART9:
+        DmaBufLen = CFG_UART9_DMABUF_LEN;  break;
+    case CN_UART10:
+        DmaBufLen = CFG_UART10_DMABUF_LEN;  break;
     default :        return;
     }
 
@@ -962,6 +988,8 @@ void __UART_SetDmaUnUsed(u32 port)
     else if(port == CN_UART6)        IntLine = CN_INT_LINE_USART6;
     else if(port == CN_UART7)        IntLine = CN_INT_LINE_UART7;
     else if(port == CN_UART8)        IntLine = CN_INT_LINE_UART8;
+    else if(port == CN_UART9)        IntLine = CN_INT_LINE_UART9;
+    else if(port == CN_UART10)        IntLine = CN_INT_LINE_USART10;
     else    return;
 
     free(pUART_DmaSendBuf[port]);
@@ -1007,6 +1035,8 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
     case CN_UART6_BASE: port = CN_UART6;break;
     case CN_UART7_BASE: port = CN_UART7;break;
     case CN_UART8_BASE: port = CN_UART8;break;
+    case CN_UART9_BASE: port = CN_UART9;break;
+    case CN_UART10_BASE: port = CN_UART10;break;
     default:return 0;
     }
 
@@ -1089,6 +1119,10 @@ uint32_t UART_DmaTx_ISR(ptu32_t port)
         DmaSendBufLen = CFG_UART7_DMABUF_LEN;        break;
     case CN_UART8:
         DmaSendBufLen = CFG_UART8_DMABUF_LEN;        break;
+    case CN_UART9:
+        DmaSendBufLen = CFG_UART9_DMABUF_LEN;        break;
+    case CN_UART10:
+        DmaSendBufLen = CFG_UART10_DMABUF_LEN;        break;
     default:        break;
     }
 
@@ -1135,6 +1169,10 @@ uint32_t UART_DmaRx_ISR(ptu32_t port)
         DmaRecvBufLen = CFG_UART7_DMABUF_LEN/2;        break;
     case CN_UART8:
         DmaRecvBufLen = CFG_UART8_DMABUF_LEN/2;        break;
+    case CN_UART9:
+        DmaRecvBufLen = CFG_UART9_DMABUF_LEN/2;        break;
+    case CN_UART10:
+        DmaRecvBufLen = CFG_UART10_DMABUF_LEN/2;        break;
     default:        return 0;
     }
 
@@ -1551,6 +1589,16 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
         PutStrDirectReg = (tagUartReg*)CN_UART8_BASE;
         TxDirectPort = CN_UART8;
     }
+    else if(!strcmp(StdioOut,"/dev/UART9"))
+    {
+        PutStrDirectReg = (tagUartReg*)CN_UART9_BASE;
+        TxDirectPort = CN_UART9;
+    }
+    else if(!strcmp(StdioOut,"/dev/UART10"))
+    {
+        PutStrDirectReg = (tagUartReg*)CN_UART10_BASE;
+        TxDirectPort = CN_UART10;
+    }
     else
     {
         PutStrDirectReg = NULL ;
@@ -1602,6 +1650,16 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
     {
         GetCharDirectReg = (tagUartReg*)CN_UART8_BASE;
         RxDirectPort = CN_UART8;
+    }
+    else if(!strcmp(StdioIn,"/dev/UART9"))
+    {
+        GetCharDirectReg = (tagUartReg*)CN_UART9_BASE;
+        RxDirectPort = CN_UART9;
+    }
+    else if(!strcmp(StdioIn,"/dev/UART10"))
+    {
+        GetCharDirectReg = (tagUartReg*)CN_UART10_BASE;
+        RxDirectPort = CN_UART10;
     }
     else
     {
