@@ -702,14 +702,15 @@ u32 __PushCharToFile(char *TempBuf,ptu32_t Target,s32 Res,const char ch,s32 Posi
     if(Position >= CN_BUF_LENGTH-1)
     {
         TempBuf[CN_BUF_LENGTH -1] = '\0';
+#if(CFG_MODULE_ENABLE_FILE_SYSTEM == true)
 
 #if(CFG_STDIO_STDIOFILE == true)
         puts(TempBuf);
 #else       // for #if(CFG_STDIO_STDIOFILE == true)
-#if(CFG_MODULE_ENABLE_FILE_SYSTEM == true)
         fwrite(TempBuf, CN_BUF_LENGTH, 1, (FILE*)Target);
-#endif      // for #if(CFG_MODULE_ENABLE_FILE_SYSTEM == true)
 #endif      // for #if(CFG_STDIO_STDIOFILE == true)
+
+#endif      // for #if(CFG_MODULE_ENABLE_FILE_SYSTEM == true)
         Position = 0;
     }
     return Position;

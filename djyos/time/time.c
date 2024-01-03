@@ -505,6 +505,11 @@ s32 Time_SetDateTimeStr(char *buf)
     struct tm ptDateTime;
     s32 params;
 
+    if (NULL == buf)
+    {
+        return EN_CLOCK_FMT_ERROR;
+    }
+
     memset(&ptDateTime,0,sizeof(ptDateTime));
     params = sscanf(buf,"%d/%d/%d,%d:%d:%d:%d",\
             &ptDateTime.tm_year,&ptDateTime.tm_mon,&ptDateTime.tm_mday,\
@@ -612,6 +617,10 @@ void Time_SetDateTime(struct tm *tm)
 //----------------------------------------------------------------------------
 void Time_AscTime(struct tm *tm, char buf[])
 {
+    if ((NULL == tm) || (buf == NULL))
+    {
+        return ;
+    }
     itoa(tm->tm_year + 1900, &buf[0], 10);
     buf[4] = '/';
     itoa(tm->tm_mon, &buf[5], 10);
@@ -661,6 +670,10 @@ void Time_AscTime(struct tm *tm, char buf[])
 //----------------------------------------------------------------------------
 void Time_AscTimeMs(struct tm *tm, char buf[])
 {
+    if ((NULL == tm) || (buf == NULL))
+    {
+        return ;
+    }
     Time_AscTime(tm,buf);
     buf[19] = ':';
     itoa(tm->tm_us/1000, &buf[20], 10);
@@ -676,6 +689,10 @@ void Time_AscTimeMs(struct tm *tm, char buf[])
 //----------------------------------------------------------------------------
 void Time_AscTimeUs(struct tm *tm, char buf[])
 {
+    if ((NULL == tm) || (buf == NULL))
+    {
+        return ;
+    }
     Time_AscTime(tm,buf);
     buf[19] = ':';
     itoa(tm->tm_us, &buf[20], 10);

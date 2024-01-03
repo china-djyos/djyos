@@ -271,6 +271,8 @@ struct SemaphoreLCB *Lock_SempCreate_s( struct SemaphoreLCB *semp,
 {
     if(semp == NULL)
         return NULL;
+    if(init_lamp > lamps_limit)
+        return NULL;
     semp->sync_order = sync_order;
     semp->lamps_limit = lamps_limit;
     semp->lamp_counter = init_lamp;

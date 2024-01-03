@@ -367,7 +367,11 @@ __attribute__((weak)) u32 __STM32Timer_isr(ptu32_t TimerHandle)
 //  tg_TIMER_Reg[timerno]->CNT = 0;
     tg_TIMER_Reg[timerno]->SR = 0;//清中断标志
     Int_ClearLine(((struct STM32TimerHandle  *)TimerHandle)->irqline);
-    return ((struct STM32TimerHandle  *)TimerHandle)->UserIsr(TimerHandle);
+    if (NULL != ((struct STM32TimerHandle  *)TimerHandle)->UserIsr)
+    {
+        return ((struct STM32TimerHandle  *)TimerHandle)->UserIsr(TimerHandle);
+    }
+    return 0;
 }
 
 // =============================================================================

@@ -37,6 +37,7 @@
 //#define AT32F435CGT7   // default console USART1
 //#define AT32F435CMT7   // default console USART2
 //#define AT32F437ZMT7   // default console USART1
+//#define AT32F437VGT7   // default console USART1
 
 //%$#@free
 #endif

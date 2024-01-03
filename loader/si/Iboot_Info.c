@@ -1155,42 +1155,44 @@ bool_t XIP_CheckAppInFile(const char *path)
         {
             memcpy(apphead_back, apphead, readsize);    //校验过程头部信息会别修改，故备份
             needcheck = Iboot_CheckAppHead(apphead);
-            file_size = readsize;
-            while(1)
+            if (true == needcheck)
             {
-                readsize = fread(buf, 1, buf_len, fp);
-                //不能使用 struct AppHead的app_bin_size成员，有些特殊的CPU例如 beken（博通）
-                //会要求烧录的文件进行转换，使文件尺寸与编译出来的尺寸（app_bin_size)不同。
-                file_size += readsize;
-                if(readsize)
+                file_size = readsize;
+                while(1)
                 {
-                    if(needcheck == true)
+                    readsize = fread(buf, 1, buf_len, fp);
+                    //不能使用 struct AppHead的app_bin_size成员，有些特殊的CPU例如 beken（博通）
+                    //会要求烧录的文件进行转换，使文件尺寸与编译出来的尺寸（app_bin_size)不同。
+                    file_size += readsize;
+                    if(readsize)
                     {
                         Iboot_CheckAppBody(apphead, buf, readsize);
                     }
-                }
-                else
-                {   //文件全读完了
-                    if(file_size != (u32)file_stat.st_size)
-                    {
-                        printf("file check : file size error\r\n");
-                        ret = false;
-                    }
-                    else if(needcheck == true)
-                    {
-                        Iboot_CheckAppComplete(apphead);
-                         //比较两个文件头里的校验码
-                        if(Iboot_CheckAppCompare(apphead,apphead_back) == false)
+                    else
+                    {   //文件全读完了
+                        if(file_size != (u32)file_stat.st_size)
                         {
-                            printf("file check error\r\n");
+                            printf("file check : file size error\r\n");
+                            ret = false;
                         }
                         else
-                            ret = true;
+                        {
+                            Iboot_CheckAppComplete(apphead);
+                             //比较两个文件头里的校验码
+                            if(Iboot_CheckAppCompare(apphead,apphead_back) == false)
+                            {
+                                printf("file check error\r\n");
+                            }
+                            else
+                                ret = true;
+                        }
+                        break;
                     }
-                    else
-                        ret = false;
-                    break;
                 }
+            }
+            else
+            {
+                ret = true;
             }
         }
         else
