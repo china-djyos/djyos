@@ -77,6 +77,7 @@ enum ucmd{
     totalSectors,   // 总扇区数, req(totalblocks, *blocks)
     unitbytes,      // 某unit的Bytes, req(unitbytes, *bytes)
     sparebytes,     // 某unit的spare区域的bytes，req(sparebytes,*bytes);
+    sectorsunits,   // 一扇区中的unit数量；req(blockunits, *units, block)
     blockunits,     // 一个块中的unit数量；req(blockunits, *units, block)
     format,         // 格式化某一段区域;req(format, start, counts, *esz)
     lock,

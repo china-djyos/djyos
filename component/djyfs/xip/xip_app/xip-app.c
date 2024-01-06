@@ -284,6 +284,7 @@ static s32 xip_app_scanfiles(struct __icore *core)
     {
         goto Error;
     }
+    OBJ_SetToTemp(core->root->child);	//把文件接入系统后，把文件对象设置为临时对象，因为文件的属性就应该是临时对象
 //  obj_Close(core->root->child);   //  把子节点引用次数减一，因为xip的文件并没有打开，只是事先加到obj里
     printf("\r\n: info : xipfs  : valid file found, name(%s), size(%dKB).", name, (file->sz>>10));
     free(file);
@@ -1194,14 +1195,15 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     return result;
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
+// #pragma GCC diagnostic push
+// #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-__attribute__((weak)) s32 xip_fs_format(void *core)
+s32 xip_app_fs_format(struct __icore * core)
 {
-    return 0;
+    OBJ_ReleaseTempPath(core->root->child);		//把临时的文件对象释放掉
+    return core->drv->xip_erase_media(core, Iboot_GetAppHeadSize(), 0); //只要把app头擦除就可以了
 }
-#pragma GCC diagnostic pop
+// #pragma GCC diagnostic pop
 
 // ============================================================================
 // 功能：安装xip文件系统
@@ -1224,7 +1226,7 @@ s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)
         typeXIPAPP->fileOps = xip_app_ops;
         typeXIPAPP->install = xip_app_fs_install;
         typeXIPAPP->pType = "XIP-APP";
-        typeXIPAPP->format = xip_fs_format;
+        typeXIPAPP->format = xip_app_fs_format;
         typeXIPAPP->uninstall = NULL;
     }
     res = File_RegisterFs(typeXIPAPP);

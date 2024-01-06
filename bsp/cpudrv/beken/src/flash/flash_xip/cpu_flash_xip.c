@@ -422,28 +422,28 @@ s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 xip_fs_format(void *core)
-{
-    struct __icore *xip_core = core;
-    s32 left = xip_core->ASize, start, all, page_size, page_num;
-    start = (xip_core->MStart * nordescription->BytesPerPage) * 34 / 32;
-    page_size = nordescription->BytesPerPage;
-    page_num = nordescription->PagesPerSector;
-    all = page_size * page_num;
-    if(is_protect == 1)
-    {
-        is_protect = 0;
-        flash_protection_op(0,FLASH_PROTECT_NONE);
-    }
-    while(left > 0)
-    {
-        djy_flash_erase(start);
-        start += all;
-        left -= all;
-    }
+// s32 xip_fs_format(void *core)
+// {
+//     struct __icore *xip_core = core;
+//     s32 left = xip_core->ASize, start, all, page_size, page_num;
+//     start = (xip_core->MStart * nordescription->BytesPerPage) * 34 / 32;
+//     page_size = nordescription->BytesPerPage;
+//     page_num = nordescription->PagesPerSector;
+//     all = page_size * page_num;
+//     if(is_protect == 1)
+//     {
+//         is_protect = 0;
+//         flash_protection_op(0,FLASH_PROTECT_NONE);
+//     }
+//     while(left > 0)
+//     {
+//         djy_flash_erase(start);
+//         start += all;
+//         left -= all;
+//     }
 
-    return (0);
-}
+//     return (0);
+// }
 
 //-----------------------------------------------------------------------------
 // 功能：安装片内Flash驱动

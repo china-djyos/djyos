@@ -59,25 +59,25 @@
 #include <device/djy_flash.h> // will be obsolete
 #include <device/unit_media.h>
 #include <xip.h>
-#include "w25qxx.h"
+#include <spi_flash.h>
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_W25qInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
-//    ModuleInstall_W25qInstallXIP(CFG_W25Q_XIPFSMOUNT_NAME,CFG_W25Q_XIP_PART_START,
-//                                              CFG_W25Q_XIP_PART_END, CFG_W25Q_XIP_PART_FORMAT);
+//    extern s32 ModuleInstall_SpiFlashInstallXIP(const char *TargetFs, s32 bstart, s32 bend, u32 doformat);
+//    ModuleInstall_SpiFlashInstallXIP(CFG_SPI_FLASH_XIPFSMOUNT_NAME,CFG_SPI_FLASH_XIP_PART_START,
+//                                              CFG_SPI_FLASH_XIP_PART_END, CFG_SPI_FLASH_XIP_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"W25QXX XIP"//片内flash安装xip
-//parent:"norflash W25QXX"//填写该组件的父组件名字，none表示没有父组件
+//component name:"spi flash XIP"//片内flash安装xip
+//parent:"spi flash"//填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                       //初始化时机，可选值：early，medium，later, pre-main。
+//init time:medium                       //初始化时机，可选值：early，medium，later, pre-main。
                                         //表示初始化时间，分别是早期、中期、后期
-//dependence:"device file system","norflash W25QXX"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"spi flash"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
 //weakdependence:"xip app file system","xip iboot file system"  //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -88,17 +88,17 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
-#if ( CFG_MODULE_ENABLE_W25Q_INSATALL_XIP == false )
-//#warning  " w25q_insatall_xip  组件参数未配置，使用默认配置"
+#if ( CFG_MODULE_ENABLE_SPI_FLASH_INSATALL_XIP == false )
+//#warning  " spi flash XIP  组件参数未配置，使用默认配置"
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#define CFG_MODULE_ENABLE_W25Q_INSATALL_XIP    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+#define CFG_MODULE_ENABLE_SPI_FLASH_INSATALL_XIP    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,-1,2048,
-#define CFG_W25Q_XIP_PART_START      6          //分区起始，填写块号，块号从0开始计算
-#define CFG_W25Q_XIP_PART_END        -1         //分区结束，-1表示最后一块，如果结束块是6，起始块是0，则该分区使用的块为0，1，2，3，4，5块
+#define CFG_SPI_FLASH_XIP_PART_START      6          //分区起始，填写块号，块号从0开始计算
+#define CFG_SPI_FLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块，如果结束块是6，起始块是0，则该分区使用的块为0，1，2，3，4，5块
 //%$#@enum,true,false,
-#define CFG_W25Q_XIP_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
+#define CFG_SPI_FLASH_XIP_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
 //%$#@enum,"xip-app","xip-iboot",NULL
-#define CFG_W25Q_XIPFSMOUNT_NAME   "xip-app"    //需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
+#define CFG_SPI_FLASH_XIPFSMOUNT_NAME   "xip-app"    //需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
@@ -111,24 +111,21 @@
 //@#$%component end configure
 // ============================================================================
 
-// extern bool_t w25q_is_install(void);
-// extern s32 __w25q_read(s64 unit, void *data, struct uopt opt);
-// extern s32 __w25q_req(enum ucmd cmd, ptu32_t args, ...);
-// extern s32 __w25q_write(s64 unit, void *data, struct uopt opt);
-// extern s32 __w25q_erase(s64 unit, struct uesz sz);
-// extern s32 __w25q_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv);
-s32 xip_w25q_write(struct __icore *core, u8 *data, u32 bytes, u32 pos);
-s32 xip_w25q_read(struct __icore *core, u8 *data, u32 bytes, u32 pos);
-s32 xip_w25q_erase(struct __icore *core, u32 bytes, u32 pos);
+u32 flash_page_size = 0;
+u32 flash_page_per_sector = 0;
+
+s32 xip_spi_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos);
+s32 xip_spi_flash_read(struct __icore *core, u8 *data, u32 bytes, u32 pos);
+s32 xip_spi_flash_erase(struct __icore *core, u32 bytes, u32 pos);
 
 
-struct __xip_drv XIP_W25Q_DRV =
+struct __xip_drv XIP_SPI_FLASH_DRV =
 {
-    .xip_erase_media = xip_w25q_erase,
-    .xip_read_media = xip_w25q_read,
-    .xip_write_media = xip_w25q_write
+    .xip_erase_media = xip_spi_flash_erase,
+    .xip_read_media = xip_spi_flash_read,
+    .xip_write_media = xip_spi_flash_write
 };
-// ============================================================================
+// ===========================================================================````````````````````=
 // 功能：写数据
 // 参数：core -- xip文件系统管理信息
 //      data -- 数据缓冲
@@ -137,101 +134,15 @@ struct __xip_drv XIP_W25Q_DRV =
 // 返回：成功（0）；失败（-1）；
 // 备注：当写到最后一个unit时，会尝试擦除
 // ============================================================================
-s32 xip_w25q_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
+s32 xip_spi_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
     s32 res = -1; // RES_ERROR;
 
-    if(W25QXX_Write(data, pos + (core->MStart * CFG_W25QXX_BYTES_PAGE), bytes))
+    if(SpiFlashWrite(data, pos + (core->MStart * flash_page_size), bytes))
     {
         res = 0;
     }
     return res;
-
-
-//     struct umedia *um = (struct umedia *)core->vol;
-//     struct uesz esz = {0};
-//     struct uopt opt = {0};
-//     u32 j, offset, once, more;
-//     s32 left;
-//     s64 unit;
-//     u32 block = 0;
-
-//     left = bytes;
-//     unit = (pos / core->bufsz) + core->MStart;
-//     offset = pos & (core->bufsz-1); // unit内偏移
-//     __w25q_req(lock, CN_TIMEOUT_FOREVER);
-//     while(left>0)
-//     {
-// #if 0
-//         // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
-//         // (page+1)用于防止格式化了不属于xip的空间
-//         __w25q_req(remain, (ptu32_t)&more, &unit);
-//         if(!more)
-//         {
-//             // +1是表示当前unit的后面一个
-//             if(((unit-um->ustart+1)<<um->usz)<um->asz)
-//             {
-//                 struct uesz sz = {0};
-//                 sz.unit = 1;
-//                 __w25q_erase(unit+1, sz); // 不管有没有擦除成功，因为如果后续写入的话，会有回读校验
-//             }
-//         }
-// #endif
-//         if(__w25q_read(unit, um->ubuf, opt))
-//         {
-//             __w25q_req(unlock, 0); //
-//             return (-1);
-//         }
-
-//         once = core->bufsz;
-//         if(left<(s32)once)
-//             once = left;
-
-//         for(j=0; j<(once); j++)
-//         {
-//             if(um->ubuf[j+offset]!=data[j])
-//             {
-//                 if(0xFF!=um->ubuf[j+offset])        //判断当前页是否为FF
-//                 {
-//                     __w25q_req(unlock, 0);
-//                     return (-1);
-//                 }
-//             }
-//         }
-
-//         memcpy((um->ubuf + offset), data, once);
-//         if(__w25q_write(unit, um->ubuf, opt))
-//         {
-//             __w25q_req(unlock, 0);
-//             return (-1);
-//         }
-
-//         left -= once;
-//         offset = 0;
-//         data += once;
-//         if(left)
-//             unit++;
-//     }
-
-//     // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
-//     // (page+1)用于防止格式化了不属于xip的空间
-//     __w25q_req(remain, (ptu32_t)&more, &unit);
-//     if(!more)
-//     {
-//         // +1是表示当前unit的后面一个
-//         if(((unit-core->MStart+1)* core->bufsz) >= core->ASize)
-//         {
-//             return (-2);
-//         }
-//         esz.block = 1;
-// //        esz->unit = 0;
-//         __w25q_req(whichblock, (ptu32_t)&block, &unit);
-//         //block是当前页所在的块号，block+1是为了擦除下一个块（block+1是要擦除的块，擦到block+1+1块就不擦了）
-//         __w25q_req(format, block+1, block+1+1, &esz);
-//     }
-
-//     __w25q_req(unlock, 0); //
-//     return (0);
 }
 
 // ============================================================================
@@ -243,43 +154,15 @@ s32 xip_w25q_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 // 返回：成功（0）；失败（-1）；
 // 备注：单次也就只会读一个unit，目前
 // ============================================================================
-s32 xip_w25q_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
+s32 xip_spi_flash_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
     s32 res = -1; // RES_ERROR;
 
-    if(W25QXX_Read(data, pos + (core->MStart * CFG_W25QXX_BYTES_PAGE), bytes))
+    if(SpiFlashRead(data, pos + (core->MStart * flash_page_size), bytes))
     {
         res = 0;
     }
     return res;
-
-    // struct umedia *um = (struct umedia *)core->vol;
-    // struct uopt opt = {0};
-    // s64 unit;
-    // u32 offset;
-    // s32 left = bytes, once;
-
-    // unit = (pos / core->bufsz) + core->MStart;
-    // offset = pos & (core->bufsz - 1); // unit内偏移
-    // __w25q_req(lock, CN_TIMEOUT_FOREVER);
-    // while(left>0)
-    // {
-    //     once = MIN((core->bufsz - offset), left);
-    //     if(__w25q_read(unit, um->ubuf, opt))
-    //     {
-    //         __w25q_req(unlock, 0); //
-    //         return (-1);
-    //     }
-
-    //     memcpy(data, (um->ubuf + offset), once);
-    //     left -= once;
-    //     offset = 0;
-    //     unit++;
-    //     data += once;
-    // }
-
-    // __w25q_req(unlock, 0); //
-    // return (0);
 }
 
 // ============================================================================
@@ -287,55 +170,30 @@ s32 xip_w25q_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 // 参数：core -- xip文件系统管理信息
 //       bytes -- 字节数
 //       pos -- 数据地址
-// 返回：成功（0）；失败（-1）；
+// 返回：成功（0）；失败 -1 -- 参数错误; -2 -- 文件系统内有文件正在被使用; -3 -- 格式化失败;；
 // 备注：
 // ============================================================================
-s32 xip_w25q_erase(struct __icore *core, u32 bytes, u32 pos)
+s32 xip_spi_flash_erase(struct __icore *core, u32 bytes, u32 pos)
 {
-    u32 addr = pos + (core->MStart / CFG_W25QXX_PAGES_SECTOR);
+    u32 addr = pos + (core->MStart / flash_page_per_sector);
     s32 res = 0;
     s32 len = (s32)bytes;
 
+    if (NULL == core)
+    {
+        return -1;
+    }
+
     while (len > 0)
     {
-        if (false == W25QXX_EraseSector(addr))
+        if (false == SpiFlashEraseSector(addr))
         {
-            res = -1;
+            res = -3;
             break;
         }
-        addr += CFG_W25QXX_BYTES_PAGE * CFG_W25QXX_PAGES_SECTOR;
-        len -= CFG_W25QXX_BYTES_PAGE * CFG_W25QXX_PAGES_SECTOR;
+        addr += flash_page_size * flash_page_per_sector;
+        len -= flash_page_size * flash_page_per_sector;
     }
-    
-
-    // struct uesz esz = {0};
-    // s64 unit;
-    // u32 erases, offset;
-    // s32 left = bytes;
-
-    // esz.unit = 1;
-    // unit = (pos / core->bufsz) + core->MStart;
-    // offset = pos & (core->bufsz-1); // unit内偏移
-    // __w25q_req(lock, CN_TIMEOUT_FOREVER);
-    // while(left>0)
-    // {
-    //     if(__w25q_req(remain, (ptu32_t)&erases, (ptu32_t)&unit))       //获取当前页在所在块中的位置
-    //     {
-    //         printf("\r\n: erro : xipfs  : erase unit %lld failed, cannot get remain.", unit);
-    //         return (-1);
-    //     }
-
-    //     if(__w25q_erase(unit, esz))
-    //     {
-    //         printf("\r\n: erro : xipfs  : erase unit %lld failed, with erases %d.", unit, erases);
-    //         return (-1);
-    //     }
-
-    //     erases++; // 擦除增一，表示包括当前的unit
-    //     left -= ((erases * core->bufsz) - offset);
-    //     unit += erases;     //加erases等于下一块的第一页
-    //     offset = 0;
-    // }
 
     return (res);
 }
@@ -352,9 +210,9 @@ s32 xip_w25q_erase(struct __icore *core, u32 bytes, u32 pos)
 //     struct uesz sz;
 //     sz.unit = 0;
 //     sz.block = 1;
-//     if(-1 == __W25qxx_Req(format, CFG_W25Q_XIP_PART_START , CFG_W25Q_XIP_PART_END, &sz))
+//     if(-1 == __SpiFlashReq(format, CFG_SPI_FLASH_XIP_PART_START , CFG_SPI_FLASH_XIP_PART_END, &sz))
 //     {
-//         warning_printf("w25q_xip"," Format failure.\r\n");
+//         warning_printf("flash_xip"," Format failure.\r\n");
 //     }
 //     return (0);
 // }
@@ -366,12 +224,12 @@ s32 xip_w25q_erase(struct __icore *core, u32 bytes, u32 pos)
 // 返回：成功（0）；失败（-1）；
 // 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
 //-----------------------------------------------------------------------------
-bool_t ModuleInstall_W25qInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
+bool_t ModuleInstall_SpiFlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
 {
     struct FsCore *super;
     char *notfind;
     struct Object *targetobj;
-    if(W25qxx_is_install() == true)
+    if(SpiFlashIsInstall() == true)
     {
         if((TargetFs != NULL) && (bstart != bend))
         {
@@ -380,24 +238,29 @@ bool_t ModuleInstall_W25qInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u
                 struct uesz sz;
                 sz.unit = 0;
                 sz.block = 1;
-                if(-1 == __W25qxx_Req(format, bstart , bend, &sz))
+                if(-1 == __SpiFlashReq(format, bstart , bend, &sz))
                 {
-                    warning_printf("w25q_xip"," Format failure.\r\n");
+                    warning_printf("flash_xip"," Format failure.\r\n");
                 }
             }
             targetobj = OBJ_MatchPath(TargetFs, &notfind);
             if(notfind)
             {
-                error_printf("w25q_xip"," not found need to install file system.\r\n");
+                error_printf("flash_xip"," not found need to install file system.\r\n");
                 return false;
             }
             super = (struct FsCore *)OBJ_GetPrivate(targetobj);
             if((strcmp(super->pFsType->pType, "XIP-APP") == 0) || (strcmp(super->pFsType->pType, "XIP-IBOOT") == 0))
             {
-                if(__w25qxx_FsInstallInit(TargetFs,bstart,bend,&XIP_W25Q_DRV) == 0)
+                __SpiFlashReq(unitbytes,(ptu32_t)&flash_page_size);
+                __SpiFlashReq(sectorsunits,(ptu32_t)&flash_page_per_sector);
+                if(__SpiFlashFsInstallInit(TargetFs,bstart,bend,&XIP_SPI_FLASH_DRV) == 0)
+                {
                     return true;
+                }
             }
-            error_printf("w25q_xip"," need to install file system not XIP.\r\n");
+            
+            error_printf("flash_xip"," need to install file system not XIP.\r\n");
         }
     }
     return false;
