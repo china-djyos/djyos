@@ -325,7 +325,11 @@ __attribute__((weak)) u32 __CPUTimer_isr(ptu32_t TimerHandle)
         tg_TIMER_Reg[timerno]->CONTROL = 0;         //停止计数器，关中断
 //        tg_TIMER_Reg[timerno]->COUNTER = 0;         //清计数器
     }
-    return (timer->UserIsr(TimerHandle));
+    if (NULL != timer->UserIsr)
+    {
+        return (timer->UserIsr(TimerHandle));
+    }
+    return 0;
 }
 
 // =============================================================================
@@ -420,7 +424,7 @@ bool_t  __CPUTimer_Free(ptu32_t timerhandle)
         if(timerno < CN_CPUTIMER_NUM)//还有空闲的，则设置标志位
         {       //修改全局标志一定是原子性的
             timeratom = Int_LowAtomStart();
-            gs_dwCPUTimerBitmap = gs_dwCPUTimerBitmap &(~(CN_CPUTIMER_BITMAP_MSK<< timerno));
+            gs_dwCPUTimerBitmap = gs_dwCPUTimerBitmap &(~(CN_CPUTIMER_BITMAP_MSK>> timerno));
             //解除掉中断所关联的内容
             timer->timerstate = 0;
             timer->autoReloadSet = EN_RELOAD_NOT_SET;
@@ -1045,7 +1049,7 @@ bool_t  __CPUTimer_Free(ptu32_t timerhandle)
         if(timerno < CN_CPUTIMER_NUM)//还有空闲的，则设置标志位
         {       //修改全局标志一定是原子性的
             timeratom = Int_LowAtomStart();
-            gs_dwCPUTimerBitmap = gs_dwCPUTimerBitmap &(~(CN_CPUTIMER_BITMAP_MSK<< timerno));
+            gs_dwCPUTimerBitmap = gs_dwCPUTimerBitmap &(~(CN_CPUTIMER_BITMAP_MSK>> timerno));
             //解除掉中断所关联的内容
             timer->timerstate = 0;
             silan_timer_disable(TIMER_ADDR(timerno));

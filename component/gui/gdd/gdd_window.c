@@ -661,6 +661,12 @@ void GDD_SetWindowName(HWND hwnd, char *NewName)
     __GDD_DrawWinCaption(hwnd);
     return ;
 }
+//取窗口名字
+char *GDD_GetWindowName(HWND hwnd)
+{
+    char* name=GK_GetName(hwnd->pGkWin);
+    return name;
+}
 
 //----初始化窗口数据结构---------------------------------------------------------
 //描述: 该函数为内部调用.
@@ -744,7 +750,8 @@ bool_t GDD_DesktopPaint(struct WindowMsg *pMsg)
         return false;
     GDD_GetClientRect(hwnd,&rc);
 
-    GDD_GradientFillRect(hdc,&rc,RGB(120,120,255),RGB(20,20,80),CN_FILLRECT_MODE_UD);
+    GDD_FillRectEx(hdc,&rc,RGB(1,1,1));
+    //GDD_GradientFillRect(hdc,&rc,RGB(120,120,255),RGB(20,20,80),CN_FILLRECT_MODE_N);
 
     GDD_EndPaint(hwnd,hdc);
     return true;
@@ -1287,7 +1294,14 @@ bool_t    GDD_IsWindowVisible(HWND hwnd)
 //    }
     return res;
 }
-
+bool_t   GDD_IsWindowExist(HWND hwnd)
+{
+    if(hwnd->pGkWin==NULL||hwnd==NULL)
+    {
+        return false;
+    }
+    return true;
+}
 //----设置窗口为无效-------------------------------------------------------------
 //描述: 略
 //参数：hwnd:窗口句柄.
@@ -1679,6 +1693,7 @@ static ptu32_t __GDD_DefWindowProcSYNC(struct WindowMsg *pMsg)
 }
 #pragma GCC diagnostic pop
 
+void __GDD_InitMsg(struct WindowMsg *msg,HWND hwnd,u32 code,u32 param1,ptu32_t param2);
 //----默认的窗口关闭消息处理函数-------------------------------------
 //描述: 关闭窗口，如果是焦点窗口或者是焦点窗口的祖先窗口，就把焦点窗口转移到桌面。
 //      从末梢窗口开始，逐个删除窗口数据结构。
@@ -1956,6 +1971,7 @@ HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
             result = NULL;
         }
     }
+
     if(result == NULL)
     {
         debug_printf("gdd","Create APP main window failure\n\r");

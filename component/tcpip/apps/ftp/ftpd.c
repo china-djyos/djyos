@@ -889,6 +889,7 @@ static ptu32_t __FTP_DomainServerMain()
     s32 addr_len = sizeof(struct sockaddr);
     tagFtpDomain  *Domain,*Dhead;
     time_t timeindex;
+    u32 SocketFail = 0;
 
     DomainMultiplex = Multiplex_Create(1);
     if(DomainMultiplex == NULL)
@@ -897,12 +898,23 @@ static ptu32_t __FTP_DomainServerMain()
     local.sin_port=htons(CN_FTP_SPORT);
     local.sin_family=AF_INET;
     local.sin_addr.s_addr=INADDR_ANY;
-    server21port=socket(AF_INET, SOCK_STREAM, 0);
-    lsnsock = __Fd2Sock(server21port);
-    if(server21port < 0)
-    {
-        error_printf("ftpd","socket err\r\n");
-        return 0;
+
+    while(1)
+    {	//循环直到服务器sock正常
+        server21port=socket(AF_INET, SOCK_STREAM, 0);
+        if(server21port < 0)
+        {
+            if (0 == ((SocketFail ++) % 10))
+            {
+                error_printf("ftpd","socket err\r\n");
+            }
+            DJY_EventDelay(100*1000);
+        }
+        else
+        {
+            lsnsock = __Fd2Sock(server21port);
+            break;
+        }
     }
     if(0 != bind(server21port, (struct sockaddr *)&local, addr_len))
     {

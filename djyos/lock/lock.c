@@ -173,7 +173,7 @@ ptu32_t __InitLock(void)
 {
     static struct MemCellPool lock_pool;
 
-    g_ptLockMemBlock = M_Malloc(CFG_LOCK_LIMIT* sizeof(union lock_MCB),0);
+    g_ptLockMemBlock = M_Malloc(CFG_LOCK_LIMIT* sizeof(union lock_MCB),CN_TIMEOUT_FOREVER);
     if(g_ptLockMemBlock == NULL)
         return 0;
 
@@ -238,7 +238,7 @@ struct SemaphoreLCB *Lock_SempCreate(s32 lamps_limit,s32 init_lamp,
     struct SemaphoreLCB *semp;
     if(init_lamp > lamps_limit)
         return NULL;
-    semp = Mb_Malloc(g_ptLockPool,0);
+    semp = Mb_Malloc(g_ptLockPool,CN_TIMEOUT_FOREVER);
     if(semp == NULL)
         return NULL;
     semp->sync_order = sync_order;
@@ -270,6 +270,8 @@ struct SemaphoreLCB *Lock_SempCreate_s( struct SemaphoreLCB *semp,
                        s32 lamps_limit,s32 init_lamp,u32 sync_order,const char *name)
 {
     if(semp == NULL)
+        return NULL;
+    if(init_lamp > lamps_limit)
         return NULL;
     semp->sync_order = sync_order;
     semp->lamps_limit = lamps_limit;
@@ -585,7 +587,7 @@ void Lock_SempSetSyncSort(struct SemaphoreLCB *semp,u32 order)
 struct MutexLCB *Lock_MutexCreate(const char *name)
 {
     struct MutexLCB *mutex;
-    mutex = Mb_Malloc(g_ptLockPool,0);
+    mutex = Mb_Malloc(g_ptLockPool,CN_TIMEOUT_FOREVER);
     if(mutex == NULL)
         return NULL;
     mutex->enable = 0;   //互斥量的初始状态是可用的,否则必须指定onwer

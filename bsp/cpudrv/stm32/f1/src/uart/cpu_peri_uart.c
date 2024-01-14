@@ -168,42 +168,48 @@ static tagUartReg volatile * const tg_UART_Reg[] = {(tagUartReg *)CN_UART1_BASE,
 //#define CFG_UART1_SENDBUF_LEN            512
 //#define CFG_UART1_RECVBUF_LEN            512
 //#define CFG_UART1_DMABUF_LEN             32
-static u8 * UART1_DmaSendBuf;
-static u8 * UART1_DmaRecvBuf;
+static u8 *UART_DmaSendBuf[CN_UART_NUM];
+static u8 *UART_DmaRecvBuf[CN_UART_NUM];
+static bool_t UART_DMA_SENDING[CN_UART_NUM];
+
+// static u8 * UART1_DmaSendBuf;
+// static u8 * UART1_DmaRecvBuf;
 static bool_t UART1_FIRST_DMA_SEND;
-static bool_t UART1_DMA_SENDING = false;
+// static bool_t UART1_DMA_SENDING = false;
 static bool_t s_UART1_DmaUsed = false;
-uint32_t UART1_DMA1CH4_ISR(ptu32_t IntLine);
-uint32_t UART1_DMA1CH5_ISR(ptu32_t IntLine);
+//uint32_t UART1_DMA1CH4_ISR(ptu32_t IntLine);
+//uint32_t UART1_DMA1CH5_ISR(ptu32_t IntLine);
 
 //#define CFG_UART2_SENDBUF_LEN            32
 //#define CFG_UART2_RECVBUF_LEN            32
 //#define CFG_UART2_DMABUF_LEN             32
-static u8 * UART2_DmaSendBuf;
-static u8 * UART2_DmaRecvBuf;
+// static u8 * UART2_DmaSendBuf;
+// static u8 * UART2_DmaRecvBuf;
 static bool_t UART2_FIRST_DMA_SEND;
-static bool_t UART2_DMA_SENDING = false;
+// static bool_t UART2_DMA_SENDING = false;
 static bool_t s_UART2_DmaUsed = false;
-uint32_t UART2_DMA1CH7_ISR(ptu32_t IntLine);
-uint32_t UART2_DMA1CH6_ISR(ptu32_t IntLine);
+//uint32_t UART2_DMA1CH7_ISR(ptu32_t IntLine);
+//uint32_t UART2_DMA1CH6_ISR(ptu32_t IntLine);
 
 //#define CFG_UART3_SENDBUF_LEN            32
 //#define CFG_UART3_RECVBUF_LEN            32
 //#define CFG_UART3_DMABUF_LEN             32
-static u8 * UART3_DmaSendBuf;
-static u8 * UART3_DmaRecvBuf;
+// static u8 * UART3_DmaSendBuf;
+// static u8 * UART3_DmaRecvBuf;
 static bool_t UART3_FIRST_DMA_SEND;
-static bool_t UART3_DMA_SENDING = false;
+// static bool_t UART3_DMA_SENDING = false;
 static bool_t s_UART3_DmaUsed = false;
 
-uint32_t UART3_DMA1CH2_ISR(ptu32_t IntLine);
-uint32_t UART3_DMA1CH3_ISR(ptu32_t IntLine);
+//uint32_t UART3_DMA1CH2_ISR(ptu32_t IntLine);
+//uint32_t UART3_DMA1CH3_ISR(ptu32_t IntLine);
 //#define CFG_UART4_SENDBUF_LEN            32
 //#define CFG_UART4_RECVBUF_LEN            32
 //
 //#define CFG_UART5_SENDBUF_LEN            32
 //#define CFG_UART5_RECVBUF_LEN            32
 
+uint32_t UART_DmaRx_ISR(ptu32_t port);
+uint32_t UART_DmaTx_ISR(ptu32_t port);
 static struct UartGeneralCB *pUartCB[CN_UART_NUM];
 
 __attribute__((weak))  void Board_UartHalfDuplexSend(u8 SerialNo)
@@ -218,7 +224,7 @@ __attribute__((weak))  void Board_UartHalfDuplexRecv(u8 SerialNo)
 static ptu32_t UART_ISR(ufast_t port);
 
 // =============================================================================
-// 功能: 禁止uart的发送中断。
+// 功能: 使能uart的接收中断。
 // 参数: flag,是否使用dma传输
 //       port,串口号，1~5
 // 返回: 无
@@ -620,18 +626,18 @@ u32 __UART_DMA_SendStart(u32 port)
     switch(port)
     {
     case CN_UART1:
-//        if(true == __uart_dma_timeout(UART1_DMA_SENDING))
-        if(true == UART1_DMA_SENDING)
+//        if(true == __uart_dma_timeout(UART_DMA_SENDING[port]))
+        if(true == UART_DMA_SENDING[port])
             break;
-        num = UART_PortRead(pUartCB[CN_UART1],UART1_DmaSendBuf,CFG_UART1_DMABUF_LEN);
-        if(UART1_FIRST_DMA_SEND)
-        {
-            tg_UART_Reg[CN_UART1]->DR = UART1_DmaSendBuf[0];
-            UART1_FIRST_DMA_SEND = false;
-            addr = (u32)UART1_DmaSendBuf+1;
-            num--;
-        }else
-            addr = (u32)UART1_DmaSendBuf;
+        num = UART_PortRead(pUartCB[port],UART_DmaSendBuf[port],CFG_UART1_DMABUF_LEN);
+        // if(UART1_FIRST_DMA_SEND)
+        // {
+        //     tg_UART_Reg[CN_UART1]->DR = UART_DmaSendBuf[port][0];
+        //     UART1_FIRST_DMA_SEND = false;
+        //     addr = (u32)&UART_DmaSendBuf[port][1];
+        //     num--;
+        // }else
+            addr = (u32)UART_DmaSendBuf[port];
 
         if(num > 0)
         {
@@ -639,24 +645,24 @@ u32 __UART_DMA_SendStart(u32 port)
             pg_dma1_channel4_reg->CMAR = addr;
             pg_dma1_channel4_reg->CNDTR = num;
             bb_dma1_ch4_ccr_en = 1;    //继续dma传输
-            UART1_DMA_SENDING = true;
+            UART_DMA_SENDING[port] = true;
         }
         else
             tg_UART_Reg[CN_UART1]->CR1 |=(1<<6);
         break;
-    case 2:
-//        if(true == __uart_dma_timeout(UART2_DMA_SENDING))
-        if(true == UART2_DMA_SENDING)
+    case CN_UART2:
+//        if(true == __uart_dma_timeout(UART_DMA_SENDING[port]))
+        if(true == UART_DMA_SENDING[port])
             break;
-        num = UART_PortRead(pUartCB[CN_UART2],UART2_DmaSendBuf,CFG_UART2_DMABUF_LEN);
-        if(UART2_FIRST_DMA_SEND)
-        {
-            tg_UART_Reg[CN_UART1]->DR = UART2_DmaSendBuf[0];
-            UART2_FIRST_DMA_SEND = false;
-            addr = (u32)UART2_DmaSendBuf+1;
-            num--;
-        }else
-            addr = (u32)UART2_DmaSendBuf;
+        num = UART_PortRead(pUartCB[port],UART_DmaSendBuf[port],CFG_UART2_DMABUF_LEN);
+        // if(UART2_FIRST_DMA_SEND)
+        // {
+        //     tg_UART_Reg[CN_UART1]->DR = UART_DmaSendBuf[port][0];
+        //     UART2_FIRST_DMA_SEND = false;
+        //     addr = (u32)&UART_DmaSendBuf[port][1];
+        //     num--;
+        // }else
+            addr = (u32)UART_DmaSendBuf[port];
 
         if(num > 0)
         {
@@ -664,24 +670,24 @@ u32 __UART_DMA_SendStart(u32 port)
             pg_dma1_channel7_reg->CMAR = addr;
             pg_dma1_channel7_reg->CNDTR = num;
             bb_dma1_ch7_ccr_en = 1;    //继续dma传输
-            UART2_DMA_SENDING = true;
+            UART_DMA_SENDING[port] = true;
         }
         else
             tg_UART_Reg[CN_UART1]->CR1 |=(1<<6);
         break;
-    case 3:
-//        if(true == __uart_dma_timeout(UART3_DMA_SENDING))
-        if(true == UART3_DMA_SENDING)
+    case CN_UART3:
+//        if(true == __uart_dma_timeout(UART_DMA_SENDING[port]))
+        if(true == UART_DMA_SENDING[port])
             break;
-        num = UART_PortRead(pUartCB[CN_UART3],(u8*)UART3_DmaSendBuf,CFG_UART3_DMABUF_LEN);
-        if(UART3_FIRST_DMA_SEND)
-        {
-            tg_UART_Reg[CN_UART1]->DR = UART3_DmaSendBuf[0];
-            UART3_FIRST_DMA_SEND = false;
-            addr = (u32)UART3_DmaSendBuf+1;
-            num--;
-        }else
-            addr = (u32)UART3_DmaSendBuf;
+        num = UART_PortRead(pUartCB[port],(u8*)UART_DmaSendBuf[port],CFG_UART3_DMABUF_LEN);
+        // if(UART3_FIRST_DMA_SEND)
+        // {
+        //     tg_UART_Reg[CN_UART1]->DR = UART_DmaSendBuf[port][0];
+        //     UART3_FIRST_DMA_SEND = false;
+        //     addr = (u32)&UART_DmaSendBuf[port][1];
+        //     num--;
+        // }else
+            addr = (u32)UART_DmaSendBuf[port];
 
         if(num > 0)
         {
@@ -689,7 +695,7 @@ u32 __UART_DMA_SendStart(u32 port)
             pg_dma1_channel2_reg->CMAR = addr;
             pg_dma1_channel2_reg->CNDTR = num;
             bb_dma1_ch2_ccr_en = 1;    //继续dma传输
-            UART3_DMA_SENDING = true;
+            UART_DMA_SENDING[port] = true;
         }
         else
             tg_UART_Reg[CN_UART1]->CR1 |=(1<<6);
@@ -793,17 +799,17 @@ void __UART_SetDmaUsed(u32 port)
     {
     case CN_UART1:
 
-       if(UART1_DmaSendBuf==NULL)
-           UART1_DmaSendBuf = (u8*)M_Malloc(CFG_UART1_DMABUF_LEN,0);
-           if(UART1_DmaSendBuf == NULL)
+       if(UART_DmaSendBuf[port]==NULL)
+           UART_DmaSendBuf[port] = (u8*)M_Malloc(CFG_UART1_DMABUF_LEN,0);
+           if(UART_DmaSendBuf[port] == NULL)
                return;
 
-       if(UART1_DmaRecvBuf==NULL)
-           UART1_DmaRecvBuf = (u8*)M_Malloc(CFG_UART1_DMABUF_LEN,0);
-           if(UART1_DmaRecvBuf == NULL)
+       if(UART_DmaRecvBuf[port]==NULL)
+           UART_DmaRecvBuf[port] = (u8*)M_Malloc(CFG_UART1_DMABUF_LEN,0);
+           if(UART_DmaRecvBuf[port] == NULL)
            {
-               free(UART1_DmaRecvBuf);
-               UART1_DmaRecvBuf=NULL;
+               free(UART_DmaSendBuf[port]);
+               UART_DmaSendBuf[port]=NULL;
                return;
            }
 
@@ -819,16 +825,19 @@ void __UART_SetDmaUsed(u32 port)
 
         pg_dma1_channel5_reg->CCR = 0x00000086; //接收dma
         pg_dma1_channel5_reg->CPAR = (u32)&(tg_UART_Reg[CN_UART1]->DR);
-        pg_dma1_channel5_reg->CNDTR = 32;
-        pg_dma1_channel5_reg->CMAR = (u32)UART1_DmaRecvBuf;
+        pg_dma1_channel5_reg->CNDTR = CFG_UART1_DMABUF_LEN;
+        pg_dma1_channel5_reg->CMAR = (u32)UART_DmaRecvBuf[port];
 
         Int_Register(CN_INT_LINE_DMA1_Ch4);
         Int_Register(CN_INT_LINE_DMA1_Ch5);
 
         Int_SetClearType(CN_INT_LINE_DMA1_Ch4,CN_INT_CLEAR_AUTO);
-        Int_IsrConnect(CN_INT_LINE_DMA1_Ch4,UART1_DMA1CH4_ISR);
+        Int_IsrConnect(CN_INT_LINE_DMA1_Ch4,UART_DmaTx_ISR);
         Int_SetClearType(CN_INT_LINE_DMA1_Ch5,CN_INT_CLEAR_AUTO);
-        Int_IsrConnect(CN_INT_LINE_DMA1_Ch5,UART1_DMA1CH5_ISR);
+        Int_IsrConnect(CN_INT_LINE_DMA1_Ch5,UART_DmaRx_ISR);
+
+        Int_SetIsrPara(CN_INT_LINE_DMA1_Ch4,port);
+        Int_SetIsrPara(CN_INT_LINE_DMA1_Ch5,port);
 
         Int_SettoAsynSignal(CN_INT_LINE_DMA1_Ch4);
         Int_SettoAsynSignal(CN_INT_LINE_DMA1_Ch5);
@@ -841,17 +850,17 @@ void __UART_SetDmaUsed(u32 port)
         UART1_FIRST_DMA_SEND = true;
         break;
     case CN_UART2:
-        if(UART2_DmaSendBuf==NULL)
-            UART2_DmaSendBuf = (u8*)M_Malloc(CFG_UART2_DMABUF_LEN,0);
-            if(UART2_DmaSendBuf == NULL)
+        if(UART_DmaSendBuf[port]==NULL)
+            UART_DmaSendBuf[port] = (u8*)M_Malloc(CFG_UART2_DMABUF_LEN,0);
+            if(UART_DmaSendBuf[port] == NULL)
                 return;
 
-        if(UART2_DmaRecvBuf==NULL)
-            UART2_DmaRecvBuf = (u8*)M_Malloc(CFG_UART2_DMABUF_LEN,0);
-            if(UART2_DmaRecvBuf == NULL)
+        if(UART_DmaRecvBuf[port]==NULL)
+            UART_DmaRecvBuf[port] = (u8*)M_Malloc(CFG_UART2_DMABUF_LEN,0);
+            if(UART_DmaRecvBuf[port] == NULL)
             {
-                free(UART2_DmaRecvBuf);
-                UART2_DmaRecvBuf=NULL;
+                free(UART_DmaSendBuf[port]);
+                UART_DmaSendBuf[port]=NULL;
                 return;
             }
         bb_rcc_ahbenr_dma1en = 1;
@@ -866,16 +875,19 @@ void __UART_SetDmaUsed(u32 port)
 
         pg_dma1_channel6_reg->CCR = 0x00000086; //接收dma
         pg_dma1_channel6_reg->CPAR = (u32)&(tg_UART_Reg[CN_UART2]->DR);
-        pg_dma1_channel6_reg->CNDTR = 32;
-        pg_dma1_channel6_reg->CMAR = (u32)UART2_DmaRecvBuf;
+        pg_dma1_channel6_reg->CNDTR = CFG_UART2_DMABUF_LEN;
+        pg_dma1_channel6_reg->CMAR = (u32)UART_DmaRecvBuf[port];
 
         Int_Register(CN_INT_LINE_DMA1_Ch6);
         Int_Register(CN_INT_LINE_DMA1_Ch7);
 
         Int_SetClearType(CN_INT_LINE_DMA1_Ch6,CN_INT_CLEAR_AUTO);
-        Int_IsrConnect(CN_INT_LINE_DMA1_Ch6,UART2_DMA1CH6_ISR);
+        Int_IsrConnect(CN_INT_LINE_DMA1_Ch6,UART_DmaRx_ISR);
         Int_SetClearType(CN_INT_LINE_DMA1_Ch7,CN_INT_CLEAR_AUTO);
-        Int_IsrConnect(CN_INT_LINE_DMA1_Ch7,UART2_DMA1CH7_ISR);
+        Int_IsrConnect(CN_INT_LINE_DMA1_Ch7,UART_DmaTx_ISR);
+
+        Int_SetIsrPara(CN_INT_LINE_DMA1_Ch6,port);
+        Int_SetIsrPara(CN_INT_LINE_DMA1_Ch7,port);
 
         Int_SettoAsynSignal(CN_INT_LINE_DMA1_Ch6);
         Int_SettoAsynSignal(CN_INT_LINE_DMA1_Ch7);
@@ -888,17 +900,17 @@ void __UART_SetDmaUsed(u32 port)
         UART2_FIRST_DMA_SEND = true;
         break;
     case CN_UART3:
-        if(UART3_DmaSendBuf==NULL)
-            UART3_DmaSendBuf = (u8*)M_Malloc(CFG_UART3_DMABUF_LEN,0);
-            if(UART3_DmaSendBuf == NULL)
+        if(UART_DmaSendBuf[port]==NULL)
+            UART_DmaSendBuf[port] = (u8*)M_Malloc(CFG_UART3_DMABUF_LEN,0);
+            if(UART_DmaSendBuf[port] == NULL)
                 return;
 
-        if(UART3_DmaRecvBuf==NULL)
-            UART3_DmaRecvBuf = (u8*)M_Malloc(CFG_UART3_DMABUF_LEN,0);
-            if(UART3_DmaRecvBuf == NULL)
+        if(UART_DmaRecvBuf[port]==NULL)
+            UART_DmaRecvBuf[port] = (u8*)M_Malloc(CFG_UART3_DMABUF_LEN,0);
+            if(UART_DmaRecvBuf[port] == NULL)
             {
-                free(UART3_DmaSendBuf);
-                UART3_DmaRecvBuf=NULL;
+                free(UART_DmaSendBuf[port]);
+                UART_DmaSendBuf[port]=NULL;
                 return;
             }
         bb_rcc_ahbenr_dma1en = 1;
@@ -913,16 +925,19 @@ void __UART_SetDmaUsed(u32 port)
 
         pg_dma1_channel3_reg->CCR = 0x00000086; //接收dma
         pg_dma1_channel3_reg->CPAR = (u32)&(tg_UART_Reg[CN_UART3]->DR);
-        pg_dma1_channel3_reg->CNDTR = 32;
-        pg_dma1_channel3_reg->CMAR = (u32)UART3_DmaRecvBuf;
+        pg_dma1_channel3_reg->CNDTR = CFG_UART3_DMABUF_LEN;
+        pg_dma1_channel3_reg->CMAR = (u32)UART_DmaRecvBuf[port];
 
         Int_Register(CN_INT_LINE_DMA1_Ch2);
         Int_Register(CN_INT_LINE_DMA1_Ch3);
 
         Int_SetClearType(CN_INT_LINE_DMA1_Ch2,CN_INT_CLEAR_AUTO);
-        Int_IsrConnect(CN_INT_LINE_DMA1_Ch2,UART3_DMA1CH2_ISR);
+        Int_IsrConnect(CN_INT_LINE_DMA1_Ch2,UART_DmaTx_ISR);
         Int_SetClearType(CN_INT_LINE_DMA1_Ch3,CN_INT_CLEAR_AUTO);
-        Int_IsrConnect(CN_INT_LINE_DMA1_Ch3,UART3_DMA1CH3_ISR);
+        Int_IsrConnect(CN_INT_LINE_DMA1_Ch3,UART_DmaRx_ISR);
+
+        Int_SetIsrPara(CN_INT_LINE_DMA1_Ch2,port);
+        Int_SetIsrPara(CN_INT_LINE_DMA1_Ch3,port);
 
         Int_SettoAsynSignal(CN_INT_LINE_DMA1_Ch2);
         Int_SettoAsynSignal(CN_INT_LINE_DMA1_Ch3);
@@ -951,10 +966,10 @@ void __UART_SetDmaUnUsed(u32 port)
     switch(port)
     {
     case CN_UART1:
-        free(UART1_DmaSendBuf);
-        free(UART1_DmaRecvBuf);
-        UART1_DmaRecvBuf=NULL;
-        UART1_DmaRecvBuf=NULL;
+        free(UART_DmaSendBuf[port]);
+        free(UART_DmaRecvBuf[port]);
+        UART_DmaSendBuf[port]=NULL;
+        UART_DmaRecvBuf[port]=NULL;
         tg_UART_Reg[CN_UART1]->CR3 &= ~0x00c0;     //设置不使用dma传输
         Int_RestoreAsynLine(CN_INT_LINE_USART1);
         if(s_UART1_DmaUsed == CN_DMA_USED)
@@ -968,10 +983,10 @@ void __UART_SetDmaUnUsed(u32 port)
         bb_uart1_cr1_idleie = 0;
         break;
     case CN_UART2:
-        free(UART2_DmaSendBuf);
-        free(UART2_DmaRecvBuf);
-        UART2_DmaRecvBuf=NULL;
-        UART2_DmaRecvBuf=NULL;
+        free(UART_DmaSendBuf[port]);
+        free(UART_DmaRecvBuf[port]);
+        UART_DmaSendBuf[port]=NULL;
+        UART_DmaRecvBuf[port]=NULL;
         tg_UART_Reg[CN_UART2]->CR3 &= ~0x00c0;     //设置不使用dma传输
         Int_RestoreAsynLine(CN_INT_LINE_USART2);
         if(s_UART2_DmaUsed == CN_DMA_USED)
@@ -985,10 +1000,10 @@ void __UART_SetDmaUnUsed(u32 port)
         bb_uart2_cr1_idleie = 0;
         break;
     case CN_UART3:
-        free(UART3_DmaSendBuf);
-        free(UART3_DmaRecvBuf);
-        UART3_DmaRecvBuf=NULL;
-        UART3_DmaRecvBuf=NULL;
+        free(UART_DmaSendBuf[port]);
+        free(UART_DmaRecvBuf[port]);
+        UART_DmaSendBuf[port]=NULL;
+        UART_DmaRecvBuf[port]=NULL;
         tg_UART_Reg[CN_UART3]->CR3 &= ~0x00c0;     //设置不使用dma传输
         Int_RestoreAsynLine(CN_INT_LINE_USART3);
         if(s_UART3_DmaUsed == CN_DMA_USED)
@@ -1081,158 +1096,297 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 }
 
 // =============================================================================
-// 功能: UART1的DMA中断，当uart1配置成dma方式时，dma1 ch4负责发送，ch5负责接收
-// 参数: 中断函数没有参数.
-// 返回: 中断函数没有返回值.
+// 功能: UART的DMA发送中断
+// 参数: port：串口端口号.
+// 返回: 0：成功.
 // =============================================================================
-uint32_t UART1_DMA1CH4_ISR(ptu32_t tagIntLine)
+uint32_t UART_DmaTx_ISR(ptu32_t port)
 {
-    uint16_t num;
-    pg_dma1_reg->IFCR |= 0x0000f000;
-    num = UART_PortRead(pUartCB[CN_UART1],UART1_DmaSendBuf,CFG_UART1_DMABUF_LEN);
+    uint16_t num = 0;
+    uint32_t len = 0;
+
+    switch (port)
+    {
+        case CN_UART1:
+                pg_dma1_reg->IFCR |= 0x0000f000;
+                len = CFG_UART1_DMABUF_LEN;
+            break;
+        case CN_UART2:
+                pg_dma1_reg->IFCR |= 0x0f000000;
+                len = CFG_UART2_DMABUF_LEN;
+            break;
+        case CN_UART3:
+                pg_dma1_reg->IFCR |= 0x000000f0;
+                len = CFG_UART3_DMABUF_LEN;
+            break;    
+        default:
+            break;
+    }
+
+
+    num = UART_PortRead(pUartCB[port],UART_DmaSendBuf[port],len);
     if(num == 0)
-        {
-            UART1_DMA_SENDING = false;
-            tg_UART_Reg[CN_UART1]->CR1 |= (1<<6);
-        }
+    {
+        UART_DMA_SENDING[port] = false;
+        tg_UART_Reg[port]->CR1 |= (1<<6);
+    }
     else
     {
-        bb_dma1_ch4_ccr_en = 0;    //暂停dma传输
-        pg_dma1_channel4_reg->CMAR = (u32)UART1_DmaSendBuf;
-        pg_dma1_channel4_reg->CNDTR = num;
-        bb_dma1_ch4_ccr_en = 1;    //继续dma传输
+        switch (port)
+        {
+            case CN_UART1:
+                bb_dma1_ch4_ccr_en = 0;    //暂停dma传输
+                pg_dma1_channel4_reg->CMAR = (u32)UART_DmaSendBuf[port];
+                pg_dma1_channel4_reg->CNDTR = num;
+                bb_dma1_ch4_ccr_en = 1;    //继续dma传输
+                break;
+            case CN_UART2:
+                bb_dma1_ch7_ccr_en = 0;    //暂停dma传输
+                pg_dma1_channel7_reg->CMAR = (u32)UART_DmaSendBuf[port];
+                pg_dma1_channel7_reg->CNDTR = num;
+                bb_dma1_ch7_ccr_en = 1;    //继续dma传输
+                break;
+            case CN_UART3:
+                bb_dma1_ch2_ccr_en = 0;    //暂停dma传输
+                pg_dma1_channel2_reg->CMAR = (u32)UART_DmaSendBuf[port];
+                pg_dma1_channel2_reg->CNDTR = num;
+                bb_dma1_ch2_ccr_en = 1;    //继续dma传输
+                break;
+        
+        default:
+            break;
+        }
     }
     return 0;
 }
+
+// =============================================================================
+// 功能: UART的DMA接收中断
+// 参数: port：串口端口号.
+// 返回: 0：成功.
+// =============================================================================
+uint32_t UART_DmaRx_ISR(ptu32_t port)
+{
+    uint16_t num = 0;
+    uint32_t len = 0;
+    uint32_t port_len = 0;
+
+    switch (port)
+    {
+        case CN_UART1:
+                pg_dma1_reg->IFCR |= 0x000f0000;
+                bb_dma1_ch5_ccr_en = 0;    //暂停dma传输
+                port_len = CFG_UART1_DMABUF_LEN;
+                len = port_len - pg_dma1_channel5_reg->CNDTR;
+            break;
+        case CN_UART2:
+                pg_dma1_reg->IFCR |= 0x00f00000;
+                bb_dma1_ch6_ccr_en = 0;    //暂停dma传输
+                port_len = CFG_UART2_DMABUF_LEN;
+                len = port_len - pg_dma1_channel6_reg->CNDTR;
+            break;
+        case CN_UART3:
+                pg_dma1_reg->IFCR |= 0x00000f00;
+                bb_dma1_ch3_ccr_en = 0;    //暂停dma传输
+                port_len = CFG_UART3_DMABUF_LEN;
+                len = port_len - pg_dma1_channel3_reg->CNDTR;
+            break;    
+        default:
+            break;
+    }
+    if (len == port_len)
+    {
+        UART_ErrHandle(pUartCB[port],CN_UART_FIFO_OVER_ERR);
+    }
+    else
+    {
+        num = UART_PortWrite(pUartCB[port],UART_DmaRecvBuf[port],len);
+        if(num != len)
+        {
+            UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
+        }
+    }
+
+
+    switch (port)
+    {
+        case CN_UART1:
+            pg_dma1_channel5_reg->CNDTR = CFG_UART1_DMABUF_LEN;
+            pg_dma1_channel5_reg->CMAR = (u32)UART_DmaRecvBuf[port];
+            bb_dma1_ch5_ccr_en = 1;    //继续dma传输
+            break;
+        case CN_UART2:
+            pg_dma1_channel6_reg->CNDTR = CFG_UART2_DMABUF_LEN;
+            pg_dma1_channel6_reg->CMAR = (u32)UART_DmaRecvBuf[port];
+            bb_dma1_ch6_ccr_en = 1;    //继续dma传输
+            break;
+        case CN_UART3:
+            pg_dma1_channel3_reg->CNDTR = CFG_UART3_DMABUF_LEN;
+            pg_dma1_channel3_reg->CMAR = (u32)UART_DmaRecvBuf[port];
+            bb_dma1_ch3_ccr_en = 1;    //继续dma传输
+            break;
+    
+    default:
+        break;
+    }
+    return 0;
+}
+
+
 
 // =============================================================================
 // 功能: UART1的DMA中断，当uart1配置成dma方式时，dma1 ch4负责发送，ch5负责接收
 // 参数: 中断函数没有参数.
 // 返回: 中断函数没有返回值.
 // =============================================================================
-uint32_t UART1_DMA1CH5_ISR(ptu32_t tagIntLine)
-{
-    u32 recvs,num;
-    pg_dma1_reg->IFCR |= 0x000f0000;
-    bb_dma1_ch5_ccr_en = 0;    //暂停dma传输
-    recvs = CFG_UART1_DMABUF_LEN - pg_dma1_channel5_reg->CNDTR;
-    if(recvs == CFG_UART1_DMABUF_LEN)     //dma缓冲区满，可能有数据丢失
-    {
-        UART_ErrHandle(pUartCB[CN_UART1],CN_UART_FIFO_OVER_ERR);
-    }else
-    {
-        num = UART_PortWrite(pUartCB[CN_UART1],UART1_DmaRecvBuf,recvs);
-        if(num != recvs)
-        {
-            UART_ErrHandle(pUartCB[CN_UART1],CN_UART_BUF_OVER_ERR);
-        }
-    }
-    pg_dma1_channel5_reg->CNDTR = CFG_UART1_DMABUF_LEN;
-    pg_dma1_channel5_reg->CMAR = (u32)UART1_DmaRecvBuf;
-    bb_dma1_ch5_ccr_en = 1;    //继续dma传输
-    return 0;
-}
+// uint32_t UART1_DMA1CH4_ISR(ptu32_t tagIntLine)
+// {
+//     uint16_t num;
+//     pg_dma1_reg->IFCR |= 0x0000f000;
+//     num = UART_PortRead(pUartCB[CN_UART1],UART_DmaSendBuf[port],CFG_UART1_DMABUF_LEN);
+//     if(num == 0)
+//         {
+//             UART_DMA_SENDING[port] = false;
+//             tg_UART_Reg[CN_UART1]->CR1 |= (1<<6);
+//         }
+//     else
+//     {
+//         bb_dma1_ch4_ccr_en = 0;    //暂停dma传输
+//         pg_dma1_channel4_reg->CMAR = (u32)UART_DmaSendBuf[port];
+//         pg_dma1_channel4_reg->CNDTR = num;
+//         bb_dma1_ch4_ccr_en = 1;    //继续dma传输
+//     }
+//     return 0;
+// }
+
+// =============================================================================
+// 功能: UART1的DMA中断，当uart1配置成dma方式时，dma1 ch4负责发送，ch5负责接收
+// 参数: 中断函数没有参数.
+// 返回: 中断函数没有返回值.
+// =============================================================================
+// uint32_t UART1_DMA1CH5_ISR(ptu32_t tagIntLine)
+// {
+//     u32 recvs,num;
+//     pg_dma1_reg->IFCR |= 0x000f0000;
+//     bb_dma1_ch5_ccr_en = 0;    //暂停dma传输
+//     recvs = CFG_UART1_DMABUF_LEN - pg_dma1_channel5_reg->CNDTR;
+//     if(recvs == CFG_UART1_DMABUF_LEN)     //dma缓冲区满，可能有数据丢失
+//     {
+//         UART_ErrHandle(pUartCB[CN_UART1],CN_UART_FIFO_OVER_ERR);
+//     }else
+//     {
+//         num = UART_PortWrite(pUartCB[CN_UART1],UART_DmaRecvBuf[port],recvs);
+//         if(num != recvs)
+//         {
+//             UART_ErrHandle(pUartCB[CN_UART1],CN_UART_BUF_OVER_ERR);
+//         }
+//     }
+//     pg_dma1_channel5_reg->CNDTR = CFG_UART1_DMABUF_LEN;
+//     pg_dma1_channel5_reg->CMAR = (u32)UART_DmaRecvBuf[port];
+//     bb_dma1_ch5_ccr_en = 1;    //继续dma传输
+//     return 0;
+// }
 
 // =============================================================================
 // 功能: 当uart2配置成dma方式是，dma1 ch7负责发送，ch6负责接收
 // 参数: 中断函数没有参数.
 // 返回: 中断函数没有返回值.
 // =============================================================================
-uint32_t UART2_DMA1CH7_ISR(ptu32_t tagIntLine)
-{
-    uint16_t num;
+// uint32_t UART2_DMA1CH7_ISR(ptu32_t tagIntLine)
+// {
+//     uint16_t num;
 
-    pg_dma1_reg->IFCR |= 0x0f000000;
-    num = UART_PortRead(pUartCB[CN_UART2],UART2_DmaSendBuf,CFG_UART2_DMABUF_LEN);
-    if(num == 0)
-        UART2_DMA_SENDING = false;
-    else
-    {
-        bb_dma1_ch7_ccr_en = 0;    //暂停dma传输
-        pg_dma1_channel7_reg->CMAR = (u32)UART2_DmaSendBuf;
-        pg_dma1_channel7_reg->CNDTR = num;
-        bb_dma1_ch7_ccr_en = 1;    //继续dma传输
-    }
-    return 0;
-}
+//     pg_dma1_reg->IFCR |= 0x0f000000;
+//     num = UART_PortRead(pUartCB[CN_UART2],UART_DmaSendBuf[port],CFG_UART2_DMABUF_LEN);
+//     if(num == 0)
+//         UART_DMA_SENDING[port] = false;
+//     else
+//     {
+//         bb_dma1_ch7_ccr_en = 0;    //暂停dma传输
+//         pg_dma1_channel7_reg->CMAR = (u32)UART_DmaSendBuf[port];
+//         pg_dma1_channel7_reg->CNDTR = num;
+//         bb_dma1_ch7_ccr_en = 1;    //继续dma传输
+//     }
+//     return 0;
+// }
 
 // =============================================================================
 // 功能: 当uart2配置成dma方式是，dma1 ch7负责发送，ch6负责接收
 // 参数: 中断函数没有参数.
 // 返回: 中断函数没有返回值.
 // =============================================================================
-uint32_t UART2_DMA1CH6_ISR(ptu32_t tagIntLine)
-{
-    u32 recvs,num;
-    pg_dma1_reg->IFCR |= 0x00f00000;
-    bb_dma1_ch6_ccr_en = 0;    //暂停dma传输
-    recvs = CFG_UART2_DMABUF_LEN - pg_dma1_channel6_reg->CNDTR;
-    if(recvs == CFG_UART2_DMABUF_LEN)     //dma缓冲区满，可能有数据丢失
-    {
-        UART_ErrHandle(pUartCB[CN_UART2],CN_UART_FIFO_OVER_ERR);
-    }else
-    {
-        num = UART_PortWrite(pUartCB[CN_UART2],UART2_DmaRecvBuf,recvs);
-        if(num != recvs)
-        {
-            UART_ErrHandle(pUartCB[CN_UART2],CN_UART_BUF_OVER_ERR);
-        }
-    }
-    pg_dma1_channel6_reg->CNDTR = CFG_UART2_DMABUF_LEN;
-    pg_dma1_channel6_reg->CMAR = (u32)UART2_DmaRecvBuf;
-    bb_dma1_ch6_ccr_en = 1;    //继续dma传输
-    return 0;
-}
+// uint32_t UART2_DMA1CH6_ISR(ptu32_t tagIntLine)
+// {
+//     u32 recvs,num;
+//     pg_dma1_reg->IFCR |= 0x00f00000;
+//     bb_dma1_ch6_ccr_en = 0;    //暂停dma传输
+//     recvs = CFG_UART2_DMABUF_LEN - pg_dma1_channel6_reg->CNDTR;
+//     if(recvs == CFG_UART2_DMABUF_LEN)     //dma缓冲区满，可能有数据丢失
+//     {
+//         UART_ErrHandle(pUartCB[CN_UART2],CN_UART_FIFO_OVER_ERR);
+//     }else
+//     {
+//         num = UART_PortWrite(pUartCB[CN_UART2],UART_DmaRecvBuf[port],recvs);
+//         if(num != recvs)
+//         {
+//             UART_ErrHandle(pUartCB[CN_UART2],CN_UART_BUF_OVER_ERR);
+//         }
+//     }
+//     pg_dma1_channel6_reg->CNDTR = CFG_UART2_DMABUF_LEN;
+//     pg_dma1_channel6_reg->CMAR = (u32)UART_DmaRecvBuf[port];
+//     bb_dma1_ch6_ccr_en = 1;    //继续dma传输
+//     return 0;
+// }
 
 // =============================================================================
 // 功能: 当uart3配置成dma方式是，dma1 ch2负责发送，ch3负责接收
 // 参数: 中断函数没有参数.
 // 返回: 中断函数没有返回值.
 // =============================================================================
-uint32_t UART3_DMA1CH2_ISR(ptu32_t tagIntLine)
-{
-    uint16_t num;
-    pg_dma1_reg->IFCR |= 0x000000f0;
-    num = UART_PortRead(pUartCB[CN_UART3],UART3_DmaSendBuf,CFG_UART3_DMABUF_LEN);
-    if(num == 0)
-        UART3_DMA_SENDING = false;
-    else
-    {
-        bb_dma1_ch2_ccr_en = 0;    //暂停dma传输
-        pg_dma1_channel2_reg->CMAR = (u32)UART3_DmaSendBuf;
-        pg_dma1_channel2_reg->CNDTR = num;
-        bb_dma1_ch2_ccr_en = 1;    //继续dma传输
-    }
-    return 0;
-}
+// uint32_t UART3_DMA1CH2_ISR(ptu32_t tagIntLine)
+// {
+//     uint16_t num;
+//     pg_dma1_reg->IFCR |= 0x000000f0;
+//     num = UART_PortRead(pUartCB[CN_UART3],UART_DmaSendBuf[port],CFG_UART3_DMABUF_LEN);
+//     if(num == 0)
+//         UART_DMA_SENDING[port] = false;
+//     else
+//     {
+//         bb_dma1_ch2_ccr_en = 0;    //暂停dma传输
+//         pg_dma1_channel2_reg->CMAR = (u32)UART_DmaSendBuf[port];
+//         pg_dma1_channel2_reg->CNDTR = num;
+//         bb_dma1_ch2_ccr_en = 1;    //继续dma传输
+//     }
+//     return 0;
+// }
 
 // =============================================================================
 //功能: 当uart3配置成dma方式是，dma1 ch2负责发送，ch3负责接收
 //参数: 中断函数没有参数.
 //返回: 中断函数没有返回值.
 // =============================================================================
-uint32_t UART3_DMA1CH3_ISR(ptu32_t tagIntLine)
-{
-    u32 recvs,num;
-    pg_dma1_reg->IFCR |= 0x00000f00;
-    bb_dma1_ch3_ccr_en = 0;    //暂停dma传输
-    recvs = CFG_UART3_DMABUF_LEN - pg_dma1_channel3_reg->CNDTR;
-    if(recvs == CFG_UART3_DMABUF_LEN)     //dma缓冲区满，可能有数据丢失
-    {
-        UART_ErrHandle(pUartCB[CN_UART3],CN_UART_FIFO_OVER_ERR);
-    }else
-    {
-        num = UART_PortWrite(pUartCB[CN_UART3],UART3_DmaRecvBuf,recvs);
-        if(num != recvs)
-        {
-            UART_ErrHandle(pUartCB[CN_UART3],CN_UART_BUF_OVER_ERR);
-        }
-    }
-    pg_dma1_channel3_reg->CNDTR = CFG_UART3_DMABUF_LEN;
-    pg_dma1_channel3_reg->CMAR = (u32)UART3_DmaRecvBuf;
-    bb_dma1_ch3_ccr_en = 1;    //继续dma传输
-    return 0;
-}
+// uint32_t UART3_DMA1CH3_ISR(ptu32_t tagIntLine)
+// {
+//     u32 recvs,num;
+//     pg_dma1_reg->IFCR |= 0x00000f00;
+//     bb_dma1_ch3_ccr_en = 0;    //暂停dma传输
+//     recvs = CFG_UART3_DMABUF_LEN - pg_dma1_channel3_reg->CNDTR;
+//     if(recvs == CFG_UART3_DMABUF_LEN)     //dma缓冲区满，可能有数据丢失
+//     {
+//         UART_ErrHandle(pUartCB[CN_UART3],CN_UART_FIFO_OVER_ERR);
+//     }else
+//     {
+//         num = UART_PortWrite(pUartCB[CN_UART3],UART_DmaRecvBuf[port],recvs);
+//         if(num != recvs)
+//         {
+//             UART_ErrHandle(pUartCB[CN_UART3],CN_UART_BUF_OVER_ERR);
+//         }
+//     }
+//     pg_dma1_channel3_reg->CNDTR = CFG_UART3_DMABUF_LEN;
+//     pg_dma1_channel3_reg->CMAR = (u32)UART_DmaRecvBuf[port];
+//     bb_dma1_ch3_ccr_en = 1;    //继续dma传输
+//     return 0;
+// }
 
 // =============================================================================
 // 功能: UART的中断服务函数，包括发送空、接收、错误三种中断。
@@ -1287,7 +1441,8 @@ u32 UART_ISR(ptu32_t port)
     if((Reg->SR & (1<<4)) && (Reg->CR1 & (1<<4)))
     {
         Reg->DR;
-        Int_TapLine(CN_INT_LINE_DMA1_Ch5);
+        // Int_TapLine(CN_INT_LINE_DMA1_Ch5);
+        UART_DmaRx_ISR(port);
     }
     return 0;
 }
@@ -1308,8 +1463,8 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
     switch(serial_no)
     {
     case CN_UART1://串口0
-        UART1_DmaSendBuf=NULL ;
-        UART1_DmaRecvBuf=NULL ;
+        UART_DmaSendBuf[serial_no]=NULL ;
+        UART_DmaRecvBuf[serial_no]=NULL ;
         UART_Param.Name         = "UART1";
         UART_Param.Baud         = 115200;
         UART_Param.UartPortTag  = CN_UART1_BASE;
@@ -1319,8 +1474,8 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
         break;
     case CN_UART2://串口2
-        UART2_DmaSendBuf=NULL ;
-        UART2_DmaRecvBuf=NULL ;
+        UART_DmaSendBuf[serial_no]=NULL ;
+        UART_DmaRecvBuf[serial_no]=NULL ;
         UART_Param.Name         = "UART2";
         UART_Param.Baud         = 115200;
         UART_Param.UartPortTag  = CN_UART2_BASE;
@@ -1330,8 +1485,8 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
         break;
     case CN_UART3://串口3
-        UART3_DmaSendBuf=NULL ;
-        UART3_DmaRecvBuf=NULL ;
+        UART_DmaSendBuf[serial_no]=NULL ;
+        UART_DmaRecvBuf[serial_no]=NULL ;
         UART_Param.Name         = "UART3";
         UART_Param.Baud         = 115200;
         UART_Param.UartPortTag  = CN_UART3_BASE;

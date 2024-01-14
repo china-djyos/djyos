@@ -155,7 +155,6 @@ struct EventECB  *s_ptEventFree; //空闲链表头,不排序
 //static struct ParaPCB  *s_ptParaFree; //空闲链表头,不排序
 //轮转调度时间片，0表示禁止轮转调度，默认1，RRS = "round robin scheduling"缩写。
 static u32 s_u32RRS_Slice = 1;
-static u32 s_u32StackCheckLevel = 10;      //栈报警水平，百分数
 struct EventECB  *g_ptEventReady;      //就绪队列头
 struct EventECB  *g_ptEventRunning;    //当前正在执行的事件
 struct EventECB  *g_ptEventDelay;      //闹钟同步队列表头
@@ -207,22 +206,54 @@ void DJY_DelayNano(u32 time)
     __asm_delay_cycle((u64)(time*((CN_CFG_MCLK)/1000000)/1000));
 }
 
-//----设置栈检查水平-----------------------------------------------------------
-//功能：设定栈检查功能检查的栈比例，设置范围是0%~50%，创建新线程时，栈将被填充为
-//      固定数据，CPU空闲时，将扫描所有线程的栈空间（启用了低功耗特性除外），一旦
-//      发现栈底附近 Level%范围内的内存被修改，将报警并保存异常。同一个线程，只
-//      报一次。
-//参数：Level，扫描范围，0~50
-//返回： 无
+//----线程栈检查(测试专用)---------------------------------------------------------------
+//功能: 检查一个事件的线程是否有栈溢出风险，
+//参数: event_id,被检查的事件id
+//返回: true=no overflow,false = overflow
+//说明：写这个函数就是为了测试__DJY_CheckStack函数，但因为，__DJY_CheckStack有打印和黑盒相关的代码
+//     不好测试，所以才有改函数，__DJY_CheckStack修改的话，此函数也要一并做修改，保证修改的东西能被测试
 //-----------------------------------------------------------------------------
-void DJY_SetStackCheckLevel(u32 Level)
+bool_t DJY_TestCheckStack(s16 event_id)
 {
-    if(Level >50)
-        s_u32StackCheckLevel = 50;
-    else
-        s_u32StackCheckLevel = Level;
-}
+    struct BlackBoxThrowPara  parahead;
+    struct ThreadVm *Vm;
+    char StackExp[128];
+    u32 loop;
+    volatile ptu32_t level;
+    u32 *stack;
+    u32 pads;
+    bool_t result=true;
+    char *name;
 
+    if (event_id >= CFG_EVENT_LIMIT)
+    {
+        return result;
+    }
+
+    pads = 0x64646464;
+    if(g_tECB_Table[event_id].vm == NULL)
+        return result;
+    if(g_tECB_Table[event_id].previous ==
+                    (struct EventECB*)&s_ptEventFree)
+        return result;
+
+    Vm = g_tECB_Table[event_id].vm;
+    level = 16;
+
+    stack = (u32*)(&(Vm[1]));
+    for(loop = 0; loop < level; loop++)
+    {
+        if(stack[loop] != pads)
+        {
+            break;
+        }
+    }
+    if(loop < level)        //超越警戒线，
+    {
+        result = false;   //安全区内发生了改变，有溢出风险
+    }
+    return result;
+}
 
 //----线程栈检查---------------------------------------------------------------
 //功能: 检查一个事件的线程是否有栈溢出风险，方法:检测栈最低1/16空间内，内容是否
@@ -250,29 +281,29 @@ bool_t __DJY_CheckStack(s16 event_id)
         return true;
 
     Vm = g_tECB_Table[event_id].vm;
-    level = Vm->stack_size * s_u32StackCheckLevel / 100;
+    level = 16;
 
     stack = (u32*)(&(Vm[1]));
-    for(loop = 0; loop < (Vm->stack_size>>2)-1; loop++)
+    for(loop = 0; loop < level; loop++)
     {
         if(stack[loop] != pads)
         {
             break;
         }
     }
-    if((loop << 2) <= level)        //超越警戒线，
+    if(loop < level)        //超越警戒线，
     {
         result = false;   //安全区内发生了改变，有溢出风险
-        if(&stack[loop] < Vm->stack_used)   //突破警戒线到新高度
-        {
-            Vm->stack_used = &stack[loop];  //记录新的已用指针
+        // if(&stack[loop] < Vm->stack_used)   //突破警戒线到新高度
+        // {
+            // Vm->stack_used = &stack[loop];  //记录新的已用指针
 #if CFG_OS_TINY == false
             name = g_tEvttTable[g_tECB_Table[event_id].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
 #else
             name = "unknown";
 #endif  //CFG_OS_TINY == false
-            sprintf(StackExp,"栈溢出风险,栈底:0x%x,栈尺寸:0x%x,剩余:0x%x,事件号:%d,类型号%d,类型名:%s",
-                                (ptu32_t)stack,Vm->stack_size,loop<<2,
+            sprintf(StackExp,"栈溢出风险,栈底:0x%x,栈尺寸:0x%x,事件号:%d,类型号%d,类型名:%s",
+                                (ptu32_t)stack,Vm->stack_size,
                                 event_id, g_tECB_Table[event_id].evtt_id&(~CN_EVTT_ID_MASK),
                                 name);
             printk("%s\n\r",StackExp);
@@ -284,12 +315,12 @@ bool_t __DJY_CheckStack(s16 event_id)
             parahead.BlackBoxType = CN_BLACKBOX_TYPE_STACK_OVER;
             BlackBox_ThrowExp(&parahead);
 #endif      //for #if(CFG_MODULE_ENABLE_BLACK_BOX == true)
-        }
+        // }
     }
-    else
-    {
-        Vm->stack_used = &stack[loop];  //记录新的已用指针，不需要判断是否有更新
-    }
+    // else
+    // {
+    //     Vm->stack_used = &stack[loop];  //记录新的已用指针，不需要判断是否有更新
+    // }
     return result;
 }
 
@@ -577,7 +608,7 @@ struct ThreadVm *__DJY_CreateThread(struct EventType *evtt,u32 *stack_size)
     *stack_size = len;
     if(result==NULL)
     {
-        DJY_SaveLastError(EN_MEM_TRIED);   //内存不足，返回错误
+        DJY_SaveLastError(EN_KNL_MEMORY_OVER);   //内存不足，返回错误
         return result;
     }
     len = M_CheckSize(result);
@@ -607,24 +638,27 @@ struct ThreadVm *__DJY_CreateThread(struct EventType *evtt,u32 *stack_size)
 struct ThreadVm *__DJY_CreateStaticThread(struct EventType *evtt,void *Stack,
                                     u32 StackSize)
 {
-    struct ThreadVm  *result;
-    result = (struct ThreadVm  *)align_up_sys(Stack);
+    struct ThreadVm  *result = NULL;
+    if (NULL != Stack)
+    {
+        result = (struct ThreadVm  *)align_up_sys(Stack);
 
-    memset(Stack, 'd', StackSize-((ptu32_t)result - (ptu32_t)Stack));
+        memset(Stack, 'd', StackSize-((ptu32_t)result - (ptu32_t)Stack));
 
-    //看实际分配了多少内存，djyos内存分配使用块相联策略，如果分配的内存量大于
-    //申请量，可以保证其实际尺寸是对齐的。之所以注释掉，是因为当len大于申请量时，
-    //对齐只是实际结果，而不是内存管理的规定动作，如果不注释掉，就要求内存管理
-    //模块必须提供对齐的结果，对模块独立性是不利的。
-//    len = M_CheckSize(result);
-    result->stack_top = (u32*)align_down_sys((ptu32_t)Stack+StackSize); //栈顶地址，移植敏感
-    result->stack_used = result->stack_top;
-    result->next = NULL;
-    result->stack_size = (ptu32_t)(result->stack_top) - (ptu32_t)result
-                            - sizeof(struct ThreadVm);       //保存栈深度
-    result->host_vm = NULL;
-    //复位线程并重置线程
-    __asm_reset_thread(evtt->thread_routine,result);
+        //看实际分配了多少内存，djyos内存分配使用块相联策略，如果分配的内存量大于
+        //申请量，可以保证其实际尺寸是对齐的。之所以注释掉，是因为当len大于申请量时，
+        //对齐只是实际结果，而不是内存管理的规定动作，如果不注释掉，就要求内存管理
+        //模块必须提供对齐的结果，对模块独立性是不利的。
+    //    len = M_CheckSize(result);
+        result->stack_top = (u32*)align_down_sys((ptu32_t)Stack+StackSize); //栈顶地址，移植敏感
+        result->stack_used = result->stack_top;
+        result->next = NULL;
+        result->stack_size = (ptu32_t)(result->stack_top) - (ptu32_t)result
+                                - sizeof(struct ThreadVm);       //保存栈深度
+        result->host_vm = NULL;
+        //复位线程并重置线程
+        __asm_reset_thread(evtt->thread_routine,result);
+    }
     return result;
 }
 
@@ -840,7 +874,7 @@ u16 DJY_EvttRegist(enum enEventRelation relation,
         {
             if(g_tEvttTable[i].property.registered == 1)
             {
-                if(strncmp(g_tEvttTable[i].evtt_name,evtt_name,31) == 0)
+                if(strncmp(g_tEvttTable[i].evtt_name, evtt_name, CN_EVTTNAME_LIMIT - 1) == 0)
                 {
                     DJY_SaveLastError(EN_KNL_EVTT_HOMONYMY);
                     info_printf("djyos","事件类型重名: %s\n\r",evtt_name);
@@ -849,12 +883,12 @@ u16 DJY_EvttRegist(enum enEventRelation relation,
                 }
             }
         }
-        if(strnlen(evtt_name,32) <= 31)
+        if(strnlen(evtt_name, CN_EVTTNAME_LIMIT) <= CN_EVTTNAME_LIMIT - 1)
             strcpy(g_tEvttTable[evtt_offset].evtt_name,evtt_name);
         else
         {
-            memcpy(g_tEvttTable[evtt_offset].evtt_name,evtt_name,31);
-            g_tEvttTable[evtt_offset].evtt_name[31] = '\0';
+            memcpy(g_tEvttTable[evtt_offset].evtt_name,evtt_name,CN_EVTTNAME_LIMIT - 1);
+            g_tEvttTable[evtt_offset].evtt_name[CN_EVTTNAME_LIMIT - 1] = '\0';
         }
 #endif  //CFG_OS_TINY == false
     }else
@@ -2183,7 +2217,7 @@ u16 DJY_EventPop(   u16  hybrid_id,
     u16 evtt_offset;
     u16 return_result;
     bool_t schbak;          //是否允许调度
-    if(hybrid_id >= CN_EVTT_ID_BASE)
+    if ((hybrid_id >= CN_EVTT_ID_BASE) && (hybrid_id <= CN_EVTT_ID_LIMIT))
     {
         evtt_offset = hybrid_id & (~CN_EVTT_ID_MASK);
         if(evtt_offset >= CFG_EVENT_TYPE_LIMIT)

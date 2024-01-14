@@ -126,6 +126,7 @@ struct STM32TimerHandle
     u32     irqline;          //中断号
     u32     cycle;            //定时周期
     u32     timerstate;       //定时器标识
+    fnTimerIsr UserIsr;            //用户中断响应函数
 };
 #define CN_STM32TIMER_NUM   (EN_STM32TIMER_7 +1)
 #define CN_STM32TIMER_MAX    EN_STM32TIMER_7
@@ -343,6 +344,30 @@ bool_t  __STM32Timer_SetAutoReload(struct STM32TimerHandle  *timer, bool_t autor
 
     return result;
 }
+
+//-----------------------------------------------------------------------------
+// 功能：定时器中断响应函数，对于像atmel m7这样，需要自行操作定时器的寄存器才能
+//       清中断的定时器，必须在这里实现ISR，然后间接调用user ISR，否则在
+//       user isr中将无所适从。
+// 参数：定时器句柄。
+// 返回：user ISR的返回值
+// 说明：须定义为 weak 函数，已允许用户自己定义 ISR
+//-----------------------------------------------------------------------------
+__attribute__((weak)) u32 __STM32Timer_isr(ptu32_t TimerHandle)
+{
+    u32 timerno;
+    timerno = ((struct STM32TimerHandle  *)TimerHandle)->timerno;
+    //以下两句顺序不能改
+//  tg_TIMER_Reg[timerno]->CNT = 0;
+    tg_TIMER_Reg[timerno]->SR = 0;//清中断标志
+    Int_ClearLine(((struct STM32TimerHandle  *)TimerHandle)->irqline);
+    if (NULL != ((struct STM32TimerHandle  *)TimerHandle)->UserIsr)
+    {
+        return ((struct STM32TimerHandle  *)TimerHandle)->UserIsr(TimerHandle);
+    }
+    return 0;
+}
+
 // =============================================================================
 // 函数功能:__STM32Timer_Alloc
 //          分配定时器
@@ -365,7 +390,7 @@ ptu32_t __STM32Timer_Alloc(fnTimerIsr timerisr)
     timerno = __STM32Timer_GetFirstZeroBit(gs_dwSTM32TimerBitmap);
     if(timerno < CN_STM32TIMER_NUM)//还有空闲的，则设置标志位
     {
-        gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap | (CN_STM32TIMER_BITMAP_MSK<< timerno);
+        gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap | (CN_STM32TIMER_BITMAP_MSK >> timerno);
         Int_LowAtomEnd(timeratom);  //原子操作完毕
     }
     else//没有的话直接返回就可以了，用不着再啰嗦了
@@ -379,6 +404,7 @@ ptu32_t __STM32Timer_Alloc(fnTimerIsr timerisr)
     timer->timerno = timerno;
     timer->irqline = irqline;
     timer->timerstate = CN_TIMER_ENUSE;
+    timer->UserIsr=timerisr;
     //好了，中断号和定时器号码都有了，该干嘛就干嘛了。
     //先设置好定时器周期
     __STM32Timer_PauseCount(timer);
@@ -390,7 +416,9 @@ ptu32_t __STM32Timer_Alloc(fnTimerIsr timerisr)
     Int_IsrDisConnect(irqline);
     Int_EvttDisConnect(irqline);
     Int_SettoAsynSignal(irqline);
-    Int_IsrConnect(irqline, timerisr);
+    Int_SetClearType(irqline,CN_INT_CLEAR_USER);
+    Int_SetIsrPara(irqline,(ptu32_t)timer);
+    Int_IsrConnect(irqline, __STM32Timer_isr);
     timerhandle = (ptu32_t)timer;
 
     return timerhandle;
@@ -420,7 +448,7 @@ bool_t  __STM32Timer_Free(ptu32_t timerhandle)
         if(timerno < CN_STM32TIMER_NUM)//还有空闲的，则设置标志位
         {       //修改全局标志一定是原子性的
             timeratom = Int_LowAtomStart();
-            gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap &(~(CN_STM32TIMER_BITMAP_MSK<< timerno));
+            gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap &(~(CN_STM32TIMER_BITMAP_MSK >> timerno));
             //解除掉中断所关联的内容
             timer->timerstate = 0;
             Int_DisableLine(irqline);
@@ -750,9 +778,7 @@ bool_t __STM32Timer_Ctrl(ptu32_t timerhandle, \
 // =============================================================================
 u32  __STM32Timer_GetFreq(ptu32_t timerhandle)
 {
-    //定时器TIM234567时钟源为低速外设时钟PCLK1，速度为36M
-    //定时器分频配置为36，则一个时钟为1uS，定时器主频为1MHz
-    return 1000000;
+    return CN_CFG_PCLK1*2;
 }
 // =============================================================================
 // 函数功能:module_init_timer
@@ -774,7 +800,7 @@ bool_t ModuleInstall_HardTimer(void)
         tg_TIMER_Reg[temp]->CR1 |= TIM_CR1_ARPE;//自动重装
 
         tg_TIMER_Reg[temp]->DIER |= TIM_DIER_UIE_MASK;
-        tg_TIMER_Reg[temp]->PSC = 0x23;//配置为36，则一个时钟为1uS
+        tg_TIMER_Reg[temp]->PSC = 0;    //分频系数 为零 不分频(1/CN_CFG_PCLK1*2)1uS
         tg_TIMER_Reg[temp]->ARR = 0xFFFF;
     }
 

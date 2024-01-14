@@ -853,7 +853,7 @@ bool_t ModuleInstall_Timer(void)
             goto EXIT_TIMERFAILED;
         }
         sgHardTimerDefault = HardTimer_Alloc(Timer_ISR);
-        if((ptu32_t)NULL == sgHardTimerDefault)
+        if(((ptu32_t)NULL == sgHardTimerDefault) || (-1 == sgHardTimerDefault))
         {
             Lock_MutexDelete(ptTimerQSync);
             goto EXIT_TIMERFAILED;
@@ -891,7 +891,7 @@ bool_t ModuleInstall_Timer(void)
             }
             else
             {
-                s_u32TimerPrecision = 0;   //精度=1个tick
+                s_u32TimerPrecision = CN_CFG_TICK_US;   //精度=1个tick
                 u16EventId = DJY_EventPop(u16EvttId,NULL,0,0,0,0);
                 if(CN_EVENT_ID_INVALID == u16EventId)
                 {

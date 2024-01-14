@@ -30,6 +30,9 @@
 //%$#@num,0,100
 #define MG_MAX_DNS_QUESTIONS 8
 #define MG_MAX_DNS_ANSWERS 8
+//%$#@num,0,2147483647
+#define MG_MAX_RCVBUF_SIZE      1024            //"做客户端时接收缓冲区大小"
+#define MG_MAX_RCV_TIMEOUT      1000000         //"做客户端时接收超时时间"
 //%$#@enum,true,false
 //%$#@string,1,16
 //%$#@select

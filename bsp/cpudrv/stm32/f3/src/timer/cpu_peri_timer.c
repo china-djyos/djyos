@@ -340,7 +340,11 @@ __attribute__((weak)) u32 __STM32Timer_isr(ptu32_t TimerHandle)   //OK
 //  tg_TIMER_Reg->CNT = 0;
     tg_TIMER_Reg->SR = 0;//清中断标志
     Int_ClearLine(((struct STM32TimerHandle  *)TimerHandle)->irqline);
-    return ((struct STM32TimerHandle  *)TimerHandle)->UserIsr(TimerHandle);
+    if (NULL != ((struct STM32TimerHandle  *)TimerHandle)->UserIsr)
+    {
+        return ((struct STM32TimerHandle  *)TimerHandle)->UserIsr(TimerHandle);
+    }
+    return 0;
 }
 
 // =============================================================================
@@ -365,7 +369,7 @@ ptu32_t __STM32Timer_Alloc(fnTimerIsr timerisr)  //OK
     timerno = __STM32Timer_GetFirstZeroBit(gs_dwSTM32TimerBitmap);
     if(timerno==0)//TIM2是否空闲，是则设置标志位
     {
-        gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap | (CN_STM32TIMER_BITMAP_MSK<< timerno);
+        gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap | (CN_STM32TIMER_BITMAP_MSK>> timerno);
         Int_LowAtomEnd(timeratom);  //原子操作完毕
     }
     else//没有的话直接返回就可以了，用不着再啰嗦了
@@ -425,7 +429,7 @@ bool_t  __STM32Timer_Free(ptu32_t timerhandle)    //OK
         if(timerno==0)  //TME2是否空闲的，则设置标志位
         {   //修改全局标志一定是原子性的
             timeratom = Int_LowAtomStart();
-            gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap &(~(CN_STM32TIMER_BITMAP_MSK<< timerno));
+            gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap &(~(CN_STM32TIMER_BITMAP_MSK>> timerno));
             //解除掉中断所关联的内容
             timer->timerstate = 0;
             Int_DisableLine(irqline);

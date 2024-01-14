@@ -316,7 +316,7 @@ struct objhandle *Handle_New(void)
 {
     struct objhandle *hdl;
 
-    hdl = (struct objhandle*)Mb_Malloc(&s_tHandlePool, 0);
+    hdl = (struct objhandle*)Mb_Malloc(&s_tHandlePool, CN_TIMEOUT_FOREVER);
     if(!hdl)
         return (NULL);
 
@@ -744,7 +744,7 @@ struct objhandle *__open(char *path, u32 flags, u32 mode)
 {
     struct objhandle *hdl = NULL;
     struct Object *ob;
-    char *uncached;
+    char *uncached = NULL;
     s32 run;
     u64 OpenMode;
 //  struct stat statbuf;

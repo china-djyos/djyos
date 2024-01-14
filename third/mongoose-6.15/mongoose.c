@@ -9,6 +9,10 @@
  */
 
 #include "stdlib.h"
+#include "stdio.h"
+#include "stdint.h"
+#include "stddef.h"
+#include <project_config.h>
 void *djyos_realloc(void *p, size_t size)
 {
     void *rp = 0;
@@ -235,7 +239,7 @@ extern "C" {
 #endif
 
 #ifndef MG_MALLOC
-#define MG_MALLOC malloc
+#define MG_MALLOC M_Malloc
 #endif
 
 #ifndef MG_CALLOC
@@ -247,7 +251,7 @@ extern "C" {
 #endif
 
 #ifndef MG_FREE
-#define MG_FREE free
+#define MG_FREE M_Free
 #endif
 
 #ifdef __cplusplus
@@ -874,7 +878,7 @@ DIR *opendir(const char *name) {
 
   if (name == NULL) {
     SetLastError(ERROR_BAD_ARGUMENTS);
-  } else if ((dir = (struct win32_dir *) MG_MALLOC(sizeof(*dir))) == NULL) {
+  } else if ((dir = (struct win32_dir *) MG_MALLOC(sizeof(*dir),CN_TIMEOUT_FOREVER)) == NULL) {
     SetLastError(ERROR_NOT_ENOUGH_MEMORY);
   } else {
     to_wchar(name, wpath, ARRAY_SIZE(wpath));
@@ -884,7 +888,7 @@ DIR *opendir(const char *name) {
       dir->handle = FindFirstFileW(wpath, &dir->info);
       dir->result.d_name[0] = '\0';
     } else {
-      MG_FREE(dir);
+      MG_FREE(dir,CN_TIMEOUT_FOREVER);
       dir = NULL;
     }
   }
@@ -899,7 +903,7 @@ int closedir(DIR *d) {
   if (dir != NULL) {
     if (dir->handle != INVALID_HANDLE_VALUE)
       result = FindClose(dir->handle) ? 0 : -1;
-    MG_FREE(dir);
+    MG_FREE(dir,CN_TIMEOUT_FOREVER);
   } else {
     result = -1;
     SetLastError(ERROR_BAD_ARGUMENTS);
@@ -1592,7 +1596,7 @@ void cs_hmac_sha1(const unsigned char *key, size_t keylen,
 #endif
 
 #ifndef MBUF_FREE
-#define MBUF_FREE free
+#define MBUF_FREE MG_FREE
 #endif
 
 void mbuf_init(struct mbuf *mbuf, size_t initial_size) WEAK;
@@ -1605,7 +1609,7 @@ void mbuf_init(struct mbuf *mbuf, size_t initial_size) {
 void mbuf_free(struct mbuf *mbuf) WEAK;
 void mbuf_free(struct mbuf *mbuf) {
   if (mbuf->buf != NULL) {
-    MBUF_FREE(mbuf->buf);
+    MBUF_FREE(mbuf->buf,CN_TIMEOUT_FOREVER);
     mbuf_init(mbuf, 0);
   }
 }
@@ -1781,7 +1785,7 @@ static struct mg_str mg_strdup_common(const struct mg_str s,
                                       int nul_terminate) {
   struct mg_str r = {NULL, 0};
   if (s.len > 0 && s.p != NULL) {
-    char *sc = (char *) MG_MALLOC(s.len + (nul_terminate ? 1 : 0));
+    char *sc = (char *) MG_MALLOC(s.len + (nul_terminate ? 1 : 0),CN_TIMEOUT_FOREVER);
     if (sc != NULL) {
       memcpy(sc, s.p, s.len);
       if (nul_terminate) sc[s.len] = '\0';
@@ -2174,7 +2178,7 @@ const char *c_strnstr(const char *s, const char *find, size_t slen) {
 char *strdup(const char *src) WEAK;
 char *strdup(const char *src) {
   size_t len = strlen(src) + 1;
-  char *ret = MG_MALLOC(len);
+  char *ret = MG_MALLOC(len,CN_TIMEOUT_FOREVER);
   if (ret != NULL) {
     strcpy(ret, src);
   }
@@ -2279,12 +2283,12 @@ int mg_avprintf(char **buf, size_t size, const char *fmt, va_list ap) {
      * succeed or out of memory. */
     *buf = NULL; /* LCOV_EXCL_START */
     while (len < 0) {
-      MG_FREE(*buf);
+      MG_FREE(*buf,CN_TIMEOUT_FOREVER);
       if (size == 0) {
         size = 5;
       }
       size *= 2;
-      if ((*buf = (char *) MG_MALLOC(size)) == NULL) {
+      if ((*buf = (char *) MG_MALLOC(size,CN_TIMEOUT_FOREVER)) == NULL) {
         len = -1;
         break;
       }
@@ -2301,7 +2305,7 @@ int mg_avprintf(char **buf, size_t size, const char *fmt, va_list ap) {
     /* LCOV_EXCL_STOP */
   } else if (len >= (int) size) {
     /* Standard-compliant code path. Allocate a buffer that is large enough. */
-    if ((*buf = (char *) MG_MALLOC(len + 1)) == NULL) {
+    if ((*buf = (char *) MG_MALLOC(len + 1,CN_TIMEOUT_FOREVER)) == NULL) {
       len = -1; /* LCOV_EXCL_LINE */
     } else {    /* LCOV_EXCL_LINE */
       va_copy(ap_copy, ap);
@@ -2595,7 +2599,7 @@ void mg_destroy_conn(struct mg_connection *conn, int destroy_if) {
   mbuf_free(&conn->send_mbuf);
 
   memset(conn, 0, sizeof(*conn));
-  MG_FREE(conn);
+  MG_FREE(conn,CN_TIMEOUT_FOREVER);
 }
 
 void mg_close_conn(struct mg_connection *conn) {
@@ -2658,7 +2662,7 @@ void mg_mgr_init_opt(struct mg_mgr *m, void *user_data,
     }
     m->num_ifaces = opts.num_ifaces;
     m->ifaces =
-        (struct mg_iface **) MG_MALLOC(sizeof(*m->ifaces) * opts.num_ifaces);
+        (struct mg_iface **) MG_MALLOC(sizeof(*m->ifaces) * opts.num_ifaces,CN_TIMEOUT_FOREVER);
     for (i = 0; i < opts.num_ifaces; i++) {
       m->ifaces[i] = mg_if_create_iface(opts.ifaces[i], m);
       m->ifaces[i]->vtable->init(m->ifaces[i]);
@@ -2704,12 +2708,12 @@ void mg_mgr_free(struct mg_mgr *m) {
     int i;
     for (i = 0; i < m->num_ifaces; i++) {
       m->ifaces[i]->vtable->free(m->ifaces[i]);
-      MG_FREE(m->ifaces[i]);
+      MG_FREE(m->ifaces[i],CN_TIMEOUT_FOREVER);
     }
-    MG_FREE(m->ifaces);
+    MG_FREE(m->ifaces,CN_TIMEOUT_FOREVER);
   }
 
-  MG_FREE((char *) m->nameserver);
+  MG_FREE((char *) m->nameserver,CN_TIMEOUT_FOREVER);
 }
 
 int mg_mgr_poll(struct mg_mgr *m, int timeout_ms) {
@@ -2730,7 +2734,7 @@ int mg_vprintf(struct mg_connection *nc, const char *fmt, va_list ap) {
     mg_send(nc, buf, len);
   }
   if (buf != mem && buf != NULL) {
-    MG_FREE(buf); /* LCOV_EXCL_LINE */
+    MG_FREE(buf,CN_TIMEOUT_FOREVER); /* LCOV_EXCL_LINE */
   }               /* LCOV_EXCL_LINE */
 
   return len;
@@ -2816,7 +2820,7 @@ MG_INTERNAL struct mg_connection *mg_create_connection(
   struct mg_connection *conn = mg_create_connection_base(mgr, callback, opts);
 
   if (conn != NULL && !conn->iface->vtable->create_conn(conn)) {
-    MG_FREE(conn);
+    MG_FREE(conn,CN_TIMEOUT_FOREVER);
     conn = NULL;
   }
   if (conn == NULL) {
@@ -3915,18 +3919,28 @@ void mg_set_non_blocking_mode(sock_t sock) {
   struct tagSocket *sock_obj = __Fd2Sock(sock);
   if (sock_obj && sock_obj->sockstat &CN_SOCKET_LISTEN) {
       printf("listen socket!!!!!!!!!\r\n");
+      opt = 1;
+      if(0 != setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, &opt,4))
+      {
+          printf("error: setsockopt, SO_NONBLOCK!\r\n");
+      }
   }
   else {
-      opt = 6 * 1024;
+      opt = MG_MAX_RCVBUF_SIZE;
       if (0 != setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &opt, 4))
       {
           printf("Client: setsockopt failed!\n\r");
       }
-  }
-  opt = 1;
-  if(0 != setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, &opt,4))
-  {
-      printf("error: setsockopt, SO_NONBLOCK!\r\n");
+      opt = 0;
+      if(0 != setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, &opt,4))
+      {
+          printf("error: setsockopt, SO_NONBLOCK!\r\n");
+      }
+      opt = MG_MAX_RCV_TIMEOUT;		//³¬Ê±Ê±¼ä
+      if (0 != setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &opt, 4))
+      {
+          printf("Client: setsockopt failed!\n\r");
+      }
   }
 #else
   int flags = fcntl(sock, F_GETFL, 0);
@@ -4710,7 +4724,7 @@ static int mg_socks_if_create_conn(struct mg_connection *c) {
 
 static void mg_socks_if_destroy_conn(struct mg_connection *c) {
   c->iface->vtable->free(c->iface);
-  MG_FREE(c->iface);
+  MG_FREE(c->iface,CN_TIMEOUT_FOREVER);
   c->iface = NULL;
   LOG(LL_DEBUG, ("%p", c));
 }
@@ -4729,8 +4743,8 @@ static void mg_socks_if_free(struct mg_iface *iface) {
   LOG(LL_DEBUG, ("%p", iface));
   if (d != NULL) {
     socks_if_disband(d);
-    MG_FREE(d->proxy_addr);
-    MG_FREE(d);
+    MG_FREE(d->proxy_addr,CN_TIMEOUT_FOREVER);
+    MG_FREE(d,CN_TIMEOUT_FOREVER);
     iface->data = NULL;
   }
 }
@@ -4966,7 +4980,7 @@ void mg_ssl_if_conn_free(struct mg_connection *nc) {
   if (ctx->ssl_ctx != NULL && nc->listener == NULL) SSL_CTX_free(ctx->ssl_ctx);
   mbuf_free(&ctx->psk);
   memset(ctx, 0, sizeof(*ctx));
-  MG_FREE(ctx);
+  MG_FREE(ctx,CN_TIMEOUT_FOREVER);
 }
 
 /*
@@ -5397,22 +5411,22 @@ static enum mg_ssl_if_result mg_ssl_if_mbed_err(struct mg_connection *nc,
 static void mg_ssl_if_mbed_free_certs_and_keys(struct mg_ssl_if_ctx *ctx) {
   if (ctx->cert != NULL) {
     mbedtls_x509_crt_free(ctx->cert);
-    MG_FREE(ctx->cert);
+    MG_FREE(ctx->cert,CN_TIMEOUT_FOREVER);
     ctx->cert = NULL;
     mbedtls_pk_free(ctx->key);
-    MG_FREE(ctx->key);
+    MG_FREE(ctx->key,CN_TIMEOUT_FOREVER);
     ctx->key = NULL;
   }
   if (ctx->ca_cert != NULL) {
     mbedtls_ssl_conf_ca_chain(ctx->conf, NULL, NULL);
 #ifdef MBEDTLS_X509_CA_CHAIN_ON_DISK
     if (ctx->conf->ca_chain_file != NULL) {
-      MG_FREE((void *) ctx->conf->ca_chain_file);
+      MG_FREE((void *) ctx->conf->ca_chain_file,CN_TIMEOUT_FOREVER);
       ctx->conf->ca_chain_file = NULL;
     }
 #endif
     mbedtls_x509_crt_free(ctx->ca_cert);
-    MG_FREE(ctx->ca_cert);
+    MG_FREE(ctx->ca_cert,CN_TIMEOUT_FOREVER);
     ctx->ca_cert = NULL;
   }
 }
@@ -5439,7 +5453,7 @@ enum mg_ssl_if_result mg_ssl_if_handshake(struct mg_connection *nc) {
   if (nc->listener == NULL) {
     if (ctx->conf->key_cert != NULL) {
       /* Note that this assumes one key_cert entry, which matches our init. */
-      MG_FREE(ctx->conf->key_cert);
+      MG_FREE(ctx->conf->key_cert,CN_TIMEOUT_FOREVER);
       ctx->conf->key_cert = NULL;
     }
     mbedtls_ssl_conf_ca_chain(ctx->conf, NULL, NULL);
@@ -5493,16 +5507,16 @@ void mg_ssl_if_conn_free(struct mg_connection *nc) {
   nc->ssl_if_data = NULL;
   if (ctx->ssl != NULL) {
     mbedtls_ssl_free(ctx->ssl);
-    MG_FREE(ctx->ssl);
+    MG_FREE(ctx->ssl,CN_TIMEOUT_FOREVER);
   }
   mg_ssl_if_mbed_free_certs_and_keys(ctx);
   if (ctx->conf != NULL) {
     mbedtls_ssl_config_free(ctx->conf);
-    MG_FREE(ctx->conf);
+    MG_FREE(ctx->conf,CN_TIMEOUT_FOREVER);
   }
   mbuf_free(&ctx->cipher_suites);
   memset(ctx, 0, sizeof(*ctx));
-  MG_FREE(ctx);
+  MG_FREE(ctx,CN_TIMEOUT_FOREVER);
 }
 
 static enum mg_ssl_if_result mg_use_ca_cert(struct mg_ssl_if_ctx *ctx,
@@ -6165,9 +6179,9 @@ static struct mg_http_proto_data *mg_http_get_proto_data(
 #if MG_ENABLE_HTTP_STREAMING_MULTIPART
 static void mg_http_free_proto_data_mp_stream(
     struct mg_http_multipart_stream *mp) {
-  MG_FREE((void *) mp->boundary);
-  MG_FREE((void *) mp->var_name);
-  MG_FREE((void *) mp->file_name);
+  MG_FREE((void *) mp->boundary,CN_TIMEOUT_FOREVER);
+  MG_FREE((void *) mp->var_name,CN_TIMEOUT_FOREVER);
+  MG_FREE((void *) mp->file_name,CN_TIMEOUT_FOREVER);
   memset(mp, 0, sizeof(*mp));
 }
 #endif
@@ -6188,10 +6202,10 @@ static void mg_http_free_proto_data_endpoints(struct mg_http_endpoint **ep) {
 
   while (current != NULL) {
     struct mg_http_endpoint *tmp = current->next;
-    MG_FREE((void *) current->uri_pattern.p);
-    MG_FREE((void *) current->auth_domain);
-    MG_FREE((void *) current->auth_file);
-    MG_FREE(current);
+    MG_FREE((void *) current->uri_pattern.p,CN_TIMEOUT_FOREVER);
+    MG_FREE((void *) current->auth_domain,CN_TIMEOUT_FOREVER);
+    MG_FREE((void *) current->auth_file,CN_TIMEOUT_FOREVER);
+    MG_FREE(current,CN_TIMEOUT_FOREVER);
     current = tmp;
   }
 
@@ -6227,7 +6241,7 @@ static void mg_http_proto_data_destructor(void *proto_data) {
 #endif
   mg_http_free_proto_data_endpoints(&pd->endpoints);
   mg_http_free_reverse_proxy_data(&pd->reverse_proxy_data);
-  MG_FREE(proto_data);
+  MG_FREE(proto_data,CN_TIMEOUT_FOREVER);
 }
 
 #if MG_ENABLE_FILESYSTEM
@@ -6965,7 +6979,7 @@ static void mg_http_multipart_begin(struct mg_connection *nc,
     mbuf_remove(io, req_len);
   }
 exit_mp:
-  if (boundary != boundary_buf) MG_FREE(boundary);
+  if (boundary != boundary_buf) MG_FREE(boundary,CN_TIMEOUT_FOREVER);
 }
 
 #define CONTENT_DISPOSITION "Content-Disposition: "
@@ -6993,9 +7007,9 @@ static int mg_http_multipart_finalize(struct mg_connection *c) {
   struct mg_http_proto_data *pd = mg_http_get_proto_data(c);
 
   mg_http_multipart_call_handler(c, MG_EV_HTTP_PART_END, NULL, 0);
-  MG_FREE((void *) pd->mp_stream.file_name);
+  MG_FREE((void *) pd->mp_stream.file_name,CN_TIMEOUT_FOREVER);
   pd->mp_stream.file_name = NULL;
-  MG_FREE((void *) pd->mp_stream.var_name);
+  MG_FREE((void *) pd->mp_stream.var_name,CN_TIMEOUT_FOREVER);
   pd->mp_stream.var_name = NULL;
   mg_http_multipart_call_handler(c, MG_EV_HTTP_MULTIPART_REQUEST_END, NULL, 0);
   mg_http_free_proto_data_mp_stream(&pd->mp_stream);
@@ -7091,9 +7105,9 @@ static int mg_http_multipart_process_boundary(struct mg_connection *c) {
       altbuf_append(&ab_var_name, '\0');
       altbuf_append(&ab_var_name, '\0');
 
-      MG_FREE((void *) pd->mp_stream.file_name);
+      MG_FREE((void *) pd->mp_stream.file_name,CN_TIMEOUT_FOREVER);
       pd->mp_stream.file_name = altbuf_get_buf(&ab_file_name, 1 /* trim */);
-      MG_FREE((void *) pd->mp_stream.var_name);
+      MG_FREE((void *) pd->mp_stream.var_name,CN_TIMEOUT_FOREVER);
       pd->mp_stream.var_name = altbuf_get_buf(&ab_var_name, 1 /* trim */);
 
       mg_http_multipart_call_handler(c, MG_EV_HTTP_PART_BEGIN, NULL, 0);
@@ -7364,9 +7378,9 @@ void mg_http_send_redirect(struct mg_connection *nc, int status_code,
               (int) location.len, location.p, bl, (int) extra_headers.len,
               extra_headers.p, (extra_headers.len > 0 ? "\r\n" : ""));
   mg_send_response_line(nc, status_code, phead);
-  if (phead != bhead) MG_FREE(phead);
+  if (phead != bhead) MG_FREE(phead,CN_TIMEOUT_FOREVER);
   mg_send(nc, pbody, bl);
-  if (pbody != bbody) MG_FREE(pbody);
+  if (pbody != bbody) MG_FREE(pbody,CN_TIMEOUT_FOREVER);
 }
 
 void mg_send_head(struct mg_connection *c, int status_code,
@@ -7413,12 +7427,12 @@ static int mg_http_parse_range_header(const struct mg_str *header, int64_t *a,
    * so we have this. Ugh.
    */
   int result;
-  char *p = (char *) MG_MALLOC(header->len + 1);
+  char *p = (char *) MG_MALLOC(header->len + 1,CN_TIMEOUT_FOREVER);
   if (p == NULL) return 0;
   memcpy(p, header->p, header->len);
   p[header->len] = '\0';
   result = sscanf(p, "bytes=%" INT64_FMT "-%" INT64_FMT, a, b);
-  MG_FREE(p);
+  MG_FREE(p,CN_TIMEOUT_FOREVER);
   return result;
 }
 
@@ -7633,7 +7647,7 @@ void mg_printf_http_chunk(struct mg_connection *nc, const char *fmt, ...) {
 
   /* LCOV_EXCL_START */
   if (buf != mem && buf != NULL) {
-    MG_FREE(buf);
+    MG_FREE(buf,CN_TIMEOUT_FOREVER);
   }
   /* LCOV_EXCL_STOP */
 }
@@ -7660,7 +7674,7 @@ void mg_printf_html_escape(struct mg_connection *nc, const char *fmt, ...) {
 
   /* LCOV_EXCL_START */
   if (buf != mem && buf != NULL) {
-    MG_FREE(buf);
+    MG_FREE(buf,CN_TIMEOUT_FOREVER);
   }
   /* LCOV_EXCL_STOP */
 }
@@ -7725,7 +7739,7 @@ int mg_http_parse_header(struct mg_str *hdr, const char *var_name, char *buf,
 
   if (buf2 != buf) {
     /* Buffer was not enough and was reallocated: free it and just return 0 */
-    MG_FREE(buf2);
+    MG_FREE(buf2,CN_TIMEOUT_FOREVER);
     return 0;
   }
 
@@ -7747,7 +7761,7 @@ int mg_parse_http_basic_auth(struct mg_str *hdr, char *user, size_t user_len,
 
   if (mg_strncmp(*hdr, mg_mk_str("Basic "), 6) != 0) return -1;
 
-  buf = (char *) MG_MALLOC(hdr->len);
+  buf = (char *) MG_MALLOC(hdr->len,CN_TIMEOUT_FOREVER);
   cs_base64_decode((unsigned char *) hdr->p + 6, hdr->len, buf, NULL);
 
   /* e.g. "%123[^:]:%321[^\n]" */
@@ -7757,7 +7771,7 @@ int mg_parse_http_basic_auth(struct mg_str *hdr, char *user, size_t user_len,
     res = -1;
   }
 
-  MG_FREE(buf);
+  MG_FREE(buf,CN_TIMEOUT_FOREVER);
   return res;
 }
 
@@ -7903,13 +7917,13 @@ int mg_http_check_digest_auth(struct http_message *hm, const char *auth_domain,
       fp);
 
 clean:
-  if (username != username_buf) MG_FREE(username);
-  if (cnonce != cnonce_buf) MG_FREE(cnonce);
-  if (response != response_buf) MG_FREE(response);
-  if (uri != uri_buf) MG_FREE(uri);
-  if (qop != qop_buf) MG_FREE(qop);
-  if (nc != nc_buf) MG_FREE(nc);
-  if (nonce != nonce_buf) MG_FREE(nonce);
+  if (username != username_buf) MG_FREE(username,CN_TIMEOUT_FOREVER);
+  if (cnonce != cnonce_buf) MG_FREE(cnonce,CN_TIMEOUT_FOREVER);
+  if (response != response_buf) MG_FREE(response,CN_TIMEOUT_FOREVER);
+  if (uri != uri_buf) MG_FREE(uri,CN_TIMEOUT_FOREVER);
+  if (qop != qop_buf) MG_FREE(qop,CN_TIMEOUT_FOREVER);
+  if (nc != nc_buf) MG_FREE(nc,CN_TIMEOUT_FOREVER);
+  if (nonce != nonce_buf) MG_FREE(nonce,CN_TIMEOUT_FOREVER);
 
   return ret;
 }
@@ -8160,7 +8174,7 @@ MG_INTERNAL void mg_find_index_file(const char *path, const char *list,
     }
   }
   if (!found) {
-    MG_FREE(*index_file);
+    MG_FREE(*index_file,CN_TIMEOUT_FOREVER);
     *index_file = NULL;
   }
   LOG(LL_DEBUG, ("[%s] [%s]", path, (*index_file ? *index_file : "")));
@@ -8287,7 +8301,7 @@ void mg_http_reverse_proxy(struct mg_connection *nc,
   mg_send(be, hm->body.p, hm->body.len);
 
 cleanup:
-  if (purl != burl) MG_FREE(purl);
+  if (purl != burl) MG_FREE(purl,CN_TIMEOUT_FOREVER);
 }
 
 static int mg_http_handle_forwarding(struct mg_connection *nc,
@@ -8377,7 +8391,7 @@ MG_INTERNAL int mg_uri_to_local_path(struct http_message *hm,
 
   { /* 2. Find where in the canonical URI path the local path ends. */
     const char *u = file_uri_start + 1;
-    char *lp = (char *) MG_MALLOC(root.len + hm->uri.len + 1);
+    char *lp = (char *) MG_MALLOC(root.len + hm->uri.len + 1,CN_TIMEOUT_FOREVER);
     char *lp_end = lp + root.len + hm->uri.len + 1;
     char *p = lp, *ps;
     int exists = 1;
@@ -8457,7 +8471,7 @@ MG_INTERNAL int mg_uri_to_local_path(struct http_message *hm,
       remainder->p = u;
       remainder->len = cp_end - u;
     } else {
-      MG_FREE(lp);
+      MG_FREE(lp,CN_TIMEOUT_FOREVER);
     }
   }
 
@@ -8581,14 +8595,14 @@ MG_INTERNAL void mg_send_http_file(struct mg_connection *nc, char *path,
               "HTTP/1.1 301 Moved\r\nLocation: %.*s/\r\n"
               "Content-Length: 0\r\n\r\n",
               (int) hm->uri.len, hm->uri.p);
-    MG_FREE(index_file);
+    MG_FREE(index_file,CN_TIMEOUT_FOREVER);
     return;
   }
 
   /* If we have path_info, the only way to handle it is CGI. */
   if (path_info->len > 0 && !is_cgi) {
     mg_http_send_error(nc, 501, NULL);
-    MG_FREE(index_file);
+    MG_FREE(index_file,CN_TIMEOUT_FOREVER);
     return;
   }
 
@@ -8659,7 +8673,7 @@ MG_INTERNAL void mg_send_http_file(struct mg_connection *nc, char *path,
   } else {
     mg_http_serve_file2(nc, index_file ? index_file : path, hm, opts);
   }
-  MG_FREE(index_file);
+  MG_FREE(index_file,CN_TIMEOUT_FOREVER);
 }
 
 void mg_serve_http(struct mg_connection *nc, struct http_message *hm,
@@ -8714,7 +8728,7 @@ void mg_serve_http(struct mg_connection *nc, struct http_message *hm,
   }
   mg_send_http_file(nc, path, &path_info, hm, &opts);
 
-  MG_FREE(path);
+  MG_FREE(path,CN_TIMEOUT_FOREVER);
   path = NULL;
 
   /* Close connection for non-keep-alive requests */
@@ -8754,10 +8768,10 @@ void mg_file_upload_handler(struct mg_connection *nc, int ev, void *ev_data,
         nc->flags |= MG_F_CLOSE_IMMEDIATELY;
         return;
       }
-      fus->lfn = (char *) MG_MALLOC(lfn.len + 1);
+      fus->lfn = (char *) MG_MALLOC(lfn.len + 1,CN_TIMEOUT_FOREVER);
       memcpy(fus->lfn, lfn.p, lfn.len);
       fus->lfn[lfn.len] = '\0';
-      if (lfn.p != mp->file_name) MG_FREE((char *) lfn.p);
+      if (lfn.p != mp->file_name) MG_FREE((char *) lfn.p,CN_TIMEOUT_FOREVER);
       LOG(LL_DEBUG,
           ("%p Receiving file %s -> %s", nc, mp->file_name, fus->lfn));
       fus->fp = mg_fopen(fus->lfn, "wb");
@@ -8833,8 +8847,8 @@ void mg_file_upload_handler(struct mg_connection *nc, int ev, void *ev_data,
          */
       }
       if (fus->fp != NULL) fclose(fus->fp);
-      MG_FREE(fus->lfn);
-      MG_FREE(fus);
+      MG_FREE(fus->lfn,CN_TIMEOUT_FOREVER);
+      MG_FREE(fus,CN_TIMEOUT_FOREVER);
       mp->user_data = NULL;
       /* Don't close the connection yet, there may be more files to come. */
       break;
@@ -8918,7 +8932,7 @@ struct mg_connection *mg_connect_http_base(
   }
 
 out:
-  if (conn_addr != NULL && conn_addr != conn_addr_buf) MG_FREE(conn_addr);
+  if (conn_addr != NULL && conn_addr != conn_addr_buf) MG_FREE(conn_addr,CN_TIMEOUT_FOREVER);
   return nc;
 }
 
@@ -8994,7 +9008,7 @@ size_t mg_parse_multipart(const char *buf, size_t buf_len, char *var_name,
         mg_http_parse_header2(&header, "name", &var_name2, var_name_len);
         /* TODO: handle reallocated buffer correctly */
         if (var_name2 != var_name) {
-          MG_FREE(var_name2);
+          MG_FREE(var_name2,CN_TIMEOUT_FOREVER);
           var_name[0] = '\0';
         }
       }
@@ -9003,7 +9017,7 @@ size_t mg_parse_multipart(const char *buf, size_t buf_len, char *var_name,
         mg_http_parse_header2(&header, "filename", &file_name2, file_name_len);
         /* TODO: handle reallocated buffer correctly */
         if (file_name2 != file_name) {
-          MG_FREE(file_name2);
+          MG_FREE(file_name2,CN_TIMEOUT_FOREVER);
           file_name[0] = '\0';
         }
       }
@@ -9160,7 +9174,7 @@ static void *mg_push_to_stdin(void *arg) {
   }
   DBG(("%s", "FORWARED EVERYTHING TO CGI"));
   CloseHandle(tp->hPipe);
-  MG_FREE(tp);
+  MG_FREE(tp,CN_TIMEOUT_FOREVER);
   return NULL;
 }
 
@@ -9181,13 +9195,13 @@ static void *mg_pull_from_stdout(void *arg) {
   CloseHandle(tp->hPipe);
   shutdown(tp->s, 2);  // Without this, IO thread may get truncated data
   closesocket(tp->s);
-  MG_FREE(tp);
+  MG_FREE(tp,CN_TIMEOUT_FOREVER);
   return NULL;
 }
 
 static void mg_spawn_stdio_thread(sock_t sock, HANDLE hPipe,
                                   void *(*func)(void *)) {
-  struct mg_threadparam *tp = (struct mg_threadparam *) MG_MALLOC(sizeof(*tp));
+  struct mg_threadparam *tp = (struct mg_threadparam *) MG_MALLOC(sizeof(*tp),CN_TIMEOUT_FOREVER);
   if (tp != NULL) {
     tp->s = sock;
     tp->hPipe = hPipe;
@@ -10417,7 +10431,7 @@ void mg_printf_websocket_frame(struct mg_connection *nc, int op,
   va_end(ap);
 
   if (buf != mem && buf != NULL) {
-    MG_FREE(buf);
+    MG_FREE(buf,CN_TIMEOUT_FOREVER);
   }
 }
 
@@ -11141,7 +11155,7 @@ static void mqtt_handler(struct mg_connection *nc, int ev,
 }
 
 static void mg_mqtt_proto_data_destructor(void *proto_data) {
-  MG_FREE(proto_data);
+  MG_FREE(proto_data,CN_TIMEOUT_FOREVER);
 }
 
 static struct mg_str mg_mqtt_next_topic_component(struct mg_str *topic) {
@@ -11490,10 +11504,10 @@ static void mg_mqtt_remove_session(struct mg_mqtt_session *s) {
 static void mg_mqtt_destroy_session(struct mg_mqtt_session *s) {
   size_t i;
   for (i = 0; i < s->num_subscriptions; i++) {
-    MG_FREE((void *) s->subscriptions[i].topic);
+    MG_FREE((void *) s->subscriptions[i].topic,CN_TIMEOUT_FOREVER);
   }
-  MG_FREE(s->subscriptions);
-  MG_FREE(s);
+  MG_FREE(s->subscriptions,CN_TIMEOUT_FOREVER);
+  MG_FREE(s,CN_TIMEOUT_FOREVER);
 }
 
 static void mg_mqtt_close_session(struct mg_mqtt_session *s) {
@@ -11561,7 +11575,7 @@ static void mg_mqtt_broker_handle_subscribe(struct mg_connection *nc,
              (pos = mg_mqtt_next_subscribe_topic(msg, &topic, &qos, pos)) != -1;
          ss->num_subscriptions++) {
       te = &ss->subscriptions[ss->num_subscriptions];
-      te->topic = (char *) MG_MALLOC(topic.len + 1);
+      te->topic = (char *) MG_MALLOC(topic.len + 1,CN_TIMEOUT_FOREVER);
       te->qos = qos;
       memcpy((char *) te->topic, topic.p, topic.len);
       ((char *) te->topic)[topic.len] = '\0';
@@ -11593,7 +11607,7 @@ static void mg_mqtt_broker_handle_publish(struct mg_mqtt_broker *brk,
         }
         mg_mqtt_publish(s->nc, p, 0, 0, msg->payload.p, msg->payload.len);
         if (p != buf) {
-          MG_FREE(p);
+          MG_FREE(p,CN_TIMEOUT_FOREVER);
         }
         break;
       }
@@ -11854,7 +11868,7 @@ void mg_send_dns_query(struct mg_connection *nc, const char *name,
   mbuf_free(&pkt);
 
 cleanup:
-  MG_FREE(msg);
+  MG_FREE(msg,CN_TIMEOUT_FOREVER);
 }
 
 static unsigned char *mg_parse_dns_resource_record(
@@ -12292,16 +12306,16 @@ static void mg_resolve_async_eh(struct mg_connection *nc, int ev,
       }
       break;
     case MG_EV_RECV:
-      msg = (struct mg_dns_message *) MG_MALLOC(sizeof(*msg));
+      msg = (struct mg_dns_message *) MG_MALLOC(sizeof(*msg),CN_TIMEOUT_FOREVER);
       if (mg_parse_dns(nc->recv_mbuf.buf, *(int *) data, msg) == 0 &&
           msg->num_answers > 0) {
         req->callback(msg, req->data, MG_RESOLVE_OK);
         nc->user_data = NULL;
-        MG_FREE(req);
+        MG_FREE(req,CN_TIMEOUT_FOREVER);
       } else {
         req->err = MG_RESOLVE_NO_ANSWERS;
       }
-      MG_FREE(msg);
+      MG_FREE(msg,CN_TIMEOUT_FOREVER);
       nc->flags |= MG_F_CLOSE_IMMEDIATELY;
       break;
     case MG_EV_SEND:
@@ -12326,7 +12340,7 @@ static void mg_resolve_async_eh(struct mg_connection *nc, int ev,
 #endif
         req->callback(NULL, req->data, req->err);
         nc->user_data = NULL;
-        MG_FREE(req);
+        MG_FREE(req,CN_TIMEOUT_FOREVER);
       }
       break;
   }
@@ -12383,7 +12397,7 @@ int mg_resolve_async_opt(struct mg_mgr *mgr, const char *name, int query,
 
   dns_nc = mg_connect(mgr, nameserver_url, MG_CB(mg_resolve_async_eh, NULL));
   if (dns_nc == NULL) {
-    MG_FREE(req);
+    MG_FREE(req,CN_TIMEOUT_FOREVER);
     return -1;
   }
   dns_nc->user_data = req;
@@ -12395,7 +12409,7 @@ int mg_resolve_async_opt(struct mg_mgr *mgr, const char *name, int query,
 }
 
 void mg_set_nameserver(struct mg_mgr *mgr, const char *nameserver) {
-  MG_FREE((char *) mgr->nameserver);
+  MG_FREE((char *) mgr->nameserver,CN_TIMEOUT_FOREVER);
   mgr->nameserver = NULL;
   if (nameserver != NULL) {
     mgr->nameserver = strdup(nameserver);
@@ -12431,7 +12445,7 @@ void mg_set_nameserver(struct mg_mgr *mgr, const char *nameserver) {
 void mg_coap_free_options(struct mg_coap_message *cm) {
   while (cm->options != NULL) {
     struct mg_coap_option *next = cm->options->next;
-    MG_FREE(cm->options);
+    MG_FREE(cm->options,CN_TIMEOUT_FOREVER);
     cm->options = next;
   }
 }
@@ -13219,7 +13233,7 @@ struct mg_connection *mg_sntp_connect(struct mg_mgr *mgr,
 
 cleanup:
   if (p_url != url) {
-    MG_FREE(p_url);
+    MG_FREE(p_url,CN_TIMEOUT_FOREVER);
   }
 
   return c;
@@ -13263,7 +13277,7 @@ static void mg_sntp_util_ev_handler(struct mg_connection *c, int ev,
       c->flags |= MG_F_CLOSE_IMMEDIATELY;
       break;
     case MG_EV_CLOSE:
-      MG_FREE(user_data);
+      MG_FREE(user_data,CN_TIMEOUT_FOREVER);
       c->user_data = NULL;
       break;
   }
@@ -13281,7 +13295,7 @@ struct mg_connection *mg_sntp_get_time(struct mg_mgr *mgr,
   c = mg_sntp_connect(mgr, MG_CB(mg_sntp_util_ev_handler, sd),
                       sntp_server_name);
   if (c == NULL) {
-    MG_FREE(sd);
+    MG_FREE(sd,CN_TIMEOUT_FOREVER);
     return NULL;
   }
 
@@ -13504,7 +13518,7 @@ int asprintf(char **strp, const char *fmt, ...) {
   va_list ap;
   int len;
 
-  *strp = MG_MALLOC(BUFSIZ);
+  *strp = MG_MALLOC(BUFSIZ,CN_TIMEOUT_FOREVER);
   if (*strp == NULL) return -1;
 
   va_start(ap, fmt);
@@ -15116,12 +15130,12 @@ void mg_ssl_if_conn_free(struct mg_connection *nc) {
   struct mg_ssl_if_ctx *ctx = (struct mg_ssl_if_ctx *) nc->ssl_if_data;
   if (ctx == NULL) return;
   nc->ssl_if_data = NULL;
-  MG_FREE(ctx->ssl_cert);
-  MG_FREE(ctx->ssl_key);
-  MG_FREE(ctx->ssl_ca_cert);
-  MG_FREE(ctx->ssl_server_name);
+  MG_FREE(ctx->ssl_cert,CN_TIMEOUT_FOREVER);
+  MG_FREE(ctx->ssl_key,CN_TIMEOUT_FOREVER);
+  MG_FREE(ctx->ssl_ca_cert,CN_TIMEOUT_FOREVER);
+  MG_FREE(ctx->ssl_server_name,CN_TIMEOUT_FOREVER);
   memset(ctx, 0, sizeof(*ctx));
-  MG_FREE(ctx);
+  MG_FREE(ctx,CN_TIMEOUT_FOREVER);
 }
 
 bool pem_to_der(const char *pem_file, const char *der_file) {
@@ -15191,7 +15205,7 @@ static char *sl_pem2der(const char *pem_file) {
     memmove(der_file, der_file + MG_SSL_IF_SIMPLELINK_SLFS_PREFIX_LEN,
             l - 2 /* including \0 */);
   } else {
-    MG_FREE(der_file);
+    MG_FREE(der_file,CN_TIMEOUT_FOREVER);
     der_file = NULL;
   }
   return der_file;
@@ -15218,14 +15232,14 @@ int sl_set_ssl_opts(int sock, struct mg_connection *nc) {
       err = sl_SetSockOpt(sock, SL_SOL_SOCKET,
                           SL_SO_SECURE_FILES_CERTIFICATE_FILE_NAME, ssl_cert,
                           strlen(ssl_cert));
-      MG_FREE(ssl_cert);
+      MG_FREE(ssl_cert,CN_TIMEOUT_FOREVER);
       LOG(LL_DEBUG, ("CERTIFICATE_FILE_NAME %s -> %d", ssl_cert, err));
       ssl_key = sl_pem2der(ctx->ssl_key);
       if (ssl_key != NULL) {
         err = sl_SetSockOpt(sock, SL_SOL_SOCKET,
                             SL_SO_SECURE_FILES_PRIVATE_KEY_FILE_NAME, ssl_key,
                             strlen(ssl_key));
-        MG_FREE(ssl_key);
+        MG_FREE(ssl_key,CN_TIMEOUT_FOREVER);
         LOG(LL_DEBUG, ("PRIVATE_KEY_FILE_NAME %s -> %d", ssl_key, err));
       } else {
         err = -1;
@@ -15246,7 +15260,7 @@ int sl_set_ssl_opts(int sock, struct mg_connection *nc) {
       } else {
         err = -1;
       }
-      MG_FREE(ssl_ca_cert);
+      MG_FREE(ssl_ca_cert,CN_TIMEOUT_FOREVER);
       if (err != 0) return err;
     }
   }
@@ -16011,7 +16025,7 @@ void mg_lwip_if_destroy_conn(struct mg_connection *nc) {
       pbuf_free(seg);
     }
     memset(cs, 0, sizeof(*cs));
-    MG_FREE(cs);
+    MG_FREE(cs,CN_TIMEOUT_FOREVER);
   } else if (nc->listener == NULL) {
     /* Only close outgoing UDP pcb or listeners. */
     struct udp_pcb *upcb = cs->pcb.udp;
@@ -16020,7 +16034,7 @@ void mg_lwip_if_destroy_conn(struct mg_connection *nc) {
       mg_lwip_netif_run_on_tcpip(udp_remove_tcpip, upcb);
     }
     memset(cs, 0, sizeof(*cs));
-    MG_FREE(cs);
+    MG_FREE(cs,CN_TIMEOUT_FOREVER);
   }
   nc->sock = INVALID_SOCKET;
 }
@@ -16185,7 +16199,7 @@ void mg_lwip_if_init(struct mg_iface *iface) {
 }
 
 void mg_lwip_if_free(struct mg_iface *iface) {
-  MG_FREE(iface->data);
+  MG_FREE(iface->data,CN_TIMEOUT_FOREVER);
   iface->data = NULL;
 }
 
@@ -16571,12 +16585,12 @@ static void mg_handle_recv(struct mg_connection *nc) {
     if (bytes_read != 0 &&
         (nc->recv_mbuf_limit == -1 ||
          nc->recv_mbuf.len + bytes_read < nc->recv_mbuf_limit)) {
-      buf = (uint8_t *) MG_MALLOC(bytes_read);
+      buf = (uint8_t *) MG_MALLOC(bytes_read,CN_TIMEOUT_FOREVER);
       if (TCPIP_UDP_ArrayGet((UDP_SOCKET) nc->sock, buf, bytes_read) !=
           bytes_read) {
         nc->flags |= MG_F_CLOSE_IMMEDIATELY;
         bytes_read = 0;
-        MG_FREE(buf);
+        MG_FREE(buf,CN_TIMEOUT_FOREVER);
       }
     }
   } else {
@@ -16586,11 +16600,11 @@ static void mg_handle_recv(struct mg_connection *nc) {
           nc->recv_mbuf_limit - nc->recv_mbuf.len > bytes_read) {
         bytes_read = nc->recv_mbuf_limit - nc->recv_mbuf.len;
       }
-      buf = (uint8_t *) MG_MALLOC(bytes_read);
+      buf = (uint8_t *) MG_MALLOC(bytes_read,CN_TIMEOUT_FOREVER);
       if (TCPIP_TCP_ArrayGet((TCP_SOCKET) nc->sock, buf, bytes_read) !=
           bytes_read) {
         nc->flags |= MG_F_CLOSE_IMMEDIATELY;
-        MG_FREE(buf);
+        MG_FREE(buf,CN_TIMEOUT_FOREVER);
         bytes_read = 0;
       }
     }

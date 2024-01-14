@@ -334,37 +334,37 @@ s32 xip_emflash_erase(struct __icore *core, u32 bytes, u32 pos)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 xip_fs_format(void *core)
-{
-    struct __icore *xip_core = core;
-    u32 remainunit = 0,block = 0,endunit = 0;
-    s64 startunit = xip_core->MStart;
-    struct uesz esz = {0};
-    esz.block = 1;
-    endunit = (xip_core->ASize/xip_core->bufsz) + startunit;
-    __embed_req(whichblock, (ptu32_t)&block, (ptu32_t)&startunit);
-    if(__embed_erase(block, esz))
-    {
-        printf("\r\n: erro : xipfs  : erase block %d failed.", block);
-        return (-1);
-    }
-    while(1)
-    {
-        __embed_req(remain, (ptu32_t)&remainunit, (ptu32_t)&startunit);
-        startunit = startunit + remainunit + 1;    //加1后会等于下一块的第一页
-        if(startunit >= endunit)
-        {
-            break;
-        }
-        __embed_req(whichblock, (ptu32_t)&block, &startunit);
-        if(__embed_erase(block, esz))
-        {
-            printf("\r\n: erro : xipfs  : erase block %d failed.", block);
-            return (-1);
-        }
-    }
-    return (0);
-}
+// s32 xip_fs_format(void *core)
+// {
+//     struct __icore *xip_core = core;
+//     u32 remainunit = 0,block = 0,endunit = 0;
+//     s64 startunit = xip_core->MStart;
+//     struct uesz esz = {0};
+//     esz.block = 1;
+//     endunit = (xip_core->ASize/xip_core->bufsz) + startunit;
+//     __embed_req(whichblock, (ptu32_t)&block, (ptu32_t)&startunit);
+//     if(__embed_erase(block, esz))
+//     {
+//         printf("\r\n: erro : xipfs  : erase block %d failed.", block);
+//         return (-1);
+//     }
+//     while(1)
+//     {
+//         __embed_req(remain, (ptu32_t)&remainunit, (ptu32_t)&startunit);
+//         startunit = startunit + remainunit + 1;    //加1后会等于下一块的第一页
+//         if(startunit >= endunit)
+//         {
+//             break;
+//         }
+//         __embed_req(whichblock, (ptu32_t)&block, &startunit);
+//         if(__embed_erase(block, esz))
+//         {
+//             printf("\r\n: erro : xipfs  : erase block %d failed.", block);
+//             return (-1);
+//         }
+//     }
+//     return (0);
+// }
 
 //-----------------------------------------------------------------------------
 // 功能：安装片内Flash驱动

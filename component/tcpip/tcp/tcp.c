@@ -1781,7 +1781,6 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
     u32 endtime;
     struct ClientCB    *ccb;
     bool_t locked= false;
-    s32 rout = 0;
 
     result = -1;
     if(0 == (CN_SOCKET_CLIENT &sock->sockstat))
@@ -1808,22 +1807,37 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
                     Lock_MutexPost(sock->SockSync);
                     locked = false;
                     if(endtime == CN_TIMEOUT_FOREVER)
+                    {
                         timeout = CN_TIMEOUT_FOREVER;
+                    }
                     else
-                        timeout = endtime - (u32)DJY_GetSysTime();
+                    {
+                        timeout = (u32)DJY_GetSysTime();
+                        if(endtime > timeout)
+                            timeout = endtime - timeout;
+                        else
+                            timeout = 0;
+                    }
                     if(Lock_SempPend(ccb->rbuf.bufsync,timeout))
                     {
                         if(endtime == CN_TIMEOUT_FOREVER)
+                        {
                             timeout = CN_TIMEOUT_FOREVER;
+                        }
                         else
-                            timeout = endtime - (u32)DJY_GetSysTime();
+                        {
+                            timeout = (u32)DJY_GetSysTime();
+                            if(endtime > timeout)
+                                timeout = endtime - timeout;
+                            else
+                                timeout = 0;
+                        }
                         if(Lock_MutexPend(sock->SockSync, timeout)) //继续锁住socket
                         {
                             prebuflen = ccb->rbuf.buflen;
                             if(prebuflen != 0)     //有新数据，接收之
                             {
                                 result = __cpyfromrcvbuf(ccb,buf,len);
-                                rout = 4;
                             }
                             else        //无新数据，检查socket状态，看是否已被关闭
                             {
@@ -1831,31 +1845,27 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
                                     == (CN_TCP_CHANNEL_STATARCV|CN_TCP_CHANNEL_STATKRCV))  //内核和APP均处于可接收状态
                                 {
                                     result = 0;
-                                    rout = 5;
                                 }
                                 else
                                 {
                                     result = -1;
-                                    rout = 6;
                                 }
                             }
                             locked = true;
                         }
-                        else
-                            rout= 3;
                     }
                     else
                     {
-                        rout = 2;
-                        result = 0;  //超时时间到，没有新数据
+                        result = -1;  //超时时间到，没有新数据
                     }
                 }
                 else
+                {
                     result = -1;
+                }
             }
             else
             {
-                rout = 1;
                 result = __cpyfromrcvbuf(ccb,buf,len);
             }
 
@@ -1883,8 +1893,7 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
         }
         else
         {
-            result = -1;        //socket 处于不可接收数据状态，直接返回错误。
-            rout = 7;
+            result = -1;        //socket 处于不可接收数据状态，直接返回错误
         }
         if(locked == true)
             Lock_MutexPost(sock->SockSync);

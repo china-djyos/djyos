@@ -595,7 +595,7 @@ bool_t Int_Register(ufast_t ufl_line)
     if (tg_pIntLineTable[ufl_line] != NULL) //说明已经注册
      return true;
 
-    pIntLine = (struct IntLine*)malloc(sizeof(struct IntLine));
+    pIntLine = (struct IntLine*)M_Malloc(sizeof(struct IntLine), CN_TIMEOUT_FOREVER);
     if(NULL == pIntLine)
     {
         return false;
@@ -625,6 +625,7 @@ bool_t Int_UnRegister(ufast_t ufl_line)
      return false;
 
     pIntLine = tg_pIntLineTable[ufl_line];
+	tg_pIntLineTable[ufl_line] = NULL;
     free(pIntLine);
     return true;
 }

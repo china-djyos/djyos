@@ -59,7 +59,7 @@
 #include <device/djy_flash.h> // will be obsolete
 #include <device/unit_media.h>
 #include <xip.h>
-#include "../w25qxx.h"
+#include "w25qxx.h"
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
@@ -347,17 +347,17 @@ s32 xip_w25q_erase(struct __icore *core, u32 bytes, u32 pos)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 xip_fs_format(void *core)
-{
-    struct uesz sz;
-    sz.unit = 0;
-    sz.block = 1;
-    if(-1 == __W25qxx_Req(format, CFG_W25Q_XIP_PART_START , CFG_W25Q_XIP_PART_END, &sz))
-    {
-        warning_printf("w25q_xip"," Format failure.\r\n");
-    }
-    return (0);
-}
+// s32 xip_fs_format(void *core)
+// {
+//     struct uesz sz;
+//     sz.unit = 0;
+//     sz.block = 1;
+//     if(-1 == __W25qxx_Req(format, CFG_W25Q_XIP_PART_START , CFG_W25Q_XIP_PART_END, &sz))
+//     {
+//         warning_printf("w25q_xip"," Format failure.\r\n");
+//     }
+//     return (0);
+// }
 
 //-----------------------------------------------------------------------------
 // 功能：安装片内Flash驱动

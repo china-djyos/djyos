@@ -320,7 +320,11 @@ u32 __AtTimer_isr(ptu32_t TimerHandle)
     //以下两句顺序不能改
     tg_TIMER_Reg[timerno/3]->TC_CHANNEL[timerno%3].TC_SR;    //读一下清中断
     Int_ClearLine(((struct AtTimerHandle  *)TimerHandle)->irqline);
-    return ((struct AtTimerHandle  *)TimerHandle)->UserIsr(TimerHandle);
+    if (NULL != ((struct AtTimerHandle  *)TimerHandle)->UserIsr)
+    {
+        return ((struct AtTimerHandle  *)TimerHandle)->UserIsr(TimerHandle);
+    }
+    return 0;
 }
 // =============================================================================
 // 函数功能:__AtTimer_Alloc
@@ -344,7 +348,7 @@ ptu32_t __AtTimer_Alloc(fnTimerIsr timerisr)
     timerno = __AtTimer_GetFirstZeroBit(gs_dwAtTimerBitmap);
     if(timerno < CN_ATTIMER_NUM)//还有空闲的，则设置标志位
     {
-        gs_dwAtTimerBitmap = gs_dwAtTimerBitmap | (CN_ATTIMER_BITMAP_MSK<< timerno);
+        gs_dwAtTimerBitmap = gs_dwAtTimerBitmap | (CN_ATTIMER_BITMAP_MSK>> timerno);
         Int_LowAtomEnd(timeratom);  //原子操作完毕
     }
     else//没有的话直接返回就可以了，用不着再啰嗦了
@@ -407,7 +411,7 @@ bool_t  __AtTimer_Free(ptu32_t timerhandle)
         if(timerno < CN_ATTIMER_NUM)//还有空闲的，则设置标志位
         {       //修改全局标志一定是原子性的
             timeratom = Int_LowAtomStart();
-            gs_dwAtTimerBitmap = gs_dwAtTimerBitmap &(~(CN_ATTIMER_BITMAP_MSK<< timerno));
+            gs_dwAtTimerBitmap = gs_dwAtTimerBitmap &(~(CN_ATTIMER_BITMAP_MSK>> timerno));
             //解除掉中断所关联的内容
             timer->timerstate = 0;
             Int_CutLine(irqline);

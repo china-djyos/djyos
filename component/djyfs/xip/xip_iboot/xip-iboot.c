@@ -112,7 +112,6 @@ u64 FileNowPos = 0;
 //static const char *xip_iboot_target = "xip-iboot";
 // 底层接口函数
 //
-//extern s32 xip_fs_format(void *core);
 static s32 xip_iboot_fs_install(struct FsCore *super, u32 opt, void *config);
 s32 xip_iboot_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
@@ -120,9 +119,9 @@ s32 xip_iboot_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-__attribute__((weak)) s32 xip_fs_format(void *core)
+s32 xip_iboot_fs_format(struct __icore * core)
 {
-    return 0;
+    return core->drv->xip_erase_media(core, core->ASize, 0);
 }
 
 // ============================================================================
@@ -150,7 +149,7 @@ static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *unca
 
 //    if(strcmp(OBJ_GetName(ob),EN_XIP_IBOOT_TARGET) == 0)      //判断访问的路径是不是xip-iboot，如果不是则直接返回NULL
         //    {
-        xip_fs_format(core);        //擦除iboot所在的flash区域
+        xip_iboot_fs_format(core);        //擦除iboot所在的flash区域
 
 //        if(!OBJ_NewChild(core->root, xip_iboot_ops, (ptu32_t)0, uncached))
 //        {
@@ -388,7 +387,7 @@ s32 ModuleInstall_XIP_FS(u32 opt, void *data,char * xip_target)
         typeXIPIBOOT->fileOps = xip_iboot_ops;
         typeXIPIBOOT->install = xip_iboot_fs_install;
         typeXIPIBOOT->pType = "XIP-IBOOT";
-        typeXIPIBOOT->format = xip_fs_format;
+        typeXIPIBOOT->format = xip_iboot_fs_format;
         typeXIPIBOOT->uninstall = NULL;
     }
     res = File_RegisterFs(typeXIPIBOOT);
