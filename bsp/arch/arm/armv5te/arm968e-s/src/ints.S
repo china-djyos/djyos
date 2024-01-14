@@ -1,3 +1,71 @@
+//----------------------------------------------------
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+//-----------------------------------------------------------------------------
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+//
+// 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
+// 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
+//
+// 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
+//    及下述的免责声明。
+// 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
+//    于散播包装中的媒介方式，重制上述之版权宣告、本条件列表，以及下述
+//    的免责声明。
+
+// 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
+// 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
+// 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
+// 无论成因或任何责任主体、无论此责任为因合约关系、无过失责任主体或因非违
+// 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
+// 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
+// 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
+// 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
+//-----------------------------------------------------------------------------
+//所属模块:  中断模块
+//作者：     lst
+ //版本：      V1.0.1
+//文件描述:  中断模块中的汇编部分
+ //其他说明:  无
+ //修订历史:
+ //3. 日期:2010-3-06
+ //   作者:lst
+ //  新版本号：1.0.2
+ //   修改说明:     stmfd   sp!,{r0-r3,lr}         保存lr_svc,
+ //           改为  stmfd   sp!,{r0,lr}             保存lr_svc,
+ //2. 日期:2010-01-04
+ //   作者:lst
+ //  新版本号：1.0.1
+ //  修改说明: 从gcc移植到keil，并无修改代码
+ //1. 日期:2009-03-10
+ //   作者:lst
+ //  新版本号：1.0.0
+ //   修改说明: 原始版本
+
+.cpu    arm968e-s
+.fpu    softvfp
+.file   "ints.S"
+
 /*#include "cpu.h"*/
 
 .equ NOINT,                             0xc0
@@ -245,50 +313,37 @@ boot_reserved:
 irq_handler:
     /*把R0-R12,LR存到SP栈里面*/
     STMFD   SP!, {R0-R12,LR}
-@    cmp lr,#0xac
-@    beq .
 
+//本条件编译专门为博通的bk725x系列CPU设置，该CPU部分中断被硬连接到fiq，部分被硬连接到irq，
+//软件不能修改。这样，就必然部分实时中断在irq，部分在fiq，异步信号依然，故称为hybrid。
+
+#if (FIQ_IRQ_HYBRID == 1)
     mrs r2, cpsr
     orr r1, r2, #NOINT          @; disable interrupt
     msr cpsr_c, r1
+#endif
 
-@    mrs r4, spsr
-@    and r1,r4,#0x1f
-@    cmp r1,#0x11
-@    beq .
-@    cmp r1,#0x12
-@    beq .
-
-@    ldr r5,=tg_int_global
-@    ldr r5,[r5,#20]
-@    cmp r5,#0
-@    bne .
 
     BL      djy_irq_dispatch
 
     LDR     R0, =djy_switch_interrupt_flag
     LDR     R1, [R0]
     CMP     R1, #1
-    /*BEQ是个IF语句，和下面是互斥的，也就是说，等于1就跳到rt_hw_context_switch_interrupt_do，否则就执行下面语句*/
+    /*BEQ是个IF语句，和下面是互斥的，也就是说，等于1就跳到 djy_context_switch_interrupt_do，否则就执行下面语句*/
     BEQ     djy_context_switch_interrupt_do
 
     /*从栈里面弹出R0-R12,LR*/
-    /*如果跳到rt_hw_context_switch_interrupt_do函数后就会不来了*/
+    /*如果跳到 djy_context_switch_interrupt_do函数后就回不来了*/
     LDMFD   SP!, {R0-R12,LR}
     SUBS    PC,  LR, #4
 
 djy_context_switch_interrupt_do:
     /*整个栈帧按地址从大到小排列是：pc,lr,r12-r4,r3-r0,spsr*/
     /*SP向下生长*/
-    /*ARM9里面没有两个栈指针？这里的SP实际上是在用的是被中断打断的线程的栈*/
-
-@    ldr r1,=0x40d080
-@    ldr r2,[r1]
-@    sub r2,r2,#1
-@    str r2,[r1]
+    /*ARM9里面没有两个栈指针，这里的SP实际上是在用的是被中断打断的线程的栈*/
 
     MOV     R1,  #0
-    /*这里是把djy_switch_interrupt_flag置1*/
+    /*这里是把djy_switch_interrupt_flag清0*/
     STR     R1,  [R0]
 
     MOV     R1, SP
@@ -303,9 +358,6 @@ djy_context_switch_interrupt_do:
     MSR     CPSR_c, #BOOT_FIQ_IRQ_MASK|BOOT_MODE_SVC
     /*压R2,实际上R2现在等于PC的值*/
     STMFD   SP!, {R2}
-
-@    cmp r2,#0xac
-@    beq .
 
     /*压R4-R12,LR*/
     STMFD   SP!, {R4-R12,LR}
@@ -343,52 +395,17 @@ djy_context_switch_interrupt_do:
 fiq_handler:
     STMFD   SP!,{R0-R7,LR}
 
-@    cmp lr,#0xac
-@    beq .
-
-@    ldr r5,=tg_int_global
-@    ldr r5,[r5,#20]
-@    cmp r5,#0
-@    bne .
-
-@    nop
-@    mrs r4,spsr
-@    and r1,r4,#0x1f
-@    cmp r1,#0x11
-@    beq .
-@    cmp r1,#0x12
-@    bne abc
-@    cmp lr,#0x1000
-@    ble abc
-@    b .
-abc:
     BL      djy_fiq_dispatch
-@    LDR R0,=INTSTATUS
-@    LDR R0,[R0]
-@    LDR     R2, =intertab         /* 取异步信号地址 */
-@    MOV     LR,PC               /* 这执行4G空间内的函数调用 */
-@    LDR     PC,[R2]             /* INTN状态用R0传递 */
-
-@    MRS R3, spsr
-@    AND R2, R3, #0x1F
-@    CMP R2, #BOOT_MODE_IRQ            @; fiq from irq(0x12)
-@    BEQ fiq_handler_return
 
     LDR     R0, =djy_switch_interrupt_flag
     LDR     R1, [R0]
     CMP     R1, #1
     BEQ     djy_context_switch_interrupt_fiq_do
 
-fiq_handler_return:
     LDMFD   SP!,{R0-R7,LR}
     SUBS    PC, LR, #4
 
 djy_context_switch_interrupt_fiq_do:
-
-@    ldr r1,=0x40d080
-@    ldr r2,[r1]
-@    sub r2,r2,#1
-@    str r2,[r1]
 
     MOV     R1,  #0
     /*这里是把djy_switch_interrupt_flag置1*/
@@ -401,11 +418,6 @@ djy_context_switch_interrupt_fiq_do:
 
     /*取得SPSR的值*/
     MRS     R0,  SPSR
-@    and        r2,r0,#0x1f
-@    cmp r2,#0x12
-@    bne abcd
-@    b .
-abcd:
     /*取得PC的值*/
     SUB     R2,  LR, #4        @; Save old task's PC to R2
 

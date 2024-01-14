@@ -144,10 +144,10 @@ __asm_reset_switch:
     MOV     R1,  R2
     BL      __asm_reset_thread
     LDR     SP, [R5]                @; get new task stack pointer
-    LDMFD   SP!, {R4}               @; pop new task cpsr
     MRS     R4,CPSR
     ORR     R4,R4,#0xc0
     MSR     CPSR_cxsf,R4
+    LDMFD   SP!, {R4}               @; pop new task cpsr
     AND     R4,  R4, #0Xffffff3f
     MSR     SPSR_cxsf, R4
     restore_asyn_signal_reg
@@ -186,10 +186,10 @@ __asm_reset_switch:
 .type   __asm_turnto_context, %function
 __asm_turnto_context:
     LDR     SP, [R0]                @; get new task stack pointer
-    LDMFD   SP!, {R4}               @; pop new task cpsr
     MRS     R4,CPSR
     ORR     R4,R4,#0xc0
     MSR     CPSR_cxsf,R4
+    LDMFD   SP!, {R4}               @; pop new task cpsr
     AND     R4,  R4, #0Xffffff3f
     MSR     SPSR_cxsf, R4
     restore_asyn_signal_reg
@@ -221,14 +221,14 @@ _ARM_MODE:
     STR     SP, [R1]                @; store sp in preempted tasks tcb
 
     LDR     SP, [R0]                @; get new task stack pointer
-
-    LDMFD   SP!, {R4}               @; pop new task spsr
     MRS     R4,CPSR
     ORR     R4,R4,#0xc0
     MSR     CPSR_cxsf,R4
+    LDMFD   SP!, {R4}               @; pop new task spsr
     AND     R4,  R4, #0Xffffff3f
     MSR     SPSR_cxsf, R4
     restore_asyn_signal_reg
+
     LDMFD   SP!, {R0-R12, LR, PC}^  @; pop new task r0-r12, lr & pc
 
 /*

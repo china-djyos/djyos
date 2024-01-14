@@ -147,7 +147,7 @@ bool_t Font_InstallFont(struct FontObj *font,const char* name)
     if(!pFontRoot)
         return (FALSE);       //字体资源根结点未创建
 
-    font->HostObj = OBJ_NewChild(pFontRoot, (fnObjOps)-1, 0, name);
+    font->HostObj = OBJ_NewChild(pFontRoot, (fnObjOps)-1, font, name);
     if(!font->HostObj)
         return (FALSE);
 
@@ -234,7 +234,8 @@ struct FontObj* Font_SearchFont(const char* name)
     if(rsc == NULL)
         return NULL;       //字体资源树未创建
 
-    return (struct FontObj*)OBJ_SearchChild(rsc, name);
+    rsc = OBJ_SearchChild(rsc, name);
+    return (struct FontObj*)OBJ_GetPrivate(rsc);
 }
 
 //----取字体点阵行高-----------------------------------------------------------

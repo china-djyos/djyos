@@ -221,7 +221,7 @@ static bool_t GT911_Init( )
 //    u8 test_buf[512];
     u8 count = 0, Val_1 = 0, Val_2 = 0;
     s8 ret = 0;
-    // TP INT引脚控制，RST和INT引脚时序配合，设置GT911的IIC地址为0x5d
+    // TP INT引脚控制，RST和INT引脚时序配合，设置GT911的IIC地址为0x5d(即手册中的BB/BA)
     //  注意，最后必须把INT设为高阻态
     LcdTp_Reset_OnOff(0);         //RST 0
     DJY_EventDelay(1000);

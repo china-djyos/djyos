@@ -66,43 +66,45 @@
 
 
 #define CN_CHAR_NUM_MAX                 255
-#define CN_CANCLE_KEY                   0xA3
 
 // =============================================================================
-// 函数功能: 获取字符串长度字节数,TextBox只能显示单行信息，首先检查字符串,如果遇到
-//           \n(换行符)则结束，截取换行符之前的字符作为有效的字符串.
+// 函数功能: 获取字符串中第一行字符数,TextBox只能显示单行信息，统计字符数，如果遇到
+//           \n(换行符)则结束.
 // 输入参数: char *str:字符串
 // 输出参数: 无。
 // 返回值  :获取到有效字符字节数。
 // =============================================================================
-static s16 __Widget_GetValidStrLen(struct Charset * myCharset, char *str)
+static s16 __Widget_GetValidStrLen( char *str)
 {
-    u8 cnt=0;
-    char ch;
+    s32 len;
+    u32 wc=0;
+    struct Charset* cur_enc;
     s16 str_len=0;
     if(str==NULL)
         return -1;
-    cnt=GDD_GetStrLineCount(myCharset,str);
-    if(cnt>1)
+    cur_enc = Charset_NlsGetCurCharset();
+    while(1)
     {
-        while(1)
+        len= cur_enc->MbToUcs4(&wc, str, -1);
+        if(len == -1)
+        {  // 无效字符
+            str++;
+            continue;
+        }
+        else if(len == 0)
+            break;
+        else
         {
-            ch=*str;
-            if(ch!='\n')
+            if((wc == '\0') || (wc == '\n'))
             {
-                str_len++;
-                str++;
+                break;
             }
             else
             {
-                *(str+1)='\0';  //todo: 如果是const串怎么办？
-                break;
+                str_len++;
+                str += len;
             }
         }
-    }
-    else
-    {
-        str_len=strlen(str);
     }
     return str_len;
 }
@@ -112,51 +114,49 @@ static s16 __Widget_GetValidStrLen(struct Charset * myCharset, char *str)
 // 输入参数: str:字符串指针
 //           idx:字符编号
 // 输出参数:
-// 返回值  :ucs4字符
+// 返回值  :ucs4字符，若没找到，则返回行结束符（0或 \n）
 // =============================================================================
 static u32 __Widget_GetCharByIndex(char *str,u8 idx)
 {
-    s16 str_len=0,len=0;
-//    struct FontObj* cur_font;
-    struct Charset* cur_enc;
+    s32 len;
     u32 wc=0;
-    u8 cnt=0;
+    struct Charset* cur_enc;
+    s16 str_len=0;
     if(str==NULL)
-        return false;
+        return -1;
     cur_enc = Charset_NlsGetCurCharset();
-    str_len=__Widget_GetValidStrLen(cur_enc, str);
-    if(str_len==-1)
-        return false;
-     //计算字符串中字符数
-//    cur_font = Font_GetCurFont();
-    for(; str_len > 0;)
+    while(1)
     {
-       len= cur_enc->MbToUcs4(&wc, str, -1);
-       if(len == -1)
-       {  // 无效字符
-           str_len--;
-           str++;
-       }
-       else if(len == 0)
-       {
+        len= cur_enc->MbToUcs4(&wc, str, -1);
+        if(len == -1)
+        {  // 无效字符
+            str++;
+            continue;
+        }
+        else if(len == 0)
             break;
-       }
-       else
-       {    // 有效字符
-           str += len;
-           str_len -= len;
-           cnt++;
-           if(cnt==idx)
-           {
-               return wc;
-           }
+        else
+        {
+            if((wc == '\0') || (wc == '\n'))
+            {
+                break;
+            }
+            else if(str_len != idx)
+            {
+                str_len++;
+                str += len;
+            }
+            else
+            {
+                break;
+            }
         }
     }
     return wc;
-
 }
+
 // =============================================================================
-// 函数功能: 获取字符串中字符数及总的字符所占像素数。
+// 函数功能: 获取字符串中第一行字符数及总的字符所占像素数。
 // 输入参数: str:字符串指针
 //          pChunm:字符数指针,输入参数为NULL时则不计算字符数。
 //          pChWidthSum:字符所占总像素数指针，输入参数为NULL时则不计算字符所占总像素宽度.
@@ -165,105 +165,104 @@ static u32 __Widget_GetCharByIndex(char *str,u8 idx)
 // =============================================================================
 static bool_t __Widget_GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
 {
+    s32 len;
+    u32 wc=0;
     u16 cnt=0,chwidthsum=0;
-    s16 str_len=0;
-    s32 len,chwidth=0;
-    struct FontObj* cur_font;
+    s32 chwidth=0;
+    bool_t ret = false;
     struct Charset* cur_enc;
-    u32 wc;
+    struct FontObj* cur_font;
     if(str==NULL)
         return false;
-    cur_enc = Charset_NlsGetCurCharset();//获取当前字符集
-    str_len=__Widget_GetValidStrLen(cur_enc, str);//获取字符串长度字节数
-    if(str_len==-1)
-        return false;
-     //计算字符串中字符数
-     cur_font = Font_GetCurFont();//获取字体
-     for(; str_len > 0;)
-     {
+    cur_enc = Charset_NlsGetCurCharset();
+    cur_font = Font_GetCurFont();               //获取字体
+    if(pChWidthSum!=NULL)
+        *pChWidthSum = 0;
+    if(pChunm!=NULL)
+        *pChunm = 0;
+    while(1)
+    {
         len= cur_enc->MbToUcs4(&wc, str, -1);
         if(len == -1)
-        {   // 无效字符
-            str_len--;
+        {  // 无效字符
             str++;
-        }
-        else if(len == 0)
-        {
-             break;
-        }
-        else
-        {          // 有效字符
-            str += len;
-            str_len -= len;
-            if(pChunm!=NULL)
-            {
-              cnt++;
-            }
-            if(pChWidthSum!=NULL)
-            {
-              chwidth=cur_font->GetCharWidth(wc);//该字体中此字所占的像素有多少
-
-              chwidthsum+=chwidth;
-            }
             continue;
         }
-     }
-
-     *pChWidthSum=chwidthsum;
-     *pChunm=cnt;
-     return true;
+        else if(len == 0)
+            break;
+        else
+        {
+            ret = true;
+            if((wc == '\0') || (wc == '\n'))
+            {
+                break;
+            }
+            else
+            {
+                cnt++;
+                if(pChWidthSum!=NULL)
+                {
+                  chwidth=cur_font->GetCharWidth(wc);//该字体中此字所占的像素有多少
+                  chwidthsum+=chwidth;
+                }
+                str += len;
+            }
+        }
+    }
+    if(pChWidthSum!=NULL)
+        *pChWidthSum=chwidthsum;
+    if(pChunm!=NULL)
+        *pChunm=cnt;
+    return ret;
 }
 
 // =============================================================================
-// 函数功能: 获取字符串到指定编号字符所占的像素宽度.
+// 函数功能: 获取字符串到指定序号字符所占的像素宽度.
 // 输入参数: str:字符串指针
-//          idx:字符编号.
+//          idx:字符编号.从0起。
 // 输出参数: 无。
 // 返回值  :字符像素总宽度.
 // =============================================================================
 static s16 __Widget_GetStrWidth(char *str,u16 idx)
 {
-    struct FontObj* cur_font;
-    struct Charset* cur_enc;
-    u32 wc;
-    s32 len,chwidth=0;
+    s32 len;
+    u32 wc=0;
     u16 cnt=0,chwidthsum=0;
-    s16 str_len=0;
+    s32 chwidth=0;
+    struct Charset* cur_enc;
+    struct FontObj* cur_font;
     if(str==NULL)
-         return -1;
-    cur_enc = Charset_NlsGetCurCharset();
-    str_len=__Widget_GetValidStrLen(cur_enc, str);//计算字符串中字符数
-    if(str_len==-1)
-         return -1;
-    if(idx==0)
         return 0;
-    //计算字符串中字符数
-    cur_font = Font_GetCurFont();//字体
-    for(; str_len > 0;)
+    cur_enc = Charset_NlsGetCurCharset();
+    cur_font = Font_GetCurFont();               //获取字体
+    while(1)
     {
         len= cur_enc->MbToUcs4(&wc, str, -1);
         if(len == -1)
-        {   // 无效字符
-            str_len--;
+        {  // 无效字符
             str++;
+            continue;
         }
         else if(len == 0)
-             break;
+            break;
         else
-        {          // 有效字符
-            str += len;
-            str_len -= len;
-            cnt++;
-            chwidth=cur_font->GetCharWidth(wc);
-            chwidthsum+=chwidth;
-            if(cnt==idx)
+        {
+            if((wc == '\0') || (wc == '\n'))
+            {
                 break;
+            }
             else
-               continue;
+            {
+                cnt++;
+                chwidth=cur_font->GetCharWidth(wc);//该字体中此字所占的像素有多少
+                chwidthsum+=chwidth;
+                str += len;
+                if(cnt == idx)
+                    break;
+            }
         }
     }
-
-     return chwidthsum;
+    return chwidthsum;
 }
 
 // =============================================================================
@@ -375,7 +374,7 @@ static s16 __Widget_CharToBytes(char *str,u8 num)
      if(str==NULL)
           return -1;
      cur_enc = Charset_NlsGetCurCharset();
-     str_len=__Widget_GetValidStrLen(cur_enc, str);
+     str_len=__Widget_GetValidStrLen(str);
      if(str_len==-1)
         return -1;
      if(num==0)
@@ -437,11 +436,11 @@ static bool_t __Widget_TextBoxAddChar(HWND hwnd,char *str )
      if(pTB->EditProperty==WS_TEXTBOX_R_O)
         return false;
      text=hwnd->Text;
-     len=__Widget_GetValidStrLen(Charset_NlsGetCurCharset(), text);
+     len=__Widget_GetValidStrLen(text);
      if(len==-1)
           return false;
      //检查一下str的合法性
-      str_len=__Widget_GetValidStrLen(Charset_NlsGetCurCharset(), str);
+      str_len=__Widget_GetValidStrLen(str);
       if(str_len==-1)
           return false;
       ret=__Widget_GetValidStrInfo(str,&num,NULL);
@@ -489,7 +488,7 @@ static bool_t __Widget_TextBoxDeleteChar(HWND hwnd,u8 idx,u8 count)
          return false;
      text=hwnd->Text;
      cnt=pTB->ChNum;
-     str_len=__Widget_GetValidStrLen(Charset_NlsGetCurCharset(), text);
+     str_len=__Widget_GetValidStrLen(text);
      if(str_len==-1)
          return false;
      if(count>idx)
@@ -567,7 +566,7 @@ static bool_t __Widget_TextBoxInsertChar(HWND hwnd,u8 idx,char *str)
      if(pTB->EditProperty==WS_TEXTBOX_R_O)
         return false;
      text=hwnd->Text;
-     str_len=__Widget_GetValidStrLen(Charset_NlsGetCurCharset(), text);
+     str_len=__Widget_GetValidStrLen(text);
      if(str_len==-1)
         return false;
      ret=__Widget_GetValidStrInfo(str,&num,NULL);
@@ -1147,7 +1146,8 @@ HWND Widget_CreateTextBox(const char *Text,u32 Style,
         s_gTextBoxMsgLink.MsgNum = sizeof(s_gTextBoxMsgProcTable) / sizeof(struct MsgProcTable);
         s_gTextBoxMsgLink.myTable = (struct MsgProcTable *)&s_gTextBoxMsgProcTable;
         pGddWin=GDD_CreateWindow(Text,&s_gTextBoxMsgLink, x,y,w,h,CN_WINBUF_PARENT,
-                       WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,WinId,(ptu32_t)pTB,hParent);
+                       WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,CN_SYS_PF_DISPLAY, CN_COLOR_WHITE,
+                       WinId,(ptu32_t)pTB,hParent);
         if(UserMsgTableLink != NULL)
             GDD_AddProcFuncTable(pGddWin,UserMsgTableLink);
         __GDD_Unlock();

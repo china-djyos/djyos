@@ -768,7 +768,7 @@ char *fgets(char *buf, s32 limit, FILE *stream)
         return (buf);
     }
 
-    for(i = 0; i < limit; i++)
+    for(i = 0; i < limit-1; i++)
     {
        if(1 != fread(&ch, 1, 1, stream))
        {
@@ -793,7 +793,7 @@ char *fgets(char *buf, s32 limit, FILE *stream)
            buf[i] = ch;
        }
    }
-    buf[limit-1] = '\0';
+    buf[i] = '\0';
     return (buf);
 }
 

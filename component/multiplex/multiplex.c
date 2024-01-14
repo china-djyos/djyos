@@ -135,7 +135,7 @@ struct MultiplexObjectCB
                                         //bit31：1=对象已激活。
     u32 SensingBit;                     //bit0~23：敏感位标志
                                         //bit24~31表示敏感位检测类型，参见
-                                        //CN_MULTIPLEX_SENSINGBIT_MODE定义
+                                        //CN_MULTIPLEX_SENSINGBIT_OR 定义
 };
 
 static struct MemCellPool *g_ptMultiplexSetsPool;

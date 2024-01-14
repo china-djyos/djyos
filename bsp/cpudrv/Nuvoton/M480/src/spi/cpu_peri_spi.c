@@ -338,7 +338,7 @@ static s32 __SPI_Write( tagSpiReg * Reg,uint16_t wData )
 // =============================================================================
 // 功能：轮询方式读写数据
 // 参数：Reg,寄存器基址，srcAddr,数据源指针；wrSize，写数据量，destAddr，读到的数据
-//       地址指针；rdSize，读数据量，recvoff,读偏移，暂未用
+//       地址指针；rdSize，读数据量，recvoff,读偏移
 // 返回：true,正确；false,错误
 // =============================================================================
 static bool_t __SPI_TxRxPoll(tagSpiReg *Reg,u8 *srcAddr,u32 wrSize,

@@ -74,7 +74,7 @@ struct SPI_Device
     u8 Cs;                                  //片选信号
     bool_t AutoCs;                          //自动片选
     u8 CharLen;                             //数据长度
-    u8 Mode;                                //模式选择
+    u8 Mode;                                //模式选择,包括CPHA,CPOL,SPI_MODE_0等
     u8 ShiftDir;                            //MSB or LSB
     u32 Freq;                               //速度,Hz
 };
@@ -147,6 +147,7 @@ struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam)
     if(NewSPI == NULL)
         goto exit_from_malloc;
 
+    memset(NewSPI,0,sizeof(struct SPI_CB));
     //将总线结点挂接到总线类型结点的子结点
     SpiDev = OBJ_NewChild(s_ptSPIBusType, (fnObjOps)-1,(ptu32_t)NewSPI,(const char*)(NewSPIParam->BusName));
     if(SpiDev == NULL)
@@ -367,9 +368,9 @@ bool_t SPI_CsActive(struct SPI_Device *Dev,u32 timeout)
         if(false == Lock_SempPend(SPI->SPI_BusSemp,timeout))    //需要等待总线空闲
             return false;
 
-        //如果没有独立的CS参数配置寄存器，则每次操作都需要配置SPI参数配置寄存器，
+        //如果没有独立的CS参数配置寄存器(有多套），则每次操作都需要配置SPI参数配置寄存器，
         //因为多个CS共用同一套参数配置寄存器
-        if((SPI->MultiCsReg == false) && (SPI->CurrentDev != Dev))
+        if((SPI->MultiCsReg == true) && (SPI->CurrentDev != Dev))
         {
             spicfg.CharLen = Dev->CharLen;
             spicfg.Mode    = Dev->Mode;
@@ -390,9 +391,9 @@ bool_t __SPI_AutoCsActive(struct SPI_CB *SPI,struct SPI_Device *Dev)
 {
     tagSpiConfig spicfg;
 
-    //如果没有独立的CS参数配置寄存器，则每次操作都需要配置SPI参数配置寄存器，
+    //如果没有独立的CS参数配置寄存器(有多套），则每次操作都需要配置SPI参数配置寄存器，
     //因为多个CS共用同一套参数配置寄存器
-    if((SPI->MultiCsReg == false) && (SPI->CurrentDev != Dev))
+    if((SPI->MultiCsReg == true) && (SPI->CurrentDev != Dev))
     {
         spicfg.CharLen = Dev->CharLen;
         spicfg.Mode    = Dev->Mode;
@@ -408,11 +409,11 @@ bool_t __SPI_AutoCsActive(struct SPI_CB *SPI,struct SPI_Device *Dev)
     return true;
 }
 
+
 // =============================================================================
 // 功能：片选拉高，若传输为阻塞方式，则由该函数释放总线信号量和拉高片选，否则，拉高总
 //       线和释放信号量由底层驱动完成。因为非阻塞方式时，运行到该函数时，传输未必完成
 // 参数：Dev,器件指针
-//       block_option,阻塞选项，为true时，表明最后一次传输为阻塞方式，否则为非阻塞
 // 返回：true,成功;false,失败
 // =============================================================================
 bool_t SPI_CsInactive(struct SPI_Device *Dev)
@@ -489,7 +490,7 @@ s32 SPI_Transfer(struct SPI_Device *Dev,struct SPI_DataFrame *spidata,
 
     Lock_SempPend(SPI->SPI_BlockSemp,0);                        //相当于重置信号量
 
-    //禁止调试或未登记pTransferTxRx，使用轮询方式通信
+    //禁止调度或未登记pTransferTxRx，使用轮询方式通信
     if((DJY_QuerySch() == false) || (SPI->pTransferTxRx == NULL)
             || (SPI->Flag & CN_SPI_FLAG_POLL))
     {

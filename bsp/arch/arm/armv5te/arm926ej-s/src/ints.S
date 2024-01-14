@@ -151,8 +151,8 @@ HardExp_IrqHandler:
     /*把R0-R12,LR存到SP栈里面*/
     STMFD   SP!, {R0-R12,LR}
 
-//本条件编译专门为博通的bk725x系列CPU设置，该CPU部分中断被硬连接到fiq，不分被硬连接到irq，
-//软件不能修改。这样，就必然部分实时中断在irq，不分在fiq，异步信号依然，故称为hybrid。
+//本条件编译专门为博通的bk725x系列CPU设置，该CPU部分中断被硬连接到fiq，部分被硬连接到irq，
+//软件不能修改。这样，就必然部分实时中断在irq，部分在fiq，异步信号依然，故称为hybrid。
 
 #if (FIQ_IRQ_HYBRID == 1)
     mrs r2, cpsr

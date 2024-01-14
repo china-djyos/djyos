@@ -55,10 +55,23 @@
  //  修改说明:
  //------------------------------------------------------
 
-
-.fpu    softvfp
+#include <board-config.h>
+//.fpu    softvfp
 .file   "initcpu.S"
 
+
+//// CP15 R1
+#define R1_M    (1<<0)
+#define R1_A    (1<<1)
+#define R1_C    (1<<2)
+#define R1_W    (1<<3)
+#define R1_Z    (1<<11)
+#define R1_I    (1<<12)
+#define R1_V    (1<<13)     //high vector
+#define R1_RR   (1<<14)
+#define R1_VE   (1<<24)
+#define R1_nF   (1<<30)
+#define R1_iA   (1<<31)
 
 /*
  * Macro for switching ARM mode
@@ -129,14 +142,27 @@ ExpStackInit:
 .align 5
 .globl Init_Cpu
 .global isr_vector
+.global Cache_CleanData
 .type Init_Cpu, %function
 Init_Cpu:
     //Disable IRQ and FIQ before starting anything
     MRS   R0, CPSR
     ORR   R0, R0, #0xC0
     MSR   CPSR_c, R0
+    ldr     sp,=msp_top
+    ldr   r0,=0
+    mcr   p15, 0, r0, c1, c0, 0
+
+    mov     r0,#0
+    mcr     p15,0,r0,c7,c7,0    //Invalidate I+D Cache
+    mcr     p15,0,r0,c8,c7,0    //Invalidate I+D TLB
 
     BL    ExpStackInit
+
+    ldr   r0,=CN_CFG_MCLK
+    bl    Sys_Clock_Init
+
+    bl    MMU_Init
 
 //copy向量表，全志的f1cx00在0地址处在reset时存放了boot信息，需要在启动后手动copy
 //异常向量表。
@@ -185,6 +211,20 @@ AppStart:
     MSR   CPSR_c, R0
 
     BL    ExpStackInit
+//copy向量表，全志的f1cx00在0地址处在reset时存放了boot信息，需要在启动后手动copy
+//异常向量表。
+    ldr r0, =isr_vector
+    mrc p15, 0, r2, c1, c0, 0  //读取 CP15
+    ands r2, r2, #(1 << 13)    //取bit13
+    ldreq r1, =0x00000000      //bit13=0
+    ldrne r1, =0xFFFF0000      //bit13=1
+
+
+    ldmia r0!, {r2-r8, r10}
+    stmia r1!, {r2-r8, r10}
+    ldmia r0!, {r2-r8, r10}
+    stmia r1!, {r2-r8, r10}
+
     //Clear Registers
     MOV R0,  #0
     MOV R1,  #0
@@ -203,5 +243,69 @@ AppStart:
     bl  cp15_enable_alignfault
     bl  Iboot_LoadPreload
 
+#if 0   //这段代码是小淘气初始化页表前后的代码，查问题时用过。
+.text
+.globl entry_mmu
+.type entry_mmu, %function
+entry_mmu:
+//  sysFlushCache(D_CACHE);
+tci_loop:
+    MRC p15, 0, r15, c7, c14, 3
+    BNE tci_loop
+    MOV r0, #0x0
+    MCR p15, 0, r0, c7, c10, 4 /* drain write buffer */
+
+//  arm32_dcache_disable();
+    mrc p15, 0, r0, c1, c0, 0
+    bic r0, r0, #4
+    mcr p15, 0, r0, c1, c0, 0
+
+//  arm32_icache_disable();
+    mrc p15, 0, r0, c1, c0, 0
+    bic r0, r0, #0x1000
+    mcr p15, 0, r0, c1, c0, 0
+
+//  arm32_mmu_disable();
+    mrc p15, 0, r0, c1, c0, 0
+    bic r0, r0, #0x1
+    mcr p15, 0, r0, c1, c0, 0
+
+    BX      LR
+
+.globl exit_mmu
+.globl mmu_page_table
+.type exit_mmu, %function
+exit_mmu:
+//  arm32_ttb_set((uint32_t)(ttb));//写入页表地址
+    ldr r0,=mmu_page_table
+    mcr p15, 0, r0, c2, c0, 0
+
+//  arm32_tlb_invalidate();
+    ldr r0,=0
+    mcr p15, 0, r0, c7, c10, 4
+    mcr p15, 0, r0, c8, c6, 0
+    mcr p15, 0, r0, c8, c5, 0
+
+//arm32_domain_set(0x1);
+    ldr r0, =1
+    mcr p15, 0, r0, c3, c0, 0
+
+//arm32_mmu_enable();
+    mrc p15, 0, r0, c1, c0, 0
+    orr r0, r0, #0x1
+    mcr p15, 0, r0, c1, c0, 0
+
+//arm32_icache_enable();
+    mrc p15, 0, r0, c1, c0, 0
+    orr r0, r0, #0x1000
+    mcr p15, 0, r0, c1, c0, 0
+
+//arm32_dcache_enable();
+    mrc p15, 0, r0, c1, c0, 0
+    orr r0, r0, #4
+    mcr p15, 0, r0, c1, c0, 0
+
+    BX      LR
+#endif
     .end
 

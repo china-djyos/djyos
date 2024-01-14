@@ -364,7 +364,7 @@ static s32 __SPI_BusCtrl(tagSpiReg *Reg,u32 cmd,ptu32_t data1,ptu32_t data2)
     case CN_SPI_SET_CLK:
         break;
     case CN_SPI_CS_CONFIG:
-        __SPI_Config(Reg,data1,(tagSpiConfig *)data2);
+//        __SPI_Config(Reg,data1,(tagSpiConfig *)data2);    //有多套片选控制器才需要
         break;
     case CN_SPI_SET_AUTO_CS_EN:
         // 硬件上如果有自动产生CS的配置

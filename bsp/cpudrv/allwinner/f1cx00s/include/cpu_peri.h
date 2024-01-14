@@ -58,10 +58,17 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "cpu_peri_io.h"
 #include "cpu_peri_gpio.h"
 #include "cpu_peri_uart.h"
 #include "cpu_peri_timer.h"
+#include "cpu_peri_spi.h"
+#include "cpu_peri_tcon.h"
+#include "cpu_peri_lcd.h"
 #include "cpu_peri_int_line.h"
+
+#define InLowPower      0
+#define OutLowPower     1
 
 #ifdef __cplusplus
 }

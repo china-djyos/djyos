@@ -138,6 +138,12 @@ void MMU_InvalidateTlbDatasAll(void)
 // ---- C8
 void MMU_InvalidateTlbsAll(void)
 {
+    u32 reg = 0;
+    __asm__(
+        "mcr    p15,0,%0,c8,c7,0 \n\t"
+        :
+        :"r"(reg)
+        );
 }
 
 // ---- 设置MMU一级页表的基址 ----

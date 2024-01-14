@@ -235,31 +235,26 @@ bool_t __Font_Gb2312_12GetCharBitMapSong(u32 charcode, u32 size,u32 resv,
     bitmap->PixelFormat = CN_SYS_PF_GRAY1;
     if(charcode < 0x80)
     {
-        offset = charcode * FONT_HZ16_ASCII_BYTES;
+        offset = charcode * FONT_HZ12_ASCII_BYTES;
         bitmap->width = FONT_HZ12_ASCII_W;
         bitmap->height = FONT_HZ12_H;
         bitmap->linebytes = (FONT_HZ12_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ12_ASCII_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii8x12Song[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii8x12Song+offset,FONT_HZ12_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ12_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ12_GLYPH_BYTES;
         bitmap->width = FONT_HZ12_W;
         bitmap->height = FONT_HZ12_H;
         bitmap->linebytes = (FONT_HZ12_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ12_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231212x12Song[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231212x12Song+offset,FONT_HZ12_GLYPH_BYTES);
         }
     }
 
@@ -437,27 +432,22 @@ bool_t __Font_Gb2312_16GetCharBitMapSong(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ16_ASCII_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ16_ASCII_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii8x16Song[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii8x16Song+offset,FONT_HZ16_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
         bitmap->width = FONT_HZ16_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ16_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231216x16Song[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231216x16Song+offset,FONT_HZ16_GLYPH_BYTES);
         }
     }
 
@@ -555,7 +545,7 @@ bool_t ModuleInstall_FontGb2312_16_Song(void)
         return false;
     }
 
-    pg_Ascii8x16Song = (u8*)cs_ascii_8x16;
+    pg_Ascii8x16Song = (u8*)cs_ascii_song_8x16;
     font_gb2312_8x16_1616.MaxWidth = FONT_HZ16_W;
     font_gb2312_8x16_1616.MaxHeight = FONT_HZ16_H;
     font_gb2312_8x16_1616.Attr = CN_FONT_TYPE_DOT;
@@ -587,7 +577,7 @@ bool_t ModuleInstall_FontGb2312_16_Song(void)
 #endif      //CFG_GB2312_16_SONG != zk_disable
 
 #if CFG_GB2312_16_YAHEI != zk_disable
-#include "../dotfont-ascii/dot-ascii8x16song.h"
+#include "../dotfont-ascii/dot-ascii8x16hei.h"
 
 bool_t __Gb2312_16LoadFromFileYahei(const char* FileName);
 void __Gb2312_16UnLoadFromFileYahei(void);
@@ -595,7 +585,7 @@ bool_t __Font_Gb2312_16GetCharBitMapYahei(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
 
 u8 *pg_GB231216x16Yahei;
-u8 *pg_Ascii8x16Song;
+u8 *pg_Ascii8x16Hei;        //用黑体替代
 
 //----点阵提取-----------------------------------------------------------------
 //功能: 提取16点阵宋体汉字和ascii 8*16点阵字体，汉字仅限于gb2312字符集内，超出的
@@ -630,27 +620,22 @@ bool_t __Font_Gb2312_16GetCharBitMapYahei(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ16_ASCII_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ16_ASCII_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii8x16Song[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii8x16Song+offset,FONT_HZ16_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
         bitmap->width = FONT_HZ16_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ16_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231216x16Yahei[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231216x16Yahei+offset,FONT_HZ16_GLYPH_BYTES);
         }
     }
 
@@ -748,7 +733,7 @@ bool_t ModuleInstall_FontGb2312_16_Yahei(void)
         return false;
     }
 
-    pg_Ascii8x16Song = (u8*)cs_ascii_8x16;
+    pg_Ascii8x16Hei = (u8*)cs_ascii_hei_8x16;
     font_gb2312_8x16_1616.MaxWidth = FONT_HZ16_W;
     font_gb2312_8x16_1616.MaxHeight = FONT_HZ16_H;
     font_gb2312_8x16_1616.Attr = CN_FONT_TYPE_DOT;
@@ -823,27 +808,22 @@ bool_t __Font_Gb2312_16GetCharBitMapFang(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ16_ASCII_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i < FONT_HZ16_ASCII_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii8x16Fang[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii8x16Fang+offset,FONT_HZ16_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
         bitmap->width = FONT_HZ16_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ16_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231216x16Fang[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231216x16Fang+offset,FONT_HZ16_GLYPH_BYTES);
         }
     }
 
@@ -941,7 +921,7 @@ bool_t ModuleInstall_FontGb2312_16_Fang(void)
         return false;
     }
 
-    pg_Ascii8x16Fang = (u8*)cs_ascii_8x16;
+    pg_Ascii8x16Fang = (u8*)cs_ascii_fang_8x16;
     font_gb2312_8x16_1616.MaxWidth = FONT_HZ16_W;
     font_gb2312_8x16_1616.MaxHeight = FONT_HZ16_H;
     font_gb2312_8x16_1616.Attr = CN_FONT_TYPE_DOT;
@@ -1015,27 +995,22 @@ bool_t __Font_Gb2312_16GetCharBitMapHei(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ16_ASCII_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i < FONT_HZ16_ASCII_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii8x16Hei[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii8x16Hei+offset,FONT_HZ16_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
         bitmap->width = FONT_HZ16_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ16_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231216x16Hei[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231216x16Hei+offset,FONT_HZ16_GLYPH_BYTES);
         }
     }
 
@@ -1165,7 +1140,7 @@ bool_t ModuleInstall_FontGb2312_16_Hei(void)
 #endif      //CFG_GB2312_16_HEI != zk_disable
 
 #if CFG_GB2312_16_KAI != zk_disable
-#include "../dotfont-ascii/dot-ascii8x16song.h"
+#include "../dotfont-ascii/dot-ascii8x16kai.h"
 
 bool_t __Gb2312_16LoadFromFileKai(const char* FileName);
 void __Gb2312_16UnLoadFromFileKai(void);
@@ -1208,27 +1183,22 @@ bool_t __Font_Gb2312_16GetCharBitMapKai(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ16_ASCII_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i < FONT_HZ16_ASCII_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii8x16Kai[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii8x16Kai+offset,FONT_HZ16_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
         bitmap->width = FONT_HZ16_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ16_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231216x16Kai[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231216x16Kai+offset,FONT_HZ16_GLYPH_BYTES);
         }
     }
 
@@ -1326,7 +1296,7 @@ bool_t ModuleInstall_FontGb2312_16_Kai(void)
         return false;
     }
 
-    pg_Ascii8x16Kai = (u8*)cs_ascii_8x16;
+    pg_Ascii8x16Kai = (u8*)cs_ascii_kai_8x16;
     font_gb2312_8x16_1616.MaxWidth = FONT_HZ16_W;
     font_gb2312_8x16_1616.MaxHeight = FONT_HZ16_H;
     font_gb2312_8x16_1616.Attr = CN_FONT_TYPE_DOT;
@@ -1401,27 +1371,22 @@ bool_t __Font_Gb2312_16GetCharBitMapYuan(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ16_ASCII_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i < FONT_HZ16_ASCII_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii8x16Yuan[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii8x16Yuan+offset,FONT_HZ16_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ16_GLYPH_BYTES;
         bitmap->width = FONT_HZ16_W;
         bitmap->height = FONT_HZ16_H;
         bitmap->linebytes = (FONT_HZ16_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ16_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231216x16Yuan[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231216x16Yuan+offset,FONT_HZ16_GLYPH_BYTES);
         }
     }
 
@@ -1600,27 +1565,22 @@ bool_t __Font_Gb2312_24GetCharBitMapSong(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ24_ASCII_W;
         bitmap->height = FONT_HZ24_H;
         bitmap->linebytes = (FONT_HZ24_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<24; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii12x24Song[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii12x24Song+offset,FONT_HZ24_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ24_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ24_GLYPH_BYTES;
         bitmap->width = FONT_HZ24_W;
         bitmap->height = FONT_HZ24_H;
         bitmap->linebytes = (FONT_HZ24_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ24_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231224x24Song[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231224x24Song+offset,FONT_HZ24_GLYPH_BYTES);
         }
     }
 
@@ -1718,7 +1678,7 @@ bool_t ModuleInstall_FontGb2312_24_Song(void)
         return false;
     }
 
-    pg_Ascii12x24Song = (u8*)cs_ascii_12x24;
+    pg_Ascii12x24Song = (u8*)cs_ascii_song_12x24;
     font_gb2312_8x24_2424.MaxWidth = FONT_HZ24_W;
     font_gb2312_8x24_2424.MaxHeight = FONT_HZ24_H;
     font_gb2312_8x24_2424.Attr = CN_FONT_TYPE_DOT;
@@ -1750,7 +1710,7 @@ bool_t ModuleInstall_FontGb2312_24_Song(void)
 #endif      //CFG_GB2312_24_SONG != zk_disable
 
 #if CFG_GB2312_24_YAHEI != zk_disable
-#include "../dotfont-ascii/dot-ascii12x24song.h"
+#include "../dotfont-ascii/dot-ascii12x24hei.h"
 
 bool_t __Gb2312_24LoadFromFileYahei(const char* FileName);
 void __Gb2312_24UnLoadFromFileYahei(void);
@@ -1793,27 +1753,22 @@ bool_t __Font_Gb2312_24GetCharBitMapYahei(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ24_ASCII_W;
         bitmap->height = FONT_HZ24_H;
         bitmap->linebytes = (FONT_HZ24_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ24_ASCII_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii12x24Yahei[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii12x24Yahei+offset,FONT_HZ24_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ24_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ24_GLYPH_BYTES;
         bitmap->width = FONT_HZ24_W;
         bitmap->height = FONT_HZ24_H;
         bitmap->linebytes = (FONT_HZ24_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ24_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231224x24Yahei[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231224x24Yahei+offset,FONT_HZ24_GLYPH_BYTES);
         }
     }
 
@@ -1866,7 +1821,7 @@ s32 __Font_Gb2312_24GetCharHeightYahei(u32 CharCode)
 
 #include "dot-gb2312_24yahei.rsc"
 
-#else       //CFG_GB2312_24_Yahei == from_array
+#else       // == from_array
 
 bool_t __Gb2312_24LoadFromFileYahei(const char* FileName)
 {
@@ -1893,7 +1848,7 @@ void __Gb2312_24UnLoadFromFileYahei(void)
     free(pg_GB231224x24Yahei);
 }
 
-#endif      //CFG_GB2312_24_Yahei == from_array
+#endif      // == from_array
 
 //----安装gb2312 24点阵字体----------------------------------------------------
 //功能: 安装gb2312 24点阵字体,字模保存在文件中,文件名由参数传入。
@@ -1911,7 +1866,7 @@ bool_t ModuleInstall_FontGb2312_24_Yahei(void)
         return false;
     }
 
-    pg_Ascii12x24Yahei = (u8*)cs_ascii_12x24;
+    pg_Ascii12x24Yahei = (u8*)cs_ascii_hei_12x24;
     font_gb2312_8x24_2424.MaxWidth = FONT_HZ24_W;
     font_gb2312_8x24_2424.MaxHeight = FONT_HZ24_H;
     font_gb2312_8x24_2424.Attr = CN_FONT_TYPE_DOT;
@@ -1919,11 +1874,11 @@ bool_t ModuleInstall_FontGb2312_24_Yahei(void)
     pg_GB231224x24Yahei = (u8*)cs_GB2312_Yahei_24x24;
     font_gb2312_8x24_2424.LoadFont = NULL;
     font_gb2312_8x24_2424.UnloadFont = NULL;
-#else       //CFG_GB2312_24_Yahei == from_array
+#else       // == from_array
     __Gb2312_24LoadFromFileYahei(CFG_GB2312_24_YAHEI_FILENAME);  //加载字库
     font_gb2312_8x24_2424.LoadFont = __Gb2312_24LoadFromFileYahei;
     font_gb2312_8x24_2424.UnloadFont = __Gb2312_24UnLoadFromFileYahei;
-#endif      //CFG_GB2312_24_Yahei == from_array
+#endif      // == from_array
     font_gb2312_8x24_2424.GetBitmap = __Font_Gb2312_24GetCharBitMapYahei;
     font_gb2312_8x24_2424.GetCharWidth = __Font_Gb2312_24GetCharWidthYahei;
     font_gb2312_8x24_2424.GetCharHeight = __Font_Gb2312_24GetCharHeightYahei;
@@ -1943,7 +1898,7 @@ bool_t ModuleInstall_FontGb2312_24_Yahei(void)
 #endif      //CFG_GB2312_24_SONG != zk_disable
 
 #if CFG_GB2312_24_FANG != zk_disable
-#include "../dotfont-ascii/dot-ascii8x24fang.h"
+#include "../dotfont-ascii/dot-ascii12x24fang.h"
 
 bool_t __Gb2312_24LoadFromFileFang(const char* FileName);
 void __Gb2312_24UnLoadFromFileFang(void);
@@ -1987,27 +1942,22 @@ bool_t __Font_Gb2312_24GetCharBitMapFang(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ24_ASCII_W;
         bitmap->height = FONT_HZ24_H;
         bitmap->linebytes = (FONT_HZ24_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<24; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii12x24Fang[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii12x24Fang+offset,FONT_HZ24_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ24_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ24_GLYPH_BYTES;
         bitmap->width = FONT_HZ24_W;
         bitmap->height = FONT_HZ24_H;
         bitmap->linebytes = (FONT_HZ24_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ24_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231224x24Fang[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231224x24Fang+offset,FONT_HZ24_GLYPH_BYTES);
         }
     }
 
@@ -2105,7 +2055,7 @@ bool_t ModuleInstall_FontGb2312_24_Fang(void)
         return false;
     }
 
-    pg_Ascii12x24Fang = (u8*)cs_ascii_12x24;
+    pg_Ascii12x24Fang = (u8*)cs_ascii_fang_12x24;
     font_gb2312_8x24_2424.MaxWidth = FONT_HZ24_W;
     font_gb2312_8x24_2424.MaxHeight = FONT_HZ24_H;
     font_gb2312_8x24_2424.Attr = CN_FONT_TYPE_DOT;
@@ -2179,27 +2129,22 @@ bool_t __Font_Gb2312_24GetCharBitMapHei(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ24_ASCII_W;
         bitmap->height = FONT_HZ24_H;
         bitmap->linebytes = (FONT_HZ24_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ24_ASCII_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii12x24Hei[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii12x24Hei+offset,FONT_HZ24_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ24_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ24_GLYPH_BYTES;
         bitmap->width = FONT_HZ24_W;
         bitmap->height = FONT_HZ24_H;
         bitmap->linebytes = (FONT_HZ24_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ24_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231224x24Hei[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231224x24Hei+offset,FONT_HZ24_GLYPH_BYTES);
         }
     }
 
@@ -2372,27 +2317,22 @@ bool_t __Font_Gb2312_24GetCharBitMapKai(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ24_ASCII_W;
         bitmap->height = FONT_HZ24_H;
         bitmap->linebytes = (FONT_HZ24_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<24; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii12x24Kai[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii12x24Kai+offset,FONT_HZ24_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ24_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ24_GLYPH_BYTES;
         bitmap->width = FONT_HZ24_W;
         bitmap->height = FONT_HZ24_H;
         bitmap->linebytes = (FONT_HZ24_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ24_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231224x24Kai[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231224x24Kai+offset,FONT_HZ24_GLYPH_BYTES);
         }
     }
 
@@ -2490,7 +2430,7 @@ bool_t ModuleInstall_FontGb2312_24_Kai(void)
         return false;
     }
 
-    pg_Ascii12x24Kai = (u8*)cs_ascii_12x24;
+    pg_Ascii12x24Kai = (u8*)cs_ascii_Kai_12x24;
     font_gb2312_8x24_2424.MaxWidth = FONT_HZ24_W;
     font_gb2312_8x24_2424.MaxHeight = FONT_HZ24_H;
     font_gb2312_8x24_2424.Attr = CN_FONT_TYPE_DOT;
@@ -2565,27 +2505,22 @@ bool_t __Font_Gb2312_24GetCharBitMapYuan(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ24_ASCII_W;
         bitmap->height = FONT_HZ24_H;
         bitmap->linebytes = (FONT_HZ24_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<24; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii12x24Yuan[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii12x24Yuan+offset,FONT_HZ24_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ24_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ24_GLYPH_BYTES;
         bitmap->width = FONT_HZ24_W;
         bitmap->height = FONT_HZ24_H;
         bitmap->linebytes = (FONT_HZ24_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ24_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231224x24Yuan[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231224x24Yuan+offset,FONT_HZ24_GLYPH_BYTES);
         }
     }
 
@@ -2683,7 +2618,7 @@ bool_t ModuleInstall_FontGb2312_24_Yuan(void)
         return false;
     }
 
-    pg_Ascii12x24Yuan = (u8*)cs_ascii_12x24;
+    pg_Ascii12x24Yuan = (u8*)cs_ascii_yuan_12x24;
     font_gb2312_8x24_2424.MaxWidth = FONT_HZ24_W;
     font_gb2312_8x24_2424.MaxHeight = FONT_HZ24_H;
     font_gb2312_8x24_2424.Attr = CN_FONT_TYPE_DOT;
@@ -2764,27 +2699,22 @@ bool_t __Font_Gb2312_32GetCharBitMapSong(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ32_ASCII_W;
         bitmap->height = FONT_HZ32_H;
         bitmap->linebytes = (FONT_HZ32_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ32_ASCII_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii16x32Song[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii16x32Song+offset,FONT_HZ32_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ32_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ32_GLYPH_BYTES;
         bitmap->width = FONT_HZ32_W;
         bitmap->height = FONT_HZ32_H;
         bitmap->linebytes = (FONT_HZ32_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ32_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231232x32Song[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231232x32Song+offset,FONT_HZ32_GLYPH_BYTES);
         }
     }
 
@@ -2958,27 +2888,22 @@ bool_t __Font_Gb2312_32GetCharBitMapFang(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ32_ASCII_W;
         bitmap->height = FONT_HZ32_H;
         bitmap->linebytes = (FONT_HZ32_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<32; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii16x32Fang[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii16x32Fang+offset,FONT_HZ32_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ32_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ32_GLYPH_BYTES;
         bitmap->width = FONT_HZ32_W;
         bitmap->height = FONT_HZ32_H;
         bitmap->linebytes = (FONT_HZ32_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ32_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231232x32Fang[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231232x32Fang+offset,FONT_HZ32_GLYPH_BYTES);
         }
     }
 
@@ -3150,27 +3075,22 @@ bool_t __Font_Gb2312_32GetCharBitMapHei(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ32_ASCII_W;
         bitmap->height = FONT_HZ32_H;
         bitmap->linebytes = (FONT_HZ32_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<32; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii16x32Hei[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii16x32Hei+offset,FONT_HZ32_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ32_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ32_GLYPH_BYTES;
         bitmap->width = FONT_HZ32_W;
         bitmap->height = FONT_HZ32_H;
         bitmap->linebytes = (FONT_HZ32_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ32_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231232x32Hei[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231232x32Hei+offset,FONT_HZ32_GLYPH_BYTES);
         }
     }
 
@@ -3343,27 +3263,22 @@ bool_t __Font_Gb2312_32GetCharBitMapKai(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ32_ASCII_W;
         bitmap->height = FONT_HZ32_H;
         bitmap->linebytes = (FONT_HZ32_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<32; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii16x32Kai[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii16x32Kai+offset,FONT_HZ32_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ32_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ32_GLYPH_BYTES;
         bitmap->width = FONT_HZ32_W;
         bitmap->height = FONT_HZ32_H;
         bitmap->linebytes = (FONT_HZ32_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ32_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231232x32Kai[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231232x32Kai+offset,FONT_HZ32_GLYPH_BYTES);
         }
     }
 
@@ -3536,27 +3451,22 @@ bool_t __Font_Gb2312_32GetCharBitMapYuan(u32 charcode, u32 size,u32 resv,
         bitmap->width = FONT_HZ32_ASCII_W;
         bitmap->height = FONT_HZ32_H;
         bitmap->linebytes = (FONT_HZ32_ASCII_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<32; i++)
-            {
-                bitmap->bm_bits[i] = pg_Ascii16x32Yuan[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_Ascii16x32Yuan+offset,FONT_HZ32_ASCII_BYTES);
         }
     }else
     {
-        offset = (94*(gbcode[1]-0xa1) + gbcode[0] - 0xa1)*FONT_HZ32_GLYPH_BYTES;
+        // gbk 文本文件中，汉字按大端存储
+        offset = (94*(gbcode[0]-0xa1) + gbcode[1] - 0xa1)*FONT_HZ32_GLYPH_BYTES;
         bitmap->width = FONT_HZ32_W;
         bitmap->height = FONT_HZ32_H;
         bitmap->linebytes = (FONT_HZ32_W+7)/8;
-        bitmap->PixelFormat = CN_SYS_PF_GRAY1;
+//      bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<FONT_HZ32_GLYPH_BYTES; i++)
-            {
-                bitmap->bm_bits[i] = pg_GB231232x32Yuan[offset + i];
-            }
+            memcpy(bitmap->bm_bits,pg_GB231232x32Yuan+offset,FONT_HZ32_GLYPH_BYTES);
         }
     }
 

@@ -95,28 +95,28 @@ isr_vector_end:
 
 
 HardExp_UndefHandler:
-    b   .
+    b       .
     nop
     nop
-    subs        pc,lr,#0
+    subs    pc,lr,#4
 HardExp_SwiHandler:
-    b   .
+    b       .
     nop
     nop
-    subs        pc,lr,#0
+    subs    pc,lr,#4
 HardExp_PrefetchHandler:
-    b   .
+    b       .
     nop
     nop
-    subs        pc,lr,#0
+    subs    pc,lr,#4
 
 HardExp_DataAbortHandler:
     nop
     nop
-    b   .
+    b       .
     nop
     nop
-    subs pc,lr,#0
+    subs    pc,lr,#4
 
 
 .end

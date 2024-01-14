@@ -847,6 +847,122 @@ static void  movescursoleft(int times)
     }
 }
 
+void shell_GetStrFromStdio(char *buf,u32 limit)
+{
+    s32 res;
+    u8 ch;
+    s32 len;
+    u32 vk = CN_VK_NULL;    //used when we push back the right key
+    u32 vkmask = CN_VK_NULL;
+    u32 offset=0;
+    memset(buf,0,limit);
+    while(1)
+    {
+        res = getchar( );
+        if(EOF == res)
+        {
+            DJY_EventDelay(1000); // 获取数据错误或者end of file，延时1ms再继续（防止出现死循环现象，导致其他线程卡死）。
+            continue;
+        }
+
+        ch = (u8)res;
+        if((ch == CN_VK_NULL)||(ch == 0xFF))
+        {
+            continue;   //NO CODE GET HERE
+        }
+
+        if((vk&0xFF) != 0)  //get the transfer code before
+        {
+            if(((vk>>8)&0xff) == CN_VK_NULL)  //this maybe the base code
+            {
+                vk|=(ch<<8); //get the base code
+                continue;    //continue to get the vk:three bytes to decode for the escape key
+            }
+            else  //this is the vk code
+            {
+                vk |= (ch <<16);
+                vkmask |= (ch <<16);
+            }
+        }
+        else
+        {
+            vkmask  = ch;
+        }
+        switch (vkmask)
+        {
+            case CN_VK_ARROWL:        //left,make the cursor moved left
+                if(offset > 0)//if not,do nothing here
+                {
+                    offset--;
+                    //push back the left cursor and make the terminal display know what has happened
+                    movescursoleft(1);
+                }
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+            case CN_VK_ARROWR:        //right,make the cursor moved right,if the buffer has the data
+                len = strlen(buf);
+                if(offset < len)
+                {
+                    offset++;
+                    //push back the right cursor and make the terminal display know what has happened
+                    movescursorright(1,vk);
+                }
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+            case CN_VK_ARROWU:        //moves to the previous command
+            case CN_VK_ARROWD:        //moves to the next command
+            case CN_VK_TAB:
+                break;
+            case CN_VK_LF:      //execute the command here, and push the command to the history cache
+            case CN_VK_CR:      //execute the command here, and push the command to the history cache
+                buf[offset] = '\0';
+                return ;
+                break;
+            case CN_VK_BS:      //should delete the current character,move all the following character 1 position to before
+                if(offset >0)
+                {
+                    buf[offset] = 0;
+                    offset--;
+                    putsbackspace(1);
+                }
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+            case CN_VK_ES:      //esc key,delete all the input here
+                len = strlen(buf);
+                if(offset < len)
+                {
+                    putsnxtspace(len - offset);
+                    offset = len;
+                }
+                putsbackspace(len);
+                memset(buf,0,CN_CMDLEN_MAX);
+                offset = 0;
+                //this is also the transfer code
+                vk= CN_VK_ES;
+                vkmask = CN_VK_ES;
+                break;
+            default: //other control character will be ignored
+                //push the character to the buffer until its full and the '\n' comes
+                if((offset <(CN_CMDLEN_MAX-1))&&(isprint((int)ch)))//the last will be'\0'
+                {
+                    buf[offset] = ch;
+                    offset++;
+                    putchar(ch);   //should do the echo
+                }
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+        }
+    }
+}
+
 //-----------------------------------------------------------------------------
 //功能: 返回console输入的字符，带console输入回车符时，执行命令。一次命令不得超过
 //      255字符。
@@ -856,7 +972,7 @@ static void  movescursoleft(int times)
 static ptu32_t Sh_Service(void)
 {
      u8 ch;
-     int len;
+     s32 len;
      u8 offset;
      const char *cmdindex;
      char *cwd;

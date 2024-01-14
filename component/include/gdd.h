@@ -386,7 +386,8 @@ bool_t GDD_CleanClient(HDC hdc);
 void GDD_AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink);
 HWND GDD_CreateWindow(const char *Text,struct MsgTableLink *pUserMsgTableLink,
                      s32 x,s32 y,s32 w,s32 h,
-                     u32 BufProperty,u32 Style,u16 PixelFormat,u32 BaseColor,u16 WinId,ptu32_t pdata,HWND hParent);
+                     u32 BufProperty,u32 Style,u16 PixelFormat,u32 BaseColor,
+                     u16 WinId,ptu32_t pdata,HWND hParent);
 void    GDD_DestroyWindow(HWND hwnd);
 void    GDD_DestroyAllChild(HWND hwnd);
 bool_t    GDD_MoveWindow(HWND hwnd,s32 x,s32 y);

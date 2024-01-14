@@ -2764,11 +2764,7 @@ s32 Gb2312_Ucs4ToMb (char* mb, u32 wc)
             used = (used & 0x0f0f) + ((used & 0xf0f0) >> 4);
             used = (used & 0x00ff) + (used >> 8);
             c = gb2312_2charset[summary->indx + used]+0x8080;
-#if CN_CFG_BYTE_ORDER == CN_CFG_LITTLE_ENDIAN
-            mb[0] = (c >> 8) ; mb[1] = (c & 0xff);
-#else
-            mb[1] = (c >> 8) ; mb[0] = (c & 0xff);
-#endif
+            mb[0] = (c >> 8) ; mb[1] = (c & 0xff);  // gbk文本文件中，汉字是按大端存储的
             return 2;
         }
     }

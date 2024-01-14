@@ -80,7 +80,17 @@ uint32_t *djy_interrupt_to_thread __attribute__ ((section(".data.interrupt")));
 // =============================================================================
 void CPU_Reboot(void)
 {
-
+    Iboot_SetRebootFlag();
+#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
+    Iboot_SetPreviouResetFlag();
+#endif
+#if CN_CPU_OPTIONAL_CACHE == 1
+    Cache_CleanData();
+    Cache_InvalidInst();
+#endif
+    u32 InitCpu_Addr;
+    InitCpu_Addr = 0;
+    ((void (*)(void))(InitCpu_Addr))();
 }
 // =============================================================================
 // 功能：Reset硬件CPU，相当于上电重新启动，硬件软件都得到复位
@@ -89,13 +99,17 @@ void CPU_Reboot(void)
 // =============================================================================
 void CPU_Reset(void)
 {
-    volatile u32 *SWRST = (u32*)0x4C000044;
-
+    Iboot_SetSoftResetFlag();
+#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
+    Iboot_SetPreviouResetFlag();
+#endif
 #if CN_CPU_OPTIONAL_CACHE == 1
     Cache_CleanData();
     Cache_InvalidInst();
 #endif
-    *SWRST = 0x533C2416;
+    u32 InitCpu_Addr;
+    InitCpu_Addr = 0;
+    ((void (*)(void))(InitCpu_Addr))();
 }
 // =============================================================================
 // 功能：运行到CPU加载代码前，即pre_load()前
@@ -104,6 +118,16 @@ void CPU_Reset(void)
 // =============================================================================
 void CPU_RestartSystem(void)
 {
-
+    Iboot_SetRestartAppFlag();
+#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
+    Iboot_SetPreviouResetFlag();
+#endif
+#if CN_CPU_OPTIONAL_CACHE == 1
+    Cache_CleanData();
+    Cache_InvalidInst();
+#endif
+    u32 InitCpu_Addr;
+    InitCpu_Addr = 0;
+    ((void (*)(void))(InitCpu_Addr))();
 }
 

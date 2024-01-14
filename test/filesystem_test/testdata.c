@@ -192,9 +192,9 @@ const u8 TestArray[2112] =
 const char *TestChinese =
 "\r\n\
 DJYOS简介:\r\n\
-    DJYOS是一个嵌入式实时操作系统,没有考虑在通用计算机或服务器上与windows、\
-linux、unix竞争。在嵌入式领域,DJYOS要与非实时操作系\r\n统如linux、wince竞争,以及\
-实时操作系统如vxworks、qnx 等竞争。DJYOS的目标,是改变中国无(有影响力的)操作\
+    DJYOS是一个嵌入式实时操作系统,与通用计算机或服务器上与windows、\
+linux、unix不同领域。在嵌入式领域,DJYOS与\
+实时操作系统如vxworks、qnx 有相同的应用领域。DJYOS的目标,是改变中国无(有影响力的)操作\
 系统局面,在不久的将\r\n来,世界上流行的操作系统中,有一个来自中国。\r\n\
 DJYOS特点:\r\n\
     DJYOS操作系统是以事件为核心进行调度的,这种调度策略使程序员可以按人类认知事\

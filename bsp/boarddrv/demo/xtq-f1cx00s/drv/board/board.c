@@ -180,21 +180,40 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
     return 0;
 }
 
+#define SPI1_PA_EN  0
 void Board_Init(void)
 {
+    u32 i=0;
     //uart PIN初始化
     GPIO_Congif(GPIOE,GPIO_Pin_0,GPIO_Mode_101,GPIO_PuPd_NOPULL);//RX0
     GPIO_Congif(GPIOE,GPIO_Pin_1,GPIO_Mode_101,GPIO_PuPd_NOPULL);//TX0
-    GPIO_Congif(GPIOA,GPIO_Pin_2,GPIO_Mode_101,GPIO_PuPd_NOPULL);//RX1
-    GPIO_Congif(GPIOA,GPIO_Pin_3,GPIO_Mode_101,GPIO_PuPd_NOPULL);//TX1
+//    GPIO_Congif(GPIOA,GPIO_Pin_2,GPIO_Mode_101,GPIO_PuPd_NOPULL);//RX1
+//    GPIO_Congif(GPIOA,GPIO_Pin_3,GPIO_Mode_101,GPIO_PuPd_NOPULL);//TX1
     GPIO_Congif(GPIOE,GPIO_Pin_7,GPIO_Mode_011,GPIO_PuPd_NOPULL);//TX2
     GPIO_Congif(GPIOE,GPIO_Pin_8,GPIO_Mode_011,GPIO_PuPd_NOPULL);//RX2
 
-    //iic0 PIN初始化
+    //iic0 PIN初始化,io模拟IIC
     GPIO_Congif(GPIOA, GPIO_Pin_0, GPIO_Mode_OUT, GPIO_PuPd_UP);   //scl
     GPIO_Congif(GPIOA, GPIO_Pin_1, GPIO_Mode_OUT,  GPIO_PuPd_NOPULL);   //int
     GPIO_Congif(GPIOA, GPIO_Pin_2, GPIO_Mode_OUT, GPIO_PuPd_UP);   //sda
     GPIO_Congif(GPIOA, GPIO_Pin_3, GPIO_Mode_OUT, GPIO_PuPd_UP);   //rst
+
+    //以下是SPI PIN初始化
+    for(i=0;i<4;i++)    //SPI0
+    {
+        GPIO_Congif(GPIOC,GPIO_Pin_0+i,GPIO_Mode_010,GPIO_PuPd_NOPULL);
+        GPIO_Multi_Driving(GPIOC,GPIO_Pin_0+i,3);//增加驱动力
+    }
+    for(i=0;i<4;i++)    //SPI1
+    {
+#if SPI1_PA_EN == 1      //SPI1使用PA0~3
+        GPIO_Congif(GPIOA,GPIO_Pin_0+i,GPIO_Mode_110,GPIO_PuPd_NOPULL);
+        GPIO_Multi_Driving(GPIOA,GPIO_Pin_0+i,3);//增加驱动力
+#else                       //SPI1使用PE7~10
+        GPIO_Congif(GPIOE,GPIO_Pin_7+i,GPIO_Mode_100,GPIO_PuPd_NOPULL);
+        GPIO_Multi_Driving(GPIOE,GPIO_Pin_7+i,3);//增加驱动力
+#endif
+    }
 }
 
 void Init_Cpu(void);

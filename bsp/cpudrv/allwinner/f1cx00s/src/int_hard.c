@@ -585,7 +585,7 @@ void __irq_Int_Engine(void)
 }
 
 void __fiq_Int_Engine(void)
-{
+{//尚不清楚f1c100s的FIQ机制，这段代码先留在这里了。
     ufast_t ufl_line = 0;
     u32 CpuStatus;
     ufl_line = pg_int_reg->VECTOR >> 2;

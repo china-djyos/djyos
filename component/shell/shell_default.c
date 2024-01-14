@@ -90,7 +90,7 @@ bool_t date(char *param)
     printf("\r\n当前时间：%10.10s %s",command, g_cTmWdays[dtm.tm_wday]);
     printf("\r\n输入新日期：");
 
-    gets(buf);
+    shell_GetStrFromStdio(buf,12);
     if(strlen(buf) != 0)
     {
         memcpy(command,buf,10);
@@ -138,7 +138,7 @@ bool_t __time(char *param)
     printf("\r\n当前时间：%s",command+11);
     printf("\r\n输入新时间：");
 
-    gets(command+11);
+    shell_GetStrFromStdio(command+11,9);
     if(strlen(command+11) != 0)
     {
         res = Time_SetDateTimeStr(command);
@@ -505,4 +505,4 @@ ADD_TO_ROUTINE_SHELL(f,f,"写数据到内存,命令格式：f 起始地址  单元数 每单元字节数
 ADD_TO_ROUTINE_SHELL(ver,djyos_ver,"显示os的版本");
 ADD_TO_ROUTINE_SHELL(date,date,"显示或者设置日期");
 ADD_TO_ROUTINE_SHELL(d,d,"读取内存里的数据,命令格式:d 地址 单元数 每单元字节数");
-ADD_TO_ROUTINE_SHELL(time,time,"显示当前时间或者设置输入新时间");
+ADD_TO_ROUTINE_SHELL(time,__time,"显示当前时间或者设置输入新时间");

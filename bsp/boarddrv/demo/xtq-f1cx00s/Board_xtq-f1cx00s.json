@@ -5,8 +5,9 @@
 			"clocks":{
 				
 			},
-			"chips":["nor flash gd25q128c",
-			"touchscreen GT911"],
+			"chips":["touchscreen GT911",
+			"norflash W25QXX",
+			"W25QXX FAT"],
 			"peripherals":[],
 			"mian_freq":null,
 			"memories":{

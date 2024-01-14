@@ -119,6 +119,7 @@ struct shell_cmd
 //      input的原始数据已发生变化；
 // ============================================================================
 char *shell_inputs(char *input, char **next);
+void shell_GetStrFromStdio(char *buf,u32 limit);
 
 //bool_t shell_add(struct shell_list *pLisTtab);
 //b ool_t shell_del(struct shell_list *pLisTtab);

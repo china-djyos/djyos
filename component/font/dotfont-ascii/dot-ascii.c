@@ -414,7 +414,7 @@ bool_t __Font_Ascii8x16GetCharBitMap(u32 charcode, u32 size,u32 resv,
     {
         for(i=0; i<16; i++)
         {
-            bitmap->bm_bits[i] = cs_ascii_8x16[offset + i];
+            bitmap->bm_bits[i] = cs_ascii_song_8x16[offset + i];
         }
     }
     return result;

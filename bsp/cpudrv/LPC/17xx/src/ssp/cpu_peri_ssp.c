@@ -320,7 +320,7 @@ static s32 __SSP_BusCtrl(tagSpiReg *Reg,u32 cmd,ptu32_t data1,ptu32_t data2)
         __SSP_SetClk(Reg,data1);
         break;
     case CN_SPI_CS_CONFIG:
-        __SSP_Config(Reg,(tagSpiConfig *)data1);
+//        __SSP_Config(Reg,(tagSpiConfig *)data1);  //有多套片选控制器才需要
         break;
     case CN_SPI_SET_AUTO_CS_EN:
         // 硬件上如果有自动产生CS的配置

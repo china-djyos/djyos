@@ -43,6 +43,11 @@ extern "C" {
 #define W25X_EnterQPIMode       0x38
 #define W25X_ExitQPIMode        0xFF
 
+#define W25X_FastRead_QUAD      0x6B
+#define W25X_PageProgram_QUAD   0x32
+
+#define W25X_FastReadDual_4ADDR 0x3C
+
 bool_t W25qxx_is_install(void);
 bool_t W25QXX_Write(u8* buf,u32 addr,u32 len);
 bool_t W25QXX_Read(u8* buf,u32 addr,u32 len);

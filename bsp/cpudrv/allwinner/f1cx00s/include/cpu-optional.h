@@ -67,6 +67,7 @@ extern "C" {
 //虽然cache.h中有定义cache尺寸的地方,但926ej_s的cache尺寸由厂商决定，直接与CPU
 //实现相关,故需要在这里定义.
 #define CN_CACHE_SIZE           0x4000
+#define CN_CPU_OPTIONAL_CACHE       1       //是否支持cache
 
 #ifdef __cplusplus
 }

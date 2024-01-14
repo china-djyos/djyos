@@ -60,7 +60,7 @@ struct SPI_DataFrame
 
 typedef struct SpiConfig
 {
-   u8 Mode;     //包括CPHA,CPOL
+   u8 Mode;     //包括CPHA,CPOL,SPI_MODE_0等
    u8 ShiftDir; //MSB or LSB
    u8 CharLen;  //字符长度,bits
    u32 Freq;    //时钟频率
@@ -74,8 +74,8 @@ typedef struct SpiConfig
 #define CN_SPI_CS_CONFIG             2
 #define CN_SPI_SET_AUTO_CS_EN        3
 #define CN_SPI_SET_AUTO_CS_DIS       4
-#define CN_SPI_SET_POLL              5
-#define CN_SPI_SET_INT               6
+#define CN_SPI_SET_POLL              5      //设置为轮询方式
+#define CN_SPI_SET_INT               6      //设置为中断方式
 #define CN_SPI_OS_USED               0x80
 
 //定义参数返回

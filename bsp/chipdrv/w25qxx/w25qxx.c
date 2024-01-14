@@ -94,6 +94,8 @@
 //%$#@enum,true,false,
 #define CFG_W25QXX_PART_ERASE               false      //"分区选项,是否需要擦除该芯片。"
 #define CFG_W25QXX_QSPI_ENABLE              false      //"是否使用QSPI模式"
+//%$#@num,0,0x7fffffff,
+#define CFG_W25QXX_SPI_CLK                  100000000    //"SPI时钟频率"
 //%$#@num,0,65535,
 #define CFG_W25QXX_BYTES_PAGE               256        //"每页的字节数"
 #define CFG_W25QXX_PAGES_SECTOR             16         //"每个扇区有多少页"
@@ -1009,11 +1011,11 @@ bool_t W25QXX_Init(void)
         return false;
     }
 #else
-    s_ptSpiPort = SPI_DevAdd(CFG_W25_SPI_NAME,"w25qxx",0,8,SPI_MODE_0,SPI_SHIFT_MSB,1000*1000,false);
+    s_ptSpiPort = SPI_DevAdd(CFG_W25_SPI_NAME,"w25qxx",0,8,SPI_MODE_0,SPI_SHIFT_MSB,CFG_W25QXX_SPI_CLK,false);
     if(s_ptSpiPort)
     {
         SPI_BusCtrl(s_ptSpiPort,CN_SPI_SET_POLL,0,0);
-        SPI_BusCtrl(s_ptSpiPort,CN_SPI_SET_CLK, 30 * 1000 * 1000, 0);
+        SPI_BusCtrl(s_ptSpiPort,CN_SPI_SET_CLK, CFG_W25QXX_SPI_CLK, 0);
     }
     else
     {
