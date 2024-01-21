@@ -2012,6 +2012,7 @@ bool_t Iboot_SetPreviouResetFlag()
 bool_t Iboot_SetRunIbootFlag()
 {
     Iboot_App_Info.runflag.restart_run_iboot =1;
+    Iboot_App_Info.runflag.restart_run_app =0;
     return true;
 }
 
@@ -2022,6 +2023,7 @@ bool_t Iboot_SetRunIbootFlag()
 //==============================================================================
 bool_t Iboot_SetRunAppFlag()
 {
+    Iboot_App_Info.runflag.restart_run_iboot =0;
     Iboot_App_Info.runflag.restart_run_app =1;
     return true;
 }

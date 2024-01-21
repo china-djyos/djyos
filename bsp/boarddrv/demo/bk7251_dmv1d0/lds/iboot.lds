@@ -52,13 +52,6 @@ SECTIONS
         . = ALIGN(0x08);
     }>flash_iboot
 
-    test_debug :
-    {
-        . = ALIGN(0x08);
-        KEEP(*(*.test_debug))
-        . = ALIGN(0x08);
-    }>ram AT>flash_iboot
-
     text_sysload_rIbootRom_lIbootRom :
     {
         . = ALIGN(0x08);
@@ -130,11 +123,6 @@ SECTIONS
         LONG(LOADADDR(text_preload_rIbootRom_lIbootRom))
         LONG(ADDR(text_preload_rIbootRom_lIbootRom))
         LONG(SIZEOF(text_preload_rIbootRom_lIbootRom))
-        LONG(1)
-
-        LONG(LOADADDR(test_debug))
-        LONG(ADDR(test_debug))
-        LONG(SIZEOF(test_debug))
         LONG(1)
 
         LONG(LOADADDR(rw_preload_rRAM1_lIbootRom))

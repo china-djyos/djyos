@@ -931,16 +931,8 @@ static bool_t __SPI_TxRxPoll(u32 SPI,u8 *srcAddr,u32 wrSize,
     {
         if((k = i) < wrSize)
         {
-//          if((Reg->SPI_BCC==0))
-//              printf("spi send fifo pre error\r\n");
             __SPI_Write(Reg, srcAddr[i]);
         }
-//        else if((k = i) < wrSize)
-//        {
-////          if((Reg->SPI_BCC==0))
-////              printf("spi send fifo pre error\r\n");
-//            __SPI_Write(Reg, srcAddr[i]);
-//        }
 //配置好了SPI_MBC、SPI_MTC、SPI_BCC，单纯读设备时无需写 txd 寄存器，CPU会自动发出读时钟
 //      else
 //      {
@@ -950,37 +942,6 @@ static bool_t __SPI_TxRxPoll(u32 SPI,u8 *srcAddr,u32 wrSize,
         if((i >= recvoff) && (i < (recvoff + rdSize)))
         {
             destAddr[i - recvoff] = r;
-        }
-//        else if((i >= recvoff) && (i < (recvoff + rdSize)))
-//        {
-//            destAddr[i - recvoff] = r;
-//        }
-//        extern u32 disint,enint;
-//        si = Int_LowAtomStart();
-//        if(!len_limit)
-//            disint++;
-//        Int_LowAtomEnd(si);
-//        if(!len_limit)
-//            enint++;
-        if((Reg->SPI_FSR & SPI_FIFO_TXCNT) && (Reg->SPI_BCC==0))
-            printf("spi send fifo error\r\n");
-    }
-extern u32 fileoffset,errspi;
-static u32 wordoffset,resume = 100000,loop;
-    if(rdSize == 0x1000)
-    {
-        if(fileoffset != resume)
-        {
-            resume = fileoffset;
-            wordoffset = 0;
-        }
-        for(loop = 0;loop < 0x400; loop++)
-        {
-            if(((u32*)destAddr)[loop] != fileoffset*0x4000+wordoffset)
-            {
-                errspi++;
-            }
-            wordoffset++;
         }
     }
 //    for (wr=0;((wr<wrSize)&&(wrSize != 0))||((rd < (recvoff+rdSize))&&(rdSize != 0)); )

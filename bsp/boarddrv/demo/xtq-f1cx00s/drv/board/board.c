@@ -192,6 +192,9 @@ void Board_Init(void)
     GPIO_Congif(GPIOE,GPIO_Pin_7,GPIO_Mode_011,GPIO_PuPd_NOPULL);//TX2
     GPIO_Congif(GPIOE,GPIO_Pin_8,GPIO_Mode_011,GPIO_PuPd_NOPULL);//RX2
 
+    GPIO_Congif(GPIOA, GPIO_Pin_1, GPIO_Mode_OUT, GPIO_PuPd_UP);   //rst
+    GPIO_SettoHigh(GPIOA,GPIO_Pin_1 );
+
     //iic0 PIN³õÊ¼»¯,ioÄ£ÄâIIC
     GPIO_Congif(GPIOA, GPIO_Pin_0, GPIO_Mode_OUT, GPIO_PuPd_UP);   //scl
     GPIO_Congif(GPIOA, GPIO_Pin_1, GPIO_Mode_OUT,  GPIO_PuPd_NOPULL);   //int

@@ -59,6 +59,7 @@
 #include <stdlib.h>
 #include "string.h"
 #include "cpu-optional.h"
+#include <Iboot_info.h>
 #include "component_config_iboot.h"
 #if(CN_CPU_OPTIONAL_CACHE==1)
 #include "set-cache.h"
@@ -79,7 +80,7 @@ struct copy_table{
     u32 record_cnt;
     struct CopyRecord record[1];
 };
-
+extern struct IbootAppInfo Iboot_App_Info;
 //-----------------------------------------------------------------
 //功能：由硬件决定是否强制进入Iboot，若此函数返回TRUE，则强制运行Iboot。通常会使
 //      用一个gpio，通过跳线决定。
@@ -111,13 +112,16 @@ void Iboot_IAP_SelectLoadProgam(void)
 
     if(Iboot_IAP_IsForceIboot())//硬件设置运行iboot
     {
+        Iboot_App_Info.previou_reset = PREVIOURESET_IBOOT;
         Run_Iboot(HARD_SET_RUN_IBOOT);//填充硬件设置运行iboot信息
     }
     if(XIP_IsRamIbootFlag())//ram中标记运行iboot
     {
+        Iboot_App_Info.previou_reset = PREVIOURESET_IBOOT;
         Run_Iboot(RAM_SET_RUN_IBOOT);
     }
 
+    Iboot_App_Info.previou_reset = PREVIOURESET_APP;
 #if (CFG_APP_RUNMODE == CN_RUN_FORM_FILE)
     if(false == Run_App(RUN_APP_FROM_FILE))//
 #elif (CFG_APP_RUNMODE == CN_DIRECT_RUN)
@@ -125,6 +129,7 @@ void Iboot_IAP_SelectLoadProgam(void)
 #else
     #error "error ： 没有定义APP加载方式！！";
 #endif
+        Iboot_App_Info.previou_reset = PREVIOURESET_IBOOT;
         Run_Iboot(CHACK_ERROR);
 #endif      //for (CFG_RUNMODE == CN_RUNMODE_BOOTSELF)
 

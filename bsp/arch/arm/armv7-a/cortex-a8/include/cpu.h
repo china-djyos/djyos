@@ -6,8 +6,6 @@
 extern "C" {
 #endif
 
-#define ADD_TO_TEST_DEBUG                __attribute__ ((section(".test_debug")))
-
 #define _FIQ_STACK_SIZE_                  0xFF0
 #define _IRQ_STACK_SIZE_                  0xFF0
 #define _SVC_STACK_SIZE_                  0x3F0

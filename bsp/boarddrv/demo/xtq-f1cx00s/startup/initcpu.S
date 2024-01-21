@@ -211,6 +211,8 @@ AppStart:
     MSR   CPSR_c, R0
 
     BL    ExpStackInit
+
+    bl    MMU_Init
 //copy向量表，全志的f1cx00在0地址处在reset时存放了boot信息，需要在启动后手动copy
 //异常向量表。
     ldr r0, =isr_vector
@@ -219,11 +221,15 @@ AppStart:
     ldreq r1, =0x00000000      //bit13=0
     ldrne r1, =0xFFFF0000      //bit13=1
 
+    add   r0,r0,#4              //避开复位向量，复位的话，要跑 Init_Cpu
+    add   r1,r1,#4
+    ldmia r0!, {r2-r8}
+    stmia r1!, {r2-r8}
 
-    ldmia r0!, {r2-r8, r10}
-    stmia r1!, {r2-r8, r10}
-    ldmia r0!, {r2-r8, r10}
-    stmia r1!, {r2-r8, r10}
+    add   r0,r0,#4              //避开复位向量，复位的话，要跑 Init_Cpu
+    add   r1,r1,#4
+    ldmia r0!, {r2-r8}
+    stmia r1!, {r2-r8}
 
     //Clear Registers
     MOV R0,  #0

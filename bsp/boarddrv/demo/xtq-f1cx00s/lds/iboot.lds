@@ -19,6 +19,7 @@ SECTIONS
     stack_rRAM1_lRAM1 (NOLOAD) :
     {
         . = ALIGN(0x08);
+        * (.data.mmutab)
         KEEP(* (.data.ExpTable))
         KEEP(* (.data.interrupt))
         . = ALIGN(0x08);
@@ -34,6 +35,7 @@ SECTIONS
         . = ALIGN(4);
          KEEP(*initcpu.o(.text .text.* .rodata .rodata.*))
          KEEP(*pre_loader.o(.text .text.* .rodata .rodata.*))
+         KEEP(*sys_clock.o(.text .text.* .rodata .rodata.*))
          . = ALIGN(0x10);
     } > DRAM_iboot
 
@@ -51,13 +53,6 @@ SECTIONS
         *list.o (.text .text.* .rodata .rodata.*)
         . = ALIGN(0x08);
     }>DRAM_iboot
-
-    test_debug :
-    {
-        . = ALIGN(0x08);
-        KEEP(*(*.test_debug))
-        . = ALIGN(0x08);
-    }>DRAM AT>DRAM_iboot
 
     text_sysload_rIbootRom_lIbootRom :
     {
@@ -130,11 +125,6 @@ SECTIONS
         LONG(LOADADDR(text_preload_rIbootRom_lIbootRom))
         LONG(ADDR(text_preload_rIbootRom_lIbootRom))
         LONG(SIZEOF(text_preload_rIbootRom_lIbootRom))
-        LONG(1)
-
-        LONG(LOADADDR(test_debug))
-        LONG(ADDR(test_debug))
-        LONG(SIZEOF(test_debug))
         LONG(1)
 
         LONG(LOADADDR(rw_preload_rRAM1_lIbootRom))

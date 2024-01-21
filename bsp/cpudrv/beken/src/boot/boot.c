@@ -76,9 +76,6 @@ static void bk_reboot(void)
 void CPU_Reboot(void)
 {
     Iboot_SetRebootFlag();
-#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
-    Iboot_SetPreviouResetFlag();
-#endif
 //  bk_reboot();
     void (*fn_start)();
     fn_start = 0x0;
@@ -89,9 +86,6 @@ void CPU_Reboot(void)
 void CPU_Reset(void)
 {
     Iboot_SetSoftResetFlag();
-#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
-    Iboot_SetPreviouResetFlag();
-#endif
 //    void (*fn_start)();
 //    fn_start = 0x0;
 //    fn_start();
@@ -102,9 +96,6 @@ void CPU_Reset(void)
 void CPU_RestartSystem(void)
 {
     Iboot_SetRestartAppFlag();
-#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
-    Iboot_SetPreviouResetFlag();
-#endif
     AppStart();
 //  void (*fn_start)();
 //  fn_start = 0x0;

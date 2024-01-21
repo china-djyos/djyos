@@ -151,7 +151,8 @@ struct IbootAppInfo
     #define PREVIOURESET_IBOOT   (0x12345678)//复位前运行iboot
     #define PREVIOURESET_APP     (0x87654321)//复位前运行APP
                                              //其他值表示上电或复位
-    u32 previou_reset;                       //复位前运行模式
+    u32 previou_reset;                       //启动时用于判断启动前运行模式，
+                                            //启动后即设为当前运行模式。
     struct{
         u32 hard_set_run_iboot    :1;   //0硬件要求强制运行iboot
         u32 restart_run_iboot     :1;   //1指示启动后运行Iboot

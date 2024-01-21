@@ -81,9 +81,6 @@ uint32_t *djy_interrupt_to_thread __attribute__ ((section(".data.interrupt")));
 void CPU_Reboot(void)
 {
     Iboot_SetRebootFlag();
-#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
-    Iboot_SetPreviouResetFlag();
-#endif
 #if CN_CPU_OPTIONAL_CACHE == 1
     Cache_CleanData();
     Cache_InvalidInst();
@@ -100,9 +97,6 @@ void CPU_Reboot(void)
 void CPU_Reset(void)
 {
     Iboot_SetSoftResetFlag();
-#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
-    Iboot_SetPreviouResetFlag();
-#endif
 #if CN_CPU_OPTIONAL_CACHE == 1
     Cache_CleanData();
     Cache_InvalidInst();
@@ -119,9 +113,6 @@ void CPU_Reset(void)
 void CPU_RestartSystem(void)
 {
     Iboot_SetRestartAppFlag();
-#if (CFG_RUNMODE != CN_RUNMODE_BOOTSELF)
-    Iboot_SetPreviouResetFlag();
-#endif
 #if CN_CPU_OPTIONAL_CACHE == 1
     Cache_CleanData();
     Cache_InvalidInst();

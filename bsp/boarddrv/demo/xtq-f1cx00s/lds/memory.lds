@@ -19,5 +19,5 @@ DRAM_app_Size      = LENGTH(DRAM_app);
 DRAM_Start         = ORIGIN(DRAM);
 DRAM_Size          = LENGTH(DRAM);
 SHARE_Start        = ORIGIN(SHARE);
-SHARE_Size       = LENGTH(SHARE);
+SHARE_Size         = LENGTH(SHARE);
 
