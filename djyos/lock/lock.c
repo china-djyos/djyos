@@ -796,7 +796,7 @@ bool_t Lock_MutexPend(struct MutexLCB *mutex,u32 timeout)
     if(g_ptEventRunning->wakeup_from & CN_STS_SYNC_TIMEOUT)
     {//说明同步条件未到，从超时返回
      //此时应恢复拥有者的优先级，不能再让他继承优先级了。
-        __DJY_RestorePrio( pl_ecb->event_id );
+        __DJY_RestorePrio( pl_ecb );
         return false;
     }else
     {//说明是得到互斥量返回
