@@ -356,12 +356,25 @@ void __Int_ClearAllLine(void)
 //-----------------------------------------------------------------------------
 bool_t Int_QueryLine(ufast_t ufl_line)
 {
-    ucpu_t  ucl_msk;
+    ucpu_t  pend;
     if( (ufl_line > CN_INT_LINE_LAST)
             || (tg_pIntLineTable[ufl_line] == NULL) )
         return false;
-    //先确认f1c100是否有手动清中断功能再说
-    return true;
+    if(ufl_line < 32)
+    {
+        pend = pg_int_reg->INTPND1 & ( 1 << ufl_line);
+        pg_int_reg->INTPND1 &= ~( 1 << ufl_line);
+    }
+    else
+    {
+        pend = pg_int_reg->INTPND2 & (1<<(ufl_line-32));
+        pg_int_reg->INTPND2 &= ~(1<<(ufl_line-32));
+    }
+    //不确定f1c100是否可以这样手动清中断
+    if(pend == 0)
+        return false;
+    else
+        return true;
 }
 
 //----把指定中断线设置为异步信号--------－－－---------------------------------
@@ -500,10 +513,16 @@ void __Int_InitHard(void)
 //参数：无
 //返回：无
 //-----------------------------------------------------------------------------
+extern uint32_t djy_switch_interrupt_flag;
+extern uint32_t *djy_interrupt_from_thread;
+extern uint32_t *djy_interrupt_to_thread;
 void Int_Init(void)
 {
     ufast_t ufl_line;
 
+    djy_switch_interrupt_flag = 0;
+    djy_interrupt_from_thread = NULL;
+    djy_interrupt_to_thread = NULL;
     Int_CutTrunk();                //断开总中断开关
     __Int_InitHard();
     __Int_ClearAllLine();

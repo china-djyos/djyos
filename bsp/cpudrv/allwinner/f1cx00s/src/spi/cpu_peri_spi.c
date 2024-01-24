@@ -103,6 +103,9 @@
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_SPI    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,32,512,
 #define CFG_SPI_BUF_LEN               128       //"SPI缓冲区大小",
+//%$#@num,100000,105000000,
+#define CFG_SPI0_CLK                  105000000 //"SPI默认工作频率",
+#define CFG_SPI1_CLK                  6250000   //"SPI默认工作频率",
 //%$#@enum,true,false,
 #define CFG_SPI0_ENABLE               false     //"是否使用SPI0",
 #define CFG_SPI1_ENABLE               false     //"是否使用SPI1",
@@ -232,7 +235,7 @@ virtual_addr_t addr =spi_get_addr(SPI);
 /*---------------------------------------------------
 SPI配置
 ---------------------------------------------------*/
-void spi_spi_confing(int SPI)
+void spi_spi_confing(int SPI,int clk)
 {
     virtual_addr_t addr=spi_get_addr(SPI);
     u32_t val;
@@ -272,7 +275,7 @@ void spi_spi_confing(int SPI)
 #else
             spi_clk=ahb_clk / (2*(n + 1));
 #endif
-            if(spi_clk>spi_max_clk)//SPI 时钟频率限制
+            if(spi_clk>clk)//SPI 时钟频率限制
             {
                 n++;
             }else
@@ -657,8 +660,13 @@ void spi_clock_init(int SPI)
 // =============================================================================
 void spi_init(int SPI)
 {
+    s32 clk ;
+    if(SPI == 0)
+        clk = CFG_SPI0_CLK;
+    else
+        clk = CFG_SPI1_CLK;
     spi_clock_init(SPI);
-    spi_spi_confing(SPI);
+    spi_spi_confing(SPI,clk);
 }
 //**********************************************************************************
 
@@ -735,9 +743,6 @@ static void __SPI_SetClk( struct tagSpiReg * Reg,u32 Freq)
 // =============================================================================
 static void __SPI_Config(struct tagSpiReg *Reg,tagSpiConfig *ptr)
 {
-    __SPI_SetClk(Reg,ptr->Freq);
-//    Reg->CR1 &= ~SPI_CR1_SPE;
-
     //set the PHA
     if(ptr->Mode & SPI_CPHA)
     {
@@ -840,7 +845,7 @@ static s32 __SPI_BusCtrl(u32 SPI,u32 cmd,ptu32_t data1,ptu32_t data2)
     switch(cmd)
     {
     case CN_SPI_SET_CLK:
-        __SPI_SetClk(Reg,data1);
+        spi_spi_confing(SPI,data1);
         break;
 
     case CN_SPI_CS_CONFIG:

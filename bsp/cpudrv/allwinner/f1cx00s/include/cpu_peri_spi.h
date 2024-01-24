@@ -187,7 +187,7 @@ extern unsigned int spi_slave_mode_en;//=0主机模式，=1主机模式
 
 void W25Q128_Demo(void);
 void spi_init(int SPI);
-void spi_spi_confing(int SPI);
+void spi_spi_confing(int SPI,int clk);
 #define spi_flash_init  spi_init
 int sys_spi_flash_read(int SPI,int addr, void * buf, int count);
 void SPI_Flash_Write(int SPI,unsigned char * pBuffer,unsigned int WriteAddr,unsigned int NumByteToWrite);

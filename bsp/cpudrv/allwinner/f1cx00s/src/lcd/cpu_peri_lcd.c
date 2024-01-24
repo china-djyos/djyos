@@ -45,9 +45,9 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#if ( CFG_MODULE_ENABLE_LCD_DRIVER_ST7789V == false )
+#if ( CFG_MODULE_ENABLE_LCD_DRIVER_F1C == false )
 //#warning  " keyboard_hard_driver  组件参数未配置，使用默认配置"
-#define CFG_MODULE_ENABLE_LCD_DRIVER_ST7789V    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+#define CFG_MODULE_ENABLE_LCD_DRIVER_F1C    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,true,false,
 //%$#@num,,,
 //%$#@enum,true,false,
@@ -188,7 +188,7 @@ struct __lcd_timing lcd_timing=
      1,     800, 40, 87,  1,      480, 13, 31,   1,   0, 0, 1, 0,      1,           0,        65, 4,13 //PCLK=30MHZ
 #endif
 #ifdef LCD_TYPE_RGB70_1024_600
-     2,    1024,160,160,  1,      600,  2, 23,  12,   0, 0, 1, 0,      1,         0,        65, 4, 8 //PCLK=48.75MHZ
+     1,    1024,160,160,  1,      600,  2, 23,  12,   0, 0, 1, 0,      1,         0,        65, 4, 8 //PCLK=48.75MHZ
 #endif
 //------------------------------VGA
 #ifdef LCD_TYPE_Vga_640_480_60HZ
