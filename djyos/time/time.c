@@ -515,7 +515,7 @@ s32 Time_SetDateTimeStr(char *buf)
             &ptDateTime.tm_year,&ptDateTime.tm_mon,&ptDateTime.tm_mday,\
             &ptDateTime.tm_hour,&ptDateTime.tm_min,&ptDateTime.tm_sec,\
             &ptDateTime.tm_us);
-
+    ptDateTime.tm_mon--;        //0-11
     //parameters enough
     if(params < 6)
     {
@@ -528,7 +528,7 @@ s32 Time_SetDateTimeStr(char *buf)
     }
 
     //moth check
-    if ((1>ptDateTime.tm_mon) || (ptDateTime.tm_mon>12))
+    if (ptDateTime.tm_mon>11)
     {
         return EN_CLOCK_MON_ERROR;
     }
@@ -538,11 +538,11 @@ s32 Time_SetDateTimeStr(char *buf)
     {
         return EN_CLOCK_DAY_ERROR;
     }
-    if (ptDateTime.tm_mday > g_u32MonthDays[ptDateTime.tm_mon-1])
+    if (ptDateTime.tm_mday > g_u32MonthDays[ptDateTime.tm_mon])
     {
         return EN_CLOCK_DAY_ERROR;
     }
-    if (ptDateTime.tm_mon == 2)
+    if (ptDateTime.tm_mon == 1)
     {
         if (ptDateTime.tm_mday > 29)
         {
@@ -623,7 +623,7 @@ void Time_AscTime(struct tm *tm, char buf[])
     }
     itoa(tm->tm_year + 1900, &buf[0], 10);
     buf[4] = '/';
-    itoa(tm->tm_mon, &buf[5], 10);
+    itoa(tm->tm_mon+1, &buf[5], 10);
     if(buf[6] == '\0')  //É¾³ý×Ö·û´®½áÎ²£¬ÓÃ0Ìî³ä
     {
         buf[6] = buf[5];
@@ -730,9 +730,8 @@ static const char *pWeekDay[CN_WEEKDAY_MAX]={
         "Sat"
 };
 
-#define CN_MONTH_MAX 13
+#define CN_MONTH_MAX 12
 static const char *pMonth[CN_MONTH_MAX] ={
-        NULL,
         "Jan",
         "Feb",
         "Mar",
@@ -764,11 +763,11 @@ struct tm *gmtime_r(const time_t *timep, struct tm *result)
 {
     struct tm *myresult;
     myresult = Time_GmTime_r(timep,result);
-    if(NULL != myresult)
-    {
-//      myresult->tm_year -= 1900;
-        myresult->tm_mon -= 1;
-    }
+//    if(NULL != myresult)
+//    {
+////      myresult->tm_year -= 1900;
+//        myresult->tm_mon -= 1;
+//    }
     return myresult;
 }
 struct tm *gmtime(const time_t *timep)

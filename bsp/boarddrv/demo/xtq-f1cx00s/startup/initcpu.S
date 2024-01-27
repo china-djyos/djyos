@@ -145,9 +145,11 @@ ExpStackInit:
 .global Cache_CleanData
 .type Init_Cpu, %function
 Init_Cpu:
-    //Disable IRQ and FIQ before starting anything
-    MRS   R0, CPSR
-    ORR   R0, R0, #0xC0
+    //Disable IRQ and FIQ and entry svc mode,否则，调用ExpStackInit时使用当前状态的
+    //LR值，而ExpStackInit返回时将使用 svc mode的LR值，程序就飞了。正常启动没问题，
+    //但会影响调试。
+    LDR   R0, =0xd3
+//    ORR   R0, R0, #0xC0
     MSR   CPSR_c, R0
     ldr     sp,=msp_top
     ldr   r0,=0
@@ -205,9 +207,11 @@ Init_Cpu:
 .globl AppStart
 .type AppStart, %function
 AppStart:
-    //Disable IRQ and FIQ before starting anything
-    MRS   R0, CPSR
-    ORR   R0, R0, #0xC0
+    //Disable IRQ and FIQ and entry svc mode,否则，调用ExpStackInit时使用当前状态的
+    //LR值，而ExpStackInit返回时将使用 svc mode的LR值，程序就飞了。正常启动没问题，
+    //但会影响调试。
+    LDR   R0, =0xd3
+//    ORR   R0, R0, #0xC0
     MSR   CPSR_c, R0
 
     BL    ExpStackInit
