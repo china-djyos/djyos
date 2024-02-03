@@ -58,8 +58,8 @@
 //   修改说明: 原始版本
 //-----------------------------------------------------------------------------
 .cpu    arm926ej-s
-.fpu    softvfp
-.file   "cpus.S"
+//.fpu    softvfp
+//.file   "cpus.S"
 
 .global __asm_reset_thread
 .globl djy_switch_interrupt_flag

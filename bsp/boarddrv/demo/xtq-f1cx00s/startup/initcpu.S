@@ -57,7 +57,7 @@
 
 #include <board-config.h>
 //.fpu    softvfp
-.file   "initcpu.S"
+//.file   "initcpu.S"
 
 
 //// CP15 R1
@@ -213,6 +213,13 @@ AppStart:
     LDR   R0, =0xd3
 //    ORR   R0, R0, #0xC0
     MSR   CPSR_c, R0
+    ldr     sp,=msp_top
+    ldr   r0,=0
+    mcr   p15, 0, r0, c1, c0, 0
+
+    mov     r0,#0
+    mcr     p15,0,r0,c7,c7,0    //Invalidate I+D Cache
+    mcr     p15,0,r0,c8,c7,0    //Invalidate I+D TLB
 
     BL    ExpStackInit
 
@@ -253,7 +260,7 @@ AppStart:
     bl  cp15_enable_alignfault
     bl  Iboot_LoadPreload
 
-#if 0   //这段代码是小淘气初始化页表前后的代码，查问题时用过。
+#if 1   //这段代码是小淘气初始化页表前后的代码，查问题时用过。
 .text
 .globl entry_mmu
 .type entry_mmu, %function

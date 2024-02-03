@@ -54,7 +54,7 @@
 
 .cpu    arm920t
 .fpu    softvfp
-.file   "hard-exps.S"
+//.file   "hard-exps.S"
 
 .global Init_Cpu
 .global HardExp_UndefHandler
