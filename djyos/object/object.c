@@ -1233,12 +1233,13 @@ struct Object *OBJ_BuildTempPath(struct Object *begin, fnObjOps ObjOps,
                 {
                     printf("\r\n: dbug : object :  memory out(%s). ", __FUNCTION__);
                     Lock_MutexPost(&s_tObjectMutex);
+                    free(name);
                     return (NULL);
                 }
                 OBJ_SetToTemp(current);
             }
+            free(name);
         }
-        free(name);
         Lock_MutexPost(&s_tObjectMutex);
     }
     return (current);
