@@ -1,3 +1,4 @@
+#include <stdint.h>
 #ifndef __SYS_GPIO_H__
 #define __SYS_GPIO_H__
 

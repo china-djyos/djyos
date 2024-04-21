@@ -104,9 +104,6 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-
-extern void Set_TpINT_ToIn(void); //在board.c里实现，设置TP的INT脚为输入模式
-
 #define GT911_ADDR                0xBA
 #define GT911_ADDR_BITS           16
 

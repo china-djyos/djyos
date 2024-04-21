@@ -1106,6 +1106,10 @@ s32 printk (const char *fmt, ...)
     return i;
 }
 
+int c_vsnprintf(char *buf, size_t buf_size, const char *fmt, va_list ap)
+{
+    return 0;
+}
 
 //下面两个函数不添加的话工程有可能会编译不过，目前不知道具体用法，合并到主分支时加上注释
 int sniprintf(char *buf, size_t buf_size, const char *fmt, ...)
@@ -1131,6 +1135,10 @@ int sniprintf(char *buf, size_t buf_size, const char *fmt, ...)
 }
 
 
+int vsscanf(const char *inp, char const *fmt0, va_list ap)
+{
+    return 0;
+}
 int siscanf(const char *ibuf, const char *fmt, ...)
 {
     va_list ap;

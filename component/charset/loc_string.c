@@ -62,8 +62,59 @@
 #include "stdint.h"
 #include "stddef.h"
 #include "string.h"
+#include <stdio.h>
 #include <charset.h>
 #include <loc_string.h>
+
+int wctob( wint_t c )
+{
+    return 0;
+}
+wint_t getwchar(void)   //stdin.c
+{
+    return 0;
+}
+wint_t getwc(void)   //stdin.c
+{
+    return 0;
+}
+wint_t ungetwc( wint_t ch, FILE *stream )   //stdin.c
+{
+    return 0;
+}
+
+wint_t putwchar( wchar_t ch )   //stdout.c
+{
+    return 0;
+}
+
+wint_t putwc( wchar_t ch )   //stdout.c
+{
+    return 0;
+}
+
+size_t wcrtomb( char *restrict s, wchar_t wc, _mbstate_t *restrict ps)
+{
+    return 0;
+}
+
+size_t mbrtowc( wchar_t *restrict pwc, const char *restrict s, size_t n,
+                _mbstate_t *restrict ps )
+{
+    return 0;
+}
+unsigned long long wcstoull( const wchar_t* str, wchar_t** str_end, int base )
+{
+    return 0;
+}
+int swprintf(wchar_t *buffer, size_t count, const wchar_t *format, ...)   //stdout.c
+{
+    return 0;
+}
+unsigned long      wcstoul( const wchar_t* str, wchar_t** str_end, int base )
+{
+    return 0;
+}
 
 //----取串结束符长度-------------------------------------------------------------
 //功能: 不同的字符集，字符串结束符的长度，并不一定是1个字节的0。

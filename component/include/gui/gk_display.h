@@ -62,6 +62,7 @@
 
 #ifndef __GK_DISPLAY_H__
 #define __GK_DISPLAY_H__
+#include <stdarg.h>
 #include "stdint.h"
 #include "gkernel.h"
 #ifdef __cplusplus
@@ -263,7 +264,7 @@ struct DispDraw
 struct DisplayObj
 {
     struct Object  *HostObj;            //注:镜像显示器作为子资源结点挂在这里
-    u32 width_um,height_um;             //用微米表示的显示器尺寸，最大4294米。
+    u32   width_um,height_um;           //用微米表示的显示器尺寸，最大4294米。
     s32   width,height;                 //按像素表示的显示器尺寸
     u32   pixel_format;                 //像素格式，在gk_win.h中定义
     bool_t reset_clip;                  //true = 本显示器更新了可视域
@@ -286,7 +287,7 @@ struct DisplayObj
     //设定该显示器所有可以由用户设定的参数，比如分辨率和和色彩参数。函数的功能
     //不做统一规定，驱动程序的文档应该提供函数的使用说明。
     //利用本函数，可以提供类似windows中设置显示器属性的功能。
-    bool_t (*disp_ctrl)(struct DisplayObj *disp);
+    bool_t (*disp_ctrl)(struct DisplayObj *disp, s32 cmd, va_list args);
 };
 
 bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name);

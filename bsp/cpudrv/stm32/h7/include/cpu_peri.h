@@ -69,6 +69,7 @@ extern "C" {
 #include "cpu_peri_uart.h"
 #include "cpu_peri_dma.h"
 #include "cpu_peri_iic.h"
+#include "cpu_peri_i2s.h"
 #include "cpu_peri_spi.h"
 #include "cpu_peri_can.h"
 //#include "cpu_peri_rtc.h"

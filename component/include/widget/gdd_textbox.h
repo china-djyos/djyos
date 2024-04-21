@@ -66,7 +66,6 @@
 extern "C" {
 #endif
 #include    "gdd.h"
-#include    "gdd_widget.h"
 
 #define WS_TEXTBOX_R_W       ((u32)1<<8)  //可编辑文本框
 #define WS_TEXTBOX_R_O       ((u32)1<<9)  //只读文本框

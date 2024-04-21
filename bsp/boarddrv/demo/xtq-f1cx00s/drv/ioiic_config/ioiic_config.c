@@ -95,8 +95,9 @@
 //%$#@target = header      //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_IOIICCONFIG    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,
+//%$#@enum,true,false,
 //%$#@string,1,32,
-#define CFG_IO_IIC_BUS_NAME   "IoIic"   //"给总线命名"
+#define CFG_IO_IIC_BUS_NAME         "IoIic"   //"给总线命名"
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -120,7 +121,6 @@ bool_t ModuleInstall_init_ioiic(const char * busname)
     IoIic.IIC_IoCtrl  =  IIC_IoCtrlFunc; //控制函数
     //模块接口
     ModuleInstall_IO_IICBus(&IoIic);
-
     return true;
 }
 

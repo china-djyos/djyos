@@ -58,6 +58,7 @@
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
+#include <stdarg.h>
 #include "stdint.h"
 #include "stdlib.h"
 #include "object.h"
@@ -200,8 +201,8 @@ bool_t GK_SetDefaultDisplay(const char *name)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-//----取显示器的默认显示设置---------------------------------------------------
-//功能: 取一个显示器的默认显示设置，实际上就是桌面窗口的资源节点
+//----取显示器的根窗口---------------------------------------------------
+//功能: 取一个显示器的根窗口，实际上就是桌面窗口
 //参数: display，显示器指针
 //返回: draw_set指针
 //-----------------------------------------------------------------------------
@@ -210,6 +211,26 @@ struct GkWinObj *GK_GetRootWin(struct DisplayObj *display)
     return display->desktop;
 }
 
+
+//----显示器控制函数-------------------------------------------------------------
+//功能: 调用显示器的控制函数
+//参数: display，显示器指针
+//返回: draw_set指针
+//-----------------------------------------------------------------------------
+bool_t GK_DisplayCtrl(struct DisplayObj *display, s32 cmd, ...)
+{
+    s32 result;
+    va_list args;
+
+    if(!display)
+        return false;
+
+    va_start(args, cmd);
+    result = display->disp_ctrl(display, cmd, args);
+    va_end (args);
+
+    return result;
+}
 //----切换frame buffer---------------------------------------------------------
 //功能: 当一个显示器有多个frame buffer时，用本函数切换当前frame buffer，在系统
 //      中，frame buffer是一种资源

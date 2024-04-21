@@ -889,6 +889,8 @@ bool_t ModuleInstall_HardTimer(void)
 
     for(i=0;i<CN_TIMER_NUM;i++)
     {
+        Timer_SetClkSource(i,1);            //时钟源设为24M
+        Timer_SetPrecale(i,0);              //预分频设为1，即不分频
     }
 
     allwinner_timer.chipname = "f1cx00-timer";

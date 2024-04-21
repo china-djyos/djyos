@@ -282,7 +282,7 @@ void __lcd_power_enable(bool_t OnOff)
 //参数: disp，显示器指针
 //返回: true=成功，false=失败
 //-----------------------------------------------------------------------------
-bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
+bool_t __lcd_disp_ctrl(struct Displayobj *disp, s32 cmd, ...)
 {
 
     return true;

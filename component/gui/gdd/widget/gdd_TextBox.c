@@ -62,7 +62,10 @@
 #include  "gdd.h"
 #include  "../gdd_private.h"
 #include  <font/font.h>
-#include  <gdd_widget.h>
+#include  <widget/gdd_widget.h>
+#include  <widget/gdd_TextBox.h>
+#include  <widget/gdd_keyboard.h>
+#include  <widget/gdd_label.h>
 
 
 #define CN_CHAR_NUM_MAX                 255

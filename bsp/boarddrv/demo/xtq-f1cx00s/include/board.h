@@ -54,16 +54,19 @@
 extern "C" {
 #endif
 
-/**********************************ft5x26********************************************/
-////IO方向设置
-//#define CT_SCL_OUT() {GPIOC->MODER&=~(3<<(9*2));GPIOC->MODER|=1<<9*2;}  //PH6输出模式
-//#define CT_SDA_IN()  {GPIOA->MODER&=~(3<<(8*2));GPIOA->MODER|=0<<8*2;}  //PI3输入模式
-//#define CT_SDA_OUT() {GPIOA->MODER&=~(3<<(8*2));GPIOA->MODER|=1<<8*2;}  //PI3输出模式
-////IO操作函数
-//#define CT_IIC_SCL(n) (n?GPIO_SettoHigh(GPIO_C,PIN9):GPIO_SettoLow(GPIO_C,PIN9))//SCL
-//#define CT_IIC_SDA(n) (n?GPIO_SettoHigh(GPIO_A,PIN8):GPIO_SettoLow(GPIO_A,PIN8))//SDA
-//#define CT_READ_SDA   (GPIO_GetData(GPIO_A)&PIN8)//输入SDA
-
+#if CFG_ENABLE_OV2640 == true       //摄像头控制占用了TP的PIN
+/**********************************ov2640 SCCB*********************************/
+//IO方向设置
+#define SCCB_SCL_OUT() GPIO_Congif(GPIOE, GPIO_Pin_11, GPIO_Mode_OUT, GPIO_PuPd_UP)  //PA0输出模式
+#define SCCB_SDA_IN()  GPIO_Congif(GPIOE, GPIO_Pin_12, GPIO_Mode_IN,  GPIO_PuPd_UP)  //PA1输入模式
+#define SCCB_SDA_OUT() GPIO_Congif(GPIOE, GPIO_Pin_12, GPIO_Mode_OUT, GPIO_PuPd_UP)  //PA1输出模式
+//IO操作函数
+#define SCCB_IIC_SCL(n) (n?GPIO_SettoHigh(GPIOE,GPIO_Pin_11):GPIO_SettoLow(GPIOE,GPIO_Pin_11))//SCL
+#define SCCB_IIC_SDA(n) (n?GPIO_SettoHigh(GPIOE,GPIO_Pin_12):GPIO_SettoLow(GPIOE,GPIO_Pin_12))//SDA
+#define SCCB_READ_SDA   (GPIO_READ(GPIOE,GPIO_Pin_12))//输入SDA
+/******************************************************************************/
+#else
+/**********************************gt911**************************************/
 //IO方向设置
 #define CT_SCL_OUT() GPIO_Congif(GPIOA, GPIO_Pin_0, GPIO_Mode_OUT, GPIO_PuPd_UP)  //PA0输出模式
 #define CT_SDA_IN()  GPIO_Congif(GPIOA, GPIO_Pin_2, GPIO_Mode_IN,  GPIO_PuPd_UP)  //PA1输入模式
@@ -76,7 +79,8 @@ extern "C" {
 /*触摸屏芯片接口IO*/
 #define FT_RST(n)  (n?GPIO_SettoHigh(GPIOA,GPIO_Pin_3):GPIO_SettoLow(GPIOA,GPIO_Pin_3))
 #define FT_INT      (GPIO_READ(GPIOA,GPIO_Pin_1))
-/*************************************************************************************/
+/******************************************************************************/
+#endif
 
 void Board_Init(void);
 void FT6236_Pin_Init(void);
@@ -87,6 +91,8 @@ void ClosePower();
 void CloseSpeaker();
 void OpenSpeaker();
 enum SpeakerState GetSpeakerState();
+ptu32_t Iboot_GetResetAddr(void);
+
 #ifdef __cplusplus
 }
 #endif

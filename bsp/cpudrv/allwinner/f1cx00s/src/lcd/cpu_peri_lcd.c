@@ -10,6 +10,7 @@
 #include "cpu_peri_lcd.h"
 #include "cpu_peri_debe.h"
 #include "cpu_peri_tcon.h"
+#include "sys_clock.h"
 #include <stdlib.h>
 //-----------------------
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -269,25 +270,25 @@ void Debe_Clk_Close(void)
 void Set_LayerX_window(int Layer,int x,int y,int w,int h)
 {
     struct f1c100s_debe_reg_t * debe = (struct f1c100s_debe_reg_t *)lcd_pdat->virtdebe;
-    switch(Layer)
-    {
-        case 0:
-            write32((virtual_addr_t)&debe->layer0_pos, (y<< 16) | (x << 0));
-            write32((virtual_addr_t)&debe->layer0_size, ((h - 1) << 16) | ((w - 1) << 0));
-            break;
-        case 1:
-            write32((virtual_addr_t)&debe->layer1_pos, (y<< 16) | (x << 0));
-            write32((virtual_addr_t)&debe->layer1_size, ((h - 1) << 16) | ((w - 1) << 0));
-            break;
-        case 2:
-            write32((virtual_addr_t)&debe->layer2_pos, (y<< 16) | (x << 0));
-            write32((virtual_addr_t)&debe->layer2_size, ((h - 1) << 16) | ((w - 1) << 0));
-            break;
-        case 3:
-            write32((virtual_addr_t)&debe->layer3_pos, (y<< 16) | (x << 0));
-            write32((virtual_addr_t)&debe->layer3_size, ((h - 1) << 16) | ((w - 1) << 0));
-            break;
-    }
+//    switch(Layer)
+//    {
+//        case 0:
+            write32((virtual_addr_t)&debe->layer_pos[Layer], (y<< 16) | (x << 0));
+            write32((virtual_addr_t)&debe->layer_size[Layer], ((h - 1) << 16) | ((w - 1) << 0));
+//            break;
+//        case 1:
+//            write32((virtual_addr_t)&debe->layer1_pos, (y<< 16) | (x << 0));
+//            write32((virtual_addr_t)&debe->layer1_size, ((h - 1) << 16) | ((w - 1) << 0));
+//            break;
+//        case 2:
+//            write32((virtual_addr_t)&debe->layer2_pos, (y<< 16) | (x << 0));
+//            write32((virtual_addr_t)&debe->layer2_size, ((h - 1) << 16) | ((w - 1) << 0));
+//            break;
+//        case 3:
+//            write32((virtual_addr_t)&debe->layer3_pos, (y<< 16) | (x << 0));
+//            write32((virtual_addr_t)&debe->layer3_size, ((h - 1) << 16) | ((w - 1) << 0));
+//            break;
+//    }
 }
 /*------------------------
 使能层视频通道
@@ -295,21 +296,21 @@ void Set_LayerX_window(int Layer,int x,int y,int w,int h)
 void Enable_LayerX_Video(int Layer)
 {
     struct f1c100s_debe_reg_t * debe = (struct f1c100s_debe_reg_t *)lcd_pdat->virtdebe;
-    switch(Layer)
-    {
-        case 0:
-            S_BIT((virtual_addr_t)&debe->layer0_attr0_ctrl,1);
-            break;
-        case 1:
-            S_BIT((virtual_addr_t)&debe->layer1_attr0_ctrl,1);
-            break;
-        case 2:
-            S_BIT((virtual_addr_t)&debe->layer2_attr0_ctrl,1);
-            break;
-        case 3:
-            S_BIT((virtual_addr_t)&debe->layer3_attr0_ctrl,1);
-            break;
-    }
+//  switch(Layer)
+//  {
+//      case 0:
+    S_BIT((virtual_addr_t)&debe->layer_attr0_ctrl[Layer],1);
+//          break;
+//      case 1:
+//          S_BIT((virtual_addr_t)&debe->layer1_attr0_ctrl,1);
+//          break;
+//      case 2:
+//          S_BIT((virtual_addr_t)&debe->layer2_attr0_ctrl,1);
+//          break;
+//      case 3:
+//          S_BIT((virtual_addr_t)&debe->layer3_attr0_ctrl,1);
+//          break;
+//  }
 }
 /*------------------------
 失能层视频通道
@@ -317,21 +318,21 @@ void Enable_LayerX_Video(int Layer)
 void Disable_LayerX_Video(int Layer)
 {
     struct f1c100s_debe_reg_t * debe = (struct f1c100s_debe_reg_t *)lcd_pdat->virtdebe;
-    switch(Layer)
-    {
-        case 0:
-            C_BIT((virtual_addr_t)&debe->layer0_attr0_ctrl,1);
-            break;
-        case 1:
-            C_BIT((virtual_addr_t)&debe->layer1_attr0_ctrl,1);
-            break;
-        case 2:
-            C_BIT((virtual_addr_t)&debe->layer2_attr0_ctrl,1);
-            break;
-        case 3:
-            C_BIT((virtual_addr_t)&debe->layer3_attr0_ctrl,1);
-            break;
-    }
+//  switch(Layer)
+//  {
+//      case 0:
+    C_BIT((virtual_addr_t)&debe->layer_attr0_ctrl[Layer],1);
+//          break;
+//      case 1:
+//          C_BIT((virtual_addr_t)&debe->layer1_attr0_ctrl,1);
+//          break;
+//      case 2:
+//          C_BIT((virtual_addr_t)&debe->layer2_attr0_ctrl,1);
+//          break;
+//      case 3:
+//          C_BIT((virtual_addr_t)&debe->layer3_attr0_ctrl,1);
+//          break;
+//  }
 }
 /*------------------------
 设置数据格式
@@ -340,25 +341,25 @@ void Disable_LayerX_Video(int Layer)
 void Set_Layer_format(int Layer,int format,int stride)
 {
     struct f1c100s_debe_reg_t * debe = (struct f1c100s_debe_reg_t *)lcd_pdat->virtdebe;
-    switch(Layer)
-    {
-        case 0:
-            write32((virtual_addr_t)&debe->layer0_attr1_ctrl, format << 8);
-            write32((virtual_addr_t)&debe->layer0_stride, ((lcd_timing.width) << stride));
-            break;
-        case 1:
-            write32((virtual_addr_t)&debe->layer1_attr1_ctrl, format << 8);
-            write32((virtual_addr_t)&debe->layer1_stride, ((lcd_timing.width) << stride));
-            break;
-        case 2:
-            write32((virtual_addr_t)&debe->layer2_attr1_ctrl, format << 8);
-            write32((virtual_addr_t)&debe->layer2_stride, ((lcd_timing.width) << stride));
-            break;
-        case 3:
-            write32((virtual_addr_t)&debe->layer3_attr1_ctrl, format << 8);
-            write32((virtual_addr_t)&debe->layer3_stride, ((lcd_timing.width) << stride));
-            break;
-    }
+//  switch(Layer)
+//  {
+//      case 0:
+    write32((virtual_addr_t)&debe->layer_attr1_ctrl[Layer], format << 8);
+    write32((virtual_addr_t)&debe->layer_stride[Layer], ((lcd_timing.width) << stride));
+//          break;
+//      case 1:
+//          write32((virtual_addr_t)&debe->layer1_attr1_ctrl, format << 8);
+//          write32((virtual_addr_t)&debe->layer1_stride, ((lcd_timing.width) << stride));
+//          break;
+//      case 2:
+//          write32((virtual_addr_t)&debe->layer2_attr1_ctrl, format << 8);
+//          write32((virtual_addr_t)&debe->layer2_stride, ((lcd_timing.width) << stride));
+//          break;
+//      case 3:
+//          write32((virtual_addr_t)&debe->layer3_attr1_ctrl, format << 8);
+//          write32((virtual_addr_t)&debe->layer3_stride, ((lcd_timing.width) << stride));
+//          break;
+//  }
 }
 static int video_layer_inx=0;
 /*------------------------
@@ -396,10 +397,10 @@ Priority=0-3    [3>2>1>0]
 void debe_set_layer_priority(int layer,int Priority)
 {
     struct f1c100s_debe_reg_t * debe = (struct f1c100s_debe_reg_t *)lcd_pdat->virtdebe;
-    unsigned int val=read32((virtual_addr_t)&debe->layer1_attr0_ctrl);
+    unsigned int val=read32((virtual_addr_t)&debe->layer_attr0_ctrl[layer]);
     val&=~(0x3<<10);
     val|=(Priority<<10);
-    write32((virtual_addr_t)&debe->layer1_attr0_ctrl,val);
+    write32((virtual_addr_t)&debe->layer_attr0_ctrl[layer],val);
 }
 /*TCON初始化*/
 void Tcon_Init(void)
@@ -511,26 +512,26 @@ void Debe_Init(void)
     S_BIT((virtual_addr_t)&debe->mode,0);
     write32((virtual_addr_t)&debe->disp_size, (((pdat->height) - 1) << 16) | (((pdat->width) - 1) << 0));
 //设置层0参数
-    write32((virtual_addr_t)&debe->layer0_size, (((pdat->height) - 1) << 16) | (((pdat->width) - 1) << 0));
-    write32((virtual_addr_t)&debe->layer0_stride, ((pdat->width) << 4));//[RGB565=4][ARGB8888=5]
-    write32((virtual_addr_t)&debe->layer0_addr_low32b, (u32)(pdat->vram[0]) << 3);
-    write32((virtual_addr_t)&debe->layer0_addr_high4b, (u32)(pdat->vram[0]) >> 29);
-    write32((virtual_addr_t)&debe->layer0_attr1_ctrl, 0x5 << 8);//[RGB565=0x5][ARGB8888=0xA]
-    S_BIT((virtual_addr_t)&debe->mode,8);//层0使能
-  if((pdat->vram[1]!=0)&&(pdat->vram[0]!=pdat->vram[1]))
+    write32((virtual_addr_t)&debe->layer_size[0], (((pdat->height) - 1) << 16) | (((pdat->width) - 1) << 0));
+    write32((virtual_addr_t)&debe->layer_stride[0], ((pdat->width) << 4));//[RGB565=4][ARGB8888=5]
+    write32((virtual_addr_t)&debe->layer_addr_low32b[0], (u32)(pdat->vram[0]) << 3);
+    write32((virtual_addr_t)&debe->layer_addr_high4b[0], (u32)(pdat->vram[0]) >> 29);
+    write32((virtual_addr_t)&debe->layer_attr1_ctrl[0], 0x5 << 8);//[RGB565=0x5][ARGB8888=0xA]
+    C_BIT((virtual_addr_t)&debe->mode,8);//层0使能，摄像头监视用
+    if((pdat->vram[1]!=0)&&(pdat->vram[0]!=pdat->vram[1]))
     {
 //设置层1参数
         write32((virtual_addr_t)&debe->disp_size, (((pdat->height) - 1) << 16) | (((pdat->width) - 1) << 0));
-        write32((virtual_addr_t)&debe->layer1_size, (((pdat->height) - 1) << 16) | (((pdat->width) - 1) << 0));
-        write32((virtual_addr_t)&debe->layer1_stride, ((pdat->width) <<5));//[RGB565=4][ARGB8888=5]
-        write32((virtual_addr_t)&debe->layer1_addr_low32b, (u32)(pdat->vram[1]) << 3);
-        write32((virtual_addr_t)&debe->layer1_addr_high4b, (u32)(pdat->vram[1]) >> 29);
-        write32((virtual_addr_t)&debe->layer1_attr1_ctrl, 0x0A << 8);//[RGB565=0x5][ARGB8888=0xA]
+        write32((virtual_addr_t)&debe->layer_size[1], (((pdat->height) - 1) << 16) | (((pdat->width) - 1) << 0));
+        write32((virtual_addr_t)&debe->layer_stride[1], ((pdat->width) <<4));//[RGB565=4][ARGB8888=5]
+        write32((virtual_addr_t)&debe->layer_addr_low32b[1], (u32)(pdat->vram[1]) << 3);
+        write32((virtual_addr_t)&debe->layer_addr_high4b[1], (u32)(pdat->vram[1]) >> 29);
+        write32((virtual_addr_t)&debe->layer_attr1_ctrl[1], 0x05 << 8);//[RGB565=0x5][ARGB8888=0xA]
 
-        debe_set_layer_priority(0,1);//设置优先级 层0>层1
-        S_BIT((virtual_addr_t)&debe->layer1_attr0_ctrl,15);//1: select Pipe 1 需要透明叠加时需要输入不同管道  层0=pipe0 层1=pipe1
+        debe_set_layer_priority(0,1);//设置优先级 层1>层0
+        S_BIT((virtual_addr_t)&debe->layer_attr0_ctrl[1],15);//1: select Pipe 1 需要透明叠加时需要输入不同管道  层0=pipe0 层1=pipe1
 
-        S_BIT((virtual_addr_t)&debe->mode,9);//层1使能
+        S_BIT((virtual_addr_t)&debe->mode,9);//层1使能，图形系统用
     }
 //加载
     S_BIT((virtual_addr_t)&debe->reg_ctrl,0);
@@ -554,25 +555,25 @@ layer=0-3
 void f1c100s_debe_set_address_x(int layer,void * vram)
 {
     struct f1c100s_debe_reg_t * debe = (struct f1c100s_debe_reg_t *)lcd_pdat->virtdebe;
-    switch(layer)
-    {
-        case 0:
-            write32((virtual_addr_t)&debe->layer0_addr_low32b, (u32_t)vram << 3);
-            write32((virtual_addr_t)&debe->layer0_addr_high4b, (u32_t)vram >> 29);
-            break;
-        case 1:
-            write32((virtual_addr_t)&debe->layer1_addr_low32b, (u32_t)vram << 3);
-            write32((virtual_addr_t)&debe->layer1_addr_high4b, (u32_t)vram >> 29);
-            break;
-        case 2:
-            write32((virtual_addr_t)&debe->layer2_addr_low32b, (u32_t)vram << 3);
-            write32((virtual_addr_t)&debe->layer2_addr_high4b, (u32_t)vram >> 29);
-            break;
-        case 3:
-            write32((virtual_addr_t)&debe->layer3_addr_low32b, (u32_t)vram << 3);
-            write32((virtual_addr_t)&debe->layer3_addr_high4b, (u32_t)vram >> 29);
-            break;
-    }
+//  switch(layer)
+//  {
+//      case 0:
+    write32((virtual_addr_t)&debe->layer_addr_low32b[layer], (u32_t)vram << 3);
+    write32((virtual_addr_t)&debe->layer_addr_high4b[layer], (u32_t)vram >> 29);
+//          break;
+//      case 1:
+//          write32((virtual_addr_t)&debe->layer1_addr_low32b, (u32_t)vram << 3);
+//          write32((virtual_addr_t)&debe->layer1_addr_high4b, (u32_t)vram >> 29);
+//          break;
+//      case 2:
+//          write32((virtual_addr_t)&debe->layer2_addr_low32b, (u32_t)vram << 3);
+//          write32((virtual_addr_t)&debe->layer2_addr_high4b, (u32_t)vram >> 29);
+//          break;
+//      case 3:
+//          write32((virtual_addr_t)&debe->layer3_addr_low32b, (u32_t)vram << 3);
+//          write32((virtual_addr_t)&debe->layer3_addr_high4b, (u32_t)vram >> 29);
+//          break;
+//  }
 }
 /*debe返回层显存地址
 layer=0-3
@@ -581,25 +582,25 @@ unsigned int f1c100s_debe_get_address_x(int layer)
 {
     struct f1c100s_debe_reg_t * debe = (struct f1c100s_debe_reg_t *)lcd_pdat->virtdebe;
     unsigned int l32=0,h4=0;
-    switch(layer)
-    {
-        case 0:
-            l32=read32((virtual_addr_t)&debe->layer0_addr_low32b);
-            h4=read32((virtual_addr_t)&debe->layer0_addr_high4b);
-            break;
-        case 1:
-            l32=read32((virtual_addr_t)&debe->layer1_addr_low32b);
-            h4=read32((virtual_addr_t)&debe->layer1_addr_high4b);
-            break;
-        case 2:
-            l32=read32((virtual_addr_t)&debe->layer2_addr_low32b);
-            h4=read32((virtual_addr_t)&debe->layer2_addr_high4b);
-            break;
-        case 3:
-            l32=read32((virtual_addr_t)&debe->layer3_addr_low32b);
-            h4=read32((virtual_addr_t)&debe->layer3_addr_high4b);
-            break;
-    }
+//  switch(layer)
+//  {
+//      case 0:
+    l32=read32((virtual_addr_t)&debe->layer_addr_low32b[layer]);
+    h4=read32((virtual_addr_t)&debe->layer_addr_high4b[layer]);
+//          break;
+//      case 1:
+//          l32=read32((virtual_addr_t)&debe->layer1_addr_low32b);
+//          h4=read32((virtual_addr_t)&debe->layer1_addr_high4b);
+//          break;
+//      case 2:
+//          l32=read32((virtual_addr_t)&debe->layer2_addr_low32b);
+//          h4=read32((virtual_addr_t)&debe->layer2_addr_high4b);
+//          break;
+//      case 3:
+//          l32=read32((virtual_addr_t)&debe->layer3_addr_low32b);
+//          h4=read32((virtual_addr_t)&debe->layer3_addr_high4b);
+//          break;
+//  }
     unsigned int addr=(l32>>3)|(h4<<29);
     return addr;
 }
@@ -641,7 +642,7 @@ void f1c100s_lcd_set_addr(void)
 void F1C100S_LCD_Config(int width,int height,unsigned int *buff1,unsigned int *buff2)
 {
     //设置地址
-  f1c100s_lcd_set_addr();
+    f1c100s_lcd_set_addr();
     //LCD宽高
     lcd_pdat->width = width;
     lcd_pdat->height = height;
@@ -665,7 +666,7 @@ void F1C100S_LCD_Config(int width,int height,unsigned int *buff1,unsigned int *b
     f1c100s_tcon_disable(lcd_pdat);
 #endif
 
-  Debe_Init();
+    Debe_Init();
     Tcon_Init();
 
     //使能TV，TV与LCD输出只能2选1
@@ -739,11 +740,11 @@ void lcd_wait_vertical_blanking_interrupt(void)
 /*LCD初始化*/
 void Sys_LCD_Init(int width,int height,unsigned int *buff1,unsigned int *buff2)
 {
-#if 0 //多次初始化为了时钟连续性不用关时钟
+#if 1 //多次初始化为了时钟连续性不用关时钟
     Tcon_Clk_Close();
     Debe_Clk_Close();
 #endif
-  lcd_wait_vertical_blanking_interrupt();//等待帧中断
+    lcd_wait_vertical_blanking_interrupt();//等待帧中断
     LCD_IO_Init();//IO初始化-如果第一次初始化IO与第二次初始化IO不一样，需要先关闭时钟再初始化
     F1C100S_LCD_Config(width,height,buff1,buff2);//TCON DEBE 初始化
 }
@@ -763,6 +764,7 @@ void TCON_ISR(void)
 #define cn_frame_buffer_size    (cn_lcd_line_size * CFG_LCD_YSIZE)
 #define CN_LCD_PIXEL_FORMAT     CN_SYS_PF_RGB565
 u16 u16g_FrameBuffer[CFG_LCD_XSIZE*CFG_LCD_YSIZE] __attribute__((aligned(4)));
+u16 u16g_VedioBuffer[CFG_LCD_XSIZE*CFG_LCD_YSIZE] __attribute__((aligned(4)));
 
 struct DisplayObj tg_lcd_display;
 
@@ -1194,19 +1196,59 @@ bool_t __lcd_get_rect_screen(struct Rectangle *rect,struct RectBitmap *dest)
     return false;
 }
 
+//暂不用此模式，还没想透
+//#define CN_PLAY_CSI_VEDIO       (CN_DISPLAY_CMD_USER+0)
+//#define CN_STOP_CSI_VEDIO       (CN_DISPLAY_CMD_USER+1)
+//#define CN_RESUME_CSI_VEDIO     (CN_DISPLAY_CMD_USER+2)
+//#define CN_CAPTURE_CSI_PICTURE  (CN_DISPLAY_CMD_USER+3)
 //----控制显示器---------------------------------------------------------------
 //功能: 这是由driver提供商编写的，用于设置显示器各种参数的函数，属于应用程序的
 //      范畴，功能由设备厂商定义。在ut2416中，本函数为空。
 //参数: disp，显示器指针
 //返回: true=成功，false=失败
 //-----------------------------------------------------------------------------
-bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
+bool_t __lcd_disp_ctrl(struct DisplayObj *disp, s32 cmd, ...)
 {
-    printf("__lcd_disp_ctrl\r\n");
+    switch(cmd)
+    {
+//      case CN_PLAY_CSI_VEDIO:
+//          break;
+//      case CN_STOP_CSI_VEDIO:
+//          break;
+//      case CN_RESUME_CSI_VEDIO:
+//          break;
+//      case CN_CAPTURE_CSI_PICTURE:
+    }
     return true;
 }
 #pragma GCC diagnostic pop
+//----启动视频监控--------------------------------------------------------------
+//功能：启动摄像头，并在LCD上播放视频
+//参数：x,y,w,h:视频监控窗口尺寸和位置
+//返回：无
+//------------------------------------------------------------------------------
+void F1C_PlayCSI_Vedio(s32 x, s32 y, s32 w, s32 h)
+{
+    struct f1c100s_debe_reg_t * debe = (struct f1c100s_debe_reg_t *)lcd_pdat->virtdebe;
 
+    //摄像头初始化
+    OV2640_Init();
+    set_video_layer_inx(0);
+    set_video_window(x,y,w,h);  //设置摄像头监控窗口位置
+    S_BIT((virtual_addr_t)&debe->mode,8);//层0使能，摄像头监视用
+    CSI_Init(w,h);
+}
+
+//----停止视频监控--------------------------------------------------------------
+//功能：启动摄像头，并在LCD上播放视频。初始化CSI为视频采集模式，初始化DEBE layer1，并
+//      设置
+void F1C_StopCSI_Vedio(void)
+{
+    struct f1c100s_debe_reg_t * debe = (struct f1c100s_debe_reg_t *)lcd_pdat->virtdebe;
+    C_BIT((virtual_addr_t)&debe->mode,8);//层0禁止，摄像头监视用
+    Close_Dev_Clock(CSI_CLOCK);
+    GPIO_SettoHigh(GPIOA,GPIO_Pin_0 );      //power down
+}
 //----初始化lcd设备------------------------------------------------------------
 //功能: 如名
 //参数: 无
@@ -1217,7 +1259,7 @@ ptu32_t ModuleInstall_F1CLCD(const char *DisplayName,const char* HeapName)
     static struct GkWinObj frame_win;
     static struct RectBitmap FrameBitmap;
 
-    Sys_LCD_Init(CFG_LCD_XSIZE, CFG_LCD_YSIZE, u16g_FrameBuffer, NULL);
+    Sys_LCD_Init(CFG_LCD_XSIZE, CFG_LCD_YSIZE, u16g_VedioBuffer, u16g_FrameBuffer);
 
     FrameBitmap.bm_bits = u16g_FrameBuffer;
     FrameBitmap.width = CFG_LCD_XSIZE;

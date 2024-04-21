@@ -236,7 +236,7 @@
 #include <process.h>
 
 #if _MSC_VER < 1700
-typedef int bool;
+typedef unsigned char bool;
 #else
 #include <stdbool.h>
 #endif

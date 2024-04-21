@@ -81,7 +81,7 @@
 #include "blackbox.h"
 #include "int.h"
 #include "djyos.h"
-
+#include "systime.h"
 struct IntLine *tg_pIntLineTable[CN_INT_LINE_LAST+1];
 struct IntMasterCtrl  tg_int_global;
 atom_low_t tg_IntAsynStatus;

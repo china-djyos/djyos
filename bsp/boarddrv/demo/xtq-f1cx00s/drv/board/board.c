@@ -83,6 +83,7 @@
 #define CFG_MODULE_ENABLE_BOARD_CONFIG    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 //%$#@enum,true,false,
+#define CFG_ENABLE_OV2640             false
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -164,6 +165,16 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
         case 1 :
             switch(IO)
             {
+#if CFG_ENABLE_OV2640 == true     //摄像头控制占用了TP的PIN
+            case scl_set_High : SCCB_IIC_SCL(1); break;
+            case scl_set_Low  : SCCB_IIC_SCL(0); break;
+            case scl_set_out  : SCCB_SCL_OUT();  break;
+            case sda_set_High : SCCB_IIC_SDA(1); break;
+            case sda_get      : return SCCB_READ_SDA;
+            case sda_set_Low  : SCCB_IIC_SDA(0); break;
+            case sda_set_out  : SCCB_SDA_OUT();  break;
+            case sda_set_in   : SCCB_SDA_IN();   break;
+#else
             case scl_set_High : CT_IIC_SCL(1); break;
             case scl_set_Low  : CT_IIC_SCL(0); break;
             case scl_set_out  : CT_SCL_OUT();  break;
@@ -172,7 +183,8 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
             case sda_set_Low  : CT_IIC_SDA(0); break;
             case sda_set_out  : CT_SDA_OUT();  break;
             case sda_set_in   : CT_SDA_IN();   break;
-            default:
+#endif
+                default:
                 break;
             }
         break;
@@ -184,6 +196,14 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
 void Board_Init(void)
 {
     u32 i=0;
+#if CFG_ENABLE_OV2640 == true     //摄像头控制占用了TP的PIN
+    GPIO_Congif(GPIOE, GPIO_Pin_11, GPIO_Mode_OUT, GPIO_PuPd_UP);   //scl
+    GPIO_Congif(GPIOE, GPIO_Pin_12, GPIO_Mode_OUT, GPIO_PuPd_UP);   //sda
+    GPIO_Congif(GPIOA, GPIO_Pin_0, GPIO_Mode_OUT, GPIO_PuPd_UP);   //OV2640-pwdn
+    GPIO_Congif(GPIOA, GPIO_Pin_1, GPIO_Mode_OUT,  GPIO_PuPd_NOPULL);   //OV2640 rst
+    GPIO_SettoHigh(GPIOA,GPIO_Pin_1 );      //reset
+    GPIO_SettoLow(GPIOA,GPIO_Pin_0 );       //power down
+#else
     //uart PIN初始化
     GPIO_Congif(GPIOE,GPIO_Pin_0,GPIO_Mode_101,GPIO_PuPd_NOPULL);//RX0
     GPIO_Congif(GPIOE,GPIO_Pin_1,GPIO_Mode_101,GPIO_PuPd_NOPULL);//TX0
@@ -198,12 +218,6 @@ void Board_Init(void)
     GPIO_Congif(GPIOA, GPIO_Pin_2, GPIO_Mode_OUT, GPIO_PuPd_UP);   //sda
     GPIO_Congif(GPIOA, GPIO_Pin_3, GPIO_Mode_OUT, GPIO_PuPd_UP);   //rst
 
-    //以下是SPI PIN初始化
-    for(i=0;i<4;i++)    //SPI0
-    {
-        GPIO_Congif(GPIOC,GPIO_Pin_0+i,GPIO_Mode_010,GPIO_PuPd_NOPULL);
-        GPIO_Multi_Driving(GPIOC,GPIO_Pin_0+i,3);//增加驱动力
-    }
     for(i=0;i<4;i++)    //SPI1
     {
 #if SPI1_PA_EN == 1      //SPI1使用PA0~3
@@ -213,6 +227,14 @@ void Board_Init(void)
         GPIO_Congif(GPIOE,GPIO_Pin_7+i,GPIO_Mode_100,GPIO_PuPd_NOPULL);
         GPIO_Multi_Driving(GPIOE,GPIO_Pin_7+i,3);//增加驱动力
 #endif
+    }
+#endif
+
+    //以下是SPI PIN初始化
+    for(i=0;i<4;i++)    //SPI0
+    {
+        GPIO_Congif(GPIOC,GPIO_Pin_0+i,GPIO_Mode_010,GPIO_PuPd_NOPULL);
+        GPIO_Multi_Driving(GPIOC,GPIO_Pin_0+i,3);//增加驱动力
     }
 }
 

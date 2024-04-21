@@ -93,6 +93,20 @@ void _fini(void)
 {
 }
 
+void *__dso_handle = 0;
+s32 __CppRuntime(void)
+{
+    typedef void(*pfunc)();
+    extern pfunc __ctors_start__[];
+    extern pfunc __ctors_end__[];
+    pfunc *p;
+
+    for (p = __ctors_start__; p < __ctors_end__; p++)
+        (*p)();
+
+    return 0;
+}
+
 //----系统启动程序-----------------------------------------------------
 //功能：执行操作系统加载，模块(设备)初始化、用户初始化以及启动操作系统
 //参数：无
@@ -111,6 +125,7 @@ void SYS_Start(void)
     Handle_ModuleInit();          // 对象句柄体系初始化；
     Lock_CreateObject();    // lock体系；
     Mb_CreateObject();      // memory block体系；
+    __CppRuntime( );
     Board_Init();
     Sys_ModuleInit();
     // 黑客们注意,此两函数间不要企图插入什么代码,一切后果自负.

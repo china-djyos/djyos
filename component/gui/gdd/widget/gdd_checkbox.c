@@ -61,7 +61,7 @@
 //------------------------------------------------------
 #include    "gdd.h"
 #include    "../gdd_private.h"
-#include    <gdd_widget.h>
+#include  <widget/gdd_checkbox.h>
 
 
 //----CheckBox»æÖÆº¯Êý----------------------------------------------------------

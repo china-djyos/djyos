@@ -62,7 +62,7 @@
 
 #include    "gdd.h"
 #include    "../gdd_private.h"
-#include    <gdd_widget.h>
+#include  <widget/gdd_progressbar.h>
 
 
 bool_t    Widget_MakeProgressRect(RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MODE mode)

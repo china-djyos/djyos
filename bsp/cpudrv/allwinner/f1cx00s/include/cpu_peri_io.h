@@ -14,10 +14,10 @@ typedef signed long long        loff_t;
 typedef signed long             register_t;
 typedef unsigned long           irq_flags_t;
 
-typedef unsigned long long      virtual_addr_t;
-typedef unsigned long long      virtual_size_t;
-typedef unsigned long long      physical_addr_t;
-typedef unsigned long long      physical_size_t;
+typedef unsigned int      virtual_addr_t;
+typedef unsigned int      virtual_size_t;
+typedef unsigned int      physical_addr_t;
+typedef unsigned int      physical_size_t;
 
 static   u8 read8(virtual_addr_t addr)
 {

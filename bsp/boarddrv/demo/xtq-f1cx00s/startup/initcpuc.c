@@ -41,6 +41,10 @@ void MMU_Init(void)
 //    Cache_EnableWriteBuf();
 
 }
+ptu32_t Iboot_GetResetAddr(void)
+{
+    return 0x80000000;
+}
 
 void IAP_GpioPinInit(void)
 {

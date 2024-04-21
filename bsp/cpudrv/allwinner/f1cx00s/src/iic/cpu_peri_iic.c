@@ -1,4 +1,4 @@
-#if 0 //由于f1c100的IIC不提供DMA和fifo，并无实用意义，实用Ioiic更灵活/
+#if 0 //由于f1c100的IIC不提供DMA和fifo，并无实用意义，使用Ioiic更灵活/
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 // Redistribution and use in source and binary forms, with or without

@@ -328,7 +328,7 @@ static void LTDC_Init(u8 *pFrameBufferFG)
     LTDC_Layer_Parameter_Config(0,(u32)pFrameBufferFG,lcd.LtdcPixelFormat,255,0,6,7,0X000000);//层参数配置
     LTDC_Layer_Window_Config(0,0,0,lcd_display.width,lcd_display.height);
     LTDC_Select_Layer(0);           //选择第1层
-    Lcd_BackLight_OnOff(1);
+    Lcd_BackLight_OnOff(0);
 
 }
 //------------------------------------------------------------------
@@ -344,7 +344,7 @@ static void LTDC_Init(u8 *pFrameBufferFG)
 //参数: disp，显示器指针
 //返回: true=成功，false=失败
 //-----------------------------------------------------------------------------
-static bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
+static bool_t __lcd_disp_ctrl(struct DisplayObj *disp, s32 cmd, ...)
 {
     return true;
 }

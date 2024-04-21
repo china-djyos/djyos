@@ -3,7 +3,8 @@
 #include <gkernel.h>
 #include <loc_string.h>
 #include <gdd.h>
-#include <gdd_widget.h>
+#include  <widget/gdd_checkbox.h>
+#include  <widget/gdd_button.h>
 #include <gui\gdd_cursor.h>
 
 #include    "../gdd_private.h"

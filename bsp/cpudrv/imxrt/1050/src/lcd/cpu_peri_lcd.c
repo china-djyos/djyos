@@ -260,7 +260,7 @@ static bool_t Lcd_Color_Fill(u16 sx,u16 sy,u16 ex,u16 ey,u32 color)
 //参数: disp，显示器指针
 //返回: true=成功，false=失败
 //-----------------------------------------------------------------------------
-static bool_t __lcd_disp_ctrl(struct DisplayRsc *disp)
+static bool_t __lcd_disp_ctrl(struct Displayobj *disp, s32 cmd, ...)
 {
     return true;
 }

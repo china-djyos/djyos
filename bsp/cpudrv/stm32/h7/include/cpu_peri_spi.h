@@ -62,7 +62,8 @@
 #define CN_SPI6     5
 #define CN_SPI_NUM  6
 
-#define Spi SPI_TypeDef
+//#define Spi SPI_TypeDef
+#define tagSpiReg SPI_TypeDef
 
 #ifdef __cplusplus
 extern "C" {

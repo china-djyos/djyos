@@ -62,7 +62,8 @@
 #include  "gdd.h"
 #include    "../gdd_private.h"
 #include "font.h"
-#include    <gdd_widget.h>
+#include  <widget/gdd_keyboard.h>
+#include  <widget/gdd_button.h>
 #include "dbug.h"
 static u8 gs_KeyBoardRowsDef=4;
 static u8 gs_KeyBoardColsDef=4;

@@ -1,3 +1,4 @@
+#if 0 //由于f1c100的IIC不提供DMA和fifo，并无实用意义，使用Ioiic更灵活/
 #ifndef __SYS_I2C_H__
 #define __SYS_I2C_H__
 
@@ -31,4 +32,6 @@ void I2C_SetReadDelayUs(int us);
 
 bool_t ModuleInstall_IIC(ptu32_t port);
 bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin);
+#endif
+
 #endif

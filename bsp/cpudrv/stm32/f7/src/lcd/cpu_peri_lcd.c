@@ -343,7 +343,7 @@ static void LTDC_Init(u8 *pFrameBufferFG)
 //参数: disp，显示器指针
 //返回: true=成功，false=失败
 //-----------------------------------------------------------------------------
-static bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
+static bool_t __lcd_disp_ctrl(struct Displayobj *disp, s32 cmd, ...)
 {
     return true;
 }

@@ -86,7 +86,7 @@ void CPU_Reboot(void)
     Cache_InvalidInst();
 #endif
     u32 InitCpu_Addr;
-    InitCpu_Addr = 0;
+    InitCpu_Addr = Iboot_GetResetAddr();
     ((void (*)(void))(InitCpu_Addr))();
 }
 // =============================================================================
@@ -102,7 +102,7 @@ void CPU_Reset(void)
     Cache_InvalidInst();
 #endif
     u32 InitCpu_Addr;
-    InitCpu_Addr = 0;
+    InitCpu_Addr = Iboot_GetResetAddr();
     ((void (*)(void))(InitCpu_Addr))();
 }
 // =============================================================================
@@ -118,7 +118,7 @@ void CPU_RestartSystem(void)
     Cache_InvalidInst();
 #endif
     u32 InitCpu_Addr;
-    InitCpu_Addr = 0;
+    InitCpu_Addr = Iboot_GetResetAddr();
     ((void (*)(void))(InitCpu_Addr))();
 }
 

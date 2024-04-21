@@ -33,6 +33,8 @@
 //%$#@SYMBOL,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
+//%$#@object_num,0,1,2,..,100   ————配置object的数量，紧跟着罗列出全部可选值,与object_para绑定，选择此项中任意一值时，object_para项要做出动态增加与减少
+//%$#@object_para,              ————配置每个object的参数，与object_num绑定，目前必须以上组件参数配置块的最后
 #endif
 //%$#@end configue  ****参数配置结束
 
