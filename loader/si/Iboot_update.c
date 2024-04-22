@@ -354,7 +354,7 @@ bool_t WriteAppFromFile(u8 *production_time,u8* production_num)
             memcpy(p_productinfo->ProductionTime, production_time, sizeof(p_productinfo->ProductionTime));
 //          file = strrchr(p_apphead->app_name, '/');
             //把新APP的文件名连到 "/xip-app" 后面，形成xip文件路径
-            sprintf(xipapppath, "%s/%s", CN_XIP_APP_PATH, p_apphead->app_name);
+            snprintf(xipapppath, sizeof(xipapppath), "%s/%s", CN_XIP_APP_PATH, p_apphead->app_name);
             if(!File_Format((const char *)CN_XIP_APP_PATH))
             {
                 xipapp = fopen(xipapppath, "w+");

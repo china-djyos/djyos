@@ -114,8 +114,34 @@ enum productinfo    //获取产品信息的命令码
 #define CN_STORE_IN_USER1       2   //其他，例如没有安装文件系统的spiflash
 #define CN_STORE_IN_USER2       3   //其他，例如没有安装文件系统的spiflash
 
+//APP版本号字符串最大长度
+#define CN_APP_VERSION_STRING_MAX_LEN 8
+//APP版本号长度
+#define CN_APP_VERSION_LEN 3
+//产品分类字符串最大长度
+#define CN_PRODUCT_CLASSIFY_MAX_LEN 9
+//产品型号字符串最大长度
+#define CN_PRODUCT_TYPE_MAX_LEN 9
+//产品型号数字编码长度
+#define CN_PRODUCT_CODE_LEN 6
+//生产时间长度
+#define CN_PRODUCT_TIME_LEN 4
+//产品序号长度
+#define CN_PRODUCT_NUM_LEN 5
+//板件型号最大长度
+#define CN_BOARD_TYPE_MAX_LEN 16
+//CPU型号最大长度
+#define CN_CPU_TYPE_MAX_LEN 16
+//保留的长度
+#define CN_APP_PRODUCT_RESERVED_LEN  (256 - CN_APP_VERSION_LEN \
+                                    - CN_PRODUCT_CLASSIFY_MAX_LEN - CN_PRODUCT_TYPE_MAX_LEN\
+                                    - CN_PRODUCT_CODE_LEN - CN_PRODUCT_TIME_LEN - CN_PRODUCT_NUM_LEN\
+                                    - CN_BOARD_TYPE_MAX_LEN - CN_CPU_TYPE_MAX_LEN - 9)  //9是厂商名+5个字节的保留
+//设备指纹长度
+#define CN_DEV_FINGER_LEN       (CN_PRODUCT_CODE_LEN + CN_PRODUCT_TIME_LEN + CN_PRODUCT_NUM_LEN)
+
 //在交互信息中用于存储待升级APP信息的最大长度
-#define CN_APP_STORE_INFO_LIMIT 31
+#define CN_APP_STORE_INFO_LIMIT 128
 //在交互信息中存待升级文件路径的最大长度,就是 up_info 的长度
 //符号原名： MutualPathLen
 #define CN_UPDATE_PATH_LIMIT    CN_APP_STORE_INFO_LIMIT
@@ -142,11 +168,11 @@ union app_stored_info{
         u32 app_size;
     }ram;
     char file_path[CN_UPDATE_PATH_LIMIT];
-    char pads[CN_APP_STORE_INFO_LIMIT];    //使结构的尺寸等于31字节
+    char pads[CN_APP_STORE_INFO_LIMIT];    //使结构的尺寸等于CN_APP_STORE_INFO_LIMIT字节
 };
 
 //#define IBOOT_APP_INFO_VER                 (1)
-struct IbootAppInfo
+struct IbootAppInfo         //该结构不得超过256字节
 {
     #define PREVIOURESET_IBOOT   (0x12345678)//复位前运行iboot
     #define PREVIOURESET_APP     (0x87654321)//复位前运行APP
@@ -205,6 +231,7 @@ struct IbootAppInfo
     s8   production_serial[5];          //一周内生产的产品串号，34进制，见文档
 //  union update_info  up_info;
     union app_stored_info stored;       //保存APP的参数，例如起始地址、文件路径等
+    //以上用了193字节，还剩63可用
 };
 
 struct AppHead
@@ -241,16 +268,16 @@ struct ProductInfo
 #else
     u64  ManufacturerNameAddr;        //厂商名地址
 #endif
-    const char ProductClassify[9];    //产品分类字符串，厂商在DIDE中配置
-    const char ProductType[9];        //产品型号字符串，厂商在DIDE中配置
-    const char TypeCode[6];           //产品型号数字编码
-    char ProductionTime[4];     //生产时间，BCD码，年+星期（3字节）.源码中填'*'，生产时服务器下发，iboot写入
-    char ProductionNumber[5];   //产品序号，源码中填'*'，生产时服务器下发，iboot写入
+    const char ProductClassify[CN_PRODUCT_CLASSIFY_MAX_LEN];    //产品分类字符串，厂商在DIDE中配置
+    const char ProductType[CN_PRODUCT_TYPE_MAX_LEN];        //产品型号字符串，厂商在DIDE中配置
+    const char TypeCode[CN_PRODUCT_CODE_LEN];           //产品型号数字编码
+    char ProductionTime[CN_PRODUCT_TIME_LEN];     //生产时间，BCD码，年+星期（3字节）.源码中填'*'，生产时服务器下发，iboot写入
+    char ProductionNumber[CN_PRODUCT_NUM_LEN];   //产品序号，源码中填'*'，生产时服务器下发，iboot写入
     char reserved8;             //保留
-    char VersionNumber[3];      //APP版本xx.xx.xx，
-    const char BoardType[16];   //板件型号
-    const char CPU_Type[16];   //cpu型号
-    char Reserved[179];         //保留
+    char VersionNumber[CN_APP_VERSION_LEN];      //APP版本xx.xx.xx，
+    const char BoardType[CN_BOARD_TYPE_MAX_LEN];   //板件型号
+    const char CPU_Type[CN_CPU_TYPE_MAX_LEN];   //cpu型号
+    char Reserved[CN_APP_PRODUCT_RESERVED_LEN];         //保留
 };
 
 //bool_t Set_RunIbootUpdateIboot();

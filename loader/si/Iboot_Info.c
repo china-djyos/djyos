@@ -781,8 +781,8 @@ bool_t Iboot_GetProductInfo(enum productinfo type, char *date_buf, u32 buf_len)
         case APP_HEAD_VERSION_NUM:
         {
             len = sizeof(p_productinfo->VersionNumber) * 3;
-            if((p_productinfo->VersionNumber[0] <= 99) ||
-                    (p_productinfo->VersionNumber[1] <= 99) || (p_productinfo->VersionNumber[2] <= 99))
+            if((p_productinfo->VersionNumber[0] <= 99) &&
+                    (p_productinfo->VersionNumber[1] <= 99) && (p_productinfo->VersionNumber[2] <= 99))
             {
                 if(buf_len >= len)
                     sprintf(date_buf, "%d.%d.%d", ((char *)p_productinfo->VersionNumber)[0],
@@ -896,20 +896,14 @@ bool_t Iboot_GetProductInfo(enum productinfo type, char *date_buf, u32 buf_len)
 
         case APP_HEAD_FINGER:
         {
-            int type_code_len, time_len, number_len;
-
-            type_code_len = sizeof(p_productinfo->TypeCode);
-            time_len = sizeof(p_productinfo->ProductionTime);
-            number_len = sizeof(p_productinfo->ProductionNumber);
-
-            len = type_code_len + time_len + number_len + 1;
-            if(buf_len >= len)
+            if(buf_len >= CN_DEV_FINGER_LEN)
             {
-                memcpy(date_buf, p_productinfo->TypeCode, type_code_len);
+                memcpy(date_buf, p_productinfo->TypeCode, sizeof(p_productinfo->TypeCode));
 
-                memcpy(date_buf + type_code_len, p_productinfo->ProductionTime, time_len);
-                memcpy(date_buf + type_code_len + time_len, p_productinfo->ProductionNumber, number_len);
-                date_buf[len-1] = '\0';
+                memcpy(date_buf + sizeof(p_productinfo->TypeCode), 
+                                p_productinfo->ProductionTime, sizeof(p_productinfo->ProductionTime));
+                memcpy(date_buf + sizeof(p_productinfo->TypeCode) + sizeof(p_productinfo->ProductionTime),
+                         p_productinfo->ProductionNumber, sizeof(p_productinfo->ProductionNumber));
             }
             else
                 goto len_error;
@@ -935,7 +929,7 @@ extern u32 gc_ProductSn;
 //-----------------------------------------------------------------------------
 bool_t write_finger_to_iboot(s8 *time, s8 *num)
 {
-    u8 iboot_sn_buf[16] = {0};
+    u8 iboot_sn_buf[CN_DEV_FINGER_LEN] = {0};
     ptu32_t iboot_sn_addr = 0;
     struct ProductInfo *info;
 
@@ -943,17 +937,17 @@ bool_t write_finger_to_iboot(s8 *time, s8 *num)
     iboot_sn_addr = (u32)(&gc_ProductSn);
     if(iboot_sn_addr)
     {
-//      djy_flash_read(iboot_sn_addr, iboot_sn_buf, 16);
-        memcpy(iboot_sn_buf, (u8*)iboot_sn_addr, 16);
+//      djy_flash_read(iboot_sn_addr, iboot_sn_buf, CN_DEV_FINGER_LEN);
+        memcpy(iboot_sn_buf, (u8*)iboot_sn_addr, CN_DEV_FINGER_LEN);
         if((iboot_sn_buf[0] == 0xff) && ((u8)time[0] != 0xff))
         {   //iboot里没SN，程序里给出SN号，现在写SN
             printf("write SN in iboot.\r\n");
             memcpy(iboot_sn_buf, PRODUCT_PRODUCT_MODEL_CODE, sizeof(info->TypeCode));
-            memcpy(iboot_sn_buf + sizeof(info->TypeCode), time, 4);
-            memcpy(iboot_sn_buf + sizeof(info->TypeCode) + 4, num, 5);
+            memcpy(iboot_sn_buf + sizeof(info->TypeCode), time, sizeof(info->ProductionTime));
+            memcpy(iboot_sn_buf + sizeof(info->TypeCode) + sizeof(info->ProductionTime), num, sizeof(info->ProductionNumber));
 
 //            flash_protection_op(0,FLASH_PROTECT_NONE);
-            djy_flash_write_ori(iboot_sn_addr, iboot_sn_buf, 16);
+            djy_flash_write_ori(iboot_sn_addr, iboot_sn_buf, CN_DEV_FINGER_LEN);
 //            flash_protection_op(0,FLASH_PROTECT_ALL);
         }
     }
@@ -968,20 +962,18 @@ bool_t write_finger_to_iboot(s8 *time, s8 *num)
 //-----------------------------------------------------------------------------
 bool_t read_finger_from_iboot(s8 *finger, u32 buf_len)
 {
-    u32 iboot_sn_addr = 0, len;
+    u32 iboot_sn_addr = 0;
     struct ProductInfo *info;
 
-    len = sizeof(info->ProductionTime) + sizeof(info->ProductionNumber) + sizeof(info->TypeCode);
+    if(buf_len < CN_DEV_FINGER_LEN)
+    {
+        printk("finger buf len is error .\r\n");
 
-     if(buf_len < len)
-     {
-         printk("finger buf len is error .\r\n");
-
-         return false;
-     }
+        return false;
+    }
 
     iboot_sn_addr = (u32)(&gc_ProductSn) ;
-    memcpy(finger, (u8*)iboot_sn_addr, 16);
+    memcpy(finger, (u8*)iboot_sn_addr, CN_DEV_FINGER_LEN);
 //  if(iboot_sn_addr)
 //  {
 //      djy_flash_read(iboot_sn_addr, finger, len);
@@ -1475,6 +1467,8 @@ bool_t Iboot_SiIbootAppInfoInit()
 
         Iboot_App_Info.UserTag = 0;                     //上电复位，用户标志被清零
         Iboot_App_Info.reserved = 0;//保留
+        memset(Iboot_App_Info.production_week, 0, sizeof(Iboot_App_Info.production_week));
+        memset(Iboot_App_Info.production_serial, 0, sizeof(Iboot_App_Info.production_serial));
 #if (CFG_POWER_ON_RESET_TO_BOOT)
         Iboot_SetRunIbootFlag();
 #endif
@@ -1583,7 +1577,9 @@ bool_t Iboot_GetWeek(s8 *week)
         return false;
     else
     {
-        memcpy(week, Iboot_App_Info.production_week, 4);
+        //获取完了就清除
+        memcpy(week, Iboot_App_Info.production_week, sizeof(Iboot_App_Info.production_week));
+        memset(Iboot_App_Info.production_week, 0, sizeof(Iboot_App_Info.production_week));
         return true;
     }
 }
@@ -1609,7 +1605,8 @@ bool_t Iboot_GetSerial(s8 *serial)
         return false;
     else
     {
-        memcpy(serial, Iboot_App_Info.production_serial, 5);
+        memcpy(serial, Iboot_App_Info.production_serial, sizeof(Iboot_App_Info.production_serial));
+        memset(Iboot_App_Info.production_serial, 0, sizeof(Iboot_App_Info.production_serial));
         return true;
     }
 }

@@ -371,7 +371,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
 
             // 减1是因为，比如当前块一共有8页，*unit是0的话，代表当前页是第0页，返回还剩7页
             *left = s_ptEmbdFlash->SectsPerBolck * s_ptEmbdFlash->PagesPerSect 
-                        - (*unit % s_ptEmbdFlash->SectsPerBolck * s_ptEmbdFlash->PagesPerSect) - 1;
+                        - (*unit % (s_ptEmbdFlash->SectsPerBolck * s_ptEmbdFlash->PagesPerSect)) - 1;
             break;
         }
 
@@ -591,26 +591,46 @@ void djy_flash_write_ori(uint32_t address, u8 *data, uint32_t size)
 {
     u32 i = 0;
     flash_status_type status = FLASH_OPERATE_DONE;
-    u32 *pData = (u32*)data;
-    flash_unlock();
+    u32 len = 0;
+    u32 *pData = NULL;
 
-    for(i = 0; i < size;)
+    if (size % 4)
     {
-        if(*(u32*)address == 0xffffffff)
-        {
-            Int_CutTrunk();
-            status = flash_word_program(address, *pData);
-            Int_ContactTrunk();
-            if(status != FLASH_OPERATE_DONE)
-            {
-                break;
-            }
-        }
-        pData++;
-        i += 4;
-        address += 4;
+        len = (size / 4 + 1) * 4;
     }
 
-    flash_lock();
+    pData = malloc(len);
+
+    if (pData)
+    {
+        memset(pData, 0xff, len);
+        memcpy((char *)pData, data, size);
+        flash_unlock();
+
+        for(i = 0; i < size;)
+        {
+            if(*(u32*)address == 0xffffffff)
+            {
+                Int_CutTrunk();
+                status = flash_word_program(address, *pData);
+                Int_ContactTrunk();
+                if(status != FLASH_OPERATE_DONE)
+                {
+                    break;
+                }
+            }
+            pData++;
+            i += 4;
+            address += 4;
+        }
+
+        flash_lock();
+        free(pData);
+    }
+    else
+    {
+        error_printf("embed"," malloc fail.\r\n");
+    }
+
 }
 

@@ -37,12 +37,12 @@ static const char *ep;
 
 static void *cJSON_malloc(size_t sz)
 {
-	return malloc(sz);
+	return M_Malloc(sz, CN_TIMEOUT_FOREVER);
 }
 
 static void cJSON_free(void *ptr)
 {
-	free(ptr);
+	M_Free(ptr, CN_TIMEOUT_FOREVER);
 	return;
 }
 

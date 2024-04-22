@@ -56,7 +56,7 @@
 #define CFG_MB_MASTER_ENABLED                       false    // "主机使能开关"
     //%$#@enum,true,false
     #define CFG_MB_MASTER_RTU_ENABLED                   false    // "主机RTU使能开关"
-    //%$#@num,1,65536
+    //%$#@num,0,65535
     #define CFG_MB_M_DISCRETE_INPUT_START               1        //"主机离散量输入的起始地址"
     #define CFG_MB_M_DISCRETE_INPUT_NDISCRETES          10       //"主机离散量输入的数量"
     #define CFG_MB_M_COIL_START                         11       //"主机线圈的起始地址"
