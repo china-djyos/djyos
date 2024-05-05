@@ -697,7 +697,7 @@ typedef int sock_t;
 #define INT64_X_FMT PRIx64
 #define SIZE_T_FMT "u"
 
-#define SOMAXCONN 8
+#define MG_SOMAXCONN 8
 
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
 char *inet_ntoa(struct in_addr in);
@@ -1242,7 +1242,7 @@ typedef int sock_t;
 #define INT64_X_FMT PRIx64
 #define SIZE_T_FMT "u"
 
-#define SOMAXCONN 8
+#define MG_SOMAXCONN 8
 
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
 char *inet_ntoa(struct in_addr in);
@@ -1467,7 +1467,7 @@ int gettimeofday(struct timeval *tp, void *tzp);
 #define EWOULDBLOCK SL_EWOULDBLOCK
 #endif
 
-#define SOMAXCONN 8
+#define MG_SOMAXCONN 8
 
 #ifdef __cplusplus
 extern "C" {
@@ -2141,7 +2141,7 @@ int c_sscanf(const char *ibuf, const char *fmt, ...);
 typedef int sock_t;
 //#define INVALID_SOCKET (-1)
 
-#define SOMAXCONN 30
+#define MG_SOMAXCONN 30
 
 #define to64(x) strtoll(x, NULL, 10)
 #define INT64_FMT "lld"
@@ -2223,7 +2223,7 @@ typedef int sock_t;
 #endif
 
 #define INVALID_SOCKET (-1)
-#define SOMAXCONN 10
+#define MG_SOMAXCONN 10
 typedef int sock_t;
 
 #if MG_NET_IF == MG_NET_IF_LWIP_LOW_LEVEL
