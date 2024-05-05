@@ -1,0 +1,6 @@
+{
+	"cpu_name":"f1c200",
+	"cores":[{
+		"resetAddr":"0"
+	}]
+}

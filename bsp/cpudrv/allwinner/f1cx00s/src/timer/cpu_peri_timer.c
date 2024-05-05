@@ -629,6 +629,7 @@ bool_t  __F1CTimer_EnInt(struct TimerHandle  *timer)
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timer->timerstate = (timer->timerstate)| (CN_TIMER_ENINT);
+        pg_tTimerReg->IrqEn |= 1 << timer->timerno;
         return Int_EnableLine(timer->irqline);
     }
     else
@@ -648,6 +649,7 @@ bool_t  __F1CTimer_DisInt(struct TimerHandle  *timer)
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timer->timerstate = (timer->timerstate)&(~CN_TIMER_ENINT);
+        pg_tTimerReg->IrqEn &= ~(1 << timer->timerno);
         return Int_DisableLine(timer->irqline);
     }
     else
@@ -889,6 +891,7 @@ bool_t ModuleInstall_HardTimer(void)
 
     for(i=0;i<CN_TIMER_NUM;i++)
     {
+        stgTimerHandle[i].timerstate = CN_TIMER_FREE;
         Timer_SetClkSource(i,1);            //时钟源设为24M
         Timer_SetPrecale(i,0);              //预分频设为1，即不分频
     }

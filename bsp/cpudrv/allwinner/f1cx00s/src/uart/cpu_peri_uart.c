@@ -681,8 +681,8 @@ u32 UART_ISR(ptu32_t port)
             }
             if(num != 0)
             {
-                num = UART_PortWrite(UCB,fifobuf,num);
-                if(num != 1)
+                loop = UART_PortWrite(UCB,fifobuf,num);
+                if(num != loop)
                 {
                     UART_ErrHandle(UCB,CN_UART_BUF_OVER_ERR);
                 }

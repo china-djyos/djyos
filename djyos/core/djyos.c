@@ -608,7 +608,7 @@ struct ThreadVm *__DJY_CreateThread(struct EventType *evtt,u32 *stack_size)
     *stack_size = len;
     if(result==NULL)
     {
-        DJY_SaveLastError(EN_KNL_MEMORY_OVER);   //内存不足，返回错误
+        DJY_SaveLastError(EN_MEM_TRIED);   //内存不足，返回错误
         return result;
     }
     len = M_CheckSize(result);

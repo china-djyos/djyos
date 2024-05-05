@@ -123,7 +123,7 @@ enum _KNL_ERROR_CODE_
     EN_KNL_EVTTID_LIMIT,        //事件类型id越限
     EN_KNL_EVTT_UNREGISTER,     //事件类型未登记
     EN_KNL_EVENT_SYNC_EXIT,     //事件同步中，被同步的事件异常结束
-    EN_KNL_MEMORY_OVER,         //内存不足
+//    EN_KNL_MEMORY_OVER,         //内存不足
     EN_KNL_STACK_OVERFLOW       //栈溢出风险警告
 };
 
