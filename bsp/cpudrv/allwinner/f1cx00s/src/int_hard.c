@@ -449,7 +449,7 @@ bool_t Int_EnableNest(ufast_t ufl_line)
     if( (ufl_line > CN_INT_LINE_LAST)
             || (tg_pIntLineTable[ufl_line] == NULL) )
         return false;
-    return true;        //本实现不支持中断嵌套
+    return false;        //本实现不支持中断嵌套
 }
 
 //----禁止中断嵌套-------------------------------------------------------------

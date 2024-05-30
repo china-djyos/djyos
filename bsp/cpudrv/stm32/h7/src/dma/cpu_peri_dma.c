@@ -68,7 +68,7 @@
 //component name:"cpu onchip dma"//CPU的dma驱动
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//select:required               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:none                //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
@@ -117,8 +117,8 @@
 //      ndtr,
 // 返回：
 // =============================================================================
-u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,bool_t MultiBuffer,u32 mar0,u32 mar1,
-        u8 dir,u8 msize,u8 psize,u16 ndtr)
+u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,bool_t MultiBuffer,
+        u32 mar0,u32 mar1,u8 dir,u8 msize,u8 psize,u16 ndtr)
 {
     DMA_TypeDef *DMAx;
     u8 streamx;
@@ -155,8 +155,8 @@ u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,bool_t MultiBuffer
             return false;
         }
     }
-    streamx = DMA_Streamx - DMA2_Stream0;
-//  streamx=(((u32)DMA_Streamx-(u32)DMAx)-0X10)/0X18;       //得到stream通道号
+//  streamx = DMA_Streamx - DMA2_Stream0;
+    streamx=(((u32)DMA_Streamx-(u32)DMAx)-0X10)/0X18;       //得到stream通道号
     if(streamx>=6)
         DMAx->HIFCR|=0X3D<<(6*(streamx-6)+16);              //清空之前该stream上的所有中断标志
     else if(streamx>=4)
@@ -186,6 +186,7 @@ u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,bool_t MultiBuffer
     DMA_Streamx->CR|=psize<<11;     //外设数据长度:8位
     DMA_Streamx->CR|=msize<<13;     //存储器数据长度:8位
     DMA_Streamx->CR|=1<<16;         //中等优先级
+    DMA_Streamx->CR|=1<<20;
     DMA_Streamx->CR|=0<<21;         //外设突发单次传输
     DMA_Streamx->CR|=0<<23;         //存储器突发单次传输
     DMA_Streamx->CR|=(u32)chx<<25;  //通道选择
@@ -314,4 +315,98 @@ void DMA_IntDisable(DMA_Stream_TypeDef *DMA_Streamx,u8 SrcInt)
     DMA_Streamx->CR &= ~SrcInt;
 }
 
+static u32 s_u32StreamBusyMask = 0;
+DMA_HandleTypeDef *DMA_Alloc(u8 *IntNo)
+{
+    static DMA_HandleTypeDef DMA_handle[16];
+    u32 off;
+    for(off = 0; off <16; off++)
+    {
+        if(((1<<off) & s_u32StreamBusyMask) == 0)
+        {
+            s_u32StreamBusyMask |= 1<<off;
+            break;
+        }
+    }
+    if(off < 16)
+    {
+        switch(off)
+        {
+            case 0:
+                DMA_handle[off].Instance = DMA1_Stream0;
+                *IntNo = CN_INT_LINE_DMA1_Stream0;
+                break;
+            case 1:
+                DMA_handle[off].Instance = DMA1_Stream1;
+                *IntNo = CN_INT_LINE_DMA1_Stream1;
+                break;
+            case 2:
+                DMA_handle[off].Instance = DMA1_Stream2;
+                *IntNo = CN_INT_LINE_DMA1_Stream2;
+                break;
+            case 3:
+                DMA_handle[off].Instance = DMA1_Stream3;
+                *IntNo = CN_INT_LINE_DMA1_Stream3;
+                break;
+            case 4:
+                DMA_handle[off].Instance = DMA1_Stream4;
+                *IntNo = CN_INT_LINE_DMA1_Stream4;
+                break;
+            case 5:
+                DMA_handle[off].Instance = DMA1_Stream5;
+                *IntNo = CN_INT_LINE_DMA1_Stream5;
+                break;
+            case 6:
+                DMA_handle[off].Instance = DMA1_Stream6;
+                *IntNo = CN_INT_LINE_DMA1_Stream6;
+                break;
+            case 7:
+                DMA_handle[off].Instance = DMA1_Stream7;
+                *IntNo = CN_INT_LINE_DMA1_Stream7;
+                break;
+            case 8:
+                DMA_handle[off].Instance = DMA2_Stream0;
+                *IntNo = CN_INT_LINE_DMA2_Stream0;
+                break;
+            case 9:
+                DMA_handle[off].Instance = DMA2_Stream1;
+                *IntNo = CN_INT_LINE_DMA2_Stream1;
+                break;
+            case 10:
+                DMA_handle[off].Instance = DMA2_Stream2;
+                *IntNo = CN_INT_LINE_DMA2_Stream2;
+                break;
+            case 11:
+                DMA_handle[off].Instance = DMA2_Stream3;
+                *IntNo = CN_INT_LINE_DMA2_Stream3;
+                break;
+            case 12:
+                DMA_handle[off].Instance = DMA2_Stream4;
+                *IntNo = CN_INT_LINE_DMA2_Stream4;
+                break;
+            case 13:
+                DMA_handle[off].Instance = DMA2_Stream5;
+                *IntNo = CN_INT_LINE_DMA2_Stream5;
+                break;
+            case 14:
+                DMA_handle[off].Instance = DMA2_Stream6;
+                *IntNo = CN_INT_LINE_DMA2_Stream6;
+                break;
+            case 15:
+                DMA_handle[off].Instance = DMA2_Stream7;
+                *IntNo = CN_INT_LINE_DMA2_Stream7;
+                break;
+            default:break;
+        }
+        return &DMA_handle[off];
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+bool_t DMA_free(DMA_HandleTypeDef *dmahandle)
+{
+}
 

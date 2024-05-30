@@ -189,7 +189,7 @@ static u8 const UartDmaTxInt[] = {CN_INT_LINE_DMA2_Stream7,CN_INT_LINE_DMA1_Stre
 
 static DMA_Stream_TypeDef * const UartDmaRxStream[] = {DMA2_Stream2,DMA1_Stream5,
                                                 DMA1_Stream1,DMA1_Stream2,
-                                                DMA1_Stream0,DMA2_Stream2};
+                                                DMA1_Stream0,DMA2_Stream1};
 static DMA_Stream_TypeDef * const UartDmaTxStream[] = {DMA2_Stream7,DMA1_Stream6,
                                                 DMA1_Stream3,DMA1_Stream4,
                                                 DMA1_Stream7,DMA2_Stream6};

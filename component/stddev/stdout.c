@@ -63,6 +63,7 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <limits.h>
 #include <errno.h>
 #include <systime.h>
 #include <device.h>

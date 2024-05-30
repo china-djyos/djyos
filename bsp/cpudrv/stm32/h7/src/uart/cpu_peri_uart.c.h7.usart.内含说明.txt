@@ -788,6 +788,7 @@ void __UART_SetDmaUsed(u8 port,u8 enable)
         HAL_DMA_Init(hdmatx);
         HAL_DMA_Init(hdmarx);
 
+        sUartCfg[port].Reg->ICR = USART_ICR_IDLECF; //clear the status flag
         sUartCfg[port].Reg->CR1 |= USART_CR1_IDLEIE;//enable idle int
         sUartDmaUsed[port] = true;
 
@@ -865,6 +866,12 @@ static ptu32_t __UART_Ctrl(u32 port,u32 cmd, va_list *arg0)
             break;
         case CN_DEV_CTRL_STOP:
             __UART_Stop(port);
+            break;
+        case CN_DEV_CTRL_SHUTDOWN:
+            break;
+        case CN_DEV_CTRL_SLEEP:
+            break;
+        case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:
         {

@@ -215,7 +215,7 @@ struct FontObj* Font_SetCurFont(struct FontObj* font)
     rsc = OBJ_SearchChild(rsc,(const char*)Name);
     if(rsc != NULL)
     {
-        s_ptCurFont = (struct FontObj*)rsc;
+        s_ptCurFont = (struct FontObj*)OBJ_GetPrivate(rsc);
         g_bUserSetFont = true;
     }
     return s_ptCurFont;
