@@ -2,8 +2,8 @@ ENTRY(Init_Cpu)
 
 INCLUDE  ../src/lds/memory.lds
 
-/*ä¸åŒçš„makeç¨‹åºï¼Œæ–‡ä»¶è·¯å¾„è¡¨ç¤ºæ–¹å¼ï¼Œæ˜¯ä¸åŒçš„ï¼Œè¾“å…¥æ®µä¸­æ–‡ä»¶åå†™æ³•è¦ç›¸åº”ä¿®æ”¹*/
-/*æ­£ç¡®çš„å†™æ³•ï¼Œå¯å‚çœ‹consoleä¸­è¾“å‡ºçš„å‘½ä»¤è¡Œ*/
+/*²»Í¬µÄmake³ÌÐò£¬ÎÄ¼þÂ·¾¶±íÊ¾·½Ê½£¬ÊÇ²»Í¬µÄ£¬ÊäÈë¶ÎÖÐÎÄ¼þÃûÐ´·¨ÒªÏàÓ¦ÐÞ¸Ä*/
+/*ÕýÈ·µÄÐ´·¨£¬¿É²Î¿´consoleÖÐÊä³öµÄÃüÁîÐÐ*/
 SECTIONS
 {
         Rom_Start :
@@ -11,8 +11,8 @@ SECTIONS
             restore = .;
         }>InnerFlash
 
-    /*RevRamæ˜¯Ramä¿ç•™åŒºåŸŸï¼Œç”¨äºŽå­˜å‚¨preloadå‰ä½¿ç”¨æˆ–ä¿å­˜çš„å†…åœ¨æ•°æ®,åªæœ‰IAP_pload.c*/
-    /*çš„pg_IapVarå˜é‡ä»Žè¯¥æ®µå†…åˆ†é…ï¼Œä¸”è¯¥æ®µåœ¨iboot.ldså’Œdebug/release.ldsä¿æŒä¸€è‡´*/
+    /*RevRamÊÇRam±£ÁôÇøÓò£¬ÓÃÓÚ´æ´¢preloadÇ°Ê¹ÓÃ»ò±£´æµÄÄÚÔÚÊý¾Ý,Ö»ÓÐIAP_pload.c*/
+    /*µÄpg_IapVar±äÁ¿´Ó¸Ã¶ÎÄÚ·ÖÅä£¬ÇÒ¸Ã¶ÎÔÚiboot.ldsºÍdebug/release.lds±£³ÖÒ»ÖÂ*/
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
@@ -59,6 +59,22 @@ SECTIONS
         g_pAppCodeEndRamAddr = .;
     }>InnerFlash
 
+    . = ALIGN(4);
+    .ctors :
+    {
+        PROVIDE(__ctors_start__ = .);
+        KEEP (*(SORT(.init_array.*)))
+        KEEP (*(.init_array))
+        PROVIDE(__ctors_end__ = .);
+    } > InnerFlash
+    
+    __exidx_start = .;
+    .ARM.exidx :
+    {
+        *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+    } > InnerFlash
+    __exidx_end = .;
+
     rw_preload_rRAM1_lIbootRom :
     {
        . = ALIGN(0x08);
@@ -73,9 +89,9 @@ SECTIONS
         *libos_Iboot.a:list.o (.data .data.*)
     }>RAM1 AT>InnerFlash
 
-    /*Cortex-M ç³»åˆ—çš„å‘é‡è¡¨å¯é‡å®šä½ï¼Œå¯¹èµ·å§‹åœ°å€çš„è¦æ±‚æ˜¯ï¼šè‹¥æœ‰Nä¸ªå‘é‡ï¼ˆåŒ…å«å¼‚å¸¸ï¼‰ï¼Œ*/
-    /*å…ˆå¢žå¤§åˆ°2çš„æ•´æ•°æ¬¡å¹‚ï¼Œè‹¥ä¸ºMï¼Œåˆ™Addr = ALIGN(4 * M) */
-    /*ä¸¾ä¾‹ï¼šè‹¥cpuæœ‰64ä¸ªä¸­æ–­ï¼Œåˆ™N = 80, M = 128, Addr = ALIGN(0x200)*/
+    /*Cortex-M ÏµÁÐµÄÏòÁ¿±í¿ÉÖØ¶¨Î»£¬¶ÔÆðÊ¼µØÖ·µÄÒªÇóÊÇ£ºÈôÓÐN¸öÏòÁ¿£¨°üº¬Òì³££©£¬*/
+    /*ÏÈÔö´óµ½2µÄÕûÊý´ÎÃÝ£¬ÈôÎªM£¬ÔòAddr = ALIGN(4 * M) */
+    /*¾ÙÀý£ºÈôcpuÓÐ64¸öÖÐ¶Ï£¬ÔòN = 80, M = 128, Addr = ALIGN(0x200)*/
     zi_preload_rRAM1_lRAM1 (NOLOAD) :
     {
        . = ALIGN(0x200);
@@ -178,69 +194,49 @@ SECTIONS
     }>RAM1
     sys_heap_top = InnerRam1Start + InnerRam1Size;
 
-    heap_rRAM2_lRAM2 (NOLOAD) :
-    {
-        . = ALIGN(0x08);
-        ram2_heap_bottom = .;
-    }>RAM2
-    ram2_heap_top = InnerRam2Start + InnerRam2Size;
-
-    heap_rextram_lextram (NOLOAD) :
-    {
-        . = ALIGN(0x08);
-        extram_heap_bottom = .;
-    }>extram
-    extram_heap_top = ExtRamStart + ExtRamSize;
+    /*heap_rextram_lextram (NOLOAD) :*/
+    /*{*/
+    /*    . = ALIGN(0x08);*/
+    /*    extram_heap_bottom = .;*/
+    /*}>extram*/
+    /*extram_heap_top = ExtRamStart + ExtRamSize;*/
 
     heap_cp_table :
     {
         . = ALIGN(0x08);
         pHeapList = .;
 
-/* é»˜è®¤å †ï¼Œå¿…é¡»æŽ’é¦–ä½ï¼Œåå­—å¿…é¡»æ˜¯â€œsysâ€ */
-        LONG(2)                     /*è¡¨ç¤ºè¯¥å †ç”±ä¸¤æ®µå†…å­˜ç»„æˆ*/
-        LONG(0)                     /*è¯¥å †ä¸Šåˆ†é…çš„å†…å­˜çš„å¯¹é½å°ºå¯¸ï¼Œ0è¡¨ç¤ºä½¿ç”¨ç³»ç»Ÿå¯¹é½*/
-        LONG(0)                     /*0=é€šç”¨å †,1=ä¸“ç”¨å †,å¦‚æžœç³»ç»Ÿåªæœ‰å”¯ä¸€ä¸€ä¸ªå †,åˆ™åªèƒ½æ˜¯é€šç”¨å †*/
-        LONG(sys_heap_bottom)       /*ç¬¬ä¸€æ®µåŸºå€ï¼Œé¡»ç¬¦åˆå¯¹é½è¦æ±‚*/
-        LONG(sys_heap_top)          /*ç¬¬ä¸€æ®µåœ°å€ä¸Šé™ï¼ˆä¸å«ï¼‰ï¼Œé¡»ç¬¦åˆå¯¹é½è¦æ±‚*/
-        LONG(32)                    /*ç¬¬ä¸€æ®µé¡µå°ºå¯¸=32bytes*/
-        LONG(msp_bottom)            /*ç¬¬äºŒæ®µåŸºå€ï¼Œå›žæ”¶åˆå§‹åŒ–æ ˆï¼Œé¡»ç¬¦åˆå¯¹é½è¦æ±‚*/
-        LONG(msp_top - 2048)         /*ç¬¬äºŒæ®µåœ°å€ä¸Šé™ï¼ˆä¸å«ï¼‰ï¼Œ1024æ˜¯ç•™ç»™ä¸­æ–­ä½¿ç”¨çš„ï¼Œé¡»ç¬¦åˆå¯¹é½è¦æ±‚*/
-        LONG(24)                    /*ç¬¬äºŒæ®µé¡µå°ºå¯¸=24bytes*/
+/* Ä¬ÈÏ¶Ñ£¬±ØÐëÅÅÊ×Î»£¬Ãû×Ö±ØÐëÊÇ¡°sys¡± */
+        LONG(2)                     /*±íÊ¾¸Ã¶ÑÓÉÁ½¶ÎÄÚ´æ×é³É*/
+        LONG(0)                     /*¸Ã¶ÑÉÏ·ÖÅäµÄÄÚ´æµÄ¶ÔÆë³ß´ç£¬0±íÊ¾Ê¹ÓÃÏµÍ³¶ÔÆë*/
+        LONG(0)                     /*0=Í¨ÓÃ¶Ñ,1=×¨ÓÃ¶Ñ,Èç¹ûÏµÍ³Ö»ÓÐÎ¨Ò»Ò»¸ö¶Ñ,ÔòÖ»ÄÜÊÇÍ¨ÓÃ¶Ñ*/
+        LONG(sys_heap_bottom)       /*µÚÒ»¶Î»ùÖ·£¬Ðë·ûºÏ¶ÔÆëÒªÇó*/
+        LONG(sys_heap_top)          /*µÚÒ»¶ÎµØÖ·ÉÏÏÞ£¨²»º¬£©£¬Ðë·ûºÏ¶ÔÆëÒªÇó*/
+        LONG(32)                    /*µÚÒ»¶ÎÒ³³ß´ç=32bytes*/
+        LONG(msp_bottom)            /*µÚ¶þ¶Î»ùÖ·£¬»ØÊÕ³õÊ¼»¯Õ»£¬Ðë·ûºÏ¶ÔÆëÒªÇó*/
+        LONG(msp_top - 2048)         /*µÚ¶þ¶ÎµØÖ·ÉÏÏÞ£¨²»º¬£©£¬1024ÊÇÁô¸øÖÐ¶ÏÊ¹ÓÃµÄ£¬Ðë·ûºÏ¶ÔÆëÒªÇó*/
+        LONG(24)                    /*µÚ¶þ¶ÎÒ³³ß´ç=24bytes*/
         BYTE(0x73)                  /*'s'*/
         BYTE(0x79)                  /*'y'*/
         BYTE(0x73)                  /*'s'*/
-        BYTE(0)                     /*ä¸²ç»“æŸï¼Œ"sys"æ˜¯å †çš„åå­—*/
+        BYTE(0)                     /*´®½áÊø£¬"sys"ÊÇ¶ÑµÄÃû×Ö*/
 
+        /*. = ALIGN(0x04);*/
+        /*LONG(1)*/                     /*±íÊ¾¸Ã¶ÑÓÉ1¶ÎÄÚ´æ×é³É*/
+        /*LONG(0)*/                     /*¸Ã¶ÑÉÏ·ÖÅäµÄÄÚ´æµÄ¶ÔÆë³ß´ç£¬0±íÊ¾Ê¹ÓÃÏµÍ³¶ÔÆë*/
+        /*LONG(0)*/                     /*0=Í¨ÓÃ¶Ñ,1=×¨ÓÃ¶Ñ,Èç¹ûÏµÍ³Ö»ÓÐÎ¨Ò»Ò»¸ö¶Ñ,ÔòÖ»ÄÜÊÇÍ¨ÓÃ¶Ñ*/
+        /*LONG(extram_heap_bottom)*/   /*µÚÒ»¶Î»ùÖ·£¬Ðë·ûºÏ¶ÔÆëÒªÇó*/
+        /*LONG(extram_heap_top)*/      /*µÚÒ»¶ÎµØÖ·ÉÏÏÞ£¨²»º¬£©£¬Ðë·ûºÏ¶ÔÆëÒªÇó*/
+        /*LONG(128)*/                   /*µÚÒ»¶ÎÒ³³ß´ç=128bytes*/
+        /*BYTE(0x65)*/                  /*'e'*/
+        /*BYTE(0x78)*/                  /*'x'*/
+        /*BYTE(0x74)*/                  /*'t'*/
+        /*BYTE(0x72)*/                  /*'r'*/
+        /*BYTE(0x61)*/                  /*'a'*/
+        /*BYTE(0x6d)*/                  /*'m'*/
+        /*BYTE(0)*/                     /*´®½áÊø£¬"extram"ÊÇ¶ÑµÄÃû×Ö*/
         . = ALIGN(0x04);
-        LONG(1)                     /*è¡¨ç¤ºè¯¥å †ç”±1æ®µå†…å­˜ç»„æˆ*/
-        LONG(0)                     /*è¯¥å †ä¸Šåˆ†é…çš„å†…å­˜çš„å¯¹é½å°ºå¯¸ï¼Œ0è¡¨ç¤ºä½¿ç”¨ç³»ç»Ÿå¯¹é½*/
-        LONG(0)                     /*0=é€šç”¨å †,1=ä¸“ç”¨å †,å¦‚æžœç³»ç»Ÿåªæœ‰å”¯ä¸€ä¸€ä¸ªå †,åˆ™åªèƒ½æ˜¯é€šç”¨å †*/
-        LONG(ram2_heap_bottom)   /*ç¬¬ä¸€æ®µåŸºå€ï¼Œé¡»ç¬¦åˆå¯¹é½è¦æ±‚*/
-        LONG(ram2_heap_top)      /*ç¬¬ä¸€æ®µåœ°å€ä¸Šé™ï¼ˆä¸å«ï¼‰ï¼Œé¡»ç¬¦åˆå¯¹é½è¦æ±‚*/
-        LONG(32)                   /*ç¬¬ä¸€æ®µé¡µå°ºå¯¸=32bytes*/
-        BYTE(0x72)                  /*'r'*/
-        BYTE(0x61)                  /*'a'*/
-        BYTE(0x6d)                  /*'m'*/
-        BYTE(0x32)                  /*'2'*/
-        BYTE(0)                     /*ä¸²ç»“æŸï¼Œ"extram"æ˜¯å †çš„åå­—*/
-
-        . = ALIGN(0x04);
-        LONG(1)                     /*è¡¨ç¤ºè¯¥å †ç”±1æ®µå†…å­˜ç»„æˆ*/
-        LONG(0)                     /*è¯¥å †ä¸Šåˆ†é…çš„å†…å­˜çš„å¯¹é½å°ºå¯¸ï¼Œ0è¡¨ç¤ºä½¿ç”¨ç³»ç»Ÿå¯¹é½*/
-        LONG(0)                     /*0=é€šç”¨å †,1=ä¸“ç”¨å †,å¦‚æžœç³»ç»Ÿåªæœ‰å”¯ä¸€ä¸€ä¸ªå †,åˆ™åªèƒ½æ˜¯é€šç”¨å †*/
-        LONG(extram_heap_bottom)   /*ç¬¬ä¸€æ®µåŸºå€ï¼Œé¡»ç¬¦åˆå¯¹é½è¦æ±‚*/
-        LONG(extram_heap_top)      /*ç¬¬ä¸€æ®µåœ°å€ä¸Šé™ï¼ˆä¸å«ï¼‰ï¼Œé¡»ç¬¦åˆå¯¹é½è¦æ±‚*/
-        LONG(128)                   /*ç¬¬ä¸€æ®µé¡µå°ºå¯¸=128bytes*/
-        BYTE(0x65)                  /*'e'*/
-        BYTE(0x78)                  /*'x'*/
-        BYTE(0x74)                  /*'t'*/
-        BYTE(0x72)                  /*'r'*/
-        BYTE(0x61)                  /*'a'*/
-        BYTE(0x6d)                  /*'m'*/
-        BYTE(0)                     /*ä¸²ç»“æŸï¼Œ"extram"æ˜¯å †çš„åå­—*/
-        . = ALIGN(0x04);
-        LONG(0)                     /*ç»“æŸæ ‡å¿—*/
+        LONG(0)                     /*½áÊø±êÖ¾*/
     }>InnerFlash
 
     Iboot_Info :
@@ -253,9 +249,9 @@ SECTIONS
     App_Info :
     {
         . = ALIGN(0x08);
-        gc_pAppOffset = .;                      /* APPç©ºé—´åç½® */
+        gc_pAppOffset = .;                      /* APP¿Õ¼äÆ«ÖÃ */
         LONG(InnerFlashOffset + IbootSize)
-        gc_pAppRange = .;                       /* APPç©ºé—´èŒƒå›´ */
+        gc_pAppRange = .;                       /* APP¿Õ¼ä·¶Î§ */
         LONG(InnerFlashRange - IbootSize)
 
     }>InnerFlash
@@ -263,15 +259,15 @@ SECTIONS
   Iboot_AppInfo :
     {
        /* . = restore + IbootSize;*/
-        gc_ptIbootCtrl = .;         /*ç»“æž„å˜é‡ï¼Œcä¸­å¯ç”¨ï¼Œç”¨äºŽæ£€æŸ¥APPæ­£ç¡®æ€§*/
+        gc_ptIbootCtrl = .;         /*½á¹¹±äÁ¿£¬cÖÐ¿ÉÓÃ£¬ÓÃÓÚ¼ì²éAPPÕýÈ·ÐÔ*/
         LONG( restore + IbootSize)
         . += 256;
-        gc_ptAppInfo = .;           /*ROMåŒº å­˜å‚¨APPçš„èµ·å§‹åœ°å€åŠå¤§å° */
+        gc_ptAppInfo = .;           /*ROMÇø ´æ´¢APPµÄÆðÊ¼µØÖ·¼°´óÐ¡ */
         LONG( restore + IbootSize + 256)
         . += 256;
-        gc_AppAddr = .;             /*å‡½æ•°æŒ‡é’ˆå˜é‡ï¼ŒæŒ‡å‘APPçš„èµ·å§‹åœ°å€*/
+        gc_AppAddr = .;             /*º¯ÊýÖ¸Õë±äÁ¿£¬Ö¸ÏòAPPµÄÆðÊ¼µØÖ·*/
         LONG( restore + IbootSize + 256 + 256)
-        __AppStart = .;           /*å‡½æ•°æŒ‡é’ˆå˜é‡ï¼ŒæŒ‡å‘APPçš„Preloadå‡½æ•°*/
+        __AppStart = .;           /*º¯ÊýÖ¸Õë±äÁ¿£¬Ö¸ÏòAPPµÄPreloadº¯Êý*/
         LONG( restore + IbootSize + 256 + 256)
     }>InnerFlash
 
@@ -297,8 +293,8 @@ SECTIONS
         Shell_Info :
     {
         p_shell_info = .;
-        LONG(restore) /* è¯¥binæ–‡ä»¶çš„èµ·å§‹åœ°å€*/
-        LONG(IbootSize) /* è¯¥binæ–‡ä»¶å…è®¸å¤§å°*/
+        LONG(restore) /* ¸ÃbinÎÄ¼þµÄÆðÊ¼µØÖ·*/
+        LONG(IbootSize) /* ¸ÃbinÎÄ¼þÔÊÐí´óÐ¡*/
     }>InnerFlash
 
 

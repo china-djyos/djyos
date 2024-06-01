@@ -31,9 +31,9 @@ enum UART_DMA_CHANNEL
     DMA2_C2,
     DMA2_C3,
     DMA2_C4,
-    // DMA2_C5,
-    // DMA2_C6,
-    // DMA2_C7,
+    DMA2_C5,
+    DMA2_C6,
+    DMA2_C7,
     DMA_NONUSE
 };
 
