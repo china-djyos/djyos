@@ -123,7 +123,8 @@ void Int_SaveAsynSignal(void)
 //-----------------------------------------------------------------------------
 void __Int_ResetAsynSignal(void)
 {
-    Int_CutAsynSignal();
+    Int_LowAtomStart();
+//    Int_CutAsynSignal();
     tg_int_global.en_asyn_signal_counter =1;
     g_bScheduleEnable = false;
     return;
@@ -181,7 +182,8 @@ void Int_RestoreAsynSignal(void)
 //          Int_ContactAsynSignal();
     }else
     {
-        Int_CutAsynSignal();    //防止counter>0期间意外(bug)打开
+        Int_LowAtomStart();    //容错，防止counter>0期间意外(bug)打开
+//        Int_CutAsynSignal();    //防止counter>0期间意外(bug)打开
         g_bScheduleEnable = false;
     }
     return;
@@ -625,7 +627,7 @@ bool_t Int_UnRegister(ufast_t ufl_line)
      return false;
 
     pIntLine = tg_pIntLineTable[ufl_line];
-	tg_pIntLineTable[ufl_line] = NULL;
+    tg_pIntLineTable[ufl_line] = NULL;
     free(pIntLine);
     return true;
 }
