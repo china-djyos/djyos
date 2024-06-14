@@ -1162,7 +1162,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
             UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
             UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
             TX_CH = CFG_UART5_TX_DMA_CHANNEL;
-            RX_CH = CFG_UART6_RX_DMA_CHANNEL;
+            RX_CH = CFG_UART5_RX_DMA_CHANNEL;
             dmause                  = (TX_CH == DMA_NONUSE ? FALSE : TRUE)
                                         && (RX_CH == DMA_NONUSE ? FALSE : TRUE);
             break;

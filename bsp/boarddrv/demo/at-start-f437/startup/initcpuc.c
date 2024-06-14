@@ -48,14 +48,14 @@ void Init_Cpu(void)
     switch(startup_scb_reg->CPUID)
     {
     }
-
+    SystemInit();
     extern void SysClockInit(void);
     SysClockInit();
 
     extern void SRAM_Init(void);
     SRAM_Init();
 
-#if (CFG_RUNMODE == CN_RUNMODE_BOOTSELF)
+#if (CFG_RUNMODE_BAREAPP == 1)
     Iboot_LoadPreload();
 #else
     Iboot_IAP_SelectLoadProgam();

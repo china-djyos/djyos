@@ -204,8 +204,10 @@ extern "C" {
 #endif
 
 #ifndef MG_CALLOC
-#define MG_CALLOC calloc
+// #define MG_CALLOC calloca
+#define MG_CALLOC djyos_alloc
 #endif
+
 
 #ifndef MG_REALLOC
 #define MG_REALLOC djyos_realloc//realloc
@@ -256,7 +258,16 @@ extern "C" {
 
 
 
- 
+ void *djyos_alloc(u32 num, u32 size)
+ {
+    void *rp = 0;
+    rp = M_Malloc(num * size, CN_TIMEOUT_FOREVER);
+    if (rp)
+    {
+      memset(rp, 0, num * size);
+    }
+    return rp;
+ }
 
 
 

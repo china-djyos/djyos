@@ -61,11 +61,11 @@
 #if 0 /* XXX coming soon */
 #include <ctype.h>
 #else
-static inline int
-isspace(char c)
-{
-	return (c == ' ' || c == '\t' || c == '\n' || c == '\12');
-}
+// static inline int
+// isspace(char c)
+// {
+// 	return (c == ' ' || c == '\t' || c == '\n' || c == '\12');
+// }
 #endif
 #include <stdarg.h>
 #include <string.h>

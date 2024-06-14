@@ -57,7 +57,6 @@
 #include <spibus.h>
 #include <unit_media.h>
 #include <dbug.h>
-#include <systime.h>
 #include "w25qxx.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -111,7 +110,7 @@
 #endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
-#define CFG_W25QXX_SPI_CLK                  100000000    //"SPI时钟频率"
+//#define CFG_W25QXX_SPI_CLK                  100000000    //"SPI时钟频率"
 
 #if CFG_W25QXX_QSPI_ENABLE == FALSE
 static struct SPI_Device *s_ptSpiPort; // 器件使用的SPI端口
