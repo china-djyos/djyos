@@ -1,0 +1,8 @@
+2023/12/21
+STM32F767 测试得 240x240 图片解码速度为 200ms/次
+F1C100 速度为 100ms/次，由于 F1C100没有浮点运算单元（信息来源由原厂提供），
+据此优化后，解码速度提高到约40ms/次。
+
+代码的来源有如下
+https://github.com/STMicroelectronics/STM32CubeF7
+https://www.ijg.org/files/jpegsr8d.zip
