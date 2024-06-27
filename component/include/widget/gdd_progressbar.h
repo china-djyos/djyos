@@ -84,6 +84,7 @@ typedef struct
     u32 TextColor;//字体颜色
     u32 DrawTextFlag;//字体风格
     char * text;//进度条显示文本
+    u32 PosBef;//记录之前的位置
 
 }PROGRESSBAR_DATA;
 
@@ -91,7 +92,6 @@ typedef struct
 // 进度条风格，使用struct WINDOW结构Style的低16位，高16位用于窗口公共风格。
 #define PBS_HOR     (0<<0)  //水平进度条
 #define PBS_VER     (1<<0)  //垂直进度条
-#define PBS_FLAT    (1<<1)  //平面风格
 
 //// 进度条模式
 typedef enum{
@@ -107,7 +107,7 @@ HWND Widget_CreateProgressBar(  const char *Text,u32 Style,
                     HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink);
 
-bool_t Widget_MakeProgressRect(RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MODE mode);
+bool_t Widget_MakeProgressRect(HWND hwnd, RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MODE mode);
 #if __cplusplus
 }
 #endif
