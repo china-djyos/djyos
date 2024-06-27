@@ -130,6 +130,10 @@ atom_low_t Int_LowAtomStart(void)
 {
     register ucpu_t msk_lsb,msk_msb;
     atom_low_t low;
+#if(CN_CFG_REG_ATOM == 0)
+    atom_high_t high;
+    high = Int_HighAtomStart();
+#endif      //for #if(CN_CFG_REG_ATOM == 0)
 
     low = pg_int_reg->INTEN1 + ((u64)pg_int_reg->INTEN2<<32);
     msk_lsb = (~tg_int_global.property_bitmap[0]) & CN_INT_MASK_ALL_LINE;
@@ -137,6 +141,9 @@ atom_low_t Int_LowAtomStart(void)
     pg_int_reg->INTEN1 &= ~msk_lsb;
     pg_int_reg->INTEN2 &= ~msk_msb;
 
+#if(CN_CFG_REG_ATOM == 0)
+    Int_HighAtomEnd(high);
+#endif      //for #if(CN_CFG_REG_ATOM == 0)
     return low;
 }
 

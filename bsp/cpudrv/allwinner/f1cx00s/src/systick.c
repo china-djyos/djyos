@@ -170,11 +170,11 @@ __attribute__((weak))   u64 __DjyGetSysTime(void)
         }
         else
         {
-            cyclen =(s32)((s64)interval*24000000 - cyclen);
+            cyclen = reload - cyclen;   //重载值 - 当前值
+//            cyclen =(s32)((s64)interval*24000 - cyclen);
         }
     }
     current = current*CN_CFG_TICK_US + ((s64)cyclen*CN_CFG_FINE_US >>16);
-
     return (u64)current;
 }
 
@@ -221,6 +221,7 @@ __attribute__((weak)) u32 Tick_SetNextTimeTick(s32 Ticks)
             temp = Timer_GetCounter(2) - temp;
             //只需要改变current寄存器，Timer_GetCounter(2)上或减去新ticks和原ticks的差值即可
             Timer_SetCounter(2,temp);
+            s_gCurrentTicks = Ticks;
             Int_HighAtomEnd(atom_high);
         }
         else
@@ -234,10 +235,10 @@ __attribute__((weak)) u32 Tick_SetNextTimeTick(s32 Ticks)
             temp = Timer_GetCounter(2) + temp;
             //只需要改变current寄存器，Timer_GetCounter(2)上或减去新ticks和原ticks的差值即可
             Timer_SetCounter(2,temp);
+            s_gCurrentTicks = Ticks;
             Int_HighAtomEnd(atom_high);
         }
 //        pg_systick_reg->reload = 0xffffff;
-        s_gCurrentTicks = Ticks;
     }
     return s_gCurrentTicks;
 

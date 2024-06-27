@@ -239,7 +239,7 @@ void Timer_SetAutoReload(ufast_t timer)
 {
     if(timer >2)    //c100共3个定时器
         return;
-    pg_tTimerReg->Cell[timer].TimerCtrl |= 1<<1;
+    pg_tTimerReg->Cell[timer].TimerCtrl &= ~(1<<7);
 }
 //----启动定时器----------------------------------------------------------------
 //功能: 启动定时器
@@ -388,7 +388,8 @@ bool_t __F1CTimer_StartCount(struct TimerHandle  *timer)
         }
         else
         {
-            pg_tTimerReg->IrqSta = 1<<timerno;
+//            pg_tTimerReg->IrqSta = 1<<timerno;
+            pg_tTimerReg->Cell[timerno].TimerCtrl |= 1<<1;
             pg_tTimerReg->Cell[timerno].TimerCtrl |= 1<<0;
             timer->timerstate = (timer->timerstate)| (CN_TIMER_ENCOUNT);
 
@@ -451,11 +452,11 @@ bool_t  __F1CTimer_SetAutoReload(struct TimerHandle  *timer, bool_t autoreload)
         {
             if(autoreload == true)
             {
-                pg_tTimerReg->Cell[timerno].TimerCtrl |= 1<<1;
+                pg_tTimerReg->Cell[timerno].TimerCtrl &= ~(1<<7);
             }
             else
             {
-                pg_tTimerReg->Cell[timerno].TimerCtrl &= ~(1<<1);
+                pg_tTimerReg->Cell[timerno].TimerCtrl |= 1<<7;
             }
         }
         else
